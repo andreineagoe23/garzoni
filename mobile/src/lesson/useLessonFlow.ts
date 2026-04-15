@@ -155,6 +155,9 @@ export function useLessonFlow(courseId: number) {
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       void queryClient.invalidateQueries({
+        queryKey: queryKeys.activityHeatmap(),
+      });
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.recentActivity(),
       });
     },
@@ -167,6 +170,9 @@ export function useLessonFlow(courseId: number) {
         queryKey: queryKeys.progressSummary(),
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.activityHeatmap(),
+      });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.recentActivity(),
       });

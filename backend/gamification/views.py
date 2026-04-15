@@ -12,7 +12,6 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Avg, Q, Sum
 from django.core.cache import cache
-import hashlib
 import json
 
 from authentication.user_display import user_display_dict
@@ -33,16 +32,19 @@ from gamification.serializers import (
     LeaderboardSerializer,
 )
 from authentication.models import UserProfile
-from decimal import Decimal
 
 from gamification.services.ledger_labels import describe_ledger_event
 from gamification.services.mission_cycles import (
     daily_cycle_id,
+    ensure_current_cycle_mission_completions,
     get_or_create_current_mission_completion,
     weekly_cycle_id,
     cycle_id_for_mission,
 )
-from gamification.services.rewards import grant_reward
+from gamification.services.missions import (
+    complete_mission as complete_mission_service,
+    swap_mission as swap_mission_service,
+)
 from education.models import (
     LessonCompletion,
     QuizCompletion,
@@ -76,6 +78,15 @@ class MissionView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @staticmethod
+    def _load_visible_completions(user, mission_type: str, current_cycle_id: str):
+        return list(
+            MissionCompletion.objects.filter(user=user, mission__mission_type=mission_type)
+            .filter(Q(cycle_id=current_cycle_id) | Q(cycle_id=""))
+            .exclude(cycle_id__startswith="x")
+            .select_related("mission")
+        )
+
     def get(self, request):
         """Handle GET requests to fetch the user's daily and weekly missions.
         Returns up to 4 daily and 4 weekly, chosen by deterministic shuffle per day/week.
@@ -84,18 +95,33 @@ class MissionView(APIView):
         try:
             d_id = daily_cycle_id()
             w_id = weekly_cycle_id()
-            daily_completions = list(
-                MissionCompletion.objects.filter(user=user, mission__mission_type="daily")
-                .filter(Q(cycle_id=d_id) | Q(cycle_id=""))
-                .exclude(cycle_id__startswith="x")
-                .select_related("mission")
-            )
-            weekly_completions = list(
-                MissionCompletion.objects.filter(user=user, mission__mission_type="weekly")
-                .filter(Q(cycle_id=w_id) | Q(cycle_id=""))
-                .exclude(cycle_id__startswith="x")
-                .select_related("mission")
-            )
+            daily_completions = self._load_visible_completions(user, "daily", d_id)
+            weekly_completions = self._load_visible_completions(user, "weekly", w_id)
+
+            # Self-heal users with stale/empty cycle rows by opening fresh rows
+            # from the live mission pool for the current daily/weekly period.
+            daily_has_current = any(c.cycle_id == d_id for c in daily_completions)
+            weekly_has_current = any(c.cycle_id == w_id for c in weekly_completions)
+            daily_current_ids = {c.mission_id for c in daily_completions if c.cycle_id == d_id}
+            weekly_current_ids = {
+                c.mission_id for c in weekly_completions if c.cycle_id == w_id
+            }
+            daily_pool_count = Mission.objects.filter(mission_type="daily").count()
+            weekly_pool_count = Mission.objects.filter(mission_type="weekly").count()
+            if (
+                not daily_completions
+                or not daily_has_current
+                or len(daily_current_ids) < daily_pool_count
+            ):
+                ensure_current_cycle_mission_completions(user, "daily")
+                daily_completions = self._load_visible_completions(user, "daily", d_id)
+            if (
+                not weekly_completions
+                or not weekly_has_current
+                or len(weekly_current_ids) < weekly_pool_count
+            ):
+                ensure_current_cycle_mission_completions(user, "weekly")
+                weekly_completions = self._load_visible_completions(user, "weekly", w_id)
 
             def _build_payload(completion):
                 return {
@@ -136,9 +162,10 @@ class MissionView(APIView):
             ]
 
             now = timezone.now()
-            today_str = now.date().isoformat()
+            local_today = timezone.localdate()
+            today_str = local_today.isoformat()
             # Week start (Monday)
-            week_start = now.date() - timedelta(days=now.weekday())
+            week_start = local_today - timedelta(days=local_today.weekday())
             week_str = week_start.isoformat()
 
             seed_daily = f"{user.id}-daily-{today_str}"
@@ -146,7 +173,7 @@ class MissionView(APIView):
             _deterministic_shuffle(daily_missions, seed_daily)
             _deterministic_shuffle(weekly_missions, seed_weekly)
             can_swap = not MissionCompletion.objects.filter(
-                user=user, swapped_at__date=now.date()
+                user=user, swapped_at__date=local_today
             ).exists()
 
             return Response(
@@ -213,7 +240,6 @@ class MissionCompleteView(APIView):
     throttle_classes = [MissionCompletionThrottle]
 
     def post(self, request):
-
         user = request.user
         mission_id = request.data.get("mission_id")
         idempotency_key = request.data.get("idempotency_key")
@@ -224,126 +250,14 @@ class MissionCompleteView(APIView):
         if not idempotency_key:
             return Response({"error": "Idempotency key is required."}, status=400)
 
-        # Generate idempotency key if not provided
-        if not idempotency_key:
-            key_data = f"{user.id}_{mission_id}_{timezone.now().isoformat()}"
-            idempotency_key = hashlib.sha256(key_data.encode()).hexdigest()
-
         try:
-            with transaction.atomic():
-                # Check if already completed with this key
-                existing = MissionCompletion.objects.filter(
-                    completion_idempotency_key=idempotency_key
-                ).first()
-
-                if existing:
-                    # Return existing completion data
-                    return Response(
-                        {
-                            "message": "Mission already completed.",
-                            "xp_awarded": existing.xp_awarded,
-                            "progress": existing.progress,
-                            "status": existing.status,
-                        },
-                        status=200,
-                    )
-
-                mission = Mission.objects.select_for_update().get(pk=mission_id)
-                mc, _ = get_or_create_current_mission_completion(
-                    user,
-                    mission,
-                    defaults={"progress": 0, "status": "not_started"},
-                )
-                mission_completion = MissionCompletion.objects.select_for_update().get(pk=mc.pk)
-
-                if mission_completion.status == "completed":
-                    return Response(
-                        {
-                            "error": "Mission already completed.",
-                            "xp_awarded": mission_completion.xp_awarded,
-                        },
-                        status=400,
-                    )
-
-                # Server-side XP calculation (never trust client)
-                base_xp = mission_completion.mission.points_reward
-                xp_multiplier = 1.0
-
-                # Check for first-try bonus
-                first_try = request.data.get("first_try", False)
-                hints_used = request.data.get("hints_used", 0)
-                attempts = request.data.get("attempts", 1)
-
-                if first_try and attempts == 1 and hints_used == 0:
-                    mission_completion.first_try_bonus = True
-                    xp_multiplier += 0.2  # 20% bonus
-
-                # Check for mastery bonus
-                if mission_completion.mission.goal_type == "complete_lesson":
-                    # Check if user completed lessons with high mastery
-                    mastery_bonus = request.data.get("mastery_bonus", False)
-                    if mastery_bonus:
-                        mission_completion.mastery_bonus = True
-                        xp_multiplier += 0.15  # 15% bonus
-
-                # Apply streak boost if active
-                streak_item = StreakItem.objects.filter(
-                    user=user, item_type="streak_boost", quantity__gt=0
-                ).first()
-                if streak_item:
-                    xp_multiplier += 0.3  # 30% boost
-                    streak_item.quantity -= 1
-                    streak_item.save()
-
-                final_xp = int(base_xp * xp_multiplier)
-
-                # Update progress to completion
-                mission_completion.progress = 100
-                mission_completion.status = "completed"
-                mission_completion.completed_at = timezone.now()
-                mission_completion.completion_idempotency_key = idempotency_key
-                mission_completion.xp_awarded = final_xp
-
-                # Track completion time if provided
-                if request.data.get("completion_time_seconds"):
-                    mission_completion.completion_time_seconds = request.data.get(
-                        "completion_time_seconds"
-                    )
-
-                mission_completion.save()
-
-                grant_reward(
-                    user,
-                    f"mission_manual:{idempotency_key}",
-                    points=final_xp,
-                    coins=Decimal("0"),
-                    bump_streak="none",
-                    evaluate_badges=True,
-                )
-
-                # Track performance
-                _track_mission_performance(user, mission_completion, request.data)
-
-                logger.info(
-                    "mission_completed",
-                    extra={
-                        "user_id": user.id,
-                        "mission_id": mission_id,
-                        "xp_awarded": final_xp,
-                        "first_try": mission_completion.first_try_bonus,
-                        "mastery_bonus": mission_completion.mastery_bonus,
-                    },
-                )
-
-                return Response(
-                    {
-                        "message": "Mission completed successfully.",
-                        "xp_awarded": final_xp,
-                        "progress": 100,
-                        "status": "completed",
-                    },
-                    status=200,
-                )
+            payload, code = complete_mission_service(
+                user=user,
+                mission_id=mission_id,
+                idempotency_key=idempotency_key,
+                completion_data=request.data,
+            )
+            return Response(payload, status=code)
 
         except Mission.DoesNotExist:
             return Response({"error": "Mission not found for this user."}, status=404)
@@ -644,128 +558,21 @@ class MissionSwapView(APIView):
             return Response({"error": "Mission ID is required."}, status=400)
 
         try:
-            with transaction.atomic():
-                mission = Mission.objects.select_for_update().get(pk=mission_id)
-                mc, _ = get_or_create_current_mission_completion(
-                    user,
-                    mission,
-                    defaults={"progress": 0, "status": "not_started"},
-                )
-                cid = cycle_id_for_mission(mission)
-                mission_completion = MissionCompletion.objects.select_for_update().get(pk=mc.pk)
-                mission_completions = MissionCompletion.objects.select_for_update().filter(
-                    user=user, mission_id=mission_id, cycle_id=cid
-                ).order_by("-id")
-
-                if mission_completions.count() > 1:
-                    logger.warning(
-                        "Found %s duplicate MissionCompletion records for user %s, mission %s. Keeping most recent.",
-                        mission_completions.count(),
-                        user.id,
-                        mission_id,
-                    )
-                    mission_completions.exclude(id=mission_completion.id).delete()
-
-                # Check if already swapped this cycle
-                today = timezone.now().date()
-                swapped_today = MissionCompletion.objects.filter(
-                    user=user, swapped_at__date=today
-                ).exists()
-
-                if swapped_today:
-                    return Response({"error": "You can only swap one mission per day."}, status=400)
-
-                if mission_completion.status == "completed":
-                    return Response({"error": "Cannot swap a completed mission."}, status=400)
-
-                # Generate a new mastery-aware mission
-                new_mission = self._generate_mastery_aware_mission(
-                    user, mission_completion.mission.mission_type
-                )
-
-                if not new_mission:
-                    return Response(
-                        {"error": "No suitable replacement mission available."},
-                        status=400,
-                    )
-
-                # Create new completion
-                _new_completion = MissionCompletion.objects.create(
-                    user=user,
-                    mission=new_mission,
-                    cycle_id=cycle_id_for_mission(new_mission),
-                    progress=0,
-                    status="not_started",
-                    swapped_from_mission=mission_completion,
-                )
-
-                # Mark old mission as swapped
-                mission_completion.swapped_at = timezone.now()
-                mission_completion.status = "not_started"
-                mission_completion.progress = 0
-                mission_completion.save()
-
-                return Response(
-                    {
-                        "message": "Mission swapped successfully.",
-                        "new_mission": {
-                            "id": new_mission.id,
-                            "name": normalize_text_encoding(new_mission.name),
-                            "description": normalize_text_encoding(new_mission.description),
-                            "points_reward": new_mission.points_reward,
-                        },
-                    },
-                    status=200,
-                )
+            payload, code = swap_mission_service(user=user, mission_id=mission_id)
+            if "new_mission" in payload:
+                nm = payload["new_mission"] or {}
+                payload["new_mission"] = {
+                    **nm,
+                    "name": normalize_text_encoding(nm.get("name")),
+                    "description": normalize_text_encoding(nm.get("description")),
+                }
+            return Response(payload, status=code)
 
         except Mission.DoesNotExist:
             return Response({"error": "Mission not found."}, status=404)
         except Exception as e:
             logger.error(f"Error swapping mission: {str(e)}")
             return Response({"error": "An error occurred while swapping mission."}, status=500)
-
-    def _generate_mastery_aware_mission(self, user, mission_type):
-        """Generate a mission targeting user's weakest skills."""
-        # Get user's weakest skills
-        weakest_skills = Mastery.objects.filter(user=user).order_by("proficiency", "due_at")[:3]
-
-        if not weakest_skills.exists():
-            # Fallback to any available mission
-            return (
-                Mission.objects.filter(mission_type=mission_type, is_template=False)
-                .exclude(completions__user=user, completions__status="completed")
-                .first()
-            )
-
-        # Find missions targeting weakest skills
-        target_skill = weakest_skills.first().skill
-
-        # Try to find a mission for this skill
-        mission = (
-            Mission.objects.filter(
-                mission_type=mission_type,
-                target_weakest_skills=True,
-                goal_type="complete_lesson",
-                is_template=False,
-            )
-            .exclude(completions__user=user, completions__status="completed")
-            .first()
-        )
-
-        if mission:
-            # Update goal_reference to target the weak skill
-            goal_ref = mission.goal_reference or {}
-            goal_ref["target_skill"] = target_skill
-            mission.goal_reference = goal_ref
-            mission.save()
-            return mission
-
-        # Fallback
-        return (
-            Mission.objects.filter(mission_type=mission_type, is_template=False)
-            .exclude(completions__user=user, completions__status="completed")
-            .first()
-        )
 
 
 class StreakItemView(APIView):

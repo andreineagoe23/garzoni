@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
@@ -9,6 +11,20 @@ from authentication.models import UserProfile
 from education.models import ExerciseCompletion, LessonCompletion, SectionCompletion
 from gamification.models import MissionCompletion, RewardLedgerEntry
 from onboarding.models import QuestionnaireProgress
+
+
+def _completion_day_key(value) -> str | None:
+    """Normalize ORM __date values so they match calendar dict keys (YYYY-MM-DD)."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    s = str(value).strip()
+    if len(s) >= 10 and s[4] == "-" and s[7] == "-":
+        return s[:10]
+    return s or None
 
 
 def build_activity_calendar(user, first_day, last_day):
@@ -27,9 +43,9 @@ def build_activity_calendar(user, first_day, last_day):
         .values("completed_at__date")
         .annotate(count=models.Count("id"))
     ):
-        activity_calendar[str(row["completed_at__date"])] = (
-            activity_calendar.get(str(row["completed_at__date"]), 0) + row["count"]
-        )
+        d = _completion_day_key(row.get("completed_at__date"))
+        if d:
+            activity_calendar[d] = activity_calendar.get(d, 0) + row["count"]
 
     for row in (
         SectionCompletion.objects.filter(
@@ -40,9 +56,9 @@ def build_activity_calendar(user, first_day, last_day):
         .values("completed_at__date")
         .annotate(count=models.Count("id"))
     ):
-        activity_calendar[str(row["completed_at__date"])] = (
-            activity_calendar.get(str(row["completed_at__date"]), 0) + row["count"]
-        )
+        d = _completion_day_key(row.get("completed_at__date"))
+        if d:
+            activity_calendar[d] = activity_calendar.get(d, 0) + row["count"]
 
     for row in (
         ExerciseCompletion.objects.filter(
@@ -53,11 +69,64 @@ def build_activity_calendar(user, first_day, last_day):
         .values("completed_at__date")
         .annotate(count=models.Count("id"))
     ):
-        activity_calendar[str(row["completed_at__date"])] = (
-            activity_calendar.get(str(row["completed_at__date"]), 0) + row["count"]
-        )
+        d = _completion_day_key(row.get("completed_at__date"))
+        if d:
+            activity_calendar[d] = activity_calendar.get(d, 0) + row["count"]
 
     return activity_calendar
+
+
+def build_activity_calendar_by_type(user, first_day, last_day):
+    """
+    Per-date counts by activity kind (lessons, sections, exercises).
+    Keys are ISO date strings; values sum to the same totals as build_activity_calendar per day.
+    """
+    empty_day = {"lessons": 0, "sections": 0, "exercises": 0}
+    by_type = {
+        str(first_day + timezone.timedelta(days=x)): dict(empty_day)
+        for x in range((last_day - first_day).days + 1)
+    }
+
+    def _add(kind, row):
+        d = _completion_day_key(row.get("completed_at__date"))
+        if not d or d not in by_type:
+            return
+        by_type[d][kind] = by_type[d][kind] + row["count"]
+
+    for row in (
+        LessonCompletion.objects.filter(
+            user_progress__user=user,
+            completed_at__date__gte=first_day,
+            completed_at__date__lte=last_day,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    ):
+        _add("lessons", row)
+
+    for row in (
+        SectionCompletion.objects.filter(
+            user_progress__user=user,
+            completed_at__date__gte=first_day,
+            completed_at__date__lte=last_day,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    ):
+        _add("sections", row)
+
+    for row in (
+        ExerciseCompletion.objects.filter(
+            user=user,
+            completed_at__date__gte=first_day,
+            completed_at__date__lte=last_day,
+        )
+        .values("completed_at__date")
+        .annotate(count=models.Count("id"))
+    ):
+        _add("exercises", row)
+
+    return by_type
 
 
 def build_activity_heatmap(user, days: int = 60) -> list:
@@ -92,9 +161,17 @@ def build_activity_heatmap(user, days: int = 60) -> list:
         .annotate(count=models.Count("id"))
     )
 
-    lessons_by_date = {str(r["completed_at__date"]): r["count"] for r in lesson_rows}
-    sections_by_date = {str(r["completed_at__date"]): r["count"] for r in section_rows}
-    exercises_by_date = {str(r["completed_at__date"]): r["count"] for r in exercise_rows}
+    def _count_by_day(rows):
+        out = {}
+        for r in rows:
+            d = _completion_day_key(r.get("completed_at__date"))
+            if d:
+                out[d] = out.get(d, 0) + r["count"]
+        return out
+
+    lessons_by_date = _count_by_day(lesson_rows)
+    sections_by_date = _count_by_day(section_rows)
+    exercises_by_date = _count_by_day(exercise_rows)
 
     result = []
     for i in range(days):
@@ -120,12 +197,14 @@ def build_profile_payload(user, profile: UserProfile):
     last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
 
     cache_ttl = int(getattr(settings, "USER_PROFILE_CACHE_TTL_SECONDS", 300))
-    cache_key = f"user_profile_summary:{user.id}:{first_day.isoformat()}"
+    # Bump when profile shape changes so stale Redis entries cannot omit calendar breakdown.
+    cache_key = f"user_profile_summary:v3:{user.id}:{first_day.isoformat()}"
     cached = cache.get(cache_key)
     if cached:
         return cached
 
     activity_calendar = build_activity_calendar(user, first_day, last_day)
+    activity_calendar_by_type = build_activity_calendar_by_type(user, first_day, last_day)
 
     # Use new onboarding (QuestionnaireProgress) only - so new users get is_questionnaire_completed=False
     questionnaire_completed = QuestionnaireProgress.objects.filter(
@@ -188,8 +267,12 @@ def build_profile_payload(user, profile: UserProfile):
                 "savings_rate_estimate": profile.savings_rate_estimate,
                 "investing_experience": profile.investing_experience,
             },
+            # Mirror for clients that merge `user_data` over the root payload (calendar must survive).
+            "activity_calendar": activity_calendar,
+            "activity_calendar_by_type": activity_calendar_by_type,
         },
         "activity_calendar": activity_calendar,
+        "activity_calendar_by_type": activity_calendar_by_type,
         "current_month": {
             "first_day": first_day.isoformat(),
             "last_day": last_day.isoformat(),
@@ -262,5 +345,5 @@ def invalidate_profile_cache(user, target_date=None):
     if target_date is None:
         target_date = timezone.now().date()
     first_day = target_date.replace(day=1)
-    cache_key = f"user_profile_summary:{user.id}:{first_day.isoformat()}"
-    cache.delete(cache_key)
+    for suffix in ("", ":v3"):
+        cache.delete(f"user_profile_summary{suffix}:{user.id}:{first_day.isoformat()}")

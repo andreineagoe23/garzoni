@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.sm,
+    marginBottom: spacing.sm,
     borderBottomWidth: 0.5,
     gap: spacing.sm,
   },

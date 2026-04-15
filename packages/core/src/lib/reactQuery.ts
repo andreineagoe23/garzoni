@@ -7,6 +7,8 @@ export const queryKeys = {
   // Keep these as functions so callsites can't accidentally diverge.
   // When we add typing later, this pattern becomes fully type-safe.
   profile: () => ["profile"] as const,
+  /** Per-day lesson/section/exercise counts (not Redis-cached with profile). */
+  activityHeatmap: () => ["activityHeatmap"] as const,
   entitlements: () => ["entitlements"] as const,
 
   progressSummary: () => ["progressSummary"] as const,
@@ -58,6 +60,7 @@ export const queryKeys = {
 export const staleTimes = {
   // Identity/user profile: avoid refetching on every navigation; rely on explicit invalidation after mutations.
   profile: 15 * MINUTE,
+  activityHeatmap: 2 * MINUTE,
   entitlements: 10 * MINUTE,
 
   // Progress summary is used across multiple screens; keep it fresh-ish but avoid unnecessary refetching.

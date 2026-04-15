@@ -1,13 +1,5 @@
 import { useMemo } from "react";
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { Platform, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
 import { PACKAGE_TYPE } from "react-native-purchases";
@@ -15,8 +7,9 @@ import GlassButton from "../ui/GlassButton";
 import GlassCard from "../ui/GlassCard";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
-import { PRODUCT_TO_PLAN } from "../../billing/subscriptionRuntime";
+import { planFromStoreProductIdentifier } from "../../billing/subscriptionRuntime";
 import {
+  filterPackagesByBillingInterval,
   paywallPackageTypeI18nKey,
   shouldMarkAnnualBestValue,
   sortPackagesForPaywall,
@@ -37,16 +30,19 @@ type GarzoniRevenueCatPaywallProps = {
   onManagePress?: () => void;
   showRestore?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** When set, only annual or only monthly packages are shown (like web plans page). */
+  billingInterval?: "yearly" | "monthly";
+  /** Hide title/subtitle block (parent screen already explains context). */
+  hideMarketingHeader?: boolean;
 };
 
 function tierLabel(
   pkg: PurchasesPackage,
   t: (k: string) => string,
 ): string | null {
-  const plan = PRODUCT_TO_PLAN[pkg.product.identifier];
+  const plan = planFromStoreProductIdentifier(pkg.product.identifier);
   if (plan === "pro") return t("subscriptions.pro");
-  if (plan === "plus") return t("subscriptions.plus");
-  return null;
+  return t("subscriptions.plus");
 }
 
 export default function GarzoniRevenueCatPaywall({
@@ -61,6 +57,8 @@ export default function GarzoniRevenueCatPaywall({
   onManagePress,
   showRestore = true,
   style,
+  billingInterval = "yearly",
+  hideMarketingHeader = false,
 }: GarzoniRevenueCatPaywallProps) {
   const c = useThemeColors();
   const { t } = useTranslation("common");
@@ -69,10 +67,11 @@ export default function GarzoniRevenueCatPaywall({
       ? t("subscriptions.paywallStoreApple")
       : t("subscriptions.paywallStoreGoogle");
 
-  const sorted = useMemo(
-    () => sortPackagesForPaywall(offering?.availablePackages ?? []),
-    [offering?.availablePackages],
-  );
+  const sorted = useMemo(() => {
+    const raw = offering?.availablePackages ?? [];
+    const ordered = sortPackagesForPaywall(raw);
+    return filterPackagesByBillingInterval(ordered, billingInterval);
+  }, [offering?.availablePackages, billingInterval]);
 
   const compact = variant === "compact";
 
@@ -112,45 +111,18 @@ export default function GarzoniRevenueCatPaywall({
 
   return (
     <View style={style}>
-      {!compact ? (
+      {!hideMarketingHeader && !compact ? (
         <View style={styles.heroBlock}>
-          <Text
-            style={[
-              styles.kicker,
-              { color: c.primary, letterSpacing: 2.5 },
-            ]}
-          >
-            {t("subscriptions.paywallKicker")}
-          </Text>
           <Text style={[styles.heroTitle, { color: c.text }]}>
             {t("subscriptions.paywallTitle")}
           </Text>
           <Text style={[styles.heroSubtitle, { color: c.textMuted }]}>
-            {t("subscriptions.paywallSubtitle")}
+            {t("subscriptions.paywallSubtitle")}{" "}
+            {t("subscriptions.paywallFeatureCancel", { store: storeName })}
           </Text>
-          {offering?.identifier ? (
-            <Text style={[styles.offeringId, { color: c.textFaint }]}>
-              {t("subscriptions.paywallOfferingHint", {
-                identifier: offering.identifier,
-              })}
-            </Text>
-          ) : null}
-          <View style={styles.bullets}>
-            <Text style={[styles.bullet, { color: c.text }]}>
-              {"\u2022 "}
-              {t("subscriptions.paywallFeatureTools")}
-            </Text>
-            <Text style={[styles.bullet, { color: c.text }]}>
-              {"\u2022 "}
-              {t("subscriptions.paywallFeaturePath")}
-            </Text>
-            <Text style={[styles.bullet, { color: c.text }]}>
-              {"\u2022 "}
-              {t("subscriptions.paywallFeatureCancel", { store: storeName })}
-            </Text>
-          </View>
         </View>
-      ) : (
+      ) : null}
+      {!hideMarketingHeader && compact ? (
         <View style={{ marginBottom: spacing.lg }}>
           <Text style={[styles.compactTitle, { color: c.text }]}>
             {t("subscriptions.paywallCompactTitle")}
@@ -159,7 +131,7 @@ export default function GarzoniRevenueCatPaywall({
             {t("subscriptions.paywallCompactSubtitle")}
           </Text>
         </View>
-      )}
+      ) : null}
 
       {sorted.map((pkg) => {
         const product = pkg.product;
@@ -275,51 +247,23 @@ export default function GarzoniRevenueCatPaywall({
           </GlassButton>
         ) : null}
       </View>
-
-      {loading && sorted.length > 0 ? (
-        <Text style={[styles.refreshHint, { color: c.textFaint }]}>
-          {t("subscriptions.loadingPlans")}
-        </Text>
-      ) : null}
-
-      {!loadError && onRetryLoad ? (
-        <Pressable
-          onPress={onRetryLoad}
-          style={({ pressed }) => [
-            styles.retryLink,
-            { opacity: pressed ? 0.65 : 1 },
-          ]}
-        >
-          <Text style={{ color: c.primary, fontSize: typography.sm }}>
-            {t("subscriptions.paywallRefreshPlans")}
-          </Text>
-        </Pressable>
-      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  heroBlock: { marginBottom: spacing.xl },
-  kicker: {
-    fontSize: typography.xs,
-    fontWeight: "800",
-    marginBottom: spacing.sm,
-  },
+  heroBlock: { marginBottom: spacing.lg },
   heroTitle: {
-    fontSize: typography.hero,
+    fontSize: typography.xl,
     fontWeight: "800",
-    lineHeight: 40,
-    marginBottom: spacing.sm,
+    lineHeight: 28,
+    marginBottom: spacing.xs,
   },
   heroSubtitle: {
     fontSize: typography.sm,
-    lineHeight: 22,
-    marginBottom: spacing.sm,
+    lineHeight: 20,
+    marginBottom: 0,
   },
-  offeringId: { fontSize: typography.xs, marginBottom: spacing.md },
-  bullets: { gap: spacing.xs },
-  bullet: { fontSize: typography.sm, lineHeight: 22 },
   compactTitle: {
     fontSize: typography.xl,
     fontWeight: "800",
@@ -362,10 +306,4 @@ const styles = StyleSheet.create({
   },
   loadingText: { fontSize: typography.sm, marginBottom: spacing.md },
   errorText: { fontSize: typography.sm, lineHeight: 20 },
-  refreshHint: {
-    fontSize: typography.xs,
-    marginTop: spacing.sm,
-    textAlign: "center",
-  },
-  retryLink: { marginTop: spacing.md, alignSelf: "center" },
 });

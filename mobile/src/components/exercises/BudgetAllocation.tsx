@@ -14,6 +14,7 @@ import type {
 type Props = {
   data: Record<string, unknown>;
   exerciseId?: string | number;
+  sectionId?: string | number;
   isCompleted?: boolean;
   disabled?: boolean;
   onAttempt?: (payload: { correct: boolean }) => void;
@@ -71,6 +72,7 @@ function createStyles(c: ThemeColors) {
 export default function BudgetAllocation({
   data,
   exerciseId,
+  sectionId,
   isCompleted: isCompletedProp,
   disabled,
   onAttempt,
@@ -103,7 +105,7 @@ export default function BudgetAllocation({
     setFeedbackType(null);
     setIsCompleted(Boolean(isCompletedProp));
     setSubmitting(false);
-  }, [exerciseId, isCompletedProp, categories.join("|")]);
+  }, [exerciseId, sectionId, isCompletedProp, categories.join("|")]);
 
   const currentTotal = useMemo(
     () =>
@@ -130,6 +132,7 @@ export default function BudgetAllocation({
         const { data: res } = await submitExerciseAnswer(exerciseId, {
           user_answer: userAnswer,
           hints_used: hintsUsed,
+          ...(sectionId != null ? { section_id: sectionId } : {}),
         });
         const fb =
           (typeof res.feedback === "string" && res.feedback) ||
