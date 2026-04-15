@@ -58,6 +58,7 @@ export default function GlassCard({
         intensity={intensity}
         tint={tint}
         style={StyleSheet.absoluteFill}
+        pointerEvents="none"
       />
       <View
         style={[

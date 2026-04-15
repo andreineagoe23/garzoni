@@ -131,6 +131,7 @@ function ExercisesInner() {
   const { t } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const confettiRef = useRef<ConfettiCannon>(null);
+  const [confettiActive, setConfettiActive] = useState(false);
   const hadIncorrectRef = useRef(false);
   const uniqueCompletedRef = useRef<Set<number>>(new Set());
   const summaryShownRef = useRef(false);
@@ -355,6 +356,7 @@ function ExercisesInner() {
   }, [detailQuery.data]);
 
   const fireConfetti = useCallback(() => {
+    setConfettiActive(true);
     setTimeout(() => confettiRef.current?.start(), 200);
   }, []);
 
@@ -549,7 +551,8 @@ function ExercisesInner() {
             { paddingBottom: 88 + Math.max(insets.bottom, spacing.md) },
           ]}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          keyboardDismissMode="interactive"
+          automaticallyAdjustKeyboardInsets
           refreshControl={
             <RefreshControl
               refreshing={
@@ -781,12 +784,6 @@ function ExercisesInner() {
                   height={5}
                   style={{ marginTop: spacing.sm }}
                 />
-                <ProgressBar
-                  value={sessionBatchFraction}
-                  height={4}
-                  color={c.accent}
-                  style={{ marginTop: spacing.sm }}
-                />
               </View>
 
               <GlassCard padding="md" style={{ marginBottom: spacing.md }}>
@@ -919,6 +916,30 @@ function ExercisesInner() {
                   ))}
                 </View>
               ) : null}
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: spacing.sm,
+                  marginBottom: spacing.md,
+                }}
+              >
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={skipToPrev}
+                  style={{ flex: 1 }}
+                >
+                  {t("exercises.practiceHub.prevExercise")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={skipToNext}
+                  style={{ flex: 1 }}
+                >
+                  {t("exercises.practiceHub.skipExercise")}
+                </Button>
+              </View>
             </>
           ) : null}
 
@@ -945,35 +966,6 @@ function ExercisesInner() {
           ) : null}
         </ScrollView>
 
-        {!isListPending && !isListError && filteredList.length > 0 ? (
-          <View
-            style={[
-              styles.lessonBottomBar,
-              {
-                borderTopColor: c.border,
-                backgroundColor: c.surface,
-                paddingBottom: Math.max(insets.bottom, spacing.md),
-              },
-            ]}
-          >
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={skipToPrev}
-              style={styles.bottomBarBtn}
-            >
-              {t("exercises.practiceHub.prevExercise")}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={skipToNext}
-              style={styles.bottomBarBtn}
-            >
-              {t("exercises.practiceHub.skipExercise")}
-            </Button>
-          </View>
-        ) : null}
       </View>
 
       {/* Category picker modal */}
@@ -1151,14 +1143,29 @@ function ExercisesInner() {
         </View>
       </Modal>
 
-      <ConfettiCannon
-        ref={confettiRef}
-        count={72}
-        origin={{ x: -10, y: 0 }}
-        fadeOut
-        autoStart={false}
-        colors={["#ffd700", c.primary, "#ffffff", c.accent]}
-      />
+      {confettiActive ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}
+        >
+          <ConfettiCannon
+            ref={confettiRef}
+            count={72}
+            origin={{ x: -10, y: 0 }}
+            fadeOut
+            autoStart={false}
+            colors={["#ffd700", c.primary, "#ffffff", c.accent]}
+            onAnimationEnd={() => setConfettiActive(false)}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -1289,18 +1296,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     gap: spacing.sm,
     flexDirection: "column",
-  },
-  lessonBottomBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: spacing.sm,
-  },
-  bottomBarBtn: {
-    flex: 1,
-    minHeight: 48,
   },
 });
