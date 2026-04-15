@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from authentication.user_display import user_display_dict
 from authentication.models import UserProfile
-from education.models import ExerciseCompletion, LessonCompletion, SectionCompletion
+from education.models import DailyActivityLog
 from gamification.models import MissionCompletion, RewardLedgerEntry
 from onboarding.models import QuestionnaireProgress
 
@@ -35,41 +35,11 @@ def build_activity_calendar(user, first_day, last_day):
     }
 
     for row in (
-        LessonCompletion.objects.filter(
-            user_progress__user=user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day,
-        )
-        .values("completed_at__date")
+        DailyActivityLog.objects.filter(user=user, date__gte=first_day, date__lte=last_day)
+        .values("date")
         .annotate(count=models.Count("id"))
     ):
-        d = _completion_day_key(row.get("completed_at__date"))
-        if d:
-            activity_calendar[d] = activity_calendar.get(d, 0) + row["count"]
-
-    for row in (
-        SectionCompletion.objects.filter(
-            user_progress__user=user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day,
-        )
-        .values("completed_at__date")
-        .annotate(count=models.Count("id"))
-    ):
-        d = _completion_day_key(row.get("completed_at__date"))
-        if d:
-            activity_calendar[d] = activity_calendar.get(d, 0) + row["count"]
-
-    for row in (
-        ExerciseCompletion.objects.filter(
-            user=user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day,
-        )
-        .values("completed_at__date")
-        .annotate(count=models.Count("id"))
-    ):
-        d = _completion_day_key(row.get("completed_at__date"))
+        d = _completion_day_key(row.get("date"))
         if d:
             activity_calendar[d] = activity_calendar.get(d, 0) + row["count"]
 
@@ -78,53 +48,68 @@ def build_activity_calendar(user, first_day, last_day):
 
 def build_activity_calendar_by_type(user, first_day, last_day):
     """
-    Per-date counts by activity kind (lessons, sections, exercises).
+    Per-date counts by activity kind (lessons, sections, exercises, quizzes).
     Keys are ISO date strings; values sum to the same totals as build_activity_calendar per day.
     """
-    empty_day = {"lessons": 0, "sections": 0, "exercises": 0}
+    empty_day = {"lessons": 0, "sections": 0, "exercises": 0, "quizzes": 0}
     by_type = {
         str(first_day + timezone.timedelta(days=x)): dict(empty_day)
         for x in range((last_day - first_day).days + 1)
     }
 
     def _add(kind, row):
-        d = _completion_day_key(row.get("completed_at__date"))
+        d = _completion_day_key(row.get("date"))
         if not d or d not in by_type:
             return
         by_type[d][kind] = by_type[d][kind] + row["count"]
 
     for row in (
-        LessonCompletion.objects.filter(
-            user_progress__user=user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day,
+        DailyActivityLog.objects.filter(
+            user=user,
+            activity_type="lesson",
+            date__gte=first_day,
+            date__lte=last_day,
         )
-        .values("completed_at__date")
+        .values("date")
         .annotate(count=models.Count("id"))
     ):
         _add("lessons", row)
 
     for row in (
-        SectionCompletion.objects.filter(
-            user_progress__user=user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day,
+        DailyActivityLog.objects.filter(
+            user=user,
+            activity_type="section",
+            date__gte=first_day,
+            date__lte=last_day,
         )
-        .values("completed_at__date")
+        .values("date")
         .annotate(count=models.Count("id"))
     ):
         _add("sections", row)
 
     for row in (
-        ExerciseCompletion.objects.filter(
+        DailyActivityLog.objects.filter(
             user=user,
-            completed_at__date__gte=first_day,
-            completed_at__date__lte=last_day,
+            activity_type="exercise",
+            date__gte=first_day,
+            date__lte=last_day,
         )
-        .values("completed_at__date")
+        .values("date")
         .annotate(count=models.Count("id"))
     ):
         _add("exercises", row)
+
+    for row in (
+        DailyActivityLog.objects.filter(
+            user=user,
+            activity_type="quiz",
+            date__gte=first_day,
+            date__lte=last_day,
+        )
+        .values("date")
+        .annotate(count=models.Count("id"))
+    ):
+        _add("quizzes", row)
 
     return by_type
 
@@ -134,37 +119,50 @@ def build_activity_heatmap(user, days: int = 60) -> list:
     start = today - timezone.timedelta(days=days - 1)
 
     lesson_rows = (
-        LessonCompletion.objects.filter(
-            user_progress__user=user,
-            completed_at__date__gte=start,
-            completed_at__date__lte=today,
+        DailyActivityLog.objects.filter(
+            user=user,
+            activity_type="lesson",
+            date__gte=start,
+            date__lte=today,
         )
-        .values("completed_at__date")
+        .values("date")
         .annotate(count=models.Count("id"))
     )
     section_rows = (
-        SectionCompletion.objects.filter(
-            user_progress__user=user,
-            completed_at__date__gte=start,
-            completed_at__date__lte=today,
+        DailyActivityLog.objects.filter(
+            user=user,
+            activity_type="section",
+            date__gte=start,
+            date__lte=today,
         )
-        .values("completed_at__date")
+        .values("date")
         .annotate(count=models.Count("id"))
     )
     exercise_rows = (
-        ExerciseCompletion.objects.filter(
+        DailyActivityLog.objects.filter(
             user=user,
-            completed_at__date__gte=start,
-            completed_at__date__lte=today,
+            activity_type="exercise",
+            date__gte=start,
+            date__lte=today,
         )
-        .values("completed_at__date")
+        .values("date")
+        .annotate(count=models.Count("id"))
+    )
+    quiz_rows = (
+        DailyActivityLog.objects.filter(
+            user=user,
+            activity_type="quiz",
+            date__gte=start,
+            date__lte=today,
+        )
+        .values("date")
         .annotate(count=models.Count("id"))
     )
 
     def _count_by_day(rows):
         out = {}
         for r in rows:
-            d = _completion_day_key(r.get("completed_at__date"))
+            d = _completion_day_key(r.get("date"))
             if d:
                 out[d] = out.get(d, 0) + r["count"]
         return out
@@ -172,6 +170,7 @@ def build_activity_heatmap(user, days: int = 60) -> list:
     lessons_by_date = _count_by_day(lesson_rows)
     sections_by_date = _count_by_day(section_rows)
     exercises_by_date = _count_by_day(exercise_rows)
+    quizzes_by_date = _count_by_day(quiz_rows)
 
     result = []
     for i in range(days):
@@ -180,13 +179,17 @@ def build_activity_heatmap(user, days: int = 60) -> list:
         l = lessons_by_date.get(date_str, 0)
         s = sections_by_date.get(date_str, 0)
         e = exercises_by_date.get(date_str, 0)
-        result.append({
-            "date": date_str,
-            "totalActivities": l + s + e,
-            "lessonsCompleted": l,
-            "sectionsCompleted": s,
-            "exercisesCompleted": e,
-        })
+        q = quizzes_by_date.get(date_str, 0)
+        result.append(
+            {
+                "date": date_str,
+                "totalActivities": l + s + e + q,
+                "lessonsCompleted": l,
+                "sectionsCompleted": s,
+                "exercisesCompleted": e,
+                "quizzesCompleted": q,
+            }
+        )
 
     return result
 
@@ -198,7 +201,7 @@ def build_profile_payload(user, profile: UserProfile):
 
     cache_ttl = int(getattr(settings, "USER_PROFILE_CACHE_TTL_SECONDS", 300))
     # Bump when profile shape changes so stale Redis entries cannot omit calendar breakdown.
-    cache_key = f"user_profile_summary:v3:{user.id}:{first_day.isoformat()}"
+    cache_key = f"user_profile_summary:v4:{user.id}:{first_day.isoformat()}"
     cached = cache.get(cache_key)
     if cached:
         return cached
@@ -345,5 +348,5 @@ def invalidate_profile_cache(user, target_date=None):
     if target_date is None:
         target_date = timezone.now().date()
     first_day = target_date.replace(day=1)
-    for suffix in ("", ":v3"):
+    for suffix in ("", ":v3", ":v4"):
         cache.delete(f"user_profile_summary{suffix}:{user.id}:{first_day.isoformat()}")

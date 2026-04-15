@@ -408,9 +408,7 @@ class RewardLedgerEntry(models.Model):
     cannot double-award the same logical event.
     """
 
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="reward_ledger_entries"
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reward_ledger_entries")
     event_key = models.CharField(max_length=220, db_index=True)
     points = models.IntegerField(default=0)
     coins = models.DecimalField(max_digits=10, decimal_places=2, default=0)

@@ -1631,9 +1631,7 @@ class SubscriptionChangeView(APIView):
             if not item_id:
                 return Response({"error": "Invalid subscription item."}, status=400)
             price_obj = (
-                getattr(first, "price", None)
-                if not isinstance(first, dict)
-                else first.get("price")
+                getattr(first, "price", None) if not isinstance(first, dict) else first.get("price")
             )
             cur_pid = (
                 price_obj
@@ -1674,7 +1672,9 @@ class SubscriptionChangeView(APIView):
                     "success": True,
                     "plan_id": new_plan,
                     "current_period_end": period_end_iso,
-                    "cancel_at_period_end": bool(getattr(subscription, "cancel_at_period_end", False)),
+                    "cancel_at_period_end": bool(
+                        getattr(subscription, "cancel_at_period_end", False)
+                    ),
                 },
                 status=200,
             )

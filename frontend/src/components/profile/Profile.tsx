@@ -20,6 +20,23 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys, staleTimes } from "lib/reactQuery";
+
+type ActivityCalendarByTypeDay = {
+  lessons?: number | string;
+  sections?: number | string;
+  exercises?: number | string;
+  quizzes?: number | string;
+};
+
+type ActivityCalendarByTypeMap = Record<string, ActivityCalendarByTypeDay>;
+
+function coerceActivityCalendarByType(raw: unknown): ActivityCalendarByTypeMap {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return {};
+  }
+  return raw as ActivityCalendarByTypeMap;
+}
+
 function Profile() {
   type RecentActivityItem = {
     id: string;
@@ -88,6 +105,8 @@ function Profile() {
   const [activityCalendar, setActivityCalendar] = useState<
     Record<string, unknown>
   >({});
+  const [activityCalendarByType, setActivityCalendarByType] =
+    useState<ActivityCalendarByTypeMap>({});
   const [currentMonth, setCurrentMonth] = useState<{
     first_day?: string | number | Date | null;
     last_day?: string | number | Date | null;
@@ -194,6 +213,12 @@ function Profile() {
           String(profileUserData.profile_avatar || DEFAULT_AVATAR_URL)
         );
         setActivityCalendar(resolvedProfilePayload.activity_calendar || {});
+        setActivityCalendarByType(
+          coerceActivityCalendarByType(
+            resolvedProfilePayload.activity_calendar_by_type ??
+              profileUserData.activity_calendar_by_type
+          )
+        );
         setCurrentMonth(resolvedProfilePayload.current_month || {});
 
         const dailyLessonMission = missionsResponse.data.daily_missions.find(
@@ -458,6 +483,7 @@ function Profile() {
           <ActivityCalendar
             currentMonth={currentMonth}
             activityCalendar={activityCalendar}
+            activityCalendarByType={activityCalendarByType}
             weekdayLabels={weekdayLabels}
           />
         </section>

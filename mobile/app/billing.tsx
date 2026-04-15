@@ -11,7 +11,10 @@ import {
 import { Stack, router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
+import type {
+  PurchasesOffering,
+  PurchasesPackage,
+} from "react-native-purchases";
 import {
   fetchEntitlements,
   fetchProfile,
@@ -123,35 +126,39 @@ export default function BillingScreen() {
     };
   }, [portalEligible, queryClient]);
 
-  const loadOffering = useCallback(async (tier?: "plus" | "pro") => {
-    if (!getRevenueCatPurchases()) {
-      setLoadingOffering(false);
-      return;
-    }
-    const uid = profileQ.data?.user?.toString();
-    if (!configureRevenueCatForUser(uid)) {
-      setOfferingLoadFailed(true);
-      setLoadingOffering(false);
-      return;
-    }
-    const resolved = tier ?? storefrontTierRef.current;
-    storefrontTierRef.current = resolved;
-    setStorefrontTier(resolved);
-    setLoadingOffering(true);
-    setOfferingLoadFailed(false);
-    try {
-      setOffering(
-        await fetchRevenueCatPaywallOffering(
-          resolved === "pro" ? { offeringId: RC_OFFERING_PRO } : undefined,
-        ),
-      );
-    } catch (e) {
-      setOfferingLoadFailed(true);
-      if (__DEV__) console.warn("[Billing] RevenueCat getOfferings failed:", e);
-    } finally {
-      setLoadingOffering(false);
-    }
-  }, [profileQ.data?.user]);
+  const loadOffering = useCallback(
+    async (tier?: "plus" | "pro") => {
+      if (!getRevenueCatPurchases()) {
+        setLoadingOffering(false);
+        return;
+      }
+      const uid = profileQ.data?.user?.toString();
+      if (!configureRevenueCatForUser(uid)) {
+        setOfferingLoadFailed(true);
+        setLoadingOffering(false);
+        return;
+      }
+      const resolved = tier ?? storefrontTierRef.current;
+      storefrontTierRef.current = resolved;
+      setStorefrontTier(resolved);
+      setLoadingOffering(true);
+      setOfferingLoadFailed(false);
+      try {
+        setOffering(
+          await fetchRevenueCatPaywallOffering(
+            resolved === "pro" ? { offeringId: RC_OFFERING_PRO } : undefined,
+          ),
+        );
+      } catch (e) {
+        setOfferingLoadFailed(true);
+        if (__DEV__)
+          console.warn("[Billing] RevenueCat getOfferings failed:", e);
+      } finally {
+        setLoadingOffering(false);
+      }
+    },
+    [profileQ.data?.user],
+  );
 
   useEffect(() => {
     if (profileLoaded.current) return;
@@ -208,9 +215,11 @@ export default function BillingScreen() {
   const onManageStore = useCallback(async () => {
     setErr("");
     const rc = getRevenueCatPurchases();
-    const showManageSubscriptions = (rc?.Purchases as {
-      showManageSubscriptions?: () => Promise<void>;
-    } | null)?.showManageSubscriptions;
+    const showManageSubscriptions = (
+      rc?.Purchases as {
+        showManageSubscriptions?: () => Promise<void>;
+      } | null
+    )?.showManageSubscriptions;
     try {
       if (showManageSubscriptions) {
         await showManageSubscriptions();
@@ -368,7 +377,11 @@ export default function BillingScreen() {
             >
               {t("subscriptions.paywallRetry")}
             </Text>
-            <GlassButton variant="active" size="md" onPress={() => void loadOffering()}>
+            <GlassButton
+              variant="active"
+              size="md"
+              onPress={() => void loadOffering()}
+            >
               {t("onboarding.tryAgain")}
             </GlassButton>
           </GlassCard>
@@ -403,7 +416,11 @@ export default function BillingScreen() {
 
         <View style={styles.actions}>
           {isSubscribed && revenueCatNative ? (
-            <GlassButton variant="active" size="lg" onPress={() => void onManageStore()}>
+            <GlassButton
+              variant="active"
+              size="lg"
+              onPress={() => void onManageStore()}
+            >
               {Platform.OS === "ios"
                 ? t("billing.manageInAppStore")
                 : t("billing.manageInPlayStore")}

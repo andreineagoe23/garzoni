@@ -243,7 +243,9 @@ export default function RegisterScreen() {
                   { backgroundColor: c.errorBg, borderColor: c.error },
                 ]}
               >
-                <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
+                <Text style={[styles.errorText, { color: c.error }]}>
+                  {error}
+                </Text>
               </View>
             ) : null}
 
@@ -370,15 +372,21 @@ export default function RegisterScreen() {
               loading={loading}
               onPress={() => void onSubmit()}
             >
-              {loading ? t("auth.register.submitting") : t("auth.register.submit")}
+              {loading
+                ? t("auth.register.submitting")
+                : t("auth.register.submit")}
             </GlassButton>
 
             <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.dividerLine, { backgroundColor: c.border }]}
+              />
               <Text style={[styles.dividerText, { color: c.textMuted }]}>
                 {t("auth.orContinueWith")}
               </Text>
-              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.dividerLine, { backgroundColor: c.border }]}
+              />
             </View>
 
             <AuthSocialSection

@@ -10,7 +10,10 @@ import {
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
+import type {
+  PurchasesOffering,
+  PurchasesPackage,
+} from "react-native-purchases";
 import {
   fetchEntitlements,
   fetchProfile,
@@ -81,7 +84,9 @@ export default function SubscriptionsScreen() {
   const onboardingParam = Array.isArray(params.onboarding)
     ? params.onboarding[0]
     : params.onboarding;
-  const reasonParam = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const reasonParam = Array.isArray(params.reason)
+    ? params.reason[0]
+    : params.reason;
   const onboardingMode = String(onboardingParam ?? "").toLowerCase() === "true";
   const personalizedPathReason =
     String(reasonParam ?? "").toLowerCase() === "personalized_path";
@@ -139,31 +144,34 @@ export default function SubscriptionsScreen() {
 
   const plans = plansQ.data ?? [];
 
-  const loadRevenueCatOffering = useCallback(async (tier?: "plus" | "pro") => {
-    if (!getRevenueCatPurchases()) return null;
-    const userId = profileQ.data?.user?.toString();
-    if (!configureRevenueCatForUser(userId)) {
-      setOfferingLoadFailed(true);
-      return null;
-    }
-    const resolved = tier ?? lastPaywallTierRef.current;
-    lastPaywallTierRef.current = resolved;
-    setLoadingOffering(true);
-    setOfferingLoadFailed(false);
-    try {
-      const next = await fetchRevenueCatPaywallOffering(
-        resolved === "pro" ? { offeringId: RC_OFFERING_PRO } : undefined,
-      );
-      setOffering(next);
-      return next;
-    } catch (e) {
-      setOfferingLoadFailed(true);
-      if (__DEV__) console.warn("[Subscriptions] getOfferings:", e);
-      return null;
-    } finally {
-      setLoadingOffering(false);
-    }
-  }, [profileQ.data?.user]);
+  const loadRevenueCatOffering = useCallback(
+    async (tier?: "plus" | "pro") => {
+      if (!getRevenueCatPurchases()) return null;
+      const userId = profileQ.data?.user?.toString();
+      if (!configureRevenueCatForUser(userId)) {
+        setOfferingLoadFailed(true);
+        return null;
+      }
+      const resolved = tier ?? lastPaywallTierRef.current;
+      lastPaywallTierRef.current = resolved;
+      setLoadingOffering(true);
+      setOfferingLoadFailed(false);
+      try {
+        const next = await fetchRevenueCatPaywallOffering(
+          resolved === "pro" ? { offeringId: RC_OFFERING_PRO } : undefined,
+        );
+        setOffering(next);
+        return next;
+      } catch (e) {
+        setOfferingLoadFailed(true);
+        if (__DEV__) console.warn("[Subscriptions] getOfferings:", e);
+        return null;
+      } finally {
+        setLoadingOffering(false);
+      }
+    },
+    [profileQ.data?.user],
+  );
 
   useEffect(() => {
     if (!revenueCatNative || !profileQ.isFetched) return;
@@ -242,16 +250,19 @@ export default function SubscriptionsScreen() {
     });
   }, [plans, t]);
 
-  const persistPlanChoice = useCallback(async (planId: string) => {
-    if (planId !== "starter" && planId !== "plus" && planId !== "pro") return;
-    try {
-      await patchUserProfile({ subscription_plan_id: planId });
-      await setPlanChosenCache();
-      await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-    } catch {
-      /* best-effort; gate will still use server profile on next load */
-    }
-  }, [queryClient]);
+  const persistPlanChoice = useCallback(
+    async (planId: string) => {
+      if (planId !== "starter" && planId !== "plus" && planId !== "pro") return;
+      try {
+        await patchUserProfile({ subscription_plan_id: planId });
+        await setPlanChosenCache();
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      } catch {
+        /* best-effort; gate will still use server profile on next load */
+      }
+    },
+    [queryClient],
+  );
 
   const onRcPurchase = useCallback(
     async (pkg: PurchasesPackage) => {
@@ -448,7 +459,11 @@ export default function SubscriptionsScreen() {
               {t("subscriptions.activatingTitle")}
             </Text>
             <Text
-              style={{ color: c.textMuted, marginTop: spacing.xs, lineHeight: 20 }}
+              style={{
+                color: c.textMuted,
+                marginTop: spacing.xs,
+                lineHeight: 20,
+              }}
             >
               {t("subscriptions.activatingBody")}
             </Text>
@@ -610,7 +625,9 @@ export default function SubscriptionsScreen() {
                       });
                   const paidPlanDisabled =
                     !isStarter &&
-                    (!revenueCatNative || loadingOffering || packages.length === 0);
+                    (!revenueCatNative ||
+                      loadingOffering ||
+                      packages.length === 0);
                   return (
                     <GlassCard
                       key={`${plan.plan_id}-${plan.billing_interval}`}
@@ -628,7 +645,12 @@ export default function SubscriptionsScreen() {
                             { backgroundColor: c.primary + "1f" },
                           ]}
                         >
-                          <Text style={[styles.starterBadgeText, { color: c.primary }]}>
+                          <Text
+                            style={[
+                              styles.starterBadgeText,
+                              { color: c.primary },
+                            ]}
+                          >
                             Free forever
                           </Text>
                         </View>

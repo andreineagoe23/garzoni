@@ -261,7 +261,10 @@ function ProfileInner() {
       | { earned_xp_today?: number; target_xp?: number }
       | undefined) ?? { earned_xp_today: 0, target_xp: 50 };
     const dailyCurrent = Math.round(Number(dailyGoal.earned_xp_today ?? 0));
-    const dailyTarget = Math.max(1, Math.round(Number(dailyGoal.target_xp ?? 50)));
+    const dailyTarget = Math.max(
+      1,
+      Math.round(Number(dailyGoal.target_xp ?? 50)),
+    );
     const pts = typeof merged?.points === "number" ? merged.points : 0;
     const weeklyTarget = 500;
     return {

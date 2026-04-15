@@ -119,8 +119,7 @@ module.exports = ({ config }) => ({
       process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY?.trim() || undefined,
     /** Optional RevenueCat Targeting placement id for the in-app paywall offering. */
     revenueCatPaywallPlacement:
-      process.env.EXPO_PUBLIC_REVENUECAT_PAYWALL_PLACEMENT?.trim() ||
-      undefined,
+      process.env.EXPO_PUBLIC_REVENUECAT_PAYWALL_PLACEMENT?.trim() || undefined,
   },
   plugins: [
     "expo-router",

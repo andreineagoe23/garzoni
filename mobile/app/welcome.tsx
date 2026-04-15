@@ -61,12 +61,13 @@ const SLIDES: Slide[] = [
         ].map((icon) => (
           <View
             key={icon}
-            style={[
-              styles.toolCard,
-              { borderColor: `${color.primary}44` },
-            ]}
+            style={[styles.toolCard, { borderColor: `${color.primary}44` }]}
           >
-            <MaterialCommunityIcons name={icon as never} size={24} color={color.primary} />
+            <MaterialCommunityIcons
+              name={icon as never}
+              size={24}
+              color={color.primary}
+            />
           </View>
         ))}
       </View>
@@ -182,7 +183,10 @@ export default function WelcomeScreen() {
               void markSeenAndGo("/register");
               return;
             }
-            listRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
+            listRef.current?.scrollToIndex({
+              index: activeIndex + 1,
+              animated: true,
+            });
           }}
         >
           {last ? "Get started" : "Continue"}
@@ -190,7 +194,8 @@ export default function WelcomeScreen() {
 
         <Pressable onPress={() => void markSeenAndGo("/login")} hitSlop={10}>
           <Text style={[styles.loginLink, { color: c.textMuted }]}>
-            Already have an account? <Text style={{ color: c.primary }}>Log in</Text>
+            Already have an account?{" "}
+            <Text style={{ color: c.primary }}>Log in</Text>
           </Text>
         </Pressable>
       </View>
@@ -235,7 +240,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  planColumn: { alignItems: "center", gap: spacing.sm, paddingHorizontal: spacing.sm },
+  planColumn: {
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
   planChip: {
     borderWidth: 1,
     borderRadius: radius.full,

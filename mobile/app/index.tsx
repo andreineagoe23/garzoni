@@ -4,7 +4,11 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { fetchProfile, fetchQuestionnaireProgress } from "@garzoni/core";
 import { colors } from "../src/theme/tokens";
-import { getPlanChosenCache, getWelcomeSeen, setPlanChosenCache } from "../src/auth/firstRunFlags";
+import {
+  getPlanChosenCache,
+  getWelcomeSeen,
+  setPlanChosenCache,
+} from "../src/auth/firstRunFlags";
 
 type OnboardingStatus = "pending" | "done" | "needs_onboarding";
 type WelcomeStatus = "pending" | "seen" | "unseen";
@@ -60,8 +64,11 @@ export default function Index() {
         const chosen =
           Boolean(profile.subscription_plan_id) ||
           Boolean(
-            (profile.user_data as { subscription_plan_id?: string | null } | undefined)
-              ?.subscription_plan_id,
+            (
+              profile.user_data as
+                | { subscription_plan_id?: string | null }
+                | undefined
+            )?.subscription_plan_id,
           );
         setPlanStatus(chosen ? "chosen" : "not_chosen");
         if (chosen) await setPlanChosenCache();

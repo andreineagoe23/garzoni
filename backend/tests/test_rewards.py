@@ -16,6 +16,7 @@ from rest_framework.test import APITestCase
 
 from education.models import (
     Course,
+    DailyActivityLog,
     Lesson,
     LessonSection,
     Path,
@@ -47,9 +48,7 @@ class RewardLedgerTests(APITestCase):
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.points, before + 7)
         self.assertEqual(
-            RewardLedgerEntry.objects.filter(
-                user=self.user, event_key="unit:test:event:1"
-            ).count(),
+            RewardLedgerEntry.objects.filter(user=self.user, event_key="unit:test:event:1").count(),
             1,
         )
 
@@ -74,10 +73,14 @@ class SectionRewardIdempotencyTests(APITestCase):
 
     def test_complete_section_twice_no_extra_xp(self):
         url = reverse("userprogress-complete-section")
-        self.assertEqual(self.client.post(url, {"section_id": self.section.id}, format="json").status_code, 200)
+        self.assertEqual(
+            self.client.post(url, {"section_id": self.section.id}, format="json").status_code, 200
+        )
         self.user.profile.refresh_from_db()
         pts = self.user.profile.points
-        self.assertEqual(self.client.post(url, {"section_id": self.section.id}, format="json").status_code, 200)
+        self.assertEqual(
+            self.client.post(url, {"section_id": self.section.id}, format="json").status_code, 200
+        )
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.points, pts)
 
@@ -193,6 +196,12 @@ class QuizRewardIdempotencyTests(APITestCase):
         r2 = self.client.post(url, body, format="json")
         self.assertEqual(r2.status_code, status.HTTP_200_OK)
         self.assertTrue(r2.data.get("already_completed"))
+        self.assertEqual(
+            DailyActivityLog.objects.filter(
+                user=self.user, activity_type="quiz", object_id=self.quiz.id
+            ).count(),
+            1,
+        )
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.earned_money, money1)
         self.assertEqual(self.user.profile.points, pts1)

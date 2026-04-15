@@ -96,7 +96,8 @@ export default function PersonalizedPathContentMobile({
   });
 
   const refreshMutation = useMutation({
-    mutationFn: async (_opts?: { silent?: boolean }) => postPersonalizedPathRefresh(),
+    mutationFn: async (_opts?: { silent?: boolean }) =>
+      postPersonalizedPathRefresh(),
     onSuccess: async (_data, variables) => {
       await personalizedQuery.refetch();
       if (!variables?.silent) {
@@ -234,7 +235,9 @@ export default function PersonalizedPathContentMobile({
         <GlassButton
           variant="primary"
           size="sm"
-          onPress={() => router.push(href("/onboarding?reason=personalized_path"))}
+          onPress={() =>
+            router.push(href("/onboarding?reason=personalized_path"))
+          }
         >
           {t("onboarding.reminderBanner.start")}
         </GlassButton>
@@ -558,7 +561,9 @@ export default function PersonalizedPathContentMobile({
           <GlassButton
             variant="primary"
             size="sm"
-            onPress={() => router.push(href("/subscriptions?reason=personalized_path"))}
+            onPress={() =>
+              router.push(href("/subscriptions?reason=personalized_path"))
+            }
           >
             {t("personalizedPath.upgrade")}
           </GlassButton>
@@ -571,7 +576,9 @@ export default function PersonalizedPathContentMobile({
         >
           {t("personalizedPath.basedOnOnboarding")}{" "}
           <Text
-            onPress={() => router.push(href("/onboarding?reason=personalized_path"))}
+            onPress={() =>
+              router.push(href("/onboarding?reason=personalized_path"))
+            }
             style={{ color: c.primary, fontWeight: "700" }}
           >
             {t("personalizedPath.updatePreferences")}
