@@ -8,6 +8,7 @@ export type ActivityDaySummary = {
   lessonsCompleted: number;
   sectionsCompleted: number;
   exercisesCompleted: number;
+  quizzesCompleted: number;
 };
 
 export type ActivityCalendarMap = Record<string, ActivityDaySummary>;
@@ -203,6 +204,11 @@ export default function DashboardActivityHeatmap({
                 label="Exercises"
                 value={selectedSummary.exercisesCompleted}
                 color={colors.accent}
+              />
+              <Stat
+                label="Quizzes"
+                value={selectedSummary.quizzesCompleted}
+                color={colors.primary}
               />
             </View>
           ) : (

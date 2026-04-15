@@ -1,7 +1,4 @@
-import {
-  PACKAGE_TYPE,
-  type PurchasesPackage,
-} from "react-native-purchases";
+import { PACKAGE_TYPE, type PurchasesPackage } from "react-native-purchases";
 
 const PACKAGE_DISPLAY_ORDER: PACKAGE_TYPE[] = [
   PACKAGE_TYPE.ANNUAL,
@@ -43,9 +40,7 @@ export function filterPackagesByBillingInterval(
   return filtered.length > 0 ? filtered : packages;
 }
 
-export function paywallPackageTypeI18nKey(
-  packageType: PACKAGE_TYPE,
-): string {
+export function paywallPackageTypeI18nKey(packageType: PACKAGE_TYPE): string {
   switch (packageType) {
     case PACKAGE_TYPE.ANNUAL:
       return "subscriptions.paywallPackageAnnual";

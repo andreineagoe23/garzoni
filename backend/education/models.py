@@ -240,6 +240,29 @@ class SectionCompletion(models.Model):
         db_table = "core_sectioncompletion"
 
 
+class DailyActivityLog(models.Model):
+    ACTIVITY_TYPES = [
+        ("section", "Section"),
+        ("lesson", "Lesson"),
+        ("exercise", "Exercise"),
+        ("quiz", "Quiz"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    object_id = models.PositiveIntegerField()
+    course = models.ForeignKey(Course, null=True, on_delete=models.SET_NULL)
+    date = models.DateField(default=timezone.localdate)
+
+    class Meta:
+        db_table = "education_daily_activity_log"
+        unique_together = ("user", "activity_type", "object_id")
+        indexes = [
+            models.Index(fields=["user", "date"]),
+            models.Index(fields=["user", "activity_type", "date"]),
+        ]
+
+
 class EducationAuditLog(models.Model):
     """Simple audit log for administrative changes within the education domain."""
 

@@ -8,13 +8,14 @@ import type {
 
 export const fetchProfile = () => apiClient.get<UserProfile>("/userprofile/");
 
-/** Last N calendar days with separate lesson / section / exercise counts (dashboard heatmap). */
+/** Last N calendar days with separate lesson / section / exercise / quiz counts (dashboard heatmap). */
 export type ActivityHeatmapDay = {
   date: string;
   totalActivities?: number;
   lessonsCompleted?: number;
   sectionsCompleted?: number;
   exercisesCompleted?: number;
+  quizzesCompleted?: number;
 };
 
 export const fetchActivityHeatmap = (days = 90) =>
@@ -215,7 +216,10 @@ export const postSubscriptionCheckout = (body: {
       "[garzoni/core] postSubscriptionCheckout must not be called from native. Use RevenueCat.",
     );
   }
-  return apiClient.post<{ redirect_url?: string }>("/subscriptions/create/", body);
+  return apiClient.post<{ redirect_url?: string }>(
+    "/subscriptions/create/",
+    body,
+  );
 };
 
 export const fetchSubscriptionPlans = () =>

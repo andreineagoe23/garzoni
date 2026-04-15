@@ -123,7 +123,10 @@ export function authLogoWhiteBgUrl(opts?: { width?: number }): string {
     w != null && Number.isFinite(w) && w > 0
       ? `f_auto,q_auto,w_${Math.min(900, Math.round(w))}`
       : "f_auto,q_auto,w_480";
-  const cdn = cloudinaryImageUrl("garzoni/logo/garzoni-logo-white-bg", transforms);
+  const cdn = cloudinaryImageUrl(
+    "garzoni/logo/garzoni-logo-white-bg",
+    transforms,
+  );
   if (cdn) return cdn;
   return `${getMediaBaseUrl()}/media/logo/garzoni-logo-white-bg.png`;
 }

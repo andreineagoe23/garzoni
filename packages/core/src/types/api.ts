@@ -47,10 +47,15 @@ export type UserProfile = {
   stripe_subscription_id?: string | null;
   reviews_due?: number;
   activity_calendar?: Record<string, unknown>;
-  /** Per-day counts for dashboard heatmap (lessons / sections / exercises). */
+  /** Per-day counts for dashboard heatmap (lessons / sections / exercises / quizzes). */
   activity_calendar_by_type?: Record<
     string,
-    { lessons?: number; sections?: number; exercises?: number }
+    {
+      lessons?: number;
+      sections?: number;
+      exercises?: number;
+      quizzes?: number;
+    }
   >;
   current_month?: {
     first_day?: string | number | Date;

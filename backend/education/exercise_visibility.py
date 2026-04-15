@@ -16,9 +16,7 @@ from education.models import ExerciseTranslation
 INTERNAL_EXERCISE_CATEGORY = "General"
 
 
-def apply_learner_exercise_filters(
-    qs: QuerySet, user, *, force_learner: bool = False
-) -> QuerySet:
+def apply_learner_exercise_filters(qs: QuerySet, user, *, force_learner: bool = False) -> QuerySet:
     """
     Restrict queryset to exercises safe to show in product surfaces (list, categories,
     recommendations, etc.).

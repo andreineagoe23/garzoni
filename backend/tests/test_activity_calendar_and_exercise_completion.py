@@ -10,15 +10,14 @@ from rest_framework.test import APITestCase
 from authentication.services.profile import build_activity_calendar_by_type
 from education.models import (
     Course,
+    DailyActivityLog,
     Exercise,
     ExerciseCompletion,
     Lesson,
-    LessonCompletion,
     LessonSection,
     Path,
-    SectionCompletion,
-    UserProgress,
 )
+from education.services.activity import record_activity
 
 
 def _make_numeric_exercise(**kwargs):
@@ -42,7 +41,6 @@ class BuildActivityCalendarByTypeTests(TestCase):
         self.lesson = Lesson.objects.create(
             course=self.course, title="Lesson", detailed_content="x"
         )
-        self.up = UserProgress.objects.create(user=self.user, course=self.course)
         self.section = LessonSection.objects.create(
             lesson=self.lesson,
             order=1,
@@ -52,18 +50,23 @@ class BuildActivityCalendarByTypeTests(TestCase):
             is_published=True,
         )
 
-    def test_same_day_lesson_section_and_exercise_counts(self):
+    def test_same_day_lesson_section_exercise_and_quiz_counts(self):
         today = timezone.now().date()
-        LessonCompletion.objects.create(user_progress=self.up, lesson=self.lesson)
-        SectionCompletion.objects.create(user_progress=self.up, section=self.section)
         ex = _make_numeric_exercise()
-        ExerciseCompletion.objects.create(user=self.user, exercise=ex, section=None)
+        record_activity(self.user, "lesson", self.lesson.id, course=self.course)
+        record_activity(self.user, "section", self.section.id, course=self.course)
+        record_activity(self.user, "exercise", ex.id, course=self.course)
+        record_activity(self.user, "quiz", 999, course=self.course)
+
+        # Keep all activity rows on today's date for deterministic assertions.
+        DailyActivityLog.objects.filter(user=self.user).update(date=today)
 
         out = build_activity_calendar_by_type(self.user, today, today)
         key = today.isoformat()
         self.assertEqual(out[key]["lessons"], 1)
         self.assertEqual(out[key]["sections"], 1)
         self.assertEqual(out[key]["exercises"], 1)
+        self.assertEqual(out[key]["quizzes"], 1)
 
 
 class ExerciseSubmitCreatesCompletionTests(APITestCase):
@@ -79,6 +82,12 @@ class ExerciseSubmitCreatesCompletionTests(APITestCase):
         self.assertTrue(r.data.get("correct"))
         self.assertEqual(
             ExerciseCompletion.objects.filter(user=self.user, exercise=self.ex).count(),
+            1,
+        )
+        self.assertEqual(
+            DailyActivityLog.objects.filter(
+                user=self.user, activity_type="exercise", object_id=self.ex.id
+            ).count(),
             1,
         )
 

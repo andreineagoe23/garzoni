@@ -108,8 +108,12 @@ class MissionsApiSelfHealTest(APITestCase):
 
         response = self.client.get("/api/missions/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn(daily_mission.id, [row["id"] for row in response.data.get("daily_missions", [])])
-        self.assertIn(weekly_mission.id, [row["id"] for row in response.data.get("weekly_missions", [])])
+        self.assertIn(
+            daily_mission.id, [row["id"] for row in response.data.get("daily_missions", [])]
+        )
+        self.assertIn(
+            weekly_mission.id, [row["id"] for row in response.data.get("weekly_missions", [])]
+        )
         self.assertTrue(
             MissionCompletion.objects.filter(
                 user=self.user,

@@ -59,7 +59,9 @@ export default function OnboardingScreen() {
   const c = useThemeColors();
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ reason?: string | string[] }>();
-  const reasonParam = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const reasonParam = Array.isArray(params.reason)
+    ? params.reason[0]
+    : params.reason;
   const personalizedPathReason =
     String(reasonParam ?? "").toLowerCase() === "personalized_path";
   const [phase, setPhase] = useState<
@@ -111,7 +113,10 @@ export default function OnboardingScreen() {
           router.replace("/(tabs)");
           return;
         }
-        if (progress.status === "in_progress" || progress.status === "abandoned") {
+        if (
+          progress.status === "in_progress" ||
+          progress.status === "abandoned"
+        ) {
           await AsyncStorage.setItem(INTRO_STORAGE_KEY, "1");
           await loadNextQuestion();
           setPhase("questionnaire");
@@ -200,7 +205,9 @@ export default function OnboardingScreen() {
 
   if (phase === "checking") {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}>
+      <SafeAreaView
+        style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <ActivityIndicator size="large" color={c.primary} />
       </SafeAreaView>
@@ -209,7 +216,9 @@ export default function OnboardingScreen() {
 
   if (phase === "error") {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}>
+      <SafeAreaView
+        style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <Text style={[styles.errorText, { color: c.error }]}>{errorMsg}</Text>
         <Button
@@ -250,7 +259,9 @@ export default function OnboardingScreen() {
 
   if (phase === "done" && completionRewards) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}>
+      <SafeAreaView
+        style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <OnboardingCompletionOverlay
           xp={completionRewards.xp}
@@ -334,7 +345,9 @@ export default function OnboardingScreen() {
               )}
 
               {errorMsg ? (
-                <Text style={[styles.errorText, { color: c.error }]}>{errorMsg}</Text>
+                <Text style={[styles.errorText, { color: c.error }]}>
+                  {errorMsg}
+                </Text>
               ) : null}
 
               <View style={styles.actions}>

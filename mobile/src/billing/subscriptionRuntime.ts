@@ -61,7 +61,9 @@ export const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
  * Map store product id → Garzoni plan. Uses `PRODUCT_TO_PLAN` first, then a
  * fragile name heuristic for unknown ids (log in dev via paywall fetch).
  */
-export function planFromStoreProductIdentifier(productId: string): "plus" | "pro" {
+export function planFromStoreProductIdentifier(
+  productId: string,
+): "plus" | "pro" {
   const mapped = PRODUCT_TO_PLAN[productId];
   if (mapped) return mapped;
   const id = productId.toLowerCase();
@@ -76,7 +78,8 @@ function devWarnIfOfferingUsesUnmappedStoreProducts(
   const unknown: string[] = [];
   for (const pkg of offering.availablePackages) {
     const id = pkg.product.identifier;
-    if (!Object.prototype.hasOwnProperty.call(PRODUCT_TO_PLAN, id)) unknown.push(id);
+    if (!Object.prototype.hasOwnProperty.call(PRODUCT_TO_PLAN, id))
+      unknown.push(id);
   }
   if (!unknown.length) return;
   const known = Object.keys(PRODUCT_TO_PLAN).join(", ");
@@ -248,7 +251,10 @@ export async function fetchRevenueCatPaywallOffering(
         if (targeted?.availablePackages?.length) result = targeted;
       } catch (e) {
         if (__DEV__) {
-          console.warn("[RevenueCat] getCurrentOfferingForPlacement failed:", e);
+          console.warn(
+            "[RevenueCat] getCurrentOfferingForPlacement failed:",
+            e,
+          );
         }
       }
     }
@@ -264,7 +270,9 @@ export async function fetchRevenueCatPaywallOffering(
 export async function refreshSubscriptionQueries(queryClient: QueryClient) {
   await queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
   await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-  await queryClient.invalidateQueries({ queryKey: queryKeys.subscriptionPlans() });
+  await queryClient.invalidateQueries({
+    queryKey: queryKeys.subscriptionPlans(),
+  });
 }
 
 function planRank(plan?: string | null) {

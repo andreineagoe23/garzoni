@@ -26,7 +26,8 @@ export function formatRelativeTime(iso: string, locale: string): string {
   };
 
   const { value, unit } = absToValueAndUnit();
-  const maybeRtf = (globalThis as { Intl?: typeof Intl }).Intl?.RelativeTimeFormat;
+  const maybeRtf = (globalThis as { Intl?: typeof Intl }).Intl
+    ?.RelativeTimeFormat;
   if (typeof maybeRtf === "function") {
     return new maybeRtf(locale, { numeric: "auto" }).format(sign * value, unit);
   }

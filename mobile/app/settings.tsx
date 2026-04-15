@@ -116,7 +116,10 @@ export default function SettingsScreen() {
   const reminderOptions = useMemo(
     () =>
       [
-        { value: "none" as const, label: t("settings.preferences.reminders.none") },
+        {
+          value: "none" as const,
+          label: t("settings.preferences.reminders.none"),
+        },
         {
           value: "weekly" as const,
           label: t("settings.preferences.reminders.weekly"),
@@ -149,9 +152,7 @@ export default function SettingsScreen() {
             {t("settings.preferences.subtitle")}
           </Text>
 
-          <Text
-            style={[styles.fieldLabel, { color: c.text }]}
-          >
+          <Text style={[styles.fieldLabel, { color: c.text }]}>
             {t("settings.preferences.emailReminders")}
           </Text>
           <View style={styles.segmentRow}>
@@ -378,7 +379,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     marginTop: spacing.lg,
   },
-  cardLead: { fontSize: typography.sm, lineHeight: 20, marginBottom: spacing.md },
+  cardLead: {
+    fontSize: typography.sm,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
   fieldLabel: {
     fontSize: typography.xs,
     fontWeight: "700",

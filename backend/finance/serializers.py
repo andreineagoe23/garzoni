@@ -237,11 +237,7 @@ class FinancialGoalSerializer(serializers.ModelSerializer):
             data = dict(data)
             if "name" in data:
                 raw = data.pop("name")
-                if (
-                    raw is not None
-                    and str(raw).strip()
-                    and "goal_name" not in data
-                ):
+                if raw is not None and str(raw).strip() and "goal_name" not in data:
                     data["goal_name"] = str(raw).strip()
             if "target_date" in data and "deadline" not in data:
                 data["deadline"] = data.pop("target_date")

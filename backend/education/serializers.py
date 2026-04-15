@@ -323,9 +323,7 @@ class CourseSummarySerializer(serializers.ModelSerializer):
         annotated = getattr(obj, "total_sections", None)
         if annotated is not None:
             return int(annotated)
-        return LessonSection.objects.filter(
-            lesson__course=obj, is_published=True
-        ).count()
+        return LessonSection.objects.filter(lesson__course=obj, is_published=True).count()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

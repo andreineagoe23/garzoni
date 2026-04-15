@@ -68,6 +68,7 @@ type ActivityDayRow = {
   lessons?: unknown;
   sections?: unknown;
   exercises?: unknown;
+  quizzes?: unknown;
 };
 
 function normalizeCalendarDateKey(raw: string): string | null {
@@ -92,9 +93,11 @@ function isUsableActivityCalendarByType(
       "lessons" in r ||
       "sections" in r ||
       "exercises" in r ||
+      "quizzes" in r ||
       "Lessons" in r ||
       "Sections" in r ||
-      "Exercises" in r
+      "Exercises" in r ||
+      "Quizzes" in r
     ) {
       ok += 1;
       if (ok >= 2) return true;
@@ -105,27 +108,18 @@ function isUsableActivityCalendarByType(
 
 function readDayCounts(row: ActivityDayRow | undefined) {
   if (!row || typeof row !== "object") {
-    return { lessons: 0, sections: 0, exercises: 0 };
+    return { lessons: 0, sections: 0, exercises: 0, quizzes: 0 };
   }
   const lessons =
-    Number(
-      row.lessons ??
-        (row as { Lessons?: unknown }).Lessons ??
-        0,
-    ) || 0;
+    Number(row.lessons ?? (row as { Lessons?: unknown }).Lessons ?? 0) || 0;
   const sections =
-    Number(
-      row.sections ??
-        (row as { Sections?: unknown }).Sections ??
-        0,
-    ) || 0;
+    Number(row.sections ?? (row as { Sections?: unknown }).Sections ?? 0) || 0;
   const exercises =
-    Number(
-      row.exercises ??
-        (row as { Exercises?: unknown }).Exercises ??
-        0,
-    ) || 0;
-  return { lessons, sections, exercises };
+    Number(row.exercises ?? (row as { Exercises?: unknown }).Exercises ?? 0) ||
+    0;
+  const quizzes =
+    Number(row.quizzes ?? (row as { Quizzes?: unknown }).Quizzes ?? 0) || 0;
+  return { lessons, sections, exercises, quizzes };
 }
 
 /** `/activity-heatmap/` rows (camelCase from Django or snake_case). */
@@ -139,18 +133,19 @@ function summaryFromHeatmapApiRow(
     const x = Number(v);
     return Number.isFinite(x) ? x : 0;
   };
-  const lessonsCompleted = n(
-    row.lessonsCompleted ?? row.lessons_completed,
-  );
-  const sectionsCompleted = n(
-    row.sectionsCompleted ?? row.sections_completed,
-  );
+  const lessonsCompleted = n(row.lessonsCompleted ?? row.lessons_completed);
+  const sectionsCompleted = n(row.sectionsCompleted ?? row.sections_completed);
   const exercisesCompleted = n(
     row.exercisesCompleted ?? row.exercises_completed,
   );
+  const quizzesCompleted = n(row.quizzesCompleted ?? row.quizzes_completed);
   let totalActivities = n(row.totalActivities ?? row.total_activities);
   if (totalActivities <= 0) {
-    totalActivities = lessonsCompleted + sectionsCompleted + exercisesCompleted;
+    totalActivities =
+      lessonsCompleted +
+      sectionsCompleted +
+      exercisesCompleted +
+      quizzesCompleted;
   }
   return {
     date,
@@ -158,6 +153,7 @@ function summaryFromHeatmapApiRow(
     lessonsCompleted,
     sectionsCompleted,
     exercisesCompleted,
+    quizzesCompleted,
   };
 }
 
@@ -231,8 +227,7 @@ function DashboardInner() {
 
   const activityHeatmapQuery = useQuery({
     queryKey: queryKeys.activityHeatmap(),
-    queryFn: () =>
-      fetchActivityHeatmap(120).then((r) => r.data ?? []),
+    queryFn: () => fetchActivityHeatmap(120).then((r) => r.data ?? []),
     staleTime: staleTimes.activityHeatmap,
     enabled: authReady && Boolean(accessToken),
   });
@@ -301,12 +296,15 @@ function DashboardInner() {
         ? ({ ...ud, ...raw } as UserProfile & Record<string, unknown>)
         : (raw as UserProfile & Record<string, unknown>);
 
-    const combined = (raw.activity_calendar as Record<string, unknown> | undefined) ??
+    const combined =
+      (raw.activity_calendar as Record<string, unknown> | undefined) ??
       (layer.activity_calendar as Record<string, unknown> | undefined);
     const byTypeRaw =
       raw.activity_calendar_by_type ?? layer.activity_calendar_by_type;
     const useByType = isUsableActivityCalendarByType(byTypeRaw);
-    const byType = useByType ? (byTypeRaw as Record<string, ActivityDayRow>) : null;
+    const byType = useByType
+      ? (byTypeRaw as Record<string, ActivityDayRow>)
+      : null;
 
     const map: ActivityCalendarMap = {};
 
@@ -315,22 +313,25 @@ function DashboardInner() {
       lessons: number,
       sections: number,
       exercises: number,
+      quizzes: number,
       combinedTotal: number,
     ) => {
-      const detailSum = lessons + sections + exercises;
+      const detailSum = lessons + sections + exercises + quizzes;
       let l = lessons;
       let s = sections;
       let e = exercises;
+      let q = quizzes;
       if (combinedTotal > 0 && detailSum === 0) {
         l = combinedTotal;
       }
-      const total = Math.max(combinedTotal, l + s + e);
+      const total = Math.max(combinedTotal, l + s + e + q);
       map[date] = {
         date,
         totalActivities: total,
         lessonsCompleted: l,
         sectionsCompleted: s,
         exercisesCompleted: e,
+        quizzesCompleted: q,
       };
     };
 
@@ -343,7 +344,14 @@ function DashboardInner() {
           typeof combined?.[date] === "number"
             ? (combined[date] as number)
             : Number(combined?.[date]) || 0;
-        upsert(date, c.lessons, c.sections, c.exercises, combinedTotal);
+        upsert(
+          date,
+          c.lessons,
+          c.sections,
+          c.exercises,
+          c.quizzes,
+          combinedTotal,
+        );
       }
     }
 
@@ -354,9 +362,9 @@ function DashboardInner() {
         const combinedTotal = typeof val === "number" ? val : Number(val) || 0;
         if (map[date]) continue;
         if (useByType) {
-          upsert(date, 0, 0, 0, combinedTotal);
+          upsert(date, 0, 0, 0, 0, combinedTotal);
         } else {
-          upsert(date, combinedTotal, 0, 0, combinedTotal);
+          upsert(date, combinedTotal, 0, 0, 0, combinedTotal);
         }
       }
     }

@@ -125,15 +125,8 @@ def grant_reward(
     if points < 0 or coins_dec < 0:
         raise ValueError("points and coins must be non-negative")
 
-    if (
-        points == 0
-        and coins_dec == 0
-        and bump_streak == "none"
-        and not record_zero_ledger
-    ):
-        return GrantResult(
-            granted=False, duplicate=False, points=0, coins=Decimal("0.00")
-        )
+    if points == 0 and coins_dec == 0 and bump_streak == "none" and not record_zero_ledger:
+        return GrantResult(granted=False, duplicate=False, points=0, coins=Decimal("0.00"))
 
     streak_before, streak_after = 0, 0
 
@@ -142,9 +135,7 @@ def grant_reward(
             from gamification.models import RewardLedgerEntry
 
             if bump_streak != "none":
-                streak_before, streak_after = _apply_streak_bump(
-                    user, bump_streak, user_progress
-                )
+                streak_before, streak_after = _apply_streak_bump(user, bump_streak, user_progress)
 
             if points or coins_dec > 0 or record_zero_ledger:
                 RewardLedgerEntry.objects.create(
@@ -186,9 +177,7 @@ def grant_reward(
                     extra={"user_id": getattr(user, "id", None)},
                 )
 
-        return GrantResult(
-            granted=True, duplicate=False, points=points, coins=coins_dec
-        )
+        return GrantResult(granted=True, duplicate=False, points=points, coins=coins_dec)
     except IntegrityError:
         # Duplicate event_key for this user — idempotent no-op.
         logger.info(
@@ -196,6 +185,4 @@ def grant_reward(
             extra={"user_id": user.id, "event_key": event_key[:220]},
         )
         invalidate_profile_cache(user)
-        return GrantResult(
-            granted=False, duplicate=True, points=0, coins=Decimal("0.00")
-        )
+        return GrantResult(granted=False, duplicate=True, points=0, coins=Decimal("0.00"))

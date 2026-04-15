@@ -147,6 +147,7 @@ def _resolve_post_google_frontend_url(return_origin: str | None) -> str:
     picked = _safe_return_origin(return_origin)
     return picked or configured
 
+
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
 REFRESH_COOKIE_NAME = "refresh_token"
@@ -328,9 +329,7 @@ class GoogleOAuthCallbackView(APIView):
         family_name = (userinfo.get("family_name") or "").strip()
         picture = (userinfo.get("picture") or "").strip()
 
-        user, is_new_user = _get_or_create_google_user(
-            email, given_name, family_name, picture
-        )
+        user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)

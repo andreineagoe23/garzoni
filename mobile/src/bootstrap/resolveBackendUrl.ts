@@ -20,6 +20,11 @@ export function preferHttpsForRailway(url: string): string {
  * Must be the Django API origin; `/api` is appended by @garzoni/core if missing.
  */
 export function resolveBackendUrlFromExpo(): string | undefined {
+  // Local env should win in dev so mobile can be pointed to the same Docker backend
+  // as web, even when a development build was created with a different baked value.
+  const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
+  if (fromEnv) return preferHttpsForRailway(fromEnv);
+
   const extra = (Constants.expoConfig?.extra ??
     (Constants as { manifest2?: { extra?: Record<string, unknown> } }).manifest2
       ?.extra ??
@@ -30,9 +35,6 @@ export function resolveBackendUrlFromExpo(): string | undefined {
   if (typeof fromExtra === "string" && fromExtra.trim()) {
     return preferHttpsForRailway(fromExtra.trim());
   }
-
-  const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
-  if (fromEnv) return preferHttpsForRailway(fromEnv);
 
   return undefined;
 }

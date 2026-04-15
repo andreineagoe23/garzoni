@@ -111,9 +111,7 @@ export default function LoginScreen() {
         }
       }
     } catch (e: unknown) {
-      setError(
-        formatAuthRequestError(e, t("auth.login.loginFailed")),
-      );
+      setError(formatAuthRequestError(e, t("auth.login.loginFailed")));
     } finally {
       setLoading(false);
     }
@@ -149,7 +147,9 @@ export default function LoginScreen() {
                   { backgroundColor: c.errorBg, borderColor: c.error },
                 ]}
               >
-                <Text style={[styles.errorText, { color: c.error }]}>{error}</Text>
+                <Text style={[styles.errorText, { color: c.error }]}>
+                  {error}
+                </Text>
               </View>
             ) : null}
 
@@ -238,11 +238,15 @@ export default function LoginScreen() {
             </GlassButton>
 
             <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.dividerLine, { backgroundColor: c.border }]}
+              />
               <Text style={[styles.dividerText, { color: c.textMuted }]}>
                 {t("auth.orContinueWith")}
               </Text>
-              <View style={[styles.dividerLine, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.dividerLine, { backgroundColor: c.border }]}
+              />
             </View>
 
             <AuthSocialSection
