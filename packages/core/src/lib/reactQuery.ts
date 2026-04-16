@@ -38,6 +38,7 @@ export const queryKeys = {
   friendsList: () => ["friendsList"] as const,
   exerciseCategories: () => ["exerciseCategories"] as const,
   exerciseDetail: (id: string | number) => ["exercise", id] as const,
+  exerciseProgress: (id: string | number) => ["exerciseProgress", id] as const,
   rewardsShop: () => ["rewardsShop"] as const,
   rewardsDonate: () => ["rewardsDonate"] as const,
   questionnaireProgress: () => ["questionnaire-progress"] as const,

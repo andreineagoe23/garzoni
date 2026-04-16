@@ -10,9 +10,11 @@ import { registerServiceWorker } from "serviceWorkerRegistration";
 import { trackAnalyticsEvent } from "services/analyticsClient";
 import { initStartup } from "bootstrap/startup";
 import { initHttpClientWeb } from "bootstrap/httpClientWeb";
+import { initCustomerIoWeb } from "hooks/useCio";
 
 initStartup();
 initHttpClientWeb();
+void initCustomerIoWeb();
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {

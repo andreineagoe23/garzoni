@@ -13,6 +13,7 @@ import CookieConsentBanner from "components/legal/CookieConsentBanner";
 import ErrorBoundary from "components/common/ErrorBoundary";
 import { queryClient } from "lib/reactQuery";
 import { useOnlineSync } from "hooks/useOnlineSync";
+import { useCioPageTrack } from "hooks/useCio";
 import AppShell from "./routes/AppShell";
 
 const publicPaths = [
@@ -53,6 +54,7 @@ const AppContent = () => {
     );
 
   useOnlineSync();
+  useCioPageTrack(location.pathname);
 
   useEffect(() => {
     const pathname = location.pathname;

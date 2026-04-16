@@ -15,6 +15,8 @@ import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { formatNumber, getLocale } from "utils/format";
 import { playFeedbackChime } from "utils/sound";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "lib/reactQuery";
 import { useAnalytics } from "hooks/useAnalytics";
 import type { MascotSituation } from "hooks/useMascotMessage";
 import { useExerciseSkillIntent } from "hooks/useExerciseSkillIntent";
@@ -28,6 +30,7 @@ const MAX_VISIBLE_PROGRESS_ITEMS = 8;
 
 const ExercisePage = () => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const locale = getLocale();
   const [exercises, setExercises] = useState([]);
   const [lessonExercises, setLessonExercises] = useState([]);
@@ -573,8 +576,8 @@ const ExercisePage = () => {
     setCurrentExerciseIndex(0);
     setSubmissionFeedback("");
     setExplanation("");
-    setProgress([]);
-  }, [lessonExercises]);
+    void hydrateProgressFromBackend(lessonExercises);
+  }, [lessonExercises, hydrateProgressFromBackend]);
 
   const goToRecommended = useCallback(async () => {
     try {
@@ -588,13 +591,14 @@ const ExercisePage = () => {
         const detail = await apiClient.get(
           `/exercises/${response.data.exercise_id}/`
         );
+        const nextList = [detail.data];
         setMode("lesson");
-        setExercises([detail.data]);
+        setExercises(nextList);
         if (!lessonExercises.length) {
-          setLessonExercises([detail.data]);
+          setLessonExercises(nextList);
         }
         setCurrentExerciseIndex(0);
-        setProgress([]);
+        await hydrateProgressFromBackend(nextList);
         setSubmissionFeedback("");
         setExplanation("");
       }
@@ -604,6 +608,7 @@ const ExercisePage = () => {
   }, [
     currentExerciseIndex,
     exercises,
+    hydrateProgressFromBackend,
     logError,
     lessonExercises.length,
     progress,
@@ -1056,6 +1061,10 @@ const ExercisePage = () => {
         const newStreak = streak + 1;
         setStreak(newStreak);
         setStreakMultiplier(newStreak >= 3 ? 1.2 : 1);
+        void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.progressSummary(),
+        });
       } else {
         setStreak(0);
         setStreakMultiplier(1);

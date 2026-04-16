@@ -288,6 +288,9 @@ function sleep(ms: number) {
 export async function syncRevenueCatSubscription(queryClient: QueryClient) {
   try {
     await postSubscriptionSync();
+    void import("../bootstrap/customerIoMobile").then(({ trackGarzoniEvent }) =>
+      trackGarzoniEvent("subscription_synced", {}),
+    );
   } catch {
     /* best-effort; webhook may still finish activation */
   }

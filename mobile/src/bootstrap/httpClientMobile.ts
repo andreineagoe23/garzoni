@@ -11,6 +11,7 @@ import {
 } from "@garzoni/core";
 import type { InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "../auth/tokenStorage";
+import { clearGarzoniCustomerIo } from "./customerIoMobile";
 import { resolveBackendUrlFromExpo } from "./resolveBackendUrl";
 
 let initialized = false;
@@ -31,6 +32,7 @@ function flushQueue(error: unknown, token: string | null) {
 }
 
 async function clearSessionAndRedirect() {
+  await clearGarzoniCustomerIo();
   await tokenStorage.clearAll();
   attachToken(null);
   router.replace("/login");
