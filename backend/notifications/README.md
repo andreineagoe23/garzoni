@@ -26,9 +26,19 @@ Authenticated `POST /api/notifications/client-track/` with JSON `{ "name": "chec
 
 Customer.io `id` is `str(user.pk)` (same as JWT `user_id` on mobile).
 
-## Test CDP Pipelines connection (CLI)
+## Test CDP / Track from production (no Railway shell)
 
-With `CIO_CDP_API_KEY` and `CIO_REGION=eu` in the environment:
+1. On **Railway**, set a long random **`CIO_PUBLIC_PING_SECRET`** (e.g. `openssl rand -hex 32`).
+2. From your laptop:
+
+```bash
+curl -sS -H "X-Garzoni-Cio-Ping: YOUR_SECRET_HERE" \
+  "https://YOUR-RAILWAY-HOST/api/notifications/cio-ping/"
+```
+
+Expect JSON with `identify_ok`, `cdp_configured`, `track_configured`, and `detail`. Wrong or missing secret returns **404** (not 401).
+
+### CLI (local / SSH)
 
 ```bash
 python manage.py cio_cdp_ping

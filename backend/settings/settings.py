@@ -451,6 +451,8 @@ CIO_REMINDERS_VIA_JOURNEYS = env_bool("CIO_REMINDERS_VIA_JOURNEYS", False)
 # JSON map: template slug -> transactional message id (int) or trigger name (str), e.g.
 # {"password-reset":12,"welcome":13}
 CIO_TRANSACTIONAL_TRIGGERS_JSON = os.getenv("CIO_TRANSACTIONAL_TRIGGERS_JSON", "").strip()
+# Optional: GET /api/notifications/cio-ping/ with header X-Garzoni-Cio-Ping: <secret> (no Railway console needed).
+CIO_PUBLIC_PING_SECRET = os.getenv("CIO_PUBLIC_PING_SECRET", "").strip()
 
 if DEBUG:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
