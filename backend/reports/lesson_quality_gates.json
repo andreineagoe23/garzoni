@@ -1,2 +1,1616 @@
-[settings] DEBUG mode enabled
-{"total_lessons": 100, "failing_lessons": 0, "passing_lessons": 100, "target_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "results": [{"course": "Introduction to Budgeting", "lesson_id": 2, "lesson_title": "Lesson 1: What is a Budget?", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Budgeting", "lesson_id": 3, "lesson_title": "Lesson 2: The Importance of Budgeting", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Budgeting", "lesson_id": 4, "lesson_title": "Lesson 3: Setting Financial Goals", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Budgeting", "lesson_id": 5, "lesson_title": "Lesson 4: How to create a Budget", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Budgeting", "lesson_id": 6, "lesson_title": "Lesson 5: Tracking Income and Expenses", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Understanding Credit", "lesson_id": 7, "lesson_title": "Lesson 1: What is Credit?", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Understanding Credit", "lesson_id": 8, "lesson_title": "Lesson 2: Types of Credit", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Understanding Credit", "lesson_id": 9, "lesson_title": "Lesson 3: Understanding Credit Scores", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Understanding Credit", "lesson_id": 10, "lesson_title": "Lesson 4: How to Build Credit", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Understanding Credit", "lesson_id": 11, "lesson_title": "Lesson 5: Managing Debt Effectively", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Basic Investment Strategies", "lesson_id": 12, "lesson_title": "Lesson 1: Introduction to Investing", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Basic Investment Strategies", "lesson_id": 13, "lesson_title": "Lesson 2: Types of Investments", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Basic Investment Strategies", "lesson_id": 14, "lesson_title": "Lesson 3: Risk and Reward", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Basic Investment Strategies", "lesson_id": 15, "lesson_title": "Lesson 4: Diversification and Assets", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Basic Investment Strategies", "lesson_id": 16, "lesson_title": "Lesson 5: Creating Your Investment Plan", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Real Estate Basics", "lesson_id": 17, "lesson_title": "Lesson 1: Real Estate Fundamentals", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Real Estate Basics", "lesson_id": 18, "lesson_title": "Lesson 2: The Buying Process", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Real Estate Basics", "lesson_id": 19, "lesson_title": "Lesson 3: Rental Property Investing", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Real Estate Basics", "lesson_id": 69, "lesson_title": "Lesson 4: Financing Your Investment", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Real Estate Basics", "lesson_id": 70, "lesson_title": "Lesson 5: Managing Your Property", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Market Research and Analysis", "lesson_id": 20, "lesson_title": "Lesson 1: Analyzing Property Values", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Market Research and Analysis", "lesson_id": 21, "lesson_title": "Lesson 2: Real Estate Cycles and Trends", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Market Research and Analysis", "lesson_id": 22, "lesson_title": "Lesson 3: Risk Management in Real Estate", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Market Research and Analysis", "lesson_id": 71, "lesson_title": "Lesson 4: The Due Diligence Checklist", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Market Research and Analysis", "lesson_id": 72, "lesson_title": "Lesson 5: Understanding Market Cycles", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Real Estate Strategies", "lesson_id": 23, "lesson_title": "Lesson 1: Fix and Flip Strategy", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Real Estate Strategies", "lesson_id": 24, "lesson_title": "Lesson 2: Commercial Real Estate Investment", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Real Estate Strategies", "lesson_id": 25, "lesson_title": "Lesson 3: Real Estate Syndications", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Real Estate Strategies", "lesson_id": 73, "lesson_title": "Lesson 4: The BRRRR Method", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Real Estate Strategies", "lesson_id": 74, "lesson_title": "Lesson 5: Scaling to Commercial", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Cryptocurrency", "lesson_id": 26, "lesson_title": "Lesson 1: What is Cryptocurrency?", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Cryptocurrency", "lesson_id": 27, "lesson_title": "Lesson 2: Blockchain Technology Explained", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Cryptocurrency", "lesson_id": 28, "lesson_title": "Lesson 3: Types of Cryptocurrencies", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Cryptocurrency", "lesson_id": 75, "lesson_title": "Lesson 4: Wallets and Security", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Cryptocurrency", "lesson_id": 76, "lesson_title": "Lesson 5: Recognizing Risks and Scams", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Buying, Selling and Storing Crypto", "lesson_id": 29, "lesson_title": "Lesson 1: How to Buy Cryptocurrency", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Buying, Selling and Storing Crypto", "lesson_id": 30, "lesson_title": "Lesson 2: Storing Cryptocurrency Safely", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Buying, Selling and Storing Crypto", "lesson_id": 31, "lesson_title": "Lesson 3: Selling and Trading Crypto", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Buying, Selling and Storing Crypto", "lesson_id": 77, "lesson_title": "Lesson 4: Using Decentralized Exchanges", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Buying, Selling and Storing Crypto", "lesson_id": 78, "lesson_title": "Lesson 5: Crypto Taxes Basics", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Cryptocurrency Concepts", "lesson_id": 32, "lesson_title": "Lesson 1: Decentralized Finance (DeFi)", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Cryptocurrency Concepts", "lesson_id": 33, "lesson_title": "Lesson 2: Non-Fungible Tokens (NFTs)", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Cryptocurrency Concepts", "lesson_id": 34, "lesson_title": "Lesson 3: Future Trends", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Cryptocurrency Concepts", "lesson_id": 79, "lesson_title": "Lesson 4: Smart Contracts Explained", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Advanced Cryptocurrency Concepts", "lesson_id": 80, "lesson_title": "Lesson 5: Staking vs. Yield Farming", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Forex Trading", "lesson_id": 35, "lesson_title": "Lesson 1: What is Forex?", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Forex Trading", "lesson_id": 36, "lesson_title": "Lesson 2: Currency Pairs", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Forex Trading", "lesson_id": 37, "lesson_title": "Lesson 3: Key Forex Terminology", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Forex Trading", "lesson_id": 81, "lesson_title": "Lesson 4: Reading Price Charts", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Introduction to Forex Trading", "lesson_id": 82, "lesson_title": "Lesson 5: Psychology of Trading", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Fundamentals of Forex Trading Strategies", "lesson_id": 38, "lesson_title": "Lesson 1: Technical Analysis Basics", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Fundamentals of Forex Trading Strategies", "lesson_id": 39, "lesson_title": "Lesson 2: Fundamental Analysis in Forex", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Fundamentals of Forex Trading Strategies", "lesson_id": 40, "lesson_title": "Lesson 3: Commom Forex Strategies", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Fundamentals of Forex Trading Strategies", "lesson_id": 83, "lesson_title": "Lesson 4: Backtesting Your Strategy", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Fundamentals of Forex Trading Strategies", "lesson_id": 84, "lesson_title": "Lesson 5: Creating a Trading Routine", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Risk Management in Forex", "lesson_id": 41, "lesson_title": "Lesson 1: Managing Leverage and Position Size", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Risk Management in Forex", "lesson_id": 42, "lesson_title": "Lesson 2: Stop Losses and Take Profits", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Risk Management in Forex", "lesson_id": 43, "lesson_title": "Lesson 3: Developing a Trading Plan", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Risk Management in Forex", "lesson_id": 85, "lesson_title": "Lesson 4: The Trading Journal", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Risk Management in Forex", "lesson_id": 86, "lesson_title": "Lesson 5: Understanding Drawdowns", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Budgeting Beyond Basics", "lesson_id": 44, "lesson_title": "Lesson 1: Budgeting for Irregular Income", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Budgeting Beyond Basics", "lesson_id": 45, "lesson_title": "Lesson 2: Adjusting Your Budget Over Time", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Budgeting Beyond Basics", "lesson_id": 46, "lesson_title": "Lesson 3: Leveraging Technology for Budgeting", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Budgeting Beyond Basics", "lesson_id": 87, "lesson_title": "Lesson 4: Budgeting for Couples", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Budgeting Beyond Basics", "lesson_id": 88, "lesson_title": "Lesson 5: The Annual Financial Review", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Smart Spending", "lesson_id": 47, "lesson_title": "Lesson 1: Identifying Needs vs. Wants", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Smart Spending", "lesson_id": 48, "lesson_title": "Lesson 2: Practicing Conscious Spending", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Smart Spending", "lesson_id": 49, "lesson_title": "Lesson 3: Negotiating for Better Deals", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Smart Spending", "lesson_id": 89, "lesson_title": "Lesson 4: Preventing Lifestyle Creep", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Smart Spending", "lesson_id": 90, "lesson_title": "Lesson 5: Value-Based Spending", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Maximizing Savings", "lesson_id": 50, "lesson_title": "Lesson 1: High-Yield Savings Accounts", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Maximizing Savings", "lesson_id": 51, "lesson_title": "Lesson 2: Gamify Your Savings Goals", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Maximizing Savings", "lesson_id": 52, "lesson_title": "Lesson 3: Hidden Savings Opportunities", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Maximizing Savings", "lesson_id": 91, "lesson_title": "Lesson 4: Sinking Funds Strategy", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Maximizing Savings", "lesson_id": 92, "lesson_title": "Lesson 5: The 'No-Spend' Challenge", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building Wealth", "lesson_id": 53, "lesson_title": "Lesson 1: Passive Income Streams", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building Wealth", "lesson_id": 54, "lesson_title": "Lesson 2: Protecting Your Wealth", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building Wealth", "lesson_id": 55, "lesson_title": "Lesson 3: The Role of Inflation", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building Wealth", "lesson_id": 93, "lesson_title": "Lesson 4: The Magic of Compound Interest", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building Wealth", "lesson_id": 94, "lesson_title": "Lesson 5: Assets vs. Liabilities", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building a Positive Money Mindset", "lesson_id": 56, "lesson_title": "Lesson 1: Understanding Your Money Story", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building a Positive Money Mindset", "lesson_id": 57, "lesson_title": "Lesson 2: Overcoming Money Blocks", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building a Positive Money Mindset", "lesson_id": 58, "lesson_title": "Lesson 3: Gratitude and Wealth", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building a Positive Money Mindset", "lesson_id": 95, "lesson_title": "Lesson 4: Scarcity vs. Abundance", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Building a Positive Money Mindset", "lesson_id": 96, "lesson_title": "Lesson 5: Rewiring Your Brain", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Cultivating Financial Discipline", "lesson_id": 59, "lesson_title": "Lesson 1: The Power of Delayed Gratification", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Cultivating Financial Discipline", "lesson_id": 60, "lesson_title": "Lesson 2: Setting and Sticking to Financial Boundaries", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Cultivating Financial Discipline", "lesson_id": 61, "lesson_title": "Lesson 3: Building Habits for Financial Success", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Cultivating Financial Discipline", "lesson_id": 97, "lesson_title": "Lesson 4: Automating Good Habits", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Cultivating Financial Discipline", "lesson_id": 98, "lesson_title": "Lesson 5: The Art of Delayed Gratification", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Resilience in Financial Setbacks", "lesson_id": 62, "lesson_title": "Lesson 1: Reframing Financial Failures", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Resilience in Financial Setbacks", "lesson_id": 63, "lesson_title": "Lesson 2: Building an Emergency Mindset", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Resilience in Financial Setbacks", "lesson_id": 64, "lesson_title": "Lesson 3: Managing Financial Stress", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Resilience in Financial Setbacks", "lesson_id": 99, "lesson_title": "Lesson 4: Building the Safety Net", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Resilience in Financial Setbacks", "lesson_id": 100, "lesson_title": "Lesson 5: Bouncing Back After a Crisis", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Financial Growth Mindset", "lesson_id": 65, "lesson_title": "Lesson 1: Embracing Lifelong Learning", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Financial Growth Mindset", "lesson_id": 66, "lesson_title": "Lesson 2: The Role of Networking in Financial Success", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Financial Growth Mindset", "lesson_id": 67, "lesson_title": "Lesson 3: Vision and Goal Setting for Growth", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Financial Growth Mindset", "lesson_id": 101, "lesson_title": "Lesson 4: Learning from Financial Mistakes", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}, {"course": "Financial Growth Mindset", "lesson_id": 102, "lesson_title": "Lesson 5: The Long-Term Vision", "section_types": ["text", "exercise", "text", "video", "text", "exercise", "text"], "status": "pass", "reasons": []}]}
+{
+  "total_lessons": 100,
+  "failing_lessons": 0,
+  "passing_lessons": 100,
+  "target_types": [
+    "text",
+    "exercise",
+    "text",
+    "video",
+    "text",
+    "exercise",
+    "text"
+  ],
+  "results": [
+    {
+      "course": "Introduction to Budgeting",
+      "lesson_id": 2,
+      "lesson_title": "Lesson 1: What is a Budget?",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Budgeting",
+      "lesson_id": 3,
+      "lesson_title": "Lesson 2: The Importance of Budgeting",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Budgeting",
+      "lesson_id": 4,
+      "lesson_title": "Lesson 3: Setting Financial Goals",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Budgeting",
+      "lesson_id": 5,
+      "lesson_title": "Lesson 4: How to create a Budget",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Budgeting",
+      "lesson_id": 6,
+      "lesson_title": "Lesson 5: Tracking Income and Expenses",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Understanding Credit",
+      "lesson_id": 7,
+      "lesson_title": "Lesson 1: What is Credit?",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Understanding Credit",
+      "lesson_id": 8,
+      "lesson_title": "Lesson 2: Types of Credit",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Understanding Credit",
+      "lesson_id": 9,
+      "lesson_title": "Lesson 3: Understanding Credit Scores",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Understanding Credit",
+      "lesson_id": 10,
+      "lesson_title": "Lesson 4: How to Build Credit",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Understanding Credit",
+      "lesson_id": 11,
+      "lesson_title": "Lesson 5: Managing Debt Effectively",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Basic Investment Strategies",
+      "lesson_id": 12,
+      "lesson_title": "Lesson 1: Introduction to Investing",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Basic Investment Strategies",
+      "lesson_id": 13,
+      "lesson_title": "Lesson 2: Types of Investments",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Basic Investment Strategies",
+      "lesson_id": 14,
+      "lesson_title": "Lesson 3: Risk and Reward",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Basic Investment Strategies",
+      "lesson_id": 15,
+      "lesson_title": "Lesson 4: Diversification and Assets",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Basic Investment Strategies",
+      "lesson_id": 16,
+      "lesson_title": "Lesson 5: Creating Your Investment Plan",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Real Estate Basics",
+      "lesson_id": 17,
+      "lesson_title": "Lesson 1: Real Estate Fundamentals",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Real Estate Basics",
+      "lesson_id": 18,
+      "lesson_title": "Lesson 2: The Buying Process",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Real Estate Basics",
+      "lesson_id": 19,
+      "lesson_title": "Lesson 3: Rental Property Investing",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Real Estate Basics",
+      "lesson_id": 69,
+      "lesson_title": "Lesson 4: Financing Your Investment",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Real Estate Basics",
+      "lesson_id": 70,
+      "lesson_title": "Lesson 5: Managing Your Property",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Market Research and Analysis",
+      "lesson_id": 20,
+      "lesson_title": "Lesson 1: Analyzing Property Values",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Market Research and Analysis",
+      "lesson_id": 21,
+      "lesson_title": "Lesson 2: Real Estate Cycles and Trends",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Market Research and Analysis",
+      "lesson_id": 22,
+      "lesson_title": "Lesson 3: Risk Management in Real Estate",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Market Research and Analysis",
+      "lesson_id": 71,
+      "lesson_title": "Lesson 4: The Due Diligence Checklist",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Market Research and Analysis",
+      "lesson_id": 72,
+      "lesson_title": "Lesson 5: Understanding Market Cycles",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Real Estate Strategies",
+      "lesson_id": 23,
+      "lesson_title": "Lesson 1: Fix and Flip Strategy",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Real Estate Strategies",
+      "lesson_id": 24,
+      "lesson_title": "Lesson 2: Commercial Real Estate Investment",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Real Estate Strategies",
+      "lesson_id": 25,
+      "lesson_title": "Lesson 3: Real Estate Syndications",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Real Estate Strategies",
+      "lesson_id": 73,
+      "lesson_title": "Lesson 4: The BRRRR Method",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Real Estate Strategies",
+      "lesson_id": 74,
+      "lesson_title": "Lesson 5: Scaling to Commercial",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Cryptocurrency",
+      "lesson_id": 26,
+      "lesson_title": "Lesson 1: What is Cryptocurrency?",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Cryptocurrency",
+      "lesson_id": 27,
+      "lesson_title": "Lesson 2: Blockchain Technology Explained",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Cryptocurrency",
+      "lesson_id": 28,
+      "lesson_title": "Lesson 3: Types of Cryptocurrencies",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Cryptocurrency",
+      "lesson_id": 75,
+      "lesson_title": "Lesson 4: Wallets and Security",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Cryptocurrency",
+      "lesson_id": 76,
+      "lesson_title": "Lesson 5: Recognizing Risks and Scams",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Buying, Selling and Storing Crypto",
+      "lesson_id": 29,
+      "lesson_title": "Lesson 1: How to Buy Cryptocurrency",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Buying, Selling and Storing Crypto",
+      "lesson_id": 30,
+      "lesson_title": "Lesson 2: Storing Cryptocurrency Safely",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Buying, Selling and Storing Crypto",
+      "lesson_id": 31,
+      "lesson_title": "Lesson 3: Selling and Trading Crypto",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Buying, Selling and Storing Crypto",
+      "lesson_id": 77,
+      "lesson_title": "Lesson 4: Using Decentralized Exchanges",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Buying, Selling and Storing Crypto",
+      "lesson_id": 78,
+      "lesson_title": "Lesson 5: Crypto Taxes Basics",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Cryptocurrency Concepts",
+      "lesson_id": 32,
+      "lesson_title": "Lesson 1: Decentralized Finance (DeFi)",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Cryptocurrency Concepts",
+      "lesson_id": 33,
+      "lesson_title": "Lesson 2: Non-Fungible Tokens (NFTs)",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Cryptocurrency Concepts",
+      "lesson_id": 34,
+      "lesson_title": "Lesson 3: Future Trends",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Cryptocurrency Concepts",
+      "lesson_id": 79,
+      "lesson_title": "Lesson 4: Smart Contracts Explained",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Advanced Cryptocurrency Concepts",
+      "lesson_id": 80,
+      "lesson_title": "Lesson 5: Staking vs. Yield Farming",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Forex Trading",
+      "lesson_id": 35,
+      "lesson_title": "Lesson 1: What is Forex?",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Forex Trading",
+      "lesson_id": 36,
+      "lesson_title": "Lesson 2: Currency Pairs",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Forex Trading",
+      "lesson_id": 37,
+      "lesson_title": "Lesson 3: Key Forex Terminology",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Forex Trading",
+      "lesson_id": 81,
+      "lesson_title": "Lesson 4: Reading Price Charts",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Introduction to Forex Trading",
+      "lesson_id": 82,
+      "lesson_title": "Lesson 5: Psychology of Trading",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Fundamentals of Forex Trading Strategies",
+      "lesson_id": 38,
+      "lesson_title": "Lesson 1: Technical Analysis Basics",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Fundamentals of Forex Trading Strategies",
+      "lesson_id": 39,
+      "lesson_title": "Lesson 2: Fundamental Analysis in Forex",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Fundamentals of Forex Trading Strategies",
+      "lesson_id": 40,
+      "lesson_title": "Lesson 3: Commom Forex Strategies",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Fundamentals of Forex Trading Strategies",
+      "lesson_id": 83,
+      "lesson_title": "Lesson 4: Backtesting Your Strategy",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Fundamentals of Forex Trading Strategies",
+      "lesson_id": 84,
+      "lesson_title": "Lesson 5: Creating a Trading Routine",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Risk Management in Forex",
+      "lesson_id": 41,
+      "lesson_title": "Lesson 1: Managing Leverage and Position Size",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Risk Management in Forex",
+      "lesson_id": 42,
+      "lesson_title": "Lesson 2: Stop Losses and Take Profits",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Risk Management in Forex",
+      "lesson_id": 43,
+      "lesson_title": "Lesson 3: Developing a Trading Plan",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Risk Management in Forex",
+      "lesson_id": 85,
+      "lesson_title": "Lesson 4: The Trading Journal",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Risk Management in Forex",
+      "lesson_id": 86,
+      "lesson_title": "Lesson 5: Understanding Drawdowns",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Budgeting Beyond Basics",
+      "lesson_id": 44,
+      "lesson_title": "Lesson 1: Budgeting for Irregular Income",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Budgeting Beyond Basics",
+      "lesson_id": 45,
+      "lesson_title": "Lesson 2: Adjusting Your Budget Over Time",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Budgeting Beyond Basics",
+      "lesson_id": 46,
+      "lesson_title": "Lesson 3: Leveraging Technology for Budgeting",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Budgeting Beyond Basics",
+      "lesson_id": 87,
+      "lesson_title": "Lesson 4: Budgeting for Couples",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Budgeting Beyond Basics",
+      "lesson_id": 88,
+      "lesson_title": "Lesson 5: The Annual Financial Review",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Smart Spending",
+      "lesson_id": 47,
+      "lesson_title": "Lesson 1: Identifying Needs vs. Wants",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Smart Spending",
+      "lesson_id": 48,
+      "lesson_title": "Lesson 2: Practicing Conscious Spending",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Smart Spending",
+      "lesson_id": 49,
+      "lesson_title": "Lesson 3: Negotiating for Better Deals",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Smart Spending",
+      "lesson_id": 89,
+      "lesson_title": "Lesson 4: Preventing Lifestyle Creep",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Smart Spending",
+      "lesson_id": 90,
+      "lesson_title": "Lesson 5: Value-Based Spending",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Maximizing Savings",
+      "lesson_id": 50,
+      "lesson_title": "Lesson 1: High-Yield Savings Accounts",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Maximizing Savings",
+      "lesson_id": 51,
+      "lesson_title": "Lesson 2: Gamify Your Savings Goals",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Maximizing Savings",
+      "lesson_id": 52,
+      "lesson_title": "Lesson 3: Hidden Savings Opportunities",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Maximizing Savings",
+      "lesson_id": 91,
+      "lesson_title": "Lesson 4: Sinking Funds Strategy",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Maximizing Savings",
+      "lesson_id": 92,
+      "lesson_title": "Lesson 5: The 'No-Spend' Challenge",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building Wealth",
+      "lesson_id": 53,
+      "lesson_title": "Lesson 1: Passive Income Streams",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building Wealth",
+      "lesson_id": 54,
+      "lesson_title": "Lesson 2: Protecting Your Wealth",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building Wealth",
+      "lesson_id": 55,
+      "lesson_title": "Lesson 3: The Role of Inflation",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building Wealth",
+      "lesson_id": 93,
+      "lesson_title": "Lesson 4: The Magic of Compound Interest",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building Wealth",
+      "lesson_id": 94,
+      "lesson_title": "Lesson 5: Assets vs. Liabilities",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building a Positive Money Mindset",
+      "lesson_id": 56,
+      "lesson_title": "Lesson 1: Understanding Your Money Story",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building a Positive Money Mindset",
+      "lesson_id": 57,
+      "lesson_title": "Lesson 2: Overcoming Money Blocks",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building a Positive Money Mindset",
+      "lesson_id": 58,
+      "lesson_title": "Lesson 3: Gratitude and Wealth",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building a Positive Money Mindset",
+      "lesson_id": 95,
+      "lesson_title": "Lesson 4: Scarcity vs. Abundance",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Building a Positive Money Mindset",
+      "lesson_id": 96,
+      "lesson_title": "Lesson 5: Rewiring Your Brain",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Cultivating Financial Discipline",
+      "lesson_id": 59,
+      "lesson_title": "Lesson 1: The Power of Delayed Gratification",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Cultivating Financial Discipline",
+      "lesson_id": 60,
+      "lesson_title": "Lesson 2: Setting and Sticking to Financial Boundaries",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Cultivating Financial Discipline",
+      "lesson_id": 61,
+      "lesson_title": "Lesson 3: Building Habits for Financial Success",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Cultivating Financial Discipline",
+      "lesson_id": 97,
+      "lesson_title": "Lesson 4: Automating Good Habits",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Cultivating Financial Discipline",
+      "lesson_id": 98,
+      "lesson_title": "Lesson 5: The Art of Delayed Gratification",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Resilience in Financial Setbacks",
+      "lesson_id": 62,
+      "lesson_title": "Lesson 1: Reframing Financial Failures",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Resilience in Financial Setbacks",
+      "lesson_id": 63,
+      "lesson_title": "Lesson 2: Building an Emergency Mindset",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Resilience in Financial Setbacks",
+      "lesson_id": 64,
+      "lesson_title": "Lesson 3: Managing Financial Stress",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Resilience in Financial Setbacks",
+      "lesson_id": 99,
+      "lesson_title": "Lesson 4: Building the Safety Net",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Resilience in Financial Setbacks",
+      "lesson_id": 100,
+      "lesson_title": "Lesson 5: Bouncing Back After a Crisis",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Financial Growth Mindset",
+      "lesson_id": 65,
+      "lesson_title": "Lesson 1: Embracing Lifelong Learning",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Financial Growth Mindset",
+      "lesson_id": 66,
+      "lesson_title": "Lesson 2: The Role of Networking in Financial Success",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Financial Growth Mindset",
+      "lesson_id": 67,
+      "lesson_title": "Lesson 3: Vision and Goal Setting for Growth",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Financial Growth Mindset",
+      "lesson_id": 101,
+      "lesson_title": "Lesson 4: Learning from Financial Mistakes",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "course": "Financial Growth Mindset",
+      "lesson_id": 102,
+      "lesson_title": "Lesson 5: The Long-Term Vision",
+      "section_types": [
+        "text",
+        "exercise",
+        "text",
+        "video",
+        "text",
+        "exercise",
+        "text"
+      ],
+      "status": "pass",
+      "reasons": []
+    }
+  ]
+}

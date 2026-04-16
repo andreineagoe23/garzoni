@@ -212,3 +212,108 @@ class NotificationService:
             settings, "CIO_TRACK_ENABLED", False
         ):
             self.events.track(user, event, data or {})
+
+    def publish_domain_event(self, user: User, event: CioEventName, data: dict[str, Any] | None = None) -> None:
+        """Track API event when CIO_TRACK_ENABLED (not gated on journey-only flag)."""
+        if getattr(settings, "CIO_TRACK_ENABLED", False):
+            self.events.track(user, event, data or {})
+
+    def _send_transactional_operational(
+        self,
+        user: User,
+        template: CioTemplate,
+        message_data: dict[str, Any],
+        *,
+        idempotency_key: str | None,
+        purpose: str,
+    ) -> str:
+        if idempotency_key and not claim_idempotency_key(idempotency_key, purpose):
+            return "skipped_duplicate"
+        pr = should_send_email(user, template)
+        if not pr.allowed:
+            return f"policy_denied:{pr.reason}"
+        if _use_cio_transactional(template):
+            ok, err = self.transactional.send(template, user, message_data)
+            return "sent_cio" if ok else f"cio_failed:{err}"
+        logger.info(
+            "Transactional template %s has no CIO mapping and no SMTP fallback in service; skipped",
+            template.value,
+        )
+        return "skipped_no_cio_mapping"
+
+    def send_email_verification(
+        self,
+        user: User,
+        *,
+        verify_link: str,
+        idempotency_key: str | None = None,
+    ) -> str:
+        name = normalize_display_string(user.first_name or user.username or "there")
+        return self._send_transactional_operational(
+            user,
+            CioTemplate.EMAIL_VERIFICATION,
+            {"verify_link": verify_link, "customer_name": name},
+            idempotency_key=idempotency_key,
+            purpose="email_verification",
+        )
+
+    def send_magic_login(
+        self,
+        user: User,
+        *,
+        magic_link: str,
+        idempotency_key: str | None = None,
+    ) -> str:
+        name = normalize_display_string(user.first_name or user.username or "there")
+        return self._send_transactional_operational(
+            user,
+            CioTemplate.MAGIC_LOGIN,
+            {"magic_link": magic_link, "customer_name": name},
+            idempotency_key=idempotency_key,
+            purpose="magic_login",
+        )
+
+    def send_order_confirmed(
+        self,
+        user: User,
+        *,
+        message_data: dict[str, Any],
+        idempotency_key: str | None = None,
+    ) -> str:
+        return self._send_transactional_operational(
+            user,
+            CioTemplate.ORDER_CONFIRMED,
+            message_data,
+            idempotency_key=idempotency_key,
+            purpose="order_confirmed",
+        )
+
+    def send_payment_receipt(
+        self,
+        user: User,
+        *,
+        message_data: dict[str, Any],
+        idempotency_key: str | None = None,
+    ) -> str:
+        return self._send_transactional_operational(
+            user,
+            CioTemplate.PAYMENT_RECEIPT,
+            message_data,
+            idempotency_key=idempotency_key,
+            purpose="payment_receipt",
+        )
+
+    def send_payment_failed(
+        self,
+        user: User,
+        *,
+        message_data: dict[str, Any],
+        idempotency_key: str | None = None,
+    ) -> str:
+        return self._send_transactional_operational(
+            user,
+            CioTemplate.PAYMENT_FAILED,
+            message_data,
+            idempotency_key=idempotency_key,
+            purpose="payment_failed",
+        )
