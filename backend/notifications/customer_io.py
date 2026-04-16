@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import requests
@@ -53,7 +54,9 @@ def _app_bearer() -> str | None:
     return f"Bearer {key}"
 
 
-def _timeout() -> float:
+def _http_timeout(override: float | None = None) -> float:
+    if override is not None:
+        return float(override)
     return float(getattr(settings, "EXTERNAL_REQUEST_TIMEOUT_SECONDS", 15))
 
 
@@ -72,7 +75,9 @@ def customer_io_cdp_configured() -> bool:
     return bool((getattr(settings, "CIO_CDP_API_KEY", "") or "").strip())
 
 
-def cdp_identify(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | None]:
+def cdp_identify(
+    person_id: str, traits: dict[str, Any], *, http_timeout: float | None = None
+) -> tuple[bool, str | None]:
     """
     POST /v1/identify — CDP API (same contract as Pipelines "Customer.io API" source test curl).
     Authorization: Basic base64("API_KEY:")
@@ -93,7 +98,7 @@ def cdp_identify(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | No
             url,
             json=payload,
             headers={"Authorization": auth, "Content-Type": "application/json"},
-            timeout=_timeout(),
+            timeout=_http_timeout(http_timeout),
         )
         if r.status_code >= 400:
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
@@ -102,42 +107,72 @@ def cdp_identify(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | No
         return False, str(e)
 
 
-def identify_person(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | None]:
+def _track_upsert_customer(
+    person_id: str, traits: dict[str, Any], *, http_timeout: float | None = None
+) -> tuple[bool, str | None]:
+    """Classic Track API PUT customer. (False, err) on failure; (True, None) on success."""
+    auth = _track_auth_header()
+    if not auth:
+        return False, "missing CIO_SITE_ID or CIO_TRACK_API_KEY"
+    url = f"{_track_api_base()}/api/v1/customers/{person_id}"
+    try:
+        r = requests.put(
+            url,
+            json=traits,
+            headers={"Authorization": auth, "Content-Type": "application/json"},
+            timeout=_http_timeout(http_timeout),
+        )
+        if r.status_code >= 400:
+            return False, f"HTTP {r.status_code}: {r.text[:500]}"
+        return True, None
+    except requests.RequestException as e:
+        return False, str(e)
+
+
+def identify_person(
+    person_id: str, traits: dict[str, Any], *, http_timeout: float | None = None
+) -> tuple[bool, str | None]:
     """
     Upsert profile to Customer.io:
     - CDP: POST /v1/identify when CIO_CDP_API_KEY is set (feeds Pipelines / "Test connection").
     - Track: PUT /api/v1/customers/{id} when CIO_TRACK_ENABLED and site+tracking key set.
     person_id is the stable Garzoni identifier (stringified Django user pk).
+
+    When both CDP and Track run, outbound calls use a thread pool so total wall time is
+    roughly max(cdp, track) instead of sum — avoids Railway/proxy timeouts (~30s).
     """
     errs: list[str] = []
     any_ok = False
 
-    if customer_io_cdp_configured() and getattr(settings, "CIO_CDP_ENABLED", True):
-        ok, err = cdp_identify(person_id, traits)
+    run_cdp = customer_io_cdp_configured() and getattr(settings, "CIO_CDP_ENABLED", True)
+    run_track = getattr(settings, "CIO_TRACK_ENABLED", False)
+
+    cdp_res: tuple[bool, str | None] | None = None
+    track_res: tuple[bool, str | None] | None = None
+
+    if run_cdp and run_track:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            fut_c = pool.submit(cdp_identify, person_id, traits, http_timeout=http_timeout)
+            fut_t = pool.submit(_track_upsert_customer, person_id, traits, http_timeout=http_timeout)
+            cdp_res = fut_c.result()
+            track_res = fut_t.result()
+    elif run_cdp:
+        cdp_res = cdp_identify(person_id, traits, http_timeout=http_timeout)
+    elif run_track:
+        track_res = _track_upsert_customer(person_id, traits, http_timeout=http_timeout)
+
+    if cdp_res is not None:
+        ok, err = cdp_res
         if ok:
             any_ok = True
         elif err:
             errs.append(f"cdp:{err}")
-
-    if getattr(settings, "CIO_TRACK_ENABLED", False):
-        auth = _track_auth_header()
-        if not auth:
-            errs.append("track:missing CIO_SITE_ID or CIO_TRACK_API_KEY")
-        else:
-            url = f"{_track_api_base()}/api/v1/customers/{person_id}"
-            try:
-                r = requests.put(
-                    url,
-                    json=traits,
-                    headers={"Authorization": auth, "Content-Type": "application/json"},
-                    timeout=_timeout(),
-                )
-                if r.status_code >= 400:
-                    errs.append(f"track:HTTP {r.status_code}: {r.text[:500]}")
-                else:
-                    any_ok = True
-            except requests.RequestException as e:
-                errs.append(f"track:{e}")
+    if track_res is not None:
+        ok, err = track_res
+        if ok:
+            any_ok = True
+        elif err:
+            errs.append(f"track:{err}")
 
     if not customer_io_cdp_configured() and not (
         getattr(settings, "CIO_TRACK_ENABLED", False) and _track_auth_header()
@@ -165,7 +200,7 @@ def track_event(person_id: str, name: str, data: dict[str, Any] | None = None) -
             url,
             json=body,
             headers={"Authorization": auth, "Content-Type": "application/json"},
-            timeout=_timeout(),
+            timeout=_http_timeout(),
         )
         if r.status_code >= 400:
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
@@ -183,7 +218,7 @@ def delete_person(person_id: str) -> tuple[bool, str | None]:
         return False, "missing track credentials"
     url = f"{_track_api_base()}/api/v1/customers/{person_id}"
     try:
-        r = requests.delete(url, headers={"Authorization": auth}, timeout=_timeout())
+        r = requests.delete(url, headers={"Authorization": auth}, timeout=_http_timeout())
         if r.status_code >= 400 and r.status_code != 404:
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
         return True, None
@@ -221,7 +256,7 @@ def send_transactional_email(
             url,
             json=payload,
             headers={"Authorization": bearer, "Content-Type": "application/json"},
-            timeout=_timeout(),
+            timeout=_http_timeout(),
         )
         if r.status_code >= 400:
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
@@ -255,7 +290,7 @@ def send_transactional_push(
             url,
             json=payload,
             headers={"Authorization": bearer, "Content-Type": "application/json"},
-            timeout=_timeout(),
+            timeout=_http_timeout(),
         )
         if r.status_code >= 400:
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
