@@ -58,6 +58,7 @@ urlpatterns = [
     # Onboarding first so /api/questionnaire/* is matched before other app catch-alls
     path("api/", include("onboarding.urls")),
     path("api/", include("authentication.urls")),
+    path("api/", include("notifications.urls")),
     path("api/", include("education.urls")),
     path("api/", include("gamification.urls")),
     path("api/", include("finance.urls")),
