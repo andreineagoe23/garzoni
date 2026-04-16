@@ -140,6 +140,11 @@
     />
     <link rel="manifest" href="/manifest.json" />
 
+    <!-- Customer.io: in-browser queue (track.js + _setAccount loaded from Vite bundle via initCustomerIoWeb). -->
+    <script>
+      var _cio = _cio || [];
+    </script>
+
     <script data-cookieconsent="ignore">
       window.dataLayer = window.dataLayer || [];
       function gtag() {
