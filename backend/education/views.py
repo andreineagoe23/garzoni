@@ -782,6 +782,17 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                     }
                 )
 
+        # Global totals across ALL published content (not gated by plan).
+        all_course_ids = list(Course.objects.values_list("id", flat=True))
+        global_total_sections = (
+            LessonSection.objects.filter(lesson__course_id__in=all_course_ids).count()
+            if all_course_ids else 0
+        )
+        global_total_lessons = (
+            Lesson.objects.filter(course_id__in=all_course_ids).count()
+            if all_course_ids else 0
+        )
+
         # Resume: last place in the flow (most recently updated flow position)
         resume = None
         last_flow = (
@@ -835,9 +846,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                     else 0
                 ),
                 "completed_sections": total_completed_sections if progress_data else 0,
-                "total_sections": total_sections_all if progress_data else 0,
+                "total_sections": global_total_sections,
                 "completed_lessons": total_completed_lessons if progress_data else 0,
-                "total_lessons": total_lessons_all if progress_data else 0,
+                "total_lessons": global_total_lessons,
                 "paths": progress_data,
                 "resume": resume,
                 "start_here": start_here,
@@ -1500,7 +1511,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def get_exercise_progress(request, exercise_id):
     """Retrieve the progress of a specific exercise for the authenticated user."""
-    if not learner_can_access_exercise(request.user, exercise_id):
+    if not learner_can_access_exercise(request.user, exercise_id, force_learner=True):
         return Response({"error": "Exercise not found."}, status=404)
     try:
         exercise = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).get(id=exercise_id)
@@ -1548,6 +1559,7 @@ def get_exercise_progress_batch(request):
         apply_learner_exercise_filters(
             Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(id__in=parsed_ids),
             request.user,
+            force_learner=True,
         ).values_list("id", flat=True)
     )
     if not allowed_ids:
@@ -1584,7 +1596,7 @@ def reset_exercise(request):
             ex_id_int = int(exercise_id)
         except (TypeError, ValueError):
             return Response({"error": "Invalid exercise_id"}, status=400)
-        if not learner_can_access_exercise(request.user, ex_id_int):
+        if not learner_can_access_exercise(request.user, ex_id_int, force_learner=True):
             return Response({"error": "Exercise not found."}, status=404)
 
     try:

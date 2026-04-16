@@ -1878,6 +1878,7 @@ class SubscriptionCancelView(APIView):
                         request.user.first_name or request.user.username or "there"
                     ),
                     access_until_iso=period_end_iso,
+                    user_id=request.user.id,
                 )
             _invalidate_stripe_subscription_ui_cache(profile.user_id)
             return Response(

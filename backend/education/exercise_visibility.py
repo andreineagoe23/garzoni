@@ -46,10 +46,12 @@ def apply_learner_exercise_filters(qs: QuerySet, user, *, force_learner: bool = 
     )
 
 
-def learner_can_access_exercise(user, exercise_id: int) -> bool:
+def learner_can_access_exercise(
+    user, exercise_id: int, *, force_learner: bool = False
+) -> bool:
     """True if this user may load or submit answers for the given exercise id."""
     from education.models import Exercise  # local import avoids circular import at module load
 
     return apply_learner_exercise_filters(
-        Exercise.objects.filter(pk=exercise_id), user, force_learner=False
+        Exercise.objects.filter(pk=exercise_id), user, force_learner=force_learner
     ).exists()

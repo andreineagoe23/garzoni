@@ -112,6 +112,7 @@ INSTALLED_APPS = [
     "finance",
     "support",
     "onboarding",
+    "notifications.apps.NotificationsConfig",
     # Legacy core app (to be removed after full migration)
     "core",
     "django_rest_passwordreset",
@@ -434,6 +435,19 @@ ANYMAIL = {
 CONTACT_EMAIL = (
     os.getenv("CONTACT_EMAIL", "").strip() or None
 )  # Contact form recipient; falls back to DEFAULT_FROM_EMAIL
+
+# --- Customer.io (optional; backend-orchestrated delivery + journeys) ---
+CIO_REGION = os.getenv("CIO_REGION", "us").strip().lower()
+CIO_SITE_ID = os.getenv("CIO_SITE_ID", "").strip()
+CIO_TRACK_API_KEY = os.getenv("CIO_TRACK_API_KEY", "").strip()
+CIO_APP_API_KEY = os.getenv("CIO_APP_API_KEY", "").strip()
+CIO_TRACK_ENABLED = env_bool("CIO_TRACK_ENABLED", False)
+CIO_TRANSACTIONAL_ENABLED = env_bool("CIO_TRANSACTIONAL_ENABLED", False)
+CIO_JOURNEY_EVENTS_ENABLED = env_bool("CIO_JOURNEY_EVENTS_ENABLED", False)
+CIO_REMINDERS_VIA_JOURNEYS = env_bool("CIO_REMINDERS_VIA_JOURNEYS", False)
+# JSON map: template slug -> transactional message id (int) or trigger name (str), e.g.
+# {"password-reset":12,"welcome":13}
+CIO_TRANSACTIONAL_TRIGGERS_JSON = os.getenv("CIO_TRANSACTIONAL_TRIGGERS_JSON", "").strip()
 
 if DEBUG:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
