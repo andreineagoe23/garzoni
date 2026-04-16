@@ -508,12 +508,6 @@ class QuestionnaireCompleteView(APIView):
                 user_profile.add_points(xp_reward)
                 user_profile.add_money(coins_reward)
                 progress.rewards_granted = True
-            else:
-                user_profile = request.user.profile
-
-            if not user_profile.is_questionnaire_completed:
-                user_profile.is_questionnaire_completed = True
-                user_profile.save(update_fields=["is_questionnaire_completed"])
 
             progress.save()
 
