@@ -8,15 +8,14 @@ from django.contrib.auth.models import User
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from django.conf import settings
+from django.db import transaction
 from django.core import signing
 from django.http import HttpResponse
 
+from authentication.models import UserEmailPreference, UserProfile
 from authentication.throttles import PasswordResetRateThrottle
-from authentication.models import UserProfile
+from notifications.tasks import send_password_reset_email_task
 
 
 @api_view(["POST"])
@@ -50,6 +49,9 @@ def delete_account(request):
     """Delete the currently authenticated user's account."""
     user = request.user
     try:
+        from notifications.profile_sync import NotificationProfileSync
+
+        NotificationProfileSync().delete_user(user)
         user.delete()
         return Response({"message": "Account deleted successfully."}, status=200)
     except Exception as exc:
@@ -77,19 +79,10 @@ class PasswordResetRequestView(APIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
 
-        context = {
-            "user": user,
-            "reset_link": reset_link,
-        }
-        subject = "Password Reset Request"
-        html_content = render_to_string("emails/password_reset.html", context)
-        text_content = strip_tags(html_content)
+        def _enqueue():
+            send_password_reset_email_task.delay(user.pk, reset_link, idempotency_key=None)
 
-        email_message = EmailMultiAlternatives(
-            subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email]
-        )
-        email_message.attach_alternative(html_content, "text/html")
-        email_message.send()
+        transaction.on_commit(_enqueue)
 
         return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
 
@@ -179,6 +172,19 @@ class EmailUnsubscribeView(APIView):
 
         profile.email_reminder_preference = "none"
         profile.save(update_fields=["email_reminder_preference"])
+
+        prefs, _ = UserEmailPreference.objects.get_or_create(
+            user=profile.user,
+            defaults={
+                "reminder_frequency": "none",
+                "reminders": False,
+                "weekly_digest": False,
+            },
+        )
+        prefs.reminders = False
+        prefs.reminder_frequency = "none"
+        prefs.weekly_digest = False
+        prefs.save(update_fields=["reminders", "reminder_frequency", "weekly_digest", "updated_at"])
 
         frontend = getattr(settings, "FRONTEND_URL", "https://garzoni.app").rstrip("/")
         html = f"""

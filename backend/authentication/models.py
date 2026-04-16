@@ -240,6 +240,10 @@ class UserEmailPreference(models.Model):
     weekly_digest = models.BooleanField(default=True)
     billing_alerts = models.BooleanField(default=True)
     marketing = models.BooleanField(default=False)
+    push_notifications = models.BooleanField(
+        default=True,
+        help_text="Allow push notifications; enforced in NotificationService before transactional push.",
+    )
     reminder_frequency = models.CharField(
         max_length=10, choices=REMINDER_FREQUENCY_CHOICES, default="weekly"
     )

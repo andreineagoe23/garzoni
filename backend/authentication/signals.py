@@ -1,6 +1,7 @@
 import logging
 import sys
 
+from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -45,14 +46,16 @@ def create_user_profile(sender, instance, created, **kwargs):
                 "reminders": profile.email_reminder_preference != "none",
             },
         )
-        # Dispatch welcome email via Celery. If the broker (Redis) is temporarily
-        # unavailable, log a warning but do NOT let it crash the registration response.
-        try:
-            send_welcome_email.delay(instance.id)
-        except Exception:
-            logger.warning(
-                "send_welcome_email task dispatch failed for user_id=%s — "
-                "broker may be unavailable (Redis, Celery).",
-                instance.id,
-                exc_info=True,
-            )
+        # Dispatch welcome email after DB commit (Celery). If the broker is unavailable, log only.
+        def _enqueue_welcome():
+            try:
+                send_welcome_email.delay(instance.id)
+            except Exception:
+                logger.warning(
+                    "send_welcome_email task dispatch failed for user_id=%s — "
+                    "broker may be unavailable (Redis, Celery).",
+                    instance.id,
+                    exc_info=True,
+                )
+
+        transaction.on_commit(_enqueue_welcome)

@@ -1,5 +1,7 @@
 """Register or clear Expo push notification token for the authenticated user."""
 
+from django.db import transaction
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -33,4 +35,11 @@ class ExpoPushTokenView(APIView):
         profile = request.user.profile
         profile.expo_push_token = token or None
         profile.save(update_fields=["expo_push_token"])
+
+        def _sync_cio():
+            from notifications.tasks import sync_user_to_customer_io
+
+            sync_user_to_customer_io.delay(request.user.id)
+
+        transaction.on_commit(_sync_cio)
         return Response({"ok": True}, status=status.HTTP_200_OK)
