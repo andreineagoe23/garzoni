@@ -11,6 +11,7 @@ import apiClient from "services/httpClient";
 import { EntitlementFeature } from "types/api";
 import { attachToken } from "services/httpClient";
 import { queryClient, queryKeys } from "lib/reactQuery";
+import { identifyCustomerIoUser, resetCustomerIoWeb } from "hooks/useCio";
 import type { Entitlements, FinancialProfile, UserProfile } from "types/api";
 
 type ApiErrorResponse = {
@@ -165,6 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     inFlightRequestsRef.current.clear();
     queryClient.removeQueries({ queryKey: queryKeys.profile() });
     queryClient.removeQueries({ queryKey: queryKeys.entitlements() });
+    void resetCustomerIoWeb();
   }, []);
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
@@ -870,6 +872,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authError("Failed to prefetch financial profile:", error);
     });
   }, [isAuthenticated, loadEntitlements, loadFinancialProfile]);
+
+  useEffect(
+    () => {
+      if (isAuthenticated && user?.id) {
+        void identifyCustomerIoUser(user);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      isAuthenticated,
+      user?.id,
+      user?.email,
+      user?.username,
+      user?.first_name,
+      user?.last_name,
+    ]
+  );
 
   if (!isInitialized) {
     return <div>{t("shared.loadingAuth")}</div>;

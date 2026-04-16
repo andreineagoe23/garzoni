@@ -9,6 +9,10 @@ import {
 } from "react";
 import { attachToken } from "@garzoni/core";
 import { clearRevenueCatSession } from "../billing/subscriptionRuntime";
+import {
+  clearGarzoniCustomerIo,
+  identifyGarzoniUserFromAccessToken,
+} from "../bootstrap/customerIoMobile";
 import { tokenStorage } from "./tokenStorage";
 import { clearPlanChosenCache } from "./firstRunFlags";
 
@@ -32,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!cancelled && access) {
         attachToken(access);
         setAccessToken(access);
+        void identifyGarzoniUserFromAccessToken(access);
       }
       if (!cancelled) setHydrated(true);
     })();
@@ -45,9 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (refresh) await tokenStorage.setRefresh(refresh);
     attachToken(access);
     setAccessToken(access);
+    void identifyGarzoniUserFromAccessToken(access);
   }, []);
 
   const clearSession = useCallback(async () => {
+    await clearGarzoniCustomerIo();
     await clearRevenueCatSession();
     await clearPlanChosenCache();
     await tokenStorage.clearAll();

@@ -165,7 +165,10 @@ export function useLessonFlow(courseId: number) {
 
   const completeLessonMutation = useMutation({
     mutationFn: completeLesson,
-    onSuccess: () => {
+    onSuccess: (_data, lessonId) => {
+      void import("../bootstrap/customerIoMobile").then(({ trackGarzoniEvent }) =>
+        trackGarzoniEvent("lesson_completed", { lesson_id: lessonId }),
+      );
       void queryClient.invalidateQueries({
         queryKey: queryKeys.progressSummary(),
       });

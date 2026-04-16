@@ -625,6 +625,16 @@ const SubscriptionPlansPage = () => {
             offeringIdentifier={rcPaywallOfferingId}
             onSuccess={handleRCSuccess}
             onClose={() => {
+              void apiClient
+                .post(
+                  "/notifications/client-track/",
+                  {
+                    name: "checkout_abandoned",
+                    properties: { source: "revenuecat_paywall" },
+                  },
+                  { skipAuthRedirect: true }
+                )
+                .catch(() => {});
               setRcPaywallOfferingId(undefined);
               setShowRCPaywall(false);
             }}

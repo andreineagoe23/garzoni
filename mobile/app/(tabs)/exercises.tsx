@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { useTranslation } from "react-i18next";
@@ -129,6 +129,7 @@ function ExercisesInner() {
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation("common");
+  const queryClient = useQueryClient();
   const { hydrated, accessToken } = useAuthSession();
   const confettiRef = useRef<ConfettiCannon>(null);
   const [confettiActive, setConfettiActive] = useState(false);
@@ -438,6 +439,8 @@ function ExercisesInner() {
   const handleExerciseComplete = useCallback(() => {
     fireConfetti();
 
+    void queryClient.invalidateQueries({ queryKey: queryKeys.activityHeatmap() });
+
     if (mode === "review" && pickedId != null) {
       setReviewDone((d) => ({ ...d, [pickedId]: true }));
     }
@@ -473,6 +476,7 @@ function ExercisesInner() {
     mode,
     pickedId,
     profileQuery,
+    queryClient,
     reviewQuery,
     skipToNext,
   ]);

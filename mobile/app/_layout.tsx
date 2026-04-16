@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet } from "react-native";
@@ -14,6 +15,7 @@ import { i18n, queryClient } from "@garzoni/core";
 import { AuthProvider } from "../src/auth/AuthContext";
 import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
 import { initI18nMobile } from "../src/bootstrap/i18nMobile";
+import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
 import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
@@ -26,6 +28,10 @@ initI18nMobile();
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
   useNativeOnlineSync();
+
+  useEffect(() => {
+    void initCustomerIoMobile();
+  }, []);
 
   const navTheme = {
     ...(resolved === "dark" ? DarkTheme : DefaultTheme),
