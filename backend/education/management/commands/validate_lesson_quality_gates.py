@@ -28,7 +28,14 @@ class Command(BaseCommand):
     help = "Quality gates for lessons: exact structure, text depth, non-generic exercises, and video validity."
 
     def add_arguments(self, parser):
-        parser.add_argument("--json", action="store_true", help="Output JSON report.")
+        parser.add_argument("--json", action="store_true", help="Output JSON report to stdout.")
+        parser.add_argument(
+            "--output",
+            type=str,
+            default="",
+            metavar="PATH",
+            help="Write JSON report directly to this file path (avoids stdout pollution).",
+        )
         parser.add_argument(
             "--min-text-len",
             type=int,
@@ -140,6 +147,13 @@ class Command(BaseCommand):
             "target_types": TARGET_TYPES,
             "results": rows,
         }
+
+        output_path = options.get("output", "")
+        if output_path:
+            with open(output_path, "w", encoding="utf-8") as fh:
+                json.dump(payload, fh, ensure_ascii=False)
+            self.stderr.write(f"JSON report written to {output_path}")
+            return
 
         if as_json:
             self.stdout.write(json.dumps(payload, ensure_ascii=False))

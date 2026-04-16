@@ -23,6 +23,20 @@ def _app_api_base() -> str:
     return "https://api.customer.io"
 
 
+def _cdp_api_base() -> str:
+    if getattr(settings, "CIO_REGION", "us").lower() == "eu":
+        return "https://cdp-eu.customer.io"
+    return "https://cdp.customer.io"
+
+
+def _cdp_basic_auth_header() -> str | None:
+    key = (getattr(settings, "CIO_CDP_API_KEY", "") or "").strip()
+    if not key:
+        return None
+    token = base64.b64encode(f"{key}:".encode()).decode()
+    return f"Basic {token}"
+
+
 def _track_auth_header() -> str | None:
     site_id = (getattr(settings, "CIO_SITE_ID", "") or "").strip()
     api_key = (getattr(settings, "CIO_TRACK_API_KEY", "") or "").strip()
@@ -54,21 +68,30 @@ def customer_io_transactional_configured() -> bool:
     return bool((getattr(settings, "CIO_APP_API_KEY", "") or "").strip())
 
 
-def identify_person(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | None]:
+def customer_io_cdp_configured() -> bool:
+    return bool((getattr(settings, "CIO_CDP_API_KEY", "") or "").strip())
+
+
+def cdp_identify(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | None]:
     """
-    PUT /api/v1/customers/{id} — Track API.
-    person_id is the stable Garzoni identifier (stringified Django user pk).
+    POST /v1/identify — CDP API (same contract as Pipelines "Customer.io API" source test curl).
+    Authorization: Basic base64("API_KEY:")
     """
-    if not getattr(settings, "CIO_TRACK_ENABLED", False):
-        return True, "skipped (CIO_TRACK_ENABLED=false)"
-    auth = _track_auth_header()
+    if not getattr(settings, "CIO_CDP_ENABLED", True):
+        return True, "skipped (CIO_CDP_ENABLED=false)"
+    auth = _cdp_basic_auth_header()
     if not auth:
-        return False, "missing CIO_SITE_ID or CIO_TRACK_API_KEY"
-    url = f"{_track_api_base()}/api/v1/customers/{person_id}"
+        return False, "missing CIO_CDP_API_KEY"
+    clean_traits: dict[str, Any] = {}
+    for k, v in (traits or {}).items():
+        if isinstance(v, (str, int, float, bool)):
+            clean_traits[str(k)] = v
+    payload = {"userId": str(person_id), "traits": clean_traits}
+    url = f"{_cdp_api_base()}/v1/identify"
     try:
-        r = requests.put(
+        r = requests.post(
             url,
-            json=traits,
+            json=payload,
             headers={"Authorization": auth, "Content-Type": "application/json"},
             timeout=_timeout(),
         )
@@ -77,6 +100,53 @@ def identify_person(person_id: str, traits: dict[str, Any]) -> tuple[bool, str |
         return True, None
     except requests.RequestException as e:
         return False, str(e)
+
+
+def identify_person(person_id: str, traits: dict[str, Any]) -> tuple[bool, str | None]:
+    """
+    Upsert profile to Customer.io:
+    - CDP: POST /v1/identify when CIO_CDP_API_KEY is set (feeds Pipelines / "Test connection").
+    - Track: PUT /api/v1/customers/{id} when CIO_TRACK_ENABLED and site+tracking key set.
+    person_id is the stable Garzoni identifier (stringified Django user pk).
+    """
+    errs: list[str] = []
+    any_ok = False
+
+    if customer_io_cdp_configured() and getattr(settings, "CIO_CDP_ENABLED", True):
+        ok, err = cdp_identify(person_id, traits)
+        if ok:
+            any_ok = True
+        elif err:
+            errs.append(f"cdp:{err}")
+
+    if getattr(settings, "CIO_TRACK_ENABLED", False):
+        auth = _track_auth_header()
+        if not auth:
+            errs.append("track:missing CIO_SITE_ID or CIO_TRACK_API_KEY")
+        else:
+            url = f"{_track_api_base()}/api/v1/customers/{person_id}"
+            try:
+                r = requests.put(
+                    url,
+                    json=traits,
+                    headers={"Authorization": auth, "Content-Type": "application/json"},
+                    timeout=_timeout(),
+                )
+                if r.status_code >= 400:
+                    errs.append(f"track:HTTP {r.status_code}: {r.text[:500]}")
+                else:
+                    any_ok = True
+            except requests.RequestException as e:
+                errs.append(f"track:{e}")
+
+    if not customer_io_cdp_configured() and not (
+        getattr(settings, "CIO_TRACK_ENABLED", False) and _track_auth_header()
+    ):
+        return True, "skipped (no CIO_CDP_API_KEY and track not configured or disabled)"
+
+    if any_ok:
+        return True, None
+    return False, "; ".join(errs) if errs else "identify failed"
 
 
 def track_event(person_id: str, name: str, data: dict[str, Any] | None = None) -> tuple[bool, str | None]:

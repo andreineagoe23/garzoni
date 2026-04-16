@@ -45,11 +45,11 @@ if not SECRET_KEY:
             'Generate a key: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
         )
 if DEBUG:
-    logging.getLogger(__name__).info("[settings] DEBUG mode enabled")
+    logging.getLogger(__name__).debug("[settings] DEBUG mode enabled")
 elif _IS_BUILD_PHASE:
-    logging.getLogger(__name__).info("[settings] Build phase (collectstatic only)")
+    logging.getLogger(__name__).debug("[settings] Build phase (collectstatic only)")
 else:
-    logging.getLogger(__name__).info("[settings] Production mode (DEBUG=False)")
+    logging.getLogger(__name__).debug("[settings] Production mode (DEBUG=False)")
 
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
@@ -440,6 +440,9 @@ CONTACT_EMAIL = (
 CIO_REGION = os.getenv("CIO_REGION", "us").strip().lower()
 CIO_SITE_ID = os.getenv("CIO_SITE_ID", "").strip()
 CIO_TRACK_API_KEY = os.getenv("CIO_TRACK_API_KEY", "").strip()
+# CDP Pipelines / HTTP source (POST https://cdp(-eu).customer.io/v1/identify); Basic auth = base64("API_KEY:")
+CIO_CDP_API_KEY = os.getenv("CIO_CDP_API_KEY", "").strip()
+CIO_CDP_ENABLED = env_bool("CIO_CDP_ENABLED", True)
 CIO_APP_API_KEY = os.getenv("CIO_APP_API_KEY", "").strip()
 CIO_TRACK_ENABLED = env_bool("CIO_TRACK_ENABLED", False)
 CIO_TRANSACTIONAL_ENABLED = env_bool("CIO_TRANSACTIONAL_ENABLED", False)
