@@ -80,6 +80,7 @@ class UserEmailPreferenceSerializer(serializers.ModelSerializer):
             "weekly_digest",
             "billing_alerts",
             "marketing",
+            "push_notifications",
             "reminder_frequency",
         ]
 

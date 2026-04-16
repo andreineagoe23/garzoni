@@ -1,7 +1,8 @@
-from celery import shared_task
-from django.conf import settings
-from django.core.mail import send_mail
 import logging
+
+from celery import shared_task
+
+from notifications.service import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -14,18 +15,6 @@ logger = logging.getLogger(__name__)
 )
 def send_contact_email(self, email: str, topic: str, message: str) -> None:
     """
-    Send contact form notifications asynchronously.
+    Send contact form notifications asynchronously (internal staff mail via NotificationService).
     """
-    recipients = (
-        [settings.CONTACT_EMAIL]
-        if hasattr(settings, "CONTACT_EMAIL") and settings.CONTACT_EMAIL
-        else [settings.DEFAULT_FROM_EMAIL]
-    )
-
-    send_mail(
-        f"[Contact Form] {topic}",
-        f"From: {email}\n\n{message}",
-        settings.DEFAULT_FROM_EMAIL,
-        recipients,
-        fail_silently=False,
-    )
+    NotificationService().send_staff_contact_email(from_email=email, topic=topic, message=message)

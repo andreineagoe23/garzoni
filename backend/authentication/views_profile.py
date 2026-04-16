@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -16,6 +18,7 @@ from authentication.services.profile import (
     build_profile_payload,
     invalidate_profile_cache,
 )
+from notifications.tasks import sync_user_to_customer_io
 
 
 class UserProfileView(generics.GenericAPIView):
@@ -42,6 +45,8 @@ class UserProfileView(generics.GenericAPIView):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             invalidate_profile_cache(request.user)
+            uid = request.user.id
+            transaction.on_commit(lambda: sync_user_to_customer_io.delay(uid))
             return Response({"message": "Profile updated successfully."})
         except Exception as exc:
             # Sentry disabled (paid in production)
@@ -135,6 +140,8 @@ class UserSettingsView(generics.GenericAPIView):
                 email_prefs.reminders = email_reminder_preference != "none"
                 email_prefs.save(update_fields=["reminder_frequency", "reminders", "updated_at"])
             invalidate_profile_cache(request.user)
+            uid = request.user.id
+            transaction.on_commit(lambda: sync_user_to_customer_io.delay(uid))
 
             return Response(
                 {
@@ -209,4 +216,6 @@ class FinancialProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         invalidate_profile_cache(request.user)
+        uid = request.user.id
+        transaction.on_commit(lambda: sync_user_to_customer_io.delay(uid))
         return Response(serializer.data)
