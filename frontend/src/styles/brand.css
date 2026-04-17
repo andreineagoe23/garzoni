@@ -1,0 +1,28 @@
+/* Garzoni brand tokens — single source of truth.
+   Mirrored in:
+     - frontend/src/styles/scss/abstracts/_variables.scss (Sass hex)
+     - frontend/src/index.css .landing-theme (reads these via var(...))
+     - backend/core/templates/emails/_base.html (inline style hex must match)
+     - mobile/src/theme/brand.ts (React Native hex)
+     - Customer.io dashboard palette (see brand/README.md)
+   Edit this file first, then update those. */
+:root {
+  --brand-font-primary: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --brand-green: #1d5330;
+  --brand-green-rgb: 29, 83, 48;
+
+  --brand-gold: #ffd700;
+  --brand-gold-rgb: 255, 215, 0;
+  --brand-gold-warm: #e6c87a;
+  --brand-gold-warm-rgb: 230, 200, 122;
+
+  --brand-bg-dark: #0b0f14;
+  --brand-bg-dark-rgb: 11, 15, 20;
+  --brand-bg-card: #111827;
+  --brand-border-glass: rgba(255, 255, 255, 0.12);
+
+  --brand-text: #e5e7eb;
+  --brand-text-rgb: 229, 231, 235;
+  --brand-text-muted: rgba(229, 231, 235, 0.72);
+}

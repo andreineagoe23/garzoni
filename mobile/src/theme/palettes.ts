@@ -1,5 +1,8 @@
+import { brand } from "./brand";
+
 /**
  * Light/dark palettes aligned with web SCSS (`_variables.scss` / `_dark-mode.scss`).
+ * Core brand hex values come from `./brand` (single source of truth).
  */
 export type ThemeColors = {
   primary: string;
@@ -31,10 +34,10 @@ export type ThemeColors = {
 };
 
 export const lightPalette: ThemeColors = {
-  primary: "#1d5330",
+  primary: brand.green,
   primaryDark: "#0f3a22",
-  accent: "#ffd700",
-  accentMuted: "rgba(255, 215, 0, 0.15)",
+  accent: brand.gold,
+  accentMuted: `rgba(${brand.goldRgb}, 0.15)`,
   bg: "#f7f6f2",
   surface: "#ffffff",
   surfaceElevated: "#ffffff",
@@ -58,20 +61,20 @@ export const lightPalette: ThemeColors = {
   inputBg: "rgba(255,255,255,0.9)",
 };
 
-/** Matches web `[data-theme="dark"]` core tokens */
+/** Matches web `.landing-theme` / dark-mode brand tokens */
 export const darkPalette: ThemeColors = {
-  primary: "#2a6041",
-  primaryDark: "#1e4832",
-  accent: "#ffd700",
-  accentMuted: "rgba(255, 215, 0, 0.12)",
-  bg: "#121212",
-  surface: "#1e1e1e",
-  surfaceElevated: "#2a2a2a",
-  surfaceOffset: "#252525",
-  border: "rgba(224, 224, 224, 0.12)",
-  text: "#e0e0e0",
-  textMuted: "rgba(224, 224, 224, 0.7)",
-  textFaint: "rgba(224, 224, 224, 0.45)",
+  primary: brand.green,
+  primaryDark: "#143d22",
+  accent: brand.gold,
+  accentMuted: `rgba(${brand.goldRgb}, 0.12)`,
+  bg: brand.bgDark,
+  surface: brand.bgCard,
+  surfaceElevated: "#1a2435",
+  surfaceOffset: "#0f1622",
+  border: brand.borderGlass,
+  text: brand.text,
+  textMuted: brand.textMuted,
+  textFaint: "rgba(229, 231, 235, 0.45)",
   /** Light label on primary-filled controls (green button) — white reads better than gold on dark green */
   textOnPrimary: "#ffffff",
   error: "#d32f2f",
@@ -83,7 +86,7 @@ export const darkPalette: ThemeColors = {
   white: "#ffffff",
   black: "#000000",
   overlay: "rgba(0,0,0,0.65)",
-  glassFill: "rgba(30,30,30,0.88)",
-  glassBorder: "rgba(224,224,224,0.12)",
+  glassFill: `rgba(${brand.bgDarkRgb}, 0.78)`,
+  glassBorder: brand.borderGlass,
   inputBg: "rgba(0,0,0,0.25)",
 };

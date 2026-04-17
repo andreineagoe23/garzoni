@@ -138,6 +138,19 @@ export const Images = {
   get registerBg() {
     return cloudinaryImageUrl("garzoni/register-bg", "f_auto,q_auto,w_1200");
   },
+  /**
+   * Light-theme auth / welcome backdrop (renaissance cover on white).
+   * File: `backend/media/welcome/background_auth.png` → Cloudinary
+   * `garzoni/welcome/background_auth` when uploaded.
+   */
+  get authLightBg() {
+    const cdn = cloudinaryImageUrl(
+      "garzoni/welcome/background_auth",
+      "f_auto,q_auto,w_1600",
+    );
+    if (cdn) return cdn;
+    return `${getMediaBaseUrl()}/media/welcome/background_auth.png`;
+  },
   get basicFinance() {
     return cloudinaryImageUrl("garzoni/basicfinance", "f_auto,q_auto,w_800");
   },

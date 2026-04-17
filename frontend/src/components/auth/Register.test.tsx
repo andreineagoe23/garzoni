@@ -18,6 +18,9 @@ vi.mock("contexts/AuthContext", () => ({
 vi.mock("contexts/RecaptchaContext", () => ({
   useRecaptcha: () => ({ executeRecaptcha: null }),
 }));
+vi.mock("contexts/ThemeContext", () => ({
+  useTheme: () => ({ darkMode: true, toggleDarkMode: vi.fn() }),
+}));
 vi.mock("services/httpClient", () => ({
   __esModule: true,
   default: { get: vi.fn() },

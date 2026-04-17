@@ -5,6 +5,8 @@ import "@fontsource/geist-sans/500.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import Header from "components/layout/Header";
+import { useTheme } from "contexts/ThemeContext";
+import { Images } from "@garzoni/core";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./welcome.css";
@@ -15,6 +17,7 @@ import CTASection from "./CTASection";
 
 function Welcome() {
   const { t } = useTranslation();
+  const { darkMode } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const featureRef = useRef<HTMLElement | null>(null);
@@ -40,23 +43,46 @@ function Welcome() {
       </Helmet>
       <div
         ref={landingShellRef}
-        className="landing-shell landing-theme app-container min-h-screen flex flex-col bg-[color:var(--bg-color,#0B0F14)] text-content-primary"
+        className={[
+          "landing-shell app-container relative min-h-screen flex flex-col text-content-primary",
+          darkMode
+            ? "landing-theme bg-[color:var(--bg-color,#0B0F14)]"
+            : "bg-[color:var(--bg-color,#f8fafc)]",
+        ].join(" ")}
         style={
-          {
-            // Make the sections below the hero match the hero's neutral dark palette
-            // (instead of the default slightly blue-tinted surface).
-            "--card-bg": "#15191E",
-            "--input-bg": "#15191E",
-          } as React.CSSProperties
+          darkMode
+            ? ({
+                // Make the sections below the hero match the hero's neutral dark palette
+                // (instead of the default slightly blue-tinted surface).
+                "--card-bg": "#15191E",
+                "--input-bg": "#15191E",
+              } as React.CSSProperties)
+            : undefined
         }
       >
-        <div className="landing-animated-bg" aria-hidden="true" />
+        {!darkMode && Images.authLightBg ? (
+          <div
+            className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${Images.authLightBg})` }}
+            aria-hidden="true"
+          />
+        ) : null}
+
+        <div
+          className={["landing-animated-bg", !darkMode ? "hidden" : ""].join(
+            " "
+          )}
+          aria-hidden="true"
+        />
 
         <Header />
 
         <main className="relative z-[1] flex-1 pt-[80px] sm:pt-[96px]">
           {/* Hero (Three.js knowledge constellation) */}
-          <HeroSection scrollToFeatures={scrollToFeatures} />
+          <HeroSection
+            scrollToFeatures={scrollToFeatures}
+            lightBackdrop={!darkMode}
+          />
 
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-12 sm:px-6 lg:px-8">
             {/* Zig-zag Features */}
@@ -66,7 +92,7 @@ function Welcome() {
             <ReviewsSection />
 
             {/* CTA */}
-            <CTASection />
+            <CTASection lightMarketing={!darkMode} />
           </div>
         </main>
 

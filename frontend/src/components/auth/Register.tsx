@@ -6,6 +6,7 @@ import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Images } from "@garzoni/core";
 import Header from "components/layout/Header";
+import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
@@ -43,6 +44,11 @@ function Register() {
   const navigate = useNavigate();
   const { registerUser } = useAuth();
   const { executeRecaptcha } = useRecaptcha();
+  const { darkMode } = useTheme();
+
+  /** Same backdrop as login: dark = login hero image, light = renaissance cover. */
+  const authBackdropUrl = darkMode ? Images.loginBg : Images.authLightBg;
+  const authBackdropOverlay = darkMode ? "bg-black/60" : "bg-white/35";
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -192,12 +198,15 @@ function Register() {
       <div
         className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: Images.registerBg
-            ? `url(${Images.registerBg})`
+          backgroundImage: authBackdropUrl
+            ? `url(${authBackdropUrl})`
             : undefined,
         }}
       >
-        <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+        <div
+          className={`absolute inset-0 ${authBackdropOverlay}`}
+          aria-hidden="true"
+        />
 
         <div className="relative flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
           <GlassCard padding="lg" className="w-full max-w-md">
