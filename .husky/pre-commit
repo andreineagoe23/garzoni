@@ -1,7 +1,16 @@
 #!/usr/bin/env sh
 set -e
 pnpm run precommit
-# Match CI backend-python (black then flake8) when both are on PATH (e.g. venv: pip install -r backend/requirements-dev.txt).
-if command -v black >/dev/null 2>&1 && command -v flake8 >/dev/null 2>&1; then
-  pnpm run lint:backend
+# Backend: auto-format with Black (same pin as CI via requirements-dev), then lint.
+# If Black rewrote files, re-stage: git add backend && git commit
+if command -v black >/dev/null 2>&1; then
+  black backend/
+  if ! git diff --quiet -- backend 2>/dev/null; then
+    echo "Black reformatted Python under backend/. Stage and retry:" >&2
+    echo "  git add backend && git commit" >&2
+    exit 1
+  fi
+fi
+if command -v flake8 >/dev/null 2>&1; then
+  flake8 backend
 fi

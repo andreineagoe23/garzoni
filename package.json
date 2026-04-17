@@ -38,6 +38,7 @@
     "typecheck:mobile": "pnpm --filter @garzoni/mobile exec tsc --noEmit",
     "typecheck": "pnpm run typecheck:core && pnpm run typecheck:web && pnpm run typecheck:mobile",
     "lint:mobile": "pnpm --filter @garzoni/mobile lint",
+    "format:backend": "black backend/",
     "lint:backend": "black --check backend && flake8 backend",
     "qa:backend": "pnpm run lint:backend",
     "qa:mobile": "pnpm run typecheck:mobile && pnpm run lint:mobile && pnpm run test:core",
