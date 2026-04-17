@@ -23,7 +23,9 @@ def debug_task():
     print("Celery is working!")
 
 
-# Periodic tasks
+# Periodic tasks (used when Beat runs with the default scheduler). With
+# django_celery_beat.schedulers:DatabaseScheduler, schedules come from the DB —
+# see authentication/migrations/0020_beat_periodic_send_renewal_reminder.py for renewal.
 app.conf.beat_schedule = {
     "send-daily-email-reminders": {
         "task": "authentication.tasks.send_email_reminders",

@@ -305,29 +305,24 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
     }
 
     svc = NotificationService()
-    referrer_prefs = UserEmailPreference.objects.filter(user=referrer).first()
-    if not referrer_prefs or referrer_prefs.reminders:
-        svc.send_template_for_user(
-            referrer,
-            CioTemplate.REFERRAL_REFERRER,
-            subject="Your friend joined Garzoni! You earned bonus coins",
-            django_template="emails/referral_reward_referrer.html",
-            context=referrer_context,
-            idempotency_key=f"referral_referrer:{referrer_id}:{referred_id}",
-            purpose="referral_referrer",
-        )
-
-    referred_prefs = UserEmailPreference.objects.filter(user=referred).first()
-    if not referred_prefs or referred_prefs.reminders:
-        svc.send_template_for_user(
-            referred,
-            CioTemplate.REFERRAL_REFERRED,
-            subject="Welcome! You received a referral bonus",
-            django_template="emails/referral_reward_referred.html",
-            context=referred_context,
-            idempotency_key=f"referral_referred:{referrer_id}:{referred_id}",
-            purpose="referral_referred",
-        )
+    svc.send_template_for_user(
+        referrer,
+        CioTemplate.REFERRAL_REFERRER,
+        subject="Your friend joined Garzoni! You earned bonus coins",
+        django_template="emails/referral_reward_referrer.html",
+        context=referrer_context,
+        idempotency_key=f"referral_referrer:{referrer_id}:{referred_id}",
+        purpose="referral_referrer",
+    )
+    svc.send_template_for_user(
+        referred,
+        CioTemplate.REFERRAL_REFERRED,
+        subject="Welcome! You received a referral bonus",
+        django_template="emails/referral_reward_referred.html",
+        context=referred_context,
+        idempotency_key=f"referral_referred:{referrer_id}:{referred_id}",
+        purpose="referral_referred",
+    )
     return "Sent"
 
 
@@ -348,13 +343,14 @@ def send_streak_broken_email(self, user_id: int, streak_count: int):
         "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
     }
+    day_key = timezone.now().date().isoformat()
     NotificationService().send_template_for_user(
         user,
         CioTemplate.STREAK_BROKEN,
         subject="Your streak ended - start a new one today",
         django_template="emails/streak_broken.html",
         context=context,
-        idempotency_key=f"streak_broken:{user_id}:{streak_count}",
+        idempotency_key=f"streak_broken:{user_id}:{day_key}",
         purpose="streak_broken",
     )
     return "Sent"

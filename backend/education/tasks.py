@@ -29,6 +29,7 @@ def reset_inactive_streaks():
     - Checks the last activity date for each user.
     - If a user has been inactive for more than a day, their streak is reset to 0.
     """
+    from authentication.models import UserProfile
     from education.models import UserProgress
 
     users = User.objects.annotate(
@@ -40,9 +41,16 @@ def reset_inactive_streaks():
             today = timezone.now().date()
             days_inactive = (today - user.last_active).days
             if days_inactive > 1:
-                previous_streak = getattr(getattr(user, "profile", None), "streak", 0)
+                profile = getattr(user, "profile", None)
+                if not profile:
+                    continue
+                previous_streak = int(profile.streak or 0)
                 UserProgress.objects.filter(user=user).update(learning_session_count=0)
-                if previous_streak and previous_streak > 3:
+                UserProfile.objects.filter(pk=profile.pk).update(
+                    streak=0,
+                    last_completed_date=None,
+                )
+                if previous_streak > 3:
                     from authentication.tasks import send_streak_broken_email
 
                     send_streak_broken_email.delay(user.id, previous_streak)

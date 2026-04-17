@@ -44,6 +44,8 @@ def template_kind(template: CioTemplate) -> MessageKind:
         CioTemplate.SUBSCRIPTION_CANCELLED,
         CioTemplate.TRIAL_ENDING,
         CioTemplate.RENEWAL_REMINDER,
+        CioTemplate.REFERRAL_REFERRER,
+        CioTemplate.REFERRAL_REFERRED,
     ):
         return MessageKind.TRANSACTIONAL_PRODUCT
     return MessageKind.MARKETING
@@ -66,6 +68,8 @@ def should_send_email(user: User, template: CioTemplate) -> PolicyResult:
             return PolicyResult(False, "no_email")
         if template == CioTemplate.WELCOME:
             return PolicyResult(True, "ok")
+        if template in (CioTemplate.REFERRAL_REFERRER, CioTemplate.REFERRAL_REFERRED):
+            return PolicyResult(True, "ok")
         if template in (
             CioTemplate.SUBSCRIPTION_CANCELLED,
             CioTemplate.TRIAL_ENDING,
@@ -80,11 +84,6 @@ def should_send_email(user: User, template: CioTemplate) -> PolicyResult:
         return PolicyResult(False, "no_email")
     if not prefs:
         return PolicyResult(True, "ok_no_prefs_row")
-
-    if template in (CioTemplate.REFERRAL_REFERRER, CioTemplate.REFERRAL_REFERRED):
-        if not prefs.reminders:
-            return PolicyResult(False, "reminders_off")
-        return PolicyResult(True, "ok")
 
     if template == CioTemplate.STREAK_BROKEN:
         if not prefs.streak_alerts:
