@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from celery import shared_task
-from django.utils.timezone import now
 from django.utils import timezone
 from core.utils import normalize_text_encoding
 
@@ -293,8 +292,10 @@ class MissionCompletion(models.Model):
             # Late import to avoid circular dependency
             from education.models import Mastery
 
-            now = timezone.now()
-            due_count = Mastery.objects.filter(user=self.user, due_at__lte=now).count()
+            as_of = timezone.now()
+            due_count = Mastery.objects.filter(
+                user=self.user, due_at__lte=as_of
+            ).count()
             target = goal_reference.get("target_count", 5)
             if due_count == 0:
                 self.progress = 100
