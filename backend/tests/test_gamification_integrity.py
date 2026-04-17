@@ -50,9 +50,7 @@ class GamificationIntegrityTests(TestCase):
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 5)
         self.assertEqual(profile.last_completed_date, today)
-        self.assertEqual(
-            StreakItem.objects.get(user=user, item_type="streak_freeze").quantity, 0
-        )
+        self.assertEqual(StreakItem.objects.get(user=user, item_type="streak_freeze").quantity, 0)
         self.assertTrue(
             RewardLedgerEntry.objects.filter(
                 user=user, event_key__startswith="streak_freeze_used:"
