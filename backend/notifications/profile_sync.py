@@ -68,7 +68,9 @@ class NotificationProfileSync:
         pid = customer_io_person_id(user)
         return delete_person(pid)
 
-    def sync_device(self, user: User, token: str | None, platform: str | None = None) -> tuple[bool, str | None]:
+    def sync_device(
+        self, user: User, token: str | None, platform: str | None = None
+    ) -> tuple[bool, str | None]:
         """Push device state via traits (Expo token on profile)."""
         pid = customer_io_person_id(user)
         traits: dict[str, Any] = {

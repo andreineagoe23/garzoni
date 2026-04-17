@@ -17,11 +17,14 @@ def smtp_configured() -> bool:
     if "anymail" in backend:
         return bool(getattr(settings, "ANYMAIL", None))
     return bool(
-        getattr(settings, "EMAIL_HOST_USER", None) and getattr(settings, "EMAIL_HOST_PASSWORD", None)
+        getattr(settings, "EMAIL_HOST_USER", None)
+        and getattr(settings, "EMAIL_HOST_PASSWORD", None)
     )
 
 
-def send_html_email(*, subject: str, template_name: str, context: dict, to_emails: list[str]) -> None:
+def send_html_email(
+    *, subject: str, template_name: str, context: dict, to_emails: list[str]
+) -> None:
     if not smtp_configured():
         raise RuntimeError("SMTP/Anymail not configured")
     # Inject brand-wide defaults so every template (notably emails/_base.html)

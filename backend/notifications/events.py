@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 class NotificationEvents:
     """Publish domain events to Customer.io for journeys and analytics."""
 
-    def track(self, user: User, event_name: str | CioEventName, properties: dict[str, Any] | None = None) -> tuple[bool, str | None]:
+    def track(
+        self, user: User, event_name: str | CioEventName, properties: dict[str, Any] | None = None
+    ) -> tuple[bool, str | None]:
         name = event_name.value if isinstance(event_name, CioEventName) else event_name
         pid = customer_io_person_id(user)
         ok, err = track_event(pid, name, properties or {})
