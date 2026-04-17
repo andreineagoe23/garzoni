@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -10,12 +12,15 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from django.core import signing
 from django.http import HttpResponse
 
 from authentication.models import UserEmailPreference, UserProfile
 from authentication.throttles import PasswordResetRateThrottle
-from notifications.tasks import send_password_reset_email_task
+from notifications.tasks import send_password_changed_email_task, send_password_reset_email_task
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(["POST"])
@@ -39,6 +44,21 @@ def change_password(request):
     user.set_password(new_password)
     user.save()
     update_session_auth_hash(request, user)
+
+    def _enqueue_changed_notice():
+        try:
+            send_password_changed_email_task.delay(
+                user.pk,
+                idempotency_key=f"pwd_changed:{user.pk}:{timezone.now().date().isoformat()}",
+            )
+        except Exception:
+            logger.warning(
+                "send_password_changed_email_task dispatch failed for user_id=%s",
+                user.pk,
+                exc_info=True,
+            )
+
+    transaction.on_commit(_enqueue_changed_notice)
 
     return Response({"message": "Password changed successfully."}, status=200)
 

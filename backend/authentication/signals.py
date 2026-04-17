@@ -1,14 +1,18 @@
 import logging
 import sys
+import uuid
 
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User
-import uuid
-from authentication.models import UserProfile, UserEmailPreference
+from django_rest_passwordreset.signals import reset_password_token_created
+
+from authentication.models import UserEmailPreference, UserProfile
 from authentication.tasks import send_welcome_email
 from core.utils import normalize_text_encoding
+from notifications.tasks import send_password_reset_email_task
 
 logger = logging.getLogger(__name__)
 
@@ -60,3 +64,29 @@ def create_user_profile(sender, instance, created, **kwargs):
                 )
 
         transaction.on_commit(_enqueue_welcome)
+
+
+@receiver(reset_password_token_created)
+def on_password_reset_token_created(sender, instance, reset_password_token, **kwargs):
+    """
+    django-rest-passwordreset only emits this signal; it does not send email itself.
+    Queue the same NotificationService path as the custom password-reset API.
+    Reset link targets the SPA + POST /api/auth/drf-password-reset/confirm/ (see authentication.urls).
+    """
+    user = reset_password_token.user
+    base = getattr(settings, "FRONTEND_URL", "https://garzoni.app").rstrip("/")
+    reset_link = f"{base}/password-reset?token={reset_password_token.key}"
+    idempotency_key = f"pwd_reset:{user.pk}:{uuid.uuid4().hex[:12]}"
+
+    def _enqueue():
+        try:
+            send_password_reset_email_task.delay(user.pk, reset_link, idempotency_key=idempotency_key)
+        except Exception:
+            logger.warning(
+                "send_password_reset_email_task dispatch failed for user_id=%s — "
+                "broker may be unavailable (Redis, Celery).",
+                user.pk,
+                exc_info=True,
+            )
+
+    transaction.on_commit(_enqueue)
