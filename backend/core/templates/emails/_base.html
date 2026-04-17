@@ -1,17 +1,10 @@
 {% comment %} Shared branded base for Garzoni transactional emails. Keep it
-self-contained (inline CSS / basic HTML) for maximum email client support.
-
-Brand tokens below mirror frontend/src/styles/brand.css (single source of
-truth). When those change, update the hex values here too:
-  bg-dark     #0b0f14
-  bg-card     #111827
-  green       #1d5330
-  gold-warm   #e6c87a
-  text        #e5e7eb
-  text-muted  rgba(229, 231, 235, 0.72)
-Font stack mirrors --brand-font-primary in brand.css:
-  "Helvetica Neue", Helvetica, Arial, sans-serif
-{% endcomment %}
+self-contained (inline CSS / basic HTML) for maximum email client support. Brand
+tokens below mirror frontend/src/styles/brand.css (single source of truth). When
+those change, update the hex values here too: bg-dark #0b0f14 bg-card #111827
+green #1d5330 gold-warm #e6c87a text #e5e7eb text-muted rgba(229, 231, 235,
+0.72) Font stack mirrors --brand-font-primary in brand.css: "Helvetica Neue",
+Helvetica, Arial, sans-serif {% endcomment %}
 <!doctype html>
 <html lang="en">
   <head>
@@ -73,7 +66,7 @@ Font stack mirrors --brand-font-primary in brand.css:
                 <div
                   style="
                     font-family:
-                      'Helvetica Neue', Helvetica, Arial, sans-serif;
+                      &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;
                     letter-spacing: 0.2px;
                   "
                 >
@@ -120,7 +113,7 @@ Font stack mirrors --brand-font-primary in brand.css:
                 <div
                   style="
                     font-family:
-                      'Helvetica Neue', Helvetica, Arial, sans-serif;
+                      &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;
                     color: #e5e7eb;
                     font-size: 15px;
                     line-height: 1.6;
@@ -136,7 +129,7 @@ Font stack mirrors --brand-font-primary in brand.css:
                 <div
                   style="
                     font-family:
-                      'Helvetica Neue', Helvetica, Arial, sans-serif;
+                      &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;
                     color: rgba(229, 231, 235, 0.72);
                     font-size: 12px;
                     line-height: 1.6;
@@ -174,7 +167,7 @@ Font stack mirrors --brand-font-primary in brand.css:
               margin: 14px auto 0 auto;
               padding: 0 8px;
               font-family:
-                'Helvetica Neue', Helvetica, Arial, sans-serif;
+                &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;
               font-size: 11px;
               line-height: 1.5;
               color: rgba(229, 231, 235, 0.55);

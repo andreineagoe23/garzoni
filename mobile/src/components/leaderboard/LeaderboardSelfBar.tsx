@@ -70,7 +70,7 @@ export default function LeaderboardSelfBar({
 const styles = StyleSheet.create({
   wrap: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
   },
   inner: {

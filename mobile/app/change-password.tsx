@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,14 +10,32 @@ import {
 import { router } from "expo-router";
 import { changePassword } from "@garzoni/core";
 import { Button, FormInput } from "../src/components/ui";
-import { colors, spacing, typography, radius } from "../src/theme/tokens";
+import { useThemeColors } from "../src/theme/ThemeContext";
+import { spacing, typography, radius } from "../src/theme/tokens";
 
 export default function ChangePasswordScreen() {
+  const c = useThemeColors();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        flex: { flex: 1, backgroundColor: c.bg },
+        container: { padding: spacing.xxl, paddingTop: spacing.lg },
+        errorBanner: {
+          backgroundColor: c.errorBg,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          marginBottom: spacing.lg,
+        },
+        errorText: { color: c.error, fontSize: typography.sm },
+      }),
+    [c],
+  );
 
   const onSubmit = async () => {
     setError("");
@@ -95,15 +113,3 @@ export default function ChangePasswordScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: spacing.xxl, paddingTop: spacing.lg },
-  errorBanner: {
-    backgroundColor: colors.errorBg,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  errorText: { color: colors.error, fontSize: typography.sm },
-});

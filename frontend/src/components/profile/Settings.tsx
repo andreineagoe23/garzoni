@@ -36,6 +36,8 @@ function Settings() {
     weekly_digest: true,
     billing_alerts: true,
     marketing: false,
+    /** Must round-trip with GET /user/settings/ so PATCH does not drop server fields. */
+    push_notifications: true,
   });
 
   useEffect(() => {
@@ -69,6 +71,7 @@ function Settings() {
           weekly_digest: Boolean(prefs?.weekly_digest ?? true),
           billing_alerts: Boolean(prefs?.billing_alerts ?? true),
           marketing: Boolean(prefs?.marketing ?? false),
+          push_notifications: Boolean(prefs?.push_notifications ?? true),
         });
         setProfileData({
           username: String((profile as UserProfile).username || ""),

@@ -429,7 +429,9 @@ export default function SubscriptionsScreen() {
         {/* ── Header ── */}
         {!showNativePaywall ? (
           <View style={styles.header}>
-            <View style={[styles.divider, { backgroundColor: c.primary + "44" }]} />
+            <View
+              style={[styles.divider, { backgroundColor: c.primary + "44" }]}
+            />
             <Text style={[styles.title, { color: c.text }]}>
               {personalizedPathReason
                 ? t("subscriptions.personalizedPathTitle")
@@ -445,14 +447,18 @@ export default function SubscriptionsScreen() {
 
         {/* ── Alerts ── */}
         {ent?.fallback ? (
-          <View style={[styles.alertBanner, { backgroundColor: c.accent + "22" }]}>
+          <View
+            style={[styles.alertBanner, { backgroundColor: c.accent + "22" }]}
+          >
             <Text style={[styles.alertText, { color: c.accent }]}>
               {t("subscriptions.fallbackEntitlements")}
             </Text>
           </View>
         ) : null}
         {selectionError ? (
-          <View style={[styles.alertBanner, { backgroundColor: c.error + "18" }]}>
+          <View
+            style={[styles.alertBanner, { backgroundColor: c.error + "18" }]}
+          >
             <Text style={[styles.alertText, { color: c.error }]}>
               {selectionError}
             </Text>
@@ -590,12 +596,22 @@ export default function SubscriptionsScreen() {
               /* ── Plan cards ── */
               <View style={{ marginTop: spacing.sm }}>
                 {plansQ.isPending ? (
-                  <Text style={[styles.cardBody, { color: c.textMuted, textAlign: "center" }]}>
+                  <Text
+                    style={[
+                      styles.cardBody,
+                      { color: c.textMuted, textAlign: "center" },
+                    ]}
+                  >
                     {t("subscriptions.loadingPlans")}
                   </Text>
                 ) : null}
                 {revenueCatNative && loadingOffering ? (
-                  <Text style={[styles.cardBody, { color: c.textMuted, marginBottom: spacing.md }]}>
+                  <Text
+                    style={[
+                      styles.cardBody,
+                      { color: c.textMuted, marginBottom: spacing.md },
+                    ]}
+                  >
                     {t("subscriptions.loadingPlans")}
                   </Text>
                 ) : null}
@@ -612,7 +628,8 @@ export default function SubscriptionsScreen() {
                   const isHighlight = plan.plan_id === "plus";
                   const name =
                     plan.name ||
-                    plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
+                    plan.plan_id.charAt(0).toUpperCase() +
+                      plan.plan_id.slice(1);
                   const features = Object.values(plan.features || {})
                     .map((f) => f?.description || f?.name)
                     .filter(Boolean) as string[];
@@ -632,10 +649,10 @@ export default function SubscriptionsScreen() {
                         styles.planCard,
                         {
                           backgroundColor: c.surface,
-                          borderColor: isHighlight
-                            ? "#E6C87A88"
-                            : c.border,
-                          borderWidth: isHighlight ? 2 : StyleSheet.hairlineWidth,
+                          borderColor: isHighlight ? "#E6C87A88" : c.border,
+                          borderWidth: isHighlight
+                            ? 2
+                            : StyleSheet.hairlineWidth,
                         },
                       ]}
                     >
@@ -662,7 +679,12 @@ export default function SubscriptionsScreen() {
                               { backgroundColor: c.success + "22" },
                             ]}
                           >
-                            <Text style={[styles.freeBadgeText, { color: c.success }]}>
+                            <Text
+                              style={[
+                                styles.freeBadgeText,
+                                { color: c.success },
+                              ]}
+                            >
                               {t("subscriptions.free")}
                             </Text>
                           </View>
@@ -673,8 +695,15 @@ export default function SubscriptionsScreen() {
                               { backgroundColor: c.primary + "18" },
                             ]}
                           >
-                            <Text style={[styles.freeBadgeText, { color: c.primary }]}>
-                              {t("subscriptions.trialDays", { count: plan.trial_days })}
+                            <Text
+                              style={[
+                                styles.freeBadgeText,
+                                { color: c.primary },
+                              ]}
+                            >
+                              {t("subscriptions.trialDays", {
+                                count: plan.trial_days,
+                              })}
                             </Text>
                           </View>
                         ) : null}
@@ -686,7 +715,9 @@ export default function SubscriptionsScreen() {
                           {formatMoney(plan)}
                         </Text>
                         {!isStarter ? (
-                          <Text style={[styles.pricePer, { color: c.textMuted }]}>
+                          <Text
+                            style={[styles.pricePer, { color: c.textMuted }]}
+                          >
                             {" / "}
                             {plan.billing_interval === "yearly"
                               ? t("subscriptions.perYear")
@@ -706,7 +737,9 @@ export default function SubscriptionsScreen() {
                                 color={c.primary}
                                 style={{ marginTop: 1 }}
                               />
-                              <Text style={[styles.featureText, { color: c.text }]}>
+                              <Text
+                                style={[styles.featureText, { color: c.text }]}
+                              >
                                 {fe}
                               </Text>
                             </View>
@@ -788,7 +821,12 @@ export default function SubscriptionsScreen() {
                     <Text style={[styles.col, { color: c.textMuted }]}>
                       {row.starter}
                     </Text>
-                    <Text style={[styles.col, { color: c.primary, fontWeight: "600" }]}>
+                    <Text
+                      style={[
+                        styles.col,
+                        { color: c.primary, fontWeight: "600" },
+                      ]}
+                    >
                       {row.plus}
                     </Text>
                     <Text style={[styles.col, { color: c.textMuted }]}>

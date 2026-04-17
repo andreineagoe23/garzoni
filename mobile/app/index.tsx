@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { fetchProfile, fetchQuestionnaireProgress } from "@garzoni/core";
-import { colors } from "../src/theme/tokens";
+import { useThemeColors } from "../src/theme/ThemeContext";
 import {
   getPlanChosenCache,
   getWelcomeSeen,
@@ -16,10 +16,24 @@ type PlanStatus = "pending" | "chosen" | "not_chosen";
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
+  const c = useThemeColors();
   const [welcomeStatus, setWelcomeStatus] = useState<WelcomeStatus>("pending");
   const [onboardingStatus, setOnboardingStatus] =
     useState<OnboardingStatus>("pending");
   const [planStatus, setPlanStatus] = useState<PlanStatus>("pending");
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        centered: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: c.bg,
+        },
+      }),
+    [c],
+  );
 
   useEffect(() => {
     if (!hydrated) return;
@@ -92,7 +106,7 @@ export default function Index() {
   ) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={c.primary} />
       </View>
     );
   }
@@ -111,12 +125,3 @@ export default function Index() {
 
   return <Redirect href="/(tabs)" />;
 }
-
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.bg,
-  },
-});

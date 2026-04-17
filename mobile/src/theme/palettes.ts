@@ -33,22 +33,23 @@ export type ThemeColors = {
   inputBg: string;
 };
 
+/** Web `:root` in-app theme */
 export const lightPalette: ThemeColors = {
   primary: brand.green,
   primaryDark: "#0f3a22",
   accent: brand.gold,
   accentMuted: `rgba(${brand.goldRgb}, 0.15)`,
-  bg: "#f7f6f2",
+  bg: "#f8fafc",
   surface: "#ffffff",
   surfaceElevated: "#ffffff",
-  surfaceOffset: "#f3f0ec",
-  border: "#d4d1ca",
-  text: "#28251d",
-  textMuted: "#7a7974",
-  textFaint: "#bab9b4",
+  surfaceOffset: "#f3f4f6",
+  border: "rgba(0, 0, 0, 0.1)",
+  text: "#111827",
+  textMuted: "#6b7280",
+  textFaint: "#9ca3af",
   textOnPrimary: "#ffffff",
-  error: "#a12c7b",
-  errorBg: "rgba(161, 44, 123, 0.08)",
+  error: "#dc2626",
+  errorBg: "rgba(220, 38, 38, 0.08)",
   success: "#437a22",
   successBg: "rgba(67, 122, 34, 0.08)",
   heart: "#ef4444",
@@ -58,24 +59,23 @@ export const lightPalette: ThemeColors = {
   overlay: "rgba(0,0,0,0.45)",
   glassFill: "rgba(255,255,255,0.92)",
   glassBorder: "rgba(0,0,0,0.08)",
-  inputBg: "rgba(255,255,255,0.9)",
+  inputBg: "#f3f4f6",
 };
 
-/** Matches web `.landing-theme` / dark-mode brand tokens */
+/** Web `[data-theme="dark"]` in-app theme (neutral grey, not brand slate) */
 export const darkPalette: ThemeColors = {
-  primary: brand.green,
+  primary: "#2a6041",
   primaryDark: "#143d22",
   accent: brand.gold,
   accentMuted: `rgba(${brand.goldRgb}, 0.12)`,
-  bg: brand.bgDark,
-  surface: brand.bgCard,
-  surfaceElevated: "#1a2435",
-  surfaceOffset: "#0f1622",
-  border: brand.borderGlass,
-  text: brand.text,
-  textMuted: brand.textMuted,
-  textFaint: "rgba(229, 231, 235, 0.45)",
-  /** Light label on primary-filled controls (green button) — white reads better than gold on dark green */
+  bg: "#121212",
+  surface: "#1e1e1e",
+  surfaceElevated: "#2a2a2a",
+  surfaceOffset: "#171717",
+  border: "rgba(224, 224, 224, 0.12)",
+  text: "#e0e0e0",
+  textMuted: "rgba(224, 224, 224, 0.7)",
+  textFaint: "rgba(224, 224, 224, 0.45)",
   textOnPrimary: "#ffffff",
   error: "#d32f2f",
   errorBg: "rgba(211, 47, 47, 0.12)",
@@ -86,7 +86,7 @@ export const darkPalette: ThemeColors = {
   white: "#ffffff",
   black: "#000000",
   overlay: "rgba(0,0,0,0.65)",
-  glassFill: `rgba(${brand.bgDarkRgb}, 0.78)`,
-  glassBorder: brand.borderGlass,
+  glassFill: "rgba(30,30,30,0.82)",
+  glassBorder: "rgba(224, 224, 224, 0.12)",
   inputBg: "rgba(0,0,0,0.25)",
 };

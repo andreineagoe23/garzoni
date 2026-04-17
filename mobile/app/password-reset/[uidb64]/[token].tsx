@@ -5,7 +5,7 @@
  * When iOS Universal Links are configured (AASA file + entitlements), tapping
  * the reset link in the email opens this screen instead of Safari.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,9 +17,11 @@ import {
 import { useLocalSearchParams, router } from "expo-router";
 import { confirmPasswordReset } from "@garzoni/core";
 import { Button, FormInput } from "../../../src/components/ui";
-import { colors, spacing, typography, radius } from "../../../src/theme/tokens";
+import { useThemeColors } from "../../../src/theme/ThemeContext";
+import { spacing, typography, radius } from "../../../src/theme/tokens";
 
 export default function PasswordResetConfirmScreen() {
+  const c = useThemeColors();
   const { uidb64, token } = useLocalSearchParams<{
     uidb64: string;
     token: string;
@@ -30,6 +32,43 @@ export default function PasswordResetConfirmScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        flex: { flex: 1, backgroundColor: c.bg },
+        container: { padding: spacing.xxl, paddingTop: spacing.xxxxl },
+        centered: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: c.bg,
+        },
+        icon: { fontSize: 56, marginBottom: spacing.lg },
+        title: {
+          fontSize: typography.xxl,
+          fontWeight: "700",
+          color: c.text,
+          marginBottom: spacing.sm,
+          textAlign: "center",
+        },
+        subtitle: {
+          fontSize: typography.base,
+          color: c.textMuted,
+          marginBottom: spacing.xxl,
+          lineHeight: 22,
+          textAlign: "center",
+        },
+        errorBanner: {
+          backgroundColor: c.errorBg,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          marginBottom: spacing.lg,
+        },
+        errorText: { color: c.error, fontSize: typography.sm },
+      }),
+    [c],
+  );
 
   const onSubmit = async () => {
     setError("");
@@ -123,36 +162,3 @@ export default function PasswordResetConfirmScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: spacing.xxl, paddingTop: spacing.xxxxl },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.bg,
-  },
-  icon: { fontSize: 56, marginBottom: spacing.lg },
-  title: {
-    fontSize: typography.xxl,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: spacing.sm,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    marginBottom: spacing.xxl,
-    lineHeight: 22,
-    textAlign: "center",
-  },
-  errorBanner: {
-    backgroundColor: colors.errorBg,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  errorText: { color: colors.error, fontSize: typography.sm },
-});

@@ -1,10 +1,7 @@
-import { lightPalette } from "./palettes";
-
 /**
- * Static light palette for legacy imports.
- * Prefer `useTheme().colors` or `useThemeColors()` for theme-aware UI.
+ * Layout tokens (spacing, radius, typography, shadows).
+ * For colors use `useTheme().colors` or `useThemeColors()` from `./ThemeContext`.
  */
-export const colors = lightPalette;
 
 export const spacing = {
   xs: 4,

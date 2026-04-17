@@ -59,7 +59,7 @@ export default function PrimaryCTAMobile({ primaryCTA }: Props) {
             </Text>
           </View>
         </View>
-        <GlassButton variant="primary" size="sm" onPress={primaryCTA.action}>
+        <GlassButton variant="primary" size="md" onPress={primaryCTA.action}>
           {t("dashboard.primaryCta.getStarted")}
         </GlassButton>
       </View>

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import { spacing, typography } from "../../theme/tokens";
 import Button from "./Button";
 
 type EmptyStateProps = {
@@ -18,6 +19,33 @@ export default function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const c = useThemeColors();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          alignItems: "center",
+          justifyContent: "center",
+          padding: spacing.xxxl,
+          gap: spacing.md,
+        },
+        icon: { fontSize: 48 },
+        title: {
+          fontSize: typography.lg,
+          fontWeight: "700",
+          color: c.text,
+          textAlign: "center",
+        },
+        message: {
+          fontSize: typography.base,
+          color: c.textMuted,
+          textAlign: "center",
+          lineHeight: 22,
+        },
+      }),
+    [c],
+  );
+
   return (
     <View style={styles.container}>
       {icon ? <Text style={styles.icon}>{icon}</Text> : null}
@@ -31,25 +59,3 @@ export default function EmptyState({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxxl,
-    gap: spacing.md,
-  },
-  icon: { fontSize: 48 },
-  title: {
-    fontSize: typography.lg,
-    fontWeight: "700",
-    color: colors.text,
-    textAlign: "center",
-  },
-  message: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-});

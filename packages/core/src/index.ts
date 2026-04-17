@@ -70,7 +70,10 @@ export {
   defaultRetryDelay,
 } from "./lib/reactQuery";
 export { createMutationOptions } from "./lib/createMutation";
-export { selectPrimaryCTA } from "./lib/primaryCtaSelector";
+export {
+  selectPrimaryCTA,
+  type SelectPrimaryCtaOptions,
+} from "./lib/primaryCtaSelector";
 
 export { useHearts } from "./hooks/useHearts";
 export { useProgress } from "./hooks/useProgress";
