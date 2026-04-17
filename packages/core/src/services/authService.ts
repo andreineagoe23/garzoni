@@ -9,6 +9,14 @@ export const confirmPasswordReset = (
   payload: Record<string, unknown>,
 ) => apiClient.post(`/password-reset-confirm/${uidb64}/${token}/`, payload);
 
+/** Password reset via django-rest-passwordreset (token query link from email). */
+export const confirmDrfPasswordReset = (token: string, password: string) =>
+  apiClient.post<{ status?: string }>(
+    "/auth/drf-password-reset/confirm/",
+    { token, password },
+    { skipAuthRedirect: true },
+  );
+
 export type LoginSecurePayload = {
   username: string;
   password: string;

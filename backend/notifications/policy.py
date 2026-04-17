@@ -31,6 +31,7 @@ def _prefs(user: User) -> UserEmailPreference | None:
 def template_kind(template: CioTemplate) -> MessageKind:
     if template in (
         CioTemplate.PASSWORD_RESET,
+        CioTemplate.PASSWORD_CHANGED,
         CioTemplate.EMAIL_VERIFICATION,
         CioTemplate.MAGIC_LOGIN,
         CioTemplate.ORDER_CONFIRMED,

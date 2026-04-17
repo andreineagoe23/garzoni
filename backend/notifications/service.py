@@ -238,6 +238,9 @@ class NotificationService:
         *,
         idempotency_key: str | None,
         purpose: str,
+        smtp_subject: str | None = None,
+        smtp_template: str | None = None,
+        extra_smtp_context: dict[str, Any] | None = None,
     ) -> str:
         if idempotency_key and not claim_idempotency_key(idempotency_key, purpose):
             return "skipped_duplicate"
@@ -247,8 +250,19 @@ class NotificationService:
         if _use_cio_transactional(template):
             ok, err = self.transactional.send(template, user, message_data)
             return "sent_cio" if ok else f"cio_failed:{err}"
+        if smtp_template and smtp_subject and smtp_configured():
+            ctx: dict[str, Any] = {**(extra_smtp_context or {}), **message_data}
+            ctx.setdefault("year", timezone.now().year)
+            ctx["user"] = user
+            send_html_email(
+                subject=smtp_subject,
+                template_name=smtp_template,
+                context=ctx,
+                to_emails=[user.email],
+            )
+            return "sent_smtp"
         logger.info(
-            "Transactional template %s has no CIO mapping and no SMTP fallback in service; skipped",
+            "Transactional template %s has no CIO mapping and no SMTP fallback; skipped",
             template.value,
         )
         return "skipped_no_cio_mapping"
@@ -267,6 +281,9 @@ class NotificationService:
             {"verify_link": verify_link, "customer_name": name},
             idempotency_key=idempotency_key,
             purpose="email_verification",
+            smtp_subject="Verify your Garzoni email",
+            smtp_template="emails/email_verification.html",
+            extra_smtp_context={"verification_link": verify_link},
         )
 
     def send_magic_login(
@@ -274,15 +291,23 @@ class NotificationService:
         user: User,
         *,
         magic_link: str,
+        expires_minutes: int = 15,
         idempotency_key: str | None = None,
     ) -> str:
         name = normalize_display_string(user.first_name or user.username or "there")
         return self._send_transactional_operational(
             user,
             CioTemplate.MAGIC_LOGIN,
-            {"magic_link": magic_link, "customer_name": name},
+            {
+                "magic_link": magic_link,
+                "customer_name": name,
+                "expires_minutes": expires_minutes,
+            },
             idempotency_key=idempotency_key,
             purpose="magic_login",
+            smtp_subject="Your Garzoni login link",
+            smtp_template="emails/magic_login.html",
+            extra_smtp_context={"login_link": magic_link, "expires_minutes": expires_minutes},
         )
 
     def send_order_confirmed(
@@ -298,6 +323,8 @@ class NotificationService:
             message_data,
             idempotency_key=idempotency_key,
             purpose="order_confirmed",
+            smtp_subject="Your Garzoni order confirmed",
+            smtp_template="emails/order_confirmed.html",
         )
 
     def send_payment_receipt(
@@ -313,6 +340,8 @@ class NotificationService:
             message_data,
             idempotency_key=idempotency_key,
             purpose="payment_receipt",
+            smtp_subject="Payment received – Garzoni",
+            smtp_template="emails/payment_receipt.html",
         )
 
     def send_payment_failed(
@@ -328,4 +357,6 @@ class NotificationService:
             message_data,
             idempotency_key=idempotency_key,
             purpose="payment_failed",
+            smtp_subject="Action needed: payment failed",
+            smtp_template="emails/payment_failed.html",
         )

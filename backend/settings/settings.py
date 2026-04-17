@@ -124,6 +124,10 @@ INSTALLED_APPS = [
 if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
     INSTALLED_APPS += ["django_extensions"]
 
+# django-rest-passwordreset: generic success when email is unknown; mail is sent from
+# authentication.signals.on_password_reset_token_created (Celery + NotificationService).
+DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
+
 # Gamification retention layer (weekly recap API, streak-rescue Celery job, richer profile extras).
 GAMIFICATION_RETENTION_V2 = env_bool("GAMIFICATION_RETENTION_V2", False)
 GAMIFICATION_DAILY_GOAL_TARGET_XP = int(os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50"))
@@ -596,6 +600,9 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+# Production: use three processes when a broker is set — web (gunicorn), Celery worker, and Celery beat
+# (django_celery_beat DatabaseScheduler). Without worker, .delay() queues but nothing runs; without beat,
+# scheduled reminders (trial, renewal, digests) do not fire.
 
 # CKEditor 5 Configuration
 CKEDITOR_5_CONFIGS = {

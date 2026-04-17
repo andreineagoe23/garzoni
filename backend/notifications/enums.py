@@ -5,6 +5,7 @@ class CioTemplate(str, Enum):
     """Transactional template trigger slugs; map to CIO IDs or trigger names via settings."""
 
     PASSWORD_RESET = "password-reset"
+    PASSWORD_CHANGED = "password-changed"
     WELCOME = "welcome"
     EMAIL_VERIFICATION = "email-verification"
     MAGIC_LOGIN = "magic-login"
