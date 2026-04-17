@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core import signing
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -188,9 +188,25 @@ class UserProfile(models.Model):
             self.save(update_fields=["streak", "last_completed_date"])
             return
 
+        prior_streak = int(self.streak or 0)
         self.streak = 1
         self.last_completed_date = today
         self.save(update_fields=["streak", "last_completed_date"])
+        if prior_streak > 3 and getattr(self, "user_id", None):
+
+            def _notify_streak_broken():
+                try:
+                    from authentication.tasks import send_streak_broken_email
+
+                    send_streak_broken_email.delay(self.user_id, prior_streak)
+                except Exception:
+                    logger.warning(
+                        "streak_broken_notify_enqueue_failed user_id=%s",
+                        self.user_id,
+                        exc_info=True,
+                    )
+
+            transaction.on_commit(_notify_streak_broken)
 
     def apply_manual_streak_freezes(self, max_uses: int = 1) -> int:
         """Use up to `max_uses` freezes without requiring a lesson completion."""
