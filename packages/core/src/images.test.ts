@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  Images,
   authLogoBlackRectangularUrl,
   authLogoRectangleNoBgUrl,
   authLogoWhiteBgUrl,
@@ -81,6 +82,21 @@ describe("authLogoRectangleNoBgUrl", () => {
     configureCloudinaryCloudName("");
     const u = authLogoRectangleNoBgUrl();
     expect(u).toMatch(/\/media\/logo\/garzoni-logo-rectangle-no-bg\.png$/);
+  });
+});
+
+describe("Images.authLightBg", () => {
+  it("uses Cloudinary when cloud name is configured", () => {
+    configureCloudinaryCloudName("myfixturecloud");
+    const u = Images.authLightBg;
+    expect(u).toContain("res.cloudinary.com/myfixturecloud");
+    expect(u).toContain("garzoni/welcome/background_auth");
+  });
+
+  it("falls back to media path when Cloudinary is not configured", () => {
+    configureCloudinaryCloudName("");
+    const u = Images.authLightBg;
+    expect(u).toMatch(/\/media\/welcome\/background_auth\.png$/);
   });
 });
 

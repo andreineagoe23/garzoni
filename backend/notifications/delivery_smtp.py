@@ -24,7 +24,14 @@ def smtp_configured() -> bool:
 def send_html_email(*, subject: str, template_name: str, context: dict, to_emails: list[str]) -> None:
     if not smtp_configured():
         raise RuntimeError("SMTP/Anymail not configured")
-    html_message = render_to_string(template_name, context)
+    # Inject brand-wide defaults so every template (notably emails/_base.html)
+    # can render {{ brand_logo_url }} without every caller having to pass it.
+    # Caller-supplied keys win so overrides still work.
+    merged = {
+        "brand_logo_url": getattr(settings, "BRAND_LOGO_URL", ""),
+        **(context or {}),
+    }
+    html_message = render_to_string(template_name, merged)
     send_mail(
         subject,
         strip_tags(html_message),

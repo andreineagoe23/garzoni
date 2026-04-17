@@ -68,7 +68,7 @@ function Header() {
             <img
               src={garzoniLogo}
               alt="Garzoni"
-              className="relative top-1 h-16 w-auto object-contain sm:h-20 md:h-24 lg:h-28 xl:h-32"
+              className="relative top-0.5 h-12 w-auto object-contain sm:h-14 md:h-16 lg:h-20"
               loading="eager"
               decoding="async"
             />

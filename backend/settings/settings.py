@@ -436,6 +436,14 @@ CONTACT_EMAIL = (
     os.getenv("CONTACT_EMAIL", "").strip() or None
 )  # Contact form recipient; falls back to DEFAULT_FROM_EMAIL
 
+# Brand logo URL used by transactional email templates (emails/_base.html).
+# Defaults to the Cloudinary-hosted wordmark so we can rotate via env without
+# a code deploy. Mirrors the brand master at brand/logo.svg (see brand/README.md).
+BRAND_LOGO_URL = os.getenv(
+    "BRAND_LOGO_URL",
+    "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_280/garzoni/logo/garzoni-logo",
+).strip()
+
 # --- Customer.io (optional; backend-orchestrated delivery + journeys) ---
 CIO_REGION = os.getenv("CIO_REGION", "us").strip().lower()
 CIO_SITE_ID = os.getenv("CIO_SITE_ID", "").strip()

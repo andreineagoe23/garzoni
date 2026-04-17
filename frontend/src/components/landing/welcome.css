@@ -11,6 +11,26 @@
   position: relative;
 }
 
+/* Light theme (welcome + system light): globe column + SVG HUD on pale stage */
+.welcome-hero--light .welcome-svg-line {
+  stroke: rgba(15, 23, 42, 0.14);
+}
+
+.welcome-hero--light .welcome-svg-line.active {
+  stroke: rgba(29, 83, 48, 0.42);
+}
+
+.welcome-hero--light .welcome-point-label {
+  color: #1d5330;
+  /* Same family as page `--bg-color` (#f8fafc), not warm cream */
+  background: rgba(248, 250, 252, 0.96);
+  border: 1px solid rgba(29, 83, 48, 0.22);
+}
+
+.welcome-hero--light .welcome-point-corner {
+  border-color: rgba(15, 23, 42, 0.28);
+}
+
 .welcome-hero ::selection {
   background: rgba(var(--primary-rgb, 29, 83, 48), 0.85);
   color: #fff;
@@ -205,17 +225,13 @@
 
 /* Small helpers */
 .welcome-font-display {
-  font-family:
-    "Geist Sans",
-    Inter,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
+  font-family: var(
+    --brand-font-primary,
+    "Helvetica Neue",
+    Helvetica,
     Arial,
-    "Noto Sans",
-    "Liberation Sans",
-    sans-serif;
+    sans-serif
+  );
 }
 
 .welcome-font-mono {

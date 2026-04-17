@@ -75,7 +75,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="canonical" href="https://www.garzoni.app/" />
-    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="theme-color" content="#0b0f14" />
     <meta name="google" content="notranslate" />
 
     <title>Garzoni - Personal Finance</title>
@@ -92,10 +92,9 @@
       property="og:description"
       content="Master financial literacy with interactive courses, quizzes, and tools."
     />
-    <meta
-      property="og:image"
-      content="https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_1200/garzoni/logo/garzoni-logo-white-bg"
-    />
+    <meta property="og:image" content="https://www.garzoni.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://www.garzoni.app/" />
@@ -109,7 +108,7 @@
     />
     <meta
       property="twitter:image"
-      content="https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_1200/garzoni/logo/garzoni-logo-white-bg"
+      content="https://www.garzoni.app/og-image.jpg"
     />
 
     <meta
@@ -121,23 +120,10 @@
     <meta property="og:locale" content="en_GB" />
     <meta property="og:site_name" content="Garzoni" />
 
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_180/garzoni/logo/garzoni-logo-white-bg"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_32/garzoni/logo/garzoni-logo-white-bg"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_16/garzoni/logo/garzoni-logo-white-bg"
-    />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Customer.io: in-browser queue (track.js + _setAccount loaded from Vite bundle via initCustomerIoWeb). -->
@@ -167,15 +153,8 @@
     <link rel="preconnect" href="https://garzoni-production.up.railway.app" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
 
-    <link
-      rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      as="style"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-    />
+    <!-- No webfont is loaded: brand.css resolves to the system
+         "Helvetica Neue" / Helvetica / Arial stack (zero network cost, no FOUT). -->
 
     <script>
       (function () {
@@ -257,7 +236,7 @@
         "url": "https://www.garzoni.app",
         "applicationCategory": "FinanceApplication",
         "operatingSystem": "Web, iOS",
-        "logo": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_512/garzoni/logo/garzoni-logo-white-bg",
+        "logo": "https://www.garzoni.app/logo-512.png",
         "description": "Interactive personal finance education platform",
         "offers": {
           "@type": "Offer",

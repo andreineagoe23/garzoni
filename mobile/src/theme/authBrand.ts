@@ -1,10 +1,13 @@
+import { brand } from "./brand";
+
 /**
  * Matches web `frontend/src/index.css` auth / marketing tokens for parity with the web app.
+ * Core brand hex values come from `./brand` so we have a single source of truth.
  */
 export const authBrand = {
-  primary: "#1d5330",
+  primary: brand.green,
   primaryPressed: "#163d26",
-  accent: "#ffd700",
+  accent: brand.gold,
   text: "#111827",
   textMuted: "#6b7280",
   textLabel: "#374151",
