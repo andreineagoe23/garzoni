@@ -60,6 +60,10 @@ def apply_subscription_to_profile(
                 f"user_profile_{profile.user_id}",
             ]
         )
+        if "subscription_plan_id" in update_fields or "stripe_subscription_id" in update_fields:
+            uid = profile.user_id
+            cache.delete(f"stripe_plan_infer_{uid}")
+            cache.delete(f"stripe_plan_infer_cust_{uid}")
         invalidate_profile_cache(profile.user)
 
     return profile
