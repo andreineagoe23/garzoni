@@ -1143,7 +1143,8 @@ class StripeWebhookView(APIView):
                                 trial_end=None,
                             )
                     if prof and (prof.user.email or "").strip():
-                        send_subscription_cancelled_email.delay(
+                        _safe_enqueue_celery(
+                            send_subscription_cancelled_email,
                             prof.user.email,
                             normalize_display_string(
                                 prof.user.first_name or prof.user.username or "there"
@@ -1986,7 +1987,8 @@ class SubscriptionCancelView(APIView):
                     current_period_end, tz=timezone.utc
                 ).isoformat()
             if request.user.email:
-                send_subscription_cancelled_email.delay(
+                _safe_enqueue_celery(
+                    send_subscription_cancelled_email,
                     email=request.user.email,
                     display_name=normalize_display_string(
                         request.user.first_name or request.user.username or "there"

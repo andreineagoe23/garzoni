@@ -31,6 +31,7 @@ function Register() {
     last_name: "",
     referral_code: initialReferral,
   });
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -146,6 +147,7 @@ function Register() {
       }
       const result = await runRegister({
         ...formData,
+        marketing_opt_in: marketingOptIn,
         recaptcha_token: token,
       });
       if (result.success) return;
@@ -395,6 +397,26 @@ function Register() {
                   </p>
                 )}
               </div>
+
+              <label
+                htmlFor="marketing_opt_in"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm text-content-muted"
+              >
+                <input
+                  id="marketing_opt_in"
+                  name="marketing_opt_in"
+                  type="checkbox"
+                  checked={marketingOptIn}
+                  onChange={(e) => setMarketingOptIn(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
+                />
+                <span>
+                  {t("auth.register.marketingOptIn", {
+                    defaultValue:
+                      "Send me occasional product updates, tips and offers (optional, you can unsubscribe any time).",
+                  })}
+                </span>
+              </label>
 
               <div className="space-y-3">
                 <GlassButton

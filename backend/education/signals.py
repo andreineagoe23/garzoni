@@ -16,13 +16,24 @@ from django.dispatch import receiver
 logger = logging.getLogger(__name__)
 
 
+def _safe_delay(task_fn, *args, **kwargs) -> None:
+    try:
+        task_fn.delay(*args, **kwargs)
+    except Exception:
+        logger.warning(
+            "Failed to queue translation task %s — broker may be unavailable.",
+            getattr(task_fn, "name", repr(task_fn)),
+            exc_info=True,
+        )
+
+
 @receiver(post_save, sender="education.Path")
 def enqueue_path_translation(sender, instance, **kwargs):
     if not getattr(settings, "CONTENT_TRANSLATION_ENABLED", False):
         return
     from education.tasks import translate_path_async
 
-    translate_path_async.delay(instance.pk)
+    _safe_delay(translate_path_async, instance.pk)
 
 
 @receiver(post_save, sender="education.Course")
@@ -31,7 +42,7 @@ def enqueue_course_translation(sender, instance, **kwargs):
         return
     from education.tasks import translate_course_async
 
-    translate_course_async.delay(instance.pk)
+    _safe_delay(translate_course_async, instance.pk)
 
 
 @receiver(post_save, sender="education.Lesson")
@@ -40,7 +51,7 @@ def enqueue_lesson_translation(sender, instance, **kwargs):
         return
     from education.tasks import translate_lesson_async
 
-    translate_lesson_async.delay(instance.pk)
+    _safe_delay(translate_lesson_async, instance.pk)
 
 
 @receiver(post_save, sender="education.LessonSection")
@@ -49,4 +60,4 @@ def enqueue_section_translation(sender, instance, **kwargs):
         return
     from education.tasks import translate_section_async
 
-    translate_section_async.delay(instance.pk)
+    _safe_delay(translate_section_async, instance.pk)

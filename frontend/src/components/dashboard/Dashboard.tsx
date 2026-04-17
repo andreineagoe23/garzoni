@@ -24,7 +24,7 @@ import {
 } from "services/userService";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { UserProfile } from "types/api";
-import { attachToken } from "services/httpClient";
+import apiClient, { attachToken } from "services/httpClient";
 import { useAnalytics } from "hooks/useAnalytics";
 import { usePreferences } from "hooks/usePreferences";
 import DashboardHeader from "./DashboardHeader";
@@ -282,10 +282,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     const searchQuery = new URLSearchParams(location.search || "");
     const sessionId = searchQuery.get("session_id");
 
-    // If we have a session_id, invalidate profile to refetch payment status
+    // If we have a session_id, call /api/verify-session/ to hydrate the profile
+    // from Stripe directly (belt-and-braces if the webhook didn't fire), then
+    // invalidate the cached profile + entitlements so the UI reflects the new plan.
     if (sessionId) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      reloadEntitlements?.();
+      void (async () => {
+        try {
+          await apiClient.post("/verify-session/", { session_id: sessionId });
+        } catch {
+          // VerifySessionView returns 202 for pending subscriptions; safe to ignore.
+        }
+        queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+        reloadEntitlements?.();
+      })();
     }
   }, [location.pathname, location.search, queryClient, reloadEntitlements]);
 
