@@ -23,6 +23,18 @@ class NotificationPolicyTests(TestCase):
         r = should_send_email(self.user, CioTemplate.PASSWORD_RESET)
         self.assertTrue(r.allowed)
 
+    def test_password_changed_ignores_marketing_prefs(self):
+        UserEmailPreference.objects.update_or_create(
+            user=self.user,
+            defaults={
+                "reminders": False,
+                "marketing": False,
+                "billing_alerts": False,
+            },
+        )
+        r = should_send_email(self.user, CioTemplate.PASSWORD_CHANGED)
+        self.assertTrue(r.allowed)
+
     def test_weekly_digest_respects_digest_flag(self):
         UserEmailPreference.objects.update_or_create(
             user=self.user,

@@ -48,6 +48,11 @@ from authentication.models import UserProfile
 from authentication.services.profile import invalidate_profile_cache
 from authentication.services.subscriptions import apply_subscription_to_profile
 from authentication.tasks import send_subscription_cancelled_email
+from notifications.tasks import (
+    send_billing_order_confirmed_task,
+    send_billing_payment_failed_task,
+    send_billing_payment_receipt_task,
+)
 from authentication.user_display import normalize_display_string
 from gamification.models import MissionCompletion
 from gamification.services.mission_cycles import daily_cycle_id, weekly_cycle_id
@@ -61,6 +66,36 @@ from finance.plan_resolution import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_enqueue_celery(task_fn, *args, **kwargs) -> None:
+    try:
+        task_fn.delay(*args, **kwargs)
+    except Exception:
+        logger.warning(
+            "Failed to queue Celery task %s",
+            getattr(task_fn, "name", repr(task_fn)),
+            exc_info=True,
+        )
+
+
+def _profile_for_stripe_customer(customer_id) -> UserProfile | None:
+    if not customer_id:
+        return None
+    cid = customer_id if isinstance(customer_id, str) else getattr(customer_id, "id", None)
+    if not cid:
+        return None
+    return UserProfile.objects.select_related("user").filter(stripe_customer_id=str(cid)).first()
+
+
+def _format_stripe_money_minor(amount_minor, currency: str | None) -> str:
+    cur = (currency or "usd").upper()
+    try:
+        amt = float(amount_minor or 0) / 100.0
+    except (TypeError, ValueError):
+        amt = 0.0
+    return f"{amt:.2f} {cur}"
+
 
 # Avoid logging the same missing-config message on every request
 _logged_missing_config = set()
@@ -985,6 +1020,21 @@ class StripeWebhookView(APIView):
                                         customer_id_webhook or user_profile.stripe_customer_id
                                     ),
                                 )
+                            sid = session.get("id") or ""
+                            amount_minor = session.get("amount_total") or 0
+                            order_msg = {
+                                "order_id": str(sid),
+                                "plan_name": str(plan_id or "plus").title(),
+                                "amount": _format_stripe_money_minor(
+                                    amount_minor, session.get("currency")
+                                ),
+                            }
+                            _safe_enqueue_celery(
+                                send_billing_order_confirmed_task,
+                                user.id,
+                                order_msg,
+                                f"order_confirmed:{sid}" if sid else None,
+                            )
 
             elif event["type"] in {
                 "checkout.session.expired",
@@ -1070,21 +1120,88 @@ class StripeWebhookView(APIView):
                 sub = event["data"]["object"]
                 sub_id = sub.get("id")
                 if sub_id:
+                    cpe = sub.get("current_period_end")
+                    period_end_iso = (
+                        datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat()
+                        if cpe
+                        else None
+                    )
+                    prof = None
                     with transaction.atomic():
-                        profile = (
+                        prof = (
                             UserProfile.objects.select_for_update()
                             .filter(stripe_subscription_id=sub_id)
                             .first()
                         )
-                        if profile:
+                        if prof:
                             apply_subscription_to_profile(
-                                profile,
+                                prof,
                                 is_premium=False,
                                 subscription_plan_id="starter",
                                 stripe_subscription_id=None,
                                 subscription_status="canceled",
                                 trial_end=None,
                             )
+                    if prof and (prof.user.email or "").strip():
+                        send_subscription_cancelled_email.delay(
+                            prof.user.email,
+                            normalize_display_string(
+                                prof.user.first_name or prof.user.username or "there"
+                            ),
+                            period_end_iso,
+                            prof.user_id,
+                        )
+
+            elif event["type"] == "invoice.payment_succeeded":
+                inv = event["data"]["object"]
+                if inv.get("status") == "paid":
+                    prof = _profile_for_stripe_customer(inv.get("customer"))
+                    if prof and (prof.user.email or "").strip():
+                        inv_id = str(inv.get("id") or "")
+                        amount_disp = _format_stripe_money_minor(
+                            inv.get("amount_paid"), inv.get("currency")
+                        )
+                        paid_ts = (inv.get("status_transitions") or {}).get("paid_at")
+                        if paid_ts:
+                            date_str = datetime.fromtimestamp(
+                                paid_ts, tz=timezone.utc
+                            ).strftime("%Y-%m-%d")
+                        else:
+                            date_str = timezone.now().strftime("%Y-%m-%d")
+                        billing = (
+                            f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing"
+                        )
+                        msg = {
+                            "amount": amount_disp,
+                            "date": date_str,
+                            "invoice_url": (inv.get("hosted_invoice_url") or "") or billing,
+                        }
+                        _safe_enqueue_celery(
+                            send_billing_payment_receipt_task,
+                            prof.user_id,
+                            msg,
+                            f"payment_receipt:{inv_id}" if inv_id else None,
+                        )
+
+            elif event["type"] == "invoice.payment_failed":
+                inv = event["data"]["object"]
+                prof = _profile_for_stripe_customer(inv.get("customer"))
+                if prof and (prof.user.email or "").strip():
+                    inv_id = str(inv.get("id") or "")
+                    amount_disp = _format_stripe_money_minor(
+                        inv.get("amount_due") or inv.get("total") or 0,
+                        inv.get("currency"),
+                    )
+                    billing = (
+                        f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing"
+                    )
+                    msg = {"amount": amount_disp, "retry_url": billing}
+                    _safe_enqueue_celery(
+                        send_billing_payment_failed_task,
+                        prof.user_id,
+                        msg,
+                        f"payment_failed:{inv_id}" if inv_id else None,
+                    )
 
         except stripe.error.SignatureVerificationError as exc:
             logger.warning("Stripe signature verification failed: %s", exc)
