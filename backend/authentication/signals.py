@@ -43,11 +43,23 @@ def create_user_profile(sender, instance, created, **kwargs):
         if created:
             profile.referral_code = uuid.uuid4().hex[:8].upper()
             profile.save()
+        # GDPR-safe defaults: service/transactional preferences ON (legitimate
+        # interest / performance-of-contract under UK GDPR + EU GDPR), marketing
+        # OFF until the user explicitly opts in (UK PECR reg. 22 + EU ePrivacy).
+        # A marketing opt-in from the signup form is passed via the transient
+        # attribute `_signup_marketing_opt_in` on the User instance.
         UserEmailPreference.objects.get_or_create(
             user=instance,
             defaults={
-                "reminder_frequency": profile.email_reminder_preference,
-                "reminders": profile.email_reminder_preference != "none",
+                "reminders": True,
+                "streak_alerts": True,
+                "weekly_digest": True,
+                "billing_alerts": True,
+                "push_notifications": True,
+                "reminder_frequency": "weekly",
+                "marketing": bool(
+                    getattr(instance, "_signup_marketing_opt_in", False)
+                ),
             },
         )
 
