@@ -44,10 +44,14 @@ class TransactionalMessages:
             identifiers={"id": pid},
         )
         if not ok:
-            logger.warning("CIO transactional email failed template=%s user=%s: %s", template.value, pid, err)
+            logger.warning(
+                "CIO transactional email failed template=%s user=%s: %s", template.value, pid, err
+            )
         return ok, err
 
-    def send_push(self, template: CioTemplate, user: User, data: dict[str, Any]) -> tuple[bool, str | None]:
+    def send_push(
+        self, template: CioTemplate, user: User, data: dict[str, Any]
+    ) -> tuple[bool, str | None]:
         ref = resolve_transactional_ref(template.value)
         if ref is None:
             return False, f"no transactional mapping for template={template.value}"
@@ -60,7 +64,9 @@ class TransactionalMessages:
             message_data=data,
         )
         if not ok:
-            logger.warning("CIO transactional push failed template=%s user=%s: %s", template.value, pid, err)
+            logger.warning(
+                "CIO transactional push failed template=%s user=%s: %s", template.value, pid, err
+            )
         return ok, err
 
     def send_with_identifiers(
