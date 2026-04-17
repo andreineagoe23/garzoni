@@ -12,28 +12,32 @@ class NotificationPolicyTests(TestCase):
         self.profile = UserProfile.objects.get(user=self.user)
 
     def test_password_reset_ignores_marketing_prefs(self):
-        UserEmailPreference.objects.create(
+        UserEmailPreference.objects.update_or_create(
             user=self.user,
-            reminders=False,
-            marketing=False,
-            billing_alerts=False,
+            defaults={
+                "reminders": False,
+                "marketing": False,
+                "billing_alerts": False,
+            },
         )
         r = should_send_email(self.user, CioTemplate.PASSWORD_RESET)
         self.assertTrue(r.allowed)
 
     def test_weekly_digest_respects_digest_flag(self):
-        UserEmailPreference.objects.create(
+        UserEmailPreference.objects.update_or_create(
             user=self.user,
-            reminders=True,
-            weekly_digest=False,
+            defaults={
+                "reminders": True,
+                "weekly_digest": False,
+            },
         )
         r = should_send_email(self.user, CioTemplate.WEEKLY_DIGEST)
         self.assertFalse(r.allowed)
 
     def test_billing_email_respects_billing_alerts(self):
-        UserEmailPreference.objects.create(
+        UserEmailPreference.objects.update_or_create(
             user=self.user,
-            billing_alerts=False,
+            defaults={"billing_alerts": False},
         )
         r = should_send_email(self.user, CioTemplate.TRIAL_ENDING)
         self.assertFalse(r.allowed)
