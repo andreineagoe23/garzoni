@@ -35,7 +35,8 @@ export async function initCustomerIoMobile(): Promise<void> {
   initPromise = (async () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const cio = require("customerio-reactnative") as typeof import("customerio-reactnative");
+      const cio =
+        require("customerio-reactnative") as typeof import("customerio-reactnative");
       await cio.CustomerIO.initialize({
         cdpApiKey: CDP_KEY,
         region: REGION === "eu" ? cio.CioRegion.EU : cio.CioRegion.US,
@@ -65,7 +66,8 @@ export async function identifyGarzoniUserFromAccessToken(
   await initCustomerIoMobile();
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const cio = require("customerio-reactnative") as typeof import("customerio-reactnative");
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.identify({
       userId,
       traits: traits ?? {},
@@ -79,7 +81,8 @@ export async function clearGarzoniCustomerIo(): Promise<void> {
   if (!CDP_KEY || !nativeAvailable) return;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const cio = require("customerio-reactnative") as typeof import("customerio-reactnative");
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.clearIdentify();
   } catch {
     /* noop */
@@ -95,7 +98,8 @@ export async function trackGarzoniEvent(
   await initCustomerIoMobile();
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const cio = require("customerio-reactnative") as typeof import("customerio-reactnative");
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.track(name, {
       platform: Platform.OS,
       ...(properties ?? {}),
@@ -111,7 +115,8 @@ export async function trackCioScreen(name: string): Promise<void> {
   await initCustomerIoMobile();
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const cio = require("customerio-reactnative") as typeof import("customerio-reactnative");
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.screen(name, { platform: Platform.OS });
   } catch {
     /* noop */

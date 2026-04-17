@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,7 +6,8 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
-import { colors, radius, spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import { radius, spacing, typography } from "../../theme/tokens";
 
 type FormInputProps = TextInputProps & {
   label?: string;
@@ -15,12 +16,43 @@ type FormInputProps = TextInputProps & {
 
 const FormInput = forwardRef<RNTextInput, FormInputProps>(
   ({ label, error, style, ...rest }, ref) => {
+    const c = useThemeColors();
+    const styles = useMemo(
+      () =>
+        StyleSheet.create({
+          wrapper: { marginBottom: spacing.md },
+          label: {
+            fontSize: typography.sm,
+            fontWeight: "600",
+            color: c.text,
+            marginBottom: spacing.xs,
+          },
+          input: {
+            borderWidth: 1,
+            borderColor: c.border,
+            borderRadius: radius.md,
+            paddingHorizontal: spacing.lg,
+            paddingVertical: 14,
+            fontSize: typography.base,
+            color: c.text,
+            backgroundColor: c.surface,
+          },
+          inputError: { borderColor: c.error },
+          error: {
+            fontSize: typography.xs,
+            color: c.error,
+            marginTop: spacing.xs,
+          },
+        }),
+      [c],
+    );
+
     return (
       <View style={styles.wrapper}>
         {label ? <Text style={styles.label}>{label}</Text> : null}
         <RNTextInput
           ref={ref}
-          placeholderTextColor={colors.textFaint}
+          placeholderTextColor={c.textFaint}
           style={[styles.input, error && styles.inputError, style]}
           {...rest}
         />
@@ -32,29 +64,3 @@ const FormInput = forwardRef<RNTextInput, FormInputProps>(
 
 FormInput.displayName = "FormInput";
 export default FormInput;
-
-const styles = StyleSheet.create({
-  wrapper: { marginBottom: spacing.md },
-  label: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
-    fontSize: typography.base,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  inputError: { borderColor: colors.error },
-  error: {
-    fontSize: typography.xs,
-    color: colors.error,
-    marginTop: spacing.xs,
-  },
-});

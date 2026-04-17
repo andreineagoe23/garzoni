@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, type ViewStyle } from "react-native";
-import { colors, radius } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import { radius } from "../../theme/tokens";
 
 type SkeletonProps = {
   width: number | string;
@@ -15,7 +16,16 @@ export default function Skeleton({
   borderRadius = radius.md,
   style,
 }: SkeletonProps) {
+  const c = useThemeColors();
   const opacity = useRef(new Animated.Value(0.35)).current;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        base: { backgroundColor: c.surfaceOffset },
+      }),
+    [c],
+  );
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -46,7 +56,3 @@ export default function Skeleton({
     />
   );
 }
-
-const styles = StyleSheet.create({
-  base: { backgroundColor: colors.surfaceOffset },
-});

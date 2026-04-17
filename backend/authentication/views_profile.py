@@ -1,3 +1,4 @@
+import logging
 from django.db import transaction
 
 from rest_framework import generics, status
@@ -18,7 +19,9 @@ from authentication.services.profile import (
     build_profile_payload,
     invalidate_profile_cache,
 )
-from notifications.tasks import sync_user_to_customer_io
+from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+logger = logging.getLogger(__name__)
 
 
 class UserProfileView(generics.GenericAPIView):
@@ -44,9 +47,16 @@ class UserProfileView(generics.GenericAPIView):
             serializer = UserProfileSettingsSerializer(user_profile, data=payload, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            invalidate_profile_cache(request.user)
+            try:
+                invalidate_profile_cache(request.user)
+            except Exception:
+                logger.warning(
+                    "invalidate_profile_cache failed user_id=%s",
+                    request.user.id,
+                    exc_info=True,
+                )
             uid = request.user.id
-            transaction.on_commit(lambda: sync_user_to_customer_io.delay(uid))
+            transaction.on_commit(lambda: safe_enqueue_sync_user_to_customer_io(uid))
             return Response({"message": "Profile updated successfully."})
         except Exception as exc:
             # Sentry disabled (paid in production)
@@ -139,9 +149,16 @@ class UserSettingsView(generics.GenericAPIView):
                 email_prefs.reminder_frequency = email_reminder_preference
                 email_prefs.reminders = email_reminder_preference != "none"
                 email_prefs.save(update_fields=["reminder_frequency", "reminders", "updated_at"])
-            invalidate_profile_cache(request.user)
+            try:
+                invalidate_profile_cache(request.user)
+            except Exception:
+                logger.warning(
+                    "invalidate_profile_cache failed user_id=%s",
+                    request.user.id,
+                    exc_info=True,
+                )
             uid = request.user.id
-            transaction.on_commit(lambda: sync_user_to_customer_io.delay(uid))
+            transaction.on_commit(lambda: safe_enqueue_sync_user_to_customer_io(uid))
 
             return Response(
                 {
@@ -181,7 +198,14 @@ def update_avatar(request):
     user_profile = request.user.profile
     user_profile.profile_avatar = avatar_url
     user_profile.save()
-    invalidate_profile_cache(request.user)
+    try:
+        invalidate_profile_cache(request.user)
+    except Exception:
+        logger.warning(
+            "invalidate_profile_cache failed user_id=%s",
+            request.user.id,
+            exc_info=True,
+        )
 
     return Response({"status": "success", "avatar_url": avatar_url})
 
@@ -215,7 +239,14 @@ class FinancialProfileView(APIView):
         serializer = FinancialProfileSerializer(user_profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        invalidate_profile_cache(request.user)
+        try:
+            invalidate_profile_cache(request.user)
+        except Exception:
+            logger.warning(
+                "invalidate_profile_cache failed user_id=%s",
+                request.user.id,
+                exc_info=True,
+            )
         uid = request.user.id
-        transaction.on_commit(lambda: sync_user_to_customer_io.delay(uid))
+        transaction.on_commit(lambda: safe_enqueue_sync_user_to_customer_io(uid))
         return Response(serializer.data)

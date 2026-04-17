@@ -762,10 +762,7 @@ function LearnInner() {
         const coverUri = coverForPath(item);
         const pct = pathProgressPercent(item);
         return (
-          <GlassCard
-            padding="none"
-            style={{ marginBottom: spacing.lg }}
-          >
+          <GlassCard padding="none" style={{ marginBottom: spacing.lg }}>
             <Pressable
               onPress={() => {
                 if (item.is_locked) {

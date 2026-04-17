@@ -26,14 +26,9 @@ import {
   ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
-import {
-  colors,
-  spacing,
-  typography,
-  radius,
-  shadows,
-} from "../../src/theme/tokens";
+import type { ThemeColors } from "../../src/theme/palettes";
 import { useThemeColors } from "../../src/theme/ThemeContext";
+import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
 
 type LessonRow = {
   id?: number;
@@ -77,6 +72,7 @@ export default function CourseDetailScreen() {
   const courseId = Number(id);
   const { hydrated } = useAuthSession();
   const c = useThemeColors();
+  const styles = useMemo(() => makeCourseStyles(c), [c]);
   const { t } = useTranslation("common");
 
   const headerRightHome = useCallback(
@@ -195,7 +191,7 @@ export default function CourseDetailScreen() {
           <RefreshControl
             refreshing={lessonsQuery.isFetching}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
+            tintColor={c.primary}
           />
         }
         ListHeaderComponent={
@@ -216,7 +212,7 @@ export default function CourseDetailScreen() {
             ) : pct >= 1 ? (
               <Badge
                 label="✓ Completed"
-                color={colors.success}
+                color={c.success}
                 style={{ marginTop: spacing.lg }}
               />
             ) : null}
@@ -262,59 +258,61 @@ export default function CourseDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: spacing.xl,
-    paddingBottom: 60,
-    backgroundColor: colors.bg,
-  },
-  header: { marginBottom: spacing.xxl },
-  title: {
-    fontSize: typography.xl,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  meta: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-  },
-  lessonRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    ...shadows.sm,
-  },
-  indexCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surfaceOffset,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.md,
-  },
-  indexCircleDone: { backgroundColor: colors.success },
-  indexText: {
-    fontSize: typography.sm,
-    fontWeight: "700",
-    color: colors.textMuted,
-  },
-  indexTextDone: { color: colors.white },
-  lessonInfo: { flex: 1 },
-  lessonTitle: {
-    fontSize: typography.base,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  lessonDesc: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-});
+function makeCourseStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      padding: spacing.xl,
+      paddingBottom: 60,
+      backgroundColor: colors.bg,
+    },
+    header: { marginBottom: spacing.xxl },
+    title: {
+      fontSize: typography.xl,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    meta: {
+      fontSize: typography.sm,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+    },
+    lessonRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      ...shadows.sm,
+    },
+    indexCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.surfaceOffset,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: spacing.md,
+    },
+    indexCircleDone: { backgroundColor: colors.success },
+    indexText: {
+      fontSize: typography.sm,
+      fontWeight: "700",
+      color: colors.textMuted,
+    },
+    indexTextDone: { color: colors.white },
+    lessonInfo: { flex: 1 },
+    lessonTitle: {
+      fontSize: typography.base,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    lessonDesc: {
+      fontSize: typography.xs,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+  });
+}

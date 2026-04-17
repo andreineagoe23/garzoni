@@ -32,4 +32,24 @@ describe("selectPrimaryCTA", () => {
     const result = selectPrimaryCTA({ reviewsDue: 0, activeMissions: [] });
     expect(result.type).toBe("continue_learning");
   });
+
+  it("omitReviewsDue skips reviews branch so missions can win", () => {
+    const result = selectPrimaryCTA(
+      {
+        reviewsDue: 3,
+        activeMissions: [{ id: 2, goal_type: "complete_quiz" }],
+      },
+      { omitReviewsDue: true }
+    );
+    expect(result.type).toBe("start_mission");
+    expect(result.reasonCount).toBe(1);
+  });
+
+  it("omitReviewsDue with only reviews falls through to continue learning", () => {
+    const result = selectPrimaryCTA(
+      { reviewsDue: 2, activeMissions: [] },
+      { omitReviewsDue: true }
+    );
+    expect(result.type).toBe("continue_learning");
+  });
 });

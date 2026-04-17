@@ -556,7 +556,11 @@ export default function LeaderboardScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { paddingBottom: 48 },
+  content: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: 48,
+  },
   h1: { fontSize: typography.xl, fontWeight: "800", marginTop: spacing.sm },
   subtitle: { fontSize: typography.sm, marginTop: spacing.xs, lineHeight: 20 },
   tabBar: {

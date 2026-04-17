@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import { typography } from "../../theme/tokens";
 
 type Props = {
   /** 0–1 */
@@ -17,14 +18,17 @@ export default function CircularProgressRing({
   value,
   size = 88,
   strokeWidth = 8,
-  trackColor = colors.surfaceOffset,
-  activeColor = colors.primary,
+  trackColor,
+  activeColor,
   label,
 }: Props) {
+  const themeColors = useThemeColors();
+  const track = trackColor ?? themeColors.surfaceOffset;
+  const active = activeColor ?? themeColors.primary;
   const clamped = Math.max(0, Math.min(1, value));
   const r = (size - strokeWidth) / 2;
-  const c = 2 * Math.PI * r;
-  const dashOffset = c * (1 - clamped);
+  const circumference = 2 * Math.PI * r;
+  const dashOffset = circumference * (1 - clamped);
   const cx = size / 2;
   const cy = size / 2;
 
@@ -37,7 +41,7 @@ export default function CircularProgressRing({
           cx={cx}
           cy={cy}
           r={r}
-          stroke={trackColor}
+          stroke={track}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -45,10 +49,10 @@ export default function CircularProgressRing({
           cx={cx}
           cy={cy}
           r={r}
-          stroke={activeColor}
+          stroke={active}
           strokeWidth={strokeWidth}
           fill="none"
-          strokeDasharray={`${c} ${c}`}
+          strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={dashOffset}
           strokeLinecap="round"
           transform={`rotate(-90 ${cx} ${cy})`}
@@ -56,7 +60,9 @@ export default function CircularProgressRing({
       </Svg>
       <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
         <View style={styles.labelBox}>
-          <Text style={styles.labelText}>{displayLabel}</Text>
+          <Text style={[styles.labelText, { color: themeColors.text }]}>
+            {displayLabel}
+          </Text>
         </View>
       </View>
     </View>
@@ -77,6 +83,5 @@ const styles = StyleSheet.create({
   labelText: {
     fontSize: typography.md,
     fontWeight: "700",
-    color: colors.text,
   },
 });

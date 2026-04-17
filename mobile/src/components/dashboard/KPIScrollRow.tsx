@@ -17,13 +17,34 @@ type TileProps = {
   urgent?: boolean;
   onPress?: () => void;
   style?: ViewStyle;
+  /**
+   * `strip` = fixed width for horizontal KPI scroll row.
+   * `grid` = flex cell for 2-column dashboard grid (no fixed width).
+   */
+  layout?: "strip" | "grid";
 };
 
-/** Single KPI card inside the horizontal strip. */
-export function KPITile({ children, urgent, onPress, style }: TileProps) {
+/** Single KPI card inside the horizontal strip or dashboard grid. */
+export function KPITile({
+  children,
+  urgent,
+  onPress,
+  style,
+  layout = "strip",
+}: TileProps) {
   const c = useThemeColors();
   const border = urgent ? `${c.error}66` : c.border;
   const bg = urgent ? `${c.error}14` : c.surface;
+
+  const sizing: ViewStyle =
+    layout === "grid"
+      ? {
+          flexBasis: "47%",
+          flexGrow: 1,
+          minWidth: 0,
+          maxWidth: "100%",
+        }
+      : { width: CARD_WIDTH };
 
   if (onPress) {
     return (
@@ -32,7 +53,8 @@ export function KPITile({ children, urgent, onPress, style }: TileProps) {
         onPress={onPress}
         style={[
           styles.tile,
-          { width: CARD_WIDTH, borderColor: border, backgroundColor: bg },
+          sizing,
+          { borderColor: border, backgroundColor: bg },
           style,
         ]}
       >
@@ -45,7 +67,8 @@ export function KPITile({ children, urgent, onPress, style }: TileProps) {
     <View
       style={[
         styles.tile,
-        { width: CARD_WIDTH, borderColor: border, backgroundColor: bg },
+        sizing,
+        { borderColor: border, backgroundColor: bg },
         style,
       ]}
     >

@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, StyleSheet, Text, View, type ViewStyle } from "react-native";
-import { colors, radius, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
 
 type AvatarProps = {
   username?: string;
@@ -25,6 +25,7 @@ export default function Avatar({
   size = 48,
   style,
 }: AvatarProps) {
+  const c = useThemeColors();
   const fontSize = size * 0.38;
   const r = size / 2;
 
@@ -49,23 +50,28 @@ export default function Avatar({
     <View
       style={[
         styles.circle,
-        { width: size, height: size, borderRadius: r },
+        {
+          width: size,
+          height: size,
+          borderRadius: r,
+          backgroundColor: c.primary,
+        },
         style,
       ]}
     >
-      <Text style={[styles.initials, { fontSize }]}>{initials(username)}</Text>
+      <Text style={[styles.initials, { fontSize, color: c.white }]}>
+        {initials(username)}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   circle: {
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   initials: {
-    color: colors.white,
     fontWeight: "700",
   },
 });

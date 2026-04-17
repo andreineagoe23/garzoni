@@ -100,13 +100,17 @@
       "streak": "Streak",
       "streakAtRisk": "Streak at risk — complete a short lesson today.",
       "streakNextMilestone": "{{days}} day(s) to {{milestone}}-day milestone",
+      "reviewsTileHintTapPractice": "Tap this tile to practice.",
+      "missionsTileHintTapOpen": "Tap to open Missions.",
       "failedLoadReviews": "Failed to load reviews",
       "couldNotFetchReviews": "We couldn't fetch your review queue.",
       "failedLoadMissions": "Failed to load missions",
       "couldNotFetchMissions": "We couldn't fetch your missions.",
       "urgent": "Urgent",
       "nextReviewSkill": "Next review: {{skill}}",
-      "startReviews": "Start reviews now"
+      "startReviews": "Start reviews now",
+      "reviewsTileHintCaughtUp": "No reviews waiting. They’ll show here when spaced repetition is due.",
+      "missionsTileHintIdle": "No active missions. Open Missions anytime to start one."
     },
     "weakSkills": {
       "skillInsights": "Skill insights",

@@ -100,13 +100,17 @@
       "streak": "Serie",
       "streakAtRisk": "Seria e în pericol — finalizează astăzi o lecție scurtă.",
       "streakNextMilestone": "{{days}} zile până la pragul de {{milestone}} zile",
+      "reviewsTileHintTapPractice": "Atinge acest panou pentru a exersa.",
+      "missionsTileHintTapOpen": "Atinge pentru a deschide Misiuni.",
       "failedLoadReviews": "Nu s-au putut încărca recapitulările",
       "couldNotFetchReviews": "Nu am putut încărca coada de recapitulări.",
       "failedLoadMissions": "Nu s-au putut încărca misiunile",
       "couldNotFetchMissions": "Nu am putut încărca misiunile.",
       "urgent": "Urgent",
       "nextReviewSkill": "Următoarea recapitulare: {{skill}}",
-      "startReviews": "Începe recapitulările"
+      "startReviews": "Începe recapitulările",
+      "reviewsTileHintCaughtUp": "Nicio recapitulare în așteptare. Vor apărea aici când e momentul.",
+      "missionsTileHintIdle": "Nicio misiune activă. Deschide Misiuni oricând pentru a începe una."
     },
     "weakSkills": {
       "skillInsights": "Abilități și îmbunătățiri",

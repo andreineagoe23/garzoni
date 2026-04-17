@@ -43,3 +43,19 @@ def sync_user_to_customer_io(self, user_id: int) -> str:
         return "skipped"
     ok, err = NotificationService().sync_user_profile(user)
     return "ok" if ok else f"failed:{err}"
+
+
+def safe_enqueue_sync_user_to_customer_io(user_id: int) -> None:
+    """
+    Queue Customer.io profile sync without failing the HTTP request if Celery/Redis is down.
+    Matches the pattern used for welcome email in authentication.signals.
+    """
+    try:
+        sync_user_to_customer_io.delay(user_id)
+    except Exception:
+        logger.warning(
+            "sync_user_to_customer_io.delay failed for user_id=%s — "
+            "broker may be unavailable (Redis, Celery).",
+            user_id,
+            exc_info=True,
+        )

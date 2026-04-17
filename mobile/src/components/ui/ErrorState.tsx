@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import { spacing, typography } from "../../theme/tokens";
 import Button from "./Button";
 
 type ErrorStateProps = {
@@ -17,6 +18,28 @@ export default function ErrorState({
   actionLabel,
   onAction,
 }: ErrorStateProps) {
+  const c = useThemeColors();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: spacing.xxxl,
+          gap: spacing.md,
+        },
+        icon: { fontSize: 40 },
+        message: {
+          fontSize: typography.base,
+          color: c.error,
+          textAlign: "center",
+          lineHeight: 22,
+        },
+      }),
+    [c],
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>⚠️</Text>
@@ -34,20 +57,3 @@ export default function ErrorState({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxxl,
-    gap: spacing.md,
-  },
-  icon: { fontSize: 40 },
-  message: {
-    fontSize: typography.base,
-    color: colors.error,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-});
