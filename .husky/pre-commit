@@ -1,3 +1,7 @@
 #!/usr/bin/env sh
 set -e
 pnpm run precommit
+# Match CI backend-python (black then flake8) when both are on PATH (e.g. venv: pip install -r backend/requirements-dev.txt).
+if command -v black >/dev/null 2>&1 && command -v flake8 >/dev/null 2>&1; then
+  pnpm run lint:backend
+fi
