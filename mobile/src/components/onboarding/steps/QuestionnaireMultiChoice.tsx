@@ -1,12 +1,8 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { QuestionnaireQuestion } from "@garzoni/core";
-import {
-  colors,
-  radius,
-  shadows,
-  spacing,
-  typography,
-} from "../../../theme/tokens";
+import { useThemeColors } from "../../../theme/ThemeContext";
+import { radius, shadows, spacing, typography } from "../../../theme/tokens";
 
 type Props = {
   question: QuestionnaireQuestion;
@@ -19,6 +15,51 @@ export default function QuestionnaireMultiChoice({
   selected,
   onChange,
 }: Props) {
+  const c = useThemeColors();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        optionList: { gap: spacing.sm, marginTop: spacing.md },
+        option: {
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: c.surface,
+          borderRadius: radius.lg,
+          padding: spacing.md,
+          borderWidth: 1.5,
+          borderColor: c.border,
+          ...shadows.sm,
+        },
+        optionActive: {
+          borderColor: c.primary,
+          backgroundColor: `${c.primary}0d`,
+        },
+        optionLabel: {
+          flex: 1,
+          fontSize: typography.base,
+          color: c.text,
+          marginLeft: spacing.md,
+        },
+        optionLabelActive: { fontWeight: "600", color: c.primaryDark },
+        checkbox: {
+          width: 22,
+          height: 22,
+          borderRadius: 4,
+          borderWidth: 2,
+          borderColor: c.border,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: c.surface,
+        },
+        checkboxActive: {
+          borderColor: c.primary,
+          backgroundColor: c.primary,
+        },
+        checkmark: { color: c.white, fontSize: 13, fontWeight: "700" },
+      }),
+    [c],
+  );
+
   const toggle = (val: string) => {
     onChange(
       selected.includes(val)
@@ -50,43 +91,3 @@ export default function QuestionnaireMultiChoice({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  optionList: { gap: spacing.sm, marginTop: spacing.md },
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    ...shadows.sm,
-  },
-  optionActive: {
-    borderColor: colors.primary,
-    backgroundColor: `${colors.primary}0d`,
-  },
-  optionLabel: {
-    flex: 1,
-    fontSize: typography.base,
-    color: colors.text,
-    marginLeft: spacing.md,
-  },
-  optionLabelActive: { fontWeight: "600", color: colors.primaryDark },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-  },
-  checkboxActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
-  },
-  checkmark: { color: colors.white, fontSize: 13, fontWeight: "700" },
-});

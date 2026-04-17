@@ -30,13 +30,9 @@ import {
   Skeleton,
 } from "../../src/components/ui";
 import MascotWithMessage from "../../src/components/common/MascotWithMessage";
-import {
-  colors,
-  spacing,
-  typography,
-  radius,
-  shadows,
-} from "../../src/theme/tokens";
+import type { ThemeColors } from "../../src/theme/palettes";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
 import { NotificationFeedbackType } from "expo-haptics";
 import { safeNotificationAsync } from "../../src/utils/safeHaptics";
 
@@ -195,6 +191,9 @@ export default function QuizScreen() {
     }
   }, [activeQuiz, selected, decrementHeart, t]);
 
+  const themeColors = useThemeColors();
+  const styles = useMemo(() => makeQuizStyles(themeColors), [themeColors]);
+
   if (!Number.isFinite(courseId)) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -330,7 +329,7 @@ export default function QuizScreen() {
                 style={{
                   fontSize: 28,
                   fontWeight: "300",
-                  color: colors.textMuted,
+                  color: themeColors.textMuted,
                   lineHeight: 30,
                 }}
               >
@@ -467,95 +466,97 @@ export default function QuizScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
-  pad: { padding: spacing.xl },
-  centered: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxxl,
-    gap: spacing.md,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    ...shadows.sm,
-  },
-  headerMid: { flex: 1, marginRight: spacing.md },
-  headerHint: { fontSize: typography.xs, color: colors.textMuted },
-  content: { padding: spacing.xl, paddingBottom: 48 },
-  question: {
-    fontSize: typography.lg,
-    fontWeight: "600",
-    color: colors.text,
-    marginBottom: spacing.lg,
-    lineHeight: 26,
-  },
-  choice: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.surface,
-  },
-  choiceOn: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentMuted,
-  },
-  choiceText: { fontSize: typography.base, color: colors.text },
-  choiceTextOn: { fontWeight: "600", color: colors.primaryDark },
-  feedbackRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginTop: spacing.xl,
-    padding: spacing.lg,
-    backgroundColor: colors.surfaceOffset,
-    borderRadius: radius.lg,
-  },
-  feedbackRowWarn: {
-    borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.errorBg,
-  },
-  muted: {
-    color: colors.textMuted,
-    marginBottom: spacing.lg,
-    textAlign: "center",
-  },
-  resultTitle: {
-    fontSize: typography.xxl,
-    fontWeight: "700",
-    color: colors.text,
-    marginTop: spacing.lg,
-    textAlign: "center",
-  },
-  resultSub: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginTop: spacing.sm,
-  },
-  earn: {
-    fontSize: typography.md,
-    fontWeight: "600",
-    color: colors.accent,
-    marginTop: spacing.sm,
-  },
-  xp: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-  },
-  actions: { width: "100%", marginTop: spacing.xxl, gap: spacing.md },
-  inlineCorrect: {
-    fontSize: typography.sm,
-    fontWeight: "700",
-    color: colors.success,
-  },
-});
+function makeQuizStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: colors.bg },
+    pad: { padding: spacing.xl },
+    centered: {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xxxl,
+      gap: spacing.md,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+      ...shadows.sm,
+    },
+    headerMid: { flex: 1, marginRight: spacing.md },
+    headerHint: { fontSize: typography.xs, color: colors.textMuted },
+    content: { padding: spacing.xl, paddingBottom: 48 },
+    question: {
+      fontSize: typography.lg,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: spacing.lg,
+      lineHeight: 26,
+    },
+    choice: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      backgroundColor: colors.surface,
+    },
+    choiceOn: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentMuted,
+    },
+    choiceText: { fontSize: typography.base, color: colors.text },
+    choiceTextOn: { fontWeight: "600", color: colors.primaryDark },
+    feedbackRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginTop: spacing.xl,
+      padding: spacing.lg,
+      backgroundColor: colors.surfaceOffset,
+      borderRadius: radius.lg,
+    },
+    feedbackRowWarn: {
+      borderWidth: 1,
+      borderColor: colors.error,
+      backgroundColor: colors.errorBg,
+    },
+    muted: {
+      color: colors.textMuted,
+      marginBottom: spacing.lg,
+      textAlign: "center",
+    },
+    resultTitle: {
+      fontSize: typography.xxl,
+      fontWeight: "700",
+      color: colors.text,
+      marginTop: spacing.lg,
+      textAlign: "center",
+    },
+    resultSub: {
+      fontSize: typography.base,
+      color: colors.textMuted,
+      textAlign: "center",
+      marginTop: spacing.sm,
+    },
+    earn: {
+      fontSize: typography.md,
+      fontWeight: "600",
+      color: colors.accent,
+      marginTop: spacing.sm,
+    },
+    xp: {
+      fontSize: typography.sm,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+    },
+    actions: { width: "100%", marginTop: spacing.xxl, gap: spacing.md },
+    inlineCorrect: {
+      fontSize: typography.sm,
+      fontWeight: "700",
+      color: colors.success,
+    },
+  });
+}

@@ -37,9 +37,9 @@ class ExpoPushTokenView(APIView):
         profile.save(update_fields=["expo_push_token"])
 
         def _sync_cio():
-            from notifications.tasks import sync_user_to_customer_io
+            from notifications.tasks import safe_enqueue_sync_user_to_customer_io
 
-            sync_user_to_customer_io.delay(request.user.id)
+            safe_enqueue_sync_user_to_customer_io(request.user.id)
 
         transaction.on_commit(_sync_cio)
         return Response({"ok": True}, status=status.HTTP_200_OK)

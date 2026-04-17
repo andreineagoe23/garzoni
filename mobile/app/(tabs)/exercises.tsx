@@ -439,7 +439,9 @@ function ExercisesInner() {
   const handleExerciseComplete = useCallback(() => {
     fireConfetti();
 
-    void queryClient.invalidateQueries({ queryKey: queryKeys.activityHeatmap() });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.activityHeatmap(),
+    });
 
     if (mode === "review" && pickedId != null) {
       setReviewDone((d) => ({ ...d, [pickedId]: true }));
@@ -658,9 +660,13 @@ function ExercisesInner() {
                   fontSize: typography.sm,
                 }}
               >
-                {t("exercises.practiceHub.reviewsDueTap", {
-                  count: reviewCount,
-                })}
+                {reviewCount === 1
+                  ? t("exercises.practiceHub.reviewsDueTap_one", {
+                      count: reviewCount,
+                    })
+                  : t("exercises.practiceHub.reviewsDueTap_other", {
+                      count: reviewCount,
+                    })}
               </Text>
             </Pressable>
           ) : null}
@@ -969,7 +975,6 @@ function ExercisesInner() {
             </GlassCard>
           ) : null}
         </ScrollView>
-
       </View>
 
       {/* Category picker modal */}

@@ -458,10 +458,14 @@ function DashboardInner() {
 
   const primaryCTASignal = useMemo(
     () =>
-      selectPrimaryCTA({
-        reviewsDue: summary.reviewsDue,
-        activeMissions: summary.activeMissions,
-      }),
+      selectPrimaryCTA(
+        {
+          reviewsDue: summary.reviewsDue,
+          activeMissions: summary.activeMissions,
+        },
+        /* KPI grid already shows “Reviews due”; avoid duplicate hero CTA. */
+        summary.reviewsDue > 0 ? { omitReviewsDue: true } : undefined,
+      ),
     [summary.reviewsDue, summary.activeMissions],
   );
 
@@ -534,8 +538,6 @@ function DashboardInner() {
     (profile?.first_name as string | undefined)?.trim() ||
     (profile?.username as string | undefined)?.trim() ||
     "";
-
-  const reviewTopSkill = reviewQuery.data?.due?.[0]?.skill ?? null;
 
   const headerBar = (
     <TabScreenHeader
@@ -771,7 +773,6 @@ function DashboardInner() {
             }
             refetchReview={() => void reviewQuery.refetch()}
             refetchMissions={() => void missionsQuery.refetch()}
-            reviewTopSkill={reviewTopSkill}
             onOpenReviews={() => router.push(href("/(tabs)/exercises"))}
             onOpenMissions={() => router.push(href("/missions"))}
             locale={i18n.language}

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, type TextStyle } from "react-native";
-import { colors, radius, spacing, typography } from "../../theme/tokens";
+import { useThemeColors } from "../../theme/ThemeContext";
+import { radius, spacing, typography } from "../../theme/tokens";
 
 type BadgeProps = {
   label: string;
@@ -9,19 +10,34 @@ type BadgeProps = {
   style?: TextStyle;
 };
 
-export default function Badge({
-  label,
-  color = colors.primary,
-  bgColor,
-  style,
-}: BadgeProps) {
+export default function Badge({ label, color, bgColor, style }: BadgeProps) {
+  const c = useThemeColors();
+  const textColor = color ?? c.primary;
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        badge: {
+          fontSize: typography.xs,
+          fontWeight: "700",
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 2,
+          borderRadius: radius.full,
+          overflow: "hidden",
+          alignSelf: "flex-start",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+        },
+      }),
+    [],
+  );
+
   return (
     <Text
       style={[
         styles.badge,
         {
-          color,
-          backgroundColor: bgColor ?? `${color}18`,
+          color: textColor,
+          backgroundColor: bgColor ?? `${textColor}18`,
         },
         style,
       ]}
@@ -30,17 +46,3 @@ export default function Badge({
     </Text>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.full,
-    overflow: "hidden",
-    alignSelf: "flex-start",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-});

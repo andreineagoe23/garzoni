@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { authBrand } from "../../theme/authBrand";
+import { brand } from "../../theme/brand";
+import { useTheme } from "../../theme/ThemeContext";
 import { spacing } from "../../theme/tokens";
 
 export type AuthHeroMode = "login" | "register" | "minimal";
@@ -14,7 +16,7 @@ type Props = {
 };
 
 /**
- * Shared auth background: hero photo (login/register) or slate solid (minimal), plus dark scrim.
+ * Shared auth background: hero photo (login/register) or solid fallback, plus scrim when a photo is shown.
  */
 export default function AuthScreenLayout({
   mode,
@@ -22,7 +24,9 @@ export default function AuthScreenLayout({
   children,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const { resolved } = useTheme();
   const showPhoto = Boolean(backgroundUri) && mode !== "minimal";
+  const isDark = resolved === "dark";
 
   return (
     <View style={styles.root}>
@@ -33,14 +37,25 @@ export default function AuthScreenLayout({
           resizeMode="cover"
         />
       ) : (
-        <View style={[StyleSheet.absoluteFill, styles.solidHero]}>
-          <View
-            style={[StyleSheet.absoluteFill, styles.heroTint]}
-            pointerEvents="none"
-          />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: isDark ? brand.bgDark : "#f8fafc",
+            },
+          ]}
+        >
+          {isDark ? (
+            <View
+              style={[StyleSheet.absoluteFill, styles.heroTint]}
+              pointerEvents="none"
+            />
+          ) : null}
         </View>
       )}
-      <View style={[StyleSheet.absoluteFill, styles.overlay]} />
+      {showPhoto ? (
+        <View style={[StyleSheet.absoluteFill, styles.overlay]} />
+      ) : null}
 
       <View
         style={[
@@ -59,9 +74,6 @@ export default function AuthScreenLayout({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  solidHero: {
-    backgroundColor: "#0f172a",
-  },
   overlay: { backgroundColor: authBrand.overlay },
   heroTint: {
     backgroundColor: "rgba(29, 83, 48, 0.18)",

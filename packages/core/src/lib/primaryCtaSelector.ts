@@ -5,16 +5,22 @@ type PrimaryCtaInput = {
   activeMissions: Mission[];
 };
 
-export const selectPrimaryCTA = ({
-  reviewsDue,
-  activeMissions,
-}: PrimaryCtaInput) => {
-  if (reviewsDue > 0) {
+/** When `omitReviewsDue` is true, reviews are ignored for ranking (e.g. mobile KPI grid already surfaces them). */
+export type SelectPrimaryCtaOptions = {
+  omitReviewsDue?: boolean;
+};
+
+export const selectPrimaryCTA = (
+  { reviewsDue, activeMissions }: PrimaryCtaInput,
+  options?: SelectPrimaryCtaOptions,
+) => {
+  const effectiveReviewsDue = options?.omitReviewsDue ? 0 : reviewsDue;
+  if (effectiveReviewsDue > 0) {
     return {
       type: "reviews_due" as const,
       iconName: "book" as const,
       reasonKey: "cta.reviewsDue",
-      reasonCount: reviewsDue,
+      reasonCount: effectiveReviewsDue,
     };
   }
 
