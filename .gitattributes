@@ -1,2 +1,5 @@
 # Husky/sh hooks must use LF or macOS /bin/sh treats `set -e` as invalid (CRLF).
 .husky/** text eol=lf
+
+# Black on Linux (CI) normalizes to LF; CRLF in Python sources makes `black --check` fail.
+backend/**/*.py text eol=lf
