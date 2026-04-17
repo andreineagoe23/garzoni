@@ -501,7 +501,7 @@ if STRIPE_SECRET_KEY:
             "Stripe is enabled but required price IDs are missing: " + ", ".join(missing_prices)
         )
 
-# reCAPTCHA Enterprise (single key from hello@garzoni.app console)
+# reCAPTCHA Enterprise (single key from andreineagoe@garzoni.app console)
 # Local/dev: set RECAPTCHA_DISABLED=1 to allow login/register without tokens (blockers, no site key).
 # Never enable in production. Build phase is also exempt — no requests are served.
 RECAPTCHA_DISABLED = env_bool("RECAPTCHA_DISABLED", False)

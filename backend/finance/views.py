@@ -54,6 +54,11 @@ from gamification.services.mission_cycles import daily_cycle_id, weekly_cycle_id
 from finance.utils import record_funnel_event
 from django.apps import apps
 from authentication.entitlements import get_entitlements_for_user, get_user_plan, normalize_plan_id
+from finance.plan_resolution import (
+    plan_id_from_stripe_price_id,
+    primary_price_id_from_subscription,
+    resolve_checkout_plan,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -881,9 +886,22 @@ class StripeWebhookView(APIView):
             if event["type"] == "checkout.session.completed":
                 session = event["data"]["object"]
                 metadata = session.get("metadata", {}) or {}
-                plan_id = normalize_plan_id(metadata.get("plan_id")) if metadata else None
-                if plan_id not in {"starter", "plus", "pro"}:
-                    plan_id = "plus"
+                sub_id = session.get("subscription")
+                sub_obj = None
+                if sub_id:
+                    try:
+                        sub_obj = stripe.Subscription.retrieve(sub_id)
+                    except stripe.error.StripeError as e:
+                        logger.warning(
+                            "Stripe webhook: could not retrieve subscription %s for plan resolution: %s",
+                            sub_id,
+                            e,
+                        )
+                plan_id = resolve_checkout_plan(
+                    metadata=metadata,
+                    subscription=sub_obj,
+                    subscription_id=None if sub_obj else sub_id,
+                ) or "plus"
                 user_id_raw = session.get("client_reference_id")
                 if not user_id_raw:
                     logger.warning(
@@ -916,28 +934,22 @@ class StripeWebhookView(APIView):
                                 else (payment_status or session_status or "completed")
                             )
                             trial_end_dt = None
-                            sub_id = session.get("subscription")
                             customer_id_webhook = None
-                            if sub_id:
+                            if sub_obj:
                                 try:
-                                    sub = stripe.Subscription.retrieve(sub_id)
-                                    subscription_status = sub.status  # trialing or active
-                                    if getattr(sub, "trial_end", None):
+                                    subscription_status = sub_obj.status  # trialing or active
+                                    if getattr(sub_obj, "trial_end", None):
                                         trial_end_dt = timezone.make_aware(
-                                            datetime.utcfromtimestamp(sub.trial_end),
+                                            datetime.utcfromtimestamp(sub_obj.trial_end),
                                             timezone.utc,
                                         )
                                     customer_id_webhook = (
-                                        sub.customer
-                                        if isinstance(sub.customer, str)
-                                        else getattr(sub.customer, "id", None)
+                                        sub_obj.customer
+                                        if isinstance(sub_obj.customer, str)
+                                        else getattr(sub_obj.customer, "id", None)
                                     )
-                                except stripe.error.StripeError as e:
-                                    logger.warning(
-                                        "Stripe webhook: could not retrieve subscription %s: %s",
-                                        sub_id,
-                                        e,
-                                    )
+                                except Exception:
+                                    pass
                             with transaction.atomic():
                                 (
                                     user_profile,
@@ -1028,11 +1040,15 @@ class StripeWebhookView(APIView):
                             .first()
                         )
                         if profile:
-                            apply_subscription_to_profile(
-                                profile,
-                                subscription_status="active",
-                                trial_end=None,
-                            )
+                            pid = primary_price_id_from_subscription(sub)
+                            mapped_plan = plan_id_from_stripe_price_id(pid)
+                            kwargs = {
+                                "subscription_status": "active",
+                                "trial_end": None,
+                            }
+                            if mapped_plan:
+                                kwargs["subscription_plan_id"] = mapped_plan
+                            apply_subscription_to_profile(profile, **kwargs)
                 elif status == "canceled":
                     with transaction.atomic():
                         profile = (
@@ -1112,9 +1128,6 @@ class VerifySessionView(APIView):
                 return Response({"status": "pending"}, status=202)
 
             metadata = getattr(session, "metadata", {}) or {}
-            plan_id = normalize_plan_id(metadata.get("plan_id")) if metadata else None
-            if plan_id not in {"starter", "plus", "pro"}:
-                plan_id = "plus"
             target_user_id = session.client_reference_id or metadata.get("user_id")
 
             if request.user and request.user.is_authenticated:
@@ -1134,32 +1147,35 @@ class VerifySessionView(APIView):
                 subscription_status = "active"
                 trial_end_dt = None
                 customer_id_from_sub = None
+                resolved_sub = None
                 if getattr(session, "subscription", None):
                     sub = session.subscription
-                    sub_id = sub if isinstance(sub, str) else getattr(sub, "id", None)
-                    if sub_id and not isinstance(sub, str):
-                        subscription_status = getattr(sub, "status", "active") or "active"
-                        te = getattr(sub, "trial_end", None)
+                    if isinstance(sub, str):
+                        sub_id = sub
+                        try:
+                            resolved_sub = stripe.Subscription.retrieve(sub_id)
+                        except stripe.error.StripeError:
+                            resolved_sub = None
+                    else:
+                        resolved_sub = sub
+                        sub_id = getattr(sub, "id", None)
+                    if resolved_sub:
+                        subscription_status = (
+                            getattr(resolved_sub, "status", "active") or "active"
+                        )
+                        te = getattr(resolved_sub, "trial_end", None)
                         if te:
                             trial_end_dt = datetime.fromtimestamp(te, tz=timezone.utc)
+                        cust = resolved_sub.customer
                         customer_id_from_sub = (
-                            sub.customer
-                            if isinstance(sub.customer, str)
-                            else getattr(sub, "customer", None)
+                            cust if isinstance(cust, str) else getattr(cust, "id", None)
                         )
-                        if customer_id_from_sub and not isinstance(customer_id_from_sub, str):
-                            customer_id_from_sub = getattr(customer_id_from_sub, "id", None)
-                    elif sub_id:
-                        sub_obj = stripe.Subscription.retrieve(sub_id)
-                        subscription_status = getattr(sub_obj, "status", "active") or "active"
-                        te = getattr(sub_obj, "trial_end", None)
-                        if te:
-                            trial_end_dt = datetime.fromtimestamp(te, tz=timezone.utc)
-                        customer_id_from_sub = (
-                            sub_obj.customer
-                            if isinstance(sub_obj.customer, str)
-                            else getattr(sub_obj.customer, "id", None)
-                        )
+
+                plan_id = resolve_checkout_plan(
+                    metadata=metadata,
+                    subscription=resolved_sub,
+                    subscription_id=None if resolved_sub else sub_id,
+                ) or "plus"
 
                 with transaction.atomic():
                     profile, _ = UserProfile.objects.select_for_update().get_or_create(
@@ -1239,25 +1255,6 @@ def _stripe_price_id_for_plan(plan_id: str, billing_interval: str):
             or getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None)
         )
     return price_id
-
-
-def _plan_id_from_stripe_price_id(price_id) -> str | None:
-    """Map a Stripe price id back to plus/pro for profile updates."""
-    if not price_id:
-        return None
-    pid = price_id if isinstance(price_id, str) else getattr(price_id, "id", None)
-    if not pid:
-        return None
-    mapping = (
-        (getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None), "plus"),
-        (getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None), "plus"),
-        (getattr(settings, "STRIPE_PRICE_PRO_YEARLY", None), "pro"),
-        (getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None), "pro"),
-    )
-    for configured, plan in mapping:
-        if configured and configured == pid:
-            return plan
-    return None
 
 
 def _stripe_subscription_ui_snapshot(profile) -> dict:
@@ -1651,7 +1648,7 @@ class SubscriptionChangeView(APIView):
                 proration_behavior="create_prorations",
                 metadata=meta,
             )
-            new_plan = _plan_id_from_stripe_price_id(price_id) or plan_id
+            new_plan = plan_id_from_stripe_price_id(price_id) or plan_id
             apply_subscription_to_profile(
                 profile,
                 subscription_status=getattr(subscription, "status", "active"),

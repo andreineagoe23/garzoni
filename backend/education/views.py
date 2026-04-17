@@ -1868,7 +1868,9 @@ class PersonalizedPathView(APIView):
                     item["locked"] = True
                 response_payload["courses"] = preview_courses
                 response_payload["meta"]["preview"] = True
-                response_payload["upgrade_prompt"] = "Unlock your full personalized path with Plus."
+                response_payload["upgrade_prompt"] = (
+                    "Unlock your full personalized path with Plus or Pro."
+                )
                 response_payload["message"] = (
                     "Preview your personalized path and upgrade to unlock all recommendations."
                 )

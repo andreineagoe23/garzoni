@@ -277,11 +277,22 @@ def get_user_plan(user) -> str:
             raw_plan = getattr(profile, "subscription_plan", None)
             if raw_plan and not isinstance(raw_plan, str):
                 raw_plan = getattr(raw_plan, "plan_id", None)
-        plan = normalize_plan_id(raw_plan)
+        plan = normalize_plan_id(raw_plan) if raw_plan not in (None, "") else "starter"
+        if plan in ("plus", "pro"):
+            return plan
+        if plan == "starter" and not (
+            getattr(profile, "has_paid", False) or getattr(profile, "is_premium", False)
+        ):
+            return "starter"
+        if getattr(profile, "has_paid", False) or getattr(profile, "is_premium", False):
+            from finance.plan_resolution import resolve_plan_id_from_profile_stripe
+
+            inferred = resolve_plan_id_from_profile_stripe(profile)
+            if inferred in ("plus", "pro"):
+                return inferred
+            return "plus"
         if plan in PLAN_ORDER:
             return plan
-        if getattr(profile, "has_paid", False) or getattr(profile, "is_premium", False):
-            return "plus"
     except Exception:
         pass
     return "starter"
