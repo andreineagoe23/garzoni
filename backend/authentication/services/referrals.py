@@ -24,4 +24,13 @@ def apply_referral(referrer_profile, referred_user):
             "referred_id": referred_user.id,
         },
     )
-    send_referral_reward_emails.delay(referrer_profile.user_id, referred_user.id)
+    try:
+        send_referral_reward_emails.delay(referrer_profile.user_id, referred_user.id)
+    except Exception:
+        logger.warning(
+            "send_referral_reward_emails dispatch failed referrer_id=%s referred_id=%s — "
+            "broker may be unavailable (Redis, Celery).",
+            referrer_profile.user_id,
+            referred_user.id,
+            exc_info=True,
+        )

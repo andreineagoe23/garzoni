@@ -2,10 +2,14 @@
  * Shown after Stripe checkout success. Displays a pre-generated progress bar
  * (25 → 50 → 70 → 100%) with step messages, then redirects to personalized path.
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
+import apiClient from "services/httpClient";
+import { useAuth } from "contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "lib/reactQuery";
 
 const STEPS: { percent: number; messageKey: string }[] = [
   { percent: 25, messageKey: "subscriptions.paymentSuccess.fetchingAnswers" },
@@ -26,6 +30,36 @@ const PaymentSuccessPage = () => {
   const sessionId = searchParams.get("session_id");
   const [stepIndex, setStepIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const { reloadEntitlements, loadProfile } = useAuth();
+  const queryClient = useQueryClient();
+  const verifiedRef = useRef(false);
+
+  // Belt-and-braces: call /api/verify-session/ on mount so the profile is flipped
+  // to paid/plus/pro even if the Stripe webhook is misrouted, delayed, or failing.
+  // Then invalidate cached profile + entitlements so downstream pages read the new plan.
+  useEffect(() => {
+    if (!sessionId || verifiedRef.current) return;
+    verifiedRef.current = true;
+    const run = async () => {
+      try {
+        await apiClient.post("/verify-session/", { session_id: sessionId });
+      } catch {
+        // VerifySessionView returns 202 "pending" while Stripe finalizes the
+        // subscription; it's safe to ignore and rely on the later refetch.
+      }
+      try {
+        await Promise.all([
+          loadProfile?.({ force: true }),
+          reloadEntitlements?.(),
+        ]);
+      } catch {
+        // Downstream page will retry on mount.
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.entitlements() });
+    };
+    void run();
+  }, [sessionId, loadProfile, reloadEntitlements, queryClient]);
 
   useEffect(() => {
     if (!sessionId) {

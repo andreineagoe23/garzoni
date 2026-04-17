@@ -76,11 +76,19 @@ class UserSettingsView(generics.GenericAPIView):
     def get(self, request):
         """Handle GET requests to fetch the user's current settings."""
         user_profile = UserProfile.objects.get(user=request.user)
+        # Legacy row-missing accounts get the same GDPR-safe service defaults as
+        # a fresh signup: transactional prefs ON, marketing OFF (explicit opt-in
+        # via the signup checkbox or the settings UI).
         email_prefs, _ = UserEmailPreference.objects.get_or_create(
             user=request.user,
             defaults={
-                "reminder_frequency": user_profile.email_reminder_preference,
-                "reminders": user_profile.email_reminder_preference != "none",
+                "reminders": True,
+                "streak_alerts": True,
+                "weekly_digest": True,
+                "billing_alerts": True,
+                "push_notifications": True,
+                "reminder_frequency": "weekly",
+                "marketing": False,
             },
         )
         return Response(
@@ -130,8 +138,13 @@ class UserSettingsView(generics.GenericAPIView):
             email_prefs, _ = UserEmailPreference.objects.get_or_create(
                 user=user,
                 defaults={
-                    "reminder_frequency": user_profile.email_reminder_preference,
-                    "reminders": user_profile.email_reminder_preference != "none",
+                    "reminders": True,
+                    "streak_alerts": True,
+                    "weekly_digest": True,
+                    "billing_alerts": True,
+                    "push_notifications": True,
+                    "reminder_frequency": "weekly",
+                    "marketing": False,
                 },
             )
             if email_preferences_payload:

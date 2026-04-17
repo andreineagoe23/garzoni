@@ -9,6 +9,13 @@ from authentication.models import UserProfile, Referral, FriendRequest, UserEmai
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
     referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    # Explicit opt-in for marketing emails. Defaults to False (UK PECR reg. 22 +
+    # EU ePrivacy): pre-ticked checkboxes are invalid consent. Service /
+    # transactional defaults (reminders, streak, digest, billing, push) are set
+    # ON by the UserEmailPreference signal handler on post_save.
+    marketing_opt_in = serializers.BooleanField(
+        write_only=True, required=False, default=False
+    )
 
     class Meta:
         model = User
@@ -19,6 +26,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "referral_code",
+            "marketing_opt_in",
         ]
         extra_kwargs = {"password": {"write_only": True}}
 
@@ -33,9 +41,21 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         referral_code = validated_data.pop("referral_code", None)
+        marketing_opt_in = bool(validated_data.pop("marketing_opt_in", False))
 
-        # Only create User here - profile is created by signal
-        user = User.objects.create_user(**validated_data)
+        # The post_save signal handler (authentication.signals.create_user_profile)
+        # reads `_signup_marketing_opt_in` off the User instance to decide the
+        # initial marketing preference. Set it *before* create_user because
+        # create_user internally calls save(), which fires post_save.
+        user = User(
+            username=validated_data.get("username", ""),
+            email=validated_data.get("email", ""),
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
+        )
+        user._signup_marketing_opt_in = marketing_opt_in
+        user.set_password(validated_data.get("password", ""))
+        user.save()
 
         # Access profile created by signal
         user_profile = user.profile

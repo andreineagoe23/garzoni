@@ -73,7 +73,7 @@ class UserProfile(models.Model):
         help_text="When the subscription trial ends (from Stripe); used for day-5 reminder.",
     )
     email_reminder_preference = models.CharField(
-        max_length=10, choices=REMINDER_CHOICES, default="none"
+        max_length=10, choices=REMINDER_CHOICES, default="weekly"
     )
     sound_enabled = models.BooleanField(
         default=True, help_text="Allow lesson/exercise audio feedback."

@@ -90,21 +90,53 @@ class PasswordResetRequestView(APIView):
         if not email:
             return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+        generic_response = Response(
+            {"message": "Password reset link sent."}, status=status.HTTP_200_OK
+        )
+
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
+            return generic_response
+        except User.MultipleObjectsReturned:
+            user = (
+                User.objects.filter(email=email, is_active=True)
+                .order_by("-last_login", "-date_joined")
+                .first()
+            )
+            if user is None:
+                logger.warning(
+                    "password_reset.multiple_users_no_active email_hash=%s",
+                    hash(email),
+                )
+                return generic_response
 
-        token = PasswordResetTokenGenerator().make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
+        try:
+            token = PasswordResetTokenGenerator().make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
+        except Exception:
+            logger.exception(
+                "password_reset.token_generation_failed user_id=%s", user.pk
+            )
+            return generic_response
 
         def _enqueue():
-            send_password_reset_email_task.delay(user.pk, reset_link, idempotency_key=None)
+            try:
+                send_password_reset_email_task.delay(
+                    user.pk, reset_link, idempotency_key=None
+                )
+            except Exception:
+                logger.warning(
+                    "send_password_reset_email_task dispatch failed for user_id=%s — "
+                    "broker may be unavailable (Redis, Celery).",
+                    user.pk,
+                    exc_info=True,
+                )
 
         transaction.on_commit(_enqueue)
 
-        return Response({"message": "Password reset link sent."}, status=status.HTTP_200_OK)
+        return generic_response
 
 
 class PasswordResetConfirmView(APIView):
