@@ -8,7 +8,17 @@ export default function ParticleStage({
   topicRefs,
   lineRefs,
   flowRef,
+  lightBackdrop = false,
+}: {
+  canvasContainerRef: React.RefObject<HTMLDivElement | null>;
+  brainStageRef: React.RefObject<HTMLDivElement | null>;
+  topicRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  lineRefs: React.MutableRefObject<Array<SVGLineElement | null>>;
+  flowRef: React.MutableRefObject<number>;
+  lightBackdrop?: boolean;
 }) {
+  const fallbackBg = lightBackdrop ? "transparent" : "#0B0F14";
+
   return (
     <Suspense
       fallback={
@@ -19,7 +29,7 @@ export default function ParticleStage({
             inset: 0,
             width: "100%",
             height: "100%",
-            background: "#0B0F14",
+            background: fallbackBg,
             pointerEvents: "none",
           }}
         />
@@ -31,6 +41,7 @@ export default function ParticleStage({
         topicRefs={topicRefs}
         lineRefs={lineRefs}
         flowRef={flowRef}
+        lightBackdrop={lightBackdrop}
       />
     </Suspense>
   );

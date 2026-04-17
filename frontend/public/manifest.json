@@ -3,18 +3,25 @@
   "name": "Garzoni - Personal Finance Education",
   "icons": [
     {
-      "src": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_192/garzoni/logo/garzoni-logo-white-bg",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "/favicon.ico",
+      "type": "image/x-icon",
+      "sizes": "32x32"
     },
     {
-      "src": "https://res.cloudinary.com/daqvqm710/image/upload/f_auto,q_auto,w_512/garzoni/logo/garzoni-logo-white-bg",
+      "src": "/logo-192.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0b0f14",
+  "background_color": "#0b0f14"
 }

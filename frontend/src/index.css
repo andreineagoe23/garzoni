@@ -4,9 +4,13 @@
 
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: var(
+    --brand-font-primary,
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif
+  );
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-surface-page, var(--bg-color, #f8fafc));
@@ -68,22 +72,24 @@ code {
    Landing / Welcome page (animated dark backdrop)
    --------------------------------------------- */
 .landing-theme {
-  /* Brand palette */
-  --primary: #1d5330; /* Dark Forest Green */
-  --primary-rgb: 29, 83, 48;
-  --gold: #e6c87a; /* Soft Gold / Warm Accent */
-  --gold-rgb: 230, 200, 122;
+  /* Landing dark palette — reads from brand tokens in brand.css.
+     Edit brand.css first (canonical source); these local aliases only
+     remap brand-* -> the older --primary/--gold/... names other landing
+     components already consume. */
+  --primary: var(--brand-green);
+  --primary-rgb: var(--brand-green-rgb);
+  --gold: var(--brand-gold-warm);
+  --gold-rgb: var(--brand-gold-warm-rgb);
 
-  /* Surfaces */
-  --bg-color: #0b0f14; /* Dark Charcoal / Near-Black */
-  --landing-bg-rgb: 11, 15, 20;
-  --text-color: #e5e7eb;
-  --muted-text: rgba(229, 231, 235, 0.72);
-  /* --accent intentionally NOT overridden here — it should stay #ffd700 (gold) from :root.
+  --bg-color: var(--brand-bg-dark);
+  --landing-bg-rgb: var(--brand-bg-dark-rgb);
+  --text-color: var(--brand-text);
+  --muted-text: var(--brand-text-muted);
+  /* --accent intentionally NOT overridden here — it should stay #ffd700 (brand-gold) from :root.
      Landing components that need light gray text should use --text-color or --muted-text. */
-  --card-bg: #111827;
-  --input-bg: #111827;
-  --border-color: rgba(255, 255, 255, 0.12);
+  --card-bg: var(--brand-bg-card);
+  --input-bg: var(--brand-bg-card);
+  --border-color: var(--brand-border-glass);
   --shadow-color: rgba(0, 0, 0, 0.55);
 }
 

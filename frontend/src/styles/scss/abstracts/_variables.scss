@@ -12,8 +12,11 @@ textarea,
 }
 
 // Color System - Base color values
-$primary: #1d5330;
-$accent: #ffd700;
+// NOTE: hex mirrors --brand-green / --brand-gold in frontend/src/styles/brand.css.
+// Sass cannot read CSS custom properties, so when the tokens change in brand.css,
+// update these two literals too (and anywhere else in this file documented as "mirrors brand.css").
+$primary: #1d5330; // mirrors --brand-green
+$accent: #ffd700; // mirrors --brand-gold
 $secondary: #2e7d32;
 $danger: #dc3545;
 $success: #4caf50;
@@ -44,15 +47,8 @@ $spacers: (
   7: $spacer * 6, // 96px
 );
 
-// Typography
-$font-family-base:
-  system-ui,
-  -apple-system,
-  "Segoe UI",
-  Roboto,
-  "Helvetica Neue",
-  "Noto Sans",
-  sans-serif;
+// Typography — mirrors --brand-font-primary in frontend/src/styles/brand.css.
+$font-family-base: "Helvetica Neue", Helvetica, Arial, sans-serif;
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;

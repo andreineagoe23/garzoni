@@ -2,24 +2,52 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GlassCard, GlassButton } from "components/ui";
 
-export default function CTASection() {
+type CTASectionProps = {
+  /** When true (welcome + light theme), copy and chrome match the pale marketing page. */
+  lightMarketing?: boolean;
+};
+
+export default function CTASection({
+  lightMarketing = false,
+}: CTASectionProps) {
   const navigate = useNavigate();
+
+  const cardClass = lightMarketing
+    ? "relative overflow-hidden p-8 text-center sm:p-10 border border-slate-200/70 bg-white/82 shadow-md shadow-slate-900/[0.06] ring-1 ring-slate-900/[0.04]"
+    : "relative overflow-hidden p-8 text-center sm:p-10 bg-[color:var(--card-bg,#15191E)]/70 border-white/[0.06]";
+
+  const titleClass = lightMarketing
+    ? "text-2xl font-bold text-slate-900 sm:text-3xl"
+    : "text-2xl font-bold text-white sm:text-3xl";
+
+  const leadClass = lightMarketing
+    ? "mt-3 text-[15px] text-slate-600 sm:text-base"
+    : "mt-3 text-[15px] text-white/60 sm:text-base";
+
+  const disclaimerClass = lightMarketing
+    ? "mt-8 text-xs text-slate-500"
+    : "mt-8 text-xs text-white/40";
+
+  const linksRowClass = lightMarketing
+    ? "mt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-600"
+    : "mt-3 text-[11px] font-semibold uppercase tracking-wide text-white/70";
+
+  const linkClass = lightMarketing
+    ? "text-slate-600 underline-offset-2 hover:text-[color:var(--primary,#1d5330)] hover:underline"
+    : "hover:text-white";
 
   return (
     <section className="relative pb-8">
-      <GlassCard
-        padding="xl"
-        className="relative overflow-hidden p-8 text-center sm:p-10 bg-[color:var(--card-bg,#15191E)]/70 border-white/[0.06]"
-      >
+      <GlassCard padding="xl" className={cardClass}>
         {/* Gold top-edge accent */}
         <div
           className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E6C87A]/40 to-transparent"
           aria-hidden="true"
         />
-        <h3 className="text-2xl font-bold text-white sm:text-3xl">
+        <h3 className={titleClass}>
           Your path to financial mastery starts here.
         </h3>
-        <p className="mt-3 text-[15px] text-white/60 sm:text-base">
+        <p className={leadClass}>
           Free to start. No credit card. Pick up where you left off, any time.
         </p>
         <div className="mt-8 flex flex-row flex-wrap items-center justify-center gap-4">
@@ -36,28 +64,33 @@ export default function CTASection() {
             type="button"
             onClick={() => navigate("/login")}
             variant="ghost"
+            className={
+              lightMarketing
+                ? "border border-slate-300/80 bg-white/60 text-slate-800 hover:bg-white/90"
+                : undefined
+            }
           >
             Log in
           </GlassButton>
         </div>
-        <p className="mt-8 text-xs text-white/40">
+        <p className={disclaimerClass}>
           Garzoni is a financial education platform, not a financial adviser.
         </p>
         {/* Welcome-page "footer" links: grid on mobile for better scanning */}
-        <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-white/70">
+        <div className={linksRowClass}>
           <div className="grid grid-cols-2 items-center justify-center gap-x-3 gap-y-1 sm:hidden">
-            <Link to="/privacy-policy" className="hover:text-white">
+            <Link to="/privacy-policy" className={linkClass}>
               Privacy
             </Link>
-            <Link to="/terms-of-service" className="hover:text-white">
+            <Link to="/terms-of-service" className={linkClass}>
               Terms
             </Link>
           </div>
           <div className="hidden sm:flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <Link to="/privacy-policy" className="hover:text-white">
+            <Link to="/privacy-policy" className={linkClass}>
               Privacy
             </Link>
-            <Link to="/terms-of-service" className="hover:text-white">
+            <Link to="/terms-of-service" className={linkClass}>
               Terms
             </Link>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import * as THREE from "three";
 
 const BRAND = Object.freeze({
@@ -152,15 +152,24 @@ export default function ParticleGlobe({
   topicRefs,
   lineRefs,
   flowRef,
+  lightBackdrop = false,
+}: {
+  canvasContainerRef: React.RefObject<HTMLDivElement | null>;
+  brainStageRef: React.RefObject<HTMLDivElement | null>;
+  topicRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  lineRefs: React.MutableRefObject<Array<SVGLineElement | null>>;
+  flowRef: React.MutableRefObject<number>;
+  lightBackdrop?: boolean;
 }) {
-  const difficulty = PARTICLE_DEFAULTS.difficulty;
-  const mastery = PARTICLE_DEFAULTS.mastery;
-  const focus = PARTICLE_DEFAULTS.focus;
-
   // Three.js: particle globe behind hero content
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container) return undefined;
+
+    const isLight = Boolean(lightBackdrop);
+    // Dark: near-black clear + fog. Light: fully transparent clear + no fog so the marketing
+    // background shows through the stage (no visible "card" around the globe).
+    const clearColor = isLight ? 0x000000 : 0x0b0f14;
 
     const setHudVisible = (visible: boolean) => {
       const opacity = visible ? "1" : "0";
@@ -198,7 +207,7 @@ export default function ParticleGlobe({
     )?.matches;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0f14, 0.03);
+    scene.fog = isLight ? null : new THREE.FogExp2(0x0b0f14, 0.03);
 
     const camera = new THREE.PerspectiveCamera(
       45,
@@ -222,7 +231,8 @@ export default function ParticleGlobe({
     }
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0x0b0f14, 0);
+    // alpha 0 => clear is transparent; light stage relies on the page backdrop behind the canvas.
+    renderer.setClearColor(clearColor, 0);
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.display = "block";
@@ -273,13 +283,13 @@ export default function ParticleGlobe({
 
     const uniforms = {
       uTime: { value: 0 },
-      uDistortion: { value: difficulty },
-      uSize: { value: mastery },
-      uSpread: { value: (1 - focus) * 0.6 },
+      uDistortion: { value: PARTICLE_DEFAULTS.difficulty },
+      uSize: { value: PARTICLE_DEFAULTS.mastery },
+      uSpread: { value: (1 - PARTICLE_DEFAULTS.focus) * 0.6 },
       uMouse: { value: new THREE.Vector2(0, 0) },
       uColorPrimary: { value: new THREE.Color(BRAND.primary) },
       uColorAccent: { value: new THREE.Color(BRAND.accent) },
-      uOpacity: { value: 0.9 },
+      uOpacity: { value: isLight ? 0.82 : 0.9 },
     };
 
     const material = new THREE.ShaderMaterial({
@@ -341,7 +351,7 @@ export default function ParticleGlobe({
     const lineMat = new THREE.LineBasicMaterial({
       color: new THREE.Color(BRAND.primary),
       transparent: true,
-      opacity: 0.12,
+      opacity: isLight ? 0.22 : 0.12,
     });
     const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
     constellationGroup.add(lineMesh);
@@ -462,9 +472,14 @@ export default function ParticleGlobe({
         container.removeChild(renderer.domElement);
       }
     };
-    // Intentionally mount once; settings are locked via PARTICLE_DEFAULTS.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    lightBackdrop,
+    canvasContainerRef,
+    brainStageRef,
+    topicRefs,
+    lineRefs,
+    flowRef,
+  ]);
 
   return null;
 }

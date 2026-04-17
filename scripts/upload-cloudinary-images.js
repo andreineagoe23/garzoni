@@ -59,6 +59,7 @@ const MARKETING_PUBLIC_IDS = {
     "garzoni/logo/garzoni-logo-black-rectangular",
   "garzoni-logo-white-rectangular.png":
     "garzoni/logo/garzoni-logo-white-rectangular",
+  "background_auth.png": "garzoni/welcome/background_auth",
 };
 
 /** Lower number = wins when two files map to the same public_id */

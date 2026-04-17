@@ -1049,7 +1049,7 @@ const ExercisePage = () => {
       }, 4500);
 
       const projectedFirstTry =
-        response.data.correct && wasFreshAttempt
+        Boolean(data.correct) && wasFreshAttempt
           ? firstTryCorrect + 1
           : firstTryCorrect;
 
@@ -1105,8 +1105,11 @@ const ExercisePage = () => {
         }, 4500);
       }
 
-      const correctAnswers = updated.filter((p) => p.correct).length;
-      const totalAttempts = updated.reduce((sum, p) => sum + p.attempts, 0);
+      const correctAnswers = updated.filter((p) => Boolean(p?.correct)).length;
+      const totalAttempts = updated.reduce(
+        (sum, p) => sum + (Number(p?.attempts) || 0),
+        0
+      );
       const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
       setStats({
@@ -1373,7 +1376,7 @@ const ExercisePage = () => {
     const metaBadges = (
       <div className="mb-2 flex flex-wrap gap-2">
         {difficultyKey ? (
-          <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-900 dark:text-amber-100">
+          <span className="inline-flex items-center rounded-full border border-[color:var(--primary,#1d5330)]/30 bg-[color:var(--primary,#1d5330)]/12 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
             {t(`exercises.filters.${difficultyKey}`)}
           </span>
         ) : null}

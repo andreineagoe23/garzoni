@@ -134,7 +134,7 @@ function SupportPage() {
         <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
           {t("support.header.kicker")}
         </p>
-        <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+        <h1 className="text-3xl font-bold text-content-primary">
           {t("support.header.title")}
         </h1>
         <p className="text-sm text-content-muted">
@@ -213,10 +213,10 @@ function SupportPage() {
                       className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition hover:bg-[color:var(--card-bg,#ffffff)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       <div className="space-y-2">
-                        <span className="inline-flex items-center rounded-full bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent,#ffd700)]">
+                        <span className="inline-flex items-center rounded-full border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#f3f4f6)] px-3 py-1 text-xs font-semibold text-content-muted">
                           {entry.category}
                         </span>
-                        <p className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                        <p className="text-sm font-semibold text-content-primary">
                           {highlightText(entry.question, search)}
                         </p>
                       </div>
@@ -272,7 +272,7 @@ function SupportPage() {
           className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+            <h2 className="text-xl font-semibold text-content-primary">
               {t("support.feedbackSection.title")}
             </h2>
             <p className="text-sm text-content-muted">
@@ -289,7 +289,7 @@ function SupportPage() {
 
         <GlassCard padding="lg">
           <header className="space-y-2 text-center">
-            <h2 className="text-xl font-semibold text-[color:var(--accent,#111827)]">
+            <h2 className="text-xl font-semibold text-content-primary">
               {t("support.contact.title")}
             </h2>
             <p className="text-sm text-content-muted">
@@ -298,7 +298,7 @@ function SupportPage() {
           </header>
 
           {submitMessage && (
-            <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)] shadow-inner shadow-[color:var(--accent,#ffd700)]/20">
+            <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200 shadow-inner shadow-emerald-500/20">
               {submitMessage}
             </div>
           )}
@@ -310,7 +310,7 @@ function SupportPage() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <label className="block text-sm font-semibold text-content-primary">
               {t("support.contact.email")}
               <input
                 type="email"
@@ -326,7 +326,7 @@ function SupportPage() {
               />
             </label>
 
-            <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <label className="block text-sm font-semibold text-content-primary">
               {t("support.contact.topic")}
               <select
                 required
@@ -361,7 +361,7 @@ function SupportPage() {
               </select>
             </label>
 
-            <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <label className="block text-sm font-semibold text-content-primary">
               {t("support.contact.message")}
               <textarea
                 rows={5}

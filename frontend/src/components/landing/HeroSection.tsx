@@ -9,8 +9,11 @@ import { getMediaBaseUrl } from "services/backendUrl";
 
 export default function HeroSection({
   scrollToFeatures,
+  lightBackdrop = false,
 }: {
   scrollToFeatures: () => void;
+  /** When true (welcome page + light theme), hero copy sits on the light renaissance backdrop. */
+  lightBackdrop?: boolean;
 }) {
   const demoVideoUrl = `${getMediaBaseUrl()}/media/welcome/garzoni-demo.mp4`;
   const { t } = useTranslation();
@@ -31,7 +34,10 @@ export default function HeroSection({
   return (
     <section
       ref={heroRef}
-      className="welcome-hero relative isolate bg-[#0B0F14] min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]"
+      className={[
+        "welcome-hero relative isolate min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)]",
+        lightBackdrop ? "welcome-hero--light bg-transparent" : "bg-[#0B0F14]",
+      ].join(" ")}
       aria-label={t("landing.hero.aria")}
     >
       {/* Preload demo video as soon as the page is open so the modal opens quickly */}
@@ -64,14 +70,24 @@ export default function HeroSection({
               </span>
             </div>
 
-            <h1 className="welcome-font-display mt-8 text-center sm:text-left text-3xl font-bold tracking-tight text-white leading-[0.92] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
+            <h1
+              className={[
+                "welcome-font-display mt-8 text-center sm:text-left text-3xl font-bold tracking-tight leading-[0.92] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl",
+                lightBackdrop ? "text-[#0f172a]" : "text-white",
+              ].join(" ")}
+            >
               {t("landing.hero.titleLine1")} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E6C87A] to-[#E6C87A]/60">
                 {t("landing.hero.titleLine2")}
               </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-center sm:text-left mx-auto sm:mx-0 text-[15px] leading-relaxed text-neutral-400 sm:text-base">
+            <p
+              className={[
+                "mt-6 max-w-xl text-center sm:text-left mx-auto sm:mx-0 text-[15px] leading-relaxed sm:text-base",
+                lightBackdrop ? "text-neutral-700" : "text-neutral-400",
+              ].join(" ")}
+            >
               {t("landing.hero.subtitle")}
             </p>
 
@@ -109,7 +125,12 @@ export default function HeroSection({
               <button
                 type="button"
                 onClick={scrollToFeatures}
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-semibold text-white/70 backdrop-blur hover:bg-white/10 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:gap-3 sm:px-5 sm:py-2.5 sm:text-sm transition-colors duration-200"
+                className={[
+                  "group inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold backdrop-blur focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50 sm:gap-3 sm:px-5 sm:py-2.5 sm:text-sm transition-colors duration-200",
+                  lightBackdrop
+                    ? "border-slate-400/50 bg-white/55 text-slate-800 hover:bg-white/75 hover:text-slate-900"
+                    : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/10 hover:text-white/90",
+                ].join(" ")}
                 aria-label={t("landing.hero.ctaExploreAria")}
               >
                 <span className="sm:hidden">
@@ -134,25 +155,55 @@ export default function HeroSection({
               <div className="h-px w-16 bg-gradient-to-r from-[#E6C87A]/40 to-transparent" />
               <div className="flex gap-8">
                 <div className="flex flex-col gap-1">
-                  <span className="welcome-font-mono text-[10px] uppercase tracking-wider text-neutral-500">
+                  <span
+                    className={[
+                      "welcome-font-mono text-[10px] uppercase tracking-wider",
+                      lightBackdrop ? "text-neutral-600" : "text-neutral-500",
+                    ].join(" ")}
+                  >
                     {t("landing.hero.stats.currentStreak")}
                   </span>
                   <div className="flex items-end gap-1">
-                    <span className="welcome-font-display text-2xl font-semibold text-white">
+                    <span
+                      className={[
+                        "welcome-font-display text-2xl font-semibold",
+                        lightBackdrop ? "text-[#0f172a]" : "text-white",
+                      ].join(" ")}
+                    >
                       12
                     </span>
-                    <span className="text-xs text-neutral-500 mb-1">
+                    <span
+                      className={[
+                        "text-xs mb-1",
+                        lightBackdrop ? "text-neutral-600" : "text-neutral-500",
+                      ].join(" ")}
+                    >
                       {t("landing.hero.stats.days")}
                     </span>
                   </div>
                 </div>
-                <div className="h-10 w-px bg-white/10" />
+                <div
+                  className={[
+                    "h-10 w-px",
+                    lightBackdrop ? "bg-slate-300/60" : "bg-white/10",
+                  ].join(" ")}
+                />
                 <div className="flex flex-col gap-1">
-                  <span className="welcome-font-mono text-[10px] uppercase tracking-wider text-neutral-500">
+                  <span
+                    className={[
+                      "welcome-font-mono text-[10px] uppercase tracking-wider",
+                      lightBackdrop ? "text-neutral-600" : "text-neutral-500",
+                    ].join(" ")}
+                  >
                     {t("landing.hero.stats.totalXp")}
                   </span>
                   <div className="flex items-end gap-1">
-                    <span className="welcome-font-display text-2xl font-semibold text-white">
+                    <span
+                      className={[
+                        "welcome-font-display text-2xl font-semibold",
+                        lightBackdrop ? "text-[#0f172a]" : "text-white",
+                      ].join(" ")}
+                    >
                       8,450
                     </span>
                     <span className="text-xs text-[#E6C87A] mb-1">
@@ -168,7 +219,12 @@ export default function HeroSection({
           <div className="relative z-0 flex items-stretch py-2 sm:py-4 lg:py-0">
             <div
               ref={brainStageRef}
-              className="relative w-full overflow-hidden bg-[#0B0F14] h-[420px] sm:h-[520px] lg:h-full"
+              className={[
+                "relative w-full overflow-hidden h-[420px] sm:h-[520px] lg:h-full",
+                lightBackdrop
+                  ? "bg-transparent border-0 shadow-none ring-0"
+                  : "bg-[#0B0F14]",
+              ].join(" ")}
             >
               <div
                 ref={canvasContainerRef}
@@ -181,6 +237,7 @@ export default function HeroSection({
                   topicRefs={topicRefs}
                   lineRefs={lineRefs}
                   flowRef={flowRef}
+                  lightBackdrop={lightBackdrop}
                 />
               </div>
 

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { Images } from "@garzoni/core";
 import Header from "components/layout/Header";
+import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassCard, GlassButton } from "components/ui";
@@ -28,6 +29,10 @@ function Login() {
   const location = useLocation();
   const { loginUser, isAuthenticated, isInitialized } = useAuth();
   const { executeRecaptcha } = useRecaptcha();
+  const { darkMode } = useTheme();
+
+  const authBackdropUrl = darkMode ? Images.loginBg : Images.authLightBg;
+  const authBackdropOverlay = darkMode ? "bg-black/60" : "bg-white/35";
 
   useEffect(() => {
     // Error from AuthCallback (e.g. after Google OAuth redirect)
@@ -168,12 +173,15 @@ function Login() {
       <div
         className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: Images.loginBg
-            ? `url(${Images.loginBg})`
+          backgroundImage: authBackdropUrl
+            ? `url(${authBackdropUrl})`
             : undefined,
         }}
       >
-        <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+        <div
+          className={`absolute inset-0 ${authBackdropOverlay}`}
+          aria-hidden="true"
+        />
 
         <div className="relative flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
           <GlassCard padding="lg" className="w-full max-w-md">
