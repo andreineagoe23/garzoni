@@ -3,10 +3,12 @@
  */
 import React from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { I18nextProvider } from "react-i18next";
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import ExercisePage from "./ExercisePage";
+import { createTestQueryClient } from "../../test-utils/queryClient";
 import i18n from "../../i18n";
 
 const mockHttpGet = vi.fn();
@@ -73,14 +75,17 @@ describe("ExercisePage router deep link", () => {
   });
 
   it("mounts on /exercises?skill=Budgeting, resolves category, then fetches with explicit map (Basic Finance)", async () => {
+    const queryClient = createTestQueryClient();
     const router = createMemoryRouter(
       [
         {
           path: "/exercises",
           element: (
-            <I18nextProvider i18n={i18n}>
-              <ExercisePage />
-            </I18nextProvider>
+            <QueryClientProvider client={queryClient}>
+              <I18nextProvider i18n={i18n}>
+                <ExercisePage />
+              </I18nextProvider>
+            </QueryClientProvider>
           ),
         },
       ],

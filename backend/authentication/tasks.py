@@ -35,7 +35,9 @@ def _journey_reminders_mode() -> bool:
     )
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_email_reminders(self):
     """
     Send email reminders to users based on their preferences.
@@ -89,9 +91,9 @@ def send_email_reminders(self):
                     completed_at__gte=week_start,
                 ).count()
                 coins_spent = (
-                    UserPurchase.objects.filter(user=profile.user, purchased_at__gte=week_start).aggregate(
-                        total=Sum("reward__cost")
-                    )["total"]
+                    UserPurchase.objects.filter(
+                        user=profile.user, purchased_at__gte=week_start
+                    ).aggregate(total=Sum("reward__cost"))["total"]
                     or 0
                 )
                 context = {
@@ -162,7 +164,9 @@ def send_email_reminders(self):
     return f"Sent {sent_weekly} weekly and {sent_monthly} monthly reminders"
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_trial_ending_reminder(self):
     if not _email_configured():
         logger.warning("Trial ending reminder skipped: email not configured")
@@ -179,10 +183,14 @@ def send_trial_ending_reminder(self):
     svc = NotificationService()
     for profile in profiles:
         try:
-            display_name = normalize_display_string(profile.user.first_name or profile.user.username)
+            display_name = normalize_display_string(
+                profile.user.first_name or profile.user.username
+            )
             trial_end_str = None
             try:
-                trial_end_str = profile.trial_end.strftime("%B %d, %Y") if profile.trial_end else None
+                trial_end_str = (
+                    profile.trial_end.strftime("%B %d, %Y") if profile.trial_end else None
+                )
             except Exception:
                 trial_end_str = None
             if _journey_reminders_mode():
@@ -218,7 +226,9 @@ def send_trial_ending_reminder(self):
     return f"Sent {sent} trial ending reminders"
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_subscription_cancelled_email(
     self,
     email: str,
@@ -250,7 +260,9 @@ def send_subscription_cancelled_email(
         return f"Failed: {e}"
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_welcome_email(self, user_id: int):
     """Delegates to notifications.tasks for identify + delivery (keeps Celery task name stable)."""
     from notifications.tasks import send_welcome_email_task
@@ -258,7 +270,9 @@ def send_welcome_email(self, user_id: int):
     return send_welcome_email_task(user_id, idempotency_key=f"welcome:{user_id}")
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
     User = get_user_model()
     try:
@@ -268,15 +282,23 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
         return "Skipped (user not found)"
 
     referrer_context = {
-        "display_name": normalize_display_string(referrer.first_name or referrer.username or "there"),
-        "friend_name": normalize_display_string(referred.first_name or referred.username or "your friend"),
+        "display_name": normalize_display_string(
+            referrer.first_name or referrer.username or "there"
+        ),
+        "friend_name": normalize_display_string(
+            referred.first_name or referred.username or "your friend"
+        ),
         "bonus_coins": 10,
         "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
     }
     referred_context = {
-        "display_name": normalize_display_string(referred.first_name or referred.username or "there"),
-        "friend_name": normalize_display_string(referrer.first_name or referrer.username or "your friend"),
+        "display_name": normalize_display_string(
+            referred.first_name or referred.username or "there"
+        ),
+        "friend_name": normalize_display_string(
+            referrer.first_name or referrer.username or "your friend"
+        ),
         "bonus_coins": 5,
         "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
         "year": timezone.now().year,
@@ -309,7 +331,9 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
     return "Sent"
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_streak_broken_email(self, user_id: int, streak_count: int):
     if streak_count <= 3:
         return "Skipped (streak too short)"
@@ -336,7 +360,9 @@ def send_streak_broken_email(self, user_id: int, streak_count: int):
     return "Sent"
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+)
 def send_renewal_reminder(self):
     if not _email_configured():
         return "Skipped (email not configured)"

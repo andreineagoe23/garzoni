@@ -786,11 +786,11 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         all_course_ids = list(Course.objects.values_list("id", flat=True))
         global_total_sections = (
             LessonSection.objects.filter(lesson__course_id__in=all_course_ids).count()
-            if all_course_ids else 0
+            if all_course_ids
+            else 0
         )
         global_total_lessons = (
-            Lesson.objects.filter(course_id__in=all_course_ids).count()
-            if all_course_ids else 0
+            Lesson.objects.filter(course_id__in=all_course_ids).count() if all_course_ids else 0
         )
 
         # Resume: last place in the flow (most recently updated flow position)

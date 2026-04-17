@@ -1,9 +1,11 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import ExercisePage from "./ExercisePage";
+import { createTestQueryClient } from "../../test-utils/queryClient";
 import { mockNavigate } from "../../test-utils/react-router-dom-mock";
 import i18n from "../../i18n";
 
@@ -67,10 +69,13 @@ function renderExercise(
           search: initial.search ?? "",
           state: initial.state,
         };
+  const queryClient = createTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={[entry]}>
-      <ExercisePage />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[entry]}>
+        <ExercisePage />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 

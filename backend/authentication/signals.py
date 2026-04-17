@@ -46,6 +46,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 "reminders": profile.email_reminder_preference != "none",
             },
         )
+
         # Dispatch welcome email after DB commit (Celery). If the broker is unavailable, log only.
         def _enqueue_welcome():
             try:

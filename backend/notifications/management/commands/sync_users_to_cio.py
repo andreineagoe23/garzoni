@@ -74,16 +74,12 @@ class Command(BaseCommand):
             else:
                 fail_count += 1
                 failures.append(f"{label}: {err}")
-                self.stdout.write(
-                    self.style.ERROR(f"  [{i}/{total}] FAIL {label} - {err}")
-                )
+                self.stdout.write(self.style.ERROR(f"  [{i}/{total}] FAIL {label} - {err}"))
             if options["delay"] > 0 and i < total:
                 time.sleep(options["delay"])
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"\nDone. {ok_count} synced successfully, {fail_count} failed."
-            )
+            self.style.SUCCESS(f"\nDone. {ok_count} synced successfully, {fail_count} failed.")
         )
         if failures:
             self.stdout.write(self.style.WARNING("Failures:"))

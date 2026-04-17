@@ -32,14 +32,18 @@ class Command(BaseCommand):
         apply_changes: bool = options["apply"]
 
         qs = Exercise.objects.filter(question__contains=CORRUPT_MARKER).order_by("id")
-        exercises = list(qs.values("id", "type", "category", "difficulty", "question", "created_at"))
+        exercises = list(
+            qs.values("id", "type", "category", "difficulty", "question", "created_at")
+        )
 
         if not exercises:
             self.stdout.write(self.style.SUCCESS("No corrupt exercises found."))
             return
 
         self.stdout.write(
-            self.style.WARNING(f"Found {len(exercises)} exercises with '{CORRUPT_MARKER}' in question:\n")
+            self.style.WARNING(
+                f"Found {len(exercises)} exercises with '{CORRUPT_MARKER}' in question:\n"
+            )
         )
         for ex in exercises:
             preview = (ex["question"] or "")[:120].replace("\n", " ")
@@ -62,8 +66,4 @@ class Command(BaseCommand):
         with transaction.atomic():
             deleted, breakdown = Exercise.objects.filter(id__in=ids).delete()
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Deleted {deleted} rows: {breakdown}"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Deleted {deleted} rows: {breakdown}"))

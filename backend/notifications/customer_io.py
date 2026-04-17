@@ -153,7 +153,9 @@ def identify_person(
     if run_cdp and run_track:
         with ThreadPoolExecutor(max_workers=2) as pool:
             fut_c = pool.submit(cdp_identify, person_id, traits, http_timeout=http_timeout)
-            fut_t = pool.submit(_track_upsert_customer, person_id, traits, http_timeout=http_timeout)
+            fut_t = pool.submit(
+                _track_upsert_customer, person_id, traits, http_timeout=http_timeout
+            )
             cdp_res = fut_c.result()
             track_res = fut_t.result()
     elif run_cdp:
@@ -184,7 +186,9 @@ def identify_person(
     return False, "; ".join(errs) if errs else "identify failed"
 
 
-def track_event(person_id: str, name: str, data: dict[str, Any] | None = None) -> tuple[bool, str | None]:
+def track_event(
+    person_id: str, name: str, data: dict[str, Any] | None = None
+) -> tuple[bool, str | None]:
     """POST /api/v1/customers/{id}/events"""
     if not getattr(settings, "CIO_TRACK_ENABLED", False):
         return True, "skipped (CIO_TRACK_ENABLED=false)"

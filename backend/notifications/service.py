@@ -40,7 +40,9 @@ class NotificationService:
     def sync_user_profile(self, user: User) -> tuple[bool, str | None]:
         return self.profile_sync.sync_user(user)
 
-    def send_password_reset(self, user: User, reset_link: str, *, idempotency_key: str | None = None) -> str:
+    def send_password_reset(
+        self, user: User, reset_link: str, *, idempotency_key: str | None = None
+    ) -> str:
         if idempotency_key and not claim_idempotency_key(idempotency_key, "password_reset"):
             return "skipped_duplicate"
         pr = should_send_email(user, CioTemplate.PASSWORD_RESET)
@@ -199,21 +201,31 @@ class NotificationService:
             return f"policy_denied:{pr.reason}"
         if _use_cio_transactional(template):
             # CIO templates use Liquid; pass a flattened message_data subset from context keys
-            md = {k: v for k, v in context.items() if isinstance(v, (str, int, float, bool)) or v is None}
+            md = {
+                k: v
+                for k, v in context.items()
+                if isinstance(v, (str, int, float, bool)) or v is None
+            }
             ok, err = self.transactional.send(template, user, md)
             return "sent_cio" if ok else f"cio_failed:{err}"
         if not smtp_configured():
             return "skipped_no_smtp"
-        send_html_email(subject=subject, template_name=django_template, context=context, to_emails=[user.email])
+        send_html_email(
+            subject=subject, template_name=django_template, context=context, to_emails=[user.email]
+        )
         return "sent_smtp"
 
-    def track_journey_eligible(self, user: User, event: CioEventName, data: dict[str, Any] | None = None) -> None:
+    def track_journey_eligible(
+        self, user: User, event: CioEventName, data: dict[str, Any] | None = None
+    ) -> None:
         if getattr(settings, "CIO_JOURNEY_EVENTS_ENABLED", False) and getattr(
             settings, "CIO_TRACK_ENABLED", False
         ):
             self.events.track(user, event, data or {})
 
-    def publish_domain_event(self, user: User, event: CioEventName, data: dict[str, Any] | None = None) -> None:
+    def publish_domain_event(
+        self, user: User, event: CioEventName, data: dict[str, Any] | None = None
+    ) -> None:
         """Track API event when CIO_TRACK_ENABLED (not gated on journey-only flag)."""
         if getattr(settings, "CIO_TRACK_ENABLED", False):
             self.events.track(user, event, data or {})
