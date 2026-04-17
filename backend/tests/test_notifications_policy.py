@@ -53,3 +53,15 @@ class NotificationPolicyTests(TestCase):
         )
         r = should_send_email(self.user, CioTemplate.TRIAL_ENDING)
         self.assertFalse(r.allowed)
+
+    def test_referral_emails_send_even_if_reminders_off(self):
+        UserEmailPreference.objects.update_or_create(
+            user=self.user,
+            defaults={
+                "reminders": False,
+                "marketing": False,
+                "billing_alerts": False,
+            },
+        )
+        self.assertTrue(should_send_email(self.user, CioTemplate.REFERRAL_REFERRER).allowed)
+        self.assertTrue(should_send_email(self.user, CioTemplate.REFERRAL_REFERRED).allowed)
