@@ -293,9 +293,7 @@ class MissionCompletion(models.Model):
             from education.models import Mastery
 
             as_of = timezone.now()
-            due_count = Mastery.objects.filter(
-                user=self.user, due_at__lte=as_of
-            ).count()
+            due_count = Mastery.objects.filter(user=self.user, due_at__lte=as_of).count()
             target = goal_reference.get("target_count", 5)
             if due_count == 0:
                 self.progress = 100
