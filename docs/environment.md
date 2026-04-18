@@ -52,7 +52,7 @@ Set these on the **backend** service (the names below are what Django reads).
 | `GOOGLE_OAUTH_ANDROID_CLIENT_ID` (native Android, if used)                                                                                                                                                            |
 | `GOOGLE_OAUTH_CLIENT_IDS_CSV` (optional extra client IDs, comma-separated)                                                                                                                                            |
 | `GOOGLE_OAUTH_REDIRECT_BASE` (optional; public origin for OAuth callback only, e.g. `https://www.garzoni.app` — must match **Authorized redirect URIs** in Google Cloud)                                              |
-| `GOOGLE_OAUTH_REDIRECT_FROM_REQUEST` (`1` / `true` — use request `Host` for redirect_uri; defaults **on when `DEBUG`** so LAN hits like `http://192.168.x.x:8000` match Google; set `0` to force `FRONTEND_URL` only) |
+| `GOOGLE_OAUTH_REDIRECT_FROM_REQUEST` (**DEBUG only** — `1` / `true` uses request `Host` for `redirect_uri` so LAN hits like `http://192.168.x.x:8000` match Google; ignored when `DEBUG` is off so prod init vs callback always agree on `FRONTEND_URL` / `GOOGLE_OAUTH_REDIRECT_BASE`) |
 
 **Sign in with Apple (native)**
 

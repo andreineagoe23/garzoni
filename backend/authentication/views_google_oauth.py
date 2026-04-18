@@ -3,8 +3,9 @@ Google OAuth 2.0 flow for login and register.
 - GET /api/auth/google/ redirects to Google consent.
 - GET /api/auth/google/callback exchanges code, creates or gets user, issues JWT, redirects to frontend.
   redirect_uri = {FRONTEND_URL or GOOGLE_OAUTH_REDIRECT_BASE}/api/auth/google/callback.
-  In DEBUG, defaults to the request Host (see GOOGLE_OAUTH_REDIRECT_FROM_REQUEST) so LAN/dev
-  matches Google Console (e.g. http://192.168.x.x:8000/api/auth/google/callback).
+  In DEBUG only, may use the request Host (see GOOGLE_OAUTH_REDIRECT_FROM_REQUEST) so LAN/dev
+  matches Google Console. In production this is ignored so init (often hitting Railway directly)
+  and callback (often hitting the public domain via a proxy) always share the same redirect_uri.
   After Google, the user is sent to the SPA origin embedded in OAuth `state` (v1.* JSON) when that
   origin is allowlisted (FRONTEND_URL, CORS_ALLOWED_ORIGINS*, loopback); otherwise FRONTEND_URL.
 - POST /api/auth/google/verify-credential/ accepts Google One Tap / Sign-in button ID token,
@@ -204,9 +205,13 @@ def _google_oauth_redirect_uri(request=None):
     override = (getattr(settings, "GOOGLE_OAUTH_REDIRECT_BASE", "") or "").strip()
     if override:
         base = override.rstrip("/")
-    elif request is not None and env_bool(
-        "GOOGLE_OAUTH_REDIRECT_FROM_REQUEST",
-        settings.DEBUG,
+    elif (
+        settings.DEBUG
+        and request is not None
+        and env_bool(
+            "GOOGLE_OAUTH_REDIRECT_FROM_REQUEST",
+            True,
+        )
     ):
         xf_proto = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").strip().lower()
         scheme = xf_proto if xf_proto in ("http", "https") else request.scheme
@@ -299,7 +304,15 @@ class GoogleOAuthCallbackView(APIView):
             token_resp.raise_for_status()
             token_json = token_resp.json()
         except requests.RequestException as e:
-            logger.exception("Google token exchange failed: %s", e)
+            body = ""
+            if isinstance(e, requests.HTTPError) and e.response is not None:
+                body = (e.response.text or "")[:800]
+            logger.exception(
+                "Google token exchange failed: %s redirect_uri=%s body=%r",
+                e,
+                redirect_uri,
+                body,
+            )
             return redirect(f"{frontend_url}/login?error=oauth_token_failed")
 
         access_token = token_json.get("access_token")
