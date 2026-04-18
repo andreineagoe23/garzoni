@@ -1515,7 +1515,9 @@ class SubscriptionCreateView(APIView):
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],
             "mode": "subscription",
-            "success_url": (f"{frontend_url}/payment-success?" "session_id={CHECKOUT_SESSION_ID}"),
+            "success_url": (
+                f"{frontend_url}/personalized-path?" "session_id={CHECKOUT_SESSION_ID}"
+            ),
             "cancel_url": f"{frontend_url}/subscriptions",
             "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
             "client_reference_id": str(request.user.id),

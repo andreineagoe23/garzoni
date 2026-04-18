@@ -42,7 +42,7 @@ Run on **iOS** and **Android** (device or simulator) against a known backend (st
 - [ ] Profile: avatar, hearts, push toggle (if applicable).
 - [ ] Settings: dark mode, language, **email reminder cadence** (none/weekly/monthly), **email preference toggles**, sound/animations persist after reload.
 - [ ] Subscriptions: plans load; RevenueCat path or Stripe `Linking.openURL` as configured.
-- [ ] **Payment success:** open `garzoni://payment-success?session_id=test` (or real session id) → progress steps → redirect to personalized path (adjust scheme to your `app.json`).
+- [ ] **Payment success (legacy URL):** `garzoni://payment-success?session_id=…` should immediately redirect to personalized path (Stripe success now opens personalized path directly).
 
 ## Support & legal
 
