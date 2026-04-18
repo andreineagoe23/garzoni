@@ -2,14 +2,15 @@
 confirmed{% endblock %} {% block header %}Order confirmed{% endblock %} {% block
 preheader %}Thanks for your purchase — your Garzoni plan is ready.{% endblock %}
 {% block content %}
-<p style="margin: 0 0 14px 0">
-  Hi {{ user.first_name|default:user.username }},
-</p>
+<p style="margin: 0 0 14px 0">Hi {{ customer_name }},</p>
 <p style="margin: 0 0 14px 0">Thank you. Your order is confirmed.</p>
 <ul style="margin: 0 0 16px 20px; padding: 0; color: #e5e7eb">
   <li style="margin: 0 0 8px 0"><strong>Plan:</strong> {{ plan_name }}</li>
   <li style="margin: 0 0 8px 0"><strong>Amount:</strong> {{ amount }}</li>
-  <li style="margin: 0"><strong>Reference:</strong> {{ order_id }}</li>
+  <li style="margin: 0 0 8px 0"><strong>Reference:</strong> {{ order_id }}</li>
+  {% if period_end %}
+  <li style="margin: 0"><strong>Next bill:</strong> {{ period_end }}</li>
+  {% endif %}
 </ul>
 <p style="margin: 0; color: rgba(229, 231, 235, 0.78); font-size: 13px">
   You can manage billing anytime from your account.
