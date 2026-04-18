@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 from authentication.models import UserEmailPreference, UserProfile
+from authentication.user_display import normalize_display_string
 from notifications.customer_io import identify_person
 from notifications.identity import customer_io_person_id
 
@@ -16,10 +17,14 @@ logger = logging.getLogger(__name__)
 def build_identify_traits(user: User) -> dict[str, Any]:
     profile = UserProfile.objects.filter(user=user).select_related("user").first()
     prefs = UserEmailPreference.objects.filter(user=user).first()
+    # CIO transactional templates often use {{ customer.first_name }}; never omit or
+    # leave empty or Liquid falls back to "there" / blank while CDP has no trait.
+    legal_first = normalize_display_string(user.first_name).strip()
+    greeting = normalize_display_string(user.first_name or user.username or "there")
     traits: dict[str, Any] = {
         "id": customer_io_person_id(user),
         "email": (user.email or "").strip() or None,
-        "first_name": user.first_name or "",
+        "first_name": legal_first or greeting,
         "last_name": user.last_name or "",
         "username": user.username or "",
         "workspace": "garzoni",
