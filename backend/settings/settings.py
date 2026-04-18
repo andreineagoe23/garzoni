@@ -627,6 +627,11 @@ _raw_celery_broker = os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
 CELERY_BROKER_URL = _celery_redis_broker_url(
     _railway_private_redis_broker_url(_raw_celery_broker)
 )
+# Celery merges process env after django.conf; Railway leaves CELERY_BROKER_URL on the public
+# TCP proxy while we compute a private broker above — sync env so worker/beat match Django.
+if CELERY_BROKER_URL:
+    os.environ["CELERY_BROKER_URL"] = CELERY_BROKER_URL
+
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
 if not DEBUG and not _IS_BUILD_PHASE and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
