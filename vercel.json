@@ -5,6 +5,14 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "https://garzoni-production.up.railway.app/api"
+    },
+    {
+      "source": "/api/:path*/",
+      "destination": "https://garzoni-production.up.railway.app/api/:path*/"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://garzoni-production.up.railway.app/api/:path*"
     },
