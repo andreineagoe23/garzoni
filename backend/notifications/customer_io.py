@@ -12,6 +12,38 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def expand_transactional_message_data(data: dict[str, Any] | None) -> dict[str, Any]:
+    """
+    Normalize message_data for Customer.io transactional sends.
+
+    CIO Liquid uses **trigger** for API payload fields (message_data), e.g.
+    ``{{ trigger.customer_name }}`` — not ``message.*``. Docs also use
+    ``{{ trigger.first_name }}`` for the same payload; we mirror common keys so
+    templates match either naming style.
+    """
+    out: dict[str, Any] = {k: v for k, v in (data or {}).items() if v is not None}
+    cn = out.get("customer_name")
+    if isinstance(cn, str) and cn.strip():
+        s = cn.strip()
+        out.setdefault("first_name", s)
+        out.setdefault("display_name", s)
+    oid = out.get("order_id")
+    if isinstance(oid, str) and oid.strip():
+        s = oid.strip()
+        out.setdefault("checkout_session_id", s)
+        out.setdefault("stripe_checkout_session_id", s)
+    pe = out.get("period_end")
+    if isinstance(pe, str) and pe.strip():
+        out.setdefault("next_bill", pe.strip())
+    pn = out.get("plan_name")
+    if isinstance(pn, str) and pn.strip():
+        out.setdefault("plan", pn.strip())
+    amt = out.get("amount")
+    if isinstance(amt, str) and amt.strip():
+        out.setdefault("total", amt.strip())
+    return out
+
+
 def _track_api_base() -> str:
     if getattr(settings, "CIO_REGION", "us").lower() == "eu":
         return "https://track-eu.customer.io"
@@ -248,7 +280,7 @@ def send_transactional_email(
     if not bearer:
         return False, "missing CIO_APP_API_KEY"
     url = f"{_app_api_base()}/v1/send/email"
-    clean_data = {k: v for k, v in (message_data or {}).items() if v is not None}
+    clean_data = expand_transactional_message_data(message_data)
     payload: dict[str, Any] = {
         "to": to_email,
         "identifiers": identifiers,
@@ -282,7 +314,7 @@ def send_transactional_push(
     if not bearer:
         return False, "missing CIO_APP_API_KEY"
     url = f"{_app_api_base()}/v1/send/push"
-    clean_data = {k: v for k, v in (message_data or {}).items() if v is not None}
+    clean_data = expand_transactional_message_data(message_data)
     payload: dict[str, Any] = {
         "to": "last_used",
         "identifiers": identifiers,

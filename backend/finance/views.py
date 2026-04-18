@@ -228,7 +228,7 @@ def _resolve_image_url(url: str, base_link: str) -> str:
 
 def _extract_image_url(item, description: str, link: str) -> str | None:
     """Extract thumbnail from RSS/Atom using only feed-provided metadata (legal)."""
-    # Media RSS (Yahoo, CNBC, BBC, etc.)
+    # Media RSS (MarketWatch, Guardian, BBC, NPR, WSJ feeds in NEWS_FEEDS)
     media_ns = {"media": "http://search.yahoo.com/mrss/"}
     for tag in ("media:content", "media:thumbnail"):
         el = item.find(tag, media_ns)
