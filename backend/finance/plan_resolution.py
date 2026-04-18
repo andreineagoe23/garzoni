@@ -46,14 +46,18 @@ def primary_price_id_from_subscription(obj: Any) -> Optional[str]:
         return None
     first = data[0]
     price_obj = (
-        getattr(first, "price", None) if not isinstance(first, dict) else first.get("price")
+        getattr(first, "price", None)
+        if not isinstance(first, dict)
+        else first.get("price")
     )
     if isinstance(price_obj, str):
         return price_obj
     if price_obj is None:
         return None
-    return getattr(price_obj, "id", None) if not isinstance(price_obj, dict) else price_obj.get(
-        "id"
+    return (
+        getattr(price_obj, "id", None)
+        if not isinstance(price_obj, dict)
+        else price_obj.get("id")
     )
 
 
@@ -118,7 +122,11 @@ def resolve_plan_id_from_profile_stripe(profile) -> str | None:
     try:
         if sub_id:
             sub = stripe.Subscription.retrieve(sub_id)
-            st = sub.get("status") if isinstance(sub, dict) else getattr(sub, "status", None)
+            st = (
+                sub.get("status")
+                if isinstance(sub, dict)
+                else getattr(sub, "status", None)
+            )
             if st in ("active", "trialing", "past_due"):
                 pid = primary_price_id_from_subscription(sub)
                 out = plan_id_from_stripe_price_id(pid)

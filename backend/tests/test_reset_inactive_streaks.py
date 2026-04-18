@@ -14,7 +14,9 @@ from education.tasks import reset_inactive_streaks
 
 class ResetInactiveStreaksTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="streakuser", password="test-pass-123!")
+        self.user = User.objects.create_user(
+            username="streakuser", password="test-pass-123!"
+        )
         self.path = Path.objects.create(title="P", description="")
         self.course = Course.objects.create(title="C", description="", path=self.path)
 
@@ -37,7 +39,9 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today,
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(streak=4, last_completed_date=today)
+        UserProfile.objects.filter(pk=profile.pk).update(
+            streak=4, last_completed_date=today
+        )
         reset_inactive_streaks()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 4)
@@ -50,7 +54,9 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today - timedelta(days=1),
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(streak=3, last_completed_date=today - timedelta(days=1))
+        UserProfile.objects.filter(pk=profile.pk).update(
+            streak=3, last_completed_date=today - timedelta(days=1)
+        )
         reset_inactive_streaks()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 3)
@@ -63,14 +69,21 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today - timedelta(days=3),
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(streak=5, last_completed_date=today - timedelta(days=3))
+        UserProfile.objects.filter(pk=profile.pk).update(
+            streak=5, last_completed_date=today - timedelta(days=3)
+        )
         with patch("authentication.tasks.send_streak_broken_email") as m:
             reset_inactive_streaks()
             m.delay.assert_called_once_with(self.user.id, 5)
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 0)
         self.assertIsNone(profile.last_completed_date)
-        self.assertEqual(UserProgress.objects.get(user=self.user, course=self.course).learning_session_count, 0)
+        self.assertEqual(
+            UserProgress.objects.get(
+                user=self.user, course=self.course
+            ).learning_session_count,
+            0,
+        )
 
     def test_no_streak_broken_email_when_prior_streak_le_three(self):
         today = timezone.localdate()
@@ -80,7 +93,9 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today - timedelta(days=3),
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(streak=2, last_completed_date=today - timedelta(days=3))
+        UserProfile.objects.filter(pk=profile.pk).update(
+            streak=2, last_completed_date=today - timedelta(days=3)
+        )
         with patch("authentication.tasks.send_streak_broken_email") as m:
             reset_inactive_streaks()
             m.delay.assert_not_called()
@@ -101,7 +116,9 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today,
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(streak=2, last_completed_date=today)
+        UserProfile.objects.filter(pk=profile.pk).update(
+            streak=2, last_completed_date=today
+        )
         reset_inactive_streaks()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 2)

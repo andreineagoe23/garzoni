@@ -50,12 +50,8 @@ class SignupEmailDefaultsTest(TestCase):
         # Force reCAPTCHA to be treated as not configured so tests don't need
         # to mock a verified token. The view short-circuits the check when
         # `_recaptcha_required()` returns False.
-        with patch(
-            "authentication.views_auth._recaptcha_required", return_value=False
-        ):
-            response = APIClient().post(
-                "/api/register-secure/", payload, format="json"
-            )
+        with patch("authentication.views_auth._recaptcha_required", return_value=False):
+            response = APIClient().post("/api/register-secure/", payload, format="json")
         return response
 
     def test_defaults_service_on_marketing_off(self):
@@ -79,9 +75,7 @@ class SignupEmailDefaultsTest(TestCase):
         self.assertEqual(user.profile.email_reminder_preference, "weekly")
 
     def test_marketing_opt_in_is_respected(self):
-        response = self._register(
-            marketing_opt_in=True, username="optinuser"
-        )
+        response = self._register(marketing_opt_in=True, username="optinuser")
         self.assertIn(response.status_code, (200, 201), response.content)
         user = User.objects.get(username="optinuser")
         prefs = UserEmailPreference.objects.get(user=user)

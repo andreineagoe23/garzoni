@@ -131,7 +131,9 @@ DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
 
 # Gamification retention layer (weekly recap API, streak-rescue Celery job, richer profile extras).
 GAMIFICATION_RETENTION_V2 = env_bool("GAMIFICATION_RETENTION_V2", False)
-GAMIFICATION_DAILY_GOAL_TARGET_XP = int(os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50"))
+GAMIFICATION_DAILY_GOAL_TARGET_XP = int(
+    os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50")
+)
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -192,17 +194,22 @@ if not database_url:
 # Require SSL only for truly external connections (DATABASE_PUBLIC_URL from outside Railway).
 # Railway's internal private URL and local Docker hosts don't need SSL.
 _is_local_db = any(
-    host in database_url for host in ("railway.internal", "@db:", "@localhost", "@127.0.0.1")
+    host in database_url
+    for host in ("railway.internal", "@db:", "@localhost", "@127.0.0.1")
 )
 _is_external_db = not _is_local_db
-default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=_is_external_db)
+default_db = dj_database_url.parse(
+    database_url, conn_max_age=600, ssl_require=_is_external_db
+)
 if "OPTIONS" not in default_db:
     default_db["OPTIONS"] = {}
 
 DATABASES = {"default": default_db}
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -241,7 +248,10 @@ MEDIA_STORAGE_BACKEND = os.getenv(
 # Cloudinary (used when DJANGO_MEDIA_STORAGE_BACKEND=cloudinary_storage...)
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "")
 # Auto-enable Cloudinary when URL is set and no explicit backend override
-if CLOUDINARY_URL and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage":
+if (
+    CLOUDINARY_URL
+    and MEDIA_STORAGE_BACKEND == "django.core.files.storage.FileSystemStorage"
+):
     MEDIA_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -291,7 +301,9 @@ SIMPLE_JWT = {
 }
 
 # External HTTP safety defaults
-EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECONDS", "15"))
+EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(
+    os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECONDS", "15")
+)
 # OpenAI chat completions can exceed the generic external timeout; keep separate.
 OPENAI_REQUEST_TIMEOUT_SECONDS = int(os.getenv("OPENAI_REQUEST_TIMEOUT_SECONDS", "90"))
 HTTP_POOL_CONNECTIONS = int(os.getenv("HTTP_POOL_CONNECTIONS", "20"))
@@ -306,8 +318,12 @@ FINANCE_EXTERNAL_THROTTLE_RATE = os.getenv("FINANCE_EXTERNAL_THROTTLE_RATE", "60
 
 # Daily token budgets for the AI tutor (tracked in Redis/cache).
 # Limits total OpenAI token spend per user per UTC day regardless of request rate.
-OPENAI_DAILY_TOKEN_BUDGET_FREE = int(os.getenv("OPENAI_DAILY_TOKEN_BUDGET_FREE", "50000"))
-OPENAI_DAILY_TOKEN_BUDGET_PREMIUM = int(os.getenv("OPENAI_DAILY_TOKEN_BUDGET_PREMIUM", "500000"))
+OPENAI_DAILY_TOKEN_BUDGET_FREE = int(
+    os.getenv("OPENAI_DAILY_TOKEN_BUDGET_FREE", "50000")
+)
+OPENAI_DAILY_TOKEN_BUDGET_PREMIUM = int(
+    os.getenv("OPENAI_DAILY_TOKEN_BUDGET_PREMIUM", "500000")
+)
 
 # Optional: cache OpenAI responses (in seconds). Keep disabled by default.
 OPENAI_CACHE_TTL_SECONDS = int(os.getenv("OPENAI_CACHE_TTL_SECONDS", "0"))
@@ -327,14 +343,18 @@ OPENAI_ALLOWED_MODELS_CSV = env_csv(
 # Content translation settings
 CONTENT_TRANSLATION_PROVIDER = os.getenv("CONTENT_TRANSLATION_PROVIDER", "openai")
 CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "gpt-4o-mini")
-CONTENT_TRANSLATION_ENABLED = os.getenv("CONTENT_TRANSLATION_ENABLED", "true").lower() in (
+CONTENT_TRANSLATION_ENABLED = os.getenv(
+    "CONTENT_TRANSLATION_ENABLED", "true"
+).lower() in (
     "1",
     "true",
     "yes",
 )
 
 # Security headers (Django 4.2 SecurityMiddleware)
-SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")
+SECURE_REFERRER_POLICY = os.getenv(
+    "SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin"
+)
 
 cors_allowed_origins = env_csv("CORS_ALLOWED_ORIGINS_CSV")
 if not cors_allowed_origins:
@@ -394,7 +414,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-requested-with",
     "x-refresh-token",
 ]
-CORS_EXPOSE_HEADERS = ["Content-Disposition", "Set-Cookie", "X-CSRFToken", "X-Request-ID"]
+CORS_EXPOSE_HEADERS = [
+    "Content-Disposition",
+    "Set-Cookie",
+    "X-CSRFToken",
+    "X-Request-ID",
+]
 
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "None" if not DEBUG else "Lax"
@@ -433,7 +458,9 @@ EMAIL_USE_SSL = env_bool(
 )  # Use for port 465 (e.g. Resend); ignored if EMAIL_USE_TLS
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "webmaster@localhost")
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "webmaster@localhost"
+)
 ANYMAIL = {
     "RESEND_API_KEY": os.getenv("RESEND_API_KEY", "").strip(),
 }
@@ -463,7 +490,9 @@ CIO_JOURNEY_EVENTS_ENABLED = env_bool("CIO_JOURNEY_EVENTS_ENABLED", False)
 CIO_REMINDERS_VIA_JOURNEYS = env_bool("CIO_REMINDERS_VIA_JOURNEYS", False)
 # JSON map: template slug -> transactional message id (int) or trigger name (str), e.g.
 # {"password-reset":12,"welcome":13}
-CIO_TRANSACTIONAL_TRIGGERS_JSON = os.getenv("CIO_TRANSACTIONAL_TRIGGERS_JSON", "").strip()
+CIO_TRANSACTIONAL_TRIGGERS_JSON = os.getenv(
+    "CIO_TRANSACTIONAL_TRIGGERS_JSON", ""
+).strip()
 # Optional: GET /api/notifications/cio-ping/ with header X-Garzoni-Cio-Ping: <secret> (no Railway console needed).
 CIO_PUBLIC_PING_SECRET = os.getenv("CIO_PUBLIC_PING_SECRET", "").strip()
 
@@ -473,7 +502,9 @@ else:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.garzoni.app")
 
 # Base API URL (including /api). Used to generate absolute links in emails.
-BACKEND_URL = (os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/api").rstrip("/")
+BACKEND_URL = (
+    os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/api"
+).rstrip("/")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
@@ -500,10 +531,13 @@ if STRIPE_SECRET_KEY:
         "STRIPE_PRICE_PLUS_MONTHLY": STRIPE_PRICE_PLUS_MONTHLY,
         "STRIPE_PRICE_PRO_MONTHLY": STRIPE_PRICE_PRO_MONTHLY,
     }
-    missing_prices = [name for name, value in required_prices.items() if not value.strip()]
+    missing_prices = [
+        name for name, value in required_prices.items() if not value.strip()
+    ]
     if missing_prices:
         raise ImproperlyConfigured(
-            "Stripe is enabled but required price IDs are missing: " + ", ".join(missing_prices)
+            "Stripe is enabled but required price IDs are missing: "
+            + ", ".join(missing_prices)
         )
 
 # reCAPTCHA Enterprise (single key from andreineagoe@garzoni.app console)
@@ -513,7 +547,9 @@ RECAPTCHA_DISABLED = env_bool("RECAPTCHA_DISABLED", False)
 if not DEBUG and not _IS_BUILD_PHASE and RECAPTCHA_DISABLED:
     raise ImproperlyConfigured("RECAPTCHA_DISABLED must not be True in production.")
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
-RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
+RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv(
+    "RECAPTCHA_ENTERPRISE_PROJECT_ID", ""
+).strip()
 RECAPTCHA_ENTERPRISE_API_KEY = os.getenv("RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
 # Score threshold (0.0-1.0). Lower = more permissive. 0.3 is often used in production.
 RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", "0.3"))
@@ -576,6 +612,7 @@ EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 _celery_result_env = (os.getenv("CELERY_RESULT_BACKEND") or "").strip()
 if _celery_result_env.startswith(("redis://", "rediss://")):
     os.environ.pop("CELERY_RESULT_BACKEND", None)
+
 
 def _celery_redis_broker_url(url: str | None) -> str | None:
     """Ensure DB path /0 for redis/rediss brokers.
@@ -644,14 +681,21 @@ if CELERY_BROKER_URL:
         }
     }
 
-CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
+CELERY_TASK_ALWAYS_EAGER = env_bool(
+    "CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None
+)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
 if not DEBUG and not _IS_BUILD_PHASE and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
     raise ImproperlyConfigured(
         "Celery eager mode is not allowed in production when CELERY_BROKER_URL/REDIS_URL is set. "
         "Set CELERY_TASK_ALWAYS_EAGER=False and run a Celery worker + beat."
     )
-if not DEBUG and not _IS_BUILD_PHASE and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
+if (
+    not DEBUG
+    and not _IS_BUILD_PHASE
+    and not CELERY_BROKER_URL
+    and CELERY_TASK_ALWAYS_EAGER
+):
     print(
         "[settings] Production with no broker: scheduled tasks (email reminders, trial reminder) will NOT run. "
         "On Railway: add Redis, set REDIS_URL, then add a Celery worker and a Celery beat service."
@@ -671,14 +715,17 @@ CELERY_BROKER_CONNECTION_MAX_RETRIES = int(
 )
 # Fail broker TCP connects quickly so HTTP handlers (e.g. Google OAuth after user.save) are not wedged
 # for minutes when Redis is unreachable or on the wrong network.
-CELERY_BROKER_CONNECTION_TIMEOUT = float(os.getenv("CELERY_BROKER_CONNECTION_TIMEOUT", "5"))
+CELERY_BROKER_CONNECTION_TIMEOUT = float(
+    os.getenv("CELERY_BROKER_CONNECTION_TIMEOUT", "5")
+)
 # Worker-side: if Redis drops mid-task, cancel so the worker can recover cleanly instead
 # of hanging on a dead pub/sub socket.
 CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
 # Railway Redis proxy often resets idle TCP connections (Errno 104). Smaller pool + redis
 # transport limits reduce stale pooled connections. Override via env if needed.
 if CELERY_BROKER_URL and (
-    CELERY_BROKER_URL.startswith("redis://") or CELERY_BROKER_URL.startswith("rediss://")
+    CELERY_BROKER_URL.startswith("redis://")
+    or CELERY_BROKER_URL.startswith("rediss://")
 ):
     CELERY_BROKER_POOL_LIMIT = int(os.getenv("CELERY_BROKER_POOL_LIMIT", "1"))
     # Public TCP proxy can be slow during AUTH; allow longer read/connect when still on proxy.
@@ -690,7 +737,9 @@ if CELERY_BROKER_URL and (
         "socket_connect_timeout": float(
             os.getenv("CELERY_REDIS_SOCKET_CONNECT_TIMEOUT", _default_sock)
         ),
-        "socket_timeout": float(os.getenv("CELERY_REDIS_SOCKET_TIMEOUT", _default_sock)),
+        "socket_timeout": float(
+            os.getenv("CELERY_REDIS_SOCKET_TIMEOUT", _default_sock)
+        ),
     }
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -897,10 +946,18 @@ CKEDITOR_5_CONFIGS = {
                 {"name": "h4"},
                 {"name": "br"},
                 {"name": "hr"},
-                {"name": "a", "attributes": {"href": True, "target": True, "rel": True}},
+                {
+                    "name": "a",
+                    "attributes": {"href": True, "target": True, "rel": True},
+                },
                 {
                     "name": "img",
-                    "attributes": {"src": True, "alt": True, "width": True, "height": True},
+                    "attributes": {
+                        "src": True,
+                        "alt": True,
+                        "width": True,
+                        "height": True,
+                    },
                 },
                 {"name": "table"},
                 {"name": "thead"},
