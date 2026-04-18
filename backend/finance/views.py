@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as datetime_timezone
 
 from django.utils import timezone
 from django.db import transaction
@@ -1022,12 +1022,26 @@ class StripeWebhookView(APIView):
                                 )
                             sid = session.get("id") or ""
                             amount_minor = session.get("amount_total") or 0
+                            period_end_str = ""
+                            if sub_obj is not None:
+                                raw_end = getattr(sub_obj, "current_period_end", None)
+                                if raw_end:
+                                    period_end_str = timezone.localtime(
+                                        datetime.fromtimestamp(
+                                            int(raw_end), tz=datetime_timezone.utc
+                                        )
+                                    ).strftime("%B %d, %Y")
+                            display_name = normalize_display_string(
+                                user.first_name or user.username or "there"
+                            )
                             order_msg = {
                                 "order_id": str(sid),
                                 "plan_name": str(plan_id or "plus").title(),
                                 "amount": _format_stripe_money_minor(
                                     amount_minor, session.get("currency")
                                 ),
+                                "period_end": period_end_str,
+                                "customer_name": display_name,
                             }
                             _safe_enqueue_celery(
                                 send_billing_order_confirmed_task,
