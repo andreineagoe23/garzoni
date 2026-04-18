@@ -15,6 +15,7 @@ generic 200 "link sent" response.
 from __future__ import annotations
 
 import logging
+import threading
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -24,6 +25,13 @@ from rest_framework.test import APIClient
 from authentication.models import UserEmailPreference, UserProfile
 
 logger = logging.getLogger(__name__)
+
+
+class _ImmediateStartThread(threading.Thread):
+    """Run target synchronously so tests that patch .delay() see the patch before it is removed."""
+
+    def start(self):
+        self.run()
 
 
 class SignupEmailDefaultsTest(TestCase):
@@ -124,6 +132,9 @@ class PasswordResetResilienceTest(TestCase):
         with patch(
             "authentication.views_password.send_password_reset_email_task.delay",
             side_effect=RuntimeError("broker unreachable"),
+        ), patch(
+            "authentication.views_password.threading.Thread",
+            _ImmediateStartThread,
         ):
             response = self.client.post(
                 "/api/password-reset/",
