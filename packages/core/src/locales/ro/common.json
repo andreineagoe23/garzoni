@@ -1492,7 +1492,8 @@
       "registerFailed": "Înregistrarea a eșuat. Te rugăm să încerci din nou.",
       "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
       "verificationFailedHint": "Verificarea de securitate nu a putut fi finalizată. Reîncarcă pagina și încearcă din nou, sau folosește Conectare cu Google.",
-      "tryGoogleHint": "Poți folosi și Conectare cu Google mai jos."
+      "tryGoogleHint": "Poți folosi și Conectare cu Google mai jos.",
+      "marketingOptIn": "Vreau să primesc ocazional actualizări despre produs, sfaturi și oferte (opțional, te poți dezabona oricând)."
     },
     "forgotPassword": {
       "title": "Ai uitat parola",

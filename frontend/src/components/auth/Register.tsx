@@ -410,12 +410,7 @@ function Register() {
                   onChange={(e) => setMarketingOptIn(e.target.checked)}
                   className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
                 />
-                <span>
-                  {t("auth.register.marketingOptIn", {
-                    defaultValue:
-                      "Send me occasional product updates, tips and offers (optional, you can unsubscribe any time).",
-                  })}
-                </span>
+                <span>{t("auth.register.marketingOptIn")}</span>
               </label>
 
               <div className="space-y-3">
