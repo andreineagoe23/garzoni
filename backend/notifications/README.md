@@ -103,6 +103,15 @@ Transactional mail is sent by **Customer.io** when `CIO_TRANSACTIONAL_ENABLED` i
 - **Mojibake** (e.g. `â€”` instead of a dash) means UTF-8 text was pasted or stored incorrectly. In the CIO editor, replace “smart” punctuation with plain ASCII (`-`, `'`) or re-type affected phrases; preview the message before publishing.
 - **Footer year**: Use Liquid with data the backend already sends (e.g. `year` in welcome `message_data`) or update the static year when publishing templates.
 
+**Transactional Liquid: use `message.*` from `message_data`, not `customer.*` alone**
+
+Django sends fields in the App API `message_data` object. In CIO transactional templates they appear as **`message.<key>`** (not the same as CDP profile traits unless you duplicate them). If a template uses `{{ customer.first_name }}` but the person trait is empty, you get fallbacks like literal “there”. Prefer the payload Garzoni sends:
+
+| Template (slug)   | Keys in `message_data` (use `{{ message.<key> }}` in CIO) |
+| ----------------- | ---------------------------------------------------------- |
+| `welcome`         | `customer_name`, `app_url`, `year`                         |
+| `order-confirmed` | `customer_name`, `order_id`, `plan_name`, `amount`, `period_end` (`period_end` is formatted “Month DD, YYYY” when Stripe subscription `current_period_end` is available; otherwise empty) |
+
 **Django SMTP HTML templates** (fallback when CIO is off) live under `core/templates/emails/` and already set `<meta charset="utf-8" />` in `_base.html`.
 
 ### Quick mapping from what you described
