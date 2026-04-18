@@ -67,6 +67,24 @@ def _deterministic_shuffle(items, seed_str):
     return items
 
 
+def _diverse_pick(missions, n):
+    """Pick n missions prioritising goal_type diversity. One per type first, then backfill."""
+    first_pass = []
+    second_pass = []
+    seen_types = set()
+    for m in missions:
+        gt = m["goal_type"]
+        if gt not in seen_types:
+            seen_types.add(gt)
+            first_pass.append(m)
+        else:
+            second_pass.append(m)
+    result = first_pass[:n]
+    if len(result) < n:
+        result += second_pass[: n - len(result)]
+    return result
+
+
 class MissionCompletionThrottle(UserRateThrottle):
     """Rate limit mission completions to prevent abuse."""
 
@@ -176,8 +194,8 @@ class MissionView(APIView):
 
             return Response(
                 {
-                    "daily_missions": daily_missions[:MISSIONS_DAILY_DISPLAY],
-                    "weekly_missions": weekly_missions[:MISSIONS_WEEKLY_DISPLAY],
+                    "daily_missions": _diverse_pick(daily_missions, MISSIONS_DAILY_DISPLAY),
+                    "weekly_missions": _diverse_pick(weekly_missions, MISSIONS_WEEKLY_DISPLAY),
                     "can_swap": can_swap,
                 },
                 status=200,

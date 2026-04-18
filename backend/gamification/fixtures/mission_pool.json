@@ -322,5 +322,113 @@
     "goal_type": "add_savings",
     "goal_reference": { "target": 100 },
     "points_reward": 125
+  },
+  {
+    "name": "Save £25 Today",
+    "description": "Big push today — save £25 before midnight.",
+    "purpose_statement": "Setting a higher daily target now and then trains your brain to treat saving as non-negotiable.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 25 },
+    "points_reward": 45
+  },
+  {
+    "name": "Save £30 Today",
+    "description": "Commit to saving £30 today before the day ends.",
+    "purpose_statement": "Ambitious single-day targets build the decisive money habits that compound into real wealth.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 30 },
+    "points_reward": 50
+  },
+  {
+    "name": "Save £50 Today",
+    "description": "Challenge yourself to save £50 in a single day.",
+    "purpose_statement": "Occasional high-save days can cover a week's worth of growth in one go.",
+    "mission_type": "daily",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 50 },
+    "points_reward": 70
+  },
+  {
+    "name": "Finish 3 Lessons",
+    "description": "Complete three lessons today for a serious knowledge boost.",
+    "purpose_statement": "A focused multi-lesson session creates lasting mental connections between financial concepts.",
+    "mission_type": "daily",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 3 },
+    "points_reward": 55
+  },
+  {
+    "name": "Review Blitz",
+    "description": "Blast through 8 review cards in one sitting.",
+    "purpose_statement": "High-volume review sessions lock knowledge into long-term memory far better than small daily doses.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 8 },
+    "points_reward": 30
+  },
+  {
+    "name": "Deep Review",
+    "description": "Clear 15 items from your review queue today.",
+    "purpose_statement": "A deep review session today means fewer forgotten concepts eroding your financial decisions tomorrow.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 15 },
+    "points_reward": 45
+  },
+  {
+    "name": "Brain Warm-Up",
+    "description": "Answer just 1 review question to ease into the day.",
+    "purpose_statement": "Even a single retrieval attempt reactivates memory traces and keeps your learning momentum alive.",
+    "mission_type": "daily",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 1 },
+    "points_reward": 5
+  },
+  {
+    "name": "Morning Money Check",
+    "description": "Start the day with one fresh financial insight from the dashboard.",
+    "purpose_statement": "Daily exposure to market facts rewires how you see spending, saving, and investing decisions.",
+    "mission_type": "daily",
+    "goal_type": "read_fact",
+    "goal_reference": {},
+    "points_reward": 10
+  },
+  {
+    "name": "Save £150 This Week",
+    "description": "Aim to save £150 across the week — a step above the £100 milestone.",
+    "purpose_statement": "Incremental weekly targets prevent plateau and keep your savings rate climbing steadily.",
+    "mission_type": "weekly",
+    "goal_type": "add_savings",
+    "goal_reference": { "target": 150 },
+    "points_reward": 130
+  },
+  {
+    "name": "Lesson Legend",
+    "description": "Complete 7 lessons this week — one for every day.",
+    "purpose_statement": "A lesson-a-day habit is the single most reliable predictor of long-term financial literacy.",
+    "mission_type": "weekly",
+    "goal_type": "complete_lesson",
+    "goal_reference": { "required_lessons": 7 },
+    "points_reward": 110
+  },
+  {
+    "name": "Review Champion",
+    "description": "Tackle 25 review items this week to master your material.",
+    "purpose_statement": "Champions consolidate knowledge under pressure — the same discipline applies to financial mastery.",
+    "mission_type": "weekly",
+    "goal_type": "clear_review_queue",
+    "goal_reference": { "target_count": 25 },
+    "points_reward": 95
+  },
+  {
+    "name": "Fact Seeker",
+    "description": "Read 5 finance facts across the week to broaden your perspective.",
+    "purpose_statement": "Wide financial knowledge helps you evaluate news, ads, and advice with healthy scepticism.",
+    "mission_type": "weekly",
+    "goal_type": "read_fact",
+    "goal_reference": {},
+    "points_reward": 55
   }
 ]
