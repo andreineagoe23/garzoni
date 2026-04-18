@@ -58,9 +58,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 "billing_alerts": True,
                 "push_notifications": True,
                 "reminder_frequency": "weekly",
-                "marketing": bool(
-                    getattr(instance, "_signup_marketing_opt_in", False)
-                ),
+                "marketing": bool(getattr(instance, "_signup_marketing_opt_in", False)),
             },
         )
 

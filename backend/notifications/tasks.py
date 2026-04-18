@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
 def send_password_reset_email_task(
     self, user_pk: int, reset_link: str, idempotency_key: str | None = None
@@ -30,9 +33,14 @@ def send_password_reset_email_task(
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
-def send_welcome_email_task(self, user_id: int, idempotency_key: str | None = None) -> str:
+def send_welcome_email_task(
+    self, user_id: int, idempotency_key: str | None = None
+) -> str:
     User = get_user_model()
     try:
         user = User.objects.get(id=user_id)
@@ -44,7 +52,10 @@ def send_welcome_email_task(self, user_id: int, idempotency_key: str | None = No
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
 def sync_user_to_customer_io(self, user_id: int) -> str:
     User = get_user_model()
@@ -57,7 +68,10 @@ def sync_user_to_customer_io(self, user_id: int) -> str:
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
 def send_billing_order_confirmed_task(
     self, user_pk: int, message_data: dict, idempotency_key: str | None = None
@@ -69,11 +83,16 @@ def send_billing_order_confirmed_task(
         return "skipped_no_user"
     svc = NotificationService()
     svc.sync_user_profile(user)
-    return svc.send_order_confirmed(user, message_data=message_data, idempotency_key=idempotency_key)
+    return svc.send_order_confirmed(
+        user, message_data=message_data, idempotency_key=idempotency_key
+    )
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
 def send_billing_payment_receipt_task(
     self, user_pk: int, message_data: dict, idempotency_key: str | None = None
@@ -85,11 +104,16 @@ def send_billing_payment_receipt_task(
         return "skipped_no_user"
     svc = NotificationService()
     svc.sync_user_profile(user)
-    return svc.send_payment_receipt(user, message_data=message_data, idempotency_key=idempotency_key)
+    return svc.send_payment_receipt(
+        user, message_data=message_data, idempotency_key=idempotency_key
+    )
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
 def send_billing_payment_failed_task(
     self, user_pk: int, message_data: dict, idempotency_key: str | None = None
@@ -101,13 +125,20 @@ def send_billing_payment_failed_task(
         return "skipped_no_user"
     svc = NotificationService()
     svc.sync_user_profile(user)
-    return svc.send_payment_failed(user, message_data=message_data, idempotency_key=idempotency_key)
+    return svc.send_payment_failed(
+        user, message_data=message_data, idempotency_key=idempotency_key
+    )
 
 
 @shared_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
 )
-def send_password_changed_email_task(self, user_pk: int, *, idempotency_key: str | None = None) -> str:
+def send_password_changed_email_task(
+    self, user_pk: int, *, idempotency_key: str | None = None
+) -> str:
     User = get_user_model()
     try:
         user = User.objects.get(pk=user_pk)
