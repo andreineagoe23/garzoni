@@ -44,7 +44,7 @@
     "sass": "^1.97.3",
     "three": "^0.182.0",
     "web-vitals": "^4.2.4",
-    "yahoo-finance2": "^2.13.3",
+    "yahoo-finance2": "^3.14.0",
     "zustand": "^4.5.5"
   },
   "scripts": {
