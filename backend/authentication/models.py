@@ -111,12 +111,16 @@ class UserProfile(models.Model):
 
     def add_money(self, amount):
         amount = Decimal(str(amount))
-        self.earned_money += amount
-        self.save()
+        UserProfile.objects.filter(pk=self.pk).update(
+            earned_money=models.F("earned_money") + amount
+        )
+        self.refresh_from_db(fields=["earned_money"])
 
     def add_points(self, points):
-        self.points += points
-        self.save()
+        UserProfile.objects.filter(pk=self.pk).update(
+            points=models.F("points") + points
+        )
+        self.refresh_from_db(fields=["points"])
 
     def _try_bridge_one_gap_day_with_freeze(self, today) -> bool:
         """

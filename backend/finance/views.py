@@ -104,14 +104,14 @@ _logged_missing_config = set()
 # Fallback: per-source logo URLs (publisher-owned, used only when item has no image).
 NEWS_FEEDS = [
     {
-        "name": "CNBC Markets",
-        "url": "https://www.cnbc.com/id/19854910/device/rss/rss.html",
-        "logo_url": "https://www.cnbc.com/favicon.ico",
+        "name": "MarketWatch",
+        "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+        "logo_url": "https://www.marketwatch.com/favicon.ico",
     },
     {
-        "name": "CNBC Top News",
-        "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
-        "logo_url": "https://www.cnbc.com/favicon.ico",
+        "name": "The Guardian Business",
+        "url": "https://www.theguardian.com/business/rss",
+        "logo_url": "https://www.theguardian.com/favicon.ico",
     },
     {
         "name": "BBC Business",

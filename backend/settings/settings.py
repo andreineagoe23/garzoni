@@ -632,6 +632,18 @@ CELERY_BROKER_URL = _celery_redis_broker_url(
 if CELERY_BROKER_URL:
     os.environ["CELERY_BROKER_URL"] = CELERY_BROKER_URL
 
+# Shared Redis cache — all Gunicorn workers share one cache so invalidate_profile_cache()
+# called in Worker A is immediately visible to Worker B. Without this Django defaults to
+# LocMemCache (per-process) which causes stale coins/streak reads after reward grants.
+if CELERY_BROKER_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": CELERY_BROKER_URL,
+            "KEY_PREFIX": "gz:cache",
+        }
+    }
+
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
 if not DEBUG and not _IS_BUILD_PHASE and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
