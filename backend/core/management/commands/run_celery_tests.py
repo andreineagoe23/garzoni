@@ -12,7 +12,7 @@ def _queue_celery_tests():
     from settings.celery import debug_task
     from authentication.tasks import send_email_reminders, send_trial_ending_reminder
     from education.tasks import reset_inactive_streaks
-    from gamification.models import reset_daily_missions, reset_weekly_missions
+    from gamification.tasks import reset_daily_missions, reset_weekly_missions
 
     tasks_queued = []
     debug_task.delay()

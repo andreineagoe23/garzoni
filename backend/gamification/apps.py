@@ -8,3 +8,4 @@ class GamificationConfig(AppConfig):
 
     def ready(self):
         import gamification.signals  # noqa
+        import gamification.tasks  # noqa: F401 — ensure Celery autodiscover always binds mission tasks
