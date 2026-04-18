@@ -1492,7 +1492,8 @@
       "registerFailed": "Registration failed. Please try again.",
       "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
       "verificationFailedHint": "Security verification could not be completed. Refresh the page and try again, or use Sign in with Google.",
-      "tryGoogleHint": "You can also sign in with Google below."
+      "tryGoogleHint": "You can also sign in with Google below.",
+      "marketingOptIn": "Send me occasional product updates, tips and offers (optional, you can unsubscribe any time)."
     },
     "forgotPassword": {
       "title": "Forgot Password",
