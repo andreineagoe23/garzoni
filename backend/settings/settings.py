@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import socket
 import sys
 import logging
@@ -576,8 +577,32 @@ _celery_result_env = (os.getenv("CELERY_RESULT_BACKEND") or "").strip()
 if _celery_result_env.startswith(("redis://", "rediss://")):
     os.environ.pop("CELERY_RESULT_BACKEND", None)
 
+def _celery_redis_broker_url(url: str | None) -> str | None:
+    """Ensure DB path /0 for redis/rediss brokers.
+
+    Railway's Redis plugin REDIS_URL often omits the path; Kombu then logs host:port//
+    and the handshake can fail (timeout / reset). Celery only reads CELERY_BROKER_URL here.
+    """
+    if not url:
+        return None
+    u = url.strip()
+    if not (u.startswith("redis://") or u.startswith("rediss://")):
+        return u
+    from urllib.parse import urlparse, urlunparse
+
+    try:
+        p = urlparse(u)
+    except ValueError:
+        return u
+    if p.path in ("", "/"):
+        return urlunparse((p.scheme, p.netloc, "/0", p.params, p.query, p.fragment))
+    return u
+
+
 # Use Redis as broker when REDIS_URL or CELERY_BROKER_URL is set (dev and production, e.g. Railway)
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
+CELERY_BROKER_URL = _celery_redis_broker_url(
+    os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
+)
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
 if not DEBUG and not _IS_BUILD_PHASE and CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
@@ -590,11 +615,25 @@ if not DEBUG and not _IS_BUILD_PHASE and not CELERY_BROKER_URL and CELERY_TASK_A
         "[settings] Production with no broker: scheduled tasks (email reminders, trial reminder) will NOT run. "
         "On Railway: add Redis, set REDIS_URL, then add a Celery worker and a Celery beat service."
     )
+CELERY_BROKER_CONNECTION_RETRY = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_BROKER_CONNECTION_MAX_RETRIES = int(os.getenv("CELERY_BROKER_CONNECTION_MAX_RETRIES", "3"))
+# Publisher (web) vs consumer (worker/beat) have different failure budgets:
+#  - web: fast-fail so HTTP handlers (Google OAuth post_save → .delay()) are not wedged
+#  - worker/beat: long retry so a transient Railway Redis restart (≤60s) does not flap
+#    the container into a crash loop that masks real misconfig.
+_is_celery_consumer = any(a in ("worker", "beat") for a in sys.argv) and any(
+    "celery" in a for a in sys.argv
+)
+_default_broker_retries = "100" if _is_celery_consumer else "3"
+CELERY_BROKER_CONNECTION_MAX_RETRIES = int(
+    os.getenv("CELERY_BROKER_CONNECTION_MAX_RETRIES", _default_broker_retries)
+)
 # Fail broker TCP connects quickly so HTTP handlers (e.g. Google OAuth after user.save) are not wedged
 # for minutes when Redis is unreachable or on the wrong network.
 CELERY_BROKER_CONNECTION_TIMEOUT = float(os.getenv("CELERY_BROKER_CONNECTION_TIMEOUT", "5"))
+# Worker-side: if Redis drops mid-task, cancel so the worker can recover cleanly instead
+# of hanging on a dead pub/sub socket.
+CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
 # Railway Redis proxy often resets idle TCP connections (Errno 104). Smaller pool + redis
 # transport limits reduce stale pooled connections. Override via env if needed.
 if CELERY_BROKER_URL and (
@@ -619,6 +658,19 @@ CELERY_TASK_IGNORE_RESULT = True
 # Production: use three processes when a broker is set — web (gunicorn), Celery worker, and Celery beat
 # (django_celery_beat DatabaseScheduler). Without worker, .delay() queues but nothing runs; without beat,
 # scheduled reminders (trial, renewal, digests) do not fire.
+
+# Boot-time diagnostic: surfaces in Railway logs what broker URL was actually loaded and the retry
+# budget, so misrouted REDIS_URL / cross-project refs are obvious on next deploy.
+if CELERY_BROKER_URL:
+    _masked_broker = re.sub(r"://([^:/@]+):([^@]+)@", r"://\1:***@", CELERY_BROKER_URL)
+    print(
+        f"[celery] broker={_masked_broker} "
+        f"role={'consumer' if _is_celery_consumer else 'publisher'} "
+        f"retries={CELERY_BROKER_CONNECTION_MAX_RETRIES} "
+        f"timeout={CELERY_BROKER_CONNECTION_TIMEOUT}s"
+    )
+else:
+    print("[celery] no broker configured — CELERY_TASK_ALWAYS_EAGER auto-enabled")
 
 # CKEditor 5 Configuration
 CKEDITOR_5_CONFIGS = {
