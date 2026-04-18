@@ -57,6 +57,8 @@ from authentication.models import UserProfile
 from authentication.services.profile import invalidate_profile_cache
 from authentication.services.subscriptions import apply_subscription_to_profile
 from authentication.tasks import send_subscription_cancelled_email
+from notifications.enums import CioEventName
+from notifications.service import NotificationService
 from notifications.tasks import (
     send_billing_order_confirmed_task,
     send_billing_payment_failed_task,
@@ -90,6 +92,10 @@ def _safe_enqueue_celery(task_fn, *args, **kwargs) -> None:
             getattr(task_fn, "name", repr(task_fn)),
             exc_info=True,
         )
+
+
+def _stripe_billing_url() -> str:
+    return f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing"
 
 
 def _profile_for_stripe_customer(customer_id) -> UserProfile | None:
@@ -1117,6 +1123,18 @@ class StripeWebhookView(APIView):
                                 order_msg,
                                 f"order_confirmed:{sid}" if sid else None,
                             )
+                            NotificationService().publish_domain_event(
+                                user,
+                                CioEventName.ORDER_CONFIRMED,
+                                {
+                                    "plan_id": str(plan_id or "plus"),
+                                    "checkout_session_id": str(sid) if sid else None,
+                                    "amount_total_minor": int(amount_minor or 0),
+                                    "currency": (
+                                        session.get("currency") or "usd"
+                                    ).upper(),
+                                },
+                            )
 
             elif event["type"] in {
                 "checkout.session.expired",
@@ -1162,6 +1180,51 @@ class StripeWebhookView(APIView):
                                         "currency": session.get("currency"),
                                     },
                                 )
+                        user_for_notify = None
+                        if user_profile:
+                            user_for_notify = user_profile.user
+                        else:
+                            try:
+                                user_for_notify = get_user_model().objects.get(
+                                    pk=user_id
+                                )
+                            except get_user_model().DoesNotExist:
+                                user_for_notify = None
+                        if (
+                            user_for_notify is not None
+                            and (user_for_notify.email or "").strip()
+                        ):
+                            chk_sid = session.get("id") or ""
+                            amount_disp = _format_stripe_money_minor(
+                                session.get("amount_total"), session.get("currency")
+                            )
+                            fail_msg = {
+                                "customer_name": normalize_display_string(
+                                    user_for_notify.first_name
+                                    or user_for_notify.username
+                                    or "there"
+                                ),
+                                "retry_url": _stripe_billing_url(),
+                                "amount": amount_disp,
+                            }
+                            _safe_enqueue_celery(
+                                send_billing_payment_failed_task,
+                                user_for_notify.id,
+                                fail_msg,
+                                (
+                                    f"payment_failed_checkout:{chk_sid}"
+                                    if chk_sid
+                                    else None
+                                ),
+                            )
+                            NotificationService().publish_domain_event(
+                                user_for_notify,
+                                CioEventName.PAYMENT_FAILED,
+                                {
+                                    "source": event["type"],
+                                    "checkout_session_id": chk_sid or None,
+                                },
+                            )
 
             elif event["type"] == "customer.subscription.updated":
                 sub = event["data"]["object"]
@@ -1239,10 +1302,21 @@ class StripeWebhookView(APIView):
                             period_end_iso,
                             prof.user_id,
                         )
+                    if prof:
+                        NotificationService().publish_domain_event(
+                            prof.user,
+                            CioEventName.SUBSCRIPTION_CANCELLED,
+                            {"stripe_subscription_id": sub_id},
+                        )
 
             elif event["type"] == "invoice.payment_succeeded":
                 inv = event["data"]["object"]
-                if inv.get("status") == "paid":
+                # First paid invoice after Checkout already triggers order_confirmed; skip receipt
+                # so users get one transactional email per initial purchase.
+                if (
+                    inv.get("status") == "paid"
+                    and inv.get("billing_reason") != "subscription_create"
+                ):
                     prof = _profile_for_stripe_customer(inv.get("customer"))
                     if prof and (prof.user.email or "").strip():
                         inv_id = str(inv.get("id") or "")
@@ -1256,8 +1330,11 @@ class StripeWebhookView(APIView):
                             ).strftime("%Y-%m-%d")
                         else:
                             date_str = timezone.now().strftime("%Y-%m-%d")
-                        billing = f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing"
+                        billing = _stripe_billing_url()
                         msg = {
+                            "customer_name": normalize_display_string(
+                                prof.user.first_name or prof.user.username or "there"
+                            ),
                             "amount": amount_disp,
                             "date": date_str,
                             "invoice_url": (inv.get("hosted_invoice_url") or "")
@@ -1279,13 +1356,27 @@ class StripeWebhookView(APIView):
                         inv.get("amount_due") or inv.get("total") or 0,
                         inv.get("currency"),
                     )
-                    billing = f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/billing"
-                    msg = {"amount": amount_disp, "retry_url": billing}
+                    billing = _stripe_billing_url()
+                    msg = {
+                        "customer_name": normalize_display_string(
+                            prof.user.first_name or prof.user.username or "there"
+                        ),
+                        "amount": amount_disp,
+                        "retry_url": billing,
+                    }
                     _safe_enqueue_celery(
                         send_billing_payment_failed_task,
                         prof.user_id,
                         msg,
                         f"payment_failed:{inv_id}" if inv_id else None,
+                    )
+                    NotificationService().publish_domain_event(
+                        prof.user,
+                        CioEventName.PAYMENT_FAILED,
+                        {
+                            "source": "invoice.payment_failed",
+                            "invoice_id": inv_id or None,
+                        },
                     )
 
         except stripe.error.SignatureVerificationError as exc:
