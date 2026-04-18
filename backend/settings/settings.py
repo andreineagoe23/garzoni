@@ -599,9 +599,33 @@ def _celery_redis_broker_url(url: str | None) -> str | None:
     return u
 
 
+def _railway_private_redis_broker_url(url: str | None) -> str | None:
+    """Prefer private Redis when Railway exposes REDISHOST (same project / private network).
+
+    ${{Redis.REDIS_URL}} is often the public TCP proxy (*.proxy.rlwy.net). Celery/beat/worker
+    frequently hit "Timeout reading from socket" there. If REDISHOST, REDISPASSWORD, etc. are
+    set (e.g. variable refs ${{Redis.REDISHOST}} …), build redis://…@redis.railway.internal:6379/0.
+    """
+    if not url:
+        return None
+    u = url.strip()
+    redishost = (os.getenv("REDISHOST") or "").strip()
+    if not redishost or ".railway.internal" not in redishost:
+        return u
+    pwd = (os.getenv("REDISPASSWORD") or os.getenv("REDIS_PASSWORD") or "").strip()
+    if not pwd:
+        return u
+    from urllib.parse import quote
+
+    user = (os.getenv("REDISUSER") or "default").strip()
+    port = (os.getenv("REDISPORT") or "6379").strip()
+    return f"redis://{quote(user, safe='')}:{quote(pwd, safe='')}@{redishost}:{port}/0"
+
+
 # Use Redis as broker when REDIS_URL or CELERY_BROKER_URL is set (dev and production, e.g. Railway)
+_raw_celery_broker = os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
 CELERY_BROKER_URL = _celery_redis_broker_url(
-    os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
+    _railway_private_redis_broker_url(_raw_celery_broker)
 )
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
 # Forbid eager only when a broker is configured (otherwise you'd have workers but tasks wouldn't run there)
@@ -640,11 +664,16 @@ if CELERY_BROKER_URL and (
     CELERY_BROKER_URL.startswith("redis://") or CELERY_BROKER_URL.startswith("rediss://")
 ):
     CELERY_BROKER_POOL_LIMIT = int(os.getenv("CELERY_BROKER_POOL_LIMIT", "1"))
+    # Public TCP proxy can be slow during AUTH; allow longer read/connect when still on proxy.
+    _proxy = "proxy.rlwy.net" in CELERY_BROKER_URL
+    _default_sock = "30" if _proxy else "5"
     CELERY_BROKER_TRANSPORT_OPTIONS = {
         "max_connections": int(os.getenv("CELERY_REDIS_MAX_CONNECTIONS", "2")),
         "retry_on_timeout": True,
-        "socket_connect_timeout": float(os.getenv("CELERY_REDIS_SOCKET_CONNECT_TIMEOUT", "5")),
-        "socket_timeout": float(os.getenv("CELERY_REDIS_SOCKET_TIMEOUT", "5")),
+        "socket_connect_timeout": float(
+            os.getenv("CELERY_REDIS_SOCKET_CONNECT_TIMEOUT", _default_sock)
+        ),
+        "socket_timeout": float(os.getenv("CELERY_REDIS_SOCKET_TIMEOUT", _default_sock)),
     }
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]

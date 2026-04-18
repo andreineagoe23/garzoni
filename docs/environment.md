@@ -100,7 +100,7 @@ Set these on the **backend** service (the names below are what Django reads).
 
 | Variable                                                                            |
 | ----------------------------------------------------------------------------------- |
-| `REDIS_URL` and/or `CELERY_BROKER_URL` — use the **same private** Redis URL on **garzoni + worker + beat** (Railway: `...@redis.railway.internal:6379/0`, not the public `*.proxy.rlwy.net` TCP URL). |
+| `REDIS_URL` / `CELERY_BROKER_URL` — may stay as `${{Redis.REDIS_URL}}` (often a public `*.proxy.rlwy.net` URL). **Also set** `REDISHOST`, `REDISPORT`, `REDISUSER`, `REDISPASSWORD` on **garzoni + worker + beat** via references `${{Redis.REDISHOST}}`, `${{Redis.REDISPORT}}`, `${{Redis.REDISUSER}}`, `${{Redis.REDISPASSWORD}}` so Django builds the **private** broker (`redis.railway.internal:6379`) for Celery (public proxy alone often times out in-cluster). |
 | Do **not** set `CELERY_RESULT_BACKEND` to a `redis://` URL; the app forces **Postgres** (`django-db` + `django-celery-results`) so web workers avoid Redis pub/sub on task publish. |
 | `CELERY_BROKER_CONNECTION_TIMEOUT`, `CELERY_REDIS_SOCKET_CONNECT_TIMEOUT`, `CELERY_REDIS_SOCKET_TIMEOUT` (optional; default **5s** so bad Redis fails fast) |
 | `SERVICE_ROLE` (set to `worker` / `beat` on Celery services, or rely on Railway's `RAILWAY_SERVICE_NAME="worker"` / `"beat"`; entrypoint auto-replaces the default gunicorn CMD with the right Celery command and skips web-only setup) |
