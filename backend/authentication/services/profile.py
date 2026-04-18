@@ -115,7 +115,7 @@ def build_activity_calendar_by_type(user, first_day, last_day):
 
 
 def build_activity_heatmap(user, days: int = 60) -> list:
-    today = timezone.now().date()
+    today = timezone.localdate()
     start = today - timezone.timedelta(days=days - 1)
 
     lesson_rows = (
@@ -195,7 +195,7 @@ def build_activity_heatmap(user, days: int = 60) -> list:
 
 
 def build_profile_payload(user, profile: UserProfile):
-    today = timezone.now().date()
+    today = timezone.localdate()
     first_day = today.replace(day=1)
     last_day = (first_day + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
 
@@ -346,7 +346,7 @@ def build_profile_payload(user, profile: UserProfile):
 
 def invalidate_profile_cache(user, target_date=None):
     if target_date is None:
-        target_date = timezone.now().date()
+        target_date = timezone.localdate()
     first_day = target_date.replace(day=1)
     for suffix in ("", ":v3", ":v4"):
         cache.delete(f"user_profile_summary{suffix}:{user.id}:{first_day.isoformat()}")

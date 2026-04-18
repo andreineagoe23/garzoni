@@ -33,12 +33,12 @@ def reset_inactive_streaks():
     from education.models import UserProgress
 
     users = User.objects.annotate(
-        last_active=Max("userprogress__last_course_activity_date")
+        last_active=Max("user_progress__last_course_activity_date")
     ).select_related("profile")
 
+    today = timezone.localdate()
     for user in users:
         if user.last_active:
-            today = timezone.now().date()
             days_inactive = (today - user.last_active).days
             if days_inactive > 1:
                 profile = getattr(user, "profile", None)

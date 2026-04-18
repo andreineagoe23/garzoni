@@ -87,6 +87,24 @@ Uses the **CDP / React Native SDK** (different from Django Track REST).
 | `EXPO_PUBLIC_CIO_SITE_ID`     | Optional; enables in-app when set               |
 | `EXPO_PUBLIC_CIO_REGION`      | `eu` or `us`                                    |
 
+## Deliverability (inbox vs spam) and CIO template quality
+
+Transactional mail is sent by **Customer.io** when `CIO_TRANSACTIONAL_ENABLED` is on and slugs are mapped in `CIO_TRANSACTIONAL_TRIGGERS_JSON`. HTTP 200 from the API does not guarantee inbox placement.
+
+**Do in Customer.io + DNS (not in this repo)**
+
+1. **Sending domain**: In CIO → Settings → Sending domains, verify **garzoni.app** (or the domain you use in From). Complete **SPF** and **DKIM**; add **DMARC** for the domain (start with `p=none` for monitoring, then tighten once mail is stable).
+2. **Alignment**: The domain in the visible From address should match what CIO signs; misalignment is a common spam trigger.
+3. **Reputation**: New domains often land in spam until volume and engagement improve. Use real test recipients, mark “Not spam” where appropriate, and avoid sudden bulk sends.
+4. **Suppression**: Remove test addresses from CIO suppression if you need to receive copies.
+
+**Template body (welcome, order confirmed, etc.)**
+
+- **Mojibake** (e.g. `â€”` instead of a dash) means UTF-8 text was pasted or stored incorrectly. In the CIO editor, replace “smart” punctuation with plain ASCII (`-`, `'`) or re-type affected phrases; preview the message before publishing.
+- **Footer year**: Use Liquid with data the backend already sends (e.g. `year` in welcome `message_data`) or update the static year when publishing templates.
+
+**Django SMTP HTML templates** (fallback when CIO is off) live under `core/templates/emails/` and already set `<meta charset="utf-8" />` in `_base.html`.
+
 ### Quick mapping from what you described
 
 - **App API key** (transactional, long hex) → **`CIO_APP_API_KEY`** on **Railway** only.
