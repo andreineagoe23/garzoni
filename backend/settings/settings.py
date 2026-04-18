@@ -569,6 +569,13 @@ ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY", "")
 FREE_CURRENCY_API_KEY = os.getenv("FREE_CURRENCY_API_KEY", "")
 EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
 
+# Celery reads CELERY_* from the process environment after Django loads; a Redis URL here
+# overrides django-db and enables redis result pub/sub (bad for web workers). We only use
+# Postgres for results via django-celery-results.
+_celery_result_env = (os.getenv("CELERY_RESULT_BACKEND") or "").strip()
+if _celery_result_env.startswith(("redis://", "rediss://")):
+    os.environ.pop("CELERY_RESULT_BACKEND", None)
+
 # Use Redis as broker when REDIS_URL or CELERY_BROKER_URL is set (dev and production, e.g. Railway)
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", CELERY_BROKER_URL is None)
