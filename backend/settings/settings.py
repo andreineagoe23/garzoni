@@ -585,6 +585,9 @@ if not DEBUG and not _IS_BUILD_PHASE and not CELERY_BROKER_URL and CELERY_TASK_A
     )
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BROKER_CONNECTION_MAX_RETRIES = int(os.getenv("CELERY_BROKER_CONNECTION_MAX_RETRIES", "3"))
+# Fail broker TCP connects quickly so HTTP handlers (e.g. Google OAuth after user.save) are not wedged
+# for minutes when Redis is unreachable or on the wrong network.
+CELERY_BROKER_CONNECTION_TIMEOUT = float(os.getenv("CELERY_BROKER_CONNECTION_TIMEOUT", "5"))
 # Railway Redis proxy often resets idle TCP connections (Errno 104). Smaller pool + redis
 # transport limits reduce stale pooled connections. Override via env if needed.
 if CELERY_BROKER_URL and (
@@ -594,12 +597,18 @@ if CELERY_BROKER_URL and (
     CELERY_BROKER_TRANSPORT_OPTIONS = {
         "max_connections": int(os.getenv("CELERY_REDIS_MAX_CONNECTIONS", "2")),
         "retry_on_timeout": True,
+        "socket_connect_timeout": float(os.getenv("CELERY_REDIS_SOCKET_CONNECT_TIMEOUT", "5")),
+        "socket_timeout": float(os.getenv("CELERY_REDIS_SOCKET_TIMEOUT", "5")),
     }
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+# Avoid Redis pub/sub style result handling on publish; this project stores outcomes in Postgres
+# (django-celery-results) only when needed. Prevents web workers hanging on Redis during .delay()
+# (e.g. welcome email queued from post_save on Google sign-up).
+CELERY_TASK_IGNORE_RESULT = True
 # Production: use three processes when a broker is set — web (gunicorn), Celery worker, and Celery beat
 # (django_celery_beat DatabaseScheduler). Without worker, .delay() queues but nothing runs; without beat,
 # scheduled reminders (trial, renewal, digests) do not fire.
