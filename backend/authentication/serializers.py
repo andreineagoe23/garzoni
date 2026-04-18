@@ -3,12 +3,19 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 from authentication.user_display import normalize_display_string
-from authentication.models import UserProfile, Referral, FriendRequest, UserEmailPreference
+from authentication.models import (
+    UserProfile,
+    Referral,
+    FriendRequest,
+    UserEmailPreference,
+)
 
 
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
-    referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    referral_code = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
     # Explicit opt-in for marketing emails. Defaults to False (UK PECR reg. 22 +
     # EU ePrivacy): pre-ticked checkboxes are invalid consent. Service /
     # transactional defaults (reminders, streak, digest, billing, push) are set
@@ -62,7 +69,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         user_profile.save()
 
         if referral_code:
-            referrer_profile = UserProfile.objects.get(referral_code__iexact=referral_code)
+            referrer_profile = UserProfile.objects.get(
+                referral_code__iexact=referral_code
+            )
             Referral.objects.create(
                 referrer=referrer_profile.user,
                 referred_user=user,
@@ -132,7 +141,15 @@ ALLOWED_TIMEFRAMES = {
     "3-5 years",
     "5+ years",
 }
-ALLOWED_RISK_COMFORT = {"", "low", "medium", "high", "conservative", "moderate", "aggressive"}
+ALLOWED_RISK_COMFORT = {
+    "",
+    "low",
+    "medium",
+    "high",
+    "conservative",
+    "moderate",
+    "aggressive",
+}
 ALLOWED_INCOME_RANGE = {
     "",
     "under_30k",
@@ -143,7 +160,14 @@ ALLOWED_INCOME_RANGE = {
     "prefer_not",
 }
 ALLOWED_SAVINGS_RATE = {"", "low", "medium", "high", "0-5", "5-10", "10-20", "20+"}
-ALLOWED_INVESTING_EXPERIENCE = {"", "new", "beginner", "intermediate", "advanced", "experienced"}
+ALLOWED_INVESTING_EXPERIENCE = {
+    "",
+    "new",
+    "beginner",
+    "intermediate",
+    "advanced",
+    "experienced",
+}
 
 
 class FinancialProfileSerializer(serializers.ModelSerializer):
@@ -170,7 +194,11 @@ class FinancialProfileSerializer(serializers.ModelSerializer):
                 x.lower() for x in ALLOWED_GOAL_TYPES
             }:
                 pass  # allow unknown for flexibility; optionally restrict: raise ValidationError
-        return [str(x).strip().lower() for x in value if isinstance(x, str) and str(x).strip()][:20]
+        return [
+            str(x).strip().lower()
+            for x in value
+            if isinstance(x, str) and str(x).strip()
+        ][:20]
 
     def validate_timeframe(self, value):
         if value is None or value == "":

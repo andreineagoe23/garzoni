@@ -19,7 +19,10 @@ from django.http import HttpResponse
 
 from authentication.models import UserEmailPreference, UserProfile
 from authentication.throttles import PasswordResetRateThrottle
-from notifications.tasks import send_password_changed_email_task, send_password_reset_email_task
+from notifications.tasks import (
+    send_password_changed_email_task,
+    send_password_reset_email_task,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +43,9 @@ def change_password(request):
         return Response({"error": "New passwords do not match."}, status=400)
 
     if len(new_password) < 8:
-        return Response({"error": "Password must be at least 8 characters."}, status=400)
+        return Response(
+            {"error": "Password must be at least 8 characters."}, status=400
+        )
 
     user.set_password(new_password)
     user.save()
@@ -92,7 +97,9 @@ class PasswordResetRequestView(APIView):
         """Process password reset requests by validating the email and sending a reset link."""
         email = request.data.get("email")
         if not email:
-            return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         generic_response = Response(
             {"message": "Password reset link sent."}, status=status.HTTP_200_OK
@@ -199,7 +206,9 @@ class PasswordResetConfirmView(APIView):
         user.set_password(new_password)
         user.save()
 
-        return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Password reset successful."}, status=status.HTTP_200_OK
+        )
 
 
 class EmailUnsubscribeView(APIView):
@@ -245,7 +254,14 @@ class EmailUnsubscribeView(APIView):
         prefs.reminders = False
         prefs.reminder_frequency = "none"
         prefs.weekly_digest = False
-        prefs.save(update_fields=["reminders", "reminder_frequency", "weekly_digest", "updated_at"])
+        prefs.save(
+            update_fields=[
+                "reminders",
+                "reminder_frequency",
+                "weekly_digest",
+                "updated_at",
+            ]
+        )
 
         frontend = getattr(settings, "FRONTEND_URL", "https://garzoni.app").rstrip("/")
         html = f"""
