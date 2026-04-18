@@ -8,6 +8,13 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.settings")
 app = Celery("settings")
 
 app.config_from_object("django.conf:settings", namespace="CELERY")
+# Railway (and Celery) can leave CELERY_BROKER_URL in os.environ pointing at the public proxy;
+# settings.py may rewrite to redis.railway.internal. Force the resolved broker on the app.
+from django.conf import settings as django_settings
+
+if getattr(django_settings, "CELERY_BROKER_URL", None):
+    app.conf.broker_url = django_settings.CELERY_BROKER_URL
+
 app.conf.timezone = os.getenv(
     "CELERY_TIMEZONE",
     os.getenv("TIME_ZONE", "Europe/London"),
