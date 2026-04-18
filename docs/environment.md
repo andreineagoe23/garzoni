@@ -100,7 +100,8 @@ Set these on the **backend** service (the names below are what Django reads).
 
 | Variable                                                                            |
 | ----------------------------------------------------------------------------------- |
-| `REDIS_URL` / `CELERY_BROKER_URL` (same private URL on **web + worker + beat**; misconfigured Redis blocks OAuth/register when `send_welcome_email.delay()` runs) |
+| `REDIS_URL` and/or `CELERY_BROKER_URL` — use the **same private** Redis URL on **garzoni + worker + beat** (Railway: `...@redis.railway.internal:6379/0`, not the public `*.proxy.rlwy.net` TCP URL). |
+| Do **not** set `CELERY_RESULT_BACKEND` to a `redis://` URL; the app forces **Postgres** (`django-db` + `django-celery-results`) so web workers avoid Redis pub/sub on task publish. |
 | `CELERY_BROKER_CONNECTION_TIMEOUT`, `CELERY_REDIS_SOCKET_CONNECT_TIMEOUT`, `CELERY_REDIS_SOCKET_TIMEOUT` (optional; default **5s** so bad Redis fails fast) |
 | `SERVICE_ROLE` (set to `worker` / `beat` on Celery services, or rely on Railway's `RAILWAY_SERVICE_NAME="worker"` / `"beat"`; entrypoint auto-replaces the default gunicorn CMD with the right Celery command and skips web-only setup) |
 | `OPENAI_API_KEY`                                                                    |
