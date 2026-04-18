@@ -50,6 +50,7 @@ app.conf.beat_schedule = {
         "task": "authentication.tasks.send_renewal_reminder",
         "schedule": crontab(hour=10, minute=0),
     },
+    # Implemented in gamification/tasks.py; names kept as gamification.models.* for Beat/DB rows.
     "reset-daily-missions": {
         "task": "gamification.models.reset_daily_missions",
         "schedule": crontab(hour=0, minute=0),

@@ -42,6 +42,11 @@ def send_email_reminders(self):
     """
     Send email reminders to users based on their preferences.
     When CIO_REMINDERS_VIA_JOURNEYS is enabled, emit track events only; Customer.io journeys deliver mail.
+
+    Queryset note: ``weekly_users`` additionally requires ``email_preferences__weekly_digest=True``
+    so weekly nudges only go to people who opted into the digest. ``monthly_users`` intentionally
+    does not mirror a ``monthly_digest`` flag — monthly cadence is driven by ``reminder_frequency``
+    and ``reminders`` alone.
     """
     if not _email_configured():
         logger.warning("Email reminders skipped: email not configured")
@@ -360,6 +365,13 @@ def send_streak_broken_email(self, user_id: int, streak_count: int):
     bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
 )
 def send_renewal_reminder(self):
+    """
+    Email or journey-track users whose Stripe subscription renews in ~3 days.
+
+    Scale note: one ``stripe.Subscription.retrieve`` per candidate profile. Fine at modest
+    subscriber counts; at large scale prefer caching period_end on the profile via webhooks
+    or Stripe subscription.updated, then filter in SQL without per-row API calls.
+    """
     if not _email_configured():
         return "Skipped (email not configured)"
     if not getattr(settings, "STRIPE_SECRET_KEY", ""):

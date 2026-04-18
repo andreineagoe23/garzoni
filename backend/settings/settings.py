@@ -130,6 +130,8 @@ if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
 DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
 
 # Gamification retention layer (weekly recap API, streak-rescue Celery job, richer profile extras).
+# Production (Railway): set GAMIFICATION_RETENTION_V2=true if you want spawn_streak_rescue_missions
+# and related profile fields; when false those paths no-op.
 GAMIFICATION_RETENTION_V2 = env_bool("GAMIFICATION_RETENTION_V2", False)
 GAMIFICATION_DAILY_GOAL_TARGET_XP = int(
     os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50")

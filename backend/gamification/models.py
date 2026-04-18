@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from celery import shared_task
 from django.utils import timezone
 from core.utils import normalize_text_encoding
 
@@ -338,69 +337,6 @@ class MissionCompletion(models.Model):
         self.save()
 
 
-@shared_task
-def reset_daily_missions():
-    """
-    Rotate daily mission cycles: archive prior cycle rows and open a fresh row per user/mission.
-    Historical rows remain queryable (no destructive wipe).
-    """
-    from gamification.services.mission_cycles import daily_cycle_id
-
-    today_id = daily_cycle_id()
-
-    daily_rows = (
-        MissionCompletion.objects.filter(mission__mission_type="daily")
-        .exclude(cycle_id=today_id)
-        .exclude(cycle_id__startswith="x")
-    )
-    for mc in daily_rows.iterator(chunk_size=500):
-        archive_id = f"x{mc.pk}"[:40]
-        MissionCompletion.objects.filter(pk=mc.pk).update(cycle_id=archive_id)
-        MissionCompletion.objects.get_or_create(
-            user_id=mc.user_id,
-            mission_id=mc.mission_id,
-            cycle_id=today_id,
-            defaults={
-                "progress": 0,
-                "status": "not_started",
-                "completed_at": None,
-                "completion_idempotency_key": None,
-                "xp_awarded": 0,
-            },
-        )
-
-
-@shared_task
-def reset_weekly_missions():
-    """
-    Rotate weekly mission cycles similarly to daily rotation.
-    """
-    from gamification.services.mission_cycles import weekly_cycle_id
-
-    wk = weekly_cycle_id()
-
-    weekly_rows = (
-        MissionCompletion.objects.filter(mission__mission_type="weekly")
-        .exclude(cycle_id=wk)
-        .exclude(cycle_id__startswith="x")
-    )
-    for mc in weekly_rows.iterator(chunk_size=500):
-        archive_id = f"x{mc.pk}"[:40]
-        MissionCompletion.objects.filter(pk=mc.pk).update(cycle_id=archive_id)
-        MissionCompletion.objects.get_or_create(
-            user_id=mc.user_id,
-            mission_id=mc.mission_id,
-            cycle_id=wk,
-            defaults={
-                "progress": 0,
-                "status": "not_started",
-                "completed_at": None,
-                "completion_idempotency_key": None,
-                "xp_awarded": 0,
-            },
-        )
-
-
 class RewardLedgerEntry(models.Model):
     """
     Idempotent record of a reward grant (points/coins) so retries and split code paths
@@ -474,3 +410,8 @@ class MissionPerformance(models.Model):
 
     class Meta:
         db_table = "core_missionperformance"
+
+
+# Celery implementations live in gamification.tasks; names are registered as
+# gamification.models.reset_* — re-export so imports match Beat / introspection.
+from gamification.tasks import reset_daily_missions, reset_weekly_missions  # noqa: E402
