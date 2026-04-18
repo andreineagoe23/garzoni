@@ -1,4 +1,5 @@
 import logging
+import threading
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -46,17 +47,20 @@ def change_password(request):
     update_session_auth_hash(request, user)
 
     def _enqueue_changed_notice():
-        try:
-            send_password_changed_email_task.delay(
-                user.pk,
-                idempotency_key=f"pwd_changed:{user.pk}:{timezone.now().date().isoformat()}",
-            )
-        except Exception:
-            logger.warning(
-                "send_password_changed_email_task dispatch failed for user_id=%s",
-                user.pk,
-                exc_info=True,
-            )
+        uid = user.pk
+        idem = f"pwd_changed:{uid}:{timezone.now().date().isoformat()}"
+
+        def _dispatch():
+            try:
+                send_password_changed_email_task.delay(uid, idempotency_key=idem)
+            except Exception:
+                logger.warning(
+                    "send_password_changed_email_task dispatch failed for user_id=%s",
+                    uid,
+                    exc_info=True,
+                )
+
+        threading.Thread(target=_dispatch, daemon=True).start()
 
     transaction.on_commit(_enqueue_changed_notice)
 
@@ -121,18 +125,23 @@ class PasswordResetRequestView(APIView):
             )
             return generic_response
 
+        uid = user.pk
+
         def _enqueue():
-            try:
-                send_password_reset_email_task.delay(
-                    user.pk, reset_link, idempotency_key=None
-                )
-            except Exception:
-                logger.warning(
-                    "send_password_reset_email_task dispatch failed for user_id=%s — "
-                    "broker may be unavailable (Redis, Celery).",
-                    user.pk,
-                    exc_info=True,
-                )
+            def _dispatch():
+                try:
+                    send_password_reset_email_task.delay(
+                        uid, reset_link, idempotency_key=None
+                    )
+                except Exception:
+                    logger.warning(
+                        "send_password_reset_email_task dispatch failed for user_id=%s — "
+                        "broker may be unavailable (Redis, Celery).",
+                        uid,
+                        exc_info=True,
+                    )
+
+            threading.Thread(target=_dispatch, daemon=True).start()
 
         transaction.on_commit(_enqueue)
 

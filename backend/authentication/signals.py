@@ -1,5 +1,6 @@
 import logging
 import sys
+import threading
 import uuid
 
 from django.conf import settings
@@ -63,17 +64,25 @@ def create_user_profile(sender, instance, created, **kwargs):
             },
         )
 
-        # Dispatch welcome email after DB commit (Celery). If the broker is unavailable, log only.
+        # Dispatch welcome email after DB commit (Celery). Run publish in a daemon thread so a
+        # slow/unreachable Redis broker cannot block the HTTP worker (Google OAuth callback, etc.);
+        # Gunicorn would otherwise abort the worker with SystemExit after timeout — not catchable
+        # as Exception and visible in Sentry as an unhandled crash.
+        user_id = instance.pk
+
         def _enqueue_welcome():
-            try:
-                send_welcome_email.delay(instance.id)
-            except Exception:
-                logger.warning(
-                    "send_welcome_email task dispatch failed for user_id=%s — "
-                    "broker may be unavailable (Redis, Celery).",
-                    instance.id,
-                    exc_info=True,
-                )
+            def _dispatch():
+                try:
+                    send_welcome_email.delay(user_id)
+                except Exception:
+                    logger.warning(
+                        "send_welcome_email task dispatch failed for user_id=%s — "
+                        "broker may be unavailable (Redis, Celery).",
+                        user_id,
+                        exc_info=True,
+                    )
+
+            threading.Thread(target=_dispatch, daemon=True).start()
 
         transaction.on_commit(_enqueue_welcome)
 
@@ -90,15 +99,22 @@ def on_password_reset_token_created(sender, instance, reset_password_token, **kw
     reset_link = f"{base}/password-reset?token={reset_password_token.key}"
     idempotency_key = f"pwd_reset:{user.pk}:{uuid.uuid4().hex[:12]}"
 
+    user_pk = user.pk
+
     def _enqueue():
-        try:
-            send_password_reset_email_task.delay(user.pk, reset_link, idempotency_key=idempotency_key)
-        except Exception:
-            logger.warning(
-                "send_password_reset_email_task dispatch failed for user_id=%s — "
-                "broker may be unavailable (Redis, Celery).",
-                user.pk,
-                exc_info=True,
-            )
+        def _dispatch():
+            try:
+                send_password_reset_email_task.delay(
+                    user_pk, reset_link, idempotency_key=idempotency_key
+                )
+            except Exception:
+                logger.warning(
+                    "send_password_reset_email_task dispatch failed for user_id=%s — "
+                    "broker may be unavailable (Redis, Celery).",
+                    user_pk,
+                    exc_info=True,
+                )
+
+        threading.Thread(target=_dispatch, daemon=True).start()
 
     transaction.on_commit(_enqueue)
