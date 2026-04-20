@@ -31,9 +31,7 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        { opacity: dimmed ? 0.72 : pressed ? 0.88 : 1 },
-      ]}
+      style={({ pressed }) => [{ opacity: dimmed ? 0.72 : pressed ? 0.88 : 1 }]}
     >
       <GlassCard padding="none" style={styles.card}>
         {/* Left accent bar */}

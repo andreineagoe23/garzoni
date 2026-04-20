@@ -28,9 +28,7 @@ export default function PaymentSuccessScreen() {
     }
     if (sessionId) {
       router.replace(
-        href(
-          `/personalized-path?session_id=${encodeURIComponent(sessionId)}`,
-        ),
+        href(`/personalized-path?session_id=${encodeURIComponent(sessionId)}`),
       );
     } else {
       router.replace(href("/personalized-path"));

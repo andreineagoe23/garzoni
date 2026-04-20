@@ -132,7 +132,9 @@ export default function PasswordResetConfirmScreen() {
         />
         <View style={[styles.container, styles.centered]}>
           <Text style={styles.icon}>✅</Text>
-          <Text style={styles.title}>{t("auth.resetPassword.mobileSuccessTitle")}</Text>
+          <Text style={styles.title}>
+            {t("auth.resetPassword.mobileSuccessTitle")}
+          </Text>
           <Text style={styles.subtitle}>
             {t("auth.resetPassword.mobileSuccessBody")}
           </Text>
@@ -161,7 +163,9 @@ export default function PasswordResetConfirmScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>{t("auth.resetPassword.mobileSetTitle")}</Text>
+          <Text style={styles.title}>
+            {t("auth.resetPassword.mobileSetTitle")}
+          </Text>
           <Text style={styles.subtitle}>
             {t("auth.resetPassword.mobileSetSubtitle")}
           </Text>

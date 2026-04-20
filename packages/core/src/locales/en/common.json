@@ -993,7 +993,22 @@
     "toast": {
       "completed": "Completed {{name}} (+{{xp}} XP)",
       "synced": "Synced: {{name}} completed!",
-      "swapSuccess": "Mission swapped successfully!"
+      "swapSuccess": "Mission swapped successfully!",
+      "savingsAdded": "Savings updated",
+      "factRead": "Fact marked read"
+    },
+    "tab": {
+      "dailyWithCount": "Daily ({{done}}/{{total}})",
+      "weeklyWithCount": "Weekly ({{done}}/{{total}})"
+    },
+    "swap": {
+      "aria": "Swap mission: {{name}}",
+      "label": "Swap mission",
+      "confirmTitle": "Swap this mission?",
+      "confirmBody": "You get one swap per day. This can't be undone.",
+      "confirm": "Swap",
+      "cancel": "Cancel",
+      "offlineBlocked": "You're offline — reconnect to swap missions."
     },
     "missionFallback": "Mission",
     "purpose": {
@@ -1023,10 +1038,6 @@
     "complete": {
       "title": "Mission complete",
       "subtitle": "Great work! Keep the momentum to unlock streak and leaderboard boosts."
-    },
-    "swap": {
-      "aria": "Swap mission: {{name}}",
-      "label": "Swap mission"
     },
     "header": {
       "title": "Daily Missions",

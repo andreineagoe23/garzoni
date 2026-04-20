@@ -141,7 +141,7 @@ function Missions() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
   }, [refetchMissions, t]);
 
-  const handleMissionSwap = useCallback(
+  const performSwap = useCallback(
     async (missionId) => {
       try {
         const response = await apiClient.post("/missions/swap/", {
@@ -155,18 +155,14 @@ function Missions() {
         await refetchMissions();
         void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       } catch (error) {
-        // Extract error message from response
         const errorMessage =
           error.response?.data?.error ||
           error.response?.data?.message ||
           error.message ||
           t("missions.errors.swapFailed");
 
-        toast.error(errorMessage, {
-          duration: 4000,
-        });
+        toast.error(errorMessage, { duration: 4000 });
 
-        // If user has already swapped today, disable the swap button
         if (
           error.response?.status === 400 &&
           errorMessage.includes("only swap one mission per day")
@@ -176,6 +172,62 @@ function Missions() {
       }
     },
     [refetchMissions, t]
+  );
+
+  const handleMissionSwap = useCallback(
+    (missionId) => {
+      if (isOffline) {
+        toast.error(t("missions.swap.offlineBlocked"));
+        return;
+      }
+      const confirmed = window.confirm(
+        `${t("missions.swap.confirmTitle")}\n\n${t("missions.swap.confirmBody")}`
+      );
+      if (!confirmed) return;
+      void performSwap(missionId);
+    },
+    [isOffline, performSwap, t]
+  );
+
+  const bumpMissionProgress = useCallback(
+    (goalTypes: string[], completeFully = false) => {
+      queryClient.setQueryData(
+        queryKeys.missions(),
+        (
+          prev:
+            | {
+                data?: {
+                  daily_missions?: Mission[];
+                  weekly_missions?: Mission[];
+                };
+              }
+            | undefined
+        ) => {
+          if (!prev?.data) return prev;
+          const bump = (list?: Mission[]) =>
+            (list ?? []).map((m) => {
+              if (m.status === "completed") return m;
+              if (!m.goal_type || !goalTypes.includes(m.goal_type)) return m;
+              const current = Number(m.progress ?? 0);
+              const next = completeFully ? 100 : Math.min(100, current + 25);
+              return {
+                ...m,
+                progress: next,
+                status: next >= 100 ? "completed" : m.status,
+              };
+            });
+          return {
+            ...prev,
+            data: {
+              ...prev.data,
+              daily_missions: bump(prev.data.daily_missions),
+              weekly_missions: bump(prev.data.weekly_missions),
+            },
+          };
+        }
+      );
+    },
+    []
   );
 
   useEffect(() => {
@@ -279,11 +331,14 @@ function Missions() {
       await apiClient.post("/finance-fact/", {
         fact_id: currentFact.id,
       });
+      bumpMissionProgress(["read_fact"], true);
+      toast.success(t("missions.toast.factRead"));
       await loadNewFact();
       await refetchMissions();
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     } catch (error) {
       setErrors((prev) => ({ ...prev, fact: t("missions.errors.markFact") }));
+      toast.error(t("missions.errors.markFact"));
     }
   };
 
@@ -297,6 +352,8 @@ function Missions() {
     try {
       await apiClient.post("/savings-account/", { amount });
       setSavingsAmount("");
+      bumpMissionProgress(["add_savings"]);
+      toast.success(t("missions.toast.savingsAdded"));
       await fetchSavingsBalance();
       await refetchMissions();
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
@@ -305,6 +362,7 @@ function Missions() {
         ...prev,
         savings: t("missions.errors.addSavings"),
       }));
+      toast.error(t("missions.errors.addSavings"));
     }
   };
 
@@ -377,6 +435,12 @@ function Missions() {
   const allDailyCompleted = dailyMissions.length > 0 && missionsRemaining === 0;
   const noMissionsAvailable =
     dailyMissions.length === 0 && weeklyMissions.length === 0;
+  const dailyCompletedCount = dailyMissions.filter(
+    (m) => m.status === "completed"
+  ).length;
+  const weeklyCompletedCount = weeklyMissions.filter(
+    (m) => m.status === "completed"
+  ).length;
 
   const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
@@ -522,24 +586,32 @@ function Missions() {
             <button
               type="button"
               onClick={() => setMissionScope("daily")}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              disabled={dailyMissions.length === 0}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "daily"
                   ? "border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
                   : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
               }`}
             >
-              {t("missions.badge.daily")}
+              {t("missions.tab.dailyWithCount", {
+                done: dailyCompletedCount,
+                total: dailyMissions.length,
+              })}
             </button>
             <button
               type="button"
               onClick={() => setMissionScope("weekly")}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              disabled={weeklyMissions.length === 0}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "weekly"
                   ? "border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
                   : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
               }`}
             >
-              {t("missions.badge.weekly")}
+              {t("missions.tab.weeklyWithCount", {
+                done: weeklyCompletedCount,
+                total: weeklyMissions.length,
+              })}
             </button>
           </div>
         )}
@@ -550,8 +622,11 @@ function Missions() {
           </div>
         ) : noMissionsAvailable ? (
           <GlassCard padding="md" className="bg-[color:var(--card-bg)]/70">
-            <p className="text-sm text-content-muted">
-              No daily or weekly missions are available yet. Pull to refresh.
+            <p className="text-base font-semibold text-[color:var(--accent)]">
+              {t("missions.empty.title")}
+            </p>
+            <p className="mt-1 text-sm text-content-muted">
+              {t("missions.empty.body")}
             </p>
           </GlassCard>
         ) : (
@@ -584,7 +659,7 @@ function Missions() {
                 ) : (
                   <GlassCard padding="md" className="md:col-span-2">
                     <p className="text-sm text-content-muted">
-                      No daily missions are available right now.
+                      {t("missions.empty.body")}
                     </p>
                   </GlassCard>
                 )}
@@ -622,7 +697,7 @@ function Missions() {
                 ) : (
                   <GlassCard padding="md">
                     <p className="text-sm text-content-muted">
-                      No weekly missions are available right now.
+                      {t("missions.weekly.noneAvailable")}
                     </p>
                   </GlassCard>
                 )}

@@ -109,17 +109,17 @@ Per [Customer.io docs](https://docs.customer.io/messaging/using-liquid#trigger-p
 
 Aliases Garzoni adds automatically so templates match common naming styles:
 
-| You send (backend) | Also available as `trigger.*` |
-| ------------------ | ------------------------------ |
-| `customer_name`    | `first_name`, `display_name`  |
+| You send (backend) | Also available as `trigger.*`                       |
+| ------------------ | --------------------------------------------------- |
+| `customer_name`    | `first_name`, `display_name`                        |
 | `order_id`         | `checkout_session_id`, `stripe_checkout_session_id` |
-| `period_end`       | `next_bill`                    |
-| `plan_name`        | `plan`                         |
-| `amount`           | `total`                        |
+| `period_end`       | `next_bill`                                         |
+| `plan_name`        | `plan`                                              |
+| `amount`           | `total`                                             |
 
-| Template (slug)   | Primary keys in `message_data` |
-| ----------------- | ------------------------------ |
-| `welcome`         | `customer_name`, `app_url`, `year` |
+| Template (slug)   | Primary keys in `message_data`                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `welcome`         | `customer_name`, `app_url`, `year`                                                                                                                      |
 | `order-confirmed` | `customer_name`, `order_id`, `plan_name`, `amount`, `period_end` (`period_end` = next billing date when Stripe `current_period_end` exists; else empty) |
 
 **Django SMTP HTML templates** (fallback when CIO is off) live under `core/templates/emails/` and already set `<meta charset="utf-8" />` in `_base.html`.

@@ -171,10 +171,7 @@ export default function CourseDetailScreen() {
   }
 
   if (lessonsQuery.isError) {
-    const { upgrade, message } = lessonsLoadErrorMessage(
-      lessonsQuery.error,
-      t,
-    );
+    const { upgrade, message } = lessonsLoadErrorMessage(lessonsQuery.error, t);
     return (
       <>
         <Stack.Screen
