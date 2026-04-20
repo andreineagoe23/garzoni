@@ -176,10 +176,7 @@ function ProfileInner() {
       closeDeleteFlow();
       router.replace("/login");
     } catch {
-      Alert.alert(
-        t("settings.errors.deleteAccount"),
-        t("profile.deleteError"),
-      );
+      Alert.alert(t("settings.errors.deleteAccount"), t("profile.deleteError"));
     } finally {
       setDeleteBusy(false);
     }
@@ -437,290 +434,240 @@ function ProfileInner() {
             />
           }
         >
-      <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
-        <Avatar username={displayName || username} uri={avatarUri} size={64} />
-        <View style={styles.nameCol}>
-          <Text style={[styles.displayName, { color: colors.text }]}>
-            {displayName || username || t("profile.fallbackUser")}
+          <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
+            <Avatar
+              username={displayName || username}
+              uri={avatarUri}
+              size={64}
+            />
+            <View style={styles.nameCol}>
+              <Text style={[styles.displayName, { color: colors.text }]}>
+                {displayName || username || t("profile.fallbackUser")}
+              </Text>
+              <Text style={[styles.email, { color: colors.textMuted }]}>
+                {email}
+              </Text>
+              <TextInput
+                value={tagline}
+                onChangeText={setTagline}
+                placeholder="Short bio (saved on this device)"
+                placeholderTextColor={colors.textFaint}
+                multiline
+                maxLength={160}
+                style={[
+                  styles.taglineInput,
+                  {
+                    color: colors.text,
+                    borderColor: colors.border,
+                    backgroundColor: colors.surfaceOffset,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+
+          <View style={styles.actionRow}>
+            <Button
+              variant="secondary"
+              onPress={() => router.push(href("/personalized-path"))}
+              style={styles.actionBtn}
+            >
+              {t("profile.actions.personalizedPath")}
+            </Button>
+            <Button
+              variant="secondary"
+              onPress={() => void shareProfile()}
+              style={styles.actionBtn}
+            >
+              Share profile
+            </Button>
+            <Button
+              variant="secondary"
+              onPress={() =>
+                router.push(href(subActive ? "/billing" : "/subscriptions"))
+              }
+              style={styles.actionBtn}
+            >
+              {subActive
+                ? t("billing.manageSubscription")
+                : t("profile.actions.subscription")}
+            </Button>
+          </View>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.goals.title")}
           </Text>
-          <Text style={[styles.email, { color: colors.textMuted }]}>
-            {email}
-          </Text>
-          <TextInput
-            value={tagline}
-            onChangeText={setTagline}
-            placeholder="Short bio (saved on this device)"
-            placeholderTextColor={colors.textFaint}
-            multiline
-            maxLength={160}
+          <Text
             style={[
-              styles.taglineInput,
-              {
-                color: colors.text,
-                borderColor: colors.border,
-                backgroundColor: colors.surfaceOffset,
-              },
+              styles.sectionSub,
+              { color: colors.textMuted, marginBottom: spacing.md },
             ]}
-          />
-        </View>
-      </View>
-
-      <View style={styles.actionRow}>
-        <Button
-          variant="secondary"
-          onPress={() => router.push(href("/personalized-path"))}
-          style={styles.actionBtn}
-        >
-          {t("profile.actions.personalizedPath")}
-        </Button>
-        <Button
-          variant="secondary"
-          onPress={() => void shareProfile()}
-          style={styles.actionBtn}
-        >
-          Share profile
-        </Button>
-        <Button
-          variant="secondary"
-          onPress={() =>
-            router.push(href(subActive ? "/billing" : "/subscriptions"))
-          }
-          style={styles.actionBtn}
-        >
-          {subActive
-            ? t("billing.manageSubscription")
-            : t("profile.actions.subscription")}
-        </Button>
-      </View>
-
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.goals.title")}
-      </Text>
-      <Text
-        style={[
-          styles.sectionSub,
-          { color: colors.textMuted, marginBottom: spacing.md },
-        ]}
-      >
-        {t("profile.goals.subtitle")}
-      </Text>
-      <GoalCard colors={colors} goalKey="daily" goal={goals.daily} t={t} />
-      <GoalCard colors={colors} goalKey="weekly" goal={goals.weekly} t={t} />
-
-      <EntitlementUsageMobile items={entitlementUsage} colors={colors} />
-
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.streak.title")}
-      </Text>
-      <Text
-        style={[
-          styles.sectionSub,
-          { color: colors.textMuted, marginBottom: spacing.sm },
-        ]}
-      >
-        {t("profile.streak.subtitle")}
-      </Text>
-      <ActivityCalendarMobile
-        currentMonth={currentMonth}
-        activityCalendar={activityCalendar}
-        weekdayLabels={weekdayLabels}
-        colors={colors}
-      />
-
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.stats.title")}
-      </Text>
-      <View
-        style={[
-          styles.statsGrid,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <View style={styles.statsRowPair}>
-          <StatBox
-            label={t("profile.stats.balance")}
+          >
+            {t("profile.goals.subtitle")}
+          </Text>
+          <GoalCard colors={colors} goalKey="daily" goal={goals.daily} t={t} />
+          <GoalCard
             colors={colors}
-            animated={earnedMoney}
-            formatAnimated={(n) => Math.round(n).toLocaleString(i18n.language)}
+            goalKey="weekly"
+            goal={goals.weekly}
+            t={t}
           />
-          <StatBox
-            label={t("profile.stats.points")}
-            colors={colors}
-            animated={points}
-            formatAnimated={(n) => String(Math.round(n))}
-          />
-        </View>
-        <View style={styles.statsRowPair}>
-          <StatBox
-            label={t("profile.stats.streak")}
-            value={`${streak} 🔥`}
-            colors={colors}
-          />
-          <StatBox
-            label={t("profile.stats.lessonsShort")}
-            colors={colors}
-            animated={lessonsDone}
-            formatAnimated={(n) => String(Math.round(n))}
-          />
-        </View>
-      </View>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.achievements.title")}
-      </Text>
-      <View style={styles.chipRow}>
-        {(
-          [
-            ["all", t("profile.achievements.filterAll")],
-            ["earned", t("profile.achievements.filterEarned")],
-            ["locked", t("profile.achievements.filterLocked")],
-          ] as const
-        ).map(([key, label]) => (
-          <Pressable
-            key={key}
-            onPress={() => setBadgeFilter(key)}
+          <EntitlementUsageMobile items={entitlementUsage} colors={colors} />
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.streak.title")}
+          </Text>
+          <Text
             style={[
-              styles.chip,
+              styles.sectionSub,
+              { color: colors.textMuted, marginBottom: spacing.sm },
+            ]}
+          >
+            {t("profile.streak.subtitle")}
+          </Text>
+          <ActivityCalendarMobile
+            currentMonth={currentMonth}
+            activityCalendar={activityCalendar}
+            weekdayLabels={weekdayLabels}
+            colors={colors}
+          />
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.stats.title")}
+          </Text>
+          <View
+            style={[
+              styles.statsGrid,
               {
+                backgroundColor: colors.surface,
                 borderColor: colors.border,
-                backgroundColor:
-                  badgeFilter === key
-                    ? colors.primary + "22"
-                    : colors.surfaceOffset,
               },
             ]}
           >
-            <Text
-              style={{
-                color: colors.text,
-                fontSize: typography.xs,
-                fontWeight: "600",
-              }}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-      {badgesCatalogQuery.isError ? (
-        <Text style={{ color: colors.textMuted, marginBottom: spacing.md }}>
-          {t("profile.couldNotLoad")}
-        </Text>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: spacing.md }}
-        >
-          {badgesToShow.map((row) => {
-            const src = row.badge.image_url
-              ? /^https?:\/\//i.test(row.badge.image_url)
-                ? row.badge.image_url
-                : `${mediaBase}${row.badge.image_url.startsWith("/") ? "" : "/"}${row.badge.image_url}`
-              : null;
-            return (
-              <View
-                key={row.badge.id}
+            <View style={styles.statsRowPair}>
+              <StatBox
+                label={t("profile.stats.balance")}
+                colors={colors}
+                animated={earnedMoney}
+                formatAnimated={(n) =>
+                  Math.round(n).toLocaleString(i18n.language)
+                }
+              />
+              <StatBox
+                label={t("profile.stats.points")}
+                colors={colors}
+                animated={points}
+                formatAnimated={(n) => String(Math.round(n))}
+              />
+            </View>
+            <View style={styles.statsRowPair}>
+              <StatBox
+                label={t("profile.stats.streak")}
+                value={`${streak} 🔥`}
+                colors={colors}
+              />
+              <StatBox
+                label={t("profile.stats.lessonsShort")}
+                colors={colors}
+                animated={lessonsDone}
+                formatAnimated={(n) => String(Math.round(n))}
+              />
+            </View>
+          </View>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.achievements.title")}
+          </Text>
+          <View style={styles.chipRow}>
+            {(
+              [
+                ["all", t("profile.achievements.filterAll")],
+                ["earned", t("profile.achievements.filterEarned")],
+                ["locked", t("profile.achievements.filterLocked")],
+              ] as const
+            ).map(([key, label]) => (
+              <Pressable
+                key={key}
+                onPress={() => setBadgeFilter(key)}
                 style={[
-                  styles.badgeCell,
+                  styles.chip,
                   {
                     borderColor: colors.border,
-                    backgroundColor: colors.surfaceOffset,
-                    opacity: row.earned ? 1 : 0.45,
+                    backgroundColor:
+                      badgeFilter === key
+                        ? colors.primary + "22"
+                        : colors.surfaceOffset,
                   },
                 ]}
               >
-                {src ? (
-                  <Image
-                    source={{ uri: src }}
-                    style={styles.badgeImg}
-                    accessibilityIgnoresInvertColors
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.badgeImg,
-                      { backgroundColor: colors.border },
-                    ]}
-                  />
-                )}
-                <Text
-                  numberOfLines={2}
-                  style={[styles.badgeName, { color: colors.text }]}
-                >
-                  {row.badge.name}
-                </Text>
-              </View>
-            );
-          })}
-        </ScrollView>
-      )}
-      {filteredBadges.length > visibleBadgeLimit ? (
-        <Pressable onPress={() => setShowAllBadges((v) => !v)}>
-          <Text
-            style={{
-              color: colors.primary,
-              fontWeight: "600",
-              marginBottom: spacing.lg,
-            }}
-          >
-            {showAllBadges
-              ? t("profile.achievements.showLess")
-              : t("profile.achievements.showAll")}
-          </Text>
-        </Pressable>
-      ) : null}
-
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.activity.title")}
-      </Text>
-      {recentActivityQuery.isPending ? (
-        <Skeleton
-          width="100%"
-          height={48}
-          style={{ marginBottom: spacing.sm }}
-        />
-      ) : recentActivities.length === 0 ? (
-        <Text style={{ color: colors.textMuted, marginBottom: spacing.lg }}>
-          {t("profile.activity.empty")}
-        </Text>
-      ) : (
-        <>
-          {activityVisible.map((activity: RecentActivityItem, idx: number) => {
-            const title = String(activity.title || activity.name || "");
-            const ts = activity.timestamp
-              ? formatRelativeTime(activity.timestamp, i18n.language)
-              : "";
-            return (
-              <Card
-                key={`${activity.type}-${activity.timestamp}-${idx}`}
-                style={{
-                  marginBottom: spacing.sm,
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                }}
-              >
-                <Text style={{ color: colors.text, fontWeight: "600" }}>
-                  {title}
-                </Text>
                 <Text
                   style={{
-                    color: colors.textMuted,
+                    color: colors.text,
                     fontSize: typography.xs,
-                    marginTop: 4,
+                    fontWeight: "600",
                   }}
                 >
-                  {activity.action} {ts ? `· ${ts}` : ""}
-                  {activity.course ? ` · ${activity.course}` : ""}
+                  {label}
                 </Text>
-              </Card>
-            );
-          })}
-          {recentActivities.length > 3 ? (
-            <Pressable onPress={() => setShowAllActivity((v) => !v)}>
+              </Pressable>
+            ))}
+          </View>
+          {badgesCatalogQuery.isError ? (
+            <Text style={{ color: colors.textMuted, marginBottom: spacing.md }}>
+              {t("profile.couldNotLoad")}
+            </Text>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: spacing.md }}
+            >
+              {badgesToShow.map((row) => {
+                const src = row.badge.image_url
+                  ? /^https?:\/\//i.test(row.badge.image_url)
+                    ? row.badge.image_url
+                    : `${mediaBase}${row.badge.image_url.startsWith("/") ? "" : "/"}${row.badge.image_url}`
+                  : null;
+                return (
+                  <View
+                    key={row.badge.id}
+                    style={[
+                      styles.badgeCell,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.surfaceOffset,
+                        opacity: row.earned ? 1 : 0.45,
+                      },
+                    ]}
+                  >
+                    {src ? (
+                      <Image
+                        source={{ uri: src }}
+                        style={styles.badgeImg}
+                        accessibilityIgnoresInvertColors
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.badgeImg,
+                          { backgroundColor: colors.border },
+                        ]}
+                      />
+                    )}
+                    <Text
+                      numberOfLines={2}
+                      style={[styles.badgeName, { color: colors.text }]}
+                    >
+                      {row.badge.name}
+                    </Text>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
+          {filteredBadges.length > visibleBadgeLimit ? (
+            <Pressable onPress={() => setShowAllBadges((v) => !v)}>
               <Text
                 style={{
                   color: colors.primary,
@@ -728,175 +675,246 @@ function ProfileInner() {
                   marginBottom: spacing.lg,
                 }}
               >
-                {showAllActivity
+                {showAllBadges
                   ? t("profile.achievements.showLess")
                   : t("profile.achievements.showAll")}
               </Text>
             </Pressable>
           ) : null}
-        </>
-      )}
 
-      {merged.referral_code ? (
-        <Card
-          style={{
-            marginBottom: spacing.lg,
-            backgroundColor: colors.surfaceOffset,
-          }}
-        >
-          <Text style={[styles.subheading, { color: colors.textMuted }]}>
-            {t("profile.referral.title")}
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.activity.title")}
           </Text>
-          <Text
+          {recentActivityQuery.isPending ? (
+            <Skeleton
+              width="100%"
+              height={48}
+              style={{ marginBottom: spacing.sm }}
+            />
+          ) : recentActivities.length === 0 ? (
+            <Text style={{ color: colors.textMuted, marginBottom: spacing.lg }}>
+              {t("profile.activity.empty")}
+            </Text>
+          ) : (
+            <>
+              {activityVisible.map(
+                (activity: RecentActivityItem, idx: number) => {
+                  const title = String(activity.title || activity.name || "");
+                  const ts = activity.timestamp
+                    ? formatRelativeTime(activity.timestamp, i18n.language)
+                    : "";
+                  return (
+                    <Card
+                      key={`${activity.type}-${activity.timestamp}-${idx}`}
+                      style={{
+                        marginBottom: spacing.sm,
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
+                      }}
+                    >
+                      <Text style={{ color: colors.text, fontWeight: "600" }}>
+                        {title}
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.textMuted,
+                          fontSize: typography.xs,
+                          marginTop: 4,
+                        }}
+                      >
+                        {activity.action} {ts ? `· ${ts}` : ""}
+                        {activity.course ? ` · ${activity.course}` : ""}
+                      </Text>
+                    </Card>
+                  );
+                },
+              )}
+              {recentActivities.length > 3 ? (
+                <Pressable onPress={() => setShowAllActivity((v) => !v)}>
+                  <Text
+                    style={{
+                      color: colors.primary,
+                      fontWeight: "600",
+                      marginBottom: spacing.lg,
+                    }}
+                  >
+                    {showAllActivity
+                      ? t("profile.achievements.showLess")
+                      : t("profile.achievements.showAll")}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </>
+          )}
+
+          {merged.referral_code ? (
+            <Card
+              style={{
+                marginBottom: spacing.lg,
+                backgroundColor: colors.surfaceOffset,
+              }}
+            >
+              <Text style={[styles.subheading, { color: colors.textMuted }]}>
+                {t("profile.referral.title")}
+              </Text>
+              <Text
+                style={{
+                  fontSize: typography.lg,
+                  fontWeight: "800",
+                  color: colors.accent,
+                }}
+              >
+                {String(merged.referral_code)}
+              </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: typography.xs,
+                  marginTop: spacing.xs,
+                }}
+              >
+                {t("profile.referral.subtitle")}
+              </Text>
+            </Card>
+          ) : null}
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.menuSection")}
+          </Text>
+          <Card
             style={{
-              fontSize: typography.lg,
-              fontWeight: "800",
-              color: colors.accent,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
             }}
           >
-            {String(merged.referral_code)}
+            <MenuRow
+              icon={navIcons.settings}
+              label={t("nav.settings")}
+              onPress={() => router.push(href("/settings"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.billing}
+              label={t("profile.plansMenu")}
+              onPress={() => router.push(href("/subscriptions"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.billing}
+              label={t("billing.subscriptionManagement")}
+              onPress={() => router.push(href("/billing"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.support}
+              label={t("footer.support")}
+              onPress={() => router.push(href("/support"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.chat}
+              label="Send Feedback"
+              onPress={() => router.push("/feedback")}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.leaderboard}
+              label={t("footer.leaderboards")}
+              onPress={() => router.push(href("/leaderboard"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.rewards}
+              label={t("footer.rewards")}
+              onPress={() => router.push(href("/rewards"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.tools}
+              label={t("footer.tools")}
+              onPress={() => router.push(href("/tools"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon="gift-outline"
+              label="Refer a Friend"
+              onPress={() => router.push(href("/referral"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.chat}
+              label={t("chatbot.title")}
+              onPress={() => router.push(href("/chat"))}
+              colors={colors}
+            />
+            <MenuRow
+              icon={navIcons.legal}
+              label={t("footer.termsConditions")}
+              onPress={() => router.push(href("/legal/terms"))}
+              colors={colors}
+            />
+          </Card>
+
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("profile.quickTogglesSection")}
           </Text>
-          <Text
+          <Card
             style={{
-              color: colors.textMuted,
-              fontSize: typography.xs,
-              marginTop: spacing.xs,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
             }}
           >
-            {t("profile.referral.subtitle")}
-          </Text>
-        </Card>
-      ) : null}
+            <RowSwitch
+              label={t("profile.heartsUi")}
+              value={showHeartsUi}
+              onValueChange={(v) => void persistShowHearts(v)}
+              colors={colors}
+            />
+            <RowSwitch
+              label={t("profile.pushNotifications")}
+              value={pushEnabled}
+              disabled={pushBusy}
+              onValueChange={(v) => void onPushToggle(v)}
+              colors={colors}
+            />
+          </Card>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.menuSection")}
-      </Text>
-      <Card
-        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-      >
-        <MenuRow
-          icon={navIcons.settings}
-          label={t("nav.settings")}
-          onPress={() => router.push(href("/settings"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.billing}
-          label={t("profile.plansMenu")}
-          onPress={() => router.push(href("/subscriptions"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.billing}
-          label={t("billing.subscriptionManagement")}
-          onPress={() => router.push(href("/billing"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.support}
-          label={t("footer.support")}
-          onPress={() => router.push(href("/support"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.chat}
-          label="Send Feedback"
-          onPress={() => router.push("/feedback")}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.leaderboard}
-          label={t("footer.leaderboards")}
-          onPress={() => router.push(href("/leaderboard"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.rewards}
-          label={t("footer.rewards")}
-          onPress={() => router.push(href("/rewards"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.tools}
-          label={t("footer.tools")}
-          onPress={() => router.push(href("/tools"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon="gift-outline"
-          label="Refer a Friend"
-          onPress={() => router.push(href("/referral"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.chat}
-          label={t("chatbot.title")}
-          onPress={() => router.push(href("/chat"))}
-          colors={colors}
-        />
-        <MenuRow
-          icon={navIcons.legal}
-          label={t("footer.termsConditions")}
-          onPress={() => router.push(href("/legal/terms"))}
-          colors={colors}
-        />
-      </Card>
+          <Card
+            style={{
+              marginTop: spacing.lg,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            }}
+          >
+            <InfoRow
+              label={t("auth.register.username")}
+              value={username}
+              colors={colors}
+            />
+            <View
+              style={[styles.separator, { backgroundColor: colors.border }]}
+            />
+            <InfoRow
+              label={t("auth.register.email")}
+              value={email}
+              colors={colors}
+            />
+          </Card>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {t("profile.quickTogglesSection")}
-      </Text>
-      <Card
-        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
-      >
-        <RowSwitch
-          label={t("profile.heartsUi")}
-          value={showHeartsUi}
-          onValueChange={(v) => void persistShowHearts(v)}
-          colors={colors}
-        />
-        <RowSwitch
-          label={t("profile.pushNotifications")}
-          value={pushEnabled}
-          disabled={pushBusy}
-          onValueChange={(v) => void onPushToggle(v)}
-          colors={colors}
-        />
-      </Card>
-
-      <Card
-        style={{
-          marginTop: spacing.lg,
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-        }}
-      >
-        <InfoRow
-          label={t("auth.register.username")}
-          value={username}
-          colors={colors}
-        />
-        <View style={[styles.separator, { backgroundColor: colors.border }]} />
-        <InfoRow
-          label={t("auth.register.email")}
-          value={email}
-          colors={colors}
-        />
-      </Card>
-
-      <View style={styles.actions}>
-        <Button
-          variant="secondary"
-          onPress={() => router.push("/change-password")}
-        >
-          {t("settings.password.title")}
-        </Button>
-        <Button variant="danger" onPress={() => void signOut()}>
-          {t("widgets.userProgress.logout")}
-        </Button>
-        <Button variant="ghost" onPress={onDeleteAccount}>
-          {t("settings.danger.deleteAccount")}
-        </Button>
-      </View>
+          <View style={styles.actions}>
+            <Button
+              variant="secondary"
+              onPress={() => router.push("/change-password")}
+            >
+              {t("settings.password.title")}
+            </Button>
+            <Button variant="danger" onPress={() => void signOut()}>
+              {t("widgets.userProgress.logout")}
+            </Button>
+            <Button variant="ghost" onPress={onDeleteAccount}>
+              {t("settings.danger.deleteAccount")}
+            </Button>
+          </View>
         </ScreenScroll>
       </View>
 

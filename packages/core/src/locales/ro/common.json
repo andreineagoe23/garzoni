@@ -993,7 +993,13 @@
     "toast": {
       "completed": "Finalizat {{name}} (+{{xp}} XP)",
       "synced": "Sincronizat: {{name}} finalizat!",
-      "swapSuccess": "Misiunea a fost schimbată cu succes!"
+      "swapSuccess": "Misiunea a fost schimbată cu succes!",
+      "savingsAdded": "Economii actualizate",
+      "factRead": "Fapt marcat citit"
+    },
+    "tab": {
+      "dailyWithCount": "Zilnic ({{done}}/{{total}})",
+      "weeklyWithCount": "Săptămânal ({{done}}/{{total}})"
     },
     "missionFallback": "Misiune",
     "purpose": {
@@ -1026,7 +1032,12 @@
     },
     "swap": {
       "aria": "Schimbă misiunea: {{name}}",
-      "label": "Schimbă misiunea"
+      "label": "Schimbă misiunea",
+      "confirmTitle": "Schimbi această misiune?",
+      "confirmBody": "Ai un singur swap pe zi. Nu se poate anula.",
+      "confirm": "Schimbă",
+      "cancel": "Anulează",
+      "offlineBlocked": "Ești offline — reconectează-te pentru a schimba misiunile."
     },
     "header": {
       "title": "Misiuni zilnice",

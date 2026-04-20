@@ -1,5 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Linking, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { WebView } from "react-native-webview";
@@ -125,5 +131,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   msg: { fontSize: typography.sm, textAlign: "center", lineHeight: 22 },
-  row: { flexDirection: "row", gap: spacing.md, flexWrap: "wrap", justifyContent: "center" },
+  row: {
+    flexDirection: "row",
+    gap: spacing.md,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
 });

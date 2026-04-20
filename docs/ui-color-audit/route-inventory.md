@@ -4,12 +4,12 @@ Reachable routes from `frontend/src/App.tsx` and nested tools. Primary layout pr
 
 ## Public / auth
 
-| Path                                                                              | Key components                                                                            |
-| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `/`                                                                               | Landing / redirect                                                                        |
-| `/welcome`                                                                        | `Welcome`                                                                                 |
-| `/login`, `/register`, `/auth/callback`, `/forgot-password`, `/reset-password`    | Auth forms                                                                                |
-| `/privacy-policy`, `/cookie-policy`, `/terms-of-service`, `/financial-disclaimer` | `LegalPageWrapper` + policy pages                                                         |
+| Path                                                                                     | Key components                                                                            |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `/`                                                                                      | Landing / redirect                                                                        |
+| `/welcome`                                                                               | `Welcome`                                                                                 |
+| `/login`, `/register`, `/auth/callback`, `/forgot-password`, `/reset-password`           | Auth forms                                                                                |
+| `/privacy-policy`, `/cookie-policy`, `/terms-of-service`, `/financial-disclaimer`        | `LegalPageWrapper` + policy pages                                                         |
 | `/subscription-plans`, `/upgrade`, `/subscription`, `/payment-success` (legacy redirect) | Billing (`SubscriptionPlansPage`, `Upgrade`, `SubscriptionManager`, `PaymentSuccessPage`) |
 
 ## Authenticated (main shell: Navbar + content)
