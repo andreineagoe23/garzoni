@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Image,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -76,6 +77,11 @@ function ProfileInner() {
     "all",
   );
   const [tagline, setTagline] = useState("");
+  const [deleteFlow, setDeleteFlow] = useState<"hidden" | "warning" | "phrase">(
+    "hidden",
+  );
+  const [deletePhrase, setDeletePhrase] = useState("");
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const enabled = Boolean(accessToken);
 
@@ -152,33 +158,32 @@ function ProfileInner() {
     }
   }, [profileQuery.data]);
 
+  const closeDeleteFlow = useCallback(() => {
+    setDeleteFlow("hidden");
+    setDeletePhrase("");
+  }, []);
+
   const onDeleteAccount = useCallback(() => {
-    Alert.alert(
-      t("profile.deleteConfirmTitle"),
-      t("profile.deleteConfirmBody"),
-      [
-        { text: t("settings.actions.cancel"), style: "cancel" },
-        {
-          text: t("profile.deleteAction"),
-          style: "destructive",
-          onPress: () => {
-            void (async () => {
-              try {
-                await deleteAccount();
-                await clearSession();
-                router.replace("/login");
-              } catch {
-                Alert.alert(
-                  t("settings.errors.deleteAccount"),
-                  t("profile.deleteError"),
-                );
-              }
-            })();
-          },
-        },
-      ],
-    );
-  }, [clearSession, t]);
+    setDeletePhrase("");
+    setDeleteFlow("warning");
+  }, []);
+
+  const runDeleteAccount = useCallback(async () => {
+    setDeleteBusy(true);
+    try {
+      await deleteAccount();
+      await clearSession();
+      closeDeleteFlow();
+      router.replace("/login");
+    } catch {
+      Alert.alert(
+        t("settings.errors.deleteAccount"),
+        t("profile.deleteError"),
+      );
+    } finally {
+      setDeleteBusy(false);
+    }
+  }, [clearSession, closeDeleteFlow, t]);
 
   const onPushToggle = useCallback(
     async (next: boolean) => {
@@ -409,17 +414,29 @@ function ProfileInner() {
 
   const mediaBase = getMediaBaseUrl();
 
+  const streakDays =
+    Number(
+      (merged.user_data as Record<string, unknown> | undefined)?.streak ??
+        (merged as { streak?: number }).streak ??
+        0,
+    ) || 0;
+
   return (
-    <ScreenScroll
-      contentContainerStyle={[styles.container, { backgroundColor: colors.bg }]}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-        />
-      }
-    >
+    <>
+      <View style={{ flex: 1 }}>
+        <ScreenScroll
+          contentContainerStyle={[
+            styles.container,
+            { backgroundColor: colors.bg },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+        >
       <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
         <Avatar username={displayName || username} uri={avatarUri} size={64} />
         <View style={styles.nameCol}>
@@ -880,7 +897,141 @@ function ProfileInner() {
           {t("settings.danger.deleteAccount")}
         </Button>
       </View>
-    </ScreenScroll>
+        </ScreenScroll>
+      </View>
+
+      <Modal
+        visible={deleteFlow !== "hidden"}
+        transparent
+        animationType="fade"
+        onRequestClose={closeDeleteFlow}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.45)",
+            justifyContent: "center",
+            padding: spacing.xl,
+          }}
+        >
+          <View
+            style={{
+              borderRadius: radius.lg,
+              padding: spacing.xl,
+              backgroundColor: colors.surface,
+            }}
+          >
+            {deleteFlow === "warning" ? (
+              <>
+                <Text
+                  style={{
+                    fontSize: typography.lg,
+                    fontWeight: "800",
+                    color: colors.text,
+                    marginBottom: spacing.sm,
+                  }}
+                >
+                  {t("profile.deleteConfirmTitle")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: typography.sm,
+                    color: colors.textMuted,
+                    lineHeight: 20,
+                    marginBottom: spacing.md,
+                  }}
+                >
+                  {t("profile.deleteConfirmBody")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: typography.sm,
+                    color: colors.error,
+                    lineHeight: 20,
+                    marginBottom: spacing.lg,
+                  }}
+                >
+                  {t("profile.deleteStreakReminder")}{" "}
+                  {t("missions.summary.streakDays", { count: streakDays })}
+                </Text>
+                <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                  <Button
+                    variant="ghost"
+                    style={{ flex: 1 }}
+                    onPress={closeDeleteFlow}
+                  >
+                    {t("settings.actions.cancel")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    style={{ flex: 1 }}
+                    onPress={() => setDeleteFlow("phrase")}
+                  >
+                    {t("profile.deleteContinue")}
+                  </Button>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={{
+                    fontSize: typography.lg,
+                    fontWeight: "800",
+                    color: colors.text,
+                    marginBottom: spacing.sm,
+                  }}
+                >
+                  {t("profile.deleteSecondTitle")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: typography.sm,
+                    color: colors.textMuted,
+                    lineHeight: 20,
+                    marginBottom: spacing.md,
+                  }}
+                >
+                  {t("profile.deleteSecondBody")}
+                </Text>
+                <TextInput
+                  value={deletePhrase}
+                  onChangeText={setDeletePhrase}
+                  autoCapitalize="characters"
+                  placeholder={t("profile.deletePhraseHint")}
+                  placeholderTextColor={colors.textFaint}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: radius.md,
+                    padding: spacing.md,
+                    color: colors.text,
+                    marginBottom: spacing.lg,
+                  }}
+                />
+                <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                  <Button
+                    variant="ghost"
+                    style={{ flex: 1 }}
+                    onPress={closeDeleteFlow}
+                  >
+                    {t("settings.actions.cancel")}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    style={{ flex: 1 }}
+                    loading={deleteBusy}
+                    disabled={deletePhrase !== "DELETE"}
+                    onPress={() => void runDeleteAccount()}
+                  >
+                    {t("profile.deleteFinalAction")}
+                  </Button>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 

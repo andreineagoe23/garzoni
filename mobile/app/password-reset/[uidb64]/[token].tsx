@@ -14,14 +14,22 @@ import {
   Text,
   View,
 } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import * as Haptics from "expo-haptics";
+import Toast from "react-native-toast-message";
 import { confirmPasswordReset } from "@garzoni/core";
 import { Button, FormInput } from "../../../src/components/ui";
+import { useAuthSession } from "../../../src/auth/AuthContext";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
 
 export default function PasswordResetConfirmScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
+  const queryClient = useQueryClient();
+  const { clearSession } = useAuthSession();
   const { uidb64, token } = useLocalSearchParams<{
     uidb64: string;
     token: string;
@@ -70,19 +78,31 @@ export default function PasswordResetConfirmScreen() {
     [c],
   );
 
+  const goToLoginCleared = async () => {
+    await clearSession();
+    queryClient.clear();
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Toast.show({
+      type: "success",
+      text1: t("auth.resetPassword.mobileSuccessToastTitle"),
+      text2: t("auth.resetPassword.mobileSuccessToastBody"),
+    });
+    router.replace("/login");
+  };
+
   const onSubmit = async () => {
     setError("");
 
     if (!password || password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("auth.resetPassword.mobileMinLength"));
       return;
     }
     if (password !== confirm) {
-      setError("Passwords do not match.");
+      setError(t("auth.resetPassword.mobileMismatch"));
       return;
     }
     if (!uidb64 || !token) {
-      setError("Invalid reset link. Please request a new one.");
+      setError(t("auth.resetPassword.mobileInvalidLink"));
       return;
     }
 
@@ -94,9 +114,7 @@ export default function PasswordResetConfirmScreen() {
       });
       setDone(true);
     } catch {
-      setError(
-        "The reset link has expired or is invalid. Please request a new one.",
-      );
+      setError(t("auth.resetPassword.mobileLinkInvalid"));
     } finally {
       setLoading(false);
     }
@@ -104,61 +122,81 @@ export default function PasswordResetConfirmScreen() {
 
   if (done) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Text style={styles.icon}>✅</Text>
-        <Text style={styles.title}>Password updated</Text>
-        <Text style={styles.subtitle}>
-          Your password has been changed successfully.
-        </Text>
-        <Button onPress={() => router.replace("/login")}>Back to Login</Button>
-      </View>
+      <>
+        <Stack.Screen
+          options={{
+            title: t("auth.resetPassword.mobileSetTitle"),
+            headerShown: true,
+            headerTintColor: c.primary,
+          }}
+        />
+        <View style={[styles.container, styles.centered]}>
+          <Text style={styles.icon}>✅</Text>
+          <Text style={styles.title}>{t("auth.resetPassword.mobileSuccessTitle")}</Text>
+          <Text style={styles.subtitle}>
+            {t("auth.resetPassword.mobileSuccessBody")}
+          </Text>
+          <Button onPress={() => void goToLoginCleared()}>
+            {t("auth.resetPassword.mobileBackLogin")}
+          </Button>
+        </View>
+      </>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+    <>
+      <Stack.Screen
+        options={{
+          title: t("auth.resetPassword.mobileSetTitle"),
+          headerShown: true,
+          headerTintColor: c.primary,
+        }}
+      />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Text style={styles.title}>Set new password</Text>
-        <Text style={styles.subtitle}>
-          Enter and confirm your new password below.
-        </Text>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>{t("auth.resetPassword.mobileSetTitle")}</Text>
+          <Text style={styles.subtitle}>
+            {t("auth.resetPassword.mobileSetSubtitle")}
+          </Text>
 
-        {error ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
+          {error ? (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
-        <FormInput
-          label="New password"
-          placeholder="At least 8 characters"
-          secureTextEntry
-          autoFocus
-          returnKeyType="next"
-          value={password}
-          onChangeText={setPassword}
-        />
+          <FormInput
+            label={t("auth.resetPassword.mobileNewLabel")}
+            placeholder={t("auth.resetPassword.mobileNewPlaceholder")}
+            secureTextEntry
+            autoFocus
+            returnKeyType="next"
+            value={password}
+            onChangeText={setPassword}
+          />
 
-        <FormInput
-          label="Confirm password"
-          placeholder="Repeat your new password"
-          secureTextEntry
-          returnKeyType="done"
-          value={confirm}
-          onChangeText={setConfirm}
-          onSubmitEditing={() => void onSubmit()}
-        />
+          <FormInput
+            label={t("auth.resetPassword.mobileConfirmLabel")}
+            placeholder={t("auth.resetPassword.mobileConfirmPlaceholder")}
+            secureTextEntry
+            returnKeyType="done"
+            value={confirm}
+            onChangeText={setConfirm}
+            onSubmitEditing={() => void onSubmit()}
+          />
 
-        <Button loading={loading} onPress={() => void onSubmit()}>
-          Reset password
-        </Button>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <Button loading={loading} onPress={() => void onSubmit()}>
+            {t("auth.resetPassword.mobileSubmit")}
+          </Button>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }

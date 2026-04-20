@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import MascotWithMessage from "../../common/MascotWithMessage";
 import { Button } from "../../ui";
 import { useThemeColors } from "../../../theme/ThemeContext";
@@ -16,6 +17,7 @@ export default function OnboardingCompletionOverlay({
   onContinue,
 }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
 
   return (
     <View style={styles.completionOverlay}>
@@ -28,10 +30,10 @@ export default function OnboardingCompletionOverlay({
         />
       </View>
       <Text style={[styles.completionTitle, { color: c.text }]}>
-        You're all set!
+        {t("onboarding.completionOverlay.title")}
       </Text>
       <Text style={[styles.completionSub, { color: c.textMuted }]}>
-        We've personalised your learning path based on your goals.
+        {t("onboarding.completionOverlay.subtitle")}
       </Text>
       <View style={styles.rewardRow}>
         {xp > 0 ? (
@@ -44,7 +46,9 @@ export default function OnboardingCompletionOverlay({
             <Text style={[styles.rewardValue, { color: c.primary }]}>
               +{xp}
             </Text>
-            <Text style={[styles.rewardLabel, { color: c.textMuted }]}>XP</Text>
+            <Text style={[styles.rewardLabel, { color: c.textMuted }]}>
+              {t("onboarding.completionOverlay.xp")}
+            </Text>
           </View>
         ) : null}
         {coins > 0 ? (
@@ -58,13 +62,13 @@ export default function OnboardingCompletionOverlay({
               +{coins}
             </Text>
             <Text style={[styles.rewardLabel, { color: c.textMuted }]}>
-              Coins
+              {t("onboarding.completionOverlay.coins")}
             </Text>
           </View>
         ) : null}
       </View>
       <Button onPress={onContinue} style={styles.completionBtn}>
-        Start learning
+        {t("onboarding.completionOverlay.startLearning")}
       </Button>
     </View>
   );

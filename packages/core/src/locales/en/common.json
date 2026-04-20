@@ -46,6 +46,46 @@
       "message": "You're offline — some actions may not sync."
     }
   },
+  "screenErrors": {
+    "tryAgain": "Try again",
+    "reportProblem": "Report a problem",
+    "viewPlans": "View plans",
+    "loadDashboard": "Could not load your dashboard.",
+    "loadCourseLessons": "Could not load lessons.",
+    "loadLesson": "Could not load lesson.",
+    "invalidLesson": "Invalid lesson.",
+    "lessonMissingCourse": "This lesson is missing course information.",
+    "upgradeRequiredGeneric": "Upgrade required to access this course."
+  },
+  "chat": {
+    "screenTitle": "AI Tutor",
+    "greeting": "Hi! I'm your Garzoni study coach. Ask me anything about the lessons or personal finance basics.",
+    "errorReply": "Sorry — I couldn't reach the tutor right now. Try again shortly.",
+    "placeholder": "Ask a question…",
+    "send": "Send",
+    "typing": "Tutor is thinking"
+  },
+  "legalMobile": {
+    "configureBody": "We couldn't load this page in-app. Set EXPO_PUBLIC_WEB_APP_URL in your build, or open the page in your browser.",
+    "loadErrorTitle": "Couldn't load this page",
+    "loadErrorBody": "Check your connection or try again.",
+    "retry": "Try again",
+    "openInBrowser": "Open in browser",
+    "titlePrivacy": "Privacy",
+    "titleTerms": "Terms",
+    "titleCookies": "Cookies",
+    "titleDisclaimer": "Disclaimer",
+    "titleDefault": "Legal"
+  },
+  "courseDetail": {
+    "loading": "Loading…",
+    "courseFallback": "Course {{id}}",
+    "lessonFallback": "Lesson {{id}}",
+    "lessonsCompleted": "{{completed}}/{{total}} lessons completed",
+    "continue": "Continue",
+    "startLearning": "Start learning",
+    "completedBadge": "✓ Completed"
+  },
   "dashboard": {
     "skipToContent": "Skip to content",
     "nav": {
@@ -390,7 +430,9 @@
         "nextSteps": "What should I learn next?"
       },
       "mobileWebParityTitle": "Web-only tools",
-      "mobileWebParityBody": "Economic Map and News Context currently live in the web app while we finish native WebView sign-in. Everything listed below runs in the app."
+      "mobileWebParityBody": "Economic Map and News Context currently live in the web app while we finish native WebView sign-in. Everything listed below runs in the app.",
+      "comingSoon": "Coming soon",
+      "comingSoonHint": "Available on web today; native in a future update."
     },
     "disclaimer": {
       "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
@@ -1016,7 +1058,12 @@
       "mascotMessage": "Steady progress wins. Great work today!"
     },
     "weekly": {
-      "title": "Weekly Missions"
+      "title": "Weekly Missions",
+      "noneAvailable": "None available right now."
+    },
+    "empty": {
+      "title": "No missions right now",
+      "body": "New missions appear after the next reset. Pull down to refresh."
     }
   },
   "leaderboard": {
@@ -1131,6 +1178,22 @@
       "description": "Report a bug or send feedback so we can improve.",
       "cta": "Report bug or send feedback"
     },
+    "mobile": {
+      "contactHeading": "Contact",
+      "faqHeading": "FAQ",
+      "screenTitle": "Support",
+      "placeholders": {
+        "email": "Email",
+        "topic": "Topic",
+        "message": "Message"
+      },
+      "send": "Send",
+      "faqLoading": "Loading FAQs…",
+      "toastSuccessTitle": "Message sent",
+      "toastSuccessBody": "Thanks — we'll get back to you soon.",
+      "toastErrorTitle": "Could not send",
+      "toastErrorBody": "Please try again in a moment."
+    },
     "contact": {
       "title": "Still need help? Contact us",
       "subtitle": "Share a brief description of the issue and we'll be in touch.",
@@ -1152,8 +1215,19 @@
     }
   },
   "feedback": {
+    "screenTitle": "Send feedback",
     "title": "Feedback",
     "subtitle": "Report a bug or tell us what you'd like to see improved.",
+    "types": {
+      "general": "General",
+      "bug": "Bug report",
+      "feature": "Feature request",
+      "content": "Content"
+    },
+    "toastSuccessTitle": "Feedback sent!",
+    "toastSuccessBody": "Thanks for helping us improve Garzoni.",
+    "toastErrorTitle": "Failed to send",
+    "toastErrorBody": "Something went wrong. Please try again.",
     "typeLabel": "Type",
     "typeBug": "Bug report",
     "typeSuggestion": "Suggestion / improvement",
@@ -1195,6 +1269,13 @@
     "pushNotifications": "Push notifications",
     "deleteConfirmTitle": "Delete account",
     "deleteConfirmBody": "This permanently removes your account and progress. Continue?",
+    "deleteSecondTitle": "Confirm deletion",
+    "deleteSecondBody": "Type DELETE to confirm. This cannot be undone.",
+    "deletePhraseHint": "Type DELETE in capital letters",
+    "deletePhraseMismatch": "Text must match DELETE exactly.",
+    "deleteStreakReminder": "You will lose your streak and all saved progress.",
+    "deleteContinue": "Continue",
+    "deleteFinalAction": "Delete my account",
     "deleteError": "Could not delete account.",
     "deleteAction": "Delete",
     "notificationsTitle": "Notifications",
@@ -1402,7 +1483,11 @@
       "current": "Current Password",
       "new": "New Password",
       "confirm": "Confirm New Password",
-      "update": "Update Password"
+      "update": "Update Password",
+      "fillAll": "Fill in all fields.",
+      "newMinLength": "New password must be at least 8 characters.",
+      "newMismatch": "New passwords do not match.",
+      "couldNotChange": "Could not change password."
     },
     "privacy": {
       "settings": "Privacy Settings",
@@ -1521,7 +1606,23 @@
       "success": "Password reset successful.",
       "redirectingToLogin": "Redirecting to the login page…",
       "passwordsDoNotMatch": "Passwords do not match.",
-      "error": "An error occurred. Please try again."
+      "error": "An error occurred. Please try again.",
+      "mobileSetTitle": "Set new password",
+      "mobileSetSubtitle": "Enter and confirm your new password below.",
+      "mobileSuccessTitle": "Password updated",
+      "mobileSuccessBody": "Your password has been changed successfully.",
+      "mobileInvalidLink": "Invalid reset link. Please request a new one.",
+      "mobileLinkInvalid": "The reset link has expired or is invalid. Please request a new one.",
+      "mobileMinLength": "Password must be at least 8 characters.",
+      "mobileMismatch": "Passwords do not match.",
+      "mobileNewLabel": "New password",
+      "mobileConfirmLabel": "Confirm password",
+      "mobileNewPlaceholder": "At least 8 characters",
+      "mobileConfirmPlaceholder": "Repeat your new password",
+      "mobileSubmit": "Reset password",
+      "mobileBackLogin": "Back to login",
+      "mobileSuccessToastTitle": "Password updated",
+      "mobileSuccessToastBody": "Sign in with your new password."
     }
   },
   "subscriptions": {
@@ -1696,7 +1797,26 @@
         "title": "Plans when you're ready",
         "body": "Starter is free so you can begin right away. Plus unlocks your personalized learning path and expanded lessons. Pro adds the full financial toolkit and deeper analytics when you want to go further."
       }
-    }
+    },
+    "completionOverlay": {
+      "title": "You're all set!",
+      "subtitle": "We've personalised your learning path based on your goals.",
+      "xp": "XP",
+      "coins": "Coins",
+      "startLearning": "Start learning"
+    },
+    "pushPrompt": {
+      "title": "Stay on track?",
+      "body": "Turn on reminders for streaks, missions, and learning nudges. You can change this anytime in Profile.",
+      "enable": "Enable notifications",
+      "notNow": "Not now"
+    },
+    "questionnaireHeaderPersonalized": "Complete your financial profile",
+    "questionnaireHeaderDefault": "Personalise your journey",
+    "welcomeTitle": "Welcome",
+    "finish": "Finish",
+    "continue": "Continue",
+    "skipQuestion": "Skip this question"
   },
   "footer": {
     "tagline": "Learn money skills with lessons, missions, and practice.",

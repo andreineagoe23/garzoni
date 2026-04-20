@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { router, Stack } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { submitFeedback, type FeedbackPayload } from "@garzoni/core";
@@ -19,16 +20,17 @@ import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
 const FEEDBACK_TYPES = [
-  { key: "general", label: "General" },
-  { key: "bug", label: "Bug Report" },
-  { key: "feature", label: "Feature Request" },
-  { key: "content", label: "Content" },
+  { key: "general", labelKey: "feedback.types.general" },
+  { key: "bug", labelKey: "feedback.types.bug" },
+  { key: "feature", labelKey: "feedback.types.feature" },
+  { key: "content", labelKey: "feedback.types.content" },
 ] as const;
 
 type FeedbackType = (typeof FEEDBACK_TYPES)[number]["key"];
 
 export default function FeedbackScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const [feedbackType, setFeedbackType] = useState<FeedbackType>("general");
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
@@ -39,8 +41,8 @@ export default function FeedbackScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show({
         type: "success",
-        text1: "Feedback sent!",
-        text2: "Thanks for helping us improve Garzoni.",
+        text1: t("feedback.toastSuccessTitle"),
+        text2: t("feedback.toastSuccessBody"),
       });
       router.back();
     },
@@ -48,8 +50,12 @@ export default function FeedbackScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error || "Something went wrong. Please try again.";
-      Toast.show({ type: "error", text1: "Failed to send", text2: msg });
+          ?.error || t("feedback.toastErrorBody");
+      Toast.show({
+        type: "error",
+        text1: t("feedback.toastErrorTitle"),
+        text2: msg,
+      });
     },
   });
 
@@ -70,7 +76,7 @@ export default function FeedbackScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "Send Feedback",
+          title: t("feedback.screenTitle"),
           headerShown: true,
           headerTintColor: c.primary,
         }}
@@ -85,7 +91,9 @@ export default function FeedbackScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Type picker */}
-          <Text style={[styles.label, { color: c.text }]}>Type</Text>
+          <Text style={[styles.label, { color: c.text }]}>
+            {t("feedback.typeLabel")}
+          </Text>
           <View style={styles.pills}>
             {FEEDBACK_TYPES.map((ft) => (
               <Pressable
@@ -112,18 +120,20 @@ export default function FeedbackScreen() {
                     fontSize: typography.sm,
                   }}
                 >
-                  {ft.label}
+                  {t(ft.labelKey)}
                 </Text>
               </Pressable>
             ))}
           </View>
 
           {/* Message */}
-          <Text style={[styles.label, { color: c.text }]}>Message</Text>
+          <Text style={[styles.label, { color: c.text }]}>
+            {t("feedback.messageLabel")}
+          </Text>
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder="Tell us what's on your mind… (min 10 characters)"
+            placeholder={t("feedback.messagePlaceholder")}
             placeholderTextColor={c.textFaint}
             multiline
             numberOfLines={6}
@@ -144,15 +154,15 @@ export default function FeedbackScreen() {
 
           {/* Email (optional) */}
           <Text style={[styles.label, { color: c.text }]}>
-            Email{" "}
+            {t("auth.register.email")}{" "}
             <Text style={{ color: c.textMuted, fontWeight: "400" }}>
-              (optional — for follow-up)
+              ({t("auth.register.optional")})
             </Text>
           </Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
-            placeholder="your@email.com"
+            placeholder={t("auth.register.emailPlaceholder")}
             placeholderTextColor={c.textFaint}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -183,7 +193,7 @@ export default function FeedbackScreen() {
               <ActivityIndicator color={c.textOnPrimary} />
             ) : (
               <Text style={[styles.submitText, { color: c.textOnPrimary }]}>
-                Send Feedback
+                {t("feedback.send")}
               </Text>
             )}
           </Pressable>

@@ -635,8 +635,9 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ErrorState
-          message="Could not load your dashboard."
+          message={t("screenErrors.loadDashboard")}
           onRetry={() => void progressQuery.refetch()}
+          onReport={() => router.push("/feedback")}
         />
       </View>
     );
