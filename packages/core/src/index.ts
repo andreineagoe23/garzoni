@@ -25,7 +25,31 @@ export {
   consumeEntitlement,
   FEATURE_COPY,
 } from "./services/entitlementsService";
-export { requestAiTutorResponse } from "./services/aiTutor";
+export {
+  requestAiTutorResponse,
+  requestAiTutorPayload,
+} from "./services/aiTutor";
+export type { AiTutorLink, AiTutorPayload } from "./services/aiTutor";
+export {
+  updateAvatar,
+  AVATAR_STYLES,
+  getDicebearUrl,
+  randomSeed,
+} from "./services/avatarService";
+export type { AvatarStyleId, AvatarUpdateResponse } from "./services/avatarService";
+export {
+  fetchStockQuote,
+  fetchForexQuote,
+  fetchCryptoQuote,
+  resolveCryptoId,
+  cryptoDisplayName,
+  normalizeCurrencyCode,
+} from "./services/marketData";
+export type {
+  StockQuote,
+  ForexQuote,
+  CryptoQuote,
+} from "./services/marketData";
 
 export { initGarzoniI18n, i18n, normalizeLanguage } from "./i18n";
 

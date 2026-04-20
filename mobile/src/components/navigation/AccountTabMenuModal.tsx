@@ -40,7 +40,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
   const signOut = useCallback(async () => {
     onClose();
     await clearSession();
-    router.replace("/login");
+    router.replace("/");
   }, [clearSession, onClose, router]);
 
   const menuRowStyle = [styles.menuRow, { borderBottomColor: c.border }];

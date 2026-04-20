@@ -202,9 +202,10 @@ def update_avatar(request):
     if not avatar_url or not (
         avatar_url.startswith("https://avatars.dicebear.com/")
         or avatar_url.startswith("https://api.dicebear.com/")
+        or avatar_url.startswith("https://res.cloudinary.com/")
     ):
         return Response(
-            {"error": "Invalid avatar URL. Only DiceBear avatars are allowed."},
+            {"error": "Invalid avatar URL. Only DiceBear and Cloudinary avatars are allowed."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 

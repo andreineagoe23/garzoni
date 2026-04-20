@@ -429,8 +429,6 @@
       "signalStrip": {
         "nextSteps": "What should I learn next?"
       },
-      "mobileWebParityTitle": "Web-only tools",
-      "mobileWebParityBody": "Economic Map and News Context currently live in the web app while we finish native WebView sign-in. Everything listed below runs in the app.",
       "comingSoon": "Coming soon",
       "comingSoonHint": "Available on web today; native in a future update."
     },
@@ -1367,7 +1365,28 @@
       "quickOptionsHint": "Click any avatar below to use it.",
       "randomize": "Randomize",
       "saving": "Saving...",
-      "save": "Save Avatar"
+      "save": "Save Avatar",
+      "cancel": "Cancel",
+      "tabPrebuilt": "Prebuilt",
+      "tabPhoto": "Photo",
+      "choosePhoto": "Choose photo",
+      "changePhoto": "Change photo",
+      "photoHint": "Select a square photo from your device. It will be cropped to a circle.",
+      "uploadNotConfigured": "Photo upload is not configured for this build.",
+      "photoPermissionDenied": "Permission to access photos was denied.",
+      "pickError": "Could not open photo library.",
+      "noSelection": "Please choose an avatar first.",
+      "savedToast": "Avatar updated",
+      "saveError": "Could not update avatar.",
+      "styles": {
+        "people": "People",
+        "robots": "Robots",
+        "initials": "Initials",
+        "micah": "Micah",
+        "adventurer": "Adventurer",
+        "emoji": "Emoji",
+        "pixel": "Pixel Art"
+      }
     }
   },
   "widgets": {
@@ -1791,6 +1810,8 @@
     "aria": "Onboarding Questionnaire",
     "introButtonNext": "Next",
     "introButtonStart": "Get started",
+    "introButtonBack": "Back",
+    "introSkip": "Skip",
     "introSlides": {
       "welcome": {
         "title": "Welcome to Garzoni",

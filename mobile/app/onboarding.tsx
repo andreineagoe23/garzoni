@@ -6,12 +6,14 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -308,16 +310,41 @@ export default function OnboardingScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: c.text }]}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={10}
+          style={styles.headerIconBtn}
+          accessibilityLabel={t("onboarding.previous")}
+        >
+          <Ionicons name="chevron-back" size={22} color={c.text} />
+        </Pressable>
+        <Text
+          style={[styles.headerTitle, { color: c.text }]}
+          numberOfLines={1}
+        >
           {personalizedPathReason
             ? t("onboarding.questionnaireHeaderPersonalized")
             : t("onboarding.questionnaireHeaderDefault")}
         </Text>
+        <View
+          style={[
+            styles.stepPill,
+            { backgroundColor: c.surface, borderColor: c.border },
+          ]}
+        >
+          <Text style={[styles.stepPillText, { color: c.textMuted }]}>
+            {questionData?.current_question_number ?? "—"}
+            <Text style={{ color: c.textFaint }}>
+              {" "}
+              / {questionData?.total_questions ?? "—"}
+            </Text>
+          </Text>
+        </View>
       </View>
 
       <ProgressBar
         value={progress / 100}
-        height={4}
+        height={6}
         style={styles.progressBar}
       />
 
@@ -335,14 +362,25 @@ export default function OnboardingScreen() {
             </View>
           ) : question ? (
             <Animated.View style={{ transform: [{ translateY }] }}>
-              <Text style={[styles.questionText, { color: c.text }]}>
-                {question.text}
-              </Text>
-              {question.description ? (
-                <Text style={[styles.questionDesc, { color: c.textMuted }]}>
-                  {question.description}
+              <View
+                style={[
+                  styles.questionCard,
+                  {
+                    backgroundColor: c.surface,
+                    borderColor: c.border,
+                    ...shadows.sm,
+                  },
+                ]}
+              >
+                <Text style={[styles.questionText, { color: c.text }]}>
+                  {question.text}
                 </Text>
-              ) : null}
+                {question.description ? (
+                  <Text style={[styles.questionDesc, { color: c.textMuted }]}>
+                    {question.description}
+                  </Text>
+                ) : null}
+              </View>
 
               {question.type === "single_choice" && (
                 <QuestionnaireSingleChoice
@@ -405,19 +443,6 @@ export default function OnboardingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {questionData ? (
-        <Text
-          style={[
-            styles.stepCounter,
-            { color: c.textMuted, backgroundColor: c.bg },
-          ]}
-        >
-          {t("onboarding.questionOf", {
-            current: questionData.current_question_number ?? "—",
-            total: questionData.total_questions ?? "—",
-          })}
-        </Text>
-      ) : null}
     </SafeAreaView>
   );
 }
@@ -446,18 +471,36 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: spacing.sm,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
+  headerIconBtn: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: -spacing.sm,
+  },
   headerTitle: {
+    flex: 1,
     fontSize: typography.md,
     fontWeight: "700",
   },
-  skipLink: {
-    fontSize: typography.sm,
-    fontWeight: "600",
+  stepPill: {
+    borderWidth: 1,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    minHeight: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepPillText: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   progressBar: {
     marginHorizontal: spacing.xl,
@@ -470,15 +513,21 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     paddingBottom: 80,
   },
+  questionCard: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
   questionText: {
     fontSize: typography.xl,
     fontWeight: "700",
     marginBottom: spacing.sm,
     lineHeight: 30,
+    letterSpacing: -0.2,
   },
   questionDesc: {
     fontSize: typography.base,
-    marginBottom: spacing.xl,
     lineHeight: 22,
   },
 
@@ -487,10 +536,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   actions: { marginTop: spacing.xxl, gap: spacing.sm },
-
-  stepCounter: {
-    textAlign: "center",
-    fontSize: typography.xs,
-    paddingBottom: spacing.md,
-  },
 });

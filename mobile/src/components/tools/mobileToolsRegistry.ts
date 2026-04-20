@@ -23,7 +23,6 @@ export const GROUP_LABELS: Record<ToolGroup, string> = {
   "decide-next": "Decide Next",
 };
 
-// economic-map and news-context deferred to PR #2 (require WebView auth bridge)
 export const MOBILE_TOOLS: MobileToolDef[] = [
   {
     id: "economic-map",
@@ -33,7 +32,6 @@ export const MOBILE_TOOLS: MobileToolDef[] = [
     subtitle: "Regional macro snapshot",
     icon: "Map",
     accentColor: "#0f766e",
-    comingSoon: true,
     estimatedMinutes: 8,
   },
   {
@@ -44,7 +42,6 @@ export const MOBILE_TOOLS: MobileToolDef[] = [
     subtitle: "Headlines with learner-friendly context",
     icon: "Newspaper",
     accentColor: "#0369a1",
-    comingSoon: true,
     estimatedMinutes: 6,
   },
   {

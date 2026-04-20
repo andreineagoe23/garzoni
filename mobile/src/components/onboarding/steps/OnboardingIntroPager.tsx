@@ -8,7 +8,9 @@ import {
 } from "react";
 import {
   AccessibilityInfo,
+  Animated,
   Dimensions,
+  Easing,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -19,6 +21,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ImpactFeedbackStyle } from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 import { safeImpactAsync } from "../../../utils/safeHaptics";
 import LottieHero from "../../motion/LottieHero";
 import { Button } from "../../ui";
@@ -32,7 +35,6 @@ export type IntroSlide = {
   title: string;
   body: string;
   emoji: string;
-  /** Optional Lottie asset; omit to use emoji-only hero. */
   lottieSource?: ComponentProps<typeof LottieHero>["source"];
 };
 
@@ -91,6 +93,29 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
     return () => sub.remove();
   }, []);
 
+  // Hero spring animation on slide change
+  const heroScale = useRef(new Animated.Value(1)).current;
+  const heroOpacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (reduceMotion) return;
+    heroScale.setValue(0.85);
+    heroOpacity.setValue(0);
+    Animated.parallel([
+      Animated.spring(heroScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 14,
+        bounciness: 10,
+      }),
+      Animated.timing(heroOpacity, {
+        toValue: 1,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [page, reduceMotion, heroScale, heroOpacity]);
+
   const onScrollEnd = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const x = e.nativeEvent.contentOffset.x;
@@ -116,8 +141,36 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
     }
   }, [page, resolvedSlides.length, onDone]);
 
+  const goBack = useCallback(() => {
+    if (page === 0) return;
+    scrollRef.current?.scrollTo({ x: SCREEN_W * (page - 1), animated: true });
+    setPage((p) => p - 1);
+    void safeImpactAsync(ImpactFeedbackStyle.Light);
+  }, [page]);
+
+  const isLast = page === resolvedSlides.length - 1;
+
   return (
     <View style={[styles.root, { backgroundColor: c.bg }]}>
+      <View style={styles.topBar}>
+        {!isLast ? (
+          <Pressable
+            onPress={() => {
+              void safeImpactAsync(ImpactFeedbackStyle.Light);
+              onDone();
+            }}
+            hitSlop={12}
+            style={styles.skipBtn}
+          >
+            <Text style={[styles.skipText, { color: c.textMuted }]}>
+              {t("onboarding.introSkip")}
+            </Text>
+          </Pressable>
+        ) : (
+          <View style={styles.skipBtn} />
+        )}
+      </View>
+
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -126,26 +179,49 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
         onMomentumScrollEnd={onScrollEnd}
         keyboardShouldPersistTaps="handled"
       >
-        {resolvedSlides.map((s) => (
-          <View key={s.key} style={[styles.page, { width: SCREEN_W }]}>
-            <View style={[styles.hero, { backgroundColor: c.surface }]}>
-              {s.lottieSource ? (
-                <LottieHero
-                  source={s.lottieSource}
-                  style={styles.lottie}
-                  reducedMotion={reduceMotion}
-                  loop
+        {resolvedSlides.map((s, i) => {
+          const isActive = i === page;
+          return (
+            <View key={s.key} style={[styles.page, { width: SCREEN_W }]}>
+              <Animated.View
+                style={[
+                  styles.heroWrap,
+                  isActive && {
+                    transform: [{ scale: heroScale }],
+                    opacity: heroOpacity,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.haloOuter,
+                    { backgroundColor: `${c.primary}14` },
+                  ]}
                 />
-              ) : (
-                <Text style={styles.emojiHero} accessibilityLabel="">
-                  {s.emoji}
-                </Text>
-              )}
+                <View
+                  style={[
+                    styles.haloInner,
+                    { backgroundColor: `${c.primary}22` },
+                  ]}
+                />
+                {s.lottieSource ? (
+                  <LottieHero
+                    source={s.lottieSource}
+                    style={styles.lottie}
+                    reducedMotion={reduceMotion}
+                    loop
+                  />
+                ) : (
+                  <Text style={styles.emojiHero} accessibilityLabel="">
+                    {s.emoji}
+                  </Text>
+                )}
+              </Animated.View>
+              <Text style={[styles.title, { color: c.text }]}>{s.title}</Text>
+              <Text style={[styles.body, { color: c.textMuted }]}>{s.body}</Text>
             </View>
-            <Text style={[styles.title, { color: c.text }]}>{s.title}</Text>
-            <Text style={[styles.body, { color: c.textMuted }]}>{s.body}</Text>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <View style={styles.dots}>
@@ -161,7 +237,7 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
               styles.dot,
               {
                 backgroundColor: i === page ? c.primary : c.border,
-                width: i === page ? 22 : 8,
+                width: i === page ? 26 : 8,
               },
             ]}
             accessibilityLabel={`Slide ${i + 1} of ${resolvedSlides.length}`}
@@ -170,38 +246,75 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
       </View>
 
       <View style={[styles.footer, { backgroundColor: c.bg }]}>
-        <Button onPress={goNext}>
-          {page < resolvedSlides.length - 1
-            ? t("onboarding.introButtonNext")
-            : t("onboarding.introButtonStart")}
-        </Button>
+        {page > 0 ? (
+          <Pressable
+            onPress={goBack}
+            hitSlop={8}
+            style={[styles.backBtn, { borderColor: c.border }]}
+          >
+            <Ionicons name="chevron-back" size={20} color={c.text} />
+          </Pressable>
+        ) : null}
+        <View style={{ flex: 1 }}>
+          <Button onPress={goNext}>
+            {isLast
+              ? t("onboarding.introButtonStart")
+              : t("onboarding.introButtonNext")}
+          </Button>
+        </View>
       </View>
     </View>
   );
 }
 
+const HERO_SIZE = 220;
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  skipBtn: { minHeight: 32, justifyContent: "center" },
+  skipText: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+  },
   page: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.lg,
     alignItems: "center",
   },
-  hero: {
-    minHeight: 140,
-    width: "100%",
+  heroWrap: {
+    width: HERO_SIZE,
+    height: HERO_SIZE,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.lg,
-    borderRadius: radius.lg,
+    marginBottom: spacing.xxl,
   },
-  lottie: { width: 200, height: 140 },
-  emojiHero: { fontSize: 88, lineHeight: 100 },
+  haloOuter: {
+    position: "absolute",
+    width: HERO_SIZE,
+    height: HERO_SIZE,
+    borderRadius: HERO_SIZE / 2,
+  },
+  haloInner: {
+    position: "absolute",
+    width: HERO_SIZE * 0.72,
+    height: HERO_SIZE * 0.72,
+    borderRadius: (HERO_SIZE * 0.72) / 2,
+  },
+  lottie: { width: 200, height: 180 },
+  emojiHero: { fontSize: 108, lineHeight: 120 },
   title: {
     fontSize: typography.xxl,
     fontWeight: "800",
     textAlign: "center",
     marginBottom: spacing.md,
+    letterSpacing: -0.3,
   },
   body: {
     fontSize: typography.base,
@@ -220,7 +333,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xl,
+  },
+  backBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

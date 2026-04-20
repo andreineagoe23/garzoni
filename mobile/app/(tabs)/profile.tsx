@@ -51,7 +51,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { spacing, typography, radius } from "../../src/theme/tokens";
 import type { ThemeColors } from "../../src/theme/palettes";
 import EntitlementUsageMobile from "../../src/components/profile/EntitlementUsageMobile";
-import ActivityCalendarMobile from "../../src/components/profile/ActivityCalendarMobile";
+import AvatarSelectorMobile from "../../src/components/profile/AvatarSelectorMobile";
+import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { formatRelativeTime } from "../../src/utils/formatRelativeTime";
 import AnimatedStatValue from "../../src/components/profile/AnimatedStatValue";
 
@@ -82,6 +83,7 @@ function ProfileInner() {
   );
   const [deletePhrase, setDeletePhrase] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
 
   const enabled = Boolean(accessToken);
 
@@ -141,7 +143,7 @@ function ProfileInner() {
 
   const signOut = useCallback(async () => {
     await clearSession();
-    router.replace("/login");
+    router.replace("/");
   }, [clearSession]);
 
   const shareProfile = useCallback(async () => {
@@ -245,19 +247,6 @@ function ProfileInner() {
     return badgesMerged;
   }, [badgesMerged, badgeFilter]);
 
-  const weekdayLabels = useMemo(
-    () => [
-      t("profile.weekdays.sun"),
-      t("profile.weekdays.mon"),
-      t("profile.weekdays.tue"),
-      t("profile.weekdays.wed"),
-      t("profile.weekdays.thu"),
-      t("profile.weekdays.fri"),
-      t("profile.weekdays.sat"),
-    ],
-    [t],
-  );
-
   const goals = useMemo(() => {
     const dailyGoal = (merged?.daily_goal as
       | { earned_xp_today?: number; target_xp?: number }
@@ -311,35 +300,45 @@ function ProfileInner() {
 
   if (!enabled) {
     return (
-      <ScreenScroll
-        contentContainerStyle={[
-          styles.container,
-          { backgroundColor: colors.bg },
-        ]}
-      >
-        <Text style={{ color: colors.textMuted }}>
-          {t("auth.login.subtitle")}
-        </Text>
-      </ScreenScroll>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <TabScreenHeader title={t("nav.profile")} />
+        <ScreenScroll
+          contentContainerStyle={[
+            styles.container,
+            { backgroundColor: colors.bg },
+          ]}
+        >
+          <Text style={{ color: colors.textMuted }}>
+            {t("auth.login.subtitle")}
+          </Text>
+        </ScreenScroll>
+      </View>
     );
   }
 
   if (profileQuery.isPending) {
     return (
-      <ScreenScroll contentContainerStyle={styles.container}>
-        <View style={styles.avatarRow}>
-          <Skeleton width={64} height={64} borderRadius={32} />
-          <View style={{ marginLeft: spacing.lg, flex: 1 }}>
-            <Skeleton width="60%" height={20} />
-            <Skeleton
-              width="80%"
-              height={14}
-              style={{ marginTop: spacing.sm }}
-            />
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <TabScreenHeader title={t("nav.profile")} />
+        <ScreenScroll contentContainerStyle={styles.container}>
+          <View style={styles.avatarRow}>
+            <Skeleton width={64} height={64} borderRadius={32} />
+            <View style={{ marginLeft: spacing.lg, flex: 1 }}>
+              <Skeleton width="60%" height={20} />
+              <Skeleton
+                width="80%"
+                height={14}
+                style={{ marginTop: spacing.sm }}
+              />
+            </View>
           </View>
-        </View>
-        <Skeleton width="100%" height={80} style={{ marginTop: spacing.xxl }} />
-      </ScreenScroll>
+          <Skeleton
+            width="100%"
+            height={80}
+            style={{ marginTop: spacing.xxl }}
+          />
+        </ScreenScroll>
+      </View>
     );
   }
 
@@ -386,15 +385,6 @@ function ProfileInner() {
       : `${getMediaBaseUrl()}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
     : null;
 
-  const activityCalendar =
-    (merged.activity_calendar as Record<string, unknown>) || {};
-  const currentMonth = (merged.current_month as {
-    first_day?: string | number | Date | null;
-    last_day?: string | number | Date | null;
-    month_name?: string;
-    year?: number | string | null;
-  }) || { first_day: null, last_day: null, month_name: "", year: null };
-
   const entitlements = entitlementsQuery.data;
   const subActive = ["active", "trialing"].includes(
     String(entitlements?.status ?? ""),
@@ -420,7 +410,8 @@ function ProfileInner() {
 
   return (
     <>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <TabScreenHeader title={t("nav.profile")} />
         <ScreenScroll
           contentContainerStyle={[
             styles.container,
@@ -435,11 +426,28 @@ function ProfileInner() {
           }
         >
           <View style={[styles.avatarRow, { marginBottom: spacing.lg }]}>
-            <Avatar
-              username={displayName || username}
-              uri={avatarUri}
-              size={64}
-            />
+            <Pressable
+              onPress={() => setAvatarEditorOpen(true)}
+              hitSlop={8}
+              accessibilityLabel={t("profile.avatarSelector.changeAvatar")}
+            >
+              <Avatar
+                username={displayName || username}
+                uri={avatarUri}
+                size={64}
+              />
+              <View
+                style={[
+                  styles.avatarEditBadge,
+                  {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.bg,
+                  },
+                ]}
+              >
+                <Ionicons name="pencil" size={12} color={colors.white} />
+              </View>
+            </Pressable>
             <View style={styles.nameCol}>
               <Text style={[styles.displayName, { color: colors.text }]}>
                 {displayName || username || t("profile.fallbackUser")}
@@ -514,24 +522,6 @@ function ProfileInner() {
           />
 
           <EntitlementUsageMobile items={entitlementUsage} colors={colors} />
-
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t("profile.streak.title")}
-          </Text>
-          <Text
-            style={[
-              styles.sectionSub,
-              { color: colors.textMuted, marginBottom: spacing.sm },
-            ]}
-          >
-            {t("profile.streak.subtitle")}
-          </Text>
-          <ActivityCalendarMobile
-            currentMonth={currentMonth}
-            activityCalendar={activityCalendar}
-            weekdayLabels={weekdayLabels}
-            colors={colors}
-          />
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             {t("profile.stats.title")}
@@ -918,6 +908,12 @@ function ProfileInner() {
         </ScreenScroll>
       </View>
 
+      <AvatarSelectorMobile
+        visible={avatarEditorOpen}
+        currentAvatar={avatarUri}
+        onClose={() => setAvatarEditorOpen(false)}
+      />
+
       <Modal
         visible={deleteFlow !== "hidden"}
         transparent
@@ -1253,6 +1249,17 @@ const styles = StyleSheet.create({
   avatarRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  avatarEditBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   nameCol: { marginLeft: spacing.lg, flex: 1 },
   displayName: {

@@ -429,8 +429,6 @@
       "signalStrip": {
         "nextSteps": "Ce ar trebui să învăț în continuare?"
       },
-      "mobileWebParityTitle": "Instrumente doar pe web",
-      "mobileWebParityBody": "Economic Map și News Context sunt momentan pe web, până finalizăm autentificarea WebView nativă. Tot ce e listat mai jos rulează în aplicație.",
       "comingSoon": "În curând",
       "comingSoonHint": "Disponibil pe web azi; nativ într-un update viitor."
     },
@@ -1367,7 +1365,28 @@
       "quickOptionsHint": "Apasă pe orice avatar de mai jos ca să-l folosești.",
       "randomize": "Aleator",
       "saving": "Se salvează...",
-      "save": "Salvează avatarul"
+      "save": "Salvează avatarul",
+      "cancel": "Anulează",
+      "tabPrebuilt": "Predefinit",
+      "tabPhoto": "Fotografie",
+      "choosePhoto": "Alege fotografie",
+      "changePhoto": "Schimbă fotografia",
+      "photoHint": "Alege o fotografie pătrată de pe dispozitiv. Va fi decupată rotund.",
+      "uploadNotConfigured": "Încărcarea fotografiilor nu este configurată pentru această versiune.",
+      "photoPermissionDenied": "Accesul la fotografii a fost refuzat.",
+      "pickError": "Nu s-a putut deschide galeria foto.",
+      "noSelection": "Alege mai întâi un avatar.",
+      "savedToast": "Avatar actualizat",
+      "saveError": "Nu s-a putut actualiza avatarul.",
+      "styles": {
+        "people": "Oameni",
+        "robots": "Roboți",
+        "initials": "Inițiale",
+        "micah": "Micah",
+        "adventurer": "Aventurier",
+        "emoji": "Emoji",
+        "pixel": "Pixel Art"
+      }
     }
   },
   "widgets": {
@@ -1791,6 +1810,8 @@
     "aria": "Chestionar de onboarding",
     "introButtonNext": "Înainte",
     "introButtonStart": "Începe",
+    "introButtonBack": "Înapoi",
+    "introSkip": "Sari peste",
     "introSlides": {
       "welcome": {
         "title": "Bine ai venit la Garzoni",

@@ -14,7 +14,7 @@ import {
   identifyGarzoniUserFromAccessToken,
 } from "../bootstrap/customerIoMobile";
 import { tokenStorage } from "./tokenStorage";
-import { clearPlanChosenCache } from "./firstRunFlags";
+import { clearPlanChosenCache, clearWelcomeSeen } from "./firstRunFlags";
 
 type AuthSessionValue = {
   hydrated: boolean;
@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await clearGarzoniCustomerIo();
     await clearRevenueCatSession();
     await clearPlanChosenCache();
+    await clearWelcomeSeen();
     await tokenStorage.clearAll();
     attachToken(null);
     setAccessToken(null);

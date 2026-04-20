@@ -2,13 +2,13 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Toast from "react-native-toast-message";
 import {
-  Pressable,
   ScrollView,
   SectionList,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Chip } from "../../src/components/ui";
 import { useRouter } from "expo-router";
 import { href } from "../../src/navigation/href";
 import { useQuery } from "@tanstack/react-query";
@@ -21,9 +21,8 @@ import {
   type ToolGroup,
 } from "../../src/components/tools/mobileToolsRegistry";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { radius, spacing, typography } from "../../src/theme/tokens";
+import { spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
-import GlassCard from "../../src/components/ui/GlassCard";
 
 const ALL_GROUPS: ToolGroup[] = [
   "understand-world",
@@ -71,27 +70,6 @@ export default function ToolsHubScreen() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <TabScreenHeader title={t("nav.tools")} />
 
-      <GlassCard
-        padding="md"
-        style={{ marginHorizontal: spacing.xl, marginBottom: spacing.sm }}
-      >
-        <Text
-          style={{ color: c.text, fontSize: typography.sm, fontWeight: "700" }}
-        >
-          {t("tools.hub.mobileWebParityTitle")}
-        </Text>
-        <Text
-          style={{
-            color: c.textMuted,
-            fontSize: typography.xs,
-            marginTop: spacing.xs,
-            lineHeight: 18,
-          }}
-        >
-          {t("tools.hub.mobileWebParityBody")}
-        </Text>
-      </GlassCard>
-
       {/* Group pill filter */}
       <ScrollView
         horizontal
@@ -99,32 +77,17 @@ export default function ToolsHubScreen() {
         contentContainerStyle={styles.filterRow}
       >
         {filters.map((f) => {
-          const active = f === activeFilter;
           const label =
             f === "all"
               ? t("tools.hub.filterAll")
               : t(`tools.groups.${f}.label`);
           return (
-            <Pressable
+            <Chip
               key={f}
+              label={label}
+              active={f === activeFilter}
               onPress={() => setActiveFilter(f)}
-              style={[
-                styles.pill,
-                {
-                  backgroundColor: active ? c.primary : c.surface,
-                  borderColor: active ? c.primary : c.border,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.pillText,
-                  { color: active ? "#fff" : c.textMuted },
-                ]}
-              >
-                {label}
-              </Text>
-            </Pressable>
+            />
           );
         })}
       </ScrollView>
@@ -186,16 +149,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     gap: spacing.sm,
-  },
-  pill: {
-    borderRadius: radius.full,
-    borderWidth: 1,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  pillText: {
-    fontSize: typography.sm,
-    fontWeight: "600",
   },
   list: {
     paddingHorizontal: spacing.xl,

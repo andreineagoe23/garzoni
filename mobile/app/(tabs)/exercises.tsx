@@ -16,7 +16,6 @@ import * as Haptics from "expo-haptics";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import type { MascotSituation } from "@garzoni/core";
 import {
   buildStandaloneExerciseViewModel,
   fetchExerciseById,
@@ -37,7 +36,6 @@ import {
   ProgressBar,
   Skeleton,
 } from "../../src/components/ui";
-import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import ExerciseSkillIntentBanner, {
   type ExerciseIntentBannerModel,
@@ -159,7 +157,6 @@ function ExercisesInner() {
   const [feedbackTone, setFeedbackTone] = useState<"success" | "error" | null>(
     null,
   );
-  const [mascotRotationKey, setMascotRotationKey] = useState(0);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     completed: 0,
@@ -187,7 +184,6 @@ function ExercisesInner() {
     hadIncorrectRef.current = false;
     setFeedbackLine("");
     setFeedbackTone(null);
-    setMascotRotationKey(0);
     setHintIndex(0);
   }, [pickedId]);
 
@@ -422,7 +418,6 @@ function ExercisesInner() {
     } catch {
       setFeedbackLine(t("exercises.practiceHub.loadReviewsError"));
       setFeedbackTone("error");
-      setMascotRotationKey((n) => n + 1);
     } finally {
       setReviewLoading(false);
     }
@@ -527,19 +522,6 @@ function ExercisesInner() {
   const typeLabel = exerciseType
     ? labelForExerciseType(exerciseType, t)
     : t("exercises.filters.allTypes");
-
-  const mascotMood =
-    feedbackTone === "success"
-      ? "celebrate"
-      : feedbackTone === "error"
-        ? "encourage"
-        : "neutral";
-
-  const practiceMascotSituation = useMemo((): MascotSituation => {
-    if (feedbackTone === "success") return "practice_correct";
-    if (feedbackTone === "error") return "practice_incorrect";
-    return "practice_neutral";
-  }, [feedbackTone]);
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -831,7 +813,6 @@ function ExercisesInner() {
                       }
                       setFeedbackLine(line);
                       setFeedbackTone(correct ? "success" : "error");
-                      setMascotRotationKey((n) => n + 1);
                     }}
                     onAttempt={({ correct }) => {
                       if (!correct) {
@@ -863,16 +844,6 @@ function ExercisesInner() {
                   </Text>
                 ) : null}
               </GlassCard>
-
-              <View style={{ marginBottom: spacing.md }}>
-                <MascotWithMessage
-                  mood={mascotMood}
-                  situation={practiceMascotSituation}
-                  rotationKey={mascotRotationKey}
-                  embedded
-                  mascotSize={56}
-                />
-              </View>
 
               {hints.length > 0 ? (
                 <View style={{ marginBottom: spacing.md }}>
