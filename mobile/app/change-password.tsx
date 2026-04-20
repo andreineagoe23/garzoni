@@ -7,7 +7,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
+import * as Haptics from "expo-haptics";
+import Toast from "react-native-toast-message";
 import { changePassword } from "@garzoni/core";
 import { Button, FormInput } from "../src/components/ui";
 import { useThemeColors } from "../src/theme/ThemeContext";
@@ -15,6 +18,7 @@ import { spacing, typography, radius } from "../src/theme/tokens";
 
 export default function ChangePasswordScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -40,15 +44,15 @@ export default function ChangePasswordScreen() {
   const onSubmit = async () => {
     setError("");
     if (!current || !next || !confirm) {
-      setError("Fill in all fields.");
+      setError(t("settings.password.fillAll"));
       return;
     }
     if (next.length < 8) {
-      setError("New password must be at least 8 characters.");
+      setError(t("settings.password.newMinLength"));
       return;
     }
     if (next !== confirm) {
-      setError("New passwords do not match.");
+      setError(t("settings.password.newMismatch"));
       return;
     }
     setLoading(true);
@@ -58,13 +62,18 @@ export default function ChangePasswordScreen() {
         new_password: next,
         confirm_password: confirm,
       });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show({
+        type: "success",
+        text1: t("settings.success.passwordUpdated"),
+      });
       router.back();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setError(
         typeof err.response?.data?.error === "string"
           ? err.response.data.error
-          : "Could not change password.",
+          : t("settings.password.couldNotChange"),
       );
     } finally {
       setLoading(false);
@@ -72,44 +81,53 @@ export default function ChangePasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+    <>
+      <Stack.Screen
+        options={{
+          title: t("settings.password.title"),
+          headerShown: true,
+          headerTintColor: c.primary,
+        }}
+      />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {error ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
-        <FormInput
-          label="Current password"
-          secureTextEntry
-          value={current}
-          onChangeText={setCurrent}
-          autoCapitalize="none"
-        />
-        <FormInput
-          label="New password"
-          secureTextEntry
-          value={next}
-          onChangeText={setNext}
-          autoCapitalize="none"
-        />
-        <FormInput
-          label="Confirm new password"
-          secureTextEntry
-          value={confirm}
-          onChangeText={setConfirm}
-          autoCapitalize="none"
-        />
-        <Button loading={loading} onPress={() => void onSubmit()}>
-          Update password
-        </Button>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          {error ? (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
+          <FormInput
+            label={t("settings.password.current")}
+            secureTextEntry
+            value={current}
+            onChangeText={setCurrent}
+            autoCapitalize="none"
+          />
+          <FormInput
+            label={t("settings.password.new")}
+            secureTextEntry
+            value={next}
+            onChangeText={setNext}
+            autoCapitalize="none"
+          />
+          <FormInput
+            label={t("settings.password.confirm")}
+            secureTextEntry
+            value={confirm}
+            onChangeText={setConfirm}
+            autoCapitalize="none"
+          />
+          <Button loading={loading} onPress={() => void onSubmit()}>
+            {t("settings.password.update")}
+          </Button>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }

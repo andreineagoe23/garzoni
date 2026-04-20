@@ -525,11 +525,11 @@ export default function MissionsScreen() {
           ) : null}
 
           {missionsQuery.isPending ? (
-            <Skeleton
-              width="100%"
-              height={100}
-              style={{ marginBottom: spacing.md }}
-            />
+            <View style={{ gap: spacing.md, marginBottom: spacing.lg }}>
+              <Skeleton width="100%" height={100} />
+              <Skeleton width="100%" height={100} />
+              <Skeleton width="100%" height={100} />
+            </View>
           ) : missionsQuery.isError ? (
             <ErrorState
               message={t("missions.errors.loadMissions")}
@@ -538,12 +538,12 @@ export default function MissionsScreen() {
           ) : noMissionsAvailable ? (
             <GlassCard padding="lg" style={{ marginBottom: spacing.lg }}>
               <Text style={[styles.sectionTitle, { color: c.accent }]}>
-                {t("missions.header.title")}
+                {t("missions.empty.title")}
               </Text>
               <Text
                 style={[styles.sub, { color: c.textMuted, marginBottom: 0 }]}
               >
-                No daily or weekly missions are available yet. Pull to refresh.
+                {t("missions.empty.body")}
               </Text>
             </GlassCard>
           ) : (
@@ -620,7 +620,7 @@ export default function MissionsScreen() {
                     { color: c.textMuted, marginBottom: spacing.lg },
                   ]}
                 >
-                  {t("missions.weekly.title")}: none available right now.
+                  {t("missions.weekly.title")}: {t("missions.weekly.noneAvailable")}
                 </Text>
               )}
 

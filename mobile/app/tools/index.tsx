@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import Toast from "react-native-toast-message";
 import {
   Pressable,
   ScrollView,
@@ -15,7 +16,6 @@ import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
 import ToolCard from "../../src/components/tools/ToolCard";
 import PlusBottomSheet from "../../src/components/tools/PlusBottomSheet";
 import {
-  GROUP_LABELS,
   MOBILE_TOOLS,
   type MobileToolDef,
   type ToolGroup,
@@ -32,13 +32,6 @@ const ALL_GROUPS: ToolGroup[] = [
 ];
 
 type FilterOption = ToolGroup | "all";
-
-const FILTER_LABELS: Record<FilterOption, string> = {
-  all: "All",
-  "understand-world": "World",
-  "understand-myself": "Myself",
-  "decide-next": "Decide",
-};
 
 type Section = {
   group: ToolGroup;
@@ -76,7 +69,7 @@ export default function ToolsHubScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <TabScreenHeader title="Tools" />
+      <TabScreenHeader title={t("nav.tools")} />
 
       <GlassCard
         padding="md"
@@ -107,6 +100,10 @@ export default function ToolsHubScreen() {
       >
         {filters.map((f) => {
           const active = f === activeFilter;
+          const label =
+            f === "all"
+              ? t("tools.hub.filterAll")
+              : t(`tools.groups.${f}.label`);
           return (
             <Pressable
               key={f}
@@ -125,7 +122,7 @@ export default function ToolsHubScreen() {
                   { color: active ? "#fff" : c.textMuted },
                 ]}
               >
-                {FILTER_LABELS[f]}
+                {label}
               </Text>
             </Pressable>
           );
@@ -140,7 +137,7 @@ export default function ToolsHubScreen() {
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) => (
           <Text style={[styles.sectionHeader, { color: c.textFaint }]}>
-            {GROUP_LABELS[section.group].toUpperCase()}
+            {t(`tools.groups.${section.group}.title`).toUpperCase()}
           </Text>
         )}
         renderItem={({ item }) => {
@@ -149,7 +146,18 @@ export default function ToolsHubScreen() {
             <View style={styles.cardWrap}>
               <ToolCard
                 tool={item}
+                comingSoonLabel={
+                  item.comingSoon ? t("tools.hub.comingSoon") : undefined
+                }
                 onPress={() => {
+                  if (item.comingSoon) {
+                    Toast.show({
+                      type: "info",
+                      text1: t("tools.hub.comingSoon"),
+                      text2: t("tools.hub.comingSoonHint"),
+                    });
+                    return;
+                  }
                   if (locked) {
                     setPlusSheetVisible(true);
                     return;

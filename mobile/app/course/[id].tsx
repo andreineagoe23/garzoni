@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -37,12 +38,15 @@ type LessonRow = {
   short_description?: string;
 };
 
-function lessonsLoadErrorMessage(error: unknown): {
+function lessonsLoadErrorMessage(
+  error: unknown,
+  t: TFunction<"common">,
+): {
   upgrade: boolean;
   message: string;
 } {
   if (!isAxiosError(error)) {
-    return { upgrade: false, message: "Could not load lessons." };
+    return { upgrade: false, message: t("screenErrors.loadCourseLessons") };
   }
   const status = error.response?.status;
   const data = error.response?.data as
@@ -58,12 +62,13 @@ function lessonsLoadErrorMessage(error: unknown): {
       message:
         typeof msg === "string" && msg.trim()
           ? msg
-          : "Upgrade required to access this course.",
+          : t("screenErrors.upgradeRequiredGeneric"),
     };
   }
   return {
     upgrade: false,
-    message: typeof msg === "string" ? msg : "Could not load lessons.",
+    message:
+      typeof msg === "string" ? msg : t("screenErrors.loadCourseLessons"),
   };
 }
 
@@ -121,7 +126,8 @@ export default function CourseDetailScreen() {
   const pct = lessons.length > 0 ? completedCount / lessons.length : 0;
 
   const courseTitle =
-    (courseQuery.data as { title?: string })?.title ?? `Course ${id}`;
+    (courseQuery.data as { title?: string })?.title ??
+    t("courseDetail.courseFallback", { id });
 
   const onRefresh = useCallback(() => {
     void courseQuery.refetch();
@@ -137,7 +143,10 @@ export default function CourseDetailScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen
-          options={{ title: "Loading…", headerRight: headerRightHome }}
+          options={{
+            title: t("courseDetail.loading"),
+            headerRight: headerRightHome,
+          }}
         />
         <Skeleton
           width="80%"
@@ -162,7 +171,10 @@ export default function CourseDetailScreen() {
   }
 
   if (lessonsQuery.isError) {
-    const { upgrade, message } = lessonsLoadErrorMessage(lessonsQuery.error);
+    const { upgrade, message } = lessonsLoadErrorMessage(
+      lessonsQuery.error,
+      t,
+    );
     return (
       <>
         <Stack.Screen
@@ -171,8 +183,9 @@ export default function CourseDetailScreen() {
         <ErrorState
           message={message}
           onRetry={upgrade ? undefined : () => void lessonsQuery.refetch()}
-          actionLabel={upgrade ? "View plans" : undefined}
+          actionLabel={upgrade ? t("screenErrors.viewPlans") : undefined}
           onAction={upgrade ? () => router.push("/subscriptions") : undefined}
+          onReport={() => router.push("/feedback")}
         />
       </>
     );
@@ -198,7 +211,10 @@ export default function CourseDetailScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>{courseTitle}</Text>
             <Text style={styles.meta}>
-              {completedCount}/{lessons.length} lessons completed
+              {t("courseDetail.lessonsCompleted", {
+                completed: completedCount,
+                total: lessons.length,
+              })}
             </Text>
             <ProgressBar value={pct} style={{ marginTop: spacing.sm }} />
 
@@ -207,11 +223,13 @@ export default function CourseDetailScreen() {
                 style={{ marginTop: spacing.lg }}
                 onPress={() => router.push(`/flow/${courseId}`)}
               >
-                {pct > 0 ? "Continue" : "Start learning"}
+                {pct > 0
+                  ? t("courseDetail.continue")
+                  : t("courseDetail.startLearning")}
               </Button>
             ) : pct >= 1 ? (
               <Badge
-                label="✓ Completed"
+                label={t("courseDetail.completedBadge")}
                 color={c.success}
                 style={{ marginTop: spacing.lg }}
               />
@@ -242,7 +260,8 @@ export default function CourseDetailScreen() {
               </View>
               <View style={styles.lessonInfo}>
                 <Text style={styles.lessonTitle} numberOfLines={2}>
-                  {item.title ?? `Lesson ${item.id}`}
+                  {item.title ??
+                    t("courseDetail.lessonFallback", { id: item.id })}
                 </Text>
                 {item.short_description ? (
                   <Text style={styles.lessonDesc} numberOfLines={1}>

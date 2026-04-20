@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -9,23 +10,26 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import * as Haptics from "expo-haptics";
+import Toast from "react-native-toast-message";
 import {
   fetchSupportEntries,
   postContactForm,
   type SupportEntry,
 } from "@garzoni/core";
 import GlassButton from "../src/components/ui/GlassButton";
+import { Skeleton } from "../src/components/ui";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
-import { Pressable } from "react-native";
 
 export default function SupportScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const [openId, setOpenId] = useState<number | null>(null);
   const [email, setEmail] = useState("");
   const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
-  const [formMsg, setFormMsg] = useState("");
 
   const q = useQuery({
     queryKey: ["supportEntries"],
@@ -34,22 +38,31 @@ export default function SupportScreen() {
 
   const mutation = useMutation({
     mutationFn: postContactForm,
-    onSuccess: (res) => {
-      setFormMsg(
-        (res as { data?: { message?: string } }).data?.message ??
-          "Thanks — we received your message.",
-      );
+    onSuccess: () => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show({
+        type: "success",
+        text1: t("support.mobile.toastSuccessTitle"),
+        text2: t("support.mobile.toastSuccessBody"),
+      });
       setEmail("");
       setTopic("");
       setMessage("");
     },
-    onError: () => setFormMsg("Could not send. Try again later."),
+    onError: () => {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show({
+        type: "error",
+        text1: t("support.mobile.toastErrorTitle"),
+        text2: t("support.mobile.toastErrorBody"),
+      });
+    },
   });
 
   const entries = q.data ?? [];
 
   const onSubmit = useCallback(() => {
-    setFormMsg("");
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     mutation.mutate({
       email: email.trim(),
       topic: topic.trim(),
@@ -83,9 +96,11 @@ export default function SupportScreen() {
   const listHeader = useMemo(
     () => (
       <View style={{ marginBottom: spacing.xl }}>
-        <Text style={[styles.h2, { color: c.accent }]}>Contact</Text>
+        <Text style={[styles.h2, { color: c.accent }]}>
+          {t("support.mobile.contactHeading")}
+        </Text>
         <TextInput
-          placeholder="Email"
+          placeholder={t("support.mobile.placeholders.email")}
           placeholderTextColor={c.textFaint}
           value={email}
           onChangeText={setEmail}
@@ -101,7 +116,7 @@ export default function SupportScreen() {
           ]}
         />
         <TextInput
-          placeholder="Topic"
+          placeholder={t("support.mobile.placeholders.topic")}
           placeholderTextColor={c.textFaint}
           value={topic}
           onChangeText={setTopic}
@@ -115,7 +130,7 @@ export default function SupportScreen() {
           ]}
         />
         <TextInput
-          placeholder="Message"
+          placeholder={t("support.mobile.placeholders.message")}
           placeholderTextColor={c.textFaint}
           value={message}
           onChangeText={setMessage}
@@ -137,38 +152,47 @@ export default function SupportScreen() {
           loading={mutation.isPending}
           disabled={!email.trim() || !message.trim()}
         >
-          Send
+          {t("support.mobile.send")}
         </GlassButton>
-        {formMsg ? (
-          <Text style={{ color: c.textMuted, marginTop: spacing.sm }}>
-            {formMsg}
-          </Text>
-        ) : null}
         <Text style={[styles.h2, { color: c.accent, marginTop: spacing.xxl }]}>
-          FAQ
+          {t("support.mobile.faqHeading")}
         </Text>
+        {q.isPending && !q.data ? (
+          <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+            <Skeleton width="100%" height={72} borderRadius={radius.md} />
+            <Skeleton width="100%" height={72} borderRadius={radius.md} />
+            <Skeleton width="100%" height={72} borderRadius={radius.md} />
+          </View>
+        ) : null}
       </View>
     ),
-    [c, email, topic, message, formMsg, mutation.isPending, onSubmit],
+    [c, email, topic, message, mutation.isPending, onSubmit, q.isPending, q.data, t],
   );
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Support",
+          title: t("support.mobile.screenTitle"),
           headerShown: true,
           headerTintColor: c.primary,
         }}
       />
       <FlatList
-        data={entries}
+        data={q.isPending && !q.data ? [] : entries}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderEntry}
         ListHeaderComponent={listHeader}
+        ListEmptyComponent={
+          q.isPending && !q.data ? null : entries.length === 0 && !q.isPending ? (
+            <Text style={{ color: c.textMuted, fontSize: typography.sm }}>
+              {t("support.empty")}
+            </Text>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
-            refreshing={q.isFetching}
+            refreshing={q.isFetching && !!q.data}
             onRefresh={() => void q.refetch()}
             tintColor={c.primary}
           />
