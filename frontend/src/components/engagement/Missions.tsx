@@ -24,7 +24,7 @@ import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { formatNumber } from "utils/format";
 import MissionCard from "./MissionCard";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys, staleTimes } from "lib/reactQuery";
+import { queryClient, queryKeys, staleTimes } from "lib/reactQuery";
 
 function Missions() {
   type FinanceFact = { id: number; text: string; category?: string };
@@ -138,6 +138,7 @@ function Missions() {
     }
 
     await refetchMissions();
+    void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
   }, [refetchMissions, t]);
 
   const handleMissionSwap = useCallback(
@@ -152,6 +153,7 @@ function Missions() {
         );
         setCanSwap(false);
         await refetchMissions();
+        void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       } catch (error) {
         // Extract error message from response
         const errorMessage =
@@ -279,6 +281,7 @@ function Missions() {
       });
       await loadNewFact();
       await refetchMissions();
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     } catch (error) {
       setErrors((prev) => ({ ...prev, fact: t("missions.errors.markFact") }));
     }
@@ -296,6 +299,7 @@ function Missions() {
       setSavingsAmount("");
       await fetchSavingsBalance();
       await refetchMissions();
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
