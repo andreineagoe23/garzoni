@@ -57,9 +57,9 @@ def send_email_reminders(self):
 
     weekly_users = (
         UserProfile.objects.filter(
-            email_preferences__reminder_frequency="weekly",
-            email_preferences__reminders=True,
-            email_preferences__weekly_digest=True,
+            user__email_preferences__reminder_frequency="weekly",
+            user__email_preferences__reminders=True,
+            user__email_preferences__weekly_digest=True,
             user__email__isnull=False,
         )
         .exclude(last_reminder_sent__gt=now - timedelta(days=6))
@@ -69,8 +69,8 @@ def send_email_reminders(self):
 
     monthly_users = (
         UserProfile.objects.filter(
-            email_preferences__reminder_frequency="monthly",
-            email_preferences__reminders=True,
+            user__email_preferences__reminder_frequency="monthly",
+            user__email_preferences__reminders=True,
             user__email__isnull=False,
         )
         .exclude(last_reminder_sent__gt=now - timedelta(days=27))
@@ -182,7 +182,7 @@ def send_trial_ending_reminder(self):
         subscription_status="trialing",
         trial_end__isnull=False,
         trial_end__date=in_two_days,
-        email_preferences__billing_alerts=True,
+        user__email_preferences__billing_alerts=True,
     )
     sent = 0
     svc = NotificationService()
@@ -383,7 +383,7 @@ def send_renewal_reminder(self):
         subscription_status__in=["active", "trialing"],
         stripe_subscription_id__isnull=False,
         user__email__isnull=False,
-        email_preferences__billing_alerts=True,
+        user__email_preferences__billing_alerts=True,
     ).select_related("user")
 
     sent = 0
