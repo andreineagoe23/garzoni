@@ -23,21 +23,33 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Keyboard,
-  Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import MissionCard from "../src/components/engagement/MissionCard";
 import AnimatedMissionCard from "../src/components/engagement/AnimatedMissionCard";
 import RewardClaimModal from "../src/components/engagement/RewardClaimModal";
 import MascotWithMessage from "../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../src/components/common/TabErrorBoundary";
-import { ErrorState, ScreenScroll, Skeleton } from "../src/components/ui";
+import {
+  AppText,
+  Button,
+  EmptyState,
+  ErrorState,
+  ScreenScroll,
+  Skeleton,
+} from "../src/components/ui";
 import GlassCard from "../src/components/ui/GlassCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography } from "../src/theme/tokens";
+
+type MissionsResponse = {
+  daily_missions?: Mission[];
+  weekly_missions?: Mission[];
+  can_swap?: boolean;
+};
 
 export default function MissionsScreen() {
   const c = useThemeColors();
@@ -103,6 +115,13 @@ export default function MissionsScreen() {
   const virtualBalance = savingsQuery.data ?? 0;
   const streakItems: StreakItemDto[] = streakItemsQuery.data ?? [];
   const currentFact = factQuery.data ?? null;
+
+  const dailyCompletedCount = dailyMissions.filter(
+    (m) => m.status === "completed",
+  ).length;
+  const weeklyCompletedCount = weeklyMissions.filter(
+    (m) => m.status === "completed",
+  ).length;
 
   useEffect(() => {
     if (missionScope !== "daily") return;
@@ -271,6 +290,35 @@ export default function MissionsScreen() {
     });
   }, [missionsQuery.data, t]);
 
+  const bumpMissionProgress = useCallback(
+    (goalTypes: string[], completeFully = false) => {
+      queryClient.setQueryData<MissionsResponse | undefined>(
+        queryKeys.missions(),
+        (prev) => {
+          if (!prev) return prev;
+          const bump = (list?: Mission[]) =>
+            (list ?? []).map((m) => {
+              if (m.status === "completed") return m;
+              if (!m.goal_type || !goalTypes.includes(m.goal_type)) return m;
+              const current = Number(m.progress ?? 0);
+              const next = completeFully ? 100 : Math.min(100, current + 25);
+              return {
+                ...m,
+                progress: next,
+                status: next >= 100 ? "completed" : m.status,
+              } as Mission;
+            });
+          return {
+            ...prev,
+            daily_missions: bump(prev.daily_missions),
+            weekly_missions: bump(prev.weekly_missions),
+          };
+        },
+      );
+    },
+    [queryClient],
+  );
+
   const loadNewFact = useCallback(() => {
     void factQuery.refetch();
   }, [factQuery]);
@@ -284,20 +332,28 @@ export default function MissionsScreen() {
         delete next.fact;
         return next;
       });
+      bumpMissionProgress(["read_fact"], true);
+      Toast.show({
+        type: "success",
+        text1: t("missions.toast.factRead"),
+      });
       await factQuery.refetch();
       await missionsQuery.refetch();
     } catch {
       const msg = t("missions.errors.markFact");
       setErrors((prev) => ({ ...prev, fact: msg }));
-      Alert.alert("", msg);
+      Toast.show({ type: "error", text1: msg });
     }
-  }, [currentFact, factQuery, missionsQuery, t]);
+  }, [bumpMissionProgress, currentFact, factQuery, missionsQuery, t]);
 
   const handleSavingsSubmit = useCallback(async () => {
     Keyboard.dismiss();
     const amount = parseFloat(savingsAmount);
     if (Number.isNaN(amount) || amount <= 0) {
-      Alert.alert("", t("missions.errors.validAmount"));
+      Toast.show({
+        type: "error",
+        text1: t("missions.errors.validAmount"),
+      });
       return;
     }
     try {
@@ -308,6 +364,11 @@ export default function MissionsScreen() {
         delete next.savings;
         return next;
       });
+      bumpMissionProgress(["add_savings"]);
+      Toast.show({
+        type: "success",
+        text1: t("missions.toast.savingsAdded"),
+      });
       await queryClient.invalidateQueries({
         queryKey: queryKeys.savingsBalance(),
       });
@@ -315,16 +376,22 @@ export default function MissionsScreen() {
     } catch {
       const msg = t("missions.errors.addSavings");
       setErrors((prev) => ({ ...prev, savings: msg }));
-      Alert.alert("", msg);
+      Toast.show({ type: "error", text1: msg });
     }
-  }, [queryClient, savingsAmount, t]);
+  }, [bumpMissionProgress, queryClient, savingsAmount, t]);
 
-  const handleMissionSwap = useCallback(
+  const performSwap = useCallback(
     async (missionId: number) => {
       try {
         const res = await swapMission(missionId);
         setCanSwap(false);
-        Alert.alert("", res.data?.message || t("missions.toast.swapSuccess"));
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
+        Toast.show({
+          type: "success",
+          text1: res.data?.message || t("missions.toast.swapSuccess"),
+        });
         await missionsQuery.refetch();
       } catch (e: unknown) {
         const err = e as {
@@ -337,7 +404,7 @@ export default function MissionsScreen() {
           err.response?.data?.error ||
           err.response?.data?.message ||
           t("missions.errors.swapFailed");
-        Alert.alert("", String(msg));
+        Toast.show({ type: "error", text1: String(msg) });
         if (
           err.response?.status === 400 &&
           String(msg).includes("only swap one mission per day")
@@ -347,6 +414,33 @@ export default function MissionsScreen() {
       }
     },
     [missionsQuery, t],
+  );
+
+  const handleMissionSwap = useCallback(
+    (missionId: number) => {
+      if (isOffline) {
+        Toast.show({
+          type: "info",
+          text1: t("missions.swap.offlineBlocked"),
+        });
+        return;
+      }
+      Alert.alert(
+        t("missions.swap.confirmTitle"),
+        t("missions.swap.confirmBody"),
+        [
+          { text: t("missions.swap.cancel"), style: "cancel" },
+          {
+            text: t("missions.swap.confirm"),
+            style: "destructive",
+            onPress: () => {
+              void performSwap(missionId);
+            },
+          },
+        ],
+      );
+    },
+    [isOffline, performSwap, t],
   );
 
   const onRefresh = useCallback(async () => {
@@ -365,6 +459,7 @@ export default function MissionsScreen() {
   }, [missionsQuery, factQuery, savingsQuery, streakItemsQuery, profileQuery]);
 
   const errorMessages = Object.values(errors).filter(Boolean);
+  const swapAllowed = canSwap && !isOffline;
 
   return (
     <TabErrorBoundary>
@@ -376,10 +471,6 @@ export default function MissionsScreen() {
         }}
       />
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        {/*
-          Expiring-mission push reminders: use expo-notifications + server or local scheduling in a
-          dedicated change (credentials, copy, quiet hours).
-        */}
         <ScreenScroll
           contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
           refreshControl={
@@ -390,70 +481,63 @@ export default function MissionsScreen() {
             />
           }
         >
-          <Text style={[styles.title, { color: c.accent }]}>
+          <AppText variant="heading" accent style={styles.title}>
             {t("missions.header.title")}
-          </Text>
-          <Text style={[styles.sub, { color: c.textMuted }]}>
+          </AppText>
+          <AppText variant="body" muted style={styles.sub}>
             {t("missions.header.subtitle")}
-          </Text>
+          </AppText>
 
           <View style={styles.tabRow}>
-            <Pressable
+            <Button
+              variant={missionScope === "daily" ? "primary" : "ghost"}
+              size="sm"
+              disabled={dailyMissions.length === 0}
               onPress={() => setMissionScope("daily")}
-              style={[
-                styles.tabChip,
-                {
-                  borderColor: c.border,
-                  backgroundColor:
-                    missionScope === "daily" ? c.accentMuted : c.surface,
-                },
-              ]}
             >
-              <Text style={{ color: c.text, fontWeight: "700" }}>
-                {t("missions.badge.daily")}
-              </Text>
-            </Pressable>
-            <Pressable
+              {t("missions.tab.dailyWithCount", {
+                done: dailyCompletedCount,
+                total: dailyMissions.length,
+              })}
+            </Button>
+            <Button
+              variant={missionScope === "weekly" ? "primary" : "ghost"}
+              size="sm"
+              disabled={weeklyMissions.length === 0}
               onPress={() => setMissionScope("weekly")}
-              style={[
-                styles.tabChip,
-                {
-                  borderColor: c.border,
-                  backgroundColor:
-                    missionScope === "weekly" ? c.accentMuted : c.surface,
-                },
-              ]}
             >
-              <Text style={{ color: c.text, fontWeight: "700" }}>
-                {t("missions.badge.weekly")}
-              </Text>
-            </Pressable>
+              {t("missions.tab.weeklyWithCount", {
+                done: weeklyCompletedCount,
+                total: weeklyMissions.length,
+              })}
+            </Button>
           </View>
 
           <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
             <View style={styles.summaryRow}>
               <View style={styles.summaryLeft}>
-                <Text style={[styles.summaryKicker, { color: c.textMuted }]}>
+                <AppText variant="label" muted style={styles.summaryKicker}>
                   {t("missions.summary.title")}
-                </Text>
-                <Text style={[styles.summaryMain, { color: c.accent }]}>
+                </AppText>
+                <AppText variant="heading" accent style={styles.summaryMain}>
                   {t("missions.summary.remaining", {
                     count: missionsRemaining,
                   })}
-                </Text>
-                <Text style={[styles.summaryXp, { color: c.textMuted }]}>
+                </AppText>
+                <AppText variant="caption" muted style={styles.summaryXp}>
                   {t("missions.summary.xp", {
                     earned: dailyXpEarned,
                     remaining: dailyXpRemaining,
                   })}
-                </Text>
+                </AppText>
                 {isOffline ? (
-                  <Text style={styles.offline}>
+                  <AppText variant="caption" style={styles.offline}>
                     {t("missions.summary.offline")}
-                  </Text>
+                  </AppText>
                 ) : null}
                 {adaptiveHints ? (
-                  <Text
+                  <AppText
+                    variant="caption"
                     style={[
                       styles.hintChip,
                       { color: c.accent, borderColor: `${c.accent}44` },
@@ -463,25 +547,25 @@ export default function MissionsScreen() {
                       amount: adaptiveHints.suggestedSavingsTarget,
                       level: adaptiveHints.level,
                     })}
-                  </Text>
+                  </AppText>
                 ) : null}
               </View>
               <View style={styles.statCol}>
                 <View style={[styles.statBox, { backgroundColor: c.surface }]}>
-                  <Text style={[styles.statLabel, { color: c.textMuted }]}>
+                  <AppText variant="caption" muted style={styles.statLabel}>
                     {t("missions.summary.streak")}
-                  </Text>
-                  <Text style={[styles.statValue, { color: c.accent }]}>
+                  </AppText>
+                  <AppText variant="label" accent style={styles.statValue}>
                     {t("missions.summary.streakDays", { count: streakCount })}
-                  </Text>
+                  </AppText>
                 </View>
                 <View style={[styles.statBox, { backgroundColor: c.surface }]}>
-                  <Text style={[styles.statLabel, { color: c.textMuted }]}>
+                  <AppText variant="caption" muted style={styles.statLabel}>
                     {t("missions.summary.totalXp")}
-                  </Text>
-                  <Text style={[styles.statValue, { color: c.accent }]}>
+                  </AppText>
+                  <AppText variant="label" accent style={styles.statValue}>
                     {dailyXpEarned} / {dailyXpTotal} XP
-                  </Text>
+                  </AppText>
                 </View>
               </View>
             </View>
@@ -495,9 +579,13 @@ export default function MissionsScreen() {
                       { borderColor: `${c.accent}66` },
                     ]}
                   >
-                    <Text style={[styles.streakPillText, { color: c.accent }]}>
+                    <AppText
+                      variant="caption"
+                      accent
+                      style={styles.streakPillText}
+                    >
                       {item.type} ×{item.quantity}
-                    </Text>
+                    </AppText>
                   </View>
                 ))}
               </View>
@@ -514,12 +602,9 @@ export default function MissionsScreen() {
               }}
             >
               {errorMessages.map((msg, i) => (
-                <Text
-                  key={i}
-                  style={{ color: c.error, fontSize: typography.sm }}
-                >
+                <AppText key={i} variant="caption" style={{ color: c.error }}>
                   {msg}
-                </Text>
+                </AppText>
               ))}
             </GlassCard>
           ) : null}
@@ -536,16 +621,13 @@ export default function MissionsScreen() {
               onRetry={() => void missionsQuery.refetch()}
             />
           ) : noMissionsAvailable ? (
-            <GlassCard padding="lg" style={{ marginBottom: spacing.lg }}>
-              <Text style={[styles.sectionTitle, { color: c.accent }]}>
-                {t("missions.empty.title")}
-              </Text>
-              <Text
-                style={[styles.sub, { color: c.textMuted, marginBottom: 0 }]}
-              >
-                {t("missions.empty.body")}
-              </Text>
-            </GlassCard>
+            <EmptyState
+              icon="🎯"
+              title={t("missions.empty.title")}
+              message={t("missions.empty.body")}
+              actionLabel={t("missions.swap.label")}
+              onAction={undefined}
+            />
           ) : (
             <>
               {missionScope === "daily" ? (
@@ -559,7 +641,7 @@ export default function MissionsScreen() {
                         mission={m}
                         isDaily
                         t={t}
-                        canSwap={canSwap}
+                        canSwap={swapAllowed}
                         onSwap={handleMissionSwap}
                         showSavingsMenu={showSavingsMenu}
                         onToggleSavingsMenu={() =>
@@ -581,9 +663,9 @@ export default function MissionsScreen() {
                 </View>
               ) : weeklyMissions.length > 0 ? (
                 <View style={styles.grid}>
-                  <Text style={[styles.sectionTitle, { color: c.accent }]}>
+                  <AppText variant="heading" accent style={styles.sectionTitle}>
                     {t("missions.weekly.title")}
-                  </Text>
+                  </AppText>
                   {weeklyMissions.map((m, index) => (
                     <AnimatedMissionCard
                       key={`weekly-${m.id}-${index}`}
@@ -593,7 +675,7 @@ export default function MissionsScreen() {
                         mission={m}
                         isDaily={false}
                         t={t}
-                        canSwap={canSwap}
+                        canSwap={swapAllowed}
                         onSwap={handleMissionSwap}
                         showSavingsMenu={showSavingsMenu}
                         onToggleSavingsMenu={() =>
@@ -614,14 +696,14 @@ export default function MissionsScreen() {
                   ))}
                 </View>
               ) : (
-                <Text
-                  style={[
-                    styles.sub,
-                    { color: c.textMuted, marginBottom: spacing.lg },
-                  ]}
+                <AppText
+                  variant="body"
+                  muted
+                  style={{ marginBottom: spacing.lg }}
                 >
-                  {t("missions.weekly.title")}: {t("missions.weekly.noneAvailable")}
-                </Text>
+                  {t("missions.weekly.title")}:{" "}
+                  {t("missions.weekly.noneAvailable")}
+                </AppText>
               )}
 
               {missionScope === "daily" && allDailyCompleted ? (
@@ -637,27 +719,35 @@ export default function MissionsScreen() {
                       />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.wrapKicker, { color: c.textMuted }]}>
+                      <AppText variant="label" muted style={styles.wrapKicker}>
                         {t("missions.wrapup.title")}
-                      </Text>
-                      <Text style={[styles.wrapTitle, { color: c.accent }]}>
+                      </AppText>
+                      <AppText
+                        variant="heading"
+                        accent
+                        style={styles.wrapTitle}
+                      >
                         {t("missions.wrapup.earned", { xp: dailyXpEarned })}
-                      </Text>
-                      <Text style={[styles.wrapSub, { color: c.textMuted }]}>
+                      </AppText>
+                      <AppText variant="body" muted style={styles.wrapSub}>
                         {t("missions.wrapup.streakReview", {
                           count: streakCount,
                           days: streakCount,
                           review: reviewDue,
                         })}
-                      </Text>
+                      </AppText>
                     </View>
                   </View>
                   <View
                     style={[styles.wrapCta, { borderColor: `${c.accent}66` }]}
                   >
-                    <Text style={[styles.wrapCtaText, { color: c.accent }]}>
+                    <AppText
+                      variant="caption"
+                      accent
+                      style={styles.wrapCtaText}
+                    >
                       {t("missions.wrapup.cta")}
-                    </Text>
+                    </AppText>
                   </View>
                 </GlassCard>
               ) : null}
@@ -679,22 +769,14 @@ const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingBottom: spacing.lg },
   title: { fontSize: typography.xl, fontWeight: "800" },
   sub: {
-    fontSize: typography.sm,
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    lineHeight: 20,
   },
   tabRow: {
     flexDirection: "row",
     gap: spacing.sm,
     marginBottom: spacing.md,
     flexWrap: "wrap",
-  },
-  tabChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   summaryRow: { flexDirection: "column", gap: spacing.md },
   summaryLeft: { flex: 1 },
@@ -709,10 +791,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: spacing.xs,
   },
-  summaryXp: { fontSize: typography.sm, marginTop: 4 },
+  summaryXp: { marginTop: 4 },
   offline: {
     marginTop: spacing.sm,
-    fontSize: typography.xs,
     color: "#d97706",
     fontWeight: "600",
   },
@@ -728,8 +809,8 @@ const styles = StyleSheet.create({
   },
   statCol: { flexDirection: "row", gap: spacing.sm },
   statBox: { flex: 1, padding: spacing.md, borderRadius: 12 },
-  statLabel: { fontSize: typography.xs, fontWeight: "700" },
-  statValue: { fontSize: typography.sm, fontWeight: "800", marginTop: 4 },
+  statLabel: { fontWeight: "700" },
+  statValue: { fontWeight: "800", marginTop: 4 },
   streakWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -742,7 +823,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
   },
-  streakPillText: { fontSize: typography.xs, fontWeight: "700" },
+  streakPillText: { fontWeight: "700" },
   grid: { gap: 0 },
   sectionTitle: {
     fontSize: typography.lg,
@@ -763,12 +844,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: spacing.xs,
   },
-  wrapSub: { fontSize: typography.sm, marginTop: spacing.xs, lineHeight: 20 },
+  wrapSub: { marginTop: spacing.xs },
   wrapCta: {
     marginTop: spacing.lg,
     padding: spacing.md,
     borderRadius: 16,
     borderWidth: 1,
   },
-  wrapCtaText: { fontSize: typography.sm, fontWeight: "600", lineHeight: 20 },
+  wrapCtaText: { fontWeight: "600" },
 });

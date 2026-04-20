@@ -166,7 +166,17 @@ export default function SupportScreen() {
         ) : null}
       </View>
     ),
-    [c, email, topic, message, mutation.isPending, onSubmit, q.isPending, q.data, t],
+    [
+      c,
+      email,
+      topic,
+      message,
+      mutation.isPending,
+      onSubmit,
+      q.isPending,
+      q.data,
+      t,
+    ],
   );
 
   return (
@@ -184,7 +194,8 @@ export default function SupportScreen() {
         renderItem={renderEntry}
         ListHeaderComponent={listHeader}
         ListEmptyComponent={
-          q.isPending && !q.data ? null : entries.length === 0 && !q.isPending ? (
+          q.isPending && !q.data ? null : entries.length === 0 &&
+            !q.isPending ? (
             <Text style={{ color: c.textMuted, fontSize: typography.sm }}>
               {t("support.empty")}
             </Text>
