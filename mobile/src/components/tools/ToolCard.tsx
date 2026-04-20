@@ -12,21 +12,28 @@ const ICON_MAP: Record<string, string> = {
   Rss: "📰",
   TrendingUp: "📈",
   Footprints: "👣",
+  PiggyBank: "🐷",
+  Map: "🗺️",
+  Newspaper: "📰",
 };
 
 type Props = {
   tool: MobileToolDef;
   onPress: () => void;
+  comingSoonLabel?: string;
 };
 
-export default function ToolCard({ tool, onPress }: Props) {
+export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
   const c = useThemeColors();
   const emoji = ICON_MAP[tool.icon] ?? "🔧";
+  const dimmed = !!tool.comingSoon;
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [{ opacity: pressed ? 0.88 : 1 }]}
+      style={({ pressed }) => [
+        { opacity: dimmed ? 0.72 : pressed ? 0.88 : 1 },
+      ]}
     >
       <GlassCard padding="none" style={styles.card}>
         {/* Left accent bar */}
@@ -39,6 +46,18 @@ export default function ToolCard({ tool, onPress }: Props) {
           <View style={styles.topRow}>
             <Text style={styles.icon}>{emoji}</Text>
             <View style={styles.badges}>
+              {tool.comingSoon && comingSoonLabel ? (
+                <View
+                  style={[
+                    styles.plusChip,
+                    { backgroundColor: "rgba(100,116,139,0.15)" },
+                  ]}
+                >
+                  <Text style={[styles.plusText, { color: c.textMuted }]}>
+                    {comingSoonLabel}
+                  </Text>
+                </View>
+              ) : null}
               {tool.plusOnly && (
                 <View
                   style={[

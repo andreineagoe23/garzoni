@@ -46,6 +46,46 @@
       "message": "Ești offline — unele acțiuni s-ar putea să nu se sincronizeze."
     }
   },
+  "screenErrors": {
+    "tryAgain": "Încearcă din nou",
+    "reportProblem": "Raportează o problemă",
+    "viewPlans": "Vezi planurile",
+    "loadDashboard": "Nu s-a putut încărca tabloul de bord.",
+    "loadCourseLessons": "Nu s-au putut încărca lecțiile.",
+    "loadLesson": "Nu s-a putut încărca lecția.",
+    "invalidLesson": "Lecție nevalidă.",
+    "lessonMissingCourse": "Lecției îi lipsesc informațiile despre curs.",
+    "upgradeRequiredGeneric": "Este necesar un upgrade pentru a accesa acest curs."
+  },
+  "chat": {
+    "screenTitle": "Tutor AI",
+    "greeting": "Salut! Sunt antrenorul tău Garzoni. Întreabă orice despre lecții sau despre bazele finanțelor personale.",
+    "errorReply": "Ne pare rău — nu am putut contacta tutorul acum. Încearcă din nou în curând.",
+    "placeholder": "Pune o întrebare…",
+    "send": "Trimite",
+    "typing": "Tutorul se gândește"
+  },
+  "legalMobile": {
+    "configureBody": "Nu am putut încărca pagina în aplicație. Setează EXPO_PUBLIC_WEB_APP_URL în build sau deschide pagina în browser.",
+    "loadErrorTitle": "Pagina nu s-a încărcat",
+    "loadErrorBody": "Verifică conexiunea sau încearcă din nou.",
+    "retry": "Încearcă din nou",
+    "openInBrowser": "Deschide în browser",
+    "titlePrivacy": "Confidențialitate",
+    "titleTerms": "Termeni",
+    "titleCookies": "Cookies",
+    "titleDisclaimer": "Disclaimer",
+    "titleDefault": "Legal"
+  },
+  "courseDetail": {
+    "loading": "Se încarcă…",
+    "courseFallback": "Curs {{id}}",
+    "lessonFallback": "Lecție {{id}}",
+    "lessonsCompleted": "{{completed}}/{{total}} lecții finalizate",
+    "continue": "Continuă",
+    "startLearning": "Începe să înveți",
+    "completedBadge": "✓ Finalizat"
+  },
   "dashboard": {
     "skipToContent": "Sari la conținut",
     "nav": {
@@ -390,7 +430,9 @@
         "nextSteps": "Ce ar trebui să învăț în continuare?"
       },
       "mobileWebParityTitle": "Instrumente doar pe web",
-      "mobileWebParityBody": "Economic Map și News Context sunt momentan pe web, până finalizăm autentificarea WebView nativă. Tot ce e listat mai jos rulează în aplicație."
+      "mobileWebParityBody": "Economic Map și News Context sunt momentan pe web, până finalizăm autentificarea WebView nativă. Tot ce e listat mai jos rulează în aplicație.",
+      "comingSoon": "În curând",
+      "comingSoonHint": "Disponibil pe web azi; nativ într-un update viitor."
     },
     "disclaimer": {
       "educationalOnly": "Doar educațional. Nu este sfat financiar personal și nu reprezintă o recomandare de a cumpăra, vinde sau deține vreun activ.",
@@ -1016,7 +1058,12 @@
       "mascotMessage": "Progresul constant câștigă. Bravo pentru azi!"
     },
     "weekly": {
-      "title": "Misiuni săptămânale"
+      "title": "Misiuni săptămânale",
+      "noneAvailable": "Nu sunt disponibile momentan."
+    },
+    "empty": {
+      "title": "Nicio misiune acum",
+      "body": "Misiuni noi apar după următorul reset. Trage în jos pentru a reîmprospăta."
     }
   },
   "leaderboard": {
@@ -1131,6 +1178,22 @@
       "description": "Raportează un bug sau trimite-ne feedback ca să ne îmbunătățim.",
       "cta": "Raportează bug sau trimite feedback"
     },
+    "mobile": {
+      "contactHeading": "Contact",
+      "faqHeading": "Întrebări frecvente",
+      "screenTitle": "Suport",
+      "placeholders": {
+        "email": "Email",
+        "topic": "Subiect",
+        "message": "Mesaj"
+      },
+      "send": "Trimite",
+      "faqLoading": "Se încarcă întrebările frecvente…",
+      "toastSuccessTitle": "Mesaj trimis",
+      "toastSuccessBody": "Mulțumim — revenim curând.",
+      "toastErrorTitle": "Nu s-a putut trimite",
+      "toastErrorBody": "Te rugăm să încerci din nou peste un moment."
+    },
     "contact": {
       "title": "Ai nevoie de ajutor? Contactează-ne",
       "subtitle": "Descrie pe scurt problema și revenim cu un răspuns.",
@@ -1152,8 +1215,19 @@
     }
   },
   "feedback": {
+    "screenTitle": "Trimite feedback",
     "title": "Feedback",
     "subtitle": "Raportează un bug sau spune-ne ce ai vrea să îmbunătățim.",
+    "types": {
+      "general": "General",
+      "bug": "Raportare bug",
+      "feature": "Cerere funcționalitate",
+      "content": "Conținut"
+    },
+    "toastSuccessTitle": "Feedback trimis!",
+    "toastSuccessBody": "Mulțumim că ne ajuți să îmbunătățim Garzoni.",
+    "toastErrorTitle": "Trimitere eșuată",
+    "toastErrorBody": "Ceva nu a mers. Te rugăm să încerci din nou.",
     "typeLabel": "Tip",
     "typeBug": "Raportare bug",
     "typeSuggestion": "Sugestie / îmbunătățire",
@@ -1195,6 +1269,13 @@
     "pushNotifications": "Notificări push",
     "deleteConfirmTitle": "Șterge contul",
     "deleteConfirmBody": "Aceasta îți elimină definitiv contul și progresul. Continui?",
+    "deleteSecondTitle": "Confirmă ștergerea",
+    "deleteSecondBody": "Tastează DELETE pentru confirmare. Nu se poate anula.",
+    "deletePhraseHint": "Tastează DELETE cu majuscule",
+    "deletePhraseMismatch": "Textul trebuie să fie exact DELETE.",
+    "deleteStreakReminder": "Vei pierde seria și tot progresul salvat.",
+    "deleteContinue": "Continuă",
+    "deleteFinalAction": "Șterge definitiv contul",
     "deleteError": "Nu s-a putut șterge contul.",
     "deleteAction": "Șterge",
     "notificationsTitle": "Notificări",
@@ -1402,7 +1483,11 @@
       "current": "Parola curentă",
       "new": "Parola nouă",
       "confirm": "Confirmă parola nouă",
-      "update": "Actualizează parola"
+      "update": "Actualizează parola",
+      "fillAll": "Completează toate câmpurile.",
+      "newMinLength": "Parola nouă trebuie să aibă cel puțin 8 caractere.",
+      "newMismatch": "Parolele noi nu coincid.",
+      "couldNotChange": "Nu s-a putut schimba parola."
     },
     "privacy": {
       "settings": "Setări de confidențialitate",
@@ -1521,7 +1606,23 @@
       "success": "Parola a fost resetată cu succes.",
       "redirectingToLogin": "Redirecționare către pagina de conectare…",
       "passwordsDoNotMatch": "Parolele nu coincid.",
-      "error": "A apărut o eroare. Te rugăm să încerci din nou."
+      "error": "A apărut o eroare. Te rugăm să încerci din nou.",
+      "mobileSetTitle": "Setează parola nouă",
+      "mobileSetSubtitle": "Introdu și confirmă noua parolă mai jos.",
+      "mobileSuccessTitle": "Parolă actualizată",
+      "mobileSuccessBody": "Parola ta a fost schimbată cu succes.",
+      "mobileInvalidLink": "Link de resetare nevalid. Solicită unul nou.",
+      "mobileLinkInvalid": "Linkul de resetare a expirat sau nu e valid. Solicită unul nou.",
+      "mobileMinLength": "Parola trebuie să aibă cel puțin 8 caractere.",
+      "mobileMismatch": "Parolele nu coincid.",
+      "mobileNewLabel": "Parolă nouă",
+      "mobileConfirmLabel": "Confirmă parola",
+      "mobileNewPlaceholder": "Cel puțin 8 caractere",
+      "mobileConfirmPlaceholder": "Repetă parola nouă",
+      "mobileSubmit": "Resetează parola",
+      "mobileBackLogin": "Înapoi la conectare",
+      "mobileSuccessToastTitle": "Parolă actualizată",
+      "mobileSuccessToastBody": "Conectează-te cu noua parolă."
     }
   },
   "subscriptions": {
@@ -1696,7 +1797,26 @@
         "title": "Planuri când ești pregătit",
         "body": "Starter e gratuit ca să începi imediat. Plus deblochează traseul personalizat de învățare și lecții extinse. Pro adaugă întregul set de instrumente financiare și analize mai detaliate când vrei să mergi mai departe."
       }
-    }
+    },
+    "completionOverlay": {
+      "title": "Totul e gata!",
+      "subtitle": "Ți-am personalizat traseul de învățare în funcție de obiective.",
+      "xp": "XP",
+      "coins": "Monede",
+      "startLearning": "Începe să înveți"
+    },
+    "pushPrompt": {
+      "title": "Rămâi pe drumul bun?",
+      "body": "Activează mementouri pentru serie, misiuni și îndemnuri de învățare. Poți schimba oricând din Profil.",
+      "enable": "Activează notificările",
+      "notNow": "Nu acum"
+    },
+    "questionnaireHeaderPersonalized": "Completează profilul tău financiar",
+    "questionnaireHeaderDefault": "Personalizează-ți parcursul",
+    "welcomeTitle": "Bine ai venit",
+    "finish": "Finalizează",
+    "continue": "Continuă",
+    "skipQuestion": "Sari peste această întrebare"
   },
   "footer": {
     "tagline": "Învață abilități financiare cu lecții, misiuni și exerciții.",

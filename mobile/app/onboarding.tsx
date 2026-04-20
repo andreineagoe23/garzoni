@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImpactFeedbackStyle, NotificationFeedbackType } from "expo-haptics";
 import {
@@ -35,6 +37,7 @@ import QuestionnaireMultiChoice from "../src/components/onboarding/steps/Questio
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
 import { href } from "../src/navigation/href";
+import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
 import { spacing, typography, radius, shadows } from "../src/theme/tokens";
 import { useThemeColors } from "../src/theme/ThemeContext";
 
@@ -57,6 +60,7 @@ type AnswerValue = string | string[] | null;
 
 export default function OnboardingScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ reason?: string | string[] }>();
   const reasonParam = Array.isArray(params.reason)
@@ -100,10 +104,10 @@ export default function OnboardingScreen() {
       await loadNextQuestion();
       setPhase("questionnaire");
     } catch {
-      setErrorMsg("Could not load your personalisation questionnaire.");
+      setErrorMsg(t("onboarding.errorLoad"));
       setPhase("error");
     }
-  }, [slide]);
+  }, [slide, t]);
 
   useEffect(() => {
     void (async () => {
@@ -139,20 +143,20 @@ export default function OnboardingScreen() {
           await loadNextQuestion();
           setPhase("questionnaire");
         } catch {
-          setErrorMsg("Could not load your personalisation questionnaire.");
+          setErrorMsg(t("onboarding.errorLoad"));
           setPhase("error");
         }
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [t]);
 
   const handleSubmit = async () => {
     if (!questionData) return;
     const q = questionData.question;
 
     if (q.required && !hasAnswer(answer)) {
-      setErrorMsg("Please provide an answer before continuing.");
+      setErrorMsg(t("onboarding.selectAnswer"));
       return;
     }
     setErrorMsg("");
@@ -188,7 +192,7 @@ export default function OnboardingScreen() {
         await loadNextQuestion();
       }
     } catch {
-      setErrorMsg("Could not save your answer. Please try again.");
+      setErrorMsg(t("onboarding.failedToSave"));
     } finally {
       setSubmitting(false);
     }
@@ -202,6 +206,33 @@ export default function OnboardingScreen() {
     setAnswer(v);
     setErrorMsg("");
   }, []);
+
+  const goToTabs = useCallback(() => {
+    router.replace("/(tabs)");
+  }, []);
+
+  const handleCompletionContinue = useCallback(() => {
+    Alert.alert(
+      t("onboarding.pushPrompt.title"),
+      t("onboarding.pushPrompt.body"),
+      [
+        {
+          text: t("onboarding.pushPrompt.notNow"),
+          style: "cancel",
+          onPress: goToTabs,
+        },
+        {
+          text: t("onboarding.pushPrompt.enable"),
+          onPress: () => {
+            void (async () => {
+              await registerForPushAndSubmitToken();
+              goToTabs();
+            })();
+          },
+        },
+      ],
+    );
+  }, [goToTabs, t]);
 
   if (phase === "checking") {
     return (
@@ -233,7 +264,7 @@ export default function OnboardingScreen() {
             )
           }
         >
-          Try again
+          {t("onboarding.tryAgain")}
         </Button>
       </SafeAreaView>
     );
@@ -246,8 +277,8 @@ export default function OnboardingScreen() {
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: c.text }]}>
             {personalizedPathReason
-              ? "Complete your financial profile"
-              : "Welcome"}
+              ? t("onboarding.questionnaireHeaderPersonalized")
+              : t("onboarding.welcomeTitle")}
           </Text>
         </View>
         <OnboardingIntroPager
@@ -266,7 +297,7 @@ export default function OnboardingScreen() {
         <OnboardingCompletionOverlay
           xp={completionRewards.xp}
           coins={completionRewards.coins}
-          onContinue={() => router.replace("/(tabs)")}
+          onContinue={handleCompletionContinue}
         />
       </SafeAreaView>
     );
@@ -279,8 +310,8 @@ export default function OnboardingScreen() {
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: c.text }]}>
           {personalizedPathReason
-            ? "Complete your financial profile"
-            : "Personalise your journey"}
+            ? t("onboarding.questionnaireHeaderPersonalized")
+            : t("onboarding.questionnaireHeaderDefault")}
         </Text>
       </View>
 
@@ -355,7 +386,7 @@ export default function OnboardingScreen() {
                   loading={submitting}
                   onPress={() => void handleSubmit()}
                 >
-                  {isLast ? "Finish" : "Continue"}
+                  {isLast ? t("onboarding.finish") : t("onboarding.continue")}
                 </Button>
                 {!question.required ? (
                   <Button
@@ -365,7 +396,7 @@ export default function OnboardingScreen() {
                       void handleSubmit();
                     }}
                   >
-                    Skip this question
+                    {t("onboarding.skipQuestion")}
                   </Button>
                 ) : null}
               </View>
@@ -381,8 +412,10 @@ export default function OnboardingScreen() {
             { color: c.textMuted, backgroundColor: c.bg },
           ]}
         >
-          Question {questionData.current_question_number ?? "—"} of{" "}
-          {questionData.total_questions ?? "—"}
+          {t("onboarding.questionOf", {
+            current: questionData.current_question_number ?? "—",
+            total: questionData.total_questions ?? "—",
+          })}
         </Text>
       ) : null}
     </SafeAreaView>

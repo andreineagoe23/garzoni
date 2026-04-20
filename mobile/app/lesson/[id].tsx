@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { lessonService, staleTimes } from "@garzoni/core";
 import { ErrorState, Skeleton } from "../../src/components/ui";
@@ -10,6 +11,7 @@ import { spacing } from "../../src/theme/tokens";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 
 export default function LessonScreen() {
+  const { t } = useTranslation("common");
   const { id, courseId: courseIdParam } = useLocalSearchParams<{
     id: string;
     courseId?: string;
@@ -45,7 +47,10 @@ export default function LessonScreen() {
     return (
       <SafeAreaView style={safeAreaStyle}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ErrorState message="Invalid lesson." />
+        <ErrorState
+          message={t("screenErrors.invalidLesson")}
+          onReport={() => router.push("/feedback")}
+        />
       </SafeAreaView>
     );
   }
@@ -72,8 +77,9 @@ export default function LessonScreen() {
       <SafeAreaView style={safeAreaStyle}>
         <Stack.Screen options={{ headerShown: false }} />
         <ErrorState
-          message="Could not load lesson."
+          message={t("screenErrors.loadLesson")}
           onRetry={() => void lessonQuery.refetch()}
+          onReport={() => router.push("/feedback")}
         />
       </SafeAreaView>
     );
@@ -83,7 +89,10 @@ export default function LessonScreen() {
     return (
       <SafeAreaView style={safeAreaStyle}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ErrorState message="This lesson is missing course information." />
+        <ErrorState
+          message={t("screenErrors.lessonMissingCourse")}
+          onReport={() => router.push("/feedback")}
+        />
       </SafeAreaView>
     );
   }

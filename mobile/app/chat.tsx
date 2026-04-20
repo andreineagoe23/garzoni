@@ -9,8 +9,10 @@ import {
   View,
 } from "react-native";
 import { Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { requestAiTutorResponse } from "@garzoni/core";
 import GlassButton from "../src/components/ui/GlassButton";
+import TypingBubble from "../src/components/ui/TypingBubble";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
@@ -18,12 +20,12 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 export default function ChatScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      content:
-        "Hi! I'm your Garzoni study coach. Ask me anything about the lessons or personal finance basics.",
+      content: t("chat.greeting"),
     },
   ]);
   const [busy, setBusy] = useState(false);
@@ -44,27 +46,32 @@ export default function ChatScreen() {
       const reply = await requestAiTutorResponse(text, {
         chatHistory: history,
       });
-      setMessages((m) => [...m, { role: "assistant", content: reply || "…" }]);
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: reply?.trim() ? reply : t("chat.errorReply"),
+        },
+      ]);
     } catch {
       setMessages((m) => [
         ...m,
         {
           role: "assistant",
-          content:
-            "Sorry — I couldn't reach the tutor right now. Try again shortly.",
+          content: t("chat.errorReply"),
         },
       ]);
     } finally {
       setBusy(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [input, busy, messages]);
+  }, [input, busy, messages, t]);
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "AI Tutor",
+          title: t("chat.screenTitle"),
           headerShown: true,
           headerTintColor: c.primary,
         }}
@@ -83,7 +90,7 @@ export default function ChatScreen() {
         >
           {messages.map((m, i) => (
             <View
-              key={`${i}-${m.role}`}
+              key={`${i}-${m.role}-${m.content.slice(0, 12)}`}
               style={[
                 styles.bubble,
                 m.role === "user"
@@ -107,6 +114,7 @@ export default function ChatScreen() {
               </Text>
             </View>
           ))}
+          {busy ? <TypingBubble label={t("chat.typing")} /> : null}
         </ScrollView>
         <View
           style={[
@@ -117,7 +125,7 @@ export default function ChatScreen() {
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Ask a question…"
+            placeholder={t("chat.placeholder")}
             placeholderTextColor={c.textFaint}
             style={[
               styles.input,
@@ -137,7 +145,7 @@ export default function ChatScreen() {
             loading={busy}
             disabled={!input.trim()}
           >
-            Send
+            {t("chat.send")}
           </GlassButton>
         </View>
       </KeyboardAvoidingView>
