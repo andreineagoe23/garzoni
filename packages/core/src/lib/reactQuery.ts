@@ -59,8 +59,8 @@ export const queryKeys = {
 };
 
 export const staleTimes = {
-  // Identity/user profile: avoid refetching on every navigation; rely on explicit invalidation after mutations.
-  profile: 15 * MINUTE,
+  // Profile: short stale time so streak/coins/XP refresh quickly after mutations.
+  profile: 30_000,
   activityHeatmap: 2 * MINUTE,
   entitlements: 10 * MINUTE,
 
