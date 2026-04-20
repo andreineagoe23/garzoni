@@ -42,3 +42,11 @@ export async function clearPlanChosenCache(): Promise<void> {
     /* ignore */
   }
 }
+
+export async function clearWelcomeSeen(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(WELCOME_SEEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
