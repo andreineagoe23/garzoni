@@ -17,14 +17,12 @@ export const AVATAR_STYLES = [
   { id: "initials", nameKey: "profile.avatarSelector.styles.initials" },
   { id: "micah", nameKey: "profile.avatarSelector.styles.micah" },
   { id: "adventurer", nameKey: "profile.avatarSelector.styles.adventurer" },
-  { id: "funEmoji", nameKey: "profile.avatarSelector.styles.emoji" },
-  { id: "pixelArt", nameKey: "profile.avatarSelector.styles.pixel" },
 ] as const;
 
 export type AvatarStyleId = (typeof AVATAR_STYLES)[number]["id"];
 
 export function getDicebearUrl(style: string, seed: string): string {
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
+  return `https://api.dicebear.com/7.x/${style}/png?seed=${encodeURIComponent(seed)}&size=256`;
 }
 
 export function randomSeed(): string {

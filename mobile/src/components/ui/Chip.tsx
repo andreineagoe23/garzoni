@@ -51,11 +51,10 @@ export default function Chip({
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 36,
+    height: 36,
     borderRadius: radius.full,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -63,5 +62,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sm,
     fontWeight: "600",
     lineHeight: 18,
+    includeFontPadding: false,
+    textAlignVertical: "center",
   },
 });
