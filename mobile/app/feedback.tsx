@@ -10,12 +10,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { submitFeedback, type FeedbackPayload } from "@garzoni/core";
+import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
@@ -44,7 +45,7 @@ export default function FeedbackScreen() {
         text1: t("feedback.toastSuccessTitle"),
         text2: t("feedback.toastSuccessBody"),
       });
-      router.back();
+      safeRouterBack("/(tabs)");
     },
     onError: (err: unknown) => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

@@ -143,7 +143,7 @@ function ProfileInner() {
 
   const signOut = useCallback(async () => {
     await clearSession();
-    router.replace("/");
+    router.replace(href("/welcome"));
   }, [clearSession]);
 
   const shareProfile = useCallback(async () => {
@@ -176,7 +176,7 @@ function ProfileInner() {
       await deleteAccount();
       await clearSession();
       closeDeleteFlow();
-      router.replace("/login");
+      router.replace(href("/welcome"));
     } catch {
       Alert.alert(t("settings.errors.deleteAccount"), t("profile.deleteError"));
     } finally {

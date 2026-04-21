@@ -1,30 +1,21 @@
-import { forwardRef, useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput as RNTextInput,
-  View,
-  type TextInputProps,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link, router } from "expo-router";
-import { Images, obtainTokenPair, registerSecure } from "@garzoni/core";
+import { obtainTokenPair, registerSecure } from "@garzoni/core";
 import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
 import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
 import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
-import AuthLogoMark from "../../src/components/auth/AuthLogoMark";
-import AuthScreenLayout from "../../src/components/auth/AuthScreenLayout";
-import GlassAuthCard from "../../src/components/auth/GlassAuthCard";
-import GlassButton from "../../src/components/ui/GlassButton";
-import { useThemeColors } from "../../src/theme/ThemeContext";
-import { radius, spacing, typography } from "../../src/theme/tokens";
+import AuthDarkShell, {
+  DARK,
+  DarkCta,
+  DarkDivider,
+  DarkErrorBanner,
+  DarkField,
+  EyeButton,
+} from "../../src/components/auth/AuthDarkShell";
 
 type TokenResponseLike = {
   access?: string;
@@ -64,38 +55,8 @@ type FieldKey =
   | "first_name"
   | "last_name";
 
-const Field = forwardRef<
-  RNTextInput,
-  TextInputProps & { label: string; error?: string }
->(({ label, error, ...rest }, ref) => {
-  const c = useThemeColors();
-  return (
-    <View style={styles.fieldWrap}>
-      <Text style={[styles.label, { color: c.textMuted }]}>{label}</Text>
-      <RNTextInput
-        ref={ref}
-        style={[
-          styles.input,
-          {
-            borderColor: error ? c.error : c.border,
-            backgroundColor: c.inputBg,
-            color: c.text,
-          },
-        ]}
-        placeholderTextColor={c.textFaint}
-        {...rest}
-      />
-      {error ? (
-        <Text style={[styles.fieldError, { color: c.error }]}>{error}</Text>
-      ) : null}
-    </View>
-  );
-});
-Field.displayName = "Field";
-
 export default function RegisterScreen() {
   const { t } = useTranslation("common");
-  const c = useThemeColors();
   const { applyTokens } = useAuthSession();
   const [form, setForm] = useState({
     username: "",
@@ -112,13 +73,10 @@ export default function RegisterScreen() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const emailRef = useRef<RNTextInput>(null);
-  const passwordRef = useRef<RNTextInput>(null);
-  const confirmRef = useRef<RNTextInput>(null);
-  const firstRef = useRef<RNTextInput>(null);
-  const lastRef = useRef<RNTextInput>(null);
-
-  const bgUri = Images.registerBg || undefined;
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInput>(null);
+  const lastRef = useRef<TextInput>(null);
 
   const update = (key: FieldKey, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -207,311 +165,141 @@ export default function RegisterScreen() {
     }
   };
 
-  const inputStyle = {
-    borderColor: c.border,
-    backgroundColor: c.inputBg,
-    color: c.text,
-  };
-
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <AuthDarkShell
+      eyebrow={t("auth.register.title")}
+      title={t("auth.register.subtitle")}
     >
-      <AuthScreenLayout mode="register" backgroundUri={bgUri}>
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <GlassAuthCard>
-            <AuthLogoMark />
-            <AuthBackendBanner />
+      <AuthBackendBanner />
+      <DarkErrorBanner message={error} />
 
-            <Text style={[styles.title, { color: c.text }]}>
-              {t("auth.register.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: c.textMuted }]}>
-              {t("auth.register.subtitle")}
-            </Text>
+      <View style={styles.nameRow}>
+        <View style={styles.nameField}>
+          <DarkField
+            label={t("auth.register.firstName")}
+            placeholder={t("auth.register.firstNamePlaceholder")}
+            returnKeyType="next"
+            value={form.first_name}
+            onChangeText={(v) => update("first_name", v)}
+            onSubmitEditing={() => lastRef.current?.focus()}
+          />
+        </View>
+        <View style={styles.nameField}>
+          <DarkField
+            ref={lastRef}
+            label={t("auth.register.lastName")}
+            placeholder={t("auth.register.lastNamePlaceholder")}
+            returnKeyType="next"
+            value={form.last_name}
+            onChangeText={(v) => update("last_name", v)}
+            onSubmitEditing={() => emailRef.current?.focus()}
+          />
+        </View>
+      </View>
 
-            {error ? (
-              <View
-                style={[
-                  styles.errorBanner,
-                  { backgroundColor: c.errorBg, borderColor: c.error },
-                ]}
-              >
-                <Text style={[styles.errorText, { color: c.error }]}>
-                  {error}
-                </Text>
-              </View>
-            ) : null}
+      <DarkField
+        label={t("auth.register.username")}
+        placeholder={t("auth.register.usernamePlaceholder")}
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="next"
+        value={form.username}
+        error={fieldErrors.username}
+        onChangeText={(v) => update("username", v)}
+        onSubmitEditing={() => emailRef.current?.focus()}
+      />
 
-            <View style={styles.nameRow}>
-              <View style={styles.nameField}>
-                <Text style={[styles.label, { color: c.textMuted }]}>
-                  {t("auth.register.firstName")}
-                </Text>
-                <RNTextInput
-                  ref={firstRef}
-                  style={[styles.input, inputStyle]}
-                  placeholder={t("auth.register.firstNamePlaceholder")}
-                  placeholderTextColor={c.textFaint}
-                  returnKeyType="next"
-                  value={form.first_name}
-                  onChangeText={(v) => update("first_name", v)}
-                  onSubmitEditing={() => lastRef.current?.focus()}
-                />
-              </View>
-              <View style={styles.nameField}>
-                <Text style={[styles.label, { color: c.textMuted }]}>
-                  {t("auth.register.lastName")}
-                </Text>
-                <RNTextInput
-                  ref={lastRef}
-                  style={[styles.input, inputStyle]}
-                  placeholder={t("auth.register.lastNamePlaceholder")}
-                  placeholderTextColor={c.textFaint}
-                  returnKeyType="next"
-                  value={form.last_name}
-                  onChangeText={(v) => update("last_name", v)}
-                  onSubmitEditing={() => emailRef.current?.focus()}
-                />
-              </View>
-            </View>
+      <DarkField
+        ref={emailRef}
+        label={t("auth.register.email")}
+        placeholder={t("auth.register.emailPlaceholder")}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        returnKeyType="next"
+        value={form.email}
+        error={fieldErrors.email}
+        onChangeText={(v) => update("email", v)}
+        onSubmitEditing={() => passwordRef.current?.focus()}
+      />
 
-            <Field
-              label={t("auth.register.username")}
-              placeholder={t("auth.register.usernamePlaceholder")}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-              returnKeyType="next"
-              value={form.username}
-              error={fieldErrors.username}
-              onChangeText={(v) => update("username", v)}
-              onSubmitEditing={() => emailRef.current?.focus()}
-            />
+      <DarkField
+        ref={passwordRef}
+        label={t("auth.register.password")}
+        placeholder={t("auth.register.passwordPlaceholder")}
+        secureTextEntry={!showPassword}
+        textContentType="newPassword"
+        autoComplete="password-new"
+        autoCapitalize="none"
+        autoCorrect={false}
+        passwordRules="minlength: 8;"
+        returnKeyType="next"
+        value={form.password}
+        error={fieldErrors.password}
+        onChangeText={(v) => update("password", v)}
+        onSubmitEditing={() => confirmRef.current?.focus()}
+        rightSlot={
+          <EyeButton
+            visible={showPassword}
+            onToggle={() => setShowPassword((v) => !v)}
+            showLabel={t("auth.login.showPassword")}
+            hideLabel={t("auth.login.hidePassword")}
+          />
+        }
+      />
 
-            <Field
-              ref={emailRef}
-              label={t("auth.register.email")}
-              placeholder={t("auth.register.emailPlaceholder")}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
-              value={form.email}
-              error={fieldErrors.email}
-              onChangeText={(v) => update("email", v)}
-              onSubmitEditing={() => passwordRef.current?.focus()}
-            />
+      <DarkField
+        ref={confirmRef}
+        label={t("auth.register.confirmPassword")}
+        placeholder={t("auth.register.confirmPasswordPlaceholder")}
+        secureTextEntry
+        textContentType="newPassword"
+        autoComplete="password-new"
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="done"
+        value={form.confirmPassword}
+        error={fieldErrors.confirmPassword}
+        onChangeText={(v) => update("confirmPassword", v)}
+        onSubmitEditing={() => void onSubmit()}
+      />
 
-            <View style={styles.fieldWrap}>
-              <Text style={[styles.label, { color: c.textMuted }]}>
-                {t("auth.register.password")}
-              </Text>
-              <View style={styles.passwordWrap}>
-                <RNTextInput
-                  ref={passwordRef}
-                  style={[
-                    styles.input,
-                    styles.passwordInput,
-                    inputStyle,
-                    fieldErrors.password && { borderColor: c.error },
-                  ]}
-                  placeholder={t("auth.register.passwordPlaceholder")}
-                  placeholderTextColor={c.textFaint}
-                  secureTextEntry={!showPassword}
-                  textContentType="newPassword"
-                  autoComplete="password-new"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  passwordRules="minlength: 8;"
-                  returnKeyType="next"
-                  value={form.password}
-                  onChangeText={(v) => update("password", v)}
-                  onSubmitEditing={() => confirmRef.current?.focus()}
-                />
-                <Pressable
-                  style={styles.eyeBtn}
-                  onPress={() => setShowPassword((v) => !v)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    showPassword
-                      ? t("auth.login.hidePassword")
-                      : t("auth.login.showPassword")
-                  }
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={22}
-                    color={c.textMuted}
-                  />
-                </Pressable>
-              </View>
-              {fieldErrors.password ? (
-                <Text style={[styles.fieldError, { color: c.error }]}>
-                  {fieldErrors.password}
-                </Text>
-              ) : null}
-            </View>
+      <DarkCta
+        label={
+          loading ? t("auth.register.submitting") : t("auth.register.submit")
+        }
+        loading={loading}
+        onPress={() => void onSubmit()}
+      />
 
-            <Field
-              ref={confirmRef}
-              label={t("auth.register.confirmPassword")}
-              placeholder={t("auth.register.confirmPasswordPlaceholder")}
-              secureTextEntry
-              textContentType="newPassword"
-              autoComplete="password-new"
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-              value={form.confirmPassword}
-              error={fieldErrors.confirmPassword}
-              onChangeText={(v) => update("confirmPassword", v)}
-              onSubmitEditing={() => void onSubmit()}
-            />
+      <DarkDivider label={t("auth.orContinueWith")} />
 
-            <GlassButton
-              variant="active"
-              size="lg"
-              loading={loading}
-              onPress={() => void onSubmit()}
-            >
-              {loading
-                ? t("auth.register.submitting")
-                : t("auth.register.submit")}
-            </GlassButton>
+      <AuthSocialSection
+        onSuccess={async (access, refresh, meta) => {
+          await applyTokens(access, refresh);
+          replaceAfterSocialAuth(meta?.next);
+        }}
+        onError={(m) => setError(m)}
+      />
 
-            <View style={styles.divider}>
-              <View
-                style={[styles.dividerLine, { backgroundColor: c.border }]}
-              />
-              <Text style={[styles.dividerText, { color: c.textMuted }]}>
-                {t("auth.orContinueWith")}
-              </Text>
-              <View
-                style={[styles.dividerLine, { backgroundColor: c.border }]}
-              />
-            </View>
-
-            <AuthSocialSection
-              onSuccess={async (access, refresh, meta) => {
-                await applyTokens(access, refresh);
-                replaceAfterSocialAuth(meta?.next);
-              }}
-              onError={(m) => setError(m)}
-            />
-
-            <View style={styles.bottomRow}>
-              <Text style={[styles.bottomText, { color: c.textMuted }]}>
-                {t("auth.register.hasAccount")}{" "}
-              </Text>
-              <Link href="/login">
-                <Text style={[styles.bottomLink, { color: c.primary }]}>
-                  {t("auth.register.loginHere")}
-                </Text>
-              </Link>
-            </View>
-          </GlassAuthCard>
-        </ScrollView>
-      </AuthScreenLayout>
-    </KeyboardAvoidingView>
+      <View style={styles.bottomRow}>
+        <Text style={styles.bottomText}>{t("auth.register.hasAccount")} </Text>
+        <Link href="/login" style={styles.bottomLink}>
+          {t("auth.register.loginHere")}
+        </Link>
+      </View>
+    </AuthDarkShell>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    justifyContent: "center",
-    paddingBottom: spacing.xxxxl,
-    paddingTop: spacing.md,
-  },
-
-  title: {
-    fontSize: typography.xxl,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.sm,
-    textAlign: "center",
-    marginBottom: spacing.xxl,
-  },
-
-  errorBanner: {
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  errorText: { fontSize: typography.sm },
-
-  nameRow: {
-    flexDirection: "row",
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
+  nameRow: { flexDirection: "row", gap: 12 },
   nameField: { flex: 1 },
-
-  fieldWrap: { marginBottom: spacing.md },
-  label: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    marginBottom: spacing.xs,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 13,
-    fontSize: typography.base,
-  },
-  fieldError: {
-    fontSize: typography.xs,
-    marginTop: spacing.xs,
-  },
-  passwordWrap: { position: "relative" },
-  passwordInput: { paddingRight: 48 },
-  eyeBtn: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 48,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: spacing.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-  },
-  dividerText: {
-    marginHorizontal: spacing.md,
-    fontSize: typography.xs,
-  },
-
   bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
-    marginTop: spacing.xl,
+    marginTop: 22,
   },
-  bottomText: { fontSize: typography.sm },
-  bottomLink: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-  },
+  bottomText: { fontSize: 13, color: DARK.muted },
+  bottomLink: { fontSize: 13, color: DARK.primaryBright, fontWeight: "600" },
 });

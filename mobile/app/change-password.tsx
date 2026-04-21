@@ -7,12 +7,13 @@ import {
   Text,
   View,
 } from "react-native";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { changePassword } from "@garzoni/core";
 import { Button, FormInput } from "../src/components/ui";
+import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
@@ -67,7 +68,7 @@ export default function ChangePasswordScreen() {
         type: "success",
         text1: t("settings.success.passwordUpdated"),
       });
-      router.back();
+      safeRouterBack("/(tabs)/profile");
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setError(

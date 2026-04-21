@@ -30,14 +30,15 @@ function resolveMode(
   system: "light" | "dark" | null | undefined,
 ): "light" | "dark" {
   if (mode === "system") {
-    return system === "dark" ? "dark" : "light";
+    return system === "light" ? "light" : "dark";
   }
   return mode;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>("system");
+  /** Default for new installs; persisted choice overrides after hydrate. */
+  const [mode, setModeState] = useState<ThemeMode>("dark");
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   if (!hydrated) {
     const systemForResolve =
-      systemScheme ?? Appearance.getColorScheme() ?? "light";
+      systemScheme ?? Appearance.getColorScheme() ?? "dark";
     const resolvedPre = resolveMode(mode, systemForResolve);
     const colorsPre = resolvedPre === "dark" ? darkPalette : lightPalette;
     return (
@@ -122,5 +123,5 @@ export function useThemeColors(): ThemeColors {
   const ctx = useContext(ThemeContext);
   if (ctx) return ctx.colors;
   const sys = Appearance.getColorScheme();
-  return sys === "dark" ? darkPalette : lightPalette;
+  return sys === "light" ? lightPalette : darkPalette;
 }

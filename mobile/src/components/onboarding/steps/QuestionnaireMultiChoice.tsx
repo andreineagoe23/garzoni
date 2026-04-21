@@ -1,8 +1,7 @@
-import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import type { QuestionnaireQuestion } from "@garzoni/core";
-import { useThemeColors } from "../../../theme/ThemeContext";
-import { radius, shadows, spacing, typography } from "../../../theme/tokens";
+import { brand } from "../../../theme/brand";
 
 type Props = {
   question: QuestionnaireQuestion;
@@ -10,56 +9,21 @@ type Props = {
   onChange: (v: string[]) => void;
 };
 
+const DARK = {
+  surface: brand.bgCard,
+  primaryBright: "#2a7347",
+  primarySoft: "rgba(29,83,48,0.18)",
+  gold: brand.gold,
+  border: brand.borderGlass,
+  text: brand.text,
+  bg: brand.bgDark,
+};
+
 export default function QuestionnaireMultiChoice({
   question,
   selected,
   onChange,
 }: Props) {
-  const c = useThemeColors();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        optionList: { gap: spacing.sm, marginTop: spacing.md },
-        option: {
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: c.surface,
-          borderRadius: radius.lg,
-          padding: spacing.md,
-          borderWidth: 1.5,
-          borderColor: c.border,
-          ...shadows.sm,
-        },
-        optionActive: {
-          borderColor: c.primary,
-          backgroundColor: `${c.primary}0d`,
-        },
-        optionLabel: {
-          flex: 1,
-          fontSize: typography.base,
-          color: c.text,
-          marginLeft: spacing.md,
-        },
-        optionLabelActive: { fontWeight: "600", color: c.primaryDark },
-        checkbox: {
-          width: 22,
-          height: 22,
-          borderRadius: 4,
-          borderWidth: 2,
-          borderColor: c.border,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: c.surface,
-        },
-        checkboxActive: {
-          borderColor: c.primary,
-          backgroundColor: c.primary,
-        },
-        checkmark: { color: c.white, fontSize: 13, fontWeight: "700" },
-      }),
-    [c],
-  );
-
   const toggle = (val: string) => {
     onChange(
       selected.includes(val)
@@ -68,26 +32,81 @@ export default function QuestionnaireMultiChoice({
     );
   };
   return (
-    <View style={styles.optionList}>
+    <View style={styles.list}>
       {(question.options ?? []).map((opt) => {
         const active = selected.includes(opt.value);
         return (
           <Pressable
             key={opt.value}
-            style={[styles.option, active && styles.optionActive]}
             onPress={() => toggle(opt.value)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: active }}
+            style={[
+              styles.card,
+              {
+                backgroundColor: active ? DARK.primarySoft : DARK.surface,
+                borderColor: active ? DARK.primaryBright : DARK.border,
+                transform: [{ translateY: active ? -1 : 0 }],
+              },
+            ]}
           >
-            <View style={[styles.checkbox, active && styles.checkboxActive]}>
-              {active ? <Text style={styles.checkmark}>✓</Text> : null}
+            <View style={styles.labelCol}>
+              <Text style={styles.label}>{opt.label}</Text>
             </View>
-            <Text
-              style={[styles.optionLabel, active && styles.optionLabelActive]}
+            <View
+              style={[
+                styles.check,
+                {
+                  backgroundColor: active ? DARK.gold : "transparent",
+                  borderColor: active ? DARK.gold : DARK.border,
+                },
+              ]}
             >
-              {opt.label}
-            </Text>
+              {active ? (
+                <Svg width={10} height={10} viewBox="0 0 10 10">
+                  <Path
+                    d="M2 5l2 2 4-4.5"
+                    stroke={DARK.bg}
+                    strokeWidth={1.8}
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              ) : null}
+            </View>
           </Pressable>
         );
       })}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  list: { gap: 10, marginTop: 10 },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    minHeight: 64,
+  },
+  labelCol: { flex: 1 },
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: DARK.text,
+    letterSpacing: -0.2,
+  },
+  check: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

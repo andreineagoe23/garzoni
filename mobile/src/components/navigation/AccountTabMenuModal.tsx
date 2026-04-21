@@ -57,7 +57,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
     onClose();
     await clearSession();
     InteractionManager.runAfterInteractions(() => {
-      router.replace("/");
+      router.replace(href("/welcome"));
     });
   }, [clearSession, onClose, router]);
 
