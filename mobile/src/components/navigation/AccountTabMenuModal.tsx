@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import {
+  InteractionManager,
   Modal,
   Pressable,
   ScrollView,
@@ -7,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -22,17 +24,31 @@ type Props = {
   onClose: () => void;
 };
 
+/** Bottom tab bar (icons + label) — sheet sits just above this. */
+const TAB_BAR_HEIGHT = 54;
+
 export default function AccountTabMenuModal({ visible, onClose }: Props) {
   const { t } = useTranslation("common");
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const c = useThemeColors();
   const { resolved, toggleDark } = useTheme();
   const { clearSession } = useAuthSession();
 
+  const sheetBottomPad = insets.bottom + TAB_BAR_HEIGHT + spacing.xs;
+  const glassFill =
+    resolved === "dark"
+      ? "rgba(28,28,30,0.94)"
+      : "rgba(248,248,250,0.96)";
+
   const go = useCallback(
     (path: string) => {
       onClose();
-      router.push(href(path));
+      // Close the native modal before pushing so the new screen’s header and
+      // gestures are not blocked by a dismissing RN Modal (especially Android).
+      InteractionManager.runAfterInteractions(() => {
+        router.push(href(path));
+      });
     },
     [onClose, router],
   );
@@ -40,14 +56,20 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
   const signOut = useCallback(async () => {
     onClose();
     await clearSession();
-    router.replace("/");
+    InteractionManager.runAfterInteractions(() => {
+      router.replace("/");
+    });
   }, [clearSession, onClose, router]);
 
   const menuRowStyle = [styles.menuRow, { borderBottomColor: c.border }];
 
+  if (!visible) {
+    return null;
+  }
+
   return (
     <Modal
-      visible={visible}
+      visible
       transparent
       animationType="fade"
       onRequestClose={onClose}
@@ -56,9 +78,14 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          style={styles.sheetWrap}
+          style={[styles.sheetWrap, { paddingBottom: sheetBottomPad }]}
         >
-          <GlassCard padding="none" style={styles.sheet}>
+          <GlassCard
+            padding="none"
+            style={styles.sheet}
+            intensity={80}
+            fillOverlay={glassFill}
+          >
             <Text style={[styles.sheetTitle, { color: c.textMuted }]}>
               {t("nav.ariaAccountMenu", { defaultValue: "Account" })}
             </Text>
@@ -229,12 +256,11 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.58)",
     justifyContent: "flex-end",
   },
   sheetWrap: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxxl,
     maxHeight: "85%",
   },
   sheet: {
