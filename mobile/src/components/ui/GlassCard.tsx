@@ -14,6 +14,8 @@ type GlassCardProps = {
   intensity?: number;
   /** When the card uses flex:1 (e.g. equal-height dashboard tiles), stretch inner content vertically. */
   fillContent?: boolean;
+  /** Optional solid tint over blur (higher alpha = less see-through). */
+  fillOverlay?: string;
 };
 
 const paddingMap: Record<GlassCardPadding, number> = {
@@ -33,13 +35,15 @@ export default function GlassCard({
   style,
   intensity = 48,
   fillContent = false,
+  fillOverlay,
 }: GlassCardProps) {
   const { resolved, colors } = useTheme();
   const p = paddingMap[padding];
   const borderColor = colors.glassBorder;
   const tint = resolved === "dark" ? "dark" : "light";
   const overlay =
-    resolved === "dark" ? "rgba(30,30,30,0.78)" : "rgba(255,255,255,0.72)";
+    fillOverlay ??
+    (resolved === "dark" ? "rgba(30,30,30,0.78)" : "rgba(255,255,255,0.72)");
 
   return (
     <View

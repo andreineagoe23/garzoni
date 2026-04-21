@@ -324,6 +324,11 @@ export default function RegisterScreen() {
                   placeholder={t("auth.register.passwordPlaceholder")}
                   placeholderTextColor={c.textFaint}
                   secureTextEntry={!showPassword}
+                  textContentType="newPassword"
+                  autoComplete="password-new"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  passwordRules="minlength: 8;"
                   returnKeyType="next"
                   value={form.password}
                   onChangeText={(v) => update("password", v)}
@@ -359,6 +364,10 @@ export default function RegisterScreen() {
               label={t("auth.register.confirmPassword")}
               placeholder={t("auth.register.confirmPasswordPlaceholder")}
               secureTextEntry
+              textContentType="newPassword"
+              autoComplete="password-new"
+              autoCapitalize="none"
+              autoCorrect={false}
               returnKeyType="done"
               value={form.confirmPassword}
               error={fieldErrors.confirmPassword}

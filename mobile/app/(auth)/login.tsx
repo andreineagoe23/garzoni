@@ -197,6 +197,10 @@ export default function LoginScreen() {
                   placeholder={t("auth.login.passwordPlaceholder")}
                   placeholderTextColor={c.textFaint}
                   secureTextEntry={!showPassword}
+                  textContentType="password"
+                  autoComplete="password"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   returnKeyType="done"
                   value={password}
                   onChangeText={setPassword}
