@@ -16,7 +16,6 @@ import {
 } from "react-native";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { confirmPasswordReset } from "@garzoni/core";
@@ -28,7 +27,6 @@ import { spacing, typography, radius } from "../../../src/theme/tokens";
 export default function PasswordResetConfirmScreen() {
   const c = useThemeColors();
   const { t } = useTranslation("common");
-  const queryClient = useQueryClient();
   const { clearSession } = useAuthSession();
   const { uidb64, token } = useLocalSearchParams<{
     uidb64: string;
@@ -80,7 +78,6 @@ export default function PasswordResetConfirmScreen() {
 
   const goToLoginCleared = async () => {
     await clearSession();
-    queryClient.clear();
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Toast.show({
       type: "success",

@@ -11,6 +11,7 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import ConfettiCannon from "react-native-confetti-cannon";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { safeRouterBack } from "../../src/navigation/safeRouterBack";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MascotSituation } from "@garzoni/core";
 import {
@@ -232,7 +233,10 @@ export default function QuizScreen() {
     return (
       <SafeAreaView style={[styles.safeArea, styles.centered]}>
         <Text style={styles.muted}>{t("courses.quiz.noQuizData")}</Text>
-        <Button variant="secondary" onPress={() => router.back()}>
+        <Button
+          variant="secondary"
+          onPress={() => safeRouterBack("/(tabs)/learn")}
+        >
           {t("courses.quiz.backToCourses")}
         </Button>
       </SafeAreaView>
@@ -256,7 +260,7 @@ export default function QuizScreen() {
           <Button onPress={() => setPhase("attempt")}>
             {t("courses.quiz.introStart")}
           </Button>
-          <Button variant="ghost" onPress={() => router.back()}>
+          <Button variant="ghost" onPress={() => safeRouterBack("/(tabs)/learn")}>
             {t("courses.quiz.backToCourses")}
           </Button>
         </View>
@@ -319,7 +323,7 @@ export default function QuizScreen() {
           headerShown: true,
           headerLeft: () => (
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => safeRouterBack("/(tabs)/learn")}
               hitSlop={12}
               style={{ paddingHorizontal: 12, paddingVertical: 8 }}
               accessibilityRole="button"

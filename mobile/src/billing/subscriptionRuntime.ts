@@ -16,13 +16,21 @@ import { getRevenueCatPurchases } from "./safeRevenueCat";
 
 // ─── RevenueCat Dashboard identifiers (keep in sync with RC project) ─────────
 
-export const RC_ENTITLEMENT_PRO = "Garzoni Educational Pro";
-export const RC_ENTITLEMENT_PLUS = "Garzoni Educational Plus";
+export const RC_ENTITLEMENT_PRO = "Garzoni Pro";
+export const RC_ENTITLEMENT_PLUS = "Garzoni Plus";
 /** @deprecated Prefer RC_ENTITLEMENT_PRO / PLUS; kept for older imports. */
 export const RC_ENTITLEMENT = RC_ENTITLEMENT_PRO;
 
 export const RC_OFFERING_PLUS = "default";
 export const RC_OFFERING_PRO = "pro";
+
+/** Candidate identifiers tried in order when resolving the Pro offering. Covers dashboard drift. */
+const RC_OFFERING_PRO_CANDIDATES = [
+  "pro",
+  "Garzoni Pro",
+  "garzoni_pro",
+  "garzoni-pro",
+];
 
 /**
  * Canonical auto-renewable subscription product IDs for **this** mobile app’s
@@ -147,14 +155,20 @@ export function configureRevenueCatForUser(userId?: string) {
 
 export async function clearRevenueCatSession() {
   const rc = getRevenueCatPurchases();
+  if (rc) {
+    try {
+      // RevenueCat treats $RCAnonymousID:* as anonymous; logOut() on that user
+      // only logs an error ("LogOut was called but the current user is anonymous").
+      const anonymous = await rc.Purchases.isAnonymous();
+      if (!anonymous) {
+        await rc.Purchases.logOut();
+      }
+    } catch {
+      /* no-op */
+    }
+  }
   configuredUserId = null;
   revenueCatSdkReady = false;
-  if (!rc) return;
-  try {
-    await rc.Purchases.logOut();
-  } catch {
-    /* no-op */
-  }
 }
 
 function assertPurchasesReadyForOfferings(): boolean {
@@ -191,7 +205,15 @@ export async function fetchRevenueCatOfferingByIdentifier(
   if (id === RC_OFFERING_PLUS || id === "default") {
     return offerings.current ?? offerings.all[RC_OFFERING_PLUS] ?? null;
   }
-  return offerings.all[id] ?? null;
+  const direct = offerings.all[id];
+  if (direct) return direct;
+  if (RC_OFFERING_PRO_CANDIDATES.includes(id)) {
+    for (const cand of RC_OFFERING_PRO_CANDIDATES) {
+      const match = offerings.all[cand];
+      if (match) return match;
+    }
+  }
+  return null;
 }
 
 export async function rcGetPackagesForOffering(

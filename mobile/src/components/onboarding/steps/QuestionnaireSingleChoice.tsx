@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import type { QuestionnaireQuestion } from "@garzoni/core";
-import { useThemeColors } from "../../../theme/ThemeContext";
-import { radius, shadows, spacing, typography } from "../../../theme/tokens";
+import { brand } from "../../../theme/brand";
 
 type Props = {
   question: QuestionnaireQuestion;
@@ -10,78 +10,101 @@ type Props = {
   onChange: (v: string) => void;
 };
 
+const DARK = {
+  surface: brand.bgCard,
+  primary: brand.green,
+  primaryBright: "#2a7347",
+  primarySoft: "rgba(29,83,48,0.18)",
+  gold: brand.gold,
+  border: brand.borderGlass,
+  borderSoft: "rgba(255,255,255,0.06)",
+  text: brand.text,
+  muted: brand.textMuted,
+  bg: brand.bgDark,
+};
+
 export default function QuestionnaireSingleChoice({
   question,
   selected,
   onChange,
 }: Props) {
-  const c = useThemeColors();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        optionList: { gap: spacing.sm, marginTop: spacing.md },
-        option: {
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: c.surface,
-          borderRadius: radius.lg,
-          padding: spacing.md,
-          borderWidth: 1.5,
-          borderColor: c.border,
-          ...shadows.sm,
-        },
-        optionActive: {
-          borderColor: c.primary,
-          backgroundColor: `${c.primary}0d`,
-        },
-        optionLabel: {
-          flex: 1,
-          fontSize: typography.base,
-          color: c.text,
-          marginLeft: spacing.md,
-        },
-        optionLabelActive: { fontWeight: "600", color: c.primaryDark },
-        radio: {
-          width: 22,
-          height: 22,
-          borderRadius: 11,
-          borderWidth: 2,
-          borderColor: c.border,
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        radioActive: { borderColor: c.primary },
-        radioDot: {
-          width: 10,
-          height: 10,
-          borderRadius: 5,
-          backgroundColor: c.primary,
-        },
-      }),
-    [c],
-  );
-
+  const options = useMemo(() => question.options ?? [], [question.options]);
   return (
-    <View style={styles.optionList}>
-      {(question.options ?? []).map((opt) => {
+    <View style={styles.list}>
+      {options.map((opt) => {
         const active = selected === opt.value;
         return (
           <Pressable
             key={opt.value}
-            style={[styles.option, active && styles.optionActive]}
             onPress={() => onChange(opt.value)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
+            style={[
+              styles.card,
+              {
+                backgroundColor: active ? DARK.primarySoft : DARK.surface,
+                borderColor: active ? DARK.primaryBright : DARK.border,
+                transform: [{ translateY: active ? -1 : 0 }],
+              },
+            ]}
           >
-            <View style={[styles.radio, active && styles.radioActive]}>
-              {active ? <View style={styles.radioDot} /> : null}
+            <View style={styles.labelCol}>
+              <Text style={styles.label}>{opt.label}</Text>
             </View>
-            <Text
-              style={[styles.optionLabel, active && styles.optionLabelActive]}
+            <View
+              style={[
+                styles.check,
+                {
+                  backgroundColor: active ? DARK.gold : "transparent",
+                  borderColor: active ? DARK.gold : DARK.border,
+                },
+              ]}
             >
-              {opt.label}
-            </Text>
+              {active ? (
+                <Svg width={10} height={10} viewBox="0 0 10 10">
+                  <Path
+                    d="M2 5l2 2 4-4.5"
+                    stroke={DARK.bg}
+                    strokeWidth={1.8}
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              ) : null}
+            </View>
           </Pressable>
         );
       })}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  list: { gap: 10, marginTop: 10 },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    minHeight: 64,
+  },
+  labelCol: { flex: 1 },
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: DARK.text,
+    letterSpacing: -0.2,
+  },
+  check: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

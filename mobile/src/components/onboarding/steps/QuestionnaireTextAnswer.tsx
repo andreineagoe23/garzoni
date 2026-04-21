@@ -1,7 +1,5 @@
-import { useMemo } from "react";
 import { StyleSheet, TextInput } from "react-native";
-import { useThemeColors } from "../../../theme/ThemeContext";
-import { radius, spacing, typography } from "../../../theme/tokens";
+import { brand } from "../../../theme/brand";
 
 type Props = {
   value: string;
@@ -9,44 +7,46 @@ type Props = {
   multiline?: boolean;
 };
 
+const DARK = {
+  surface: brand.bgCard,
+  border: brand.borderGlass,
+  text: brand.text,
+  faint: "rgba(229,231,235,0.4)",
+};
+
 export default function QuestionnaireTextAnswer({
   value,
   onChange,
   multiline,
 }: Props) {
-  const c = useThemeColors();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        textInput: {
-          borderWidth: 1.5,
-          borderColor: c.border,
-          borderRadius: radius.md,
-          paddingHorizontal: spacing.md,
-          paddingVertical: 14,
-          fontSize: typography.base,
-          color: c.text,
-          backgroundColor: c.surface,
-          marginTop: spacing.md,
-        },
-        textInputMulti: {
-          height: 110,
-          textAlignVertical: "top",
-        },
-      }),
-    [c],
-  );
-
   return (
     <TextInput
-      style={[styles.textInput, multiline && styles.textInputMulti]}
+      style={[styles.input, multiline && styles.multi]}
       value={value}
       onChangeText={onChange}
       multiline={multiline}
       numberOfLines={multiline ? 4 : 1}
       placeholder="Type your answer…"
-      placeholderTextColor={c.textFaint}
+      placeholderTextColor={DARK.faint}
       returnKeyType={multiline ? "default" : "done"}
     />
   );
 }
+
+const styles = StyleSheet.create({
+  input: {
+    borderWidth: 1,
+    borderColor: DARK.border,
+    backgroundColor: DARK.surface,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: DARK.text,
+    marginTop: 10,
+  },
+  multi: {
+    height: 120,
+    textAlignVertical: "top",
+  },
+});

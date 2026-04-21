@@ -384,10 +384,25 @@ export default function SubscriptionsScreen() {
     return () => sub.remove();
   }, [onboardingMode]);
 
+  const findPackageForPlan = (plan: Plan) => {
+    const pkgs = offering?.availablePackages ?? [];
+    if (!pkgs.length) return undefined;
+    const wantYearly = plan.billing_interval === "yearly";
+    return pkgs.find((p) => {
+      const id = p.product.identifier;
+      const tier = planFromStoreProductIdentifier(id);
+      const isYearly = id.includes("yearly");
+      return tier === plan.plan_id && isYearly === wantYearly;
+    });
+  };
+
   const formatMoney = (plan: Plan) => {
     const raw = plan.price_amount;
     const n = typeof raw === "number" ? raw : parseFloat(String(raw ?? "0"));
     if (!Number.isFinite(n) || n === 0) return t("subscriptions.free");
+    const rcPackage = findPackageForPlan(plan);
+    const rcPriceString = rcPackage?.product?.priceString;
+    if (rcPriceString) return rcPriceString;
     const cur = String(plan.currency || "USD").toUpperCase();
     try {
       return new Intl.NumberFormat(i18n.language, {

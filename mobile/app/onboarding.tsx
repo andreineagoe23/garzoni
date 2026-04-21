@@ -13,7 +13,13 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Svg, {
+  Circle,
+  Defs,
+  Ellipse,
+  RadialGradient,
+  Stop,
+} from "react-native-svg";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,7 +37,6 @@ import {
   type QuestionnaireQuestion,
   type NextQuestionResponse,
 } from "@garzoni/core";
-import { Button, ProgressBar } from "../src/components/ui";
 import OnboardingIntroPager from "../src/components/onboarding/steps/OnboardingIntroPager";
 import OnboardingCompletionOverlay from "../src/components/onboarding/steps/OnboardingCompletionOverlay";
 import QuestionnaireSingleChoice from "../src/components/onboarding/steps/QuestionnaireSingleChoice";
@@ -40,10 +45,74 @@ import QuestionnaireTextAnswer from "../src/components/onboarding/steps/Question
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
 import { href } from "../src/navigation/href";
 import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
-import { spacing, typography, radius, shadows } from "../src/theme/tokens";
-import { useThemeColors } from "../src/theme/ThemeContext";
+import { brand } from "../src/theme/brand";
 
 const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
+
+const DARK = {
+  bg: brand.bgDark,
+  surface: brand.bgCard,
+  primary: brand.green,
+  primaryBright: "#2a7347",
+  gold: brand.gold,
+  goldWarm: brand.goldWarm,
+  border: brand.borderGlass,
+  borderSoft: "rgba(255,255,255,0.06)",
+  text: brand.text,
+  muted: brand.textMuted,
+  faint: "rgba(229,231,235,0.4)",
+  ghost: "rgba(229,231,235,0.12)",
+  error: "#ef4444",
+};
+
+type GlowProps = {
+  width: number;
+  height: number;
+  color: string;
+  opacity?: number;
+  stopFar?: number;
+  shape?: "circle" | "ellipse";
+};
+function Glow({
+  width,
+  height,
+  color,
+  opacity = 1,
+  stopFar = 0.6,
+  shape = "ellipse",
+}: GlowProps) {
+  const id = `obg-${Math.round(width)}-${Math.round(height)}-${color.length}`;
+  return (
+    <Svg width={width} height={height} pointerEvents="none">
+      <Defs>
+        <RadialGradient id={id} cx="50%" cy="50%" rx="50%" ry="50%">
+          <Stop offset="0%" stopColor={color} stopOpacity={opacity} />
+          <Stop
+            offset={`${stopFar * 100}%`}
+            stopColor={color}
+            stopOpacity={0}
+          />
+        </RadialGradient>
+      </Defs>
+      {shape === "circle" ? (
+        <Circle
+          cx={width / 2}
+          cy={height / 2}
+          r={Math.min(width, height) / 2}
+          fill={`url(#${id})`}
+        />
+      ) : (
+        <Ellipse
+          cx={width / 2}
+          cy={height / 2}
+          rx={width / 2}
+          ry={height / 2}
+          fill={`url(#${id})`}
+        />
+      )}
+    </Svg>
+  );
+}
 
 function useSlideAnim() {
   const anim = useRef(new Animated.Value(0)).current;
@@ -61,7 +130,6 @@ function useSlideAnim() {
 type AnswerValue = string | string[] | null;
 
 export default function OnboardingScreen() {
-  const c = useThemeColors();
   const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ reason?: string | string[] }>();
@@ -109,7 +177,8 @@ export default function OnboardingScreen() {
       setErrorMsg(t("onboarding.errorLoad"));
       setPhase("error");
     }
-  }, [slide, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t]);
 
   useEffect(() => {
     void (async () => {
@@ -203,6 +272,8 @@ export default function OnboardingScreen() {
   const question = questionData?.question ?? null;
   const progress = questionData?.progress_percentage ?? 0;
   const isLast = questionData?.is_last_question ?? false;
+  const currentNum = questionData?.current_question_number ?? 1;
+  const totalNum = questionData?.total_questions ?? 1;
 
   const updateAnswer = useCallback((v: AnswerValue) => {
     setAnswer(v);
@@ -238,24 +309,20 @@ export default function OnboardingScreen() {
 
   if (phase === "checking") {
     return (
-      <SafeAreaView
-        style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}
-      >
+      <SafeAreaView style={[styles.safe, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator size="large" color={c.primary} />
+        <ActivityIndicator size="large" color={DARK.primary} />
       </SafeAreaView>
     );
   }
 
   if (phase === "error") {
     return (
-      <SafeAreaView
-        style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}
-      >
+      <SafeAreaView style={[styles.safe, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Text style={[styles.errorText, { color: c.error }]}>{errorMsg}</Text>
-        <Button
-          variant="secondary"
+        <Text style={styles.errorText}>{errorMsg}</Text>
+        <Pressable
+          style={styles.cta}
           onPress={() =>
             router.replace(
               href(
@@ -266,21 +333,32 @@ export default function OnboardingScreen() {
             )
           }
         >
-          {t("onboarding.tryAgain")}
-        </Button>
+          <View style={styles.ctaHighlight} pointerEvents="none" />
+          <Text style={styles.ctaLabel}>{t("onboarding.tryAgain")}</Text>
+        </Pressable>
       </SafeAreaView>
     );
   }
 
   if (phase === "intro") {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: c.bg }]}>
+      <SafeAreaView style={styles.safe}>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: c.text }]}>
-            {personalizedPathReason
+        <View style={styles.ambientTop} pointerEvents="none">
+          <Glow
+            width={460}
+            height={320}
+            color={DARK.primary}
+            opacity={0.18}
+            stopFar={0.55}
+          />
+        </View>
+        <View style={styles.introHeader}>
+          <Text style={styles.eyebrow}>
+            {(personalizedPathReason
               ? t("onboarding.questionnaireHeaderPersonalized")
-              : t("onboarding.welcomeTitle")}
+              : t("onboarding.welcomeTitle")
+            ).toUpperCase()}
           </Text>
         </View>
         <OnboardingIntroPager
@@ -292,9 +370,7 @@ export default function OnboardingScreen() {
 
   if (phase === "done" && completionRewards) {
     return (
-      <SafeAreaView
-        style={[styles.safe, styles.centered, { backgroundColor: c.bg }]}
-      >
+      <SafeAreaView style={[styles.safe, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
         <OnboardingCompletionOverlay
           xp={completionRewards.xp}
@@ -305,48 +381,45 @@ export default function OnboardingScreen() {
     );
   }
 
+  const progressPct = Math.max(0, Math.min(100, progress));
+  const submitDisabled = submitting || (question?.required && !hasAnswer(answer));
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: c.bg }]}>
+    <SafeAreaView style={styles.safe}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={10}
-          style={styles.headerIconBtn}
-          accessibilityLabel={t("onboarding.previous")}
-        >
-          <Ionicons name="chevron-back" size={22} color={c.text} />
-        </Pressable>
-        <Text
-          style={[styles.headerTitle, { color: c.text }]}
-          numberOfLines={1}
-        >
-          {personalizedPathReason
-            ? t("onboarding.questionnaireHeaderPersonalized")
-            : t("onboarding.questionnaireHeaderDefault")}
-        </Text>
-        <View
-          style={[
-            styles.stepPill,
-            { backgroundColor: c.surface, borderColor: c.border },
-          ]}
-        >
-          <Text style={[styles.stepPillText, { color: c.textMuted }]}>
-            {questionData?.current_question_number ?? "—"}
-            <Text style={{ color: c.textFaint }}>
-              {" "}
-              / {questionData?.total_questions ?? "—"}
-            </Text>
-          </Text>
-        </View>
+      <View style={styles.ambientTop} pointerEvents="none">
+        <Glow
+          width={460}
+          height={320}
+          color={DARK.primary}
+          opacity={0.18}
+          stopFar={0.55}
+        />
+      </View>
+      <View style={styles.ambientBottom} pointerEvents="none">
+        <Glow
+          width={360}
+          height={260}
+          color={DARK.goldWarm}
+          opacity={0.05}
+          stopFar={0.5}
+        />
       </View>
 
-      <ProgressBar
-        value={progress / 100}
-        height={6}
-        style={styles.progressBar}
-      />
+      <View style={styles.header}>
+        <View style={styles.progressCol}>
+          <View style={styles.progressTrack}>
+            <View
+              style={[styles.progressFill, { width: `${progressPct}%` }]}
+            />
+          </View>
+        </View>
+        <Text style={styles.frac}>
+          <Text style={styles.fracNum}>{currentNum}</Text>
+          <Text style={styles.fracSlash}>/{totalNum}</Text>
+        </Text>
+      </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -355,32 +428,21 @@ export default function OnboardingScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {loading ? (
             <View style={styles.centeredLoader}>
-              <ActivityIndicator color={c.primary} />
+              <ActivityIndicator color={DARK.primary} />
             </View>
           ) : question ? (
             <Animated.View style={{ transform: [{ translateY }] }}>
-              <View
-                style={[
-                  styles.questionCard,
-                  {
-                    backgroundColor: c.surface,
-                    borderColor: c.border,
-                    ...shadows.sm,
-                  },
-                ]}
-              >
-                <Text style={[styles.questionText, { color: c.text }]}>
-                  {question.text}
-                </Text>
-                {question.description ? (
-                  <Text style={[styles.questionDesc, { color: c.textMuted }]}>
-                    {question.description}
-                  </Text>
-                ) : null}
-              </View>
+              <Text style={styles.screenEyebrow}>
+                {t("onboarding.questionnaireHeaderDefault").toUpperCase()}
+              </Text>
+              <Text style={styles.headline}>{question.text}</Text>
+              {question.description ? (
+                <Text style={styles.subhead}>{question.description}</Text>
+              ) : null}
 
               {question.type === "single_choice" && (
                 <QuestionnaireSingleChoice
@@ -414,35 +476,55 @@ export default function OnboardingScreen() {
               )}
 
               {errorMsg ? (
-                <Text style={[styles.errorText, { color: c.error }]}>
-                  {errorMsg}
-                </Text>
+                <Text style={styles.errorText}>{errorMsg}</Text>
               ) : null}
 
               <View style={styles.actions}>
-                <Button
-                  loading={submitting}
+                <Pressable
                   onPress={() => void handleSubmit()}
+                  disabled={submitDisabled}
+                  style={[
+                    styles.cta,
+                    submitDisabled && styles.ctaDisabled,
+                  ]}
+                  accessibilityRole="button"
                 >
-                  {isLast ? t("onboarding.finish") : t("onboarding.continue")}
-                </Button>
+                  <View style={styles.ctaHighlight} pointerEvents="none" />
+                  {submitting ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.ctaLabel}>
+                      {isLast
+                        ? t("onboarding.finish")
+                        : t("onboarding.continue")}
+                    </Text>
+                  )}
+                </Pressable>
                 {!question.required ? (
-                  <Button
-                    variant="ghost"
+                  <Pressable
                     onPress={() => {
                       setAnswer(deriveDefaultAnswer(question));
                       void handleSubmit();
                     }}
+                    style={styles.skipBtn}
+                    accessibilityRole="button"
                   >
-                    {t("onboarding.skipQuestion")}
-                  </Button>
+                    <Text style={styles.skipLabel}>
+                      {t("onboarding.skipQuestion")}
+                    </Text>
+                  </Pressable>
                 ) : null}
               </View>
+
+              <Text style={styles.footnote}>
+                {t("onboarding.changeLaterHint", {
+                  defaultValue: "You can change this anytime in Settings",
+                })}
+              </Text>
             </Animated.View>
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
-
     </SafeAreaView>
   );
 }
@@ -460,80 +542,129 @@ function hasAnswer(v: AnswerValue): boolean {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  centered: {
+  safe: { flex: 1, backgroundColor: DARK.bg },
+  centered: { alignItems: "center", justifyContent: "center", padding: 24 },
+  centeredLoader: { paddingVertical: 64, alignItems: "center" },
+
+  ambientTop: {
+    position: "absolute",
+    top: -60,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xxxl,
   },
-  centeredLoader: { paddingVertical: spacing.xxxxl, alignItems: "center" },
+  ambientBottom: { position: "absolute", bottom: -40, right: -60 },
 
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 18,
   },
-  headerIconBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -spacing.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.md,
-    fontWeight: "700",
-  },
-  stepPill: {
-    borderWidth: 1,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 4,
-    minHeight: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepPillText: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-  progressBar: {
-    marginHorizontal: spacing.xl,
-    marginBottom: spacing.md,
-    borderRadius: radius.full,
+  progressCol: { flex: 1 },
+  progressTrack: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: DARK.ghost,
     overflow: "hidden",
   },
+  progressFill: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: DARK.primaryBright,
+  },
+  frac: {
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+  fracNum: {
+    color: DARK.gold,
+    fontStyle: "italic",
+  },
+  fracSlash: { color: DARK.faint },
 
-  content: {
-    padding: spacing.xl,
-    paddingBottom: 80,
+  introHeader: { paddingHorizontal: 24, paddingTop: 24 },
+  eyebrow: {
+    fontSize: 11,
+    letterSpacing: 2,
+    color: DARK.faint,
+    fontWeight: "500",
   },
-  questionCard: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+
+  content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 80 },
+
+  screenEyebrow: {
+    fontSize: 11,
+    letterSpacing: 2,
+    color: DARK.faint,
+    fontWeight: "500",
+    marginBottom: 12,
   },
-  questionText: {
-    fontSize: typography.xl,
-    fontWeight: "700",
-    marginBottom: spacing.sm,
-    lineHeight: 30,
-    letterSpacing: -0.2,
+  headline: {
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: "500",
+    letterSpacing: -0.8,
+    color: DARK.text,
   },
-  questionDesc: {
-    fontSize: typography.base,
+  subhead: {
+    marginTop: 10,
+    fontSize: 15,
     lineHeight: 22,
+    color: DARK.muted,
+    maxWidth: 360,
   },
 
-  errorText: {
-    fontSize: typography.sm,
-    marginTop: spacing.md,
+  errorText: { fontSize: 13, color: DARK.error, marginTop: 14 },
+
+  actions: { marginTop: 22, gap: 10 },
+  cta: {
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: DARK.primaryBright,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 8,
   },
-  actions: { marginTop: spacing.xxl, gap: spacing.sm },
+  ctaDisabled: { opacity: 0.55 },
+  ctaHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  ctaLabel: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+  skipBtn: {
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  skipLabel: {
+    color: DARK.muted,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
+  footnote: {
+    textAlign: "center",
+    marginTop: 18,
+    fontSize: 12,
+    color: DARK.faint,
+    letterSpacing: 0.2,
+  },
 });
