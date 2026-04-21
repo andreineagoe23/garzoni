@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Image } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -22,16 +22,29 @@ export function HeaderAvatarButton() {
     staleTime: staleTimes.profile,
   });
 
-  const profile = profileQ.data;
-  const avatarPath = (profile as { avatar?: string | null } | undefined)
-    ?.avatar;
-  const avatarUri = avatarPath ? `${getMediaBaseUrl()}${avatarPath}` : null;
-  const displayName: string =
-    (profile as { first_name?: string; username?: string } | undefined)
-      ?.first_name ||
-    (profile as { username?: string } | undefined)?.username ||
-    "?";
-  const initials = displayName.charAt(0).toUpperCase();
+  const profile = profileQ.data as
+    | {
+        profile_avatar_url?: string | null;
+        avatar_url?: string | null;
+        profile_avatar?: string | null;
+        avatar?: string | null;
+        user?: { profile_avatar_url?: string | null } | null;
+      }
+    | undefined;
+
+  const rawAvatar =
+    profile?.profile_avatar_url ||
+    profile?.avatar_url ||
+    profile?.user?.profile_avatar_url ||
+    profile?.profile_avatar ||
+    profile?.avatar ||
+    "";
+
+  const avatarUri = rawAvatar
+    ? /^https?:\/\//i.test(rawAvatar)
+      ? rawAvatar
+      : `${getMediaBaseUrl()}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
+    : null;
 
   return (
     <Pressable
@@ -49,9 +62,7 @@ export function HeaderAvatarButton() {
         {avatarUri ? (
           <Image source={{ uri: avatarUri }} style={styles.image} />
         ) : (
-          <Text style={[styles.initials, { color: c.primary }]}>
-            {initials}
-          </Text>
+          <Ionicons name="person" size={16} color={c.primary} />
         )}
       </View>
     </Pressable>
@@ -78,9 +89,5 @@ const styles = StyleSheet.create({
     width: SIZE,
     height: SIZE,
     borderRadius: radius.full,
-  },
-  initials: {
-    fontSize: 13,
-    fontWeight: "700",
   },
 });
