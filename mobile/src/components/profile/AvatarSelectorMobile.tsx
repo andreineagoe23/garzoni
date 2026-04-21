@@ -38,7 +38,7 @@ type Props = {
   onAvatarChange?: (url: string) => void;
 };
 
-const QUICK_COUNT = 6;
+const QUICK_COUNT = 5;
 
 export default function AvatarSelectorMobile({
   visible,
@@ -484,20 +484,19 @@ const styles = StyleSheet.create({
   },
   quickGrid: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+    justifyContent: "space-between",
     marginTop: spacing.xs,
   },
   quickItem: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     borderWidth: 2,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
   },
-  quickImage: { width: 56, height: 56, borderRadius: 28 },
+  quickImage: { width: 48, height: 48, borderRadius: 24 },
   photoBlock: { gap: spacing.md, marginTop: spacing.sm },
   hint: { fontSize: typography.xs, lineHeight: 18 },
   warning: { fontSize: typography.xs, lineHeight: 18 },
