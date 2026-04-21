@@ -7,19 +7,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { DeviceEventEmitter } from "react-native";
 import { attachToken } from "@garzoni/core";
-import { clearRevenueCatSession } from "../billing/subscriptionRuntime";
 import {
   clearGarzoniCustomerIo,
   identifyGarzoniUserFromAccessToken,
 } from "../bootstrap/customerIoMobile";
 import { tokenStorage } from "./tokenStorage";
+import { markWelcomeHeaderPending } from "./firstRunFlags";
 import {
-  clearPlanChosenCache,
-  clearWelcomeHeaderPending,
-  clearWelcomeSeen,
-  markWelcomeHeaderPending,
-} from "./firstRunFlags";
+  NATIVE_AUTH_STORAGE_CLEARED,
+  resetNativeSessionStores,
+} from "./nativeSessionReset";
 
 type AuthSessionValue = {
   hydrated: boolean;
@@ -50,6 +49,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(
+      NATIVE_AUTH_STORAGE_CLEARED,
+      () => {
+        setAccessToken(null);
+      },
+    );
+    return () => sub.remove();
+  }, []);
+
   const applyTokens = useCallback(async (access: string, refresh?: string) => {
     await tokenStorage.setAccess(access);
     if (refresh) await tokenStorage.setRefresh(refresh);
@@ -60,13 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearSession = useCallback(async () => {
-    await clearGarzoniCustomerIo();
-    await clearRevenueCatSession();
-    await clearPlanChosenCache();
-    await clearWelcomeSeen();
-    await clearWelcomeHeaderPending();
-    await tokenStorage.clearAll();
-    attachToken(null);
+    await resetNativeSessionStores();
     setAccessToken(null);
   }, []);
 
