@@ -107,7 +107,9 @@ export default function SubscriptionsScreen() {
   );
   const [selectionError, setSelectionError] = useState("");
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
-  const [loadingOffering, setLoadingOffering] = useState(false);
+  const [loadingOffering, setLoadingOffering] = useState(
+    getRevenueCatPurchases() !== null,
+  );
   const [offeringLoadFailed, setOfferingLoadFailed] = useState(false);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [activatingPurchase, setActivatingPurchase] = useState(false);

@@ -16,6 +16,7 @@ import Svg, {
   Ellipse,
   Rect,
   Defs,
+  LinearGradient,
   RadialGradient,
   Stop,
 } from "react-native-svg";
@@ -570,6 +571,7 @@ export default function WelcomeScreen() {
                   width: a ? 22 : 6,
                   backgroundColor: a ? C.primaryBright : C.ghost,
                 },
+                a && s.dotActiveGlow,
               ]}
             />
           );
@@ -582,6 +584,18 @@ export default function WelcomeScreen() {
           style={s.cta}
           accessibilityRole="button"
         >
+          <Svg
+            style={StyleSheet.absoluteFill as never}
+            pointerEvents="none"
+          >
+            <Defs>
+              <LinearGradient id="ctaGrad" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" stopColor={C.primaryBright} stopOpacity={1} />
+                <Stop offset="100%" stopColor={C.primary} stopOpacity={1} />
+              </LinearGradient>
+            </Defs>
+            <Rect x={0} y={0} width="100%" height="100%" fill="url(#ctaGrad)" />
+          </Svg>
           <View style={s.ctaHighlight} pointerEvents="none" />
           <Text style={s.ctaLabel}>{slide.cta}</Text>
         </Pressable>
@@ -668,6 +682,13 @@ const s = StyleSheet.create({
     marginTop: 20,
   },
   dot: { height: 6, borderRadius: 3 },
+  dotActiveGlow: {
+    shadowColor: C.primaryBright,
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
 
   footer: {
     paddingHorizontal: 20,
@@ -678,7 +699,7 @@ const s = StyleSheet.create({
   cta: {
     height: 56,
     borderRadius: 28,
-    backgroundColor: C.primaryBright,
+    backgroundColor: C.primary,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
