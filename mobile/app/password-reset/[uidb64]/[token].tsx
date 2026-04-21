@@ -180,6 +180,10 @@ export default function PasswordResetConfirmScreen() {
             label={t("auth.resetPassword.mobileNewLabel")}
             placeholder={t("auth.resetPassword.mobileNewPlaceholder")}
             secureTextEntry
+            textContentType="newPassword"
+            autoComplete="password-new"
+            autoCapitalize="none"
+            autoCorrect={false}
             autoFocus
             returnKeyType="next"
             value={password}
@@ -190,6 +194,10 @@ export default function PasswordResetConfirmScreen() {
             label={t("auth.resetPassword.mobileConfirmLabel")}
             placeholder={t("auth.resetPassword.mobileConfirmPlaceholder")}
             secureTextEntry
+            textContentType="newPassword"
+            autoComplete="password-new"
+            autoCapitalize="none"
+            autoCorrect={false}
             returnKeyType="done"
             value={confirm}
             onChangeText={setConfirm}

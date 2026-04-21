@@ -105,6 +105,9 @@ export default function ChangePasswordScreen() {
           <FormInput
             label={t("settings.password.current")}
             secureTextEntry
+            textContentType="password"
+            autoComplete="current-password"
+            autoCorrect={false}
             value={current}
             onChangeText={setCurrent}
             autoCapitalize="none"
@@ -112,6 +115,9 @@ export default function ChangePasswordScreen() {
           <FormInput
             label={t("settings.password.new")}
             secureTextEntry
+            textContentType="newPassword"
+            autoComplete="password-new"
+            autoCorrect={false}
             value={next}
             onChangeText={setNext}
             autoCapitalize="none"
@@ -119,6 +125,9 @@ export default function ChangePasswordScreen() {
           <FormInput
             label={t("settings.password.confirm")}
             secureTextEntry
+            textContentType="newPassword"
+            autoComplete="password-new"
+            autoCorrect={false}
             value={confirm}
             onChangeText={setConfirm}
             autoCapitalize="none"
