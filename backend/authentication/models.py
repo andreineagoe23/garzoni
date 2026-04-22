@@ -47,9 +47,7 @@ class UserProfile(models.Model):
         null=True,
         help_text="Subscription tier identifier (starter, plus, pro).",
     )
-    stripe_payment_id = models.CharField(
-        max_length=255, blank=True, null=True, db_index=True
-    )
+    stripe_payment_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     stripe_customer_id = models.CharField(
         max_length=255,
         blank=True,
@@ -119,9 +117,7 @@ class UserProfile(models.Model):
         self.refresh_from_db(fields=["earned_money"])
 
     def add_points(self, points):
-        UserProfile.objects.filter(pk=self.pk).update(
-            points=models.F("points") + points
-        )
+        UserProfile.objects.filter(pk=self.pk).update(points=models.F("points") + points)
         self.refresh_from_db(fields=["points"])
 
     def _try_bridge_one_gap_day_with_freeze(self, today) -> bool:
@@ -256,9 +252,7 @@ class UserEmailPreference(models.Model):
         ("monthly", "Monthly"),
     ]
 
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="email_preferences"
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="email_preferences")
     reminders = models.BooleanField(default=True)
     streak_alerts = models.BooleanField(default=True)
     weekly_digest = models.BooleanField(default=True)
@@ -286,9 +280,7 @@ class Referral(models.Model):
     Ensures that each referred user is linked to only one referrer.
     """
 
-    referrer = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="referrals_made"
-    )
+    referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="referrals_made")
     referred_user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="referral_received"
     )
@@ -316,12 +308,8 @@ class FriendRequest(models.Model):
         ("rejected", "Rejected"),
     ]
 
-    sender = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="sent_requests"
-    )
-    receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="received_requests"
-    )
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_requests")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_requests")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
 

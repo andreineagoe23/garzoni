@@ -13,16 +13,12 @@ from authentication.models import (
 
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
-    referral_code = serializers.CharField(
-        write_only=True, required=False, allow_blank=True
-    )
+    referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
     # Explicit opt-in for marketing emails. Defaults to False (UK PECR reg. 22 +
     # EU ePrivacy): pre-ticked checkboxes are invalid consent. Service /
     # transactional defaults (reminders, streak, digest, billing, push) are set
     # ON by the UserEmailPreference signal handler on post_save.
-    marketing_opt_in = serializers.BooleanField(
-        write_only=True, required=False, default=False
-    )
+    marketing_opt_in = serializers.BooleanField(write_only=True, required=False, default=False)
 
     class Meta:
         model = User
@@ -69,9 +65,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user_profile.save()
 
         if referral_code:
-            referrer_profile = UserProfile.objects.get(
-                referral_code__iexact=referral_code
-            )
+            referrer_profile = UserProfile.objects.get(referral_code__iexact=referral_code)
             Referral.objects.create(
                 referrer=referrer_profile.user,
                 referred_user=user,
@@ -194,11 +188,7 @@ class FinancialProfileSerializer(serializers.ModelSerializer):
                 x.lower() for x in ALLOWED_GOAL_TYPES
             }:
                 pass  # allow unknown for flexibility; optionally restrict: raise ValidationError
-        return [
-            str(x).strip().lower()
-            for x in value
-            if isinstance(x, str) and str(x).strip()
-        ][:20]
+        return [str(x).strip().lower() for x in value if isinstance(x, str) and str(x).strip()][:20]
 
     def validate_timeframe(self, value):
         if value is None or value == "":
