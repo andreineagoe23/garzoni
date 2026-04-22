@@ -215,10 +215,9 @@ def _google_oauth_redirect_uri(request=None):
     ):
         xf_proto = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").strip().lower()
         scheme = xf_proto if xf_proto in ("http", "https") else request.scheme
-        try:
-            host = request.get_host()
-        except Exception:
-            host = ""
+        # Bypass ALLOWED_HOSTS validation in DEBUG — we intentionally trust the
+        # raw Host header so LAN/dev origins work without adding them to ALLOWED_HOSTS.
+        host = (request.META.get("HTTP_HOST") or "").strip()
         base = (
             f"{scheme}://{host}".rstrip("/")
             if host and scheme
