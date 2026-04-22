@@ -218,7 +218,9 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
                 )}
               </Animated.View>
               <Text style={[styles.title, { color: c.text }]}>{s.title}</Text>
-              <Text style={[styles.body, { color: c.textMuted }]}>{s.body}</Text>
+              <Text style={[styles.body, { color: c.textMuted }]}>
+                {s.body}
+              </Text>
             </View>
           );
         })}

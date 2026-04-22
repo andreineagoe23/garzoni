@@ -28,15 +28,23 @@ export {
 export {
   requestAiTutorResponse,
   requestAiTutorPayload,
+  requestAiTutorHint,
 } from "./services/aiTutor";
-export type { AiTutorLink, AiTutorPayload } from "./services/aiTutor";
+export type {
+  AiTutorLink,
+  AiTutorPayload,
+  AiTutorExerciseContext,
+} from "./services/aiTutor";
 export {
   updateAvatar,
   AVATAR_STYLES,
   getDicebearUrl,
   randomSeed,
 } from "./services/avatarService";
-export type { AvatarStyleId, AvatarUpdateResponse } from "./services/avatarService";
+export type {
+  AvatarStyleId,
+  AvatarUpdateResponse,
+} from "./services/avatarService";
 export {
   fetchStockQuote,
   fetchForexQuote,

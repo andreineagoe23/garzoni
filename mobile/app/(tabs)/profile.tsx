@@ -491,9 +491,7 @@ function ProfileInner() {
             </Button>
             <Button
               variant="secondary"
-              onPress={() =>
-                router.push(href("/subscriptions"))
-              }
+              onPress={() => router.push(href("/subscriptions"))}
               style={styles.actionBtn}
             >
               {subActive

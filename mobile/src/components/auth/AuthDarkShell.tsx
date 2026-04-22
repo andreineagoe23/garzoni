@@ -12,7 +12,13 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
-import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
+import Svg, {
+  Circle,
+  Defs,
+  Ellipse,
+  RadialGradient,
+  Stop,
+} from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { brand } from "../../theme/brand";
@@ -58,7 +64,11 @@ function Glow({
       <Defs>
         <RadialGradient id={id} cx="50%" cy="50%" rx="50%" ry="50%">
           <Stop offset="0%" stopColor={color} stopOpacity={opacity} />
-          <Stop offset={`${stopFar * 100}%`} stopColor={color} stopOpacity={0} />
+          <Stop
+            offset={`${stopFar * 100}%`}
+            stopColor={color}
+            stopOpacity={0}
+          />
         </RadialGradient>
       </Defs>
       {shape === "circle" ? (
@@ -118,10 +128,22 @@ export default function AuthDarkShell({
     >
       <View style={s.root}>
         <View style={s.ambientTop} pointerEvents="none">
-          <Glow width={460} height={320} color={DARK.primary} opacity={0.2} stopFar={0.55} />
+          <Glow
+            width={460}
+            height={320}
+            color={DARK.primary}
+            opacity={0.2}
+            stopFar={0.55}
+          />
         </View>
         <View style={s.ambientBottom} pointerEvents="none">
-          <Glow width={360} height={260} color={DARK.goldWarm} opacity={0.05} stopFar={0.5} />
+          <Glow
+            width={360}
+            height={260}
+            color={DARK.goldWarm}
+            opacity={0.05}
+            stopFar={0.5}
+          />
         </View>
 
         <ScrollView
@@ -135,7 +157,9 @@ export default function AuthDarkShell({
           </View>
 
           <View style={s.header}>
-            {eyebrow ? <Text style={s.eyebrow}>{eyebrow.toUpperCase()}</Text> : null}
+            {eyebrow ? (
+              <Text style={s.eyebrow}>{eyebrow.toUpperCase()}</Text>
+            ) : null}
             <Text style={s.title}>{title}</Text>
             {subtitle ? <Text style={s.subtitle}>{subtitle}</Text> : null}
           </View>
@@ -259,7 +283,13 @@ export function DarkDivider({ label }: { label: string }) {
 const s = StyleSheet.create({
   flex: { flex: 1 },
   root: { flex: 1, backgroundColor: DARK.bg },
-  ambientTop: { position: "absolute", top: -60, left: 0, right: 0, alignItems: "center" },
+  ambientTop: {
+    position: "absolute",
+    top: -60,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
   ambientBottom: { position: "absolute", bottom: -40, right: -60 },
 
   scroll: {
@@ -358,7 +388,12 @@ const s = StyleSheet.create({
     height: 1,
     backgroundColor: "rgba(255,255,255,0.18)",
   },
-  ctaLabel: { color: "#fff", fontSize: 16, fontWeight: "600", letterSpacing: 0.3 },
+  ctaLabel: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
 
   errorBanner: {
     borderWidth: 1,
@@ -372,6 +407,15 @@ const s = StyleSheet.create({
   errorText: { color: DARK.error, fontSize: 13 },
 
   divider: { flexDirection: "row", alignItems: "center", marginVertical: 18 },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: DARK.border },
-  dividerText: { marginHorizontal: 12, fontSize: 11, color: DARK.faint, letterSpacing: 1 },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: DARK.border,
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 11,
+    color: DARK.faint,
+    letterSpacing: 1,
+  },
 });

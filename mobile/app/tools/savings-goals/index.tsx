@@ -11,7 +11,12 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { radius, shadows, spacing, typography } from "../../../src/theme/tokens";
+import {
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../../src/theme/tokens";
 import {
   calcSavings,
   type SavingsForm,

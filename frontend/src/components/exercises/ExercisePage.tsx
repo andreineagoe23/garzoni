@@ -1068,6 +1068,22 @@ const ExercisePage = () => {
       } else {
         setStreak(0);
         setStreakMultiplier(1);
+        // After 2+ wrong answers on the same exercise, open the AI tutor pre-filled
+        if (attemptsVal >= 2) {
+          const tutorCtx = [
+            `Question: ${currentExercise.question}`,
+            feedbackText ? `Feedback: ${feedbackText}` : null,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent("garzoni:tutor", {
+                detail: { context: tutorCtx },
+              })
+            );
+          }, 900);
+        }
       }
 
       const skill = currentExercise.category || t("exercises.skillFallback");

@@ -2,7 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const WELCOME_SEEN_KEY = "garzoni:welcome_seen_v1";
 const PLAN_CHOSEN_KEY = "garzoni:plan_chosen_v1";
-const WELCOME_HEADER_PENDING_KEY = "garzoni:dashboard_welcome_header_pending_v1";
+const WELCOME_HEADER_PENDING_KEY =
+  "garzoni:dashboard_welcome_header_pending_v1";
 
 export async function getWelcomeSeen(): Promise<boolean> {
   try {
