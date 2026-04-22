@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { NotificationFeedbackType } from "expo-haptics";
+import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { submitExerciseAnswer } from "@garzoni/core";
 import { safeNotificationAsync } from "../../utils/safeHaptics";
@@ -151,6 +152,16 @@ export default function MultipleChoice({
           void safeNotificationAsync(NotificationFeedbackType.Error);
           setFeedback("");
           setFeedbackType("error");
+          // After 2+ wrong attempts offer AI help via the chat screen
+          if ((res.attempts ?? 0) >= 2 && question) {
+            const preseeded = encodeURIComponent(
+              `I'm stuck on this exercise: "${question}". I answered option ${(selected ?? 0) + 1} but it was wrong. Can you give me a hint without revealing the answer?`,
+            );
+            setTimeout(
+              () => router.push(`/chat?preseededMessage=${preseeded}`),
+              800,
+            );
+          }
         }
       } catch {
         const msg = t("exercises.errors.submissionFailed");

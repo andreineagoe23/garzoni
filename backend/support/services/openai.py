@@ -11,7 +11,7 @@ from rest_framework import status
 
 from authentication.entitlements import get_user_plan
 from authentication.models import UserProfile
-from education.models import Path, UserProgress
+from education.models import Path, UserProgress, Mastery
 
 logger = logging.getLogger(__name__)
 
@@ -194,42 +194,61 @@ class OpenAIService:
         return financial_context + prompt
 
     def get_user_context(self, user):
+        """Legacy method kept for compatibility. Context is now injected via system prompt."""
+        return None
+
+    def _build_education_context(self, user) -> str:
+        """Return a concise student-context string for the tutor system prompt."""
+        parts = []
         try:
-            context_parts = []
+            # Mastery: top 3 skills by proficiency
+            top_skills = list(
+                Mastery.objects.filter(user=user).order_by("-proficiency").values("skill", "proficiency")[:3]
+            )
+            if top_skills:
+                skill_strs = [f"{s['skill']} ({s['proficiency']}/100)" for s in top_skills]
+                parts.append(f"Top skills: {', '.join(skill_strs)}.")
 
+            # Current course (most recently active)
+            last_progress = (
+                UserProgress.objects.filter(user=user)
+                .select_related("course", "course__path")
+                .order_by("-last_course_activity_date")
+                .first()
+            )
+            if last_progress and last_progress.course:
+                course_title = last_progress.course.title or "a course"
+                path_name = (
+                    (last_progress.course.path.title or "") if last_progress.course.path else ""
+                )
+                parts.append(
+                    f"Currently studying: {course_title}"
+                    + (f" ({path_name} path)" if path_name else "") + "."
+                )
+                completed_courses = UserProgress.objects.filter(
+                    user=user, is_course_complete=True
+                ).count()
+                if completed_courses:
+                    parts.append(f"Completed {completed_courses} course(s).")
+
+            # Questionnaire goal
             try:
-                profile = UserProfile.objects.get(user=user)
-                if hasattr(profile, "points"):
-                    context_parts.append(f"The user has {profile.points} points in their account.")
-
-                user_progress = UserProgress.objects.filter(user=user)
-                if user_progress.exists():
-                    paths = set()
-                    for progress in user_progress:
-                        if progress.course and progress.course.path:
-                            paths.add(progress.course.path.title)
-                    if paths:
-                        context_parts.append(
-                            f"The user is currently following these learning paths: {', '.join(paths)}."
-                        )
-
-                completed_lessons = user_progress.filter(is_course_complete=True).count()
-                if completed_lessons > 0:
-                    context_parts.append(f"The user has completed {completed_lessons} courses.")
-
-                if hasattr(profile, "experience_level") and profile.experience_level:
-                    context_parts.append(
-                        f"The user's financial experience level is: {profile.experience_level}."
-                    )
-            except (UserProfile.DoesNotExist, Exception):
+                from onboarding.models import QuestionnaireProgress
+                q = QuestionnaireProgress.objects.filter(user=user).first()
+                if q and q.answers:
+                    goal = q.answers.get("primary_goal")
+                    challenge = q.answers.get("biggest_challenge")
+                    if goal:
+                        parts.append(f"Financial goal: {goal}.")
+                    if challenge:
+                        parts.append(f"Biggest challenge: {challenge}.")
+            except Exception:
                 pass
 
-            if context_parts:
-                return "User context: " + " ".join(context_parts)
-            return None
         except Exception as exc:
-            logger.error("Error getting user context: %s", exc)
-            return None
+            logger.debug("education context build error: %s", exc)
+
+        return " ".join(parts)
 
     def clean_response(self, response_text):
         if response_text is None:
@@ -245,6 +264,7 @@ class OpenAIService:
         prompt = self.request.data.get("inputs", "").strip()
         parameters = self.request.data.get("parameters", {})
         chat_history = self.request.data.get("chatHistory", [])
+        source = str(self.request.data.get("source") or "chat")[:64]
         request_id = getattr(self.request, "request_id", None)
 
         if len(prompt) > settings.OPENAI_MAX_PROMPT_CHARS:
@@ -374,13 +394,6 @@ class OpenAIService:
                     ],
                 }, 200
 
-            if self.is_finance_related(prompt.lower()):
-                prompt = self.add_financial_context(prompt)
-
-            user_context = self.get_user_context(self.user)
-            if user_context:
-                prompt = f"{user_context}\n\n{prompt}"
-
             api_key = settings.OPENAI_API_KEY
             headers = {
                 "Authorization": f"Bearer {api_key}" if api_key else "",
@@ -403,17 +416,28 @@ class OpenAIService:
 
             messages = []
             available_paths = self.format_paths_for_message()
-            messages.append(
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a friendly, helpful financial assistant. Always reply with a clear, direct answer. "
-                        "Keep responses to 2-4 short sentences. "
-                        f"When relevant, you can mention we offer these learning paths: {available_paths}. "
-                        "Answer general finance questions with accurate, educational info."
-                    ),
-                }
-            )
+            education_context = self._build_education_context(self.user)
+            exercise_context = self.request.data.get("exercise_context")
+
+            system_lines = [
+                "You are Garzoni, a warm and encouraging personal finance tutor inside the Garzoni learning app.",
+                "Guide students to understand money, budgeting, investing, and financial health.",
+                "Keep responses to 3-5 sentences. Be Socratic — ask questions to guide understanding.",
+                "When a student is stuck on an exercise, give progressive hints. NEVER reveal the correct answer directly.",
+                f"Available learning paths you can reference: {available_paths}.",
+            ]
+            if education_context:
+                system_lines.append(f"\nStudent context: {education_context}")
+            if exercise_context and isinstance(exercise_context, dict):
+                ex_q = str(exercise_context.get("question") or "").strip()
+                ex_ua = str(exercise_context.get("user_answer") or "").strip()
+                if ex_q:
+                    system_lines.append(f"\nCurrent exercise the student is working on: {ex_q}")
+                    if ex_ua:
+                        system_lines.append(f"Student's last answer: {ex_ua}")
+                    system_lines.append("Give a helpful hint — do NOT give the correct answer.")
+
+            messages.append({"role": "system", "content": " ".join(system_lines)})
 
             if chat_history and isinstance(chat_history, list):
                 sanitized = []
@@ -451,7 +475,7 @@ class OpenAIService:
                 max_tokens = 256
             max_tokens = max(1, min(max_tokens, settings.OPENAI_MAX_TOKENS))
 
-            temperature = parameters.get("temperature", 0.7)
+            temperature = parameters.get("temperature", 0.4)
             try:
                 temperature = float(temperature)
             except Exception:
@@ -515,6 +539,15 @@ class OpenAIService:
                     tokens_used = (response_data.get("usage") or {}).get("total_tokens", 0)
                     if tokens_used:
                         self._consume_tokens(tokens_used)
+                    logger.info(
+                        "ai_tutor_request",
+                        extra={
+                            "user_id": self.user.id,
+                            "source": source,
+                            "tokens_used": tokens_used,
+                            "request_id": request_id,
+                        },
+                    )
 
                     if cache_key and cache_ttl > 0:
                         cache.set(cache_key, result, timeout=cache_ttl)

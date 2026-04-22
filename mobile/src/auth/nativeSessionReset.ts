@@ -10,7 +10,8 @@ import {
 } from "./firstRunFlags";
 
 /** Fired when session storage is cleared outside `AuthContext` (e.g. HTTP 401 refresh failure). */
-export const NATIVE_AUTH_STORAGE_CLEARED = "garzoni:native-auth-storage-cleared";
+export const NATIVE_AUTH_STORAGE_CLEARED =
+  "garzoni:native-auth-storage-cleared";
 
 export function notifyNativeAuthStorageCleared(): void {
   DeviceEventEmitter.emit(NATIVE_AUTH_STORAGE_CLEARED);

@@ -382,7 +382,8 @@ export default function OnboardingScreen() {
   }
 
   const progressPct = Math.max(0, Math.min(100, progress));
-  const submitDisabled = submitting || (question?.required && !hasAnswer(answer));
+  const submitDisabled =
+    submitting || (question?.required && !hasAnswer(answer));
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -410,9 +411,7 @@ export default function OnboardingScreen() {
       <View style={styles.header}>
         <View style={styles.progressCol}>
           <View style={styles.progressTrack}>
-            <View
-              style={[styles.progressFill, { width: `${progressPct}%` }]}
-            />
+            <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
           </View>
         </View>
         <Text style={styles.frac}>
@@ -483,10 +482,7 @@ export default function OnboardingScreen() {
                 <Pressable
                   onPress={() => void handleSubmit()}
                   disabled={submitDisabled}
-                  style={[
-                    styles.cta,
-                    submitDisabled && styles.ctaDisabled,
-                  ]}
+                  style={[styles.cta, submitDisabled && styles.ctaDisabled]}
                   accessibilityRole="button"
                 >
                   <View style={styles.ctaHighlight} pointerEvents="none" />

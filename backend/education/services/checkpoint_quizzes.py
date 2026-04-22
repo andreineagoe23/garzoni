@@ -120,6 +120,64 @@ def get_or_create_quiz_from_mc_section(section: LessonSection) -> Quiz | None:
     return quiz
 
 
+def generate_ai_checkpoint_questions(lesson: Lesson, n: int = 3) -> list[Quiz]:
+    """
+    Use GPT to generate n novel comprehension questions from a lesson's published text sections.
+
+    Calls ai_tutor.generate_checkpoint_questions() and stores each result as a Quiz row
+    (without source_lesson_section so it doesn't collide with MC-materialized rows).
+    Returns the Quiz instances created; skips duplicates idempotently.
+    Falls back to an empty list if AI is unavailable or the lesson has no text content.
+    """
+    from education.services.ai_tutor import generate_checkpoint_questions
+
+    text_sections = lesson.sections.filter(
+        is_published=True, content_type="text"
+    ).order_by("order")
+
+    combined_text = "\n\n".join(
+        _strip_html(s.text_content or "") for s in text_sections if s.text_content
+    ).strip()
+
+    if not combined_text:
+        return []
+
+    raw_questions = generate_checkpoint_questions(
+        section_content=combined_text,
+        lesson_title=lesson.title or "",
+        n=n,
+    )
+
+    out: list[Quiz] = []
+    for item in raw_questions:
+        question = (item.get("question") or "").strip()
+        choices_raw = item.get("choices") or []
+        correct_answer = (item.get("correct_answer") or "").strip()
+        if not question or len(choices_raw) < 2 or not correct_answer:
+            continue
+        choices = [{"text": str(c)} for c in choices_raw]
+        try:
+            with transaction.atomic():
+                quiz, _ = Quiz.objects.get_or_create(
+                    course=lesson.course,
+                    lesson=lesson,
+                    question=question[:2000],
+                    defaults={
+                        "title": f"AI Checkpoint: {lesson.title or 'Quiz'}"[:200],
+                        "choices": choices,
+                        "correct_answer": correct_answer[:200],
+                    },
+                )
+            out.append(quiz)
+        except Exception:
+            logger.exception(
+                "ai_checkpoint_quiz_save_failed",
+                extra={"lesson_id": getattr(lesson, "id", None)},
+            )
+
+    return out
+
+
 def ensure_checkpoint_quizzes_for_lesson(lesson: Lesson) -> list[Quiz]:
     """
     Ensure up to CHECKPOINT_MAX_QUESTIONS checkpoint quizzes exist for this lesson.

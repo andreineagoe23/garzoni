@@ -23,8 +23,7 @@ export default function Chip({
   return (
     <Pressable
       onPress={() => {
-        if (haptic)
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress?.();
       }}
       style={[
@@ -37,10 +36,7 @@ export default function Chip({
       hitSlop={6}
     >
       <Text
-        style={[
-          styles.label,
-          { color: active ? "#fff" : c.textMuted },
-        ]}
+        style={[styles.label, { color: active ? "#fff" : c.textMuted }]}
         numberOfLines={1}
       >
         {label}
