@@ -283,6 +283,21 @@ export default function SettingsScreen() {
           })}
         </GlassCard>
 
+        <Text style={[styles.section, { color: c.accent }]}>Subscription</Text>
+        <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
+          <Pressable
+            style={styles.linkRow}
+            onPress={() => router.push("/subscriptions")}
+            accessibilityRole="button"
+          >
+            <Ionicons name="star-outline" size={20} color={c.primary} />
+            <Text style={[styles.linkLabel, { color: c.text }]}>
+              Manage Plan
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={c.textFaint} />
+          </Pressable>
+        </GlassCard>
+
         <Text style={[styles.section, { color: c.accent }]}>
           Help & Feedback
         </Text>

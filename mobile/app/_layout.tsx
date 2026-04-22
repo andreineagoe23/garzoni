@@ -71,6 +71,10 @@ function ThemedRoot() {
               name="payment-success"
               options={{ headerShown: true }}
             />
+            <Stack.Screen
+              name="subscriptions"
+              options={{ headerShown: true }}
+            />
           </Stack>
         </View>
         <Toast />

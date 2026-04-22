@@ -492,7 +492,7 @@ function ProfileInner() {
             <Button
               variant="secondary"
               onPress={() =>
-                router.push(href(subActive ? "/billing" : "/subscriptions"))
+                router.push(href("/subscriptions"))
               }
               style={styles.actionBtn}
             >
@@ -792,7 +792,7 @@ function ProfileInner() {
             <MenuRow
               icon={navIcons.billing}
               label={t("billing.subscriptionManagement")}
-              onPress={() => router.push(href("/billing"))}
+              onPress={() => router.push(href("/subscriptions"))}
               colors={colors}
             />
             <MenuRow

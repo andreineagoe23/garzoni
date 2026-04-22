@@ -90,6 +90,7 @@ export type Entitlements = {
   trial_end?: string | null;
   features?: Record<string, EntitlementFeature>;
   subscription?: Record<string, unknown> | null;
+  billing_interval?: "monthly" | "yearly" | null;
   fallback?: boolean;
   checked_at?: string;
 };

@@ -280,8 +280,8 @@ export default function OnboardingScreen() {
     setErrorMsg("");
   }, []);
 
-  const goToTabs = useCallback(() => {
-    router.replace("/(tabs)");
+  const goToPaywall = useCallback(() => {
+    router.replace("/subscriptions?mode=paywall");
   }, []);
 
   const handleCompletionContinue = useCallback(() => {
@@ -292,20 +292,20 @@ export default function OnboardingScreen() {
         {
           text: t("onboarding.pushPrompt.notNow"),
           style: "cancel",
-          onPress: goToTabs,
+          onPress: goToPaywall,
         },
         {
           text: t("onboarding.pushPrompt.enable"),
           onPress: () => {
             void (async () => {
               await registerForPushAndSubmitToken();
-              goToTabs();
+              goToPaywall();
             })();
           },
         },
       ],
     );
-  }, [goToTabs, t]);
+  }, [goToPaywall, t]);
 
   if (phase === "checking") {
     return (
