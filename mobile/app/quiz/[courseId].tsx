@@ -260,7 +260,10 @@ export default function QuizScreen() {
           <Button onPress={() => setPhase("attempt")}>
             {t("courses.quiz.introStart")}
           </Button>
-          <Button variant="ghost" onPress={() => safeRouterBack("/(tabs)/learn")}>
+          <Button
+            variant="ghost"
+            onPress={() => safeRouterBack("/(tabs)/learn")}
+          >
             {t("courses.quiz.backToCourses")}
           </Button>
         </View>

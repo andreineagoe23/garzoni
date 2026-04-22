@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -99,13 +93,18 @@ const COMPARE_ROWS: {
   plus: boolean;
   pro: boolean;
 }[] = [
-  { label: "Guided lessons",            starter: true,  plus: true,  pro: true  },
-  { label: "Daily streaks & XP",        starter: true,  plus: true,  pro: true  },
-  { label: "Personalised path",         starter: false, plus: true,  pro: true  },
-  { label: "Unlimited calculators",     starter: false, plus: true,  pro: true  },
-  { label: "Advanced simulations",      starter: false, plus: false, pro: true  },
-  { label: "Priority AI guidance",      starter: false, plus: false, pro: true  },
-  { label: "Early access to new tools", starter: false, plus: false, pro: true  },
+  { label: "Guided lessons", starter: true, plus: true, pro: true },
+  { label: "Daily streaks & XP", starter: true, plus: true, pro: true },
+  { label: "Personalised path", starter: false, plus: true, pro: true },
+  { label: "Unlimited calculators", starter: false, plus: true, pro: true },
+  { label: "Advanced simulations", starter: false, plus: false, pro: true },
+  { label: "Priority AI guidance", starter: false, plus: false, pro: true },
+  {
+    label: "Early access to new tools",
+    starter: false,
+    plus: false,
+    pro: true,
+  },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -157,9 +156,11 @@ function AmbientGlow() {
 function CycleToggle({
   value,
   onChange,
+  savingsPct,
 }: {
   value: Cycle;
   onChange: (v: Cycle) => void;
+  savingsPct: number | null;
 }) {
   return (
     <View style={styles.cycleWrap}>
@@ -169,27 +170,19 @@ function CycleToggle({
           <Pressable
             key={k}
             onPress={() => onChange(k)}
-            style={[
-              styles.cyclePill,
-              active && styles.cyclePillActive,
-            ]}
+            style={[styles.cyclePill, active && styles.cyclePillActive]}
           >
             <Text
-              style={[
-                styles.cycleLabel,
-                { color: active ? D.text : D.muted },
-              ]}
+              style={[styles.cycleLabel, { color: active ? D.text : D.muted }]}
             >
               {k === "yearly" ? "Yearly" : "Monthly"}
             </Text>
-            {k === "yearly" && (
+            {k === "yearly" && savingsPct !== null && (
               <View
                 style={[
                   styles.cycleBadge,
                   {
-                    backgroundColor: active
-                      ? D.gold
-                      : "rgba(230,200,122,0.15)",
+                    backgroundColor: active ? D.gold : "rgba(230,200,122,0.15)",
                   },
                 ]}
               >
@@ -199,7 +192,7 @@ function CycleToggle({
                     { color: active ? D.bg : D.goldWarm },
                   ]}
                 >
-                  -20%
+                  -{savingsPct}%
                 </Text>
               </View>
             )}
@@ -237,12 +230,7 @@ function TierCard({
     : `Start ${plan.name}${cycle === "yearly" ? " — Annual" : ""}`;
 
   return (
-    <View
-      style={[
-        styles.tierCard,
-        isPro && styles.tierCardPro,
-      ]}
-    >
+    <View style={[styles.tierCard, isPro && styles.tierCardPro]}>
       {/* Recommended pill */}
       {isPro && (
         <View style={styles.recommendedWrap}>
@@ -255,17 +243,9 @@ function TierCard({
       {/* Header */}
       <View style={styles.tierHead}>
         <View style={styles.tierNameRow}>
-          <View
-            style={[
-              styles.tierDot,
-              { backgroundColor: accent },
-            ]}
-          />
+          <View style={[styles.tierDot, { backgroundColor: accent }]} />
           <Text
-            style={[
-              styles.tierName,
-              { color: isPro ? D.goldWarm : D.text },
-            ]}
+            style={[styles.tierName, { color: isPro ? D.goldWarm : D.text }]}
           >
             {plan.name}
           </Text>
@@ -322,12 +302,7 @@ function TierCard({
         {loading ? (
           <ActivityIndicator color={isPro ? D.bg : "#fff"} size="small" />
         ) : (
-          <Text
-            style={[
-              styles.tierCtaText,
-              { color: isPro ? D.bg : "#fff" },
-            ]}
-          >
+          <Text style={[styles.tierCtaText, { color: isPro ? D.bg : "#fff" }]}>
             {ctaLabel}
           </Text>
         )}
@@ -475,8 +450,7 @@ export default function SubscriptionsScreen() {
   const onboardingParam = Array.isArray(params.onboarding)
     ? params.onboarding[0]
     : params.onboarding;
-  const legacyPaywall =
-    String(onboardingParam ?? "").toLowerCase() === "true";
+  const legacyPaywall = String(onboardingParam ?? "").toLowerCase() === "true";
   const isPaywall =
     String(modeParam ?? "").toLowerCase() === "paywall" || legacyPaywall;
 
@@ -529,7 +503,7 @@ export default function SubscriptionsScreen() {
   useEffect(() => {
     if (!rcNative || !profileQ.isFetched) return;
     void loadOfferings();
-  }, [loadOfferings, profileQ.isFetched, rcNative]);
+  }, [loadOfferings, profileQ.isFetched, profileQ.data?.user, rcNative]);
 
   const onPurchase = useCallback(
     async (tier: Tier, pkg: PurchasesPackage) => {
@@ -588,6 +562,20 @@ export default function SubscriptionsScreen() {
   const plusPkg = pickPackage(plusPkgs ?? undefined, cycle);
   const proPkg = pickPackage(proPkgs ?? undefined, cycle);
 
+  // Compute real savings % from Plus packages (monthly vs annual/12).
+  const savingsPct = useMemo<number | null>(() => {
+    if (!plusPkgs?.length) return null;
+    const monthly = pickPackage(plusPkgs, "monthly");
+    const annual = pickPackage(plusPkgs, "yearly");
+    if (!monthly?.product.price || !annual?.product.price) return null;
+    const monthlyPrice = monthly.product.price;
+    const annualPerMonth = annual.product.price / 12;
+    const pct = Math.round(
+      ((monthlyPrice - annualPerMonth) / monthlyPrice) * 100,
+    );
+    return pct > 0 ? pct : null;
+  }, [plusPkgs]);
+
   return (
     <>
       <Stack.Screen
@@ -640,7 +628,11 @@ export default function SubscriptionsScreen() {
             <>
               {/* Cycle toggle */}
               <View style={styles.cycleContainer}>
-                <CycleToggle value={cycle} onChange={setCycle} />
+                <CycleToggle
+                  value={cycle}
+                  onChange={setCycle}
+                  savingsPct={savingsPct}
+                />
               </View>
 
               {/* Tier cards */}
@@ -658,9 +650,7 @@ export default function SubscriptionsScreen() {
                       currentPlan === "plus" && currentInterval === cycle
                     }
                     loading={purchasingTier === "plus"}
-                    onPress={() =>
-                      plusPkg && void onPurchase("plus", plusPkg)
-                    }
+                    onPress={() => plusPkg && void onPurchase("plus", plusPkg)}
                   />
                   <TierCard
                     plan={PLAN_DATA.pro}
@@ -688,22 +678,32 @@ export default function SubscriptionsScreen() {
             />
           )}
 
-          {/* Skip — paywall mode */}
+          {/* Paywall footer: restore + skip (Apple guideline 3.1.1) */}
           {isPaywall && (
-            <Pressable
-              onPress={() => router.replace("/(tabs)")}
-              style={styles.skipWrap}
-              accessibilityRole="button"
-            >
-              <Text style={styles.skipText}>Skip for now</Text>
-            </Pressable>
+            <View style={styles.paywallFooter}>
+              <Pressable
+                onPress={() => void onRestore()}
+                accessibilityRole="button"
+              >
+                <Text style={styles.utilityLink}>Restore purchases</Text>
+              </Pressable>
+              <Text style={styles.utilityDot}>·</Text>
+              <Pressable
+                onPress={() => router.replace("/(tabs)")}
+                accessibilityRole="button"
+              >
+                <Text style={styles.skipText}>Skip for now</Text>
+              </Pressable>
+            </View>
           )}
 
-          {/* Legal */}
-          <Text style={styles.legal}>
-            Subscriptions renew automatically. Cancel anytime in your Apple ID
-            settings. Payment charged to your Apple ID on confirmation.
-          </Text>
+          {/* Legal — iOS only (Apple IAP copy) */}
+          {Platform.OS === "ios" && (
+            <Text style={styles.legal}>
+              Subscriptions renew automatically. Cancel anytime in your Apple ID
+              settings. Payment charged to your Apple ID on confirmation.
+            </Text>
+          )}
         </ScrollView>
       </View>
     </>
@@ -1051,6 +1051,14 @@ const styles = StyleSheet.create({
   },
 
   // Skip / legal
+  paywallFooter: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
+  },
   skipWrap: {
     alignItems: "center",
     marginTop: spacing.xl,

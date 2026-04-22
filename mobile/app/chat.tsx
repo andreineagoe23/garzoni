@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { isAxiosError } from "axios";
-import { Stack, router } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -78,6 +78,9 @@ export default function ChatScreen() {
   const { t } = useTranslation("common");
   const { accessToken } = useAuthSession();
   const isAuthenticated = Boolean(accessToken);
+  const { preseededMessage } = useLocalSearchParams<{
+    preseededMessage?: string;
+  }>();
   const queryClient = useQueryClient();
 
   const entitlementsQuery = useQuery({
@@ -108,12 +111,15 @@ export default function ChatScreen() {
     [t],
   );
 
-  const appendAssistant = useCallback((content: string, extra?: Partial<Msg>) => {
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content, ...(extra ?? {}) },
-    ]);
-  }, []);
+  const appendAssistant = useCallback(
+    (content: string, extra?: Partial<Msg>) => {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content, ...(extra ?? {}) },
+      ]);
+    },
+    [],
+  );
 
   const openCourseLink = useCallback((link: AiTutorLink) => {
     const path = link.path || "";
@@ -263,9 +269,11 @@ export default function ChatScreen() {
           return;
         }
 
+        const isPreseed = nextHistory.length === 1 && Boolean(preseededMessage);
         const payload = await requestAiTutorPayload(text, {
           chatHistory: nextHistory.slice(-10),
           temperature: 0.7,
+          source: isPreseed ? "exercise_hint" : "chat",
         });
         const reply = payload.text?.trim()
           ? payload.text
@@ -329,6 +337,15 @@ export default function ChatScreen() {
     setInput("");
     void sendMessage(text);
   }, [input, sendMessage]);
+
+  // Auto-send a preseeded message when navigated from exercise failure
+  useEffect(() => {
+    if (preseededMessage) {
+      void sendMessage(decodeURIComponent(preseededMessage));
+    }
+    // Only fire once on mount — sendMessage is stable via useCallback
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onQuickReply = useCallback(
     (reply: string) => {
@@ -412,9 +429,7 @@ export default function ChatScreen() {
                 ) : null}
                 {m.links && m.links.length > 0 ? (
                   <View style={styles.linksBlock}>
-                    <Text
-                      style={[styles.linksHeading, { color: c.textMuted }]}
-                    >
+                    <Text style={[styles.linksHeading, { color: c.textMuted }]}>
                       {t("chatbot.availablePaths")}
                     </Text>
                     <View style={styles.linksRow}>

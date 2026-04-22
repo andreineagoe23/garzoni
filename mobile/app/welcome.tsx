@@ -113,7 +113,11 @@ function Glow({
       <Defs>
         <RadialGradient id={id} cx="50%" cy="50%" rx="50%" ry="50%">
           <Stop offset="0%" stopColor={color} stopOpacity={opacity} />
-          <Stop offset={`${stopFar * 100}%`} stopColor={color} stopOpacity={0} />
+          <Stop
+            offset={`${stopFar * 100}%`}
+            stopColor={color}
+            stopOpacity={0}
+          />
         </RadialGradient>
       </Defs>
       {shape === "circle" ? (
@@ -143,7 +147,13 @@ function SlideStreak() {
   return (
     <View style={s.streakWrap}>
       <View style={s.glowAbs} pointerEvents="none">
-        <Glow width={340} height={340} color={C.primary} opacity={0.28} stopFar={0.6} />
+        <Glow
+          width={340}
+          height={340}
+          color={C.primary}
+          opacity={0.28}
+          stopFar={0.6}
+        />
       </View>
       <View style={s.backLessonCard}>
         <View style={s.lessonBadge}>
@@ -230,7 +240,13 @@ function SlideTools() {
   return (
     <View style={s.toolsWrap}>
       <View style={s.glowAbsCenter} pointerEvents="none">
-        <Glow width={320} height={320} color={C.primary} opacity={0.3} stopFar={0.65} />
+        <Glow
+          width={320}
+          height={320}
+          color={C.primary}
+          opacity={0.3}
+          stopFar={0.65}
+        />
       </View>
       <View style={s.toolBackLeft}>
         <Text style={s.eyebrowMini}>SIMULATOR</Text>
@@ -403,10 +419,7 @@ function SlidePlans() {
                 />
                 <View>
                   <Text
-                    style={[
-                      s.tierName,
-                      { color: isPro ? C.goldWarm : C.text },
-                    ]}
+                    style={[s.tierName, { color: isPro ? C.goldWarm : C.text }]}
                   >
                     {t.name}
                   </Text>
@@ -521,10 +534,24 @@ export default function WelcomeScreen() {
     <SafeAreaView style={s.safe}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.ambientTop} pointerEvents="none">
-        <Glow width={460} height={320} color={C.primary} opacity={0.18} stopFar={0.55} shape="ellipse" />
+        <Glow
+          width={460}
+          height={320}
+          color={C.primary}
+          opacity={0.18}
+          stopFar={0.55}
+          shape="ellipse"
+        />
       </View>
       <View style={s.ambientBottom} pointerEvents="none">
-        <Glow width={360} height={260} color={C.goldWarm} opacity={0.06} stopFar={0.5} shape="ellipse" />
+        <Glow
+          width={360}
+          height={260}
+          color={C.goldWarm}
+          opacity={0.06}
+          stopFar={0.5}
+          shape="ellipse"
+        />
       </View>
 
       <View style={s.topBar}>
@@ -584,10 +611,7 @@ export default function WelcomeScreen() {
           style={s.cta}
           accessibilityRole="button"
         >
-          <Svg
-            style={StyleSheet.absoluteFill as never}
-            pointerEvents="none"
-          >
+          <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
             <Defs>
               <LinearGradient id="ctaGrad" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0%" stopColor={C.primaryBright} stopOpacity={1} />

@@ -37,9 +37,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
 
   const sheetBottomPad = insets.bottom + TAB_BAR_HEIGHT + spacing.xs;
   const glassFill =
-    resolved === "dark"
-      ? "rgba(28,28,30,0.94)"
-      : "rgba(248,248,250,0.96)";
+    resolved === "dark" ? "rgba(28,28,30,0.94)" : "rgba(248,248,250,0.96)";
 
   const go = useCallback(
     (path: string) => {

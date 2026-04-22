@@ -1,6 +1,5 @@
 const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME?.trim();
-const UPLOAD_PRESET =
-  process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET?.trim();
+const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET?.trim();
 
 export function isCloudinaryUploadConfigured(): boolean {
   return Boolean(CLOUD_NAME && UPLOAD_PRESET);

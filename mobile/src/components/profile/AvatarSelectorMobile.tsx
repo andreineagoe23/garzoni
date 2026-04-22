@@ -287,8 +287,7 @@ export default function AvatarSelectorMobile({
                         style={[
                           styles.styleChipText,
                           {
-                            color:
-                              selectedStyle === s.id ? c.primary : c.text,
+                            color: selectedStyle === s.id ? c.primary : c.text,
                           },
                         ]}
                       >
@@ -304,9 +303,7 @@ export default function AvatarSelectorMobile({
                 <TextInput
                   value={seed}
                   onChangeText={setSeed}
-                  placeholder={t(
-                    "profile.avatarSelector.customizePlaceholder",
-                  )}
+                  placeholder={t("profile.avatarSelector.customizePlaceholder")}
                   placeholderTextColor={c.textFaint}
                   autoCapitalize="none"
                   style={[
@@ -337,8 +334,7 @@ export default function AvatarSelectorMobile({
                       style={[
                         styles.quickItem,
                         {
-                          borderColor:
-                            seed === opt.seed ? c.primary : c.border,
+                          borderColor: seed === opt.seed ? c.primary : c.border,
                         },
                       ]}
                     >

@@ -32,10 +32,7 @@ export default function EconomicMapScreen() {
   const c = useThemeColors();
   const { resolved } = useTheme();
   const { t } = useTranslation("common");
-  const html = useMemo(
-    () => buildHtml(resolved, c.bg),
-    [resolved, c.bg],
-  );
+  const html = useMemo(() => buildHtml(resolved, c.bg), [resolved, c.bg]);
 
   return (
     <>

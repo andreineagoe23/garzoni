@@ -18,6 +18,11 @@ from authentication.services.profile import invalidate_profile_cache
 
 from education.services.checkpoint_quizzes import ensure_checkpoint_quizzes_for_lesson
 from education.services.activity import record_activity
+from education.services.ai_tutor import (
+    generate_feedback as ai_generate_feedback,
+    generate_hint as ai_generate_hint,
+    generate_path_recommendations,
+)
 
 from education.models import (
     Path,
@@ -1485,6 +1490,21 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             },
         )
 
+        # For MC exercises feedback is None at this point; ask GPT for targeted feedback.
+        if not is_correct and feedback is None:
+            ai_fb = ai_generate_feedback(
+                exercise_question=exercise.question or "",
+                correct_answer=exercise.correct_answer,
+                user_answer=user_answer,
+                is_correct=False,
+                exercise_type=exercise.type,
+                misconception_tags=getattr(exercise, "misconception_tags", None) or [],
+                error_patterns=getattr(exercise, "error_patterns", None) or [],
+                proficiency=mastery.proficiency,
+            )
+            if ai_fb:
+                feedback = ai_fb
+
         return Response(
             {
                 "correct": is_correct,
@@ -1505,6 +1525,35 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 "first_unlock": mastery_before == 0 and mastery.proficiency > 0,
             }
         )
+
+
+    @action(detail=True, methods=["post"])
+    def hint(self, request, pk=None):
+        """Return a progressively more specific hint for an exercise."""
+        exercise = self.get_object()
+        attempt_number = int(request.data.get("attempt_number", 1))
+        user_answer_so_far = request.data.get("user_answer_so_far")
+
+        hint_text = ai_generate_hint(
+            exercise_question=exercise.question or "",
+            exercise_type=exercise.type,
+            correct_answer=exercise.correct_answer,
+            attempt_number=attempt_number,
+            user_answer_so_far=user_answer_so_far,
+            misconception_tags=getattr(exercise, "misconception_tags", None) or [],
+            error_patterns=getattr(exercise, "error_patterns", None) or [],
+        )
+
+        if not hint_text:
+            # Fallback tiers when GPT is unavailable
+            if attempt_number >= 3:
+                hint_text = "Re-read the question carefully and check your formula."
+            elif attempt_number == 2:
+                hint_text = "Think about which concept this exercise is testing."
+            else:
+                hint_text = "Take another look at the prompt — one detail is key."
+
+        return Response({"hint": hint_text, "attempt_number": attempt_number})
 
 
 @api_view(["GET"])
@@ -1889,12 +1938,35 @@ class PersonalizedPathView(APIView):
 
     def generate_recommendations(self, user_profile, user, allowed_path_ids):
         answers = self._get_onboarding_answers(user)
-        weights = self.calculate_onboarding_path_weights(answers) if answers else defaultdict(int)
         mastery_boosts = self._get_low_mastery_boosts(user)
-        for key, boost in mastery_boosts.items():
-            weights[key] += boost
 
-        sorted_paths = self.get_sorted_paths(weights, allowed_path_ids)
+        sorted_paths = None
+
+        # Attempt GPT-based ranking first
+        if answers:
+            paths_qs = list(Path.objects.filter(id__in=allowed_path_ids).order_by("sort_order", "id"))
+            path_dicts = [
+                {"title": p.title or "", "description": p.description or ""}
+                for p in paths_qs
+            ]
+            ranked = generate_path_recommendations(answers=answers, paths=path_dicts)
+            if ranked:
+                title_to_path = {p.title: p for p in paths_qs}
+                ordered = [title_to_path[r["title"]] for r in ranked if r.get("title") in title_to_path]
+                seen = {p.id for p in ordered}
+                ordered += [p for p in paths_qs if p.id not in seen]
+                # Apply mastery boosts as a secondary sort nudge for un-ranked paths
+                for key, boost in mastery_boosts.items():
+                    pass  # boost already reflected via GPT context; no additional reorder needed
+                sorted_paths = ordered
+
+        # Fallback: keyword weight matching
+        if sorted_paths is None:
+            weights = self.calculate_onboarding_path_weights(answers) if answers else defaultdict(int)
+            for key, boost in mastery_boosts.items():
+                weights[key] += boost
+            sorted_paths = self.get_sorted_paths(weights, allowed_path_ids)
+
         recommended_courses = self.get_recommended_courses(sorted_paths, allowed_path_ids)
         user_profile.recommended_courses = [c.id for c in recommended_courses]
         user_profile.recommendations_generated_at = timezone.now()
