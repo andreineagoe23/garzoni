@@ -119,7 +119,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
 
               <Pressable
                 style={menuRowStyle}
-                onPress={() => go("/billing")}
+                onPress={() => go("/subscriptions")}
                 accessibilityRole="button"
               >
                 <Ionicons name="card-outline" size={22} color={c.primary} />
