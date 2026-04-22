@@ -1,0 +1,8 @@
+# EAS Build ignore (mobile/)
+node_modules
+.git
+ios
+android
+.expo
+*.log
+*.LOG
