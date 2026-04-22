@@ -4,6 +4,7 @@ import {
   BackHandler,
   Linking,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -76,6 +77,10 @@ const LUX = {
   primaryBright: "#2a7347",
   faint: "rgba(229,231,235,0.4)",
   ghost: "rgba(229,231,235,0.12)",
+  text: brand.text,
+  muted: brand.textMuted,
+  border: brand.borderGlass,
+  surface: brand.bgCard,
 };
 
 type GlowProps = {
@@ -226,11 +231,24 @@ export default function SubscriptionsScreen() {
       setLoadingOffering(true);
       setOfferingLoadFailed(false);
       try {
-        const next = await fetchRevenueCatPaywallOffering(
-          resolved === "pro" ? { offeringId: RC_OFFERING_PRO } : undefined,
-        );
-        setOffering(next);
-        return next;
+        const [plusOff, proOff] = await Promise.all([
+          fetchRevenueCatPaywallOffering().catch(() => null),
+          fetchRevenueCatPaywallOffering({ offeringId: RC_OFFERING_PRO }).catch(
+            () => null,
+          ),
+        ]);
+        const merged =
+          plusOff || proOff
+            ? ({
+                ...(plusOff ?? proOff!),
+                availablePackages: [
+                  ...(plusOff?.availablePackages ?? []),
+                  ...(proOff?.availablePackages ?? []),
+                ],
+              } as PurchasesOffering)
+            : null;
+        setOffering(merged);
+        return merged;
       } catch (e) {
         setOfferingLoadFailed(true);
         if (__DEV__) console.warn("[Subscriptions] getOfferings:", e);
@@ -633,92 +651,59 @@ export default function SubscriptionsScreen() {
               </GlassCard>
             ) : null}
 
-            {/* ── Tier + billing toggles ── */}
+            {/* ── Cycle toggle (Monthly / Yearly, centered pill) ── */}
             {revenueCatNative ? (
-              <View style={styles.togglesWrap}>
-                {showNativePaywall ? (
-                  <View
-                    style={[
-                      styles.segmentPill,
-                      { backgroundColor: c.surface, borderColor: c.border },
-                    ]}
-                  >
-                    <GlassButton
-                      variant={storefrontTier === "plus" ? "active" : "ghost"}
-                      size="sm"
-                      style={{ flex: 1 }}
-                      onPress={() => {
-                        setStorefrontTier("plus");
-                        void loadRevenueCatOffering("plus");
-                      }}
-                    >
-                      {t("subscriptions.plus")}
-                    </GlassButton>
-                    <GlassButton
-                      variant={storefrontTier === "pro" ? "active" : "ghost"}
-                      size="sm"
-                      style={{ flex: 1 }}
-                      onPress={() => {
-                        setStorefrontTier("pro");
-                        void loadRevenueCatOffering("pro");
-                      }}
-                    >
-                      {t("subscriptions.pro")}
-                    </GlassButton>
-                  </View>
-                ) : null}
-                <View
-                  style={[
-                    styles.segmentPill,
-                    { backgroundColor: c.surface, borderColor: c.border },
-                  ]}
-                >
-                  <View style={{ flex: 1, position: "relative" }}>
-                    <GlassButton
-                      variant={
-                        billingInterval === "yearly" ? "active" : "ghost"
-                      }
-                      size="sm"
-                      style={{ flex: 1 }}
-                      onPress={() => setBillingInterval("yearly")}
-                    >
-                      {t("subscriptions.billingYearly")}
-                    </GlassButton>
-                    <View
-                      style={[
-                        styles.discountBadge,
-                        {
-                          backgroundColor:
-                            billingInterval === "yearly"
-                              ? LUX.gold
-                              : "rgba(230,200,122,0.15)",
-                        },
-                      ]}
-                      pointerEvents="none"
-                    >
-                      <Text
+              <View style={styles.cycleWrap}>
+                <View style={styles.cyclePill}>
+                  {(["monthly", "yearly"] as const).map((k) => {
+                    const active = billingInterval === k;
+                    return (
+                      <Pressable
+                        key={k}
+                        onPress={() => setBillingInterval(k)}
                         style={[
-                          styles.discountText,
-                          {
-                            color:
-                              billingInterval === "yearly"
-                                ? brand.bgDark
-                                : LUX.goldWarm,
+                          styles.cycleBtn,
+                          active && {
+                            backgroundColor: brand.bgDark,
                           },
                         ]}
                       >
-                        −20%
-                      </Text>
-                    </View>
-                  </View>
-                  <GlassButton
-                    variant={billingInterval === "monthly" ? "active" : "ghost"}
-                    size="sm"
-                    style={{ flex: 1 }}
-                    onPress={() => setBillingInterval("monthly")}
-                  >
-                    {t("subscriptions.billingMonthly")}
-                  </GlassButton>
+                        <Text
+                          style={[
+                            styles.cycleLabel,
+                            { color: active ? LUX.text : LUX.muted },
+                          ]}
+                        >
+                          {k === "yearly"
+                            ? t("subscriptions.billingYearly")
+                            : t("subscriptions.billingMonthly")}
+                        </Text>
+                        {k === "yearly" ? (
+                          <View
+                            style={[
+                              styles.cycleBadge,
+                              {
+                                backgroundColor: active
+                                  ? LUX.gold
+                                  : "rgba(230,200,122,0.15)",
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.cycleBadgeText,
+                                {
+                                  color: active ? brand.bgDark : LUX.goldWarm,
+                                },
+                              ]}
+                            >
+                              −20%
+                            </Text>
+                          </View>
+                        ) : null}
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </View>
             ) : null}
@@ -1037,6 +1022,42 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "700",
     letterSpacing: 0.5,
+  },
+  cycleWrap: {
+    alignItems: "center",
+    marginBottom: 18,
+  },
+  cyclePill: {
+    flexDirection: "row",
+    padding: 4,
+    borderRadius: 100,
+    backgroundColor: LUX.surface,
+    borderWidth: 1,
+    borderColor: LUX.border,
+  },
+  cycleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    borderRadius: 100,
+  },
+  cycleLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    letterSpacing: 0.2,
+    textTransform: "capitalize",
+  },
+  cycleBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 100,
+  },
+  cycleBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.6,
   },
   header: {
     alignItems: "center",
