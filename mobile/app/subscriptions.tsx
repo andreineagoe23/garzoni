@@ -2,11 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   BackHandler,
+  Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import Svg, {
+  Circle,
+  Defs,
+  Ellipse,
+  RadialGradient,
+  Stop,
+} from "react-native-svg";
+import { brand } from "../src/theme/brand";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -59,6 +69,63 @@ type Plan = {
   sort_order?: number | null;
   features?: Record<string, PlanFeature>;
 };
+
+const LUX = {
+  goldWarm: brand.goldWarm,
+  gold: brand.gold,
+  primaryBright: "#2a7347",
+  faint: "rgba(229,231,235,0.4)",
+  ghost: "rgba(229,231,235,0.12)",
+};
+
+type GlowProps = {
+  width: number;
+  height: number;
+  color: string;
+  opacity?: number;
+  stopFar?: number;
+  shape?: "circle" | "ellipse";
+};
+function SubGlow({
+  width,
+  height,
+  color,
+  opacity = 1,
+  stopFar = 0.65,
+  shape = "ellipse",
+}: GlowProps) {
+  const id = `subg-${Math.round(width)}-${Math.round(height)}-${color.length}`;
+  return (
+    <Svg width={width} height={height} pointerEvents="none">
+      <Defs>
+        <RadialGradient id={id} cx="50%" cy="50%" rx="50%" ry="50%">
+          <Stop offset="0%" stopColor={color} stopOpacity={opacity} />
+          <Stop
+            offset={`${stopFar * 100}%`}
+            stopColor={color}
+            stopOpacity={0}
+          />
+        </RadialGradient>
+      </Defs>
+      {shape === "circle" ? (
+        <Circle
+          cx={width / 2}
+          cy={height / 2}
+          r={Math.min(width, height) / 2}
+          fill={`url(#${id})`}
+        />
+      ) : (
+        <Ellipse
+          cx={width / 2}
+          cy={height / 2}
+          rx={width / 2}
+          ry={height / 2}
+          fill={`url(#${id})`}
+        />
+      )}
+    </Svg>
+  );
+}
 
 function formatFeatureValue(
   feature: PlanFeature | undefined,
@@ -298,6 +365,29 @@ export default function SubscriptionsScreen() {
     [onboardingMode, persistPlanChoice, queryClient, t],
   );
 
+  const onManageStore = useCallback(async () => {
+    setSelectionError("");
+    const rc = getRevenueCatPurchases();
+    const showManageSubscriptions = (
+      rc?.Purchases as {
+        showManageSubscriptions?: () => Promise<void>;
+      } | null
+    )?.showManageSubscriptions;
+    try {
+      if (showManageSubscriptions) {
+        await showManageSubscriptions();
+        return;
+      }
+      const url =
+        Platform.OS === "ios"
+          ? "https://apps.apple.com/account/subscriptions"
+          : "https://play.google.com/store/account/subscriptions";
+      await Linking.openURL(url);
+    } catch {
+      setSelectionError(t("billing.failedPortal"));
+    }
+  }, [t]);
+
   const onRestoreRc = useCallback(async () => {
     const rc = getRevenueCatPurchases();
     if (!rc) return;
@@ -439,17 +529,27 @@ export default function SubscriptionsScreen() {
           headerLeft: onboardingMode ? () => null : undefined,
         }}
       />
-      <ScrollView
-        style={{ flex: 1, backgroundColor: c.bg }}
-        contentContainerStyle={[styles.container, { paddingBottom: 56 }]}
-      >
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        <View style={styles.ambientTop} pointerEvents="none">
+          <SubGlow
+            width={460}
+            height={260}
+            color={LUX.goldWarm}
+            opacity={0.08}
+            stopFar={0.65}
+          />
+        </View>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[styles.container, { paddingBottom: 56 }]}
+        >
         {/* ── Header ── */}
         {!showNativePaywall ? (
           <View style={styles.header}>
-            <View
-              style={[styles.divider, { backgroundColor: c.primary + "44" }]}
-            />
-            <Text style={[styles.title, { color: c.text }]}>
+            <Text style={[styles.eyebrow, { color: LUX.faint }]}>
+              {t("footer.subscriptions").toUpperCase()}
+            </Text>
+            <Text style={[styles.editorial, { color: c.text }]}>
               {personalizedPathReason
                 ? t("subscriptions.personalizedPathTitle")
                 : t("subscriptions.choosePlan")}
@@ -505,7 +605,7 @@ export default function SubscriptionsScreen() {
               variant="active"
               size="md"
               style={{ marginTop: spacing.md }}
-              onPress={() => router.push(href("/billing"))}
+              onPress={() => void onManageStore()}
             >
               {t("billing.manageSubscription")}
             </GlassButton>
@@ -573,14 +673,44 @@ export default function SubscriptionsScreen() {
                     { backgroundColor: c.surface, borderColor: c.border },
                   ]}
                 >
-                  <GlassButton
-                    variant={billingInterval === "yearly" ? "active" : "ghost"}
-                    size="sm"
-                    style={{ flex: 1 }}
-                    onPress={() => setBillingInterval("yearly")}
-                  >
-                    {t("subscriptions.billingYearly")}
-                  </GlassButton>
+                  <View style={{ flex: 1, position: "relative" }}>
+                    <GlassButton
+                      variant={
+                        billingInterval === "yearly" ? "active" : "ghost"
+                      }
+                      size="sm"
+                      style={{ flex: 1 }}
+                      onPress={() => setBillingInterval("yearly")}
+                    >
+                      {t("subscriptions.billingYearly")}
+                    </GlassButton>
+                    <View
+                      style={[
+                        styles.discountBadge,
+                        {
+                          backgroundColor:
+                            billingInterval === "yearly"
+                              ? LUX.gold
+                              : "rgba(230,200,122,0.15)",
+                        },
+                      ]}
+                      pointerEvents="none"
+                    >
+                      <Text
+                        style={[
+                          styles.discountText,
+                          {
+                            color:
+                              billingInterval === "yearly"
+                                ? brand.bgDark
+                                : LUX.goldWarm,
+                          },
+                        ]}
+                      >
+                        −20%
+                      </Text>
+                    </View>
+                  </View>
                   <GlassButton
                     variant={billingInterval === "monthly" ? "active" : "ghost"}
                     size="sm"
@@ -607,7 +737,7 @@ export default function SubscriptionsScreen() {
                 onPurchase={onRcPurchase}
                 onRetryLoad={() => void loadRevenueCatOffering()}
                 onRestore={() => void onRestoreRc()}
-                onManagePress={() => router.push(href("/billing"))}
+                onManagePress={() => void onManageStore()}
               />
             ) : (
               /* ── Plan cards ── */
@@ -862,7 +992,8 @@ export default function SubscriptionsScreen() {
             {t("billing.subscriptionsLegalIos")}
           </Text>
         ) : null}
-      </ScrollView>
+        </ScrollView>
+      </View>
     </>
   );
 }
@@ -870,6 +1001,42 @@ export default function SubscriptionsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: spacing.xl,
+  },
+  ambientTop: {
+    position: "absolute",
+    top: -60,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  eyebrow: {
+    fontSize: 11,
+    letterSpacing: 2,
+    fontWeight: "500",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  editorial: {
+    fontSize: 32,
+    lineHeight: 36,
+    fontWeight: "500",
+    letterSpacing: -0.8,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  discountBadge: {
+    position: "absolute",
+    top: -6,
+    right: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 100,
+    zIndex: 2,
+  },
+  discountText: {
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   header: {
     alignItems: "center",
