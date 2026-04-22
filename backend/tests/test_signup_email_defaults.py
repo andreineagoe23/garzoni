@@ -19,7 +19,7 @@ import threading
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from authentication.models import UserEmailPreference, UserProfile
@@ -34,6 +34,17 @@ class _ImmediateStartThread(threading.Thread):
         self.run()
 
 
+@override_settings(
+    REST_FRAMEWORK={
+        "DEFAULT_AUTHENTICATION_CLASSES": (
+            "rest_framework_simplejwt.authentication.JWTAuthentication",
+        ),
+        "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        "DEFAULT_THROTTLE_CLASSES": [],
+        "DEFAULT_THROTTLE_RATES": {},
+    }
+)
 class SignupEmailDefaultsTest(TestCase):
     """New signups get GDPR-safe email preference defaults."""
 
