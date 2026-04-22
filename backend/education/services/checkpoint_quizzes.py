@@ -131,9 +131,7 @@ def generate_ai_checkpoint_questions(lesson: Lesson, n: int = 3) -> list[Quiz]:
     """
     from education.services.ai_tutor import generate_checkpoint_questions
 
-    text_sections = lesson.sections.filter(
-        is_published=True, content_type="text"
-    ).order_by("order")
+    text_sections = lesson.sections.filter(is_published=True, content_type="text").order_by("order")
 
     combined_text = "\n\n".join(
         _strip_html(s.text_content or "") for s in text_sections if s.text_content
