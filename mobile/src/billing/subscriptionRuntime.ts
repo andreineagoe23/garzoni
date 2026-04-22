@@ -105,6 +105,7 @@ let configuredUserId: string | null = null;
 let revenueCatSdkReady = false;
 let devVerboseLogApplied = false;
 
+let devMissingKeyWarned = false;
 function resolveRevenueCatApiKey() {
   const extra = Constants.expoConfig?.extra as
     | {
@@ -112,9 +113,22 @@ function resolveRevenueCatApiKey() {
         revenueCatApiKeyAndroid?: string;
       }
     | undefined;
-  if (Platform.OS === "ios") return extra?.revenueCatApiKeyIos;
-  if (Platform.OS === "android") return extra?.revenueCatApiKeyAndroid;
-  return undefined;
+  let key: string | undefined;
+  if (Platform.OS === "ios") key = extra?.revenueCatApiKeyIos;
+  else if (Platform.OS === "android") key = extra?.revenueCatApiKeyAndroid;
+  if (__DEV__ && !key?.trim() && !devMissingKeyWarned) {
+    devMissingKeyWarned = true;
+    const varName =
+      Platform.OS === "android"
+        ? "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY"
+        : "EXPO_PUBLIC_REVENUECAT_IOS_KEY";
+    console.warn(
+      `[RevenueCat] Missing API key. Set ${varName} in mobile/.env (or .env.development) — ` +
+        `app.config.js maps it to extra.revenueCatApiKey${Platform.OS === "android" ? "Android" : "Ios"}. ` +
+        `Paywall and purchases will be disabled until a key is configured.`,
+    );
+  }
+  return key;
 }
 
 /** Whether `getOfferings` / purchases are safe to call (configure succeeded). */
