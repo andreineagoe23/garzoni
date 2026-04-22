@@ -10,7 +10,7 @@ app = Celery("settings")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 # Railway (and Celery) can leave CELERY_BROKER_URL in os.environ pointing at the public proxy;
 # settings.py may rewrite to redis.railway.internal. Force the resolved broker on the app.
-from django.conf import settings as django_settings
+from django.conf import settings as django_settings  # noqa: E402
 
 if getattr(django_settings, "CELERY_BROKER_URL", None):
     app.conf.broker_url = django_settings.CELERY_BROKER_URL
