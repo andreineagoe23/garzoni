@@ -38,9 +38,7 @@ def send_password_reset_email_task(
     retry_backoff=60,
     retry_kwargs={"max_retries": 3},
 )
-def send_welcome_email_task(
-    self, user_id: int, idempotency_key: str | None = None
-) -> str:
+def send_welcome_email_task(self, user_id: int, idempotency_key: str | None = None) -> str:
     User = get_user_model()
     try:
         user = User.objects.get(id=user_id)
@@ -125,9 +123,7 @@ def send_billing_payment_failed_task(
         return "skipped_no_user"
     svc = NotificationService()
     svc.sync_user_profile(user)
-    return svc.send_payment_failed(
-        user, message_data=message_data, idempotency_key=idempotency_key
-    )
+    return svc.send_payment_failed(user, message_data=message_data, idempotency_key=idempotency_key)
 
 
 @shared_task(

@@ -14,9 +14,7 @@ from education.tasks import reset_inactive_streaks
 
 class ResetInactiveStreaksTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="streakuser", password="test-pass-123!"
-        )
+        self.user = User.objects.create_user(username="streakuser", password="test-pass-123!")
         self.path = Path.objects.create(title="P", description="")
         self.course = Course.objects.create(title="C", description="", path=self.path)
 
@@ -39,9 +37,7 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today,
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(
-            streak=4, last_completed_date=today
-        )
+        UserProfile.objects.filter(pk=profile.pk).update(streak=4, last_completed_date=today)
         reset_inactive_streaks()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 4)
@@ -79,9 +75,7 @@ class ResetInactiveStreaksTests(TestCase):
         self.assertEqual(profile.streak, 0)
         self.assertIsNone(profile.last_completed_date)
         self.assertEqual(
-            UserProgress.objects.get(
-                user=self.user, course=self.course
-            ).learning_session_count,
+            UserProgress.objects.get(user=self.user, course=self.course).learning_session_count,
             0,
         )
 
@@ -116,9 +110,7 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today,
         )
         profile = self.user.profile
-        UserProfile.objects.filter(pk=profile.pk).update(
-            streak=2, last_completed_date=today
-        )
+        UserProfile.objects.filter(pk=profile.pk).update(streak=2, last_completed_date=today)
         reset_inactive_streaks()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 2)

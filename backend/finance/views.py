@@ -101,18 +101,10 @@ def _stripe_billing_url() -> str:
 def _profile_for_stripe_customer(customer_id) -> UserProfile | None:
     if not customer_id:
         return None
-    cid = (
-        customer_id
-        if isinstance(customer_id, str)
-        else getattr(customer_id, "id", None)
-    )
+    cid = customer_id if isinstance(customer_id, str) else getattr(customer_id, "id", None)
     if not cid:
         return None
-    return (
-        UserProfile.objects.select_related("user")
-        .filter(stripe_customer_id=str(cid))
-        .first()
-    )
+    return UserProfile.objects.select_related("user").filter(stripe_customer_id=str(cid)).first()
 
 
 def _format_stripe_money_minor(amount_minor, currency: str | None) -> str:
@@ -156,9 +148,7 @@ NEWS_FEEDS = [
         "logo_url": "https://www.wsj.com/favicon.ico",
     },
 ]
-SOURCE_LOGO_FALLBACK = {
-    f["name"]: f.get("logo_url") for f in NEWS_FEEDS if f.get("logo_url")
-}
+SOURCE_LOGO_FALLBACK = {f["name"]: f.get("logo_url") for f in NEWS_FEEDS if f.get("logo_url")}
 
 NEWS_FEED_TIMEOUT_SECONDS = 8
 NEWS_CACHE_KEY = "garzoni:news-feed:v1"
@@ -277,9 +267,7 @@ def _extract_image_url(item, description: str, link: str) -> str | None:
         "http://rssnamespace.org/media/content/",
     ):
         try:
-            media_content = item.find(f"{{{ns_uri}}}content") or item.find(
-                f"{{{ns_uri}}}thumbnail"
-            )
+            media_content = item.find(f"{{{ns_uri}}}content") or item.find(f"{{{ns_uri}}}thumbnail")
             if media_content is not None and media_content.get("url"):
                 return _resolve_image_url(media_content.get("url"), link)
         except Exception:
@@ -296,9 +284,7 @@ def _extract_image_url(item, description: str, link: str) -> str | None:
             return _resolve_image_url(link_el.get("href"), link)
     # First img in description (many feeds embed this; same as publisher content)
     if description:
-        match = re.search(
-            r'<img[^>]+src=["\']([^"\']+)["\']', unescape(description), re.I
-        )
+        match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', unescape(description), re.I)
         if match:
             return _resolve_image_url(match.group(1), link)
     return None
@@ -400,9 +386,7 @@ def refresh_news_feed_cache():
 
     seen_urls = set()
     unique = []
-    for item in sorted(
-        all_items, key=lambda x: x.get("published_at") or "", reverse=True
-    ):
+    for item in sorted(all_items, key=lambda x: x.get("published_at") or "", reverse=True):
         url = (item.get("url") or "").strip()
         if not url or url in seen_urls:
             continue
@@ -431,9 +415,7 @@ class SavingsAccountView(APIView):
     def get(self, request):
         """Retrieve the current balance of the user's simulated savings account."""
         try:
-            account, _ = SimulatedSavingsAccount.objects.get_or_create(
-                user=request.user
-            )
+            account, _ = SimulatedSavingsAccount.objects.get_or_create(user=request.user)
             return Response({"balance": float(account.balance)}, status=200)
         except Exception as e:
             logger.error(f"Error getting savings balance: {str(e)}")
@@ -481,9 +463,7 @@ class SavingsAccountView(APIView):
 
                 for completion in missions:
                     mission_type = completion.mission.mission_type
-                    target = Decimal(
-                        str(completion.mission.goal_reference.get("target", 100))
-                    )
+                    target = Decimal(str(completion.mission.goal_reference.get("target", 100)))
 
                     # Daily savings: only update once per day
                     if mission_type == "daily":
@@ -757,9 +737,7 @@ class CryptoPriceView(APIView):
 
         payload = response.json().get(crypto_id)
         if not payload:
-            return Response(
-                {"error": "Crypto not found.", "request_id": request_id}, status=404
-            )
+            return Response({"error": "Crypto not found.", "request_id": request_id}, status=404)
 
         result = {
             "price": float(payload.get("usd", 0) or 0),
@@ -937,9 +915,7 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
                 {
                     "message": "Transaction successful!",
                     "remaining_balance": float(user_profile.earned_money),
-                    "purchase": UserPurchaseSerializer(
-                        purchase, context={"request": request}
-                    ).data,
+                    "purchase": UserPurchaseSerializer(purchase, context={"request": request}).data,
                 },
                 status=201,
             )
@@ -948,9 +924,7 @@ class UserPurchaseViewSet(viewsets.ModelViewSet):
             return Response({"error": "Reward not found or inactive"}, status=404)
         except Exception as e:
             logger.error(f"Purchase error: {str(e)}")
-            return Response(
-                {"error": "Server error processing transaction"}, status=500
-            )
+            return Response({"error": "Server error processing transaction"}, status=500)
 
 
 class StripeWebhookView(APIView):
@@ -972,9 +946,7 @@ class StripeWebhookView(APIView):
 
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-            logger.info(
-                "Stripe webhook received", extra={"event_type": event.get("type")}
-            )
+            logger.info("Stripe webhook received", extra={"event_type": event.get("type")})
 
             record_funnel_event(
                 "webhook_received",
@@ -1039,14 +1011,10 @@ class StripeWebhookView(APIView):
                             customer_id_webhook = None
                             if sub_obj:
                                 try:
-                                    subscription_status = (
-                                        sub_obj.status
-                                    )  # trialing or active
+                                    subscription_status = sub_obj.status  # trialing or active
                                     if getattr(sub_obj, "trial_end", None):
                                         trial_end_dt = timezone.make_aware(
-                                            datetime.utcfromtimestamp(
-                                                sub_obj.trial_end
-                                            ),
+                                            datetime.utcfromtimestamp(sub_obj.trial_end),
                                             timezone.utc,
                                         )
                                     customer_id_webhook = (
@@ -1075,9 +1043,7 @@ class StripeWebhookView(APIView):
                                     has_paid=True,
                                     is_premium=True,
                                     subscription_status=subscription_status,
-                                    stripe_payment_id=(
-                                        session.get("payment_intent", "") or ""
-                                    ),
+                                    stripe_payment_id=(session.get("payment_intent", "") or ""),
                                     subscription_plan_id=(
                                         plan_id or user_profile.subscription_plan_id
                                     ),
@@ -1090,8 +1056,7 @@ class StripeWebhookView(APIView):
                                         else user_profile.trial_end
                                     ),
                                     stripe_customer_id=(
-                                        customer_id_webhook
-                                        or user_profile.stripe_customer_id
+                                        customer_id_webhook or user_profile.stripe_customer_id
                                     ),
                                 )
                             sid = session.get("id") or ""
@@ -1130,9 +1095,7 @@ class StripeWebhookView(APIView):
                                     "plan_id": str(plan_id or "plus"),
                                     "checkout_session_id": str(sid) if sid else None,
                                     "amount_total_minor": int(amount_minor or 0),
-                                    "currency": (
-                                        session.get("currency") or "usd"
-                                    ).upper(),
+                                    "currency": (session.get("currency") or "usd").upper(),
                                 },
                             )
 
@@ -1159,23 +1122,18 @@ class StripeWebhookView(APIView):
                                 apply_subscription_to_profile(
                                     user_profile,
                                     subscription_status=session_status,
-                                    stripe_payment_id=(
-                                        session.get("payment_intent", "") or ""
-                                    ),
+                                    stripe_payment_id=(session.get("payment_intent", "") or ""),
                                 )
                                 record_funnel_event(
                                     (
                                         "checkout_failed"
-                                        if event["type"]
-                                        == "checkout.session.async_payment_failed"
+                                        if event["type"] == "checkout.session.async_payment_failed"
                                         else "checkout_expired"
                                     ),
                                     user=user_profile.user,
                                     session_id=session.get("id", ""),
                                     metadata={
-                                        "payment_intent": session.get(
-                                            "payment_intent", ""
-                                        ),
+                                        "payment_intent": session.get("payment_intent", ""),
                                         "amount_total": session.get("amount_total"),
                                         "currency": session.get("currency"),
                                     },
@@ -1185,15 +1143,10 @@ class StripeWebhookView(APIView):
                             user_for_notify = user_profile.user
                         else:
                             try:
-                                user_for_notify = get_user_model().objects.get(
-                                    pk=user_id
-                                )
+                                user_for_notify = get_user_model().objects.get(pk=user_id)
                             except get_user_model().DoesNotExist:
                                 user_for_notify = None
-                        if (
-                            user_for_notify is not None
-                            and (user_for_notify.email or "").strip()
-                        ):
+                        if user_for_notify is not None and (user_for_notify.email or "").strip():
                             chk_sid = session.get("id") or ""
                             amount_disp = _format_stripe_money_minor(
                                 session.get("amount_total"), session.get("currency")
@@ -1211,11 +1164,7 @@ class StripeWebhookView(APIView):
                                 send_billing_payment_failed_task,
                                 user_for_notify.id,
                                 fail_msg,
-                                (
-                                    f"payment_failed_checkout:{chk_sid}"
-                                    if chk_sid
-                                    else None
-                                ),
+                                (f"payment_failed_checkout:{chk_sid}" if chk_sid else None),
                             )
                             NotificationService().publish_domain_event(
                                 user_for_notify,
@@ -1272,9 +1221,7 @@ class StripeWebhookView(APIView):
                 if sub_id:
                     cpe = sub.get("current_period_end")
                     period_end_iso = (
-                        datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat()
-                        if cpe
-                        else None
+                        datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
                     )
                     prof = None
                     with transaction.atomic():
@@ -1325,9 +1272,9 @@ class StripeWebhookView(APIView):
                         )
                         paid_ts = (inv.get("status_transitions") or {}).get("paid_at")
                         if paid_ts:
-                            date_str = datetime.fromtimestamp(
-                                paid_ts, tz=timezone.utc
-                            ).strftime("%Y-%m-%d")
+                            date_str = datetime.fromtimestamp(paid_ts, tz=timezone.utc).strftime(
+                                "%Y-%m-%d"
+                            )
                         else:
                             date_str = timezone.now().strftime("%Y-%m-%d")
                         billing = _stripe_billing_url()
@@ -1337,8 +1284,7 @@ class StripeWebhookView(APIView):
                             ),
                             "amount": amount_disp,
                             "date": date_str,
-                            "invoice_url": (inv.get("hosted_invoice_url") or "")
-                            or billing,
+                            "invoice_url": (inv.get("hosted_invoice_url") or "") or billing,
                         }
                         _safe_enqueue_celery(
                             send_billing_payment_receipt_task,
@@ -1431,15 +1377,11 @@ class VerifySessionView(APIView):
                 except (TypeError, ValueError):
                     return Response({"error": "Invalid user context"}, status=400)
             else:
-                return Response(
-                    {"error": "Missing user context for session"}, status=400
-                )
+                return Response({"error": "Missing user context for session"}, status=400)
 
             User = get_user_model()
             try:
-                stripe_payment_id = getattr(
-                    getattr(session, "payment_intent", None), "id", ""
-                )
+                stripe_payment_id = getattr(getattr(session, "payment_intent", None), "id", "")
                 sub_id = None
                 subscription_status = "active"
                 trial_end_dt = None
@@ -1457,9 +1399,7 @@ class VerifySessionView(APIView):
                         resolved_sub = sub
                         sub_id = getattr(sub, "id", None)
                     if resolved_sub:
-                        subscription_status = (
-                            getattr(resolved_sub, "status", "active") or "active"
-                        )
+                        subscription_status = getattr(resolved_sub, "status", "active") or "active"
                         te = getattr(resolved_sub, "trial_end", None)
                         if te:
                             trial_end_dt = datetime.fromtimestamp(te, tz=timezone.utc)
@@ -1495,17 +1435,9 @@ class VerifySessionView(APIView):
                         subscription_status=subscription_status,
                         stripe_payment_id=stripe_payment_id,
                         subscription_plan_id=(plan_id or profile.subscription_plan_id),
-                        stripe_subscription_id=(
-                            sub_id or profile.stripe_subscription_id
-                        ),
-                        stripe_customer_id=(
-                            customer_id_from_sub or profile.stripe_customer_id
-                        ),
-                        trial_end=(
-                            trial_end_dt
-                            if trial_end_dt is not None
-                            else profile.trial_end
-                        ),
+                        stripe_subscription_id=(sub_id or profile.stripe_subscription_id),
+                        stripe_customer_id=(customer_id_from_sub or profile.stripe_customer_id),
+                        trial_end=(trial_end_dt if trial_end_dt is not None else profile.trial_end),
                     )
                     cache.set(f"user_payment_status_{user_id_int}", "paid", 300)
 
@@ -1600,18 +1532,12 @@ def _stripe_subscription_ui_snapshot(profile) -> dict:
             cpe = getattr(sub, "current_period_end", None)
             cps = getattr(sub, "current_period_start", None)
             out = {
-                "cancel_at_period_end": bool(
-                    getattr(sub, "cancel_at_period_end", False)
-                ),
+                "cancel_at_period_end": bool(getattr(sub, "cancel_at_period_end", False)),
                 "current_period_end": (
-                    datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat()
-                    if cpe
-                    else None
+                    datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
                 ),
                 "current_period_start": (
-                    datetime.fromtimestamp(cps, tz=timezone.utc).isoformat()
-                    if cps
-                    else None
+                    datetime.fromtimestamp(cps, tz=timezone.utc).isoformat() if cps else None
                 ),
             }
     except stripe.error.StripeError as e:
@@ -1631,9 +1557,7 @@ def _stripe_subscription_ui_snapshot(profile) -> dict:
                 e,
             )
         else:
-            logger.warning(
-                "Stripe subscription UI snapshot failed for user %s: %s", uid, e
-            )
+            logger.warning("Stripe subscription UI snapshot failed for user %s: %s", uid, e)
         if attempted_stripe:
             # Negative cache so entitlements polling does not hammer Stripe / spam logs.
             cache.set(cache_key, {}, 300)
@@ -1708,9 +1632,7 @@ class SubscriptionCreateView(APIView):
                 except stripe.error.StripeError as e:
                     logger.warning("Stripe error resolving promotion code: %s", e)
         # 7-day free trial only on yearly Pro/Plus; day 7 = charge full yearly amount
-        trial_days = (
-            7 if billing_interval == "yearly" and plan_id in ("plus", "pro") else 0
-        )
+        trial_days = 7 if billing_interval == "yearly" and plan_id in ("plus", "pro") else 0
         create_params = {
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],
@@ -1773,13 +1695,9 @@ def _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False):
     cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
     if cid:
         try:
-            for sub in stripe.Subscription.list(
-                customer=cid, status="all", limit=10
-            ).data:
+            for sub in stripe.Subscription.list(customer=cid, status="all", limit=10).data:
                 if getattr(sub, "status", None) in ("active", "trialing"):
-                    found_id = (
-                        sub.id if isinstance(sub, str) else getattr(sub, "id", None)
-                    )
+                    found_id = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
                     if found_id:
                         profile.stripe_subscription_id = found_id
                         profile.save(update_fields=["stripe_subscription_id"])
@@ -1800,9 +1718,7 @@ def _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False):
             )
     if not allow_email_lookup or not getattr(profile.user, "email", None):
         return None
-    is_premium = getattr(profile, "is_premium", False) or getattr(
-        profile, "has_paid", False
-    )
+    is_premium = getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False)
     status_ok = getattr(profile, "subscription_status", None) in ("active", "trialing")
     if not (is_premium or status_ok):
         return None
@@ -1827,9 +1743,7 @@ def _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False):
                 subs = stripe.Subscription.list(customer=cid, status="all", limit=10)
                 for sub in subs.data:
                     if getattr(sub, "status", None) in ("active", "trialing"):
-                        found_id = (
-                            sub.id if isinstance(sub, str) else getattr(sub, "id", None)
-                        )
+                        found_id = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
                         if found_id:
                             profile.stripe_subscription_id = found_id
                             update_fields.append("stripe_subscription_id")
@@ -1901,26 +1815,18 @@ class SubscriptionChangeView(APIView):
             return Response({"error": "Profile not found."}, status=404)
 
         stripe.api_key = stripe_key
-        sub_id = _get_or_resolve_stripe_subscription_id(
-            profile, allow_email_lookup=False
-        )
+        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False)
         if not sub_id:
             cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
             if cid:
                 try:
-                    for sub in stripe.Subscription.list(
-                        customer=cid, status="all", limit=10
-                    ).data:
+                    for sub in stripe.Subscription.list(customer=cid, status="all", limit=10).data:
                         if getattr(sub, "status", None) in (
                             "active",
                             "trialing",
                             "past_due",
                         ):
-                            found = (
-                                sub.id
-                                if isinstance(sub, str)
-                                else getattr(sub, "id", None)
-                            )
+                            found = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
                             if found:
                                 sub_id = found
                                 profile.stripe_subscription_id = sub_id
@@ -1968,9 +1874,7 @@ class SubscriptionChangeView(APIView):
             if not item_id:
                 return Response({"error": "Invalid subscription item."}, status=400)
             price_obj = (
-                getattr(first, "price", None)
-                if not isinstance(first, dict)
-                else first.get("price")
+                getattr(first, "price", None) if not isinstance(first, dict) else first.get("price")
             )
             cur_pid = (
                 price_obj
@@ -1999,9 +1903,7 @@ class SubscriptionChangeView(APIView):
             _invalidate_stripe_subscription_ui_cache(profile.user_id)
             cpe = getattr(subscription, "current_period_end", None)
             period_end_iso = (
-                datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat()
-                if cpe
-                else None
+                datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
             )
             record_funnel_event(
                 "subscription_plan_changed",
@@ -2022,9 +1924,7 @@ class SubscriptionChangeView(APIView):
         except stripe.error.StripeError as e:
             logger.error("Stripe subscription change error: %s", e)
             return Response(
-                {
-                    "error": "Could not change plan. Try Manage subscription or contact support."
-                },
+                {"error": "Could not change plan. Try Manage subscription or contact support."},
                 status=400,
             )
         except Exception as e:
@@ -2058,9 +1958,7 @@ class SubscriptionSyncView(APIView):
                 status=404,
             )
         stripe.api_key = stripe_key
-        sub_id = _get_or_resolve_stripe_subscription_id(
-            profile, allow_email_lookup=True
-        )
+        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=True)
         if sub_id:
             _invalidate_stripe_subscription_ui_cache(profile.user_id)
             return Response({"ok": True}, status=200)
@@ -2098,9 +1996,7 @@ class SubscriptionPortalView(APIView):
         stripe.api_key = stripe_key
         customer_id = (getattr(profile, "stripe_customer_id", None) or "").strip()
         if not customer_id:
-            sub_id = _get_or_resolve_stripe_subscription_id(
-                profile, allow_email_lookup=False
-            )
+            sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False)
             if sub_id:
                 try:
                     sub = stripe.Subscription.retrieve(sub_id)
@@ -2137,9 +2033,7 @@ class SubscriptionPortalView(APIView):
         except stripe.error.StripeError as e:
             logger.error("Stripe portal error: %s", e)
             return Response(
-                {
-                    "error": "Could not open customer portal. Please try again or contact support."
-                },
+                {"error": "Could not open customer portal. Please try again or contact support."},
                 status=400,
             )
         except Exception as e:
@@ -2169,22 +2063,14 @@ class SubscriptionCancelView(APIView):
             return Response({"error": "Profile not found."}, status=404)
 
         stripe.api_key = stripe_key
-        sub_id = _get_or_resolve_stripe_subscription_id(
-            profile, allow_email_lookup=False
-        )
+        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=False)
         if not sub_id:
             cid = (getattr(profile, "stripe_customer_id", None) or "").strip()
             if cid:
                 try:
-                    for sub in stripe.Subscription.list(
-                        customer=cid, status="all", limit=10
-                    ).data:
+                    for sub in stripe.Subscription.list(customer=cid, status="all", limit=10).data:
                         if getattr(sub, "status", None) in ("active", "trialing"):
-                            sub_id = (
-                                sub.id
-                                if isinstance(sub, str)
-                                else getattr(sub, "id", None)
-                            )
+                            sub_id = sub.id if isinstance(sub, str) else getattr(sub, "id", None)
                             if sub_id:
                                 profile.stripe_subscription_id = sub_id
                                 profile.save(update_fields=["stripe_subscription_id"])
@@ -2298,18 +2184,14 @@ class EntitlementStatusView(APIView):
             )
             return Response(payload)
         except Exception as exc:
-            logger.error(
-                "Failed to fetch entitlements for user %s: %s", request.user.id, exc
-            )
+            logger.error("Failed to fetch entitlements for user %s: %s", request.user.id, exc)
             record_funnel_event(
                 "entitlement_lookup",
                 user=request.user,
                 status="error",
                 metadata={"error": str(exc)},
             )
-            return Response(
-                {"error": "Unable to verify entitlements right now."}, status=503
-            )
+            return Response({"error": "Unable to verify entitlements right now."}, status=503)
 
 
 class FunnelEventIngestView(APIView):
@@ -2442,9 +2324,7 @@ class FunnelMetricsView(APIView):
                     "entitlement_success": entitlement_success,
                     "entitlement_failures": entitlement_failures,
                     "pricing_to_checkout_rate": rate(checkouts_created, pricing_views),
-                    "checkout_to_paid_rate": rate(
-                        checkouts_completed, checkouts_created
-                    ),
+                    "checkout_to_paid_rate": rate(checkouts_completed, checkouts_created),
                     "entitlement_success_rate": rate(
                         entitlement_success, entitlement_success + entitlement_failures
                     ),
@@ -2489,9 +2369,7 @@ class PortfolioViewSet(viewsets.ModelViewSet):
             .values("asset_type")
             .annotate(total=Sum("entry_value"))
         )
-        allocation = {
-            row["asset_type"]: float(row["total"] or 0) for row in allocation_qs
-        }
+        allocation = {row["asset_type"]: float(row["total"] or 0) for row in allocation_qs}
 
         return Response(
             {

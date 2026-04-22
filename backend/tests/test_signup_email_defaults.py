@@ -123,12 +123,15 @@ class PasswordResetResilienceTest(TestCase):
 
     def test_broker_failure_returns_200(self):
         """If .delay() raises, the view still returns the generic 200."""
-        with patch(
-            "authentication.views_password.send_password_reset_email_task.delay",
-            side_effect=RuntimeError("broker unreachable"),
-        ), patch(
-            "authentication.views_password.threading.Thread",
-            _ImmediateStartThread,
+        with (
+            patch(
+                "authentication.views_password.send_password_reset_email_task.delay",
+                side_effect=RuntimeError("broker unreachable"),
+            ),
+            patch(
+                "authentication.views_password.threading.Thread",
+                _ImmediateStartThread,
+            ),
         ):
             response = self.client.post(
                 "/api/password-reset/",

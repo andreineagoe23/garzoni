@@ -47,7 +47,7 @@ _HINT_SYSTEM = (
 
 _CHAT_SYSTEM = (
     "You are Garzoni, a friendly personal finance tutor inside the Garzoni learning app.\n"
-    "Student context: studying \"{lesson_title}\" at proficiency {proficiency}/100.\n"
+    'Student context: studying "{lesson_title}" at proficiency {proficiency}/100.\n'
     "Current exercise: {exercise_question}\n"
     "Answer context (DO NOT reveal directly): {correct_answer}\n\n"
     "Rules:\n"
@@ -78,6 +78,7 @@ _QUIZ_SYSTEM = (
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _api_key() -> str:
     return (getattr(settings, "OPENAI_API_KEY", "") or "").strip()
@@ -130,6 +131,7 @@ def _post(
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def generate_feedback(
     *,
@@ -301,9 +303,7 @@ def generate_path_recommendations(
     if not answers or not paths:
         return []
 
-    path_list = "\n".join(
-        f"- {p['title']}: {p.get('description', '').strip()}" for p in paths
-    )
+    path_list = "\n".join(f"- {p['title']}: {p.get('description', '').strip()}" for p in paths)
     answers_text = json.dumps(answers, indent=2)
 
     prompt = (

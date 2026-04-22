@@ -1526,7 +1526,6 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             }
         )
 
-
     @action(detail=True, methods=["post"])
     def hint(self, request, pk=None):
         """Return a progressively more specific hint for an exercise."""
@@ -1944,15 +1943,18 @@ class PersonalizedPathView(APIView):
 
         # Attempt GPT-based ranking first
         if answers:
-            paths_qs = list(Path.objects.filter(id__in=allowed_path_ids).order_by("sort_order", "id"))
+            paths_qs = list(
+                Path.objects.filter(id__in=allowed_path_ids).order_by("sort_order", "id")
+            )
             path_dicts = [
-                {"title": p.title or "", "description": p.description or ""}
-                for p in paths_qs
+                {"title": p.title or "", "description": p.description or ""} for p in paths_qs
             ]
             ranked = generate_path_recommendations(answers=answers, paths=path_dicts)
             if ranked:
                 title_to_path = {p.title: p for p in paths_qs}
-                ordered = [title_to_path[r["title"]] for r in ranked if r.get("title") in title_to_path]
+                ordered = [
+                    title_to_path[r["title"]] for r in ranked if r.get("title") in title_to_path
+                ]
                 seen = {p.id for p in ordered}
                 ordered += [p for p in paths_qs if p.id not in seen]
                 # Apply mastery boosts as a secondary sort nudge for un-ranked paths
@@ -1962,7 +1964,9 @@ class PersonalizedPathView(APIView):
 
         # Fallback: keyword weight matching
         if sorted_paths is None:
-            weights = self.calculate_onboarding_path_weights(answers) if answers else defaultdict(int)
+            weights = (
+                self.calculate_onboarding_path_weights(answers) if answers else defaultdict(int)
+            )
             for key, boost in mastery_boosts.items():
                 weights[key] += boost
             sorted_paths = self.get_sorted_paths(weights, allowed_path_ids)

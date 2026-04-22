@@ -43,9 +43,7 @@ def change_password(request):
         return Response({"error": "New passwords do not match."}, status=400)
 
     if len(new_password) < 8:
-        return Response(
-            {"error": "Password must be at least 8 characters."}, status=400
-        )
+        return Response({"error": "Password must be at least 8 characters."}, status=400)
 
     user.set_password(new_password)
     user.save()
@@ -97,9 +95,7 @@ class PasswordResetRequestView(APIView):
         """Process password reset requests by validating the email and sending a reset link."""
         email = request.data.get("email")
         if not email:
-            return Response(
-                {"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         generic_response = Response(
             {"message": "Password reset link sent."}, status=status.HTTP_200_OK
@@ -127,9 +123,7 @@ class PasswordResetRequestView(APIView):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_link = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}"
         except Exception:
-            logger.exception(
-                "password_reset.token_generation_failed user_id=%s", user.pk
-            )
+            logger.exception("password_reset.token_generation_failed user_id=%s", user.pk)
             return generic_response
 
         uid = user.pk
@@ -137,9 +131,7 @@ class PasswordResetRequestView(APIView):
         def _enqueue():
             def _dispatch():
                 try:
-                    send_password_reset_email_task.delay(
-                        uid, reset_link, idempotency_key=None
-                    )
+                    send_password_reset_email_task.delay(uid, reset_link, idempotency_key=None)
                 except Exception:
                     logger.warning(
                         "send_password_reset_email_task dispatch failed for user_id=%s — "
@@ -206,9 +198,7 @@ class PasswordResetConfirmView(APIView):
         user.set_password(new_password)
         user.save()
 
-        return Response(
-            {"message": "Password reset successful."}, status=status.HTTP_200_OK
-        )
+        return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
 
 class EmailUnsubscribeView(APIView):

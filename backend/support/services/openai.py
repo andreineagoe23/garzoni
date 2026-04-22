@@ -203,7 +203,9 @@ class OpenAIService:
         try:
             # Mastery: top 3 skills by proficiency
             top_skills = list(
-                Mastery.objects.filter(user=user).order_by("-proficiency").values("skill", "proficiency")[:3]
+                Mastery.objects.filter(user=user)
+                .order_by("-proficiency")
+                .values("skill", "proficiency")[:3]
             )
             if top_skills:
                 skill_strs = [f"{s['skill']} ({s['proficiency']}/100)" for s in top_skills]
@@ -223,7 +225,8 @@ class OpenAIService:
                 )
                 parts.append(
                     f"Currently studying: {course_title}"
-                    + (f" ({path_name} path)" if path_name else "") + "."
+                    + (f" ({path_name} path)" if path_name else "")
+                    + "."
                 )
                 completed_courses = UserProgress.objects.filter(
                     user=user, is_course_complete=True
@@ -234,6 +237,7 @@ class OpenAIService:
             # Questionnaire goal
             try:
                 from onboarding.models import QuestionnaireProgress
+
                 q = QuestionnaireProgress.objects.filter(user=user).first()
                 if q and q.answers:
                     goal = q.answers.get("primary_goal")
