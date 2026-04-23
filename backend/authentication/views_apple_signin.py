@@ -150,7 +150,17 @@ class AppleIdentityAuthView(APIView):
                     },
                     status=status.HTTP_409_CONFLICT,
                 )
-            raise
+            logger.exception("Unexpected ValueError in Apple Sign In user lookup")
+            return Response(
+                {"detail": "Sign in failed. Please try again.", "code": "server_error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        except Exception:
+            logger.exception("Unexpected error in Apple Sign In user lookup")
+            return Response(
+                {"detail": "Sign in failed. Please try again.", "code": "server_error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
