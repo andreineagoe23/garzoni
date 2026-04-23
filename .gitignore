@@ -51,6 +51,8 @@ backend/backups/
 
 # ── Media — served via Cloudinary, not stored in git ─────────────────────────
 backend/media/
+backend/backups/
+backend/media/welcome/
 backend/cloudinary-upload-results.json
 scripts/cloudinary-upload-results.json
 
