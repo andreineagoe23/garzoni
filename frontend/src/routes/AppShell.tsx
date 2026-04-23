@@ -81,9 +81,9 @@ const AppShell = ({
             <AppRoutes />
           </Suspense>
         </main>
-        {!noChatbotPaths.includes(location.pathname) && !isCourseFlowPath && (
-          <Chatbot />
-        )}
+        {!noChatbotPaths.includes(location.pathname) &&
+          !isCourseFlowPath &&
+          !isLegalAndUnauth && <Chatbot />}
         {hasFooter && (
           <Suspense fallback={null}>
             <Footer />
