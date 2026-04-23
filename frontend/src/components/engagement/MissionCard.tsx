@@ -96,7 +96,7 @@ const MissionCard = ({
           <div className="flex items-center justify-between gap-4">
             <h3
               id={`mission-title-${mission.id}`}
-              className="text-lg font-semibold text-[color:var(--accent,#111827)]"
+              className="text-lg font-semibold text-content-primary"
             >
               {mission.name}
             </h3>
@@ -105,15 +105,13 @@ const MissionCard = ({
             </span>
           </div>
           <p className="text-sm text-content-muted">{mission.description}</p>
-          <p className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
+          <p className="text-xs font-semibold text-content-muted">
             {t("missions.why")} {purposeStatement(mission)}
           </p>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-content-muted">
               <span>{t("missions.progress.label")}</span>
-              <span className="text-[color:var(--accent,#111827)]">
-                {progressLabel}
-              </span>
+              <span className="text-content-primary">{progressLabel}</span>
             </div>
             <div
               className="h-2 rounded-full bg-[color:var(--input-bg,#f3f4f6)]"
@@ -136,7 +134,7 @@ const MissionCard = ({
                   <GarzoniIcon
                     name="sparkles"
                     size={14}
-                    className="text-[color:var(--accent,#111827)]"
+                    className="text-[color:var(--primary,#1d5330)]"
                   />
                   {t("missions.progress.completed")}
                 </span>
@@ -172,7 +170,7 @@ const MissionCard = ({
               <button
                 type="button"
                 onClick={() => onSwap(mission.id)}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--primary,#1d5330)]/40 bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 aria-label={t("missions.swap.aria", {
                   name: mission.name,
                 })}
@@ -185,7 +183,7 @@ const MissionCard = ({
                 <button
                   type="button"
                   onClick={() => setShowSavingsMenu((prev) => !prev)}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                 >
                   {showSavingsMenu
                     ? t("missions.savings.hideJar")
@@ -216,7 +214,7 @@ const MissionCard = ({
                             ? t("missions.savings.placeholderDaily")
                             : t("missions.savings.placeholderWeekly")
                         }
-                        className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                        className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--primary,#1d5330)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                         disabled={isDaily && isCompleted}
                       />
                       <button
@@ -241,7 +239,7 @@ const MissionCard = ({
                   <button
                     type="button"
                     onClick={onLoadFact}
-                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-4 py-2 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
                   >
                     {t("missions.facts.tryAgain")}
                   </button>

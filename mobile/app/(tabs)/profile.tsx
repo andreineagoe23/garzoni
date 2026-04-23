@@ -450,7 +450,7 @@ function ProfileInner() {
             </Pressable>
             <View style={styles.nameCol}>
               <Text style={[styles.displayName, { color: colors.text }]}>
-                {displayName || username || t("profile.fallbackUser")}
+                {username || displayName || t("profile.fallbackUser")}
               </Text>
               <Text style={[styles.email, { color: colors.textMuted }]}>
                 {email}

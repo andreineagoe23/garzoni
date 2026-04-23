@@ -460,7 +460,7 @@ function Missions() {
     <section className="min-h-screen bg-surface-page px-4 py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <header className="space-y-2 text-center lg:text-left">
-          <h1 className="text-3xl font-bold text-[color:var(--accent)]">
+          <h1 className="text-3xl font-bold text-content-primary">
             {t("missions.header.title")}
           </h1>
           <p className="text-sm text-content-muted">
@@ -477,7 +477,7 @@ function Missions() {
               </p>
 
               <div className="mt-2 space-y-1">
-                <p className="text-base font-semibold text-[color:var(--accent)]">
+                <p className="text-base font-semibold text-content-primary">
                   {t("missions.summary.remaining", {
                     count: missionsRemaining,
                   })}
@@ -506,11 +506,11 @@ function Missions() {
               )}
 
               {adaptiveSuggestions && (
-                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--accent)]/25 bg-[color:var(--accent)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--accent)] leading-tight">
+                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--primary)] leading-tight">
                   <GarzoniIcon
                     name="lightbulb"
                     size={14}
-                    className="mr-2 inline-block text-[color:var(--accent)]"
+                    className="mr-2 inline-block text-[color:var(--primary)]"
                   />
                   {t("missions.summary.suggestedSavings", {
                     amount: adaptiveSuggestions.suggestedSavingsTarget,
@@ -519,7 +519,7 @@ function Missions() {
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm text-[color:var(--accent)] md:text-right">
+            <div className="grid grid-cols-2 gap-3 text-sm md:text-right">
               <StatBadge
                 label={t("missions.summary.streak")}
                 value={t("missions.summary.streakDays", { count: streakCount })}
@@ -538,7 +538,7 @@ function Missions() {
               {streakItems.map((item, index) => (
                 <div
                   key={`${item.type}-${index}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--accent)]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--primary)]/40 bg-[color:var(--primary)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary)]"
                   role="status"
                   aria-label={t("missions.streakItemAria", {
                     type: item.type,
@@ -549,13 +549,13 @@ function Missions() {
                     <GarzoniIcon
                       name="snowflake"
                       size={14}
-                      className="inline-block text-[color:var(--accent)]"
+                      className="inline-block text-[color:var(--primary)]"
                     />
                   ) : (
                     <GarzoniIcon
                       name="bolt"
                       size={14}
-                      className="inline-block text-[color:var(--accent)]"
+                      className="inline-block text-[color:var(--primary)]"
                     />
                   )}
                   {item.quantity}x
@@ -589,7 +589,7 @@ function Missions() {
               disabled={dailyMissions.length === 0}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "daily"
-                  ? "border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
+                  ? "border-[color:var(--primary)] bg-[color:var(--primary)]/15 text-[color:var(--primary)]"
                   : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
               }`}
             >
@@ -604,7 +604,7 @@ function Missions() {
               disabled={weeklyMissions.length === 0}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "weekly"
-                  ? "border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]"
+                  ? "border-[color:var(--primary)] bg-[color:var(--primary)]/15 text-[color:var(--primary)]"
                   : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
               }`}
             >
@@ -622,7 +622,7 @@ function Missions() {
           </div>
         ) : noMissionsAvailable ? (
           <GlassCard padding="md" className="bg-[color:var(--card-bg)]/70">
-            <p className="text-base font-semibold text-[color:var(--accent)]">
+            <p className="text-base font-semibold text-content-primary">
               {t("missions.empty.title")}
             </p>
             <p className="mt-1 text-sm text-content-muted">
@@ -666,7 +666,7 @@ function Missions() {
               </div>
             ) : (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-[color:var(--accent)]">
+                <h2 className="text-2xl font-semibold text-content-primary">
                   {t("missions.weekly.title")}
                 </h2>
                 {weeklyMissions.length > 0 ? (
@@ -736,7 +736,7 @@ function Missions() {
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/10 px-4 py-3 text-sm text-[color:var(--accent)] shadow-[color:var(--accent)]/20">
+                  <div className="rounded-2xl border border-[color:var(--primary)]/40 bg-[color:var(--primary)]/10 px-4 py-3 text-sm text-[color:var(--primary)]">
                     {t("missions.wrapup.cta")}
                   </div>
                 </div>

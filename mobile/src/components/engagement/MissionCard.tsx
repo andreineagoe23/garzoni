@@ -95,7 +95,7 @@ export default function MissionCard({
     <GlassCard padding="lg" style={{ marginBottom: spacing.md }}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: c.accent }]} numberOfLines={2}>
+          <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
             {title}
           </Text>
           <View style={[styles.badge, { backgroundColor: `${c.primary}22` }]}>
@@ -109,7 +109,7 @@ export default function MissionCard({
             {mission.description}
           </Text>
         ) : null}
-        <Text style={[styles.why, { color: c.accent }]}>
+        <Text style={[styles.why, { color: c.textMuted }]}>
           {t("missions.why")} {purposeStatement(mission)}
         </Text>
 
@@ -174,12 +174,12 @@ export default function MissionCard({
                 styles.swapBtn,
                 {
                   opacity: pressed ? 0.85 : 1,
-                  borderColor: `${c.accent}66`,
-                  backgroundColor: `${c.accent}18`,
+                  borderColor: `${c.primary}55`,
+                  backgroundColor: `${c.primary}18`,
                 },
               ]}
             >
-              <Text style={[styles.swapBtnText, { color: c.accent }]}>
+              <Text style={[styles.swapBtnText, { color: c.primary }]}>
                 {t("missions.swap.label")}
               </Text>
             </Pressable>

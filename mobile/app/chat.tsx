@@ -9,6 +9,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { isAxiosError } from "axios";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -27,10 +29,25 @@ import {
 } from "@garzoni/core";
 import type { AiTutorLink, Entitlements } from "@garzoni/core";
 import { useAuthSession } from "../src/auth/AuthContext";
-import GlassButton from "../src/components/ui/GlassButton";
-import TypingBubble from "../src/components/ui/TypingBubble";
-import { useThemeColors } from "../src/theme/ThemeContext";
+import { brand } from "../src/theme/brand";
 import { spacing, typography, radius } from "../src/theme/tokens";
+
+// ── Always-dark design constants (matches subscriptions page) ────────────────
+const D = {
+  bg: brand.bgDark,
+  surface: "#0e1621",
+  card: "#111827",
+  border: brand.borderGlass,
+  borderSoft: "rgba(255,255,255,0.07)",
+  primary: brand.green,
+  primaryDim: "rgba(29,83,48,0.18)",
+  primaryBright: "#2a7347",
+  text: brand.text,
+  muted: brand.textMuted,
+  faint: "rgba(229,231,235,0.32)",
+  userBg: brand.green,
+  botBg: "#131e2b",
+} as const;
 
 type Msg = {
   role: "user" | "assistant" | "system";
@@ -45,9 +62,13 @@ const FOREX_PAIR_RE = /(\b[a-zA-Z]{3})\b\s*(\/|to|and)\s*(\b[a-zA-Z]{3})\b/i;
 const FOREX_RE =
   /what(?:'|')?s the exchange rate (?:from|of|between) ([a-zA-Z]{3}) (?:to|and) ([a-zA-Z]{3})(\?)?|forex (?:between|for) ([a-zA-Z]{3}) (?:and|to) ([a-zA-Z]{3})/i;
 const CRYPTO_RE =
-  /what(?:'|')?s the (?:price|value) of ([a-zA-Z\s]+)(\?)?|([a-zA-Z\s]+) (?:price|value)(\?)?/i;
+  /what(?:'|')?s the (?:price|value) of ([a-zA-Z\s]+?)(?:\s+(?:today|now|right now|currently))?(\?)?$|([a-zA-Z\s]+?) (?:price|value)(?:\s+(?:today|now|right now|currently))?(\?)?/i;
 const STOCK_RE =
   /what(?:'|')?s the (?:stock )?price of ([a-zA-Z]{1,5}) stock(\?)?|([a-zA-Z]{1,5}) stock price/i;
+const TIME_RE =
+  /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:current\s+)?time|what\s+time\s+is\s+it|current\s+time|time\s+now)\b/i;
+const DATE_RE =
+  /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:today'?s?\s+)?date|today'?s?\s+date|what\s+day\s+is\s+(?:it|today))\b/i;
 
 function fmtNumber(value: number, opts: Intl.NumberFormatOptions): string {
   try {
@@ -73,8 +94,110 @@ function formatMarketCap(marketCap: number): string | null {
   return fmtUsd(marketCap, 0);
 }
 
+// ── Bot avatar ────────────────────────────────────────────────────────────────
+function BotAvatar() {
+  return (
+    <View style={styles.botAvatar}>
+      <Text style={styles.botAvatarText}>G</Text>
+    </View>
+  );
+}
+
+// ── Message bubble ────────────────────────────────────────────────────────────
+function MessageBubble({
+  msg,
+  onLinkPress,
+}: {
+  msg: Msg;
+  onLinkPress: (link: AiTutorLink) => void;
+}) {
+  const isUser = msg.role === "user";
+  const isSystem = msg.role === "system";
+
+  if (isUser) {
+    return (
+      <View style={styles.rowUser}>
+        <View style={styles.bubbleUser}>
+          <Text style={styles.bubbleUserText}>{msg.content}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (isSystem) {
+    return (
+      <View style={styles.rowSystem}>
+        <Text style={styles.systemText}>{msg.content}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.rowBot}>
+      <BotAvatar />
+      <View style={styles.bubbleBot}>
+        <Text style={styles.bubbleBotText}>{msg.content}</Text>
+        {msg.link ? (
+          <Pressable
+            onPress={() => onLinkPress(msg.link!)}
+            style={styles.linkChip}
+          >
+            <MaterialCommunityIcons
+              name="book-open-variant"
+              size={12}
+              color={D.primaryBright}
+            />
+            <Text style={styles.linkChipText} numberOfLines={1}>
+              {msg.link.text}
+            </Text>
+          </Pressable>
+        ) : null}
+        {msg.links && msg.links.length > 0 ? (
+          <View style={styles.linksBlock}>
+            <Text style={styles.linksHeading}>Available paths</Text>
+            <View style={styles.linksRow}>
+              {msg.links.map((link, j) => (
+                <Pressable
+                  key={`${j}-${link.path}`}
+                  onPress={() => onLinkPress(link)}
+                  style={styles.linkChip}
+                >
+                  <MaterialCommunityIcons
+                    name="book-open-variant"
+                    size={12}
+                    color={D.primaryBright}
+                  />
+                  <Text style={styles.linkChipText} numberOfLines={1}>
+                    {link.text}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+// ── Typing indicator ──────────────────────────────────────────────────────────
+function TypingBubble() {
+  return (
+    <View style={styles.rowBot}>
+      <BotAvatar />
+      <View style={[styles.bubbleBot, { paddingVertical: spacing.sm + 4 }]}>
+        <View style={styles.typingDots}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.typingDot} />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
 export default function ChatScreen() {
-  const c = useThemeColors();
   const { t } = useTranslation("common");
   const { accessToken } = useAuthSession();
   const isAuthenticated = Boolean(accessToken);
@@ -82,6 +205,7 @@ export default function ChatScreen() {
     preseededMessage?: string;
   }>();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const entitlementsQuery = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -133,6 +257,15 @@ export default function ChatScreen() {
 
   const resolveMarketReply = useCallback(
     async (text: string): Promise<string | null> => {
+      // Client-side time / date queries
+      if (TIME_RE.test(text)) {
+        const now = new Date();
+        return `It's currently ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} on your device.`;
+      }
+      if (DATE_RE.test(text)) {
+        return `Today is ${new Date().toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
+      }
+
       const stockMatch = text.match(STOCK_RE);
       const forexPairMatch = text.match(FOREX_PAIR_RE);
       const forexMatch = text.match(FOREX_RE);
@@ -195,7 +328,7 @@ export default function ChatScreen() {
       }
 
       if (cryptoMatch) {
-        const rawName = (cryptoMatch[1] || cryptoMatch[3]) ?? "";
+        const rawName = (cryptoMatch[1] || cryptoMatch[3] || "").trim();
         const cryptoId = resolveCryptoId(rawName);
         if (!cryptoId) return t("chatbot.responses.cryptoUnrecognized");
         const crypto = await fetchCryptoQuote(cryptoId);
@@ -326,6 +459,7 @@ export default function ChatScreen() {
       busy,
       history,
       isAuthenticated,
+      preseededMessage,
       queryClient,
       resolveMarketReply,
       t,
@@ -338,12 +472,10 @@ export default function ChatScreen() {
     void sendMessage(text);
   }, [input, sendMessage]);
 
-  // Auto-send a preseeded message when navigated from exercise failure
   useEffect(() => {
     if (preseededMessage) {
       void sendMessage(decodeURIComponent(preseededMessage));
     }
-    // Only fire once on mount — sendMessage is stable via useCallback
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -356,19 +488,26 @@ export default function ChatScreen() {
 
   const showQuickReplies = messages.length <= 1 && !busy;
 
+  // KAV sits below the Stack header, so no top offset needed.
+  // On Android use height mode to avoid double-shifting.
+  const keyboardOffset = 0;
+
   return (
     <>
       <Stack.Screen
         options={{
           title: t("chatbot.title"),
           headerShown: true,
-          headerTintColor: c.primary,
+          headerStyle: { backgroundColor: D.surface },
+          headerTintColor: D.primaryBright,
+          headerShadowVisible: false,
+          headerBackTitle: "",
         }}
       />
       <KeyboardAvoidingView
-        style={[styles.flex, { backgroundColor: c.bg }]}
+        style={[styles.flex, { backgroundColor: D.bg }]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={88}
+        keyboardVerticalOffset={keyboardOffset}
       >
         <ScrollView
           ref={scrollRef}
@@ -376,109 +515,30 @@ export default function ChatScreen() {
           onContentSizeChange={() =>
             scrollRef.current?.scrollToEnd({ animated: true })
           }
+          showsVerticalScrollIndicator={false}
         >
-          {messages.map((m, i) => {
-            const isUser = m.role === "user";
-            const isSystem = m.role === "system";
-            return (
-              <View
-                key={`${i}-${m.role}-${m.content.slice(0, 12)}`}
-                style={[
-                  styles.bubble,
-                  isUser
-                    ? { alignSelf: "flex-end", backgroundColor: c.primary }
-                    : isSystem
-                      ? {
-                          alignSelf: "center",
-                          backgroundColor: c.surfaceElevated,
-                          borderColor: c.border,
-                          borderWidth: StyleSheet.hairlineWidth,
-                        }
-                      : {
-                          alignSelf: "flex-start",
-                          backgroundColor: c.surfaceElevated,
-                          borderColor: c.border,
-                          borderWidth: StyleSheet.hairlineWidth,
-                        },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: isUser ? c.white : c.text,
-                    fontSize: typography.sm,
-                    lineHeight: 20,
-                  }}
-                >
-                  {m.content}
-                </Text>
-                {m.link ? (
-                  <Pressable
-                    onPress={() => openCourseLink(m.link!)}
-                    style={[
-                      styles.linkChip,
-                      { backgroundColor: c.accentMuted, borderColor: c.border },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.linkChipText, { color: c.primary }]}
-                      numberOfLines={1}
-                    >
-                      {m.link.text}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                {m.links && m.links.length > 0 ? (
-                  <View style={styles.linksBlock}>
-                    <Text style={[styles.linksHeading, { color: c.textMuted }]}>
-                      {t("chatbot.availablePaths")}
-                    </Text>
-                    <View style={styles.linksRow}>
-                      {m.links.map((link, j) => (
-                        <Pressable
-                          key={`${j}-${link.path}`}
-                          onPress={() => openCourseLink(link)}
-                          style={[
-                            styles.linkChip,
-                            {
-                              backgroundColor: c.accentMuted,
-                              borderColor: c.border,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={[styles.linkChipText, { color: c.primary }]}
-                            numberOfLines={1}
-                          >
-                            {link.text}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </View>
-                ) : null}
-              </View>
-            );
-          })}
-          {busy ? <TypingBubble label={t("chatbot.typing")} /> : null}
+          {messages.map((m, i) => (
+            <MessageBubble
+              key={`${i}-${m.role}-${m.content.slice(0, 12)}`}
+              msg={m}
+              onLinkPress={openCourseLink}
+            />
+          ))}
+          {busy ? <TypingBubble /> : null}
           {showQuickReplies ? (
             <View style={styles.quickBlock}>
-              <Text style={[styles.quickHeading, { color: c.textMuted }]}>
-                {t("chatbot.tryAsking")}
-              </Text>
+              <Text style={styles.quickHeading}>{t("chatbot.tryAsking")}</Text>
               <View style={styles.quickRow}>
                 {quickReplies.map((reply) => (
                   <Pressable
                     key={reply}
                     onPress={() => onQuickReply(reply)}
-                    style={[
+                    style={({ pressed }) => [
                       styles.quickChip,
-                      { borderColor: c.border, backgroundColor: c.surface },
+                      { opacity: pressed ? 0.75 : 1 },
                     ]}
                   >
-                    <Text
-                      style={[styles.quickChipText, { color: c.primary }]}
-                      numberOfLines={2}
-                    >
+                    <Text style={styles.quickChipText} numberOfLines={2}>
                       {reply}
                     </Text>
                   </Pressable>
@@ -487,25 +547,19 @@ export default function ChatScreen() {
             </View>
           ) : null}
         </ScrollView>
+
         <View
           style={[
             styles.inputRow,
-            { borderTopColor: c.border, backgroundColor: c.surface },
+            { paddingBottom: (insets.bottom || spacing.sm) + spacing.sm },
           ]}
         >
           <TextInput
             value={input}
             onChangeText={setInput}
             placeholder={t("chatbot.inputPlaceholder")}
-            placeholderTextColor={c.textFaint}
-            style={[
-              styles.input,
-              {
-                borderColor: c.border,
-                color: c.text,
-                backgroundColor: c.inputBg,
-              },
-            ]}
+            placeholderTextColor={D.faint}
+            style={styles.input}
             multiline
             editable={!busy}
             returnKeyType="send"
@@ -513,15 +567,19 @@ export default function ChatScreen() {
               if (input.trim()) onSendPress();
             }}
           />
-          <GlassButton
-            variant="active"
-            size="md"
+          <Pressable
             onPress={onSendPress}
-            loading={busy}
-            disabled={!input.trim()}
+            disabled={!input.trim() || busy}
+            style={({ pressed }) => [
+              styles.sendBtn,
+              {
+                opacity: !input.trim() || busy ? 0.4 : pressed ? 0.8 : 1,
+                backgroundColor: D.primary,
+              },
+            ]}
           >
-            {t("chatbot.send")}
-          </GlassButton>
+            <MaterialCommunityIcons name="send" size={18} color="#fff" />
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </>
@@ -530,58 +588,184 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 120 },
-  bubble: {
-    maxWidth: "88%",
+  scroll: {
     padding: spacing.md,
-    borderRadius: radius.lg,
+    gap: spacing.sm,
+    paddingBottom: 24,
+  },
+
+  // Message rows
+  rowUser: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginBottom: spacing.xs,
+  },
+  rowBot: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  rowSystem: {
+    alignItems: "center",
+    marginVertical: spacing.sm,
+  },
+
+  // Bot avatar
+  botAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: D.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  botAvatarText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  // Bubbles
+  bubbleUser: {
+    maxWidth: "82%",
+    backgroundColor: D.userBg,
+    borderRadius: 20,
+    borderBottomRightRadius: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+  },
+  bubbleUserText: {
+    color: "#fff",
+    fontSize: typography.sm,
+    lineHeight: 20,
+  },
+  bubbleBot: {
+    flex: 1,
+    maxWidth: "82%",
+    backgroundColor: D.botBg,
+    borderRadius: 20,
+    borderBottomLeftRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: D.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     gap: spacing.sm,
   },
-  linkChip: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
+  bubbleBotText: {
+    color: D.text,
+    fontSize: typography.sm,
+    lineHeight: 20,
   },
-  linkChipText: { fontSize: typography.xs, fontWeight: "700" },
+  systemText: {
+    color: D.muted,
+    fontSize: typography.xs,
+    textAlign: "center",
+  },
+
+  // Course links
+  linkChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 5,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.xl,
+    backgroundColor: "rgba(29,83,48,0.2)",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(42,115,71,0.4)",
+  },
+  linkChipText: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    color: "#4ade80",
+  },
   linksBlock: { gap: spacing.xs },
   linksHeading: {
     fontSize: typography.xs,
     fontWeight: "700",
     textTransform: "uppercase",
+    color: D.muted,
+    letterSpacing: 0.6,
   },
   linksRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
-  quickBlock: { gap: spacing.sm, marginTop: spacing.sm },
+
+  // Typing
+  typingDots: {
+    flexDirection: "row",
+    gap: 4,
+    alignItems: "center",
+  },
+  typingDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: D.muted,
+  },
+
+  // Quick replies
+  quickBlock: {
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
   quickHeading: {
     fontSize: typography.xs,
     fontWeight: "700",
     textTransform: "uppercase",
+    color: D.muted,
+    letterSpacing: 0.8,
+    marginLeft: spacing.xs,
   },
-  quickRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
+  quickRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   quickChip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
+    borderColor: "rgba(29,83,48,0.55)",
+    backgroundColor: "rgba(29,83,48,0.12)",
     maxWidth: "100%",
   },
-  quickChipText: { fontSize: typography.sm, fontWeight: "600" },
+  quickChipText: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    color: "#4ade80",
+  },
+
+  // Input bar
   inputRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     gap: spacing.sm,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: D.border,
+    backgroundColor: D.surface,
   },
   input: {
     flex: 1,
     minHeight: 44,
     maxHeight: 120,
-    borderRadius: radius.md,
+    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
+    borderColor: D.border,
+    backgroundColor: D.card,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.base,
+    color: D.text,
+  },
+  sendBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
 });
