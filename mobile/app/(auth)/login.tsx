@@ -173,8 +173,10 @@ export default function LoginScreen() {
 
       <View style={styles.bottomRow}>
         <Text style={styles.bottomText}>{t("auth.login.noAccount")} </Text>
-        <Link href="/register" style={styles.bottomLink}>
-          {t("auth.login.signUpNow")}
+        <Link href="/(auth)/register" asChild>
+          <Pressable hitSlop={8}>
+            <Text style={styles.bottomLink}>{t("auth.login.signUpNow")}</Text>
+          </Pressable>
         </Link>
       </View>
     </AuthDarkShell>
