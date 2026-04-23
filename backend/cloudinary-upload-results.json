@@ -1,0 +1,412 @@
+[
+  {
+    "file": "backend/media/badges/certified_pro.png",
+    "public_id": "garzoni/badges/certified_pro",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657677/garzoni/badges/certified_pro.png"
+  },
+  {
+    "file": "backend/media/badges/course_finisher.png",
+    "public_id": "garzoni/badges/course_finisher",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657679/garzoni/badges/course_finisher.png"
+  },
+  {
+    "file": "backend/media/badges/daily_streak.png",
+    "public_id": "garzoni/badges/daily_streak",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657680/garzoni/badges/daily_streak.png"
+  },
+  {
+    "file": "backend/media/badges/elite_investor.png",
+    "public_id": "garzoni/badges/elite_investor",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657681/garzoni/badges/elite_investor.png"
+  },
+  {
+    "file": "backend/media/badges/financial_guru.png",
+    "public_id": "garzoni/badges/financial_guru",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657682/garzoni/badges/financial_guru.png"
+  },
+  {
+    "file": "backend/media/badges/first_steps.png",
+    "public_id": "garzoni/badges/first_steps",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657684/garzoni/badges/first_steps.png"
+  },
+  {
+    "file": "backend/media/badges/goal_achiever.png",
+    "public_id": "garzoni/badges/goal_achiever",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657685/garzoni/badges/goal_achiever.png"
+  },
+  {
+    "file": "backend/media/badges/knowledge_seeker.png",
+    "public_id": "garzoni/badges/knowledge_seeker",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657686/garzoni/badges/knowledge_seeker.png"
+  },
+  {
+    "file": "backend/media/badges/master_learner.png",
+    "public_id": "garzoni/badges/master_learner",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657687/garzoni/badges/master_learner.png"
+  },
+  {
+    "file": "backend/media/badges/mission_master.png",
+    "public_id": "garzoni/badges/mission_master",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657688/garzoni/badges/mission_master.png"
+  },
+  {
+    "file": "backend/media/badges/mission_starter.png",
+    "public_id": "garzoni/badges/mission_starter",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657689/garzoni/badges/mission_starter.png"
+  },
+  {
+    "file": "backend/media/badges/savings_initiatior.png",
+    "public_id": "garzoni/badges/savings_initiatior",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657691/garzoni/badges/savings_initiatior.png"
+  },
+  {
+    "file": "backend/media/badges/streak_legend.png",
+    "public_id": "garzoni/badges/streak_legend",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657692/garzoni/badges/streak_legend.png"
+  },
+  {
+    "file": "backend/media/badges/wealth_builder.png",
+    "public_id": "garzoni/badges/wealth_builder",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657693/garzoni/badges/wealth_builder.png"
+  },
+  {
+    "file": "backend/media/badges/weekly_warrior.png",
+    "public_id": "garzoni/badges/weekly_warrior",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657695/garzoni/badges/weekly_warrior.png"
+  },
+  {
+    "file": "backend/media/path_images/basicfinance.png",
+    "public_id": "garzoni/basicfinance",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657696/garzoni/basicfinance.png"
+  },
+  {
+    "file": "backend/media/course_images/AdvancedCrypto.png",
+    "public_id": "garzoni/course_images/AdvancedCrypto",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657697/garzoni/course_images/AdvancedCrypto.png"
+  },
+  {
+    "file": "backend/media/course_images/AdvancedRealEstate.png",
+    "public_id": "garzoni/course_images/AdvancedRealEstate",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657698/garzoni/course_images/AdvancedRealEstate.png"
+  },
+  {
+    "file": "backend/media/course_images/BasicInvestment.png",
+    "public_id": "garzoni/course_images/BasicInvestment",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657699/garzoni/course_images/BasicInvestment.png"
+  },
+  {
+    "file": "backend/media/course_images/BSSCrypto.png",
+    "public_id": "garzoni/course_images/BSSCrypto",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657701/garzoni/course_images/BSSCrypto.png"
+  },
+  {
+    "file": "backend/media/course_images/BudgetBasics.png",
+    "public_id": "garzoni/course_images/BudgetBasics",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657703/garzoni/course_images/BudgetBasics.png"
+  },
+  {
+    "file": "backend/media/course_images/BuildingMindset.png",
+    "public_id": "garzoni/course_images/BuildingMindset",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657704/garzoni/course_images/BuildingMindset.png"
+  },
+  {
+    "file": "backend/media/course_images/BuildingWealth.png",
+    "public_id": "garzoni/course_images/BuildingWealth",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657705/garzoni/course_images/BuildingWealth.png"
+  },
+  {
+    "file": "backend/media/course_images/CryptoIntro.png",
+    "public_id": "garzoni/course_images/CryptoIntro",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657707/garzoni/course_images/CryptoIntro.png"
+  },
+  {
+    "file": "backend/media/course_images/CultivatingDiscipline.png",
+    "public_id": "garzoni/course_images/CultivatingDiscipline",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657708/garzoni/course_images/CultivatingDiscipline.png"
+  },
+  {
+    "file": "backend/media/course_images/FinancialGrowthMindset.png",
+    "public_id": "garzoni/course_images/FinancialGrowthMindset",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657709/garzoni/course_images/FinancialGrowthMindset.png"
+  },
+  {
+    "file": "backend/media/course_images/FinancialSetbacks.png",
+    "public_id": "garzoni/course_images/FinancialSetbacks",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657711/garzoni/course_images/FinancialSetbacks.png"
+  },
+  {
+    "file": "backend/media/course_images/FundamentalsForex.png",
+    "public_id": "garzoni/course_images/FundamentalsForex",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657712/garzoni/course_images/FundamentalsForex.png"
+  },
+  {
+    "file": "backend/media/course_images/IntroBudgeting.png",
+    "public_id": "garzoni/course_images/IntroBudgeting",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657715/garzoni/course_images/IntroBudgeting.png"
+  },
+  {
+    "file": "backend/media/course_images/IntroductionBudgeting.png",
+    "public_id": "garzoni/course_images/IntroductionBudgeting",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657716/garzoni/course_images/IntroductionBudgeting.png"
+  },
+  {
+    "file": "backend/media/course_images/IntroductionForex.png",
+    "public_id": "garzoni/course_images/IntroductionForex",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657717/garzoni/course_images/IntroductionForex.png"
+  },
+  {
+    "file": "backend/media/course_images/MarketResearch.png",
+    "public_id": "garzoni/course_images/MarketResearch",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657719/garzoni/course_images/MarketResearch.png"
+  },
+  {
+    "file": "backend/media/course_images/MaximizingSavings.png",
+    "public_id": "garzoni/course_images/MaximizingSavings",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657720/garzoni/course_images/MaximizingSavings.png"
+  },
+  {
+    "file": "backend/media/course_images/RealEstateBasics.png",
+    "public_id": "garzoni/course_images/RealEstateBasics",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657722/garzoni/course_images/RealEstateBasics.png"
+  },
+  {
+    "file": "backend/media/course_images/RiskForex.png",
+    "public_id": "garzoni/course_images/RiskForex",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657724/garzoni/course_images/RiskForex.png"
+  },
+  {
+    "file": "backend/media/course_images/SmartSpending.png",
+    "public_id": "garzoni/course_images/SmartSpending",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657725/garzoni/course_images/SmartSpending.png"
+  },
+  {
+    "file": "backend/media/course_images/UnderstandingCredit.png",
+    "public_id": "garzoni/course_images/UnderstandingCredit",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657726/garzoni/course_images/UnderstandingCredit.png"
+  },
+  {
+    "file": "backend/media/path_images/crypto.png",
+    "public_id": "garzoni/crypto",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657727/garzoni/crypto.png"
+  },
+  {
+    "file": "backend/media/path_images/forex.png",
+    "public_id": "garzoni/forex",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657728/garzoni/forex.png"
+  },
+  {
+    "file": "frontend/src/assets/login-bg.jpg",
+    "public_id": "garzoni/login-bg",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657730/garzoni/login-bg.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-black.svg",
+    "public_id": "garzoni/logo/garzoni-black",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657730/garzoni/logo/garzoni-black.svg"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo.svg",
+    "public_id": "garzoni/logo/garzoni-logo",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657732/garzoni/logo/garzoni-logo.svg"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo-black-rectangular.png",
+    "public_id": "garzoni/logo/garzoni-logo-black-rectangular",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657738/garzoni/logo/garzoni-logo-black-rectangular.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo.png",
+    "public_id": "garzoni/logo/garzoni-logo-png",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657739/garzoni/logo/garzoni-logo-png.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo-rectangle-no-bg.png",
+    "public_id": "garzoni/logo/garzoni-logo-rectangle-no-bg",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657740/garzoni/logo/garzoni-logo-rectangle-no-bg.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo-square-no-bg.png",
+    "public_id": "garzoni/logo/garzoni-logo-square-no-bg",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657741/garzoni/logo/garzoni-logo-square-no-bg.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo-white.png",
+    "public_id": "garzoni/logo/garzoni-logo-white",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657742/garzoni/logo/garzoni-logo-white.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo-white-bg.png",
+    "public_id": "garzoni/logo/garzoni-logo-white-bg",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657743/garzoni/logo/garzoni-logo-white-bg.png"
+  },
+  {
+    "file": "backend/media/logo/garzoni-logo-white-rectangular.png",
+    "public_id": "garzoni/logo/garzoni-logo-white-rectangular",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657744/garzoni/logo/garzoni-logo-white-rectangular.png"
+  },
+  {
+    "file": "backend/media/mascots/garzoni-bear.png",
+    "public_id": "garzoni/mascots/garzoni-bear",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657746/garzoni/mascots/garzoni-bear.png"
+  },
+  {
+    "file": "backend/media/mascots/garzoni-bull.png",
+    "public_id": "garzoni/mascots/garzoni-bull",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657747/garzoni/mascots/garzoni-bull.png"
+  },
+  {
+    "file": "backend/media/mascots/garzoni-owl.png",
+    "public_id": "garzoni/mascots/garzoni-owl",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657748/garzoni/mascots/garzoni-owl.png"
+  },
+  {
+    "file": "backend/media/path_images/mindset.png",
+    "public_id": "garzoni/mindset",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657750/garzoni/mindset.png"
+  },
+  {
+    "file": "frontend/src/assets/mobile-1.png",
+    "public_id": "garzoni/mobile-1",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657751/garzoni/mobile-1.png"
+  },
+  {
+    "file": "frontend/src/assets/mobile-2.png",
+    "public_id": "garzoni/mobile-2",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657752/garzoni/mobile-2.png"
+  },
+  {
+    "file": "frontend/src/assets/mobile-3.png",
+    "public_id": "garzoni/mobile-3",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657753/garzoni/mobile-3.png"
+  },
+  {
+    "file": "mobile/assets/adaptive-icon.png",
+    "public_id": "garzoni/mobile/adaptive-icon",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657754/garzoni/mobile/adaptive-icon.png"
+  },
+  {
+    "file": "mobile/assets/favicon.png",
+    "public_id": "garzoni/mobile/favicon",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657755/garzoni/mobile/favicon.png"
+  },
+  {
+    "file": "mobile/assets/garzoni-text.png",
+    "public_id": "garzoni/mobile/garzoni-text",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657756/garzoni/mobile/garzoni-text.png"
+  },
+  {
+    "file": "mobile/assets/icon.png",
+    "public_id": "garzoni/mobile/icon",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657756/garzoni/mobile/icon.png"
+  },
+  {
+    "file": "mobile/assets/splash-icon.png",
+    "public_id": "garzoni/mobile/splash-icon",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657757/garzoni/mobile/splash-icon.png"
+  },
+  {
+    "file": "backend/media/path_images/personalfinance.png",
+    "public_id": "garzoni/personalfinance",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657759/garzoni/personalfinance.png"
+  },
+  {
+    "file": "backend/media/path_images/realestate.png",
+    "public_id": "garzoni/realestate",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657760/garzoni/realestate.png"
+  },
+  {
+    "file": "frontend/src/assets/register-bg.jpg",
+    "public_id": "garzoni/register-bg",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657762/garzoni/register-bg.png"
+  },
+  {
+    "file": "backend/media/rewards/CleanWater.png",
+    "public_id": "garzoni/rewards/CleanWater",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657763/garzoni/rewards/CleanWater.jpg"
+  },
+  {
+    "file": "backend/media/rewards/CourseBundle.png",
+    "public_id": "garzoni/rewards/CourseBundle",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657764/garzoni/rewards/CourseBundle.jpg"
+  },
+  {
+    "file": "backend/media/rewards/DisasterRelief.png",
+    "public_id": "garzoni/rewards/DisasterRelief",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657764/garzoni/rewards/DisasterRelief.jpg"
+  },
+  {
+    "file": "backend/media/rewards/EducationFund.png",
+    "public_id": "garzoni/rewards/EducationFund",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657765/garzoni/rewards/EducationFund.jpg"
+  },
+  {
+    "file": "backend/media/rewards/LearningPath.png",
+    "public_id": "garzoni/rewards/LearningPath",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657766/garzoni/rewards/LearningPath.jpg"
+  },
+  {
+    "file": "backend/media/rewards/Mentorship.png",
+    "public_id": "garzoni/rewards/Mentorship",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657767/garzoni/rewards/Mentorship.jpg"
+  },
+  {
+    "file": "backend/media/rewards/ToolAccess.png",
+    "public_id": "garzoni/rewards/ToolAccess",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657767/garzoni/rewards/ToolAccess.jpg"
+  },
+  {
+    "file": "backend/media/rewards/WildlifeConservation.png",
+    "public_id": "garzoni/rewards/WildlifeConservation",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657768/garzoni/rewards/WildlifeConservation.jpg"
+  },
+  {
+    "file": "backend/media/tools/economic_calendar.png",
+    "public_id": "garzoni/tools/economic_calendar",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657769/garzoni/tools/economic_calendar.png"
+  },
+  {
+    "file": "backend/media/tools/economic_map.png",
+    "public_id": "garzoni/tools/economic_map",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657770/garzoni/tools/economic_map.png"
+  },
+  {
+    "file": "backend/media/tools/market_explorer.png",
+    "public_id": "garzoni/tools/market_explorer",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657772/garzoni/tools/market_explorer.png"
+  },
+  {
+    "file": "backend/media/tools/news_market.png",
+    "public_id": "garzoni/tools/news_market",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657773/garzoni/tools/news_market.png"
+  },
+  {
+    "file": "backend/media/tools/portfolio_analyzer.png",
+    "public_id": "garzoni/tools/portfolio_analyzer",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657775/garzoni/tools/portfolio_analyzer.png"
+  },
+  {
+    "file": "backend/media/tools/savings_goals.png",
+    "public_id": "garzoni/tools/savings_goals",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657775/garzoni/tools/savings_goals.png"
+  },
+  {
+    "file": "backend/media/uploads/lesson2.jpg",
+    "public_id": "garzoni/uploads/lesson2",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657776/garzoni/uploads/lesson2.jpg"
+  },
+  {
+    "file": "backend/media/uploads/lesson3.jpg",
+    "public_id": "garzoni/uploads/lesson3",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657777/garzoni/uploads/lesson3.webp"
+  },
+  {
+    "file": "backend/media/uploads/lesson4.jpg",
+    "public_id": "garzoni/uploads/lesson4",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657778/garzoni/uploads/lesson4.webp"
+  },
+  {
+    "file": "backend/media/uploads/whatisbudget.jpg",
+    "public_id": "garzoni/uploads/whatisbudget",
+    "secure_url": "https://res.cloudinary.com/daqvqm710/image/upload/v1775657779/garzoni/uploads/whatisbudget.jpg"
+  }
+]
