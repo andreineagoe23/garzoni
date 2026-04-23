@@ -4,6 +4,7 @@ import PageContainer from "components/common/PageContainer";
 import { GlassCard } from "components/ui";
 import apiClient from "services/httpClient";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "contexts/AuthContext";
 
 const highlightText = (text, query) => {
   if (!query?.trim()) return text;
@@ -30,6 +31,7 @@ const highlightText = (text, query) => {
 
 function SupportPage() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [contactData, setContactData] = useState({
@@ -267,25 +269,27 @@ function SupportPage() {
           )}
         </GlassCard>
 
-        <GlassCard
-          padding="lg"
-          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-content-primary">
-              {t("support.feedbackSection.title")}
-            </h2>
-            <p className="text-sm text-content-muted">
-              {t("support.feedbackSection.description")}
-            </p>
-          </div>
-          <Link
-            to="/feedback"
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+        {isAuthenticated && (
+          <GlassCard
+            padding="lg"
+            className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
           >
-            {t("support.feedbackSection.cta")}
-          </Link>
-        </GlassCard>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-content-primary">
+                {t("support.feedbackSection.title")}
+              </h2>
+              <p className="text-sm text-content-muted">
+                {t("support.feedbackSection.description")}
+              </p>
+            </div>
+            <Link
+              to="/feedback"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+            >
+              {t("support.feedbackSection.cta")}
+            </Link>
+          </GlassCard>
+        )}
 
         <GlassCard padding="lg">
           <header className="space-y-2 text-center">

@@ -6,11 +6,13 @@ import Chatbot from "components/widgets/Chatbot";
 import AppRoutes from "routes/AppRoutes";
 import { Footer, Navbar } from "routes/lazyPages";
 
-const LEGAL_PATHS = [
+// Paths that are public but should show nav/footer only when authenticated.
+const AUTH_CONDITIONAL_PATHS = [
   "/privacy-policy",
   "/cookie-policy",
   "/terms-of-service",
   "/financial-disclaimer",
+  "/support",
 ];
 
 type AppShellProps = {
@@ -33,7 +35,7 @@ const AppShell = ({
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
-  const isLegalPath = LEGAL_PATHS.includes(location.pathname);
+  const isLegalPath = AUTH_CONDITIONAL_PATHS.includes(location.pathname);
   const isLegalAndUnauth = isLegalPath && !isAuthenticated;
   const matchesAnyPathPrefix = (prefixes: string[]) =>
     prefixes.some(
