@@ -1,6 +1,7 @@
 # ── macOS ────────────────────────────────────────────────────────────────────
 .DS_Store
 **/.DS_Store
+.agents/
 
 # ── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
@@ -51,7 +52,6 @@ backend/backups/
 
 # ── Media — served via Cloudinary, not stored in git ─────────────────────────
 backend/media/
-backend/backups/
 backend/media/welcome/
 backend/cloudinary-upload-results.json
 scripts/cloudinary-upload-results.json
@@ -129,6 +129,7 @@ lib/
 
 # ── IDE / editor ─────────────────────────────────────────────────────────────
 .cursor/
+./agents/
 .claude/
 .claudeignore
 
