@@ -64,14 +64,6 @@ frontend/dist/
 static/
 frontend/static/
 
-# Keep JS src lib folders (CRA absolute imports)
-!frontend/src/lib/
-!frontend/src/lib/**
-!mobile/src/lib/
-!mobile/src/lib/**
-!packages/core/src/lib/
-!packages/core/src/lib/**
-
 # ── Node ─────────────────────────────────────────────────────────────────────
 node_modules/
 
@@ -126,6 +118,14 @@ docs/_build/
 .pybuilder/
 target/
 lib/
+
+# Keep JS src lib folders — must come AFTER lib/ so negations override it
+!frontend/src/lib/
+!frontend/src/lib/**
+!mobile/src/lib/
+!mobile/src/lib/**
+!packages/core/src/lib/
+!packages/core/src/lib/**
 
 # ── IDE / editor ─────────────────────────────────────────────────────────────
 .cursor/

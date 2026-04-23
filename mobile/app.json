@@ -14,10 +14,10 @@
       "backgroundColor": "#0b0f14"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
