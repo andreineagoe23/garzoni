@@ -22,10 +22,10 @@ class LoginRateThrottle(AnonRateThrottle):
 
     scope = "login"
 
-    def allow_request(self, request):
+    def allow_request(self, request, view):
         if _in_unit_tests():
             return True
-        return super().allow_request(request)
+        return super().allow_request(request, view)
 
     def get_rate(self):
         return getattr(settings, "LOGIN_THROTTLE_RATE", "10/min")
@@ -36,10 +36,10 @@ class RefreshRateThrottle(AnonRateThrottle):
 
     scope = "refresh"
 
-    def allow_request(self, request):
+    def allow_request(self, request, view):
         if _in_unit_tests():
             return True
-        return super().allow_request(request)
+        return super().allow_request(request, view)
 
     def get_rate(self):
         return getattr(settings, "REFRESH_THROTTLE_RATE", "20/min")
@@ -50,10 +50,10 @@ class RegisterRateThrottle(AnonRateThrottle):
 
     scope = "register"
 
-    def allow_request(self, request):
+    def allow_request(self, request, view):
         if _in_unit_tests():
             return True
-        return super().allow_request(request)
+        return super().allow_request(request, view)
 
     def get_rate(self):
         return getattr(settings, "REGISTER_THROTTLE_RATE", "5/min")
@@ -64,10 +64,10 @@ class PasswordResetRateThrottle(AnonRateThrottle):
 
     scope = "password_reset"
 
-    def allow_request(self, request):
+    def allow_request(self, request, view):
         if _in_unit_tests():
             return True
-        return super().allow_request(request)
+        return super().allow_request(request, view)
 
     def get_rate(self):
         return getattr(settings, "PASSWORD_RESET_THROTTLE_RATE", "5/hour")
