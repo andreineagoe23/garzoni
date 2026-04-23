@@ -85,7 +85,7 @@ export default function Index() {
             )?.subscription_plan_id,
           );
         setPlanStatus(chosen ? "chosen" : "not_chosen");
-        if (chosen) await setPlanChosenCache();
+        await setPlanChosenCache();
       } catch {
         if (!cancelled) {
           // Don't trap users in startup loop on transient profile failures.

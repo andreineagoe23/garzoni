@@ -429,6 +429,7 @@ class OpenAIService:
                 "Keep responses to 3-5 sentences. Be Socratic — ask questions to guide understanding.",
                 "When a student is stuck on an exercise, give progressive hints. NEVER reveal the correct answer directly.",
                 f"Available learning paths you can reference: {available_paths}.",
+                "If asked about the current time or date, answer naturally using your best knowledge, then gently redirect to a finance topic.",
             ]
             if education_context:
                 system_lines.append(f"\nStudent context: {education_context}")

@@ -481,7 +481,7 @@ export default function MissionsScreen() {
             />
           }
         >
-          <AppText variant="heading" accent style={styles.title}>
+          <AppText variant="heading" style={[styles.title, { color: c.text }]}>
             {t("missions.header.title")}
           </AppText>
           <AppText variant="body" muted style={styles.sub}>
@@ -519,7 +519,10 @@ export default function MissionsScreen() {
                 <AppText variant="label" muted style={styles.summaryKicker}>
                   {t("missions.summary.title")}
                 </AppText>
-                <AppText variant="heading" accent style={styles.summaryMain}>
+                <AppText
+                  variant="heading"
+                  style={[styles.summaryMain, { color: c.text }]}
+                >
                   {t("missions.summary.remaining", {
                     count: missionsRemaining,
                   })}
@@ -540,7 +543,7 @@ export default function MissionsScreen() {
                     variant="caption"
                     style={[
                       styles.hintChip,
-                      { color: c.accent, borderColor: `${c.accent}44` },
+                      { color: c.primary, borderColor: `${c.primary}55` },
                     ]}
                   >
                     {t("missions.summary.suggestedSavings", {
@@ -563,7 +566,10 @@ export default function MissionsScreen() {
                   <AppText variant="caption" muted style={styles.statLabel}>
                     {t("missions.summary.totalXp")}
                   </AppText>
-                  <AppText variant="label" accent style={styles.statValue}>
+                  <AppText
+                    variant="label"
+                    style={[styles.statValue, { color: c.text }]}
+                  >
                     {dailyXpEarned} / {dailyXpTotal} XP
                   </AppText>
                 </View>
@@ -576,13 +582,15 @@ export default function MissionsScreen() {
                     key={`${item.type}-${index}`}
                     style={[
                       styles.streakPill,
-                      { borderColor: `${c.accent}66` },
+                      {
+                        borderColor: `${c.primary}55`,
+                        backgroundColor: `${c.primary}18`,
+                      },
                     ]}
                   >
                     <AppText
                       variant="caption"
-                      accent
-                      style={styles.streakPillText}
+                      style={[styles.streakPillText, { color: c.primary }]}
                     >
                       {item.type} ×{item.quantity}
                     </AppText>
@@ -663,7 +671,10 @@ export default function MissionsScreen() {
                 </View>
               ) : weeklyMissions.length > 0 ? (
                 <View style={styles.grid}>
-                  <AppText variant="heading" accent style={styles.sectionTitle}>
+                  <AppText
+                    variant="heading"
+                    style={[styles.sectionTitle, { color: c.text }]}
+                  >
                     {t("missions.weekly.title")}
                   </AppText>
                   {weeklyMissions.map((m, index) => (
@@ -739,12 +750,17 @@ export default function MissionsScreen() {
                     </View>
                   </View>
                   <View
-                    style={[styles.wrapCta, { borderColor: `${c.accent}66` }]}
+                    style={[
+                      styles.wrapCta,
+                      {
+                        borderColor: `${c.primary}55`,
+                        backgroundColor: `${c.primary}18`,
+                      },
+                    ]}
                   >
                     <AppText
                       variant="caption"
-                      accent
-                      style={styles.wrapCtaText}
+                      style={[styles.wrapCtaText, { color: c.primary }]}
                     >
                       {t("missions.wrapup.cta")}
                     </AppText>

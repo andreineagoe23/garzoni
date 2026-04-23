@@ -535,8 +535,8 @@ function DashboardInner() {
   ]);
 
   const displayName =
-    (profile?.first_name as string | undefined)?.trim() ||
     (profile?.username as string | undefined)?.trim() ||
+    (profile?.first_name as string | undefined)?.trim() ||
     "";
 
   const headerBar = (
