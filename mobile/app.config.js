@@ -75,8 +75,10 @@ module.exports = ({ config }) => ({
   ...config,
   ios: {
     ...config.ios,
+    requireFullScreen: true,
     infoPlist: {
       ...config.ios?.infoPlist,
+      UIDeviceFamily: [1],
       NSPhotoLibraryUsageDescription:
         "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
       ...(allowInsecureLocalHttp

@@ -168,7 +168,14 @@ const AppRoutes = () => {
         path="/exercise/:exerciseId"
         element={protectedWithBoundary(<ExercisePage />)}
       />
-      <Route path="/support" element={protectedWithBoundary(<SupportPage />)} />
+      <Route
+        path="/support"
+        element={
+          <ErrorBoundary>
+            <SupportPage />
+          </ErrorBoundary>
+        }
+      />
       <Route
         path="/feedback"
         element={protectedWithBoundary(<FeedbackHubPage />)}
