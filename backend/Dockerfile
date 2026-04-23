@@ -39,11 +39,8 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf /root/.cache/pip \
     && apk del .build-deps
 
-# Copy backend into /app so we have /app/media, /app/manage.py, /app/settings, etc.
+# Copy backend into /app so we have /app/manage.py, /app/settings, etc.
 COPY ${BUILD_SRC}/ /app/
-
-# Verify essential media seed assets are present (small PNG assets only)
-RUN test -f /app/media/path_images/basicfinance.png && ls /app/media/mascots/*.png >/dev/null 2>&1 || (echo "ERROR: /app/media missing required seed assets. Check .dockerignore and build context." && exit 1)
 
 # Bake static files into the image at build time.
 # DJANGO_ENV=build activates the _IS_BUILD_PHASE bypass in settings.py.
@@ -54,12 +51,6 @@ RUN SECRET_KEY=build-time-collectstatic-only \
     DEBUG=False \
     python manage.py collectstatic --noinput --clear \
     && echo "[build] collectstatic OK: $(find /app/staticfiles -type f | wc -l) files"
-
-# Seed for Railway volume: duplicate media so entrypoint can fill an empty /app/media mount
-RUN mkdir -p /app/media_seed && cp -r /app/media/. /app/media_seed/
-
-# Backup for entrypoint (mascots only)
-RUN mkdir -p /app/media_mascots_template && cp -r /app/media/mascots/. /app/media_mascots_template/ 2>/dev/null || true
 
 # Fix entrypoint line endings (CRLF can cause "permission denied") and ensure executable
 RUN sed -i 's/\r$//' /app/docker/entrypoint.sh 2>/dev/null || true \

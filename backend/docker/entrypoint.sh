@@ -90,38 +90,7 @@ if [ "$_is_web" = "1" ]; then
       echo "[entrypoint] WARN: migrate_cloudinary_images had errors (non-fatal)" >&2
   fi
 
-  # Railway volume at /app/media: always seed from image so the volume has path_images, mascots, etc.
-  # cp -n = no-clobber so we never overwrite existing files (keeps user uploads safe).
-  if [ -d /app/media_seed ] && [ -n "$(ls -A /app/media_seed 2>/dev/null)" ]; then
-    echo "[entrypoint] Seeding /app/media from image (media volume mount)..." >&2
-    if cp -r /app/media_seed/. /app/media/ 2>/dev/null; then
-      echo "[entrypoint] Seed copy OK" >&2
-    else
-      echo "[entrypoint] WARN: seed copy had errors (check volume permissions; try RAILWAY_RUN_UID=0)" >&2
-    fi
-    # Verify so we see in logs whether files are present
-    if [ -f /app/media/path_images/basicfinance.png ] && ls /app/media/mascots/*.png >/dev/null 2>&1; then
-      echo "[entrypoint] /app/media verified: path_images and mascots present" >&2
-    else
-      echo "[entrypoint] WARN: /app/media missing expected files after seed" >&2
-      ls -la /app/media/ 2>/dev/null || true
-      ls -la /app/media/path_images/ 2>/dev/null || true
-      ls -la /app/media/mascots/ 2>/dev/null || true
-    fi
-    # Always refresh shipped static media assets that should match the app release.
-    # This keeps mascots/path images in sync even when volume already has older files.
-    mkdir -p /app/media/mascots /app/media/path_images /app/media/badges
-    cp -f /app/media_seed/mascots/*.png /app/media/mascots/ 2>/dev/null || true
-    cp -f /app/media_seed/path_images/*.png /app/media/path_images/ 2>/dev/null || true
-    cp -f /app/media_seed/badges/*.png /app/media/badges/ 2>/dev/null || true
-  else
-    # Fallback: mascots only if media_seed missing (old image)
-    if [ -d /app/media_mascots_template ] && ! ls /app/media/mascots/*.png >/dev/null 2>&1; then
-      mkdir -p /app/media/mascots
-      cp -r /app/media_mascots_template/. /app/media/mascots/ 2>/dev/null || true
-      echo "[entrypoint] Populated /app/media/mascots from image" >&2
-    fi
-  fi
+  # Media files are served via Cloudinary — no local seeding needed.
 else
   echo "[entrypoint] role=${_service_role} — skipping collectstatic, cloudinary migration, and media seeding (Celery service)." >&2
 fi
