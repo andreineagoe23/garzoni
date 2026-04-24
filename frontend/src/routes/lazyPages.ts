@@ -61,6 +61,9 @@ export const FinancialDisclaimer = React.lazy(
 export const PricingFunnelDashboard = React.lazy(
   () => import("components/analytics/PricingFunnelDashboard")
 );
+export const MarketingPage = React.lazy(
+  () => import("components/landing/MarketingPage")
+);
 
 /** Optional route warm-up; keep heavy pages (e.g. CourseFlow + CKEditor) out — load on navigation only. */
 export const preloaders = [

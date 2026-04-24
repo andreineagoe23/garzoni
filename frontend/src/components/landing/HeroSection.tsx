@@ -1,11 +1,21 @@
-import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronDown } from "react-bootstrap-icons";
-import { ArrowRight, PlayCircle } from "lucide-react";
-import { GlassButton, Modal } from "components/ui";
+import { ArrowRight, LayoutGrid } from "lucide-react";
+import { GlassButton, GlassContainer, Modal } from "components/ui";
 import ParticleStage from "./ParticleStage";
 import { useTranslation } from "react-i18next";
 import { getMediaBaseUrl } from "services/backendUrl";
+
+const PUBLIC_PAGES = [
+  { to: "/marketing", label: "Features", emoji: "✨" },
+  { to: "/subscriptions", label: "Pricing", emoji: "💳" },
+  { to: "/support", label: "Support", emoji: "❓" },
+  { to: "/privacy-policy", label: "Privacy Policy", emoji: "🔒" },
+  { to: "/terms-of-service", label: "Terms of Service", emoji: "📋" },
+  { to: "/cookie-policy", label: "Cookie Policy", emoji: "🍪" },
+];
 
 export default function HeroSection({
   scrollToFeatures,
@@ -30,6 +40,49 @@ export default function HeroSection({
   const flowRef = useRef(0.15);
 
   const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [pagesOpen, setPagesOpen] = useState(false);
+  const pagesButtonRef = useRef<HTMLButtonElement | null>(null);
+  const pagesDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (!pagesOpen) return;
+    const updatePos = () => {
+      const btn = pagesButtonRef.current;
+      const panel = pagesDropdownRef.current;
+      if (!btn || !panel) return;
+      const r = btn.getBoundingClientRect();
+      panel.style.top = `${Math.round(r.bottom + 8)}px`;
+      panel.style.left = `${Math.round(r.left)}px`;
+    };
+    updatePos();
+    window.addEventListener("resize", updatePos);
+    document.addEventListener("scroll", updatePos, true);
+    return () => {
+      window.removeEventListener("resize", updatePos);
+      document.removeEventListener("scroll", updatePos, true);
+    };
+  }, [pagesOpen]);
+
+  useEffect(() => {
+    if (!pagesOpen) return;
+    const handleDown = (e: MouseEvent) => {
+      if (
+        !pagesButtonRef.current?.contains(e.target as Node) &&
+        !pagesDropdownRef.current?.contains(e.target as Node)
+      ) {
+        setPagesOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPagesOpen(false);
+    };
+    document.addEventListener("mousedown", handleDown);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleDown);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [pagesOpen]);
 
   return (
     <section
@@ -107,20 +160,53 @@ export default function HeroSection({
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </GlassButton>
 
-              <GlassButton
-                onClick={() => setIsDemoOpen(true)}
-                variant="ghost"
-                size="md"
-                className="whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-sm"
+              <button
+                ref={pagesButtonRef}
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={pagesOpen}
+                onClick={() => setPagesOpen((o) => !o)}
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--border-color,rgba(255,255,255,0.12))] bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white/70 backdrop-blur transition-colors hover:bg-white/[0.08] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:px-5 sm:py-2.5"
               >
-                <PlayCircle className="h-4 w-4" />
-                <span className="sm:hidden">
-                  {t("landing.hero.ctaDemoShort")}
-                </span>
-                <span className="hidden sm:inline">
-                  {t("landing.hero.ctaDemo")}
-                </span>
-              </GlassButton>
+                <LayoutGrid className="h-4 w-4 shrink-0" />
+                <span className="sm:hidden">Explore</span>
+                <span className="hidden sm:inline">Explore pages</span>
+                <ChevronDown
+                  className={`h-3 w-3 shrink-0 transition-transform duration-200 ${pagesOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {pagesOpen && typeof document !== "undefined"
+                ? createPortal(
+                    <div
+                      ref={pagesDropdownRef}
+                      className="fixed z-[1300] w-52 [isolation:isolate]"
+                    >
+                      <GlassContainer
+                        variant="default"
+                        role="menu"
+                        aria-label="Public pages"
+                        className="w-full rounded-2xl py-2"
+                      >
+                        {PUBLIC_PAGES.map((page) => (
+                          <NavLink
+                            key={page.to}
+                            to={page.to}
+                            role="menuitem"
+                            onClick={() => setPagesOpen(false)}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-[color:var(--muted-text,#6b7280)] no-underline transition-colors hover:bg-[color:var(--border-color,rgba(0,0,0,0.08))] hover:text-[color:var(--text-color,#111827)] hover:no-underline"
+                          >
+                            <span className="text-base leading-none">
+                              {page.emoji}
+                            </span>
+                            {page.label}
+                          </NavLink>
+                        ))}
+                      </GlassContainer>
+                    </div>,
+                    document.body
+                  )
+                : null}
 
               <button
                 type="button"

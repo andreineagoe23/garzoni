@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { OPEN_SETTINGS_EVENT } from "contexts/CookieConsentContext";
+import { useAuth } from "contexts/AuthContext";
 import {
   FaFacebookF,
   FaInstagram,
@@ -28,6 +29,7 @@ const BMC_BUTTON_IMG =
 function Footer() {
   const { t } = useTranslation();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const year = new Date().getFullYear();
 
   const openCookieSettings = () =>
@@ -36,6 +38,7 @@ function Footer() {
   const sections = [
     {
       heading: t("footer.legal"),
+      requiresAuth: false,
       links: [
         { label: t("footer.privacyPolicy"), to: "/privacy-policy" },
         { label: t("footer.cookiePolicy"), to: "/cookie-policy" },
@@ -46,14 +49,17 @@ function Footer() {
     },
     {
       heading: t("footer.company"),
+      requiresAuth: false,
       links: [
         { label: t("footer.about"), to: "/welcome" },
+        { label: t("footer.features"), to: "/marketing" },
         { label: t("footer.subscriptions"), to: "/subscriptions" },
         { label: t("footer.contact"), to: "/support" },
       ],
     },
     {
       heading: t("footer.product"),
+      requiresAuth: true,
       links: [
         { label: t("footer.dashboard"), to: "/all-topics" },
         { label: t("footer.exercises"), to: "/exercises" },
@@ -62,7 +68,7 @@ function Footer() {
         { label: t("footer.support"), to: "/support" },
       ],
     },
-  ];
+  ].filter((s) => !s.requiresAuth || isAuthenticated);
 
   return (
     <footer
@@ -82,7 +88,9 @@ function Footer() {
         <div className="mx-auto w-full max-w-6xl space-y-6">
           {/* Brand, copy, and link columns only — same grid as before */}
           <div className="w-full">
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 lg:grid-cols-5">
+            <div
+              className={`grid grid-cols-3 gap-4 sm:gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 ${isAuthenticated ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}
+            >
               <div className="col-span-3 space-y-4 sm:col-span-3 lg:col-span-2">
                 <span className="footer-brand text-lg font-semibold uppercase tracking-[0.2em] text-[color:var(--accent,#ffd700)]">
                   Garzoni

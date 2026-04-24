@@ -76,17 +76,23 @@ export default function CTASection({
         <p className={disclaimerClass}>
           Garzoni is a financial education platform, not a financial adviser.
         </p>
-        {/* Welcome-page "footer" links: grid on mobile for better scanning */}
+        {/* Welcome-page nav links */}
         <div className={linksRowClass}>
-          <div className="grid grid-cols-2 items-center justify-center gap-x-3 gap-y-1 sm:hidden">
-            <Link to="/privacy-policy" className={linkClass}>
-              Privacy
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+            <Link to="/marketing" className={linkClass}>
+              Features
             </Link>
-            <Link to="/terms-of-service" className={linkClass}>
-              Terms
+            <Link to="/subscriptions" className={linkClass}>
+              Pricing
             </Link>
-          </div>
-          <div className="hidden sm:flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <Link to="/support" className={linkClass}>
+              Support
+            </Link>
+            <span
+              className={lightMarketing ? "text-slate-300" : "text-white/20"}
+            >
+              ·
+            </span>
             <Link to="/privacy-policy" className={linkClass}>
               Privacy
             </Link>
