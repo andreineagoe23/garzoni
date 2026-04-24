@@ -31,12 +31,19 @@ const publicPaths = [
   "/subscriptions",
 ];
 
-const noNavbarPaths = [...publicPaths, "/onboarding", "/payment-success"];
-const noChatbotPaths = [...publicPaths, "/onboarding", "/payment-success"];
+const noNavbarPaths = [
+  ...publicPaths,
+  "/onboarding",
+  "/payment-success",
+  "/marketing",
+];
+const noChatbotPaths = [
+  ...publicPaths,
+  "/onboarding",
+  "/payment-success",
+  "/marketing",
+];
 const noFooterPaths = [
-  "/",
-  "/welcome",
-  "/subscriptions",
   "/login",
   "/register",
   "/forgot-password",

@@ -138,6 +138,9 @@ lib/
 amplify_outputs*
 amplifyconfiguration*
 
+# ── AI rewrite output (ephemeral batch JSONs, not source) ─────────────────────
+backend/education/content/rewrite_output/
+
 # ── Secrets ───────────────────────────────────────────────────────────────────
 backend/chartwise/garzonicredentials.json
 backend/garzonicredentials.json

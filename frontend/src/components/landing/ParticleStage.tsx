@@ -17,7 +17,7 @@ export default function ParticleStage({
   flowRef: React.MutableRefObject<number>;
   lightBackdrop?: boolean;
 }) {
-  const fallbackBg = lightBackdrop ? "transparent" : "#0B0F14";
+  const fallbackBg = "transparent";
 
   return (
     <Suspense

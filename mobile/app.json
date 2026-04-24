@@ -17,7 +17,7 @@
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {

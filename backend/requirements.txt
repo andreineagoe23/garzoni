@@ -57,3 +57,4 @@ sentry-sdk[django]==2.19.0
 cloudinary==1.40.0
 django-cloudinary-storage==0.3.0
 django-anymail[resend]
+groq>=0.12.0

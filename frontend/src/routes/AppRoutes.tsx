@@ -35,6 +35,7 @@ import {
   TermsOfService,
   FinancialDisclaimer,
   PricingFunnelDashboard,
+  MarketingPage,
 } from "routes/lazyPages";
 
 const protectedWithBoundary = (element: React.ReactNode) => (
@@ -154,6 +155,7 @@ const AppRoutes = () => {
       />
       <Route path="/tools/*" element={protectedWithBoundary(<ToolsPage />)} />
       <Route path="/welcome" element={<Welcome />} />
+      <Route path="/marketing" element={<MarketingPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/password-reset" element={<ResetPasswordDrfToken />} />
       <Route
