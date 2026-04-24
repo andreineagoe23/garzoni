@@ -24,7 +24,7 @@ django-timezone-field==7.0
 djangorestframework==3.17.1
 djangorestframework-simplejwt==5.5.1
 drf-spectacular==0.27.2
-setuptools<81
+setuptools<83
 gunicorn==23.0.0
 idna==3.10
 jsonfield==3.1.0
