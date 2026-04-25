@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import {
   Link,
-  NavLink,
   Navigate,
   Route,
   Routes,
@@ -28,7 +27,6 @@ import { recordToolEvent } from "services/toolsAnalytics";
 import {
   TOOL_STORAGE_KEYS,
   toolByRoute,
-  toolGroups,
   toolsRegistry,
   type ToolDefinition,
 } from "./toolsRegistry";
@@ -154,101 +152,6 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
         </Suspense>
       </ErrorBoundary>
     </div>
-  );
-};
-
-const ToolsToolSwitcher = ({
-  activeTool,
-  onNavigate,
-}: {
-  activeTool: ToolDefinition;
-  onNavigate: (source: ToolNavSource) => void;
-}) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const activeGroupTools =
-    toolGroups.find((g) => g.id === activeTool.group)?.tools ?? [];
-
-  return (
-    <GlassCard padding="sm" className="w-full overflow-hidden">
-      <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wide text-content-muted">
-        {t("tools.workspace.switcherLabel")}
-      </p>
-      <div className="mb-3 hidden flex-wrap gap-2 md:flex">
-        {toolGroups.map((g) => {
-          const first = g.tools[0];
-          if (!first) return null;
-          return (
-            <NavLink
-              key={g.id}
-              to={`${TOOL_BASE_PATH}/${first.route}`}
-              onClick={() => onNavigate("sidebar")}
-              className={[
-                "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-                activeTool.group === g.id
-                  ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
-                  : "border-[color:var(--border-color)] text-content-muted hover:border-[color:var(--primary)]/40",
-              ].join(" ")}
-            >
-              {t(`tools.groups.${g.id}.title`)}
-            </NavLink>
-          );
-        })}
-      </div>
-
-      <div className="hidden md:block">
-        <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-content-muted">
-          {t(`tools.groups.${activeTool.group}.title`)}
-        </p>
-        <div className="space-y-1">
-          {activeGroupTools.map((tool) => (
-            <NavLink
-              key={tool.id}
-              to={`${TOOL_BASE_PATH}/${tool.route}`}
-              onClick={() => onNavigate("sidebar")}
-              className={({ isActive }) =>
-                [
-                  "flex w-full items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                  isActive
-                    ? "border-[color:var(--primary)] bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
-                    : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/50 text-content-muted hover:border-[color:var(--primary)]/40 hover:bg-[color:var(--primary)]/5 hover:text-[color:var(--accent)]",
-                ].join(" ")
-              }
-            >
-              <span className="line-clamp-1 flex-1 text-left">
-                {t(`tools.entries.${tool.id}.title`)}
-              </span>
-              {tool.requiredPlan === "plus_or_pro" && (
-                <span className="text-[9px] font-bold uppercase tracking-wide text-[color:var(--accent,#ffd700)] opacity-80">
-                  +
-                </span>
-              )}
-            </NavLink>
-          ))}
-        </div>
-      </div>
-
-      <div className="md:hidden">
-        <label htmlFor="garzoni-tools-jump" className="sr-only">
-          {t("tools.nav.selectTool")}
-        </label>
-        <select
-          id="garzoni-tools-jump"
-          value={activeTool.route}
-          onChange={(e) => {
-            onNavigate("mobile_dropdown");
-            navigate(`${TOOL_BASE_PATH}/${e.target.value}`);
-          }}
-          className="w-full rounded-xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-3 py-2 text-sm text-content-primary"
-        >
-          {toolsRegistry.map((tool) => (
-            <option key={tool.id} value={tool.route}>
-              {t(`tools.entries.${tool.id}.title`)}
-            </option>
-          ))}
-        </select>
-      </div>
-    </GlassCard>
   );
 };
 
@@ -420,46 +323,33 @@ const ToolsPage = () => {
       className="px-3 sm:px-6 lg:px-8"
       innerClassName="space-y-6 w-full"
     >
-      <ToolSignalStrip toolbar={signalStripToolbar} />
+      <ToolSignalStrip
+        toolbar={signalStripToolbar}
+        activeTool={activeTool}
+        onNavigate={setNavSource}
+      />
 
-      <div
-        className={
-          activeTool !== null
-            ? "flex w-full flex-col gap-6 md:flex-row md:items-start md:gap-8"
-            : "w-full"
-        }
+      <section
+        style={{ minHeight: minViewportHeight }}
+        className="w-full min-w-0"
       >
-        {activeTool !== null && (
-          <aside className="w-full shrink-0 md:w-60 md:sticky md:top-24">
-            <ToolsToolSwitcher
-              activeTool={activeTool}
-              onNavigate={setNavSource}
+        <Routes>
+          <Route index element={<ToolsIndexRedirect />} />
+          {toolsRegistry.map((tool) => (
+            <Route
+              key={tool.id}
+              path={tool.route}
+              element={
+                <ToolView
+                  tool={tool}
+                  key={`${tool.id}-${resetNonceByTool[tool.id] ?? 0}`}
+                />
+              }
             />
-          </aside>
-        )}
-
-        <section
-          style={{ minHeight: minViewportHeight }}
-          className="w-full min-w-0 flex-1"
-        >
-          <Routes>
-            <Route index element={<ToolsIndexRedirect />} />
-            {toolsRegistry.map((tool) => (
-              <Route
-                key={tool.id}
-                path={tool.route}
-                element={
-                  <ToolView
-                    tool={tool}
-                    key={`${tool.id}-${resetNonceByTool[tool.id] ?? 0}`}
-                  />
-                }
-              />
-            ))}
-            <Route path="*" element={<UnknownToolRedirect />} />
-          </Routes>
-        </section>
-      </div>
+          ))}
+          <Route path="*" element={<UnknownToolRedirect />} />
+        </Routes>
+      </section>
     </PageContainer>
   );
 };

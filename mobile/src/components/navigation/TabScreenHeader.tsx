@@ -25,11 +25,11 @@ export default function TabScreenHeader({ title, left, right }: Props) {
         },
       ]}
     >
-      <View style={styles.left}>{left ?? null}</View>
+      <View style={styles.side}>{left ?? null}</View>
       <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>
         {title}
       </Text>
-      <View style={styles.right}>{right ?? null}</View>
+      <View style={[styles.side, styles.sideRight]}>{right ?? null}</View>
     </View>
   );
 }
@@ -42,23 +42,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     marginBottom: spacing.sm,
     borderBottomWidth: 0.5,
-    gap: spacing.sm,
   },
-  left: {
-    width: 40,
+  side: {
+    width: 80,
     alignItems: "flex-start",
+  },
+  sideRight: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
   },
   title: {
     flex: 1,
     fontSize: typography.md,
     fontWeight: "700",
     textAlign: "center",
-  },
-  right: {
-    minWidth: 40,
-    alignItems: "flex-end",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: spacing.sm,
   },
 });

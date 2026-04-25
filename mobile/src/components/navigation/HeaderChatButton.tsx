@@ -18,7 +18,7 @@ export function HeaderChatButton() {
       <Ionicons
         name={navIcons.chat as keyof typeof Ionicons.glyphMap}
         size={22}
-        color={colors.primary}
+        color={colors.text}
       />
     </Pressable>
   );

@@ -6,8 +6,9 @@ export default function ToolsStackLayout() {
   return (
     <Stack
       screenOptions={{
-        headerTintColor: colors.primary,
+        headerTintColor: colors.text,
         headerStyle: { backgroundColor: colors.surface },
+        headerTitleStyle: { color: colors.text },
         contentStyle: { backgroundColor: colors.bg },
       }}
     >

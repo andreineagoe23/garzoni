@@ -48,7 +48,7 @@ class SimulatedSavingsAccount(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=10000)
 
     def add_to_balance(self, amount):
         self.balance += amount
@@ -174,6 +174,7 @@ class PortfolioEntry(models.Model):
     purchase_date = models.DateField()
     current_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True)
+    is_paper_trade = models.BooleanField(default=False)
 
     def calculate_value(self):
         return self.quantity * (self.current_price or self.purchase_price)

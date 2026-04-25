@@ -42,7 +42,7 @@ function ThemedRoot() {
       card: colors.surface,
       border: colors.border,
       text: colors.text,
-      primary: colors.primary,
+      primary: colors.text,
       notification: colors.primary,
     },
   };

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -53,6 +54,13 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [symbolQuery, setSymbolQuery] = useState("");
+  const [symbolResults, setSymbolResults] = useState<
+    { symbol: string; name: string; type: string }[]
+  >([]);
+  const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
+  const symbolDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestSymbolQueryRef = useRef("");
 
   // Animate in/out
   useEffect(() => {
@@ -79,17 +87,85 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
     }).start();
   }, [translateY]);
 
-  const handleSymbolChange = useCallback((value: string) => {
+  useEffect(() => {
+    return () => {
+      if (symbolDebounceRef.current) clearTimeout(symbolDebounceRef.current);
+    };
+  }, []);
+
+  const handleSymbolQueryChange = useCallback((value: string) => {
+    setSymbolQuery(value);
+    setForm((prev) => ({ ...prev, symbol: value }));
     setLookupPrice(null);
     setLookupError(null);
-    setForm((prev) => {
-      const next = { ...prev, symbol: value };
-      if (prev.asset_type === "stock" || prev.asset_type === "crypto") {
-        next.asset_type = inferAssetType(value);
+    latestSymbolQueryRef.current = value.trim();
+
+    if (symbolDebounceRef.current) clearTimeout(symbolDebounceRef.current);
+
+    if (value.trim().length < 2) {
+      setSymbolResults([]);
+      return;
+    }
+
+    symbolDebounceRef.current = setTimeout(async () => {
+      const requestedQuery = value.trim();
+      setSymbolSearchLoading(true);
+      try {
+        const res = await (apiClient as any).get("/asset-search/", {
+          params: { q: requestedQuery },
+        });
+        if (latestSymbolQueryRef.current === requestedQuery) {
+          setSymbolResults(res.data ?? []);
+        }
+      } catch {
+        if (latestSymbolQueryRef.current === requestedQuery) {
+          setSymbolResults([]);
+        }
+      } finally {
+        if (latestSymbolQueryRef.current === requestedQuery) {
+          setSymbolSearchLoading(false);
+        }
       }
-      return next;
-    });
+    }, 350);
   }, []);
+
+  const handleSelectAsset = useCallback(
+    async (asset: { symbol: string; name: string; type: string }) => {
+      Keyboard.dismiss();
+      setSymbolQuery(asset.symbol);
+      setSymbolResults([]);
+      latestSymbolQueryRef.current = asset.symbol;
+      setForm((prev) => ({
+        ...prev,
+        symbol: asset.symbol,
+        asset_type: asset.type,
+      }));
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+      setLookupLoading(true);
+      setLookupError(null);
+      try {
+        const isCrypto = asset.type === "crypto";
+        const res = isCrypto
+          ? await (apiClient as any).get("/crypto-price/", {
+              params: { id: asset.symbol.toLowerCase() },
+            })
+          : await (apiClient as any).get("/stock-price/", {
+              params: { symbol: asset.symbol },
+            });
+        const price = res.data?.price ?? null;
+        if (price != null) {
+          setLookupPrice(price);
+          setForm((prev) => ({ ...prev, purchase_price: String(price) }));
+        }
+      } catch {
+        // non-critical
+      } finally {
+        setLookupLoading(false);
+      }
+    },
+    [],
+  );
 
   const handleAssetTypePicker = useCallback(() => {
     const options = ASSET_TYPES.map((t) => t.label);
@@ -186,6 +262,8 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
       });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setForm(EMPTY_FORM);
+      setSymbolQuery("");
+      setSymbolResults([]);
       setLookupPrice(null);
       onAdded();
       onClose();
@@ -305,7 +383,7 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
               )}
             </FieldLabel>
 
-            {/* Symbol + Get Price */}
+            {/* Symbol + autocomplete */}
             <FieldLabel label="Symbol">
               <View style={styles.symbolRow}>
                 <TextInput
@@ -318,10 +396,10 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
                       color: c.text,
                     },
                   ]}
-                  placeholder="e.g. AAPL, bitcoin"
+                  placeholder="Search Apple, BTC, TSLA…"
                   placeholderTextColor={c.textFaint}
-                  value={form.symbol}
-                  onChangeText={handleSymbolChange}
+                  value={symbolQuery}
+                  onChangeText={handleSymbolQueryChange}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="done"
@@ -351,6 +429,60 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
                   </Text>
                 </Pressable>
               </View>
+              {(symbolResults.length > 0 || symbolSearchLoading) && (
+                <View
+                  style={[
+                    styles.dropdown,
+                    { backgroundColor: c.surface, borderColor: c.border },
+                  ]}
+                >
+                  {symbolSearchLoading && (
+                    <Text style={[styles.dropdownHint, { color: c.textMuted }]}>
+                      Searching…
+                    </Text>
+                  )}
+                  {symbolResults.map((asset, idx) => (
+                    <Pressable
+                      key={asset.symbol}
+                      onPress={() => void handleSelectAsset(asset)}
+                      style={({ pressed }) => [
+                        styles.dropdownRow,
+                        idx < symbolResults.length - 1 && {
+                          borderBottomWidth: 1,
+                          borderBottomColor: c.border,
+                        },
+                        { opacity: pressed ? 0.7 : 1 },
+                      ]}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[styles.dropdownSymbol, { color: c.text }]}
+                        >
+                          {asset.symbol}
+                        </Text>
+                        <Text
+                          style={[styles.dropdownName, { color: c.textMuted }]}
+                          numberOfLines={1}
+                        >
+                          {asset.name}
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.typeBadge,
+                          { backgroundColor: c.primary + "20" },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.typeBadgeText, { color: c.primary }]}
+                        >
+                          {asset.type.toUpperCase()}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
               {lookupError && (
                 <Text style={[styles.fieldError, { color: c.error }]}>
                   {lookupError}
@@ -596,5 +728,32 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: typography.base,
     fontWeight: "700",
+  },
+  dropdown: {
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginTop: spacing.xs,
+    overflow: "hidden",
+  },
+  dropdownRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  dropdownSymbol: { fontSize: typography.sm, fontWeight: "700" },
+  dropdownName: { fontSize: typography.xs },
+  dropdownHint: { fontSize: typography.xs, padding: spacing.md },
+  typeBadge: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  typeBadgeText: {
+    fontSize: 9,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 });

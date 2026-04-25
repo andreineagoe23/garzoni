@@ -27,9 +27,16 @@ type Props = {
   visible: boolean;
   loading: boolean;
   onClose: () => void;
+  onBuyVirtual?: () => void;
 };
 
-export function QuoteSheet({ quote, visible, loading, onClose }: Props) {
+export function QuoteSheet({
+  quote,
+  visible,
+  loading,
+  onClose,
+  onBuyVirtual,
+}: Props) {
   const c = useThemeColors();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -138,6 +145,15 @@ export function QuoteSheet({ quote, visible, loading, onClose }: Props) {
                   />
                 )}
               </View>
+              {onBuyVirtual && (
+                <TouchableOpacity
+                  style={[styles.buyBtn, { backgroundColor: c.primary }]}
+                  onPress={onBuyVirtual}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.buyBtnText}>Buy with Virtual Cash</Text>
+                </TouchableOpacity>
+              )}
             </>
           ) : (
             <Text style={[styles.loadingText, { color: c.textMuted }]}>
@@ -213,5 +229,15 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     borderTopWidth: 1,
     paddingTop: spacing.lg,
+  },
+  buyBtn: {
+    borderRadius: radius.xl,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+  },
+  buyBtnText: {
+    color: "#fff",
+    fontSize: typography.sm,
+    fontWeight: "700",
   },
 });

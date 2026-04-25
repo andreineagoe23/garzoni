@@ -20,7 +20,7 @@ import {
 import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { apiClient, requestAiTutorResponse } from "@garzoni/core";
-import { useThemeColors } from "../../../src/theme/ThemeContext";
+import { useTheme, useThemeColors } from "../../../src/theme/ThemeContext";
 import {
   spacing,
   typography,
@@ -195,32 +195,54 @@ const emptyStyles = StyleSheet.create({
   demoBtnText: { fontSize: typography.xs, fontWeight: "700" },
 });
 
-// ─── Risk badge ───────────────────────────────────────────────────────────────
+// ─── Risk badge — built inside component (theme-aware) ───────────────────────
 
-const RISK_CONFIG = {
-  low: { label: "Low Risk", bg: "rgba(46,125,50,0.12)", text: "#2e7d32" },
-  moderate: {
-    label: "Moderate Risk",
-    bg: "rgba(245,158,11,0.12)",
-    text: "#b45309",
-  },
-  high: { label: "High Risk", bg: "rgba(211,47,47,0.12)", text: "#d32f2f" },
-};
-
-const ALIGNMENT_CONFIG = {
-  good_fit: { label: "Good Fit", bg: "rgba(46,125,50,0.12)", text: "#2e7d32" },
-  risky: { label: "Risky", bg: "rgba(245,158,11,0.12)", text: "#b45309" },
-  misaligned: {
-    label: "Misaligned",
-    bg: "rgba(211,47,47,0.12)",
-    text: "#d32f2f",
-  },
-};
+function useStatusConfigs() {
+  const { resolved } = useTheme();
+  const dark = resolved === "dark";
+  return {
+    risk: {
+      low: {
+        label: "Low Risk",
+        bg: dark ? "rgba(74,222,128,0.14)" : "rgba(46,125,50,0.12)",
+        text: dark ? "#4ade80" : "#2e7d32",
+      },
+      moderate: {
+        label: "Moderate Risk",
+        bg: dark ? "rgba(251,191,36,0.14)" : "rgba(245,158,11,0.12)",
+        text: dark ? "#fbbf24" : "#b45309",
+      },
+      high: {
+        label: "High Risk",
+        bg: dark ? "rgba(248,113,113,0.14)" : "rgba(211,47,47,0.12)",
+        text: dark ? "#f87171" : "#d32f2f",
+      },
+    },
+    alignment: {
+      good_fit: {
+        label: "Good Fit",
+        bg: dark ? "rgba(74,222,128,0.14)" : "rgba(46,125,50,0.12)",
+        text: dark ? "#4ade80" : "#2e7d32",
+      },
+      risky: {
+        label: "Risky",
+        bg: dark ? "rgba(251,191,36,0.14)" : "rgba(245,158,11,0.12)",
+        text: dark ? "#fbbf24" : "#b45309",
+      },
+      misaligned: {
+        label: "Misaligned",
+        bg: dark ? "rgba(248,113,113,0.14)" : "rgba(211,47,47,0.12)",
+        text: dark ? "#f87171" : "#d32f2f",
+      },
+    },
+  };
+}
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function PortfolioScreen() {
   const c = useThemeColors();
+  const { risk: RISK_CONFIG, alignment: ALIGNMENT_CONFIG } = useStatusConfigs();
 
   // Data state
   const [entries, setEntries] = useState<PortfolioEntry[]>([]);
@@ -228,6 +250,10 @@ export default function PortfolioScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Mode toggle
+  const [mode, setMode] = useState<"real" | "virtual">("real");
+  const [virtualBalance, setVirtualBalance] = useState<number | null>(null);
 
   // Sheet visibility
   const [addSheetOpen, setAddSheetOpen] = useState(false);
@@ -338,6 +364,14 @@ export default function PortfolioScreen() {
           allocation,
         });
         setError(null);
+
+        // Fetch virtual cash balance (non-critical)
+        try {
+          const savingsRes = await (apiClient as any).get("/savings-account/");
+          setVirtualBalance(Number(savingsRes.data?.balance ?? 0));
+        } catch {
+          // ignore
+        }
       } catch (e) {
         logDevError("tools/portfolio/fetch", e);
         setError("Failed to load portfolio. Pull down to retry.");
@@ -407,15 +441,43 @@ export default function PortfolioScreen() {
 
   // ── Insight engine ───────────────────────────────────────────────────────
 
+  const filteredEntries = useMemo(
+    () =>
+      mode === "virtual"
+        ? entries.filter((e) => (e as any).is_paper_trade)
+        : entries.filter((e) => !(e as any).is_paper_trade),
+    [entries, mode],
+  );
+
+  const filteredSummary = useMemo<PortfolioSummary | null>(() => {
+    if (filteredEntries.length === 0) return null;
+    const total_value = filteredEntries.reduce(
+      (s, e) => s + (e.current_value ?? 0),
+      0,
+    );
+    const total_gain_loss = filteredEntries.reduce(
+      (s, e) => s + (e.gain_loss ?? 0),
+      0,
+    );
+    const allocation = filteredEntries.reduce<Record<string, number>>(
+      (acc, e) => {
+        acc[e.asset_type] = (acc[e.asset_type] ?? 0) + (e.current_value ?? 0);
+        return acc;
+      },
+      {},
+    );
+    return { total_value, total_gain_loss, allocation };
+  }, [filteredEntries]);
+
   const totalGainLossPercentage = useMemo(() => {
-    if (!summary || !summary.total_value || summary.total_value === 0) return 0;
-    const totalCost = entries.reduce(
+    if (!filteredSummary || filteredSummary.total_value === 0) return 0;
+    const totalCost = filteredEntries.reduce(
       (s, e) => s + (e.purchase_price * e.quantity || 0),
       0,
     );
     if (totalCost === 0) return 0;
-    return (summary.total_gain_loss / totalCost) * 100;
-  }, [summary, entries]);
+    return (filteredSummary.total_gain_loss / totalCost) * 100;
+  }, [filteredSummary, filteredEntries]);
 
   const insight = useMemo((): PortfolioInsight | null => {
     if (!summary || entries.length === 0) return null;
@@ -665,8 +727,8 @@ export default function PortfolioScreen() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   const allocationEntries = useMemo(
-    () => Object.entries(summary?.allocation ?? {}),
-    [summary],
+    () => Object.entries(filteredSummary?.allocation ?? {}),
+    [filteredSummary],
   );
 
   const riskCfg = insight ? RISK_CONFIG[insight.riskLevel] : null;
@@ -692,14 +754,25 @@ export default function PortfolioScreen() {
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setAddSheetOpen(true);
               }}
-              style={{ marginRight: spacing.md, padding: spacing.xs }}
+              style={({ pressed }) => ({
+                marginRight: spacing.sm,
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: c.primary,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.75 : 1,
+              })}
               accessibilityLabel="Add holding"
             >
               <Text
                 style={{
-                  color: c.primary,
-                  fontSize: typography.lg,
-                  fontWeight: "700",
+                  color: c.textOnPrimary,
+                  fontSize: 22,
+                  fontWeight: "300",
+                  lineHeight: 28,
+                  marginTop: -1,
                 }}
               >
                 +
@@ -710,7 +783,7 @@ export default function PortfolioScreen() {
       />
 
       <FlatList
-        data={entries}
+        data={filteredEntries}
         keyExtractor={(item) =>
           String(item.id ?? `${item.symbol}-${item.quantity}`)
         }
@@ -740,17 +813,49 @@ export default function PortfolioScreen() {
               </View>
             )}
 
+            {/* Real / Virtual toggle */}
+            <View style={styles.modeToggle}>
+              {(["real", "virtual"] as const).map((m) => (
+                <Pressable
+                  key={m}
+                  onPress={() => setMode(m)}
+                  style={[
+                    styles.modeBtn,
+                    mode === m && { backgroundColor: c.primary },
+                    mode !== m && { borderColor: c.border, borderWidth: 1 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.modeBtnText,
+                      { color: mode === m ? "#fff" : c.textMuted },
+                    ]}
+                  >
+                    {m === "real" ? "Real" : "Virtual"}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {mode === "virtual" && virtualBalance !== null && (
+              <Text style={[styles.balanceText, { color: c.textMuted }]}>
+                Virtual cash:{" "}
+                <Text style={{ color: c.text, fontWeight: "700" }}>
+                  {formatCurrency(virtualBalance)}
+                </Text>
+              </Text>
+            )}
+
             {/* Summary header */}
-            {summary && entries.length > 0 && (
+            {filteredSummary && filteredEntries.length > 0 && (
               <SummaryHeader
-                summary={summary}
+                summary={filteredSummary}
                 totalGainLossPercentage={totalGainLossPercentage}
-                holdingsCount={entries.length}
+                holdingsCount={filteredEntries.length}
               />
             )}
 
             {/* Empty state */}
-            {entries.length === 0 && (
+            {filteredEntries.length === 0 && (
               <EmptyState
                 onTryStock={handleDemoStock}
                 onTryCrypto={handleDemoCrypto}
@@ -758,35 +863,41 @@ export default function PortfolioScreen() {
             )}
 
             {/* Pie + allocation bars */}
-            {summary && entries.length > 0 && allocationEntries.length > 0 && (
-              <View
-                style={[
-                  styles.card,
-                  { backgroundColor: c.surface, borderColor: c.border },
-                  shadows.sm,
-                ]}
-              >
-                <Text style={[styles.sectionTitle, { color: c.text }]}>
-                  Asset Allocation
-                </Text>
-                <PortfolioPieChart summary={summary} size={220} />
-                <View style={[styles.divider, { backgroundColor: c.border }]} />
-                <View style={styles.barsSection}>
-                  {allocationEntries.map(([type, value], i) => (
-                    <AllocationBar
-                      key={type}
-                      label={
-                        type.charAt(0).toUpperCase() +
-                        type.slice(1).replace("_", " ")
-                      }
-                      value={Number(value)}
-                      total={summary.total_value}
-                      color={PIE_COLORS[i % PIE_COLORS.length]}
-                    />
-                  ))}
+            {filteredSummary &&
+              filteredEntries.length > 0 &&
+              allocationEntries.length > 0 && (
+                <View
+                  style={[
+                    styles.card,
+                    { backgroundColor: c.surface, borderColor: c.border },
+                    shadows.sm,
+                  ]}
+                >
+                  <Text style={[styles.sectionTitle, { color: c.text }]}>
+                    Asset Allocation
+                  </Text>
+                  {summary && (
+                    <PortfolioPieChart summary={summary} size={220} />
+                  )}
+                  <View
+                    style={[styles.divider, { backgroundColor: c.border }]}
+                  />
+                  <View style={styles.barsSection}>
+                    {allocationEntries.map(([type, value], i) => (
+                      <AllocationBar
+                        key={type}
+                        label={
+                          type.charAt(0).toUpperCase() +
+                          type.slice(1).replace("_", " ")
+                        }
+                        value={Number(value)}
+                        total={summary?.total_value ?? 0}
+                        color={PIE_COLORS[i % PIE_COLORS.length]}
+                      />
+                    ))}
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
 
             {/* Insight panel */}
             {insight && (
@@ -1020,6 +1131,19 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: { gap: spacing.md, marginBottom: spacing.md },
+
+  modeToggle: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: spacing.sm,
+  },
+  modeBtn: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  modeBtnText: { fontSize: typography.sm, fontWeight: "600" },
+  balanceText: { textAlign: "center", fontSize: typography.sm },
 
   card: {
     borderRadius: radius.lg,

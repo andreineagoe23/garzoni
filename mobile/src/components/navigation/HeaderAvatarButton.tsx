@@ -56,13 +56,13 @@ export function HeaderAvatarButton() {
       <View
         style={[
           styles.circle,
-          { borderColor: c.primary, backgroundColor: c.accentMuted },
+          { borderColor: c.border, backgroundColor: c.surfaceElevated },
         ]}
       >
         {avatarUri ? (
           <Image source={{ uri: avatarUri }} style={styles.image} />
         ) : (
-          <Ionicons name="person" size={16} color={c.primary} />
+          <Ionicons name="person" size={16} color={c.textMuted} />
         )}
       </View>
     </Pressable>

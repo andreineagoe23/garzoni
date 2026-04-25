@@ -49,6 +49,7 @@ const LessonSectionEditorPanel = React.lazy(
 import Skeleton from "components/common/Skeleton";
 import { usePreferences } from "hooks/usePreferences";
 import { GlassButton } from "components/ui";
+import { COURSE_TO_TOOL_CTA } from "components/tools/lessonMapping";
 import LessonCheckpointQuizModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointQuizModal";
@@ -1576,6 +1577,24 @@ function CourseFlowPage() {
               <p className="mt-2 text-sm text-content-muted">
                 {t("courses.flow.courseCompleteSubtitle")}
               </p>
+              {(() => {
+                const cta = COURSE_TO_TOOL_CTA[courseIdNumber];
+                if (!cta) return null;
+                return (
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-center">
+                    <p className="text-sm text-content-muted mb-3">
+                      Want to see this in action?
+                    </p>
+                    <GlassButton
+                      variant="active"
+                      size="lg"
+                      onClick={() => navigate(cta.toolUrl)}
+                    >
+                      {cta.ctaText}
+                    </GlassButton>
+                  </div>
+                );
+              })()}
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {nextCourseIdInPath ? (
                   <GlassButton

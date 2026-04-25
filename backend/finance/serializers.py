@@ -146,6 +146,7 @@ class PortfolioEntrySerializer(serializers.ModelSerializer):
             "current_value",
             "gain_loss",
             "gain_loss_percentage",
+            "is_paper_trade",
         ]
         read_only_fields = ["current_price", "last_updated"]
 

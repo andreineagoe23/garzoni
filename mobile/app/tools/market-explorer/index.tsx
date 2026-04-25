@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -43,6 +45,9 @@ export default function MarketExplorerScreen() {
   const [quoteVisible, setQuoteVisible] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [buyModalVisible, setBuyModalVisible] = useState(false);
+  const [buyAmount, setBuyAmount] = useState("500");
+  const [buyLoading, setBuyLoading] = useState(false);
 
   const search = useCallback(async (q: string, t: MarketTab) => {
     if (!q.trim()) {
@@ -104,6 +109,39 @@ export default function MarketExplorerScreen() {
     setResults([]);
     setQuery("");
   }, []);
+
+  const handleBuyVirtual = useCallback(() => {
+    setBuyAmount("500");
+    setBuyModalVisible(true);
+  }, []);
+
+  const handleConfirmBuy = useCallback(async () => {
+    if (!selectedAsset) return;
+    const amount = Number(buyAmount);
+    if (!amount || amount <= 0) {
+      Alert.alert("Invalid amount", "Enter a positive dollar amount.");
+      return;
+    }
+    setBuyLoading(true);
+    try {
+      const res = await (apiClient as any).post("/paper-trade/buy/", {
+        symbol: selectedAsset.ticker,
+        amount_to_spend: amount,
+      });
+      const remaining = Number(res.data?.remaining_balance ?? 0).toFixed(2);
+      setBuyModalVisible(false);
+      Alert.alert(
+        "Trade executed!",
+        `Bought $${amount} of ${selectedAsset.ticker.toUpperCase()} with virtual cash.\nRemaining balance: $${remaining}`,
+      );
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error ?? "Could not execute trade. Try again.";
+      Alert.alert("Trade failed", msg);
+    } finally {
+      setBuyLoading(false);
+    }
+  }, [selectedAsset, buyAmount]);
 
   return (
     <>
@@ -192,10 +230,96 @@ export default function MarketExplorerScreen() {
         visible={quoteVisible}
         loading={quoteLoading}
         onClose={() => setQuoteVisible(false)}
+        onBuyVirtual={handleBuyVirtual}
       />
+
+      {/* Buy with Virtual Cash modal */}
+      <Modal
+        visible={buyModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBuyModalVisible(false)}
+      >
+        <Pressable
+          style={buyStyles.backdrop}
+          onPress={() => setBuyModalVisible(false)}
+        />
+        <View style={[buyStyles.card, { backgroundColor: c.surface }]}>
+          <Text style={[buyStyles.title, { color: c.text }]}>
+            Buy {selectedAsset?.ticker?.toUpperCase()} with Virtual Cash
+          </Text>
+          <Text style={[buyStyles.label, { color: c.textMuted }]}>
+            Dollar amount to spend
+          </Text>
+          <TextInput
+            style={[
+              buyStyles.input,
+              { color: c.text, borderColor: c.border, backgroundColor: c.bg },
+            ]}
+            value={buyAmount}
+            onChangeText={setBuyAmount}
+            keyboardType="numeric"
+            placeholder="500"
+            placeholderTextColor={c.textFaint}
+            selectTextOnFocus
+          />
+          <View style={buyStyles.actions}>
+            <Pressable
+              onPress={() => setBuyModalVisible(false)}
+              style={[buyStyles.btn, { borderColor: c.border, borderWidth: 1 }]}
+            >
+              <Text style={[buyStyles.btnText, { color: c.textMuted }]}>
+                Cancel
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void handleConfirmBuy()}
+              disabled={buyLoading}
+              style={[buyStyles.btn, { backgroundColor: c.primary }]}
+            >
+              <Text style={[buyStyles.btnText, { color: "#fff" }]}>
+                {buyLoading ? "Buying…" : "Buy"}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
+
+const buyStyles = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  card: {
+    position: "absolute",
+    left: 24,
+    right: 24,
+    top: "35%",
+    borderRadius: 20,
+    padding: 24,
+    gap: 16,
+  },
+  title: { fontSize: 16, fontWeight: "700" },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  actions: { flexDirection: "row", gap: 12 },
+  btn: { flex: 1, borderRadius: 12, paddingVertical: 12, alignItems: "center" },
+  btnText: { fontSize: 14, fontWeight: "700" },
+});
 
 const styles = StyleSheet.create({
   root: { flex: 1 },

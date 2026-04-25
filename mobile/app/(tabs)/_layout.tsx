@@ -36,8 +36,8 @@ export default function TabsLayout() {
         screenOptions={({ route }) => ({
           headerShown: false,
           sceneStyle: { backgroundColor: colors.bg },
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.textMuted,
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.textFaint,
           tabBarStyle: {
             borderTopColor: colors.border,
             borderTopWidth: 0.5,
