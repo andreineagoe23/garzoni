@@ -217,20 +217,22 @@ describe("ExercisePage skill intent pipeline", () => {
       ).toBeInTheDocument();
     });
 
-    expect(mockExercisePageTrackEvent).toHaveBeenCalledWith(
-      "exercise_skill_intent_mapped_zero",
-      expect.objectContaining({
-        skill: "budgeting",
-        category: "Basic Finance",
-      })
-    );
-    expect(mockExercisePageTrackEvent).toHaveBeenCalledWith(
-      "exercise_skill_intent_mapped",
-      expect.objectContaining({
-        mapped_zero_results: true,
-        result_count: 0,
-      })
-    );
+    await waitFor(() => {
+      expect(mockExercisePageTrackEvent).toHaveBeenCalledWith(
+        "exercise_skill_intent_mapped_zero",
+        expect.objectContaining({
+          skill: "budgeting",
+          category: "Basic Finance",
+        })
+      );
+      expect(mockExercisePageTrackEvent).toHaveBeenCalledWith(
+        "exercise_skill_intent_mapped",
+        expect.objectContaining({
+          mapped_zero_results: true,
+          result_count: 0,
+        })
+      );
+    });
   });
 
   it("manual category change strips skill from URL via navigate", async () => {
