@@ -79,3 +79,5 @@ export const GOALS_LEVER_LESSONS: Record<string, string> = {
   savings_rate: "/all-topics?topic=saving",
   income: "/all-topics?topic=career",
 };
+
+export { COURSE_TO_TOOL_CTA } from "@garzoni/core";

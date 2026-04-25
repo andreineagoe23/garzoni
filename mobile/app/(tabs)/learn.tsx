@@ -55,6 +55,8 @@ import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { spacing, typography, radius } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
+import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 
 type LearnActiveView = "all-topics" | "personalized-path";
 
@@ -874,7 +876,11 @@ export default function LearnScreen() {
   return (
     <TabErrorBoundary>
       <View style={{ flex: 1 }}>
-        <TabScreenHeader title="Learn" />
+        <TabScreenHeader
+          title="Learn"
+          left={<HeaderAvatarButton />}
+          right={<HeaderRightButtons />}
+        />
         <LearnInner />
       </View>
     </TabErrorBoundary>

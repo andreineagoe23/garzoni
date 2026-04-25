@@ -17,6 +17,8 @@ import {
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
+import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 
 const ALL_GROUPS: ToolGroup[] = [
   "understand-world",
@@ -62,7 +64,11 @@ export default function ToolsHubScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <TabScreenHeader title={t("nav.tools")} />
+      <TabScreenHeader
+        title={t("nav.tools")}
+        left={<HeaderAvatarButton />}
+        right={<HeaderRightButtons />}
+      />
 
       {/* Group pill filter */}
       <ScrollView

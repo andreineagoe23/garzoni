@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useThemeColors } from "../../../theme/ThemeContext";
+import { useTheme, useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
 import type { InsightCard as InsightCardType } from "../../../types/portfolio";
 
@@ -8,15 +8,27 @@ type Props = {
   card: InsightCardType;
 };
 
-const CONFIDENCE_COLORS: Record<string, { bg: string; text: string }> = {
-  high: { bg: "rgba(46,125,50,0.12)", text: "#2e7d32" },
-  medium: { bg: "rgba(245,158,11,0.12)", text: "#b45309" },
-  low: { bg: "rgba(107,114,128,0.12)", text: "#6b7280" },
-};
-
 export function InsightCard({ card }: Props) {
   const c = useThemeColors();
+  const { resolved } = useTheme();
+  const dark = resolved === "dark";
   const [expanded, setExpanded] = useState(false);
+
+  const CONFIDENCE_COLORS: Record<string, { bg: string; text: string }> = {
+    high: {
+      bg: dark ? "rgba(74,222,128,0.14)" : "rgba(46,125,50,0.12)",
+      text: dark ? "#4ade80" : "#2e7d32",
+    },
+    medium: {
+      bg: dark ? "rgba(251,191,36,0.14)" : "rgba(245,158,11,0.12)",
+      text: dark ? "#fbbf24" : "#b45309",
+    },
+    low: {
+      bg: dark ? "rgba(148,163,184,0.14)" : "rgba(107,114,128,0.12)",
+      text: dark ? "#94a3b8" : "#6b7280",
+    },
+  };
+
   const conf = CONFIDENCE_COLORS[card.confidence] ?? CONFIDENCE_COLORS.low;
 
   return (

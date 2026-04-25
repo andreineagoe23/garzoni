@@ -20,6 +20,7 @@ import {
   queryKeys,
   staleTimes,
   fetchProfile,
+  COURSE_TO_TOOL_CTA,
   type MascotSituation,
   type MascotType,
 } from "@garzoni/core";
@@ -39,6 +40,7 @@ import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
 import type { ThemeColors } from "../theme/palettes";
 import { useTranslation } from "react-i18next";
+import { HeaderChatButton } from "../components/navigation/HeaderChatButton";
 
 const LESSON_FONT_SCALE_KEY = "garzoni:lesson_font_scale";
 
@@ -596,6 +598,19 @@ export default function LessonFlowScreen({
             : t("courses.flow.courseCompleteSubtitle")}
         </Text>
         <View style={styles.completeActions}>
+          {(() => {
+            const cta = COURSE_TO_TOOL_CTA[courseId];
+            if (!cta) return null;
+            return (
+              <Button
+                onPress={() =>
+                  router.push(cta.toolUrl as Parameters<typeof router.push>[0])
+                }
+              >
+                {cta.ctaText}
+              </Button>
+            );
+          })()}
           <Button onPress={() => router.push(`/quiz/${courseId}`)}>
             {t("courses.flow.takeQuiz")}
           </Button>
@@ -623,23 +638,26 @@ export default function LessonFlowScreen({
       <View
         style={{
           flexDirection: "row",
-          justifyContent: "flex-end",
-          gap: spacing.sm,
+          justifyContent: "space-between",
+          alignItems: "center",
           paddingHorizontal: spacing.md,
           paddingTop: spacing.xs,
           opacity: immersive ? 0 : 1,
         }}
       >
-        <Pressable onPress={() => setReadingSettingsOpen(true)} hitSlop={8}>
-          <Text style={{ color: themeColors.accent, fontWeight: "800" }}>
-            Aa
-          </Text>
-        </Pressable>
-        <Pressable onPress={() => setImmersive((v) => !v)} hitSlop={8}>
-          <Text style={{ color: themeColors.textMuted, fontWeight: "700" }}>
-            {immersive ? "UI" : "Focus"}
-          </Text>
-        </Pressable>
+        <HeaderChatButton />
+        <View style={{ flexDirection: "row", gap: spacing.sm }}>
+          <Pressable onPress={() => setReadingSettingsOpen(true)} hitSlop={8}>
+            <Text style={{ color: themeColors.accent, fontWeight: "800" }}>
+              Aa
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => setImmersive((v) => !v)} hitSlop={8}>
+            <Text style={{ color: themeColors.textMuted, fontWeight: "700" }}>
+              {immersive ? "UI" : "Focus"}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView

@@ -749,6 +749,362 @@ class CryptoPriceView(APIView):
         return Response(result)
 
 
+class PaperTradeBuyView(APIView):
+    """Buy an asset with virtual cash from the user's SimulatedSavingsAccount."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        symbol = str(request.data.get("symbol", "")).upper().strip()
+        try:
+            amount_to_spend = Decimal(str(request.data.get("amount_to_spend", 0)))
+        except InvalidOperation:
+            return Response({"error": "Invalid amount."}, status=400)
+
+        if not symbol:
+            return Response({"error": "symbol is required."}, status=400)
+        if amount_to_spend <= 0:
+            return Response({"error": "amount_to_spend must be positive."}, status=400)
+        if len(symbol) > 32:
+            return Response({"error": "Symbol too long."}, status=400)
+
+        is_crypto = symbol.lower() in COINGECKO_ID_MAP
+        price = None
+
+        if is_crypto:
+            crypto_id = COINGECKO_ID_MAP.get(symbol.lower(), symbol.lower())
+            cache_key = f"crypto_{crypto_id}"
+            cached = cache.get(cache_key)
+            if cached:
+                price = float(cached.get("price", 0) or 0)
+            else:
+                try:
+                    result = request_with_backoff(
+                        method="GET",
+                        url="https://api.coingecko.com/api/v3/simple/price",
+                        params={
+                            "ids": crypto_id,
+                            "vs_currencies": "usd",
+                            "include_24hr_change": "true",
+                        },
+                        allow_retry=True,
+                        max_attempts=3,
+                    )
+                    payload = result.response.json().get(crypto_id)
+                    if payload:
+                        price = float(payload.get("usd", 0) or 0)
+                except Exception as exc:
+                    logger.error("PaperTrade crypto price fetch failed: %s", exc)
+        else:
+            api_key = settings.ALPHA_VANTAGE_API_KEY
+            if api_key:
+                cache_key = f"alpha_quote_{symbol}"
+                cached = cache.get(cache_key)
+                if cached:
+                    price = float(cached.get("price", 0) or 0)
+                else:
+                    try:
+                        result = request_with_backoff(
+                            method="GET",
+                            url="https://www.alphavantage.co/query",
+                            params={
+                                "function": "GLOBAL_QUOTE",
+                                "symbol": symbol,
+                                "apikey": api_key,
+                            },
+                            allow_retry=True,
+                            max_attempts=3,
+                        )
+                        quote = result.response.json().get("Global Quote", {})
+                        price_raw = quote.get("05. price")
+                        if price_raw is not None:
+                            price = float(price_raw)
+                    except Exception as exc:
+                        logger.error("PaperTrade stock price fetch failed: %s", exc)
+
+        if not price or price <= 0:
+            return Response({"error": "Could not fetch current price for symbol."}, status=502)
+
+        price_decimal = Decimal(str(price))
+        quantity = amount_to_spend / price_decimal
+        asset_type = "crypto" if is_crypto else "stock"
+
+        with transaction.atomic():
+            account, _ = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
+                user=request.user,
+                defaults={"balance": Decimal("10000.00")},
+            )
+            if account.balance < amount_to_spend:
+                return Response(
+                    {"error": "Insufficient virtual cash.", "balance": str(account.balance)},
+                    status=400,
+                )
+            account.balance -= amount_to_spend
+            account.save()
+
+            entry = PortfolioEntry.objects.create(
+                user=request.user,
+                asset_type=asset_type,
+                symbol=symbol,
+                quantity=quantity,
+                purchase_price=price_decimal,
+                purchase_date=timezone.now().date(),
+                is_paper_trade=True,
+            )
+
+        return Response(
+            {
+                "entry": PortfolioEntrySerializer(entry).data,
+                "remaining_balance": str(account.balance),
+            },
+            status=201,
+        )
+
+
+class AssetSearchView(APIView):
+    """Fast symbol autocomplete — no prices, just name + type."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get("q", "").strip()
+        if len(query) < 2:
+            return Response([])
+
+        cache_key = f"asset_search_v1_{query.lower()}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        results = []
+
+        try:
+            yh = requests.get(
+                "https://query2.finance.yahoo.com/v1/finance/search",
+                params={"q": query, "quotesCount": 6, "newsCount": 0},
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=3,
+            )
+            if yh.status_code == 200:
+                for q in yh.json().get("quotes", []):
+                    qt = q.get("quoteType", "")
+                    if qt in ("EQUITY", "ETF", "MUTUALFUND"):
+                        results.append(
+                            {
+                                "symbol": q.get("symbol", ""),
+                                "name": q.get("shortname") or q.get("longname") or "",
+                                "type": "stock" if qt == "EQUITY" else "etf",
+                                "exchange": q.get("exchDisp", ""),
+                            }
+                        )
+            else:
+                logger.warning(
+                    "Yahoo Finance search returned %s for query: %s", yh.status_code, query
+                )
+        except Exception as exc:
+            logger.error("Yahoo Finance search failed for '%s': %s", query, exc)
+
+        try:
+            cg = requests.get(
+                "https://api.coingecko.com/api/v3/search",
+                params={"query": query},
+                timeout=3,
+            )
+            if cg.status_code == 200:
+                for coin in cg.json().get("coins", [])[:4]:
+                    results.append(
+                        {
+                            "symbol": (coin.get("symbol") or "").upper(),
+                            "name": coin.get("name", ""),
+                            "type": "crypto",
+                            "exchange": "Crypto",
+                        }
+                    )
+            elif cg.status_code == 429:
+                logger.warning("CoinGecko rate limit hit for query: %s", query)
+            else:
+                logger.warning("CoinGecko search returned %s for query: %s", cg.status_code, query)
+        except Exception as exc:
+            logger.error("CoinGecko search failed for '%s': %s", query, exc)
+
+        cache.set(cache_key, results, timeout=120)
+        return Response(results)
+
+
+class MarketSearchView(APIView):
+    """Powers Market Explorer search — fan-out to Yahoo + CoinGecko by asset type."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get("q", "").strip()
+        asset_type = request.query_params.get("type", "stocks")
+        if len(query) < 1:
+            return Response({"results": []})
+
+        cache_key = f"market_search_v1_{asset_type}_{query.lower()}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response({"results": cached})
+
+        results = []
+
+        if asset_type in ("stocks", "forex"):
+            try:
+                yh = requests.get(
+                    "https://query2.finance.yahoo.com/v1/finance/search",
+                    params={"q": query, "quotesCount": 8, "newsCount": 0},
+                    headers={"User-Agent": "Mozilla/5.0"},
+                    timeout=3,
+                )
+                if yh.status_code == 200:
+                    for q in yh.json().get("quotes", []):
+                        qt = q.get("quoteType", "")
+                        if asset_type == "forex" and qt != "CURRENCY":
+                            continue
+                        if asset_type == "stocks" and qt not in ("EQUITY", "ETF", "MUTUALFUND"):
+                            continue
+                        ticker = q.get("symbol", "")
+                        results.append(
+                            {
+                                "ticker": ticker,
+                                "name": q.get("shortname") or q.get("longname") or ticker,
+                                "price": 0,
+                                "change_pct": 0,
+                            }
+                        )
+                else:
+                    logger.warning(
+                        "Yahoo Market search returned %s for query: %s", yh.status_code, query
+                    )
+            except Exception as exc:
+                logger.error("Yahoo Market search failed for '%s': %s", query, exc)
+
+        if asset_type == "crypto":
+            try:
+                cg = requests.get(
+                    "https://api.coingecko.com/api/v3/search",
+                    params={"query": query},
+                    timeout=3,
+                )
+                if cg.status_code == 200:
+                    for coin in cg.json().get("coins", [])[:8]:
+                        symbol = (coin.get("symbol") or "").upper()
+                        results.append(
+                            {
+                                "ticker": symbol,
+                                "name": coin.get("name", ""),
+                                "price": 0,
+                                "change_pct": 0,
+                            }
+                        )
+                elif cg.status_code == 429:
+                    logger.warning("CoinGecko rate limit hit for market search query: %s", query)
+                else:
+                    logger.warning(
+                        "CoinGecko market search returned %s for query: %s", cg.status_code, query
+                    )
+            except Exception as exc:
+                logger.error("CoinGecko market search failed for '%s': %s", query, exc)
+
+        cache.set(cache_key, results, timeout=60)
+        return Response({"results": results})
+
+
+class MarketQuoteView(APIView):
+    """Single asset detail for Market Explorer — proxies stock or crypto data."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, ticker: str):
+        ticker = ticker.upper().strip()
+        ticker_lower = ticker.lower()
+        is_crypto = ticker_lower in COINGECKO_ID_MAP
+
+        if is_crypto:
+            crypto_id = COINGECKO_ID_MAP.get(ticker_lower, ticker_lower)
+            cache_key = f"crypto_{crypto_id}"
+            cached = cache.get(cache_key)
+            price = change_pct = market_cap = 0.0
+            if cached:
+                price = float(cached.get("price", 0) or 0)
+                change_pct = float(cached.get("change", 0) or 0)
+                market_cap = float(cached.get("marketCap", 0) or 0)
+            else:
+                try:
+                    result = request_with_backoff(
+                        method="GET",
+                        url="https://api.coingecko.com/api/v3/simple/price",
+                        params={
+                            "ids": crypto_id,
+                            "vs_currencies": "usd",
+                            "include_24hr_change": "true",
+                            "include_market_cap": "true",
+                        },
+                        allow_retry=True,
+                        max_attempts=3,
+                    )
+                    payload = result.response.json().get(crypto_id, {})
+                    price = float(payload.get("usd", 0) or 0)
+                    change_pct = float(payload.get("usd_24h_change", 0) or 0)
+                    market_cap = float(payload.get("usd_market_cap", 0) or 0)
+                    cache.set(
+                        cache_key,
+                        {"price": price, "change": change_pct, "marketCap": market_cap},
+                        timeout=60,
+                    )
+                except Exception as exc:
+                    logger.error("MarketQuoteView crypto fetch failed for %s: %s", ticker, exc)
+            return Response(
+                {
+                    "ticker": ticker,
+                    "name": ticker,
+                    "price": price,
+                    "change_pct": change_pct,
+                    "market_cap": market_cap if market_cap else None,
+                }
+            )
+
+        # Stock path
+        api_key = settings.ALPHA_VANTAGE_API_KEY
+        cache_key = f"alpha_quote_{ticker}"
+        cached = cache.get(cache_key)
+        price = change_pct = 0.0
+        if cached:
+            price = float(cached.get("price", 0) or 0)
+            change_pct = float(cached.get("change", 0) or 0)
+        elif api_key:
+            try:
+                result = request_with_backoff(
+                    method="GET",
+                    url="https://www.alphavantage.co/query",
+                    params={"function": "GLOBAL_QUOTE", "symbol": ticker, "apikey": api_key},
+                    allow_retry=True,
+                    max_attempts=3,
+                )
+                quote = result.response.json().get("Global Quote", {})
+                price_raw = quote.get("05. price")
+                change_raw = quote.get("10. change percent", "0")
+                if price_raw is not None:
+                    price = float(price_raw)
+                try:
+                    change_pct = float(str(change_raw).rstrip("%"))
+                except (TypeError, ValueError):
+                    change_pct = 0.0
+                cache.set(cache_key, {"price": price, "change": change_pct}, timeout=60)
+            except Exception as exc:
+                logger.error("MarketQuoteView stock fetch failed for %s: %s", ticker, exc)
+
+        return Response(
+            {
+                "ticker": ticker,
+                "name": ticker,
+                "price": price,
+                "change_pct": change_pct,
+            }
+        )
+
+
 class FinanceFactView(APIView):
     """API view to manage finance facts, including retrieving unread facts and marking them as read."""
 

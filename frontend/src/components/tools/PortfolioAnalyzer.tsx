@@ -86,6 +86,7 @@ type PortfolioEntry = {
   current_value?: number;
   gain_loss?: number;
   gain_loss_percentage?: number;
+  is_paper_trade?: boolean;
 };
 
 type PortfolioSummary = {
@@ -114,8 +115,18 @@ function PortfolioAnalyzer() {
   const [aiMeaning, setAiMeaning] = useState<string>("");
   const [isAiMeaningLoading, setIsAiMeaningLoading] = useState(false);
   const [aiMeaningError, setAiMeaningError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"real" | "virtual">("real");
+  const [isPaperTrade, setIsPaperTrade] = useState(false);
+  const [virtualBalance, setVirtualBalance] = useState<number | null>(null);
   const { financialProfile } = useAuth();
   const formRef = useRef<HTMLDivElement | null>(null);
+  const [symbolQuery, setSymbolQuery] = useState("");
+  const [symbolResults, setSymbolResults] = useState<
+    { symbol: string; name: string; type: string; exchange: string }[]
+  >([]);
+  const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
+  const symbolDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestSymbolQueryRef = useRef("");
 
   const fetchStockPrice = useCallback(async (symbol) => {
     try {
@@ -219,6 +230,14 @@ function PortfolioAnalyzer() {
       });
 
       setError(null);
+
+      // Fetch virtual cash balance
+      try {
+        const savingsRes = await apiClient.get("/savings-account/");
+        setVirtualBalance(Number(savingsRes.data?.balance ?? 0));
+      } catch {
+        // non-critical — ignore
+      }
     } catch (err) {
       setError(t("tools.portfolio.loadError"));
       console.error("Error fetching portfolio:", err);
@@ -379,6 +398,83 @@ function PortfolioAnalyzer() {
     t,
   ]);
 
+  useEffect(() => {
+    return () => {
+      if (symbolDebounceRef.current) clearTimeout(symbolDebounceRef.current);
+    };
+  }, []);
+
+  const handleSymbolQueryChange = useCallback((value: string) => {
+    setSymbolQuery(value);
+    setNewEntry((prev) => ({ ...prev, symbol: value }));
+    setLookupPrice(null);
+    setLookupError(null);
+    latestSymbolQueryRef.current = value.trim();
+
+    if (symbolDebounceRef.current) clearTimeout(symbolDebounceRef.current);
+
+    if (value.trim().length < 2) {
+      setSymbolResults([]);
+      return;
+    }
+
+    symbolDebounceRef.current = setTimeout(async () => {
+      const requestedQuery = value.trim();
+      setSymbolSearchLoading(true);
+      try {
+        const res = await apiClient.get("/asset-search/", {
+          params: { q: requestedQuery },
+        });
+        if (latestSymbolQueryRef.current === requestedQuery) {
+          setSymbolResults(res.data ?? []);
+        }
+      } catch {
+        if (latestSymbolQueryRef.current === requestedQuery) {
+          setSymbolResults([]);
+        }
+      } finally {
+        if (latestSymbolQueryRef.current === requestedQuery) {
+          setSymbolSearchLoading(false);
+        }
+      }
+    }, 350);
+  }, []);
+
+  const handleSelectAsset = useCallback(
+    async (asset: { symbol: string; name: string; type: string }) => {
+      setSymbolQuery(asset.symbol);
+      setSymbolResults([]);
+      latestSymbolQueryRef.current = asset.symbol;
+      setNewEntry((prev) => ({
+        ...prev,
+        symbol: asset.symbol,
+        asset_type: asset.type,
+      }));
+      setLookupLoading(true);
+      setLookupError(null);
+      try {
+        const isCrypto = asset.type === "crypto";
+        const res = isCrypto
+          ? await apiClient.get("/crypto-price/", {
+              params: { id: asset.symbol.toLowerCase() },
+            })
+          : await apiClient.get("/stock-price/", {
+              params: { symbol: asset.symbol },
+            });
+        const price = res.data?.price ?? null;
+        if (price != null) {
+          setLookupPrice(price);
+          setNewEntry((prev) => ({ ...prev, purchase_price: String(price) }));
+        }
+      } catch {
+        // non-critical — "Get Price" button still available
+      } finally {
+        setLookupLoading(false);
+      }
+    },
+    []
+  );
+
   const handleDemoEntry = (entry: {
     asset_type: string;
     symbol: string;
@@ -398,7 +494,28 @@ function PortfolioAnalyzer() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await apiClient.post("/portfolio/", newEntry);
+      if (isPaperTrade) {
+        const amountToSpend =
+          Number(newEntry.quantity) * Number(newEntry.purchase_price);
+        if (!amountToSpend || amountToSpend <= 0) {
+          setError(
+            "Enter a valid quantity and price to calculate spend amount."
+          );
+          return;
+        }
+        const res = await apiClient.post("/paper-trade/buy/", {
+          symbol: newEntry.symbol,
+          amount_to_spend: amountToSpend,
+        });
+        if (res.data?.remaining_balance !== undefined) {
+          setVirtualBalance(Number(res.data.remaining_balance));
+        }
+        toast.success(
+          `Bought ${newEntry.symbol.toUpperCase()} with virtual cash. Balance: $${Number(res.data?.remaining_balance ?? 0).toFixed(2)}`
+        );
+      } else {
+        await apiClient.post("/portfolio/", newEntry);
+      }
       setNewEntry({
         asset_type: "stock",
         symbol: "",
@@ -406,6 +523,7 @@ function PortfolioAnalyzer() {
         purchase_price: "",
         purchase_date: new Date().toISOString().split("T")[0],
       });
+      setIsPaperTrade(false);
       fetchPortfolio();
       if (typeof window.gtag === "function") {
         window.gtag("event", "portfolio_entry_added", {
@@ -437,23 +555,51 @@ function PortfolioAnalyzer() {
     }
   };
 
+  const filteredEntries = useMemo(
+    () =>
+      mode === "virtual"
+        ? entries.filter((e) => e.is_paper_trade)
+        : entries.filter((e) => !e.is_paper_trade),
+    [entries, mode]
+  );
+
+  const filteredSummary = useMemo<PortfolioSummary | null>(() => {
+    if (filteredEntries.length === 0) return null;
+    const total_value = filteredEntries.reduce(
+      (s, e) => s + (e.current_value ?? 0),
+      0
+    );
+    const total_gain_loss = filteredEntries.reduce(
+      (s, e) => s + (e.gain_loss ?? 0),
+      0
+    );
+    const allocation = filteredEntries.reduce<Record<string, number>>(
+      (acc, e) => {
+        acc[e.asset_type] = (acc[e.asset_type] ?? 0) + (e.current_value ?? 0);
+        return acc;
+      },
+      {}
+    );
+    return { total_value, total_gain_loss, allocation };
+  }, [filteredEntries]);
+
   const chartData = useMemo(() => {
-    if (!summary?.allocation) return [];
-    return Object.entries(summary.allocation).map(([key, value]) => ({
+    if (!filteredSummary?.allocation) return [];
+    return Object.entries(filteredSummary.allocation).map(([key, value]) => ({
       name: t(`tools.portfolio.assetType.${key}`),
       value: Number(value),
     }));
-  }, [summary, t]);
+  }, [filteredSummary, t]);
 
   const totalGainLossPercentage = useMemo(() => {
-    if (!summary || !summary.total_value || summary.total_value === 0) return 0;
-    const totalCost = entries.reduce(
+    if (!filteredSummary || filteredSummary.total_value === 0) return 0;
+    const totalCost = filteredEntries.reduce(
       (sum, entry) => sum + (entry.purchase_price * entry.quantity || 0),
       0
     );
     if (totalCost === 0) return 0;
-    return (summary.total_gain_loss / totalCost) * 100;
-  }, [summary, entries]);
+    return (filteredSummary.total_gain_loss / totalCost) * 100;
+  }, [filteredSummary, filteredEntries]);
 
   const explainPortfolioInPlainLanguage = useCallback(async () => {
     if (!summary || entries.length === 0) return;
@@ -762,7 +908,7 @@ function PortfolioAnalyzer() {
     );
   }
 
-  const hasEntries = entries.length > 0;
+  const hasEntries = filteredEntries.length > 0;
 
   return (
     <section className="space-y-6 min-w-0 w-full">
@@ -774,6 +920,35 @@ function PortfolioAnalyzer() {
           {t("tools.portfolio.subtitle")}
         </p>
       </header>
+
+      {/* Real / Virtual toggle */}
+      <div className="flex items-center justify-center gap-2">
+        {(["real", "virtual"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+              mode === m
+                ? "bg-[color:var(--primary,#1d5330)] text-white shadow"
+                : "border border-[color:var(--border-color,#d1d5db)] text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+            }`}
+          >
+            {m === "real" ? "Real Portfolio" : "Virtual Portfolio"}
+          </button>
+        ))}
+      </div>
+      {mode === "virtual" && virtualBalance !== null && (
+        <p className="text-center text-sm text-content-muted">
+          Virtual cash available:{" "}
+          <span className="font-bold text-content-primary">
+            {formatCurrency(virtualBalance, "USD", locale, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </p>
+      )}
 
       {error && (
         <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
@@ -835,7 +1010,7 @@ function PortfolioAnalyzer() {
         </div>
       )}
 
-      {summary && hasEntries && (
+      {filteredSummary && hasEntries && (
         <>
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-w-0">
             <div
@@ -850,10 +1025,15 @@ function PortfolioAnalyzer() {
               </h4>
               <div className="space-y-1">
                 <p className="text-3xl font-bold text-content-primary">
-                  {formatCurrency(summary.total_value || 0, "USD", locale, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {formatCurrency(
+                    filteredSummary.total_value || 0,
+                    "USD",
+                    locale,
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  )}
                 </p>
                 <p className="text-xs text-content-muted">
                   {t("tools.portfolio.currentValue")}
@@ -874,14 +1054,14 @@ function PortfolioAnalyzer() {
               <div className="space-y-1">
                 <p
                   className={`text-3xl font-bold ${
-                    summary.total_gain_loss >= 0
+                    filteredSummary.total_gain_loss >= 0
                       ? "text-emerald-500"
                       : "text-[color:var(--error,#dc2626)]"
                   }`}
                 >
-                  {summary.total_gain_loss >= 0 ? "+" : ""}
+                  {filteredSummary.total_gain_loss >= 0 ? "+" : ""}
                   {formatCurrency(
-                    Math.abs(summary.total_gain_loss || 0),
+                    Math.abs(filteredSummary.total_gain_loss || 0),
                     "USD",
                     locale,
                     { minimumFractionDigits: 2, maximumFractionDigits: 2 }
@@ -889,7 +1069,7 @@ function PortfolioAnalyzer() {
                 </p>
                 <p
                   className={`text-xs ${
-                    summary.total_gain_loss >= 0
+                    filteredSummary.total_gain_loss >= 0
                       ? "text-emerald-600"
                       : "text-[color:var(--error,#dc2626)]"
                   }`}
@@ -1165,39 +1345,51 @@ function PortfolioAnalyzer() {
                     Breakdown
                   </p>
                   <div className="space-y-3">
-                    {Object.entries(summary.allocation).map(([type, value]) => {
-                      const percentage =
-                        summary.total_value > 0
-                          ? (Number(value) / summary.total_value) * 100
-                          : 0;
-                      const percentageLabel = formatNumber(percentage, locale, {
-                        maximumFractionDigits: 1,
-                      });
-                      return (
-                        <div key={type} className="space-y-1">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-content-primary">
-                              {t(`tools.portfolio.assetType.${type}`)}
-                            </span>
-                            <span className="text-content-muted">
-                              {percentageLabel}%
-                            </span>
+                    {Object.entries(filteredSummary.allocation).map(
+                      ([type, value]) => {
+                        const percentage =
+                          filteredSummary.total_value > 0
+                            ? (Number(value) / filteredSummary.total_value) *
+                              100
+                            : 0;
+                        const percentageLabel = formatNumber(
+                          percentage,
+                          locale,
+                          {
+                            maximumFractionDigits: 1,
+                          }
+                        );
+                        return (
+                          <div key={type} className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-content-primary">
+                                {t(`tools.portfolio.assetType.${type}`)}
+                              </span>
+                              <span className="text-content-muted">
+                                {percentageLabel}%
+                              </span>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                              <div
+                                className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                            <p className="text-xs text-content-muted">
+                              {formatCurrency(
+                                Number(value || 0),
+                                "USD",
+                                locale,
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </p>
                           </div>
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
-                            <div
-                              className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <p className="text-xs text-content-muted">
-                            {formatCurrency(Number(value || 0), "USD", locale, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </p>
-                        </div>
-                      );
-                    })}
+                        );
+                      }
+                    )}
                   </div>
                 </div>
               </div>
@@ -1250,41 +1442,72 @@ function PortfolioAnalyzer() {
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
               Symbol
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="symbol"
-                  value={newEntry.symbol}
-                  onChange={handleInputChange}
-                  placeholder={t("tools.portfolio.symbolPlaceholder")}
-                  required
-                  className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
-                />
-                <button
-                  type="button"
-                  onClick={handleLookupPrice}
-                  disabled={lookupLoading || !newEntry.symbol.trim()}
-                  className="shrink-0 rounded-full border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/20 disabled:opacity-50"
-                >
-                  {lookupLoading
-                    ? t("tools.portfolio.lookupLoading")
-                    : t("tools.portfolio.getPrice")}
-                </button>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={symbolQuery}
+                    onChange={(e) => handleSymbolQueryChange(e.target.value)}
+                    onBlur={() => setTimeout(() => setSymbolResults([]), 150)}
+                    placeholder="Search Apple, BTC, TSLA…"
+                    required
+                    className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleLookupPrice}
+                    disabled={lookupLoading || !newEntry.symbol.trim()}
+                    className="shrink-0 rounded-full border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/20 disabled:opacity-50"
+                  >
+                    {lookupLoading
+                      ? t("tools.portfolio.lookupLoading")
+                      : t("tools.portfolio.getPrice")}
+                  </button>
+                </div>
+                {(symbolResults.length > 0 || symbolSearchLoading) && (
+                  <div className="absolute z-50 mt-1 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] shadow-lg overflow-hidden">
+                    {symbolSearchLoading && (
+                      <p className="px-4 py-3 text-xs text-content-muted">
+                        Searching…
+                      </p>
+                    )}
+                    {symbolResults.map((asset) => (
+                      <button
+                        key={asset.symbol}
+                        type="button"
+                        onMouseDown={() => void handleSelectAsset(asset)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors border-b border-[color:var(--border-color,#d1d5db)] last:border-b-0"
+                      >
+                        <div>
+                          <span className="text-sm font-bold text-content-primary">
+                            {asset.symbol}
+                          </span>
+                          <p className="text-xs text-content-muted truncate max-w-[180px]">
+                            {asset.name}
+                          </p>
+                        </div>
+                        <span className="ml-3 shrink-0 text-[10px] font-semibold uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          {asset.type}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {lookupError && (
+                  <p className="mt-1 text-xs text-[color:var(--error,#dc2626)]">
+                    {lookupError}
+                  </p>
+                )}
+                {lookupPrice != null && !lookupError && (
+                  <p className="mt-1 text-xs text-content-muted">
+                    {t("tools.portfolio.currentPrice")}:{" "}
+                    {formatCurrency(lookupPrice, "USD", locale, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                )}
               </div>
-              {lookupError && (
-                <p className="mt-1 text-xs text-[color:var(--error,#dc2626)]">
-                  {lookupError}
-                </p>
-              )}
-              {lookupPrice != null && !lookupError && (
-                <p className="mt-1 text-xs text-content-muted">
-                  {t("tools.portfolio.currentPrice")}:{" "}
-                  {formatCurrency(lookupPrice, "USD", locale, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </p>
-              )}
             </label>
 
             <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -1326,11 +1549,28 @@ function PortfolioAnalyzer() {
                 className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               />
             </label>
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-wide text-content-muted">
+              <input
+                type="checkbox"
+                checked={isPaperTrade}
+                onChange={(e) => setIsPaperTrade(e.target.checked)}
+                className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] accent-[color:var(--primary,#1d5330)]"
+              />
+              Paper trade (use virtual cash)
+              {isPaperTrade && virtualBalance !== null && (
+                <span className="ml-auto font-normal normal-case text-content-muted">
+                  Balance:{" "}
+                  {formatCurrency(virtualBalance, "USD", locale, {
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
+              )}
+            </label>
             <button
               type="submit"
               className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
-              Add Entry
+              {isPaperTrade ? "Buy with Virtual Cash" : "Add Entry"}
             </button>
           </form>
         </div>
@@ -1348,7 +1588,8 @@ function PortfolioAnalyzer() {
             </h4>
             {hasEntries && (
               <span className="text-xs text-content-muted">
-                {entries.length} {entries.length === 1 ? "entry" : "entries"}
+                {filteredEntries.length}{" "}
+                {filteredEntries.length === 1 ? "entry" : "entries"}
               </span>
             )}
           </div>
@@ -1386,7 +1627,7 @@ function PortfolioAnalyzer() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]">
-                    {entries.map((entry) => (
+                    {filteredEntries.map((entry) => (
                       <tr
                         key={entry.id}
                         className="text-content-primary hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors"
