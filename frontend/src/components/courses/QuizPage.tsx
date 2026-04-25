@@ -122,6 +122,7 @@ function QuizPage() {
     void queryClient.invalidateQueries({
       queryKey: queryKeys.recentActivity(),
     });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.missions() });
   }, [queryClient]);
 
   const handleSubmit = async () => {

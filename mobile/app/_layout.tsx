@@ -18,6 +18,7 @@ import { initI18nMobile } from "../src/bootstrap/i18nMobile";
 import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
+import { RootErrorBoundary } from "../src/components/common/RootErrorBoundary";
 import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 
@@ -85,19 +86,21 @@ function ThemedRoot() {
 
 export default function RootLayout() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <View style={styles.root}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <AuthProvider>
-              <SafeAreaProvider>
-                <ThemedRoot />
-              </SafeAreaProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </View>
-    </I18nextProvider>
+    <RootErrorBoundary>
+      <I18nextProvider i18n={i18n}>
+        <View style={styles.root}>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+              <AuthProvider>
+                <SafeAreaProvider>
+                  <ThemedRoot />
+                </SafeAreaProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </View>
+      </I18nextProvider>
+    </RootErrorBoundary>
   );
 }
 

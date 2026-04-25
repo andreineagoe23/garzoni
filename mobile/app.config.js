@@ -81,6 +81,8 @@ module.exports = ({ config }) => ({
       UIDeviceFamily: [1],
       NSPhotoLibraryUsageDescription:
         "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
+      NSUserNotificationsUsageDescription:
+        "Garzoni sends notifications to remind you of daily learning goals, streak milestones, and mission completions.",
       ...(allowInsecureLocalHttp
         ? {
             NSAppTransportSecurity: {
