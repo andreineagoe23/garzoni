@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@amplitude/analytics-browser": "^2.33.5",
+    "@amplitude/analytics-browser": "^2.41.1",
     "@ckeditor/ckeditor5-build-classic": "41.4.2",
     "@fontsource/geist-sans": "^5.2.5",
     "@fontsource/jetbrains-mono": "^5.2.8",
