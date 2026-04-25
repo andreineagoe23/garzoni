@@ -34,3 +34,4 @@ frontend/.env
 *.swo
 
 # TypeScript config (tracked for TypeScript builds)
+.tsbuildinfo

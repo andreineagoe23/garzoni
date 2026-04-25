@@ -70,6 +70,7 @@ export default function LessonCheckpointQuizModal({
     void queryClient.invalidateQueries({
       queryKey: queryKeys.recentActivity(),
     });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.missions() });
     if (Number.isFinite(courseId) && courseId > 0) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.lessonsWithProgress(courseId),

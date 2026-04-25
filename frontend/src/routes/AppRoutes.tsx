@@ -154,7 +154,7 @@ const AppRoutes = () => {
         element={protectedWithBoundary(<PricingFunnelDashboard />)}
       />
       <Route path="/tools/*" element={protectedWithBoundary(<ToolsPage />)} />
-      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/welcome" element={<Navigate to="/" replace />} />
       <Route path="/marketing" element={<MarketingPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/password-reset" element={<ResetPasswordDrfToken />} />

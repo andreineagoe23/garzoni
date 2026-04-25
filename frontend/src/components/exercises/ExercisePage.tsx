@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import MascotMedia from "components/common/MascotMedia";
 import MascotWithMessage from "components/common/MascotWithMessage";
@@ -50,6 +50,7 @@ const ExercisePage = () => {
   const { isInitialized, isAuthenticated, entitlements, settings } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { exerciseId } = useParams<{ exerciseId?: string }>();
   const { trackEvent } = useAnalytics();
   const [streak, setStreak] = useState(0);
   const [showStats, setShowStats] = useState(false);
@@ -709,8 +710,44 @@ const ExercisePage = () => {
   useEffect(() => {
     if (!isInitialized || !isAuthenticated) return;
     if (!skillFetchReady) return;
+    if (exerciseId) return;
     void fetchExercises();
-  }, [isInitialized, isAuthenticated, fetchExercises, skillFetchReady]);
+  }, [
+    isInitialized,
+    isAuthenticated,
+    fetchExercises,
+    skillFetchReady,
+    exerciseId,
+  ]);
+
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated || !exerciseId) return;
+    const numericId = Number(exerciseId);
+    if (!Number.isFinite(numericId)) return;
+    setLoading(true);
+    setError("");
+    apiClient
+      .get(`/exercises/${numericId}/`)
+      .then(async (res) => {
+        const list = validateExerciseList([res.data]);
+        setExercises(list);
+        setLessonExercises(list);
+        setCurrentExerciseIndex(0);
+        setMode("lesson");
+        await hydrateProgressFromBackend(list);
+      })
+      .catch((err) => {
+        if (!isAbortLike(err)) setError(t("exercises.errors.loadFailed"));
+      })
+      .finally(() => setLoading(false));
+  }, [
+    isInitialized,
+    isAuthenticated,
+    exerciseId,
+    hydrateProgressFromBackend,
+    validateExerciseList,
+    t,
+  ]);
 
   useEffect(() => {
     return () => {

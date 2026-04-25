@@ -506,6 +506,7 @@ function CourseFlowPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.missions() });
     },
     onError: () => toast.error(t("courses.flow.saveProgressFailed")),
   });
