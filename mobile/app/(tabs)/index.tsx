@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   RefreshControl,
   StyleSheet,
@@ -428,15 +429,24 @@ function DashboardInner() {
     questionnaireProgress,
   ]);
 
+  const STREAK_STORAGE_KEY = "garzoni:last_known_streak";
   useEffect(() => {
     if (!profileQuery.isFetched || freezeModalShownRef.current) return;
-    const streakVal = Number(profile?.streak ?? -1);
-    const points = Number(profile?.points ?? 0);
-    if (streakVal === 0 && points > 0) {
-      freezeModalShownRef.current = true;
-      setFreezeModalVisible(true);
-    }
-  }, [profileQuery.isFetched, profile?.streak, profile?.points]);
+    const current = Number(profile?.streak ?? 0);
+
+    AsyncStorage.getItem(STREAK_STORAGE_KEY).then((stored) => {
+      const previous = stored !== null ? parseInt(stored, 10) : current;
+
+      // Only show if streak meaningfully broke: was >3 last session, now 0.
+      if (previous > 3 && current === 0 && !freezeModalShownRef.current) {
+        freezeModalShownRef.current = true;
+        setFreezeModalVisible(true);
+      }
+
+      // Persist latest streak so next session can compare.
+      void AsyncStorage.setItem(STREAK_STORAGE_KEY, String(current));
+    });
+  }, [profileQuery.isFetched, profile?.streak]);
 
   const summary = useDashboardSummary({
     progressResponse: progressQuery.data
