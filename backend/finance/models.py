@@ -173,6 +173,7 @@ class PortfolioEntry(models.Model):
     purchase_price = models.DecimalField(max_digits=20, decimal_places=8)
     purchase_date = models.DateField()
     current_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    previous_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True)
     is_paper_trade = models.BooleanField(default=False)
 

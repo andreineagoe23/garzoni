@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   RefreshControl,
   StyleSheet,
@@ -48,6 +48,7 @@ import { spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
+import StreakFreezeModal from "../../src/components/gamification/StreakFreezeModal";
 
 type WeakSkill = {
   skill: string;
@@ -165,6 +166,8 @@ function DashboardInner() {
   const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<string | null>(
     null,
   );
+  const [freezeModalVisible, setFreezeModalVisible] = useState(false);
+  const freezeModalShownRef = useRef(false);
   const { t, i18n } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const authReady = hydrated;
@@ -424,6 +427,16 @@ function DashboardInner() {
     questionnaireQuery.isFetching,
     questionnaireProgress,
   ]);
+
+  useEffect(() => {
+    if (!profileQuery.isFetched || freezeModalShownRef.current) return;
+    const streakVal = Number(profile?.streak ?? -1);
+    const points = Number(profile?.points ?? 0);
+    if (streakVal === 0 && points > 0) {
+      freezeModalShownRef.current = true;
+      setFreezeModalVisible(true);
+    }
+  }, [profileQuery.isFetched, profile?.streak, profile?.points]);
 
   const summary = useDashboardSummary({
     progressResponse: progressQuery.data
@@ -782,6 +795,12 @@ function DashboardInner() {
           <PrimaryCTAMobile primaryCTA={primaryCTA} />
         </View>
       </ScreenScroll>
+      <StreakFreezeModal
+        visible={freezeModalVisible}
+        coinBalance={Number(profile?.earned_money ?? 0)}
+        onDismiss={() => setFreezeModalVisible(false)}
+        onStreakRestored={() => setFreezeModalVisible(false)}
+      />
     </View>
   );
 }

@@ -11,12 +11,14 @@ import { spacing, typography, radius } from "../../theme/tokens";
 
 type Props = {
   streakCount: number;
+  freezeCount?: number;
   label?: string;
   style?: StyleProp<ViewStyle>;
 };
 
 export default function StreakBanner({
   streakCount,
+  freezeCount,
   label = "Day streak",
   style,
 }: Props) {
@@ -36,6 +38,21 @@ export default function StreakBanner({
         <Text style={[styles.value, { color: c.text }]}>{streakCount}</Text>
         <Text style={[styles.label, { color: c.textMuted }]}>{label}</Text>
       </View>
+      {typeof freezeCount === "number" && freezeCount > 0 ? (
+        <View
+          style={[
+            styles.freezeBadge,
+            {
+              backgroundColor: `${c.primary}22`,
+              borderColor: `${c.primary}44`,
+            },
+          ]}
+        >
+          <Text style={[styles.freezeText, { color: c.primary }]}>
+            ❄️ {freezeCount}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -50,7 +67,19 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: spacing.md,
   },
-  copy: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm },
+  copy: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: spacing.sm,
+    flex: 1,
+  },
   value: { fontSize: typography.xl, fontWeight: "800" },
   label: { fontSize: typography.sm, fontWeight: "600" },
+  freezeBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  freezeText: { fontSize: typography.xs, fontWeight: "700" },
 });

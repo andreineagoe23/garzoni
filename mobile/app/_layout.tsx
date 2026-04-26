@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Stack } from "expo-router";
+import { useEffect, useState } from "react";
+import { Stack, usePathname } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet } from "react-native";
 import Toast from "react-native-toast-message";
@@ -20,6 +20,8 @@ import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
 import { RootErrorBoundary } from "../src/components/common/RootErrorBoundary";
 import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
+import { useShakeDetection } from "../src/hooks/useShakeDetection";
+import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 
 initStorageMobile();
@@ -28,7 +30,14 @@ initI18nMobile();
 
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
+  const pathname = usePathname();
+  const [shakeModalVisible, setShakeModalVisible] = useState(false);
   useNativeOnlineSync();
+
+  useShakeDetection({
+    onShake: () => setShakeModalVisible(true),
+    enabled: true,
+  });
 
   useEffect(() => {
     void initCustomerIoMobile();
@@ -78,6 +87,11 @@ function ThemedRoot() {
             />
           </Stack>
         </View>
+        <ShakeFeedbackModal
+          visible={shakeModalVisible}
+          currentRoute={pathname}
+          onDismiss={() => setShakeModalVisible(false)}
+        />
         <Toast />
       </View>
     </NavigationThemeProvider>

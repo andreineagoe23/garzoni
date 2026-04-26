@@ -49,6 +49,9 @@ import { InsightCard as InsightCardComponent } from "../../../src/components/too
 import { AddEntrySheet } from "../../../src/components/tools/portfolio/AddEntrySheet";
 import { AiExplanationSheet } from "../../../src/components/tools/portfolio/AiExplanationSheet";
 import { logDevError } from "../../../src/lib/logDevError";
+import ConfettiCannon from "react-native-confetti-cannon";
+import { useRouter } from "expo-router";
+import { href } from "../../../src/navigation/href";
 
 // ─── Allocation bar component ────────────────────────────────────────────────
 
@@ -116,9 +119,9 @@ const barStyles = StyleSheet.create({
   value: { fontSize: typography.xs },
 });
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// ─── Empty states ─────────────────────────────────────────────────────────────
 
-function EmptyState({
+function RealEmptyState({
   onTryStock,
   onTryCrypto,
 }: {
@@ -170,6 +173,64 @@ function EmptyState({
   );
 }
 
+function VirtualEmptyState({
+  onExploreMarket,
+}: {
+  onExploreMarket: () => void;
+}) {
+  const c = useThemeColors();
+  return (
+    <View
+      style={[
+        emptyStyles.card,
+        { backgroundColor: c.surface, borderColor: c.border },
+        shadows.md,
+      ]}
+    >
+      <Text style={emptyStyles.emoji}>🎯</Text>
+      <View
+        style={[emptyStyles.missionBadge, { backgroundColor: c.accentMuted }]}
+      >
+        <Text style={[emptyStyles.missionBadgeText, { color: c.accent }]}>
+          MISSION AVAILABLE
+        </Text>
+      </View>
+      <Text style={[emptyStyles.title, { color: c.text }]}>
+        Make your first virtual trade
+      </Text>
+      <Text style={[emptyStyles.sub, { color: c.textMuted }]}>
+        Buy any stock or crypto with your $10,000 virtual cash. No real money —
+        just learn how markets work.
+      </Text>
+      <View
+        style={[
+          emptyStyles.rewardRow,
+          { backgroundColor: c.surfaceOffset, borderColor: c.border },
+        ]}
+      >
+        <Text style={emptyStyles.rewardEmoji}>⚡</Text>
+        <Text style={[emptyStyles.rewardText, { color: c.text }]}>500 XP</Text>
+        <Text style={[emptyStyles.rewardSep, { color: c.textFaint }]}>·</Text>
+        <Text style={emptyStyles.rewardEmoji}>🥉</Text>
+        <Text style={[emptyStyles.rewardText, { color: c.text }]}>
+          First Investor Badge
+        </Text>
+      </View>
+      <Pressable
+        onPress={onExploreMarket}
+        style={({ pressed }) => [
+          emptyStyles.ctaBtn,
+          { backgroundColor: c.primary, opacity: pressed ? 0.85 : 1 },
+        ]}
+      >
+        <Text style={[emptyStyles.ctaBtnText, { color: c.textOnPrimary }]}>
+          Explore the Market →
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
 const emptyStyles = StyleSheet.create({
   card: {
     borderRadius: radius.lg,
@@ -179,7 +240,7 @@ const emptyStyles = StyleSheet.create({
     gap: spacing.md,
   },
   emoji: { fontSize: 48 },
-  title: { fontSize: typography.xl, fontWeight: "700" },
+  title: { fontSize: typography.xl, fontWeight: "700", textAlign: "center" },
   sub: {
     fontSize: typography.sm,
     textAlign: "center",
@@ -193,6 +254,36 @@ const emptyStyles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   demoBtnText: { fontSize: typography.xs, fontWeight: "700" },
+  missionBadge: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+  },
+  missionBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  rewardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  rewardEmoji: { fontSize: 14 },
+  rewardText: { fontSize: typography.sm, fontWeight: "700" },
+  rewardSep: { fontSize: typography.sm, marginHorizontal: spacing.xs },
+  ctaBtn: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    marginTop: spacing.xs,
+  },
+  ctaBtnText: { fontSize: typography.sm, fontWeight: "700" },
 });
 
 // ─── Risk badge — built inside component (theme-aware) ───────────────────────
@@ -242,6 +333,7 @@ function useStatusConfigs() {
 
 export default function PortfolioScreen() {
   const c = useThemeColors();
+  const router = useRouter();
   const { risk: RISK_CONFIG, alignment: ALIGNMENT_CONFIG } = useStatusConfigs();
 
   // Data state
@@ -258,6 +350,17 @@ export default function PortfolioScreen() {
   // Sheet visibility
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [aiSheetOpen, setAiSheetOpen] = useState(false);
+
+  // First trade celebration
+  const confettiRef = useRef<ConfettiCannon>(null);
+  const [xpBanner, setXpBanner] = useState<number | null>(null);
+
+  const handleFirstTrade = useCallback((xpGained: number) => {
+    confettiRef.current?.start();
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setXpBanner(xpGained);
+    setTimeout(() => setXpBanner(null), 4000);
+  }, []);
 
   // AI state
   const [aiLoading, setAiLoading] = useState(false);
@@ -855,8 +958,15 @@ export default function PortfolioScreen() {
             )}
 
             {/* Empty state */}
-            {filteredEntries.length === 0 && (
-              <EmptyState
+            {filteredEntries.length === 0 && mode === "virtual" && (
+              <VirtualEmptyState
+                onExploreMarket={() =>
+                  router.push(href("/(tabs)/tools/market-explorer"))
+                }
+              />
+            )}
+            {filteredEntries.length === 0 && mode === "real" && (
+              <RealEmptyState
                 onTryStock={handleDemoStock}
                 onTryCrypto={handleDemoCrypto}
               />
@@ -1107,9 +1217,9 @@ export default function PortfolioScreen() {
       <AddEntrySheet
         visible={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
-        onAdded={() => {
-          void fetchPortfolio(true);
-        }}
+        onAdded={() => void fetchPortfolio(true)}
+        isPaperTrade={mode === "virtual"}
+        onFirstTrade={handleFirstTrade}
       />
       <AiExplanationSheet
         visible={aiSheetOpen}
@@ -1118,9 +1228,55 @@ export default function PortfolioScreen() {
         error={aiError}
         text={aiText}
       />
+
+      {/* XP earned banner */}
+      {xpBanner != null && (
+        <View
+          pointerEvents="none"
+          style={[
+            xpBannerStyles.banner,
+            { backgroundColor: c.surface, borderColor: c.border },
+            shadows.lg,
+          ]}
+        >
+          <Text style={xpBannerStyles.emoji}>⚡</Text>
+          <Text style={[xpBannerStyles.text, { color: c.text }]}>
+            +{xpBanner} XP — First Investor!
+          </Text>
+          <Text style={xpBannerStyles.badge}>🥉</Text>
+        </View>
+      )}
+
+      {/* Confetti */}
+      <ConfettiCannon
+        ref={confettiRef}
+        count={120}
+        origin={{ x: -10, y: 0 }}
+        autoStart={false}
+        fadeOut
+      />
     </>
   );
 }
+
+const xpBannerStyles = StyleSheet.create({
+  banner: {
+    position: "absolute",
+    bottom: 100,
+    left: spacing.xl,
+    right: spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  emoji: { fontSize: 20 },
+  text: { flex: 1, fontSize: typography.sm, fontWeight: "700" },
+  badge: { fontSize: 20 },
+});
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
