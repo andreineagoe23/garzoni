@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from "recharts";
 import toast from "react-hot-toast";
+import confetti from "canvas-confetti";
 import { useAuth } from "contexts/AuthContext";
 import apiClient from "services/httpClient";
 import { formatCurrency, formatNumber, getLocale } from "utils/format";
@@ -510,9 +511,17 @@ function PortfolioAnalyzer() {
         if (res.data?.remaining_balance !== undefined) {
           setVirtualBalance(Number(res.data.remaining_balance));
         }
-        toast.success(
-          `Bought ${newEntry.symbol.toUpperCase()} with virtual cash. Balance: $${Number(res.data?.remaining_balance ?? 0).toFixed(2)}`
-        );
+        if (res.data?.xp_gained > 0) {
+          confetti({ particleCount: 160, spread: 80, origin: { y: 0.55 } });
+          toast.success(
+            `⚡ +${res.data.xp_gained} XP — First Investor Badge earned! 🥉`,
+            { duration: 5000 }
+          );
+        } else {
+          toast.success(
+            `Bought ${newEntry.symbol.toUpperCase()} with virtual cash. Balance: $${Number(res.data?.remaining_balance ?? 0).toFixed(2)}`
+          );
+        }
       } else {
         await apiClient.post("/portfolio/", newEntry);
       }
@@ -956,7 +965,42 @@ function PortfolioAnalyzer() {
         </div>
       )}
 
-      {!hasEntries && !loading && (
+      {!hasEntries && !loading && mode === "virtual" && (
+        <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
+          <div className="mx-auto max-w-md space-y-4">
+            <div className="text-6xl">🎯</div>
+            <span className="inline-block rounded-full bg-[color:var(--accent,#ffd700)]/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[color:var(--accent,#b45309)]">
+              Mission Available
+            </span>
+            <h4 className="text-xl font-bold text-content-primary">
+              Make your first virtual trade
+            </h4>
+            <p className="text-sm text-content-muted">
+              Buy any stock or crypto with your $10,000 virtual cash. No real
+              money — just learn how markets work.
+            </p>
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3">
+              <span className="text-base">⚡</span>
+              <span className="text-sm font-bold text-content-primary">
+                500 XP
+              </span>
+              <span className="text-content-faint">·</span>
+              <span className="text-base">🥉</span>
+              <span className="text-sm font-bold text-content-primary">
+                First Investor Badge
+              </span>
+            </div>
+            <Link
+              to="/tools/market-explorer"
+              className="mt-2 inline-block rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90"
+            >
+              Explore the Market →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {!hasEntries && !loading && mode === "real" && (
         <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">📊</div>
@@ -995,16 +1039,6 @@ function PortfolioAnalyzer() {
               >
                 {t("tools.portfolio.loadSampleCrypto")}
               </button>
-            </div>
-            <div className="mt-6 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wide text-content-muted mb-2">
-                {t("tools.portfolio.tryThis")}
-              </p>
-              <ul className="space-y-1 text-xs text-content-muted">
-                <li>• {t("tools.portfolio.tryThisBullet1")}</li>
-                <li>• {t("tools.portfolio.tryThisBullet2")}</li>
-                <li>• {t("tools.portfolio.tryThisBullet3")}</li>
-              </ul>
             </div>
           </div>
         </div>

@@ -20,6 +20,7 @@ class CioTemplate(str, Enum):
     REFERRAL_REFERRER = "referral-referrer"
     REFERRAL_REFERRED = "referral-referred"
     STREAK_BROKEN = "streak-broken"
+    PORTFOLIO_UPDATE = "portfolio-update"
 
 
 class CioEventName(str, Enum):

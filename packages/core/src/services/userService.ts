@@ -341,6 +341,18 @@ export type StreakItemDto = {
 export const fetchStreakItems = () =>
   apiClient.get<{ items: StreakItemDto[] }>("/streak-items/");
 
+export type UseStreakItemResult = {
+  message?: string;
+  method?: "inventory" | "coins";
+  remaining?: number;
+  remaining_coins?: number;
+  streak?: number;
+  error?: string;
+};
+
+export const postStreakItem = (item_type: "streak_freeze" | "streak_boost") =>
+  apiClient.post<UseStreakItemResult>("/streak-items/", { item_type });
+
 export const swapMission = (missionId: number) =>
   apiClient.post<{ message?: string }>("/missions/swap/", {
     mission_id: missionId,

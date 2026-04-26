@@ -1,4 +1,6 @@
 # gamification/views.py
+from decimal import Decimal
+
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -10,7 +12,7 @@ import random
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Avg, Q, Sum
+from django.db.models import Avg, F, Q, Sum
 from django.core.cache import cache
 import json
 
@@ -615,7 +617,7 @@ class StreakItemView(APIView):
         )
 
     def post(self, request):
-        """Use a streak item."""
+        """Use a streak item. For streak_freeze, falls back to coin purchase if inventory empty."""
         user = request.user
         item_type = request.data.get("item_type")
 
@@ -623,42 +625,88 @@ class StreakItemView(APIView):
             return Response({"error": "Invalid item type."}, status=400)
 
         try:
+            if item_type == "streak_freeze":
+                return self._use_streak_freeze(user)
+
             with transaction.atomic():
                 item = StreakItem.objects.filter(
                     user=user, item_type=item_type, quantity__gt=0
                 ).first()
-
                 if not item:
                     return Response({"error": f"No {item_type} items available."}, status=400)
-
-                if item_type == "streak_freeze":
-                    used = user.profile.apply_manual_streak_freezes(max_uses=1)
-                    if not used:
-                        return Response(
-                            {"error": "No streak gap to repair, or no freezes available."},
-                            status=400,
-                        )
-                    item.refresh_from_db(fields=["quantity"])
-                    return Response(
-                        {
-                            "message": f"{item_type} used successfully.",
-                            "remaining": item.quantity,
-                        }
-                    )
-
                 item.quantity -= 1
                 item.save(update_fields=["quantity"])
-
                 return Response(
-                    {
-                        "message": f"{item_type} used successfully.",
-                        "remaining": item.quantity,
-                    }
+                    {"message": f"{item_type} used successfully.", "remaining": item.quantity}
                 )
 
         except Exception as e:
             logger.error(f"Error using streak item: {str(e)}")
             return Response({"error": "An error occurred."}, status=500)
+
+    def _use_streak_freeze(self, user):
+        """Apply streak freeze from inventory; if empty, spend FREEZE_COIN_COST coins to buy one."""
+        FREEZE_COIN_COST = Decimal("10")
+
+        class _NoGapError(Exception):
+            pass
+
+        now = timezone.now()
+        has_inventory = (
+            StreakItem.objects.filter(
+                user=user,
+                item_type="streak_freeze",
+                quantity__gt=0,
+            )
+            .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+            .exists()
+        )
+
+        profile = user.profile
+        has_coins = Decimal(str(profile.earned_money or 0)) >= FREEZE_COIN_COST
+
+        if not has_inventory and not has_coins:
+            return Response({"error": "no_freezes_or_coins"}, status=402)
+
+        method = "inventory" if has_inventory else "coins"
+        response_data: dict = {}
+
+        try:
+            with transaction.atomic():
+                locked_profile = UserProfile.objects.select_for_update().get(pk=profile.pk)
+
+                if method == "coins":
+                    if Decimal(str(locked_profile.earned_money or 0)) < FREEZE_COIN_COST:
+                        return Response({"error": "no_freezes_or_coins"}, status=402)
+                    UserProfile.objects.filter(pk=locked_profile.pk).update(
+                        earned_money=F("earned_money") - FREEZE_COIN_COST
+                    )
+                    item_obj, _ = StreakItem.objects.get_or_create(
+                        user=user, item_type="streak_freeze", defaults={"quantity": 0}
+                    )
+                    StreakItem.objects.filter(pk=item_obj.pk).update(quantity=F("quantity") + 1)
+
+                locked_profile.refresh_from_db()
+                used = locked_profile.apply_manual_streak_freezes(max_uses=1)
+                if not used:
+                    raise _NoGapError()
+
+                freeze_item = StreakItem.objects.filter(
+                    user=user, item_type="streak_freeze"
+                ).first()
+                locked_profile.refresh_from_db(fields=["earned_money", "streak"])
+                response_data = {
+                    "message": "Streak freeze applied.",
+                    "method": method,
+                    "remaining": freeze_item.quantity if freeze_item else 0,
+                    "remaining_coins": float(locked_profile.earned_money or 0),
+                    "streak": int(locked_profile.streak or 0),
+                }
+
+        except _NoGapError:
+            return Response({"error": "No streak gap to repair."}, status=400)
+
+        return Response(response_data)
 
 
 class MissionGenerationView(APIView):

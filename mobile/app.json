@@ -2,7 +2,7 @@
   "expo": {
     "name": "Garzoni",
     "slug": "garzoni",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "garzoni",
@@ -17,7 +17,7 @@
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "6",
+      "buildNumber": "0",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {

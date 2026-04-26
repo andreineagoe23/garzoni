@@ -67,4 +67,8 @@ app.conf.beat_schedule = {
         "task": "finance.tasks.refresh_news_feed_cache_task",
         "schedule": crontab(minute="*/3"),
     },
+    "send-portfolio-push": {
+        "task": "finance.tasks.send_portfolio_push_notifications",
+        "schedule": crontab(hour=17, minute=0),
+    },
 }

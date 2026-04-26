@@ -852,10 +852,38 @@ class PaperTradeBuyView(APIView):
                 is_paper_trade=True,
             )
 
+        # Grant XP + badge on first ever paper trade (idempotent via RewardLedgerEntry)
+        xp_gained = 0
+        badge_earned = None
+        try:
+            from gamification.models import Badge, UserBadge, RewardLedgerEntry as _RLE
+
+            event_key = f"first_paper_trade_{request.user.id}"
+            _, created = _RLE.objects.get_or_create(
+                user=request.user,
+                event_key=event_key,
+                defaults={"points": 500, "coins": 0},
+            )
+            if created:
+                xp_gained = 500
+                badge = Badge.objects.filter(
+                    criteria_slug="first_paper_trade", is_active=True
+                ).first()
+                if badge:
+                    _, badge_created = UserBadge.objects.get_or_create(
+                        user=request.user, badge=badge
+                    )
+                    if badge_created:
+                        badge_earned = badge.name
+        except Exception as exc:
+            logger.warning("First paper trade reward grant failed: %s", exc)
+
         return Response(
             {
                 "entry": PortfolioEntrySerializer(entry).data,
                 "remaining_balance": str(account.balance),
+                "xp_gained": xp_gained,
+                "badge_earned": badge_earned,
             },
             status=201,
         )

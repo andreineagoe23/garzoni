@@ -52,8 +52,22 @@ def reset_inactive_streaks():
                 )
                 if previous_streak > 3:
                     from authentication.tasks import send_streak_broken_email
+                    from notifications.enums import CioTemplate
+                    from notifications.policy import should_send_push
+                    from notifications.transactional import TransactionalMessages
 
                     send_streak_broken_email.delay(user.id, previous_streak)
+
+                    push_policy = should_send_push(user, "transactional")
+                    if push_policy.allowed:
+                        TransactionalMessages().send_push(
+                            CioTemplate.STREAK_BROKEN,
+                            user,
+                            {
+                                "streak_count": previous_streak,
+                                "customer_name": user.first_name or user.username or "there",
+                            },
+                        )
 
 
 def _source_hash(text: str) -> str:

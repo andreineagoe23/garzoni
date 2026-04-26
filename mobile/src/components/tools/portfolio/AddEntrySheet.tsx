@@ -34,6 +34,8 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onAdded: () => void;
+  isPaperTrade?: boolean;
+  onFirstTrade?: (xpGained: number) => void;
 };
 
 const EMPTY_FORM: NewEntryForm = {
@@ -44,7 +46,13 @@ const EMPTY_FORM: NewEntryForm = {
   purchase_date: new Date().toISOString().split("T")[0],
 };
 
-export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
+export function AddEntrySheet({
+  visible,
+  onClose,
+  onAdded,
+  isPaperTrade = false,
+  onFirstTrade,
+}: Props) {
   const c = useThemeColors();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -253,13 +261,24 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await (apiClient as any).post("/portfolio/", {
-        asset_type: form.asset_type,
-        symbol: form.symbol.trim(),
-        quantity: parseFloat(form.quantity),
-        purchase_price: parseFloat(form.purchase_price),
-        purchase_date: form.purchase_date,
-      });
+      let xpGained = 0;
+      if (isPaperTrade) {
+        const amountToSpend =
+          parseFloat(form.quantity) * parseFloat(form.purchase_price);
+        const res = await (apiClient as any).post("/paper-trade/buy/", {
+          symbol: form.symbol.trim().toUpperCase(),
+          amount_to_spend: amountToSpend,
+        });
+        xpGained = res.data?.xp_gained ?? 0;
+      } else {
+        await (apiClient as any).post("/portfolio/", {
+          asset_type: form.asset_type,
+          symbol: form.symbol.trim(),
+          quantity: parseFloat(form.quantity),
+          purchase_price: parseFloat(form.purchase_price),
+          purchase_date: form.purchase_date,
+        });
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setForm(EMPTY_FORM);
       setSymbolQuery("");
@@ -267,6 +286,7 @@ export function AddEntrySheet({ visible, onClose, onAdded }: Props) {
       setLookupPrice(null);
       onAdded();
       onClose();
+      if (xpGained > 0) onFirstTrade?.(xpGained);
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.response?.data?.error;
       setSubmitError(msg || "Failed to add entry");
