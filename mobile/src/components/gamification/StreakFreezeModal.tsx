@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  SlideInDown,
+  SlideOutDown,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { router } from "expo-router";
@@ -97,7 +101,7 @@ export default function StreakFreezeModal({
           onPress={(e) => e.stopPropagation()}
         >
           <Animated.View
-            entering={SlideInDown.duration(280).easing((t) => 1 - Math.pow(1 - t, 3))}
+            entering={SlideInDown.duration(280).easing(Easing.out(Easing.cubic))}
             exiting={SlideOutDown.duration(200)}
             style={[
               styles.sheet,

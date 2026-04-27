@@ -25,14 +25,19 @@ logger = logging.getLogger(__name__)
 APPLE_JWKS_URL = "https://appleid.apple.com/auth/keys"
 APPLE_ISSUER = "https://appleid.apple.com"
 
+# Cached at module level — reuses fetched keys across requests.
+_apple_jwks_client = PyJWKClient(APPLE_JWKS_URL, cache_keys=True)
+
 
 def _decode_apple_identity_token(token: str, allowed_audiences: list) -> dict:
-    jwks = PyJWKClient(APPLE_JWKS_URL)
-    signing_key = jwks.get_signing_key_from_jwt(token)
+    signing_key = _apple_jwks_client.get_signing_key_from_jwt(token)
+    # Use algorithm from the JWK itself — hardcoding "ES256" fails in PyJWT 2.4+
+    # when the key's algorithm attribute doesn't match the algorithms list.
+    alg = getattr(signing_key, "algorithm_name", None) or "ES256"
     return jwt.decode(
         token,
         signing_key.key,
-        algorithms=["ES256"],
+        algorithms=[alg],
         audience=allowed_audiences,
         issuer=APPLE_ISSUER,
     )
@@ -124,7 +129,12 @@ class AppleIdentityAuthView(APIView):
         try:
             claims = _decode_apple_identity_token(raw_token, audiences)
         except jwt.exceptions.PyJWTError as e:
-            logger.warning("Apple JWT verification failed: %s", e)
+            logger.warning(
+                "Apple JWT verification failed (%s): %s — audiences_configured=%r",
+                type(e).__name__,
+                e,
+                audiences,
+            )
             return Response(
                 {"detail": "Invalid or expired Apple credential.", "code": "invalid_credential"},
                 status=status.HTTP_401_UNAUTHORIZED,
