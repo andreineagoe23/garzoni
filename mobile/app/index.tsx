@@ -10,6 +10,15 @@ import {
   setPlanChosenCache,
 } from "../src/auth/firstRunFlags";
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), ms),
+    ),
+  ]);
+}
+
 type OnboardingStatus = "pending" | "done" | "needs_onboarding";
 type WelcomeStatus = "pending" | "seen" | "unseen";
 type PlanStatus = "pending" | "chosen" | "not_chosen";
@@ -55,7 +64,7 @@ export default function Index() {
 
     void (async () => {
       try {
-        const progress = await fetchQuestionnaireProgress();
+        const progress = await withTimeout(fetchQuestionnaireProgress(), 8000);
         if (cancelled) return;
         const needsOnboarding = progress.status !== "completed";
         setOnboardingStatus(needsOnboarding ? "needs_onboarding" : "done");
@@ -74,7 +83,7 @@ export default function Index() {
           setPlanStatus("chosen");
           return;
         }
-        const profile = (await fetchProfile()).data;
+        const profile = (await withTimeout(fetchProfile(), 8000)).data;
         const chosen =
           Boolean(profile.subscription_plan_id) ||
           Boolean(
