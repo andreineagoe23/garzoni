@@ -297,6 +297,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 56,
     paddingBottom: 56,
+    maxWidth: 480,
+    alignSelf: "center",
+    width: "100%",
   },
 
   logoWrap: { alignItems: "center", marginBottom: 32 },

@@ -307,6 +307,11 @@ function TierCard({
           </Text>
         )}
       </Pressable>
+      {!pkg && !loading && !isCurrent && (
+        <Text style={styles.pkgUnavailableText}>
+          Pricing unavailable — check your connection and try again.
+        </Text>
+      )}
     </View>
   );
 }
@@ -597,6 +602,7 @@ export default function SubscriptionsScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.innerContent}>
           {/* Eyebrow */}
           <Text style={styles.eyebrow}>Subscription</Text>
 
@@ -699,11 +705,29 @@ export default function SubscriptionsScreen() {
 
           {/* Legal — iOS only (Apple IAP copy) */}
           {Platform.OS === "ios" && (
-            <Text style={styles.legal}>
-              Subscriptions renew automatically. Cancel anytime in your Apple ID
-              settings. Payment charged to your Apple ID on confirmation.
-            </Text>
+            <>
+              <Text style={styles.legal}>
+                Subscriptions renew automatically. Cancel anytime in your Apple
+                ID settings. Payment charged to your Apple ID on confirmation.
+              </Text>
+              <View style={styles.legalLinks}>
+                <Pressable
+                  onPress={() => router.push("/legal/terms")}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.legalLink}>Terms of Use</Text>
+                </Pressable>
+                <Text style={styles.utilityDot}>·</Text>
+                <Pressable
+                  onPress={() => router.push("/legal/privacy")}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </Pressable>
+              </View>
+            </>
           )}
+          </View>
         </ScrollView>
       </View>
     </>
@@ -1086,5 +1110,36 @@ const styles = StyleSheet.create({
   cardBody: {
     fontSize: typography.sm,
     lineHeight: 20,
+  },
+
+  // iPad centering
+  innerContent: {
+    maxWidth: 520,
+    alignSelf: "center",
+    width: "100%",
+  },
+
+  // Pkg unavailable hint
+  pkgUnavailableText: {
+    fontSize: 11,
+    color: D.faint,
+    textAlign: "center",
+    marginTop: 8,
+  },
+
+  // Legal links in purchase flow
+  legalLinks: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  legalLink: {
+    fontSize: 11,
+    color: D.muted,
+    textDecorationLine: "underline",
+    textDecorationColor: "rgba(229,231,235,0.3)",
   },
 });
