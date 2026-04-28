@@ -19,7 +19,7 @@ const highlightText = (text, query) => {
     regex.test(part) ? (
       <mark
         key={`highlight-${index}`}
-        className="rounded bg-[color:var(--accent,#ffd700)]/10 px-1 py-0.5 text-[color:var(--accent,#ffd700)]"
+        className="rounded bg-[color:var(--primary-bright,#2a7347)]/10 px-1 py-0.5 text-[color:var(--primary-bright,#2a7347)]"
       >
         {part}
       </mark>
@@ -132,14 +132,14 @@ function SupportPage() {
       layout="none"
       innerClassName="flex flex-col gap-8"
     >
-      <header className="space-y-3 text-center lg:text-left">
-        <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+      <header className="space-y-3 lg:text-left">
+        <p className="app-eyebrow text-content-muted">
           {t("support.header.kicker")}
         </p>
-        <h1 className="text-3xl font-bold text-content-primary">
+        <h1 className="text-[2.75rem] leading-[1.05] tracking-[-0.03em]">
           {t("support.header.title")}
         </h1>
-        <p className="text-sm text-content-muted">
+        <p className="text-sm text-content-muted max-w-xl">
           {t("support.header.subtitle")}
         </p>
       </header>
@@ -154,13 +154,13 @@ function SupportPage() {
             placeholder={t("support.search.placeholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+            className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--primary-bright,#2a7347)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-content-muted hover:text-[color:var(--accent,#ffd700)]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-content-muted hover:text-[color:var(--primary-bright,#2a7347)]"
             >
               {t("support.search.clear")}
             </button>
@@ -177,7 +177,7 @@ function SupportPage() {
             id="support-filter-select"
             value={activeCategory}
             onChange={(event) => setActiveCategory(event.target.value)}
-            className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 md:w-auto"
+            className="w-full rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40 md:w-auto"
             aria-label={t("support.filter.aria")}
           >
             <option value="all">{t("support.filter.all")}</option>
@@ -207,32 +207,37 @@ function SupportPage() {
                 return (
                   <article
                     key={entry.id}
-                    className="overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page"
+                    className="overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-page transition-all"
                   >
                     <button
                       type="button"
                       onClick={() => toggleEntry(index)}
-                      className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition hover:bg-[color:var(--card-bg,#ffffff)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40"
+                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-[color:var(--card-bg,#ffffff)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-bright,#2a7347)]/40"
                     >
-                      <div className="space-y-2">
-                        <span className="inline-flex items-center rounded-full border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#f3f4f6)] px-3 py-1 text-xs font-semibold text-content-muted">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="app-badge app-badge-primary shrink-0">
                           {entry.category}
                         </span>
-                        <p className="text-sm font-semibold text-content-primary">
+                        <p className="text-sm font-medium text-content-primary">
                           {highlightText(entry.question, search)}
                         </p>
                       </div>
-                      <span className="text-xs text-content-muted">
-                        {isActive ? "▲" : "▼"}
+                      <span
+                        className="text-content-muted shrink-0 text-xs transition-transform duration-200"
+                        style={{
+                          transform: isActive ? "rotate(180deg)" : "none",
+                        }}
+                      >
+                        ▾
                       </span>
                     </button>
                     {isActive && (
-                      <div className="space-y-4 border-t border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-content-primary">
+                      <div className="space-y-4 border-t border-[color:var(--border-soft,rgba(0,0,0,0.06))] bg-[color:var(--card-bg,#ffffff)] px-5 py-4 text-sm text-content-primary leading-relaxed">
                         <div>{highlightText(entry.answer, search)}</div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-content-muted">
                           <span>{t("support.vote.prompt")}</span>
                           {entry.user_vote === "helpful" ? (
-                            <span className="font-semibold text-[color:var(--accent,#ffd700)]">
+                            <span className="font-semibold text-[color:var(--primary-bright,#2a7347)]">
                               {t("support.vote.thanksHelpful")}
                             </span>
                           ) : entry.user_vote === "not_helpful" ? (
@@ -244,7 +249,7 @@ function SupportPage() {
                               <button
                                 type="button"
                                 onClick={() => submitVote(entry.id, "helpful")}
-                                className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-3 py-1 font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40"
+                                className="inline-flex items-center justify-center rounded-full border border-[color:var(--primary-bright,#2a7347)] px-3 py-1 font-semibold text-[color:var(--primary-bright,#2a7347)] transition hover:bg-[color:var(--primary-bright,#2a7347)] hover:text-[color:var(--primary,#1d5330)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-bright,#2a7347)]/40"
                               >
                                 {t("support.vote.helpful")}
                               </button>
@@ -284,7 +289,7 @@ function SupportPage() {
             </div>
             <Link
               to="/feedback"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary-bright,#2a7347)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary-bright,#2a7347)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40"
             >
               {t("support.feedbackSection.cta")}
             </Link>
@@ -302,7 +307,7 @@ function SupportPage() {
           </header>
 
           {submitMessage && (
-            <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200 shadow-inner shadow-emerald-500/20">
+            <div className="mt-4 rounded-2xl border border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)] shadow-inner shadow-[color:var(--primary-bright,#2a7347)]/15">
               {submitMessage}
             </div>
           )}
@@ -326,7 +331,7 @@ function SupportPage() {
                     email: event.target.value,
                   }))
                 }
-                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="app-input mt-2"
               />
             </label>
 
@@ -341,7 +346,7 @@ function SupportPage() {
                     topic: event.target.value,
                   }))
                 }
-                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="app-input mt-2"
               >
                 <option value="">{t("support.contact.selectTopic")}</option>
                 <option value="Billing">
@@ -377,14 +382,14 @@ function SupportPage() {
                     message: event.target.value,
                   }))
                 }
-                className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="app-input mt-2"
               />
             </label>
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary-bright,#2a7347)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary-bright,#2a7347)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40"
               >
                 {t("support.contact.send")}
               </button>

@@ -3,48 +3,58 @@
 @use "../abstracts/variables" as *;
 
 [data-theme="dark"] {
-  // ========== Core Variables ==========
-  --bg-color: #121212; // Improved dark background
-  --text-color: #e0e0e0; // Improved readability
-  --card-bg: #1e1e1e; // More neutral dark card background
-  --border-color: rgba(224, 224, 224, 0.12); // Neutral border
-  --primary: #2a6041; // Medium green
-  --primary-rgb: 42, 96, 65; // RGB values for opacity manipulations
-  --accent: #ffd700; // Gold for headers/titles only (descriptions use --text-color / --muted-text)
-  --accent-rgb: 255, 215, 0; // RGB values for opacity manipulations
-  --input-bg: rgba(0, 0, 0, 0.25); // Transparent black
-  --muted-text: rgba(224, 224, 224, 0.7); // Subdued text
-  --shadow-color: rgba(0, 0, 0, 0.5); // Shadow color for depth
-  --error: #d32f2f; // Error color
-  --success: #2e7d32; // Success color
+  // ========== Core Variables — aligned with new #0b0f14 palette ==========
+  --bg-color: #0b0f14;
+  --bg-deep: #070a0e;
+  --text-color: #e5e7eb;
+  --card-bg: #111827;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --primary: #1d5330;
+  --primary-rgb: 29, 83, 48;
+  --primary-bright: #2a7347;
+  --primary-soft: rgba(29, 83, 48, 0.18);
+  --accent: #e6c87a; // warm gold — achievement moments only, NOT default UI
+  --accent-bright: #ffd700; // reserved for streak pip / top-1 badge only
+  --accent-rgb: 230, 200, 122;
+  --gold-warm: #e6c87a;
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --muted-text: rgba(229, 231, 235, 0.55);
+  --faint-text: rgba(229, 231, 235, 0.4);
+  --ghost-bg: rgba(229, 231, 235, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.55);
+  --error: #dc2626;
+  --error-soft: rgba(239, 68, 68, 0.15);
+  --success: #2a7347;
 
-  // Semantic tokens (dark-first; gold on primary for nav/CTA labels)
+  // Semantic tokens
   --color-surface-page: var(--bg-color);
   --color-surface-card: var(--card-bg);
-  --color-surface-elevated: #2a2a2a;
+  --color-surface-elevated: #161f2e;
 
   --color-text-primary: var(--text-color);
   --color-text-muted: var(--muted-text);
+  --color-text-faint: var(--faint-text);
   --color-text-inverse: #ffffff;
-  --color-text-on-primary: var(--accent);
+  --color-text-on-primary: #ffffff; // white text on green buttons
 
   --color-brand-primary: var(--primary);
-  --color-brand-primary-hover: var(--accent);
-  --color-accent: var(--accent);
+  --color-brand-primary-hover: var(--primary-bright); // green hover, NOT gold
+  --color-accent: var(--accent); // warm gold for explicit accent use
 
   --color-state-success: var(--success);
-  --color-state-warning: #fbbf24;
+  --color-state-warning: #f59e0b;
   --color-state-error: var(--error);
   --color-state-info: #38bdf8;
 
   --color-icon-default: var(--text-color);
   --color-icon-muted: var(--muted-text);
-  --color-icon-on-brand: var(--accent);
+  --color-icon-on-brand: #ffffff; // white icons on green, NOT gold
 
   --color-border-default: var(--border-color);
-  --color-ring-focus: var(--accent);
+  --color-ring-focus: var(--primary-bright); // green focus rings
 
-  --nav-pill-active-fg: var(--color-text-on-primary);
+  --nav-pill-active-fg: #ffffff; // white text on active nav pill
 
   // ========== Base Styles ==========
   body {
@@ -57,8 +67,6 @@
   }
 
   // ========== Typography ==========
-  // Headings inherit --text-color (#e0e0e0) by default in dark mode.
-  // Add .section-heading class or explicit text-brand-accent where gold is intentional.
   h1,
   h2,
   h3,
@@ -69,8 +77,8 @@
   }
 
   .section-heading {
-    color: var(--accent);
-    border-bottom: 1px solid var(--primary);
+    color: var(--primary-bright);
+    border-bottom: 1px solid rgba(42, 115, 71, 0.3);
     padding-bottom: map.get($spacers, 2);
   }
 
@@ -81,18 +89,23 @@
     color: var(--text-color);
   }
 
+  // Links: green, not gold
   a {
-    color: var(--accent);
+    color: var(--primary-bright);
 
     &:hover {
-      color: color.adjust(#ffd700, $lightness: -10%);
+      color: color.adjust(#2a7347, $lightness: 10%);
       border-bottom-style: solid;
     }
   }
 
-  .app-footer .footer-brand,
+  // ========== Footer — no gold overrides ==========
+  .app-footer .footer-brand {
+    color: var(--text-color); // handled by React className / app-eyebrow
+  }
+
   .app-footer .footer-heading {
-    color: var(--accent);
+    color: var(--muted-text); // app-eyebrow handles this
   }
 
   .app-footer a.footer-link,
@@ -106,7 +119,6 @@
     }
   }
 
-  // Global `p { color: var(--text-color) }` above would wash these out to near-white
   .app-footer p.footer-muted {
     color: var(--muted-text);
   }
@@ -118,13 +130,13 @@
     box-shadow: 0 4px 12px var(--shadow-color);
 
     &-header {
-      background: rgba(42, 96, 65, 0.3);
-      border-bottom: 1px solid var(--primary);
-      color: var(--accent);
+      background: rgba(29, 83, 48, 0.2);
+      border-bottom: 1px solid rgba(29, 83, 48, 0.3);
+      color: var(--text-color);
     }
 
     &-title {
-      color: var(--accent);
+      color: var(--text-color);
       letter-spacing: 0.5px;
     }
 
@@ -142,23 +154,23 @@
   .form-control,
   .form-select {
     background: var(--input-bg);
-    border: 1px solid var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-color);
 
     &:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
+      border-color: var(--primary-bright);
+      box-shadow: 0 0 0 3px rgba(42, 115, 71, 0.15);
       background: var(--input-bg);
       color: var(--text-color);
     }
 
     &::placeholder {
-      color: rgba(224, 224, 224, 0.5);
+      color: rgba(229, 231, 235, 0.35);
     }
   }
 
   .form-label {
-    color: var(--accent);
+    color: var(--muted-text);
     opacity: 0.9;
   }
 
@@ -166,25 +178,25 @@
   .btn {
     &-primary {
       background: var(--primary);
-      border-color: var(--accent);
-      color: var(--accent);
+      border-color: rgba(42, 115, 71, 0.6);
+      color: #ffffff;
 
       &:hover,
       &:focus {
-        background: var(--accent);
-        color: var(--primary);
-        border-color: var(--accent);
+        background: var(--primary-bright);
+        border-color: var(--primary-bright);
+        color: #ffffff;
       }
     }
 
     &-outline-primary {
       border-color: var(--primary);
-      color: var(--primary);
+      color: var(--primary-bright);
 
       &:hover,
       &:focus {
         background: var(--primary);
-        color: var(--accent);
+        color: #ffffff;
       }
     }
   }
@@ -196,8 +208,8 @@
     --bs-table-border-color: var(--border-color);
 
     th {
-      background: rgba(42, 96, 65, 0.3);
-      color: var(--accent);
+      background: rgba(29, 83, 48, 0.15);
+      color: var(--text-color);
     }
 
     td {
@@ -208,11 +220,11 @@
   // ========== Alerts ==========
   .alert {
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 
     &-primary {
-      border-color: var(--accent);
-      color: var(--accent);
+      border-color: rgba(42, 115, 71, 0.5);
+      color: var(--text-color);
     }
 
     &-danger {
@@ -230,22 +242,22 @@
   .badge {
     &-primary {
       background: var(--primary);
-      color: var(--accent);
+      color: #ffffff;
     }
 
     &-accent {
       background: var(--accent);
-      color: var(--primary);
+      color: #0b0f14;
     }
   }
 
   // ========== Progress Bars ==========
   .progress {
-    background: var(--input-bg);
+    background: rgba(255, 255, 255, 0.08);
 
     &-bar {
-      background: var(--primary);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(90deg, #2a7347, #1d5330);
+      box-shadow: 0 0 8px rgba(42, 115, 71, 0.4);
     }
   }
 
@@ -260,16 +272,15 @@
 
       &.active {
         background: var(--primary);
-        color: var(--accent);
+        color: #ffffff;
       }
 
       &:hover {
-        color: var(--accent);
+        color: var(--primary-bright);
       }
     }
   }
 
-  // Mobile navigation
   .mobile-nav {
     background: var(--card-bg);
     border-top-color: var(--border-color);
@@ -278,7 +289,7 @@
       color: var(--text-color);
 
       &.active {
-        color: var(--accent);
+        color: var(--primary-bright);
       }
     }
   }
@@ -286,28 +297,28 @@
   // ========== Modals ==========
   .modal-content {
     background: var(--card-bg);
-    border: 1px solid var(--primary);
+    border: 1px solid var(--border-color);
 
     .modal-header {
-      border-bottom-color: var(--primary);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
     }
 
     .modal-footer {
-      border-top-color: var(--primary);
+      border-top-color: rgba(255, 255, 255, 0.08);
     }
   }
 
   // ========== Dropdowns ==========
   .dropdown-menu {
     background: var(--card-bg);
-    border: 1px solid var(--primary);
+    border: 1px solid var(--border-color);
 
     .dropdown-item {
       color: var(--text-color);
 
       &:hover {
-        background: var(--primary);
-        color: var(--accent);
+        background: rgba(29, 83, 48, 0.15);
+        color: var(--primary-bright);
       }
     }
   }
@@ -329,11 +340,11 @@
   .form-check {
     .form-check-input {
       background-color: var(--input-bg);
-      border: 2px solid var(--primary);
+      border: 2px solid rgba(255, 255, 255, 0.2);
 
       &:checked {
-        background-color: var(--accent);
-        border-color: var(--accent);
+        background-color: var(--primary-bright);
+        border-color: var(--primary-bright);
       }
     }
 
@@ -342,7 +353,6 @@
       margin-left: map.get($spacers, 2);
     }
 
-    // Specific styles for exercise options
     .option-check {
       .form-check-label {
         font-size: 1.1rem;
@@ -351,13 +361,13 @@
       }
 
       .form-check-input:checked ~ .form-check-label {
-        color: var(--accent);
+        color: var(--primary-bright);
         font-weight: $font-weight-semibold;
       }
 
       &:hover {
         .form-check-label {
-          color: var(--accent);
+          color: var(--primary-bright);
         }
       }
     }
@@ -375,57 +385,57 @@
   }
 
   // ========== CKEditor 5 Dark Mode ==========
-  --ck-color-base-background: #121212;
-  --ck-color-base-foreground: #eeeeee;
-  --ck-color-toolbar-background: #212121;
-  --ck-color-toolbar-border: #353535;
-  --ck-color-button-default-background: #212121;
-  --ck-color-button-default-hover-background: #1b1b1b;
-  --ck-color-button-default-active-background: #1b1b1b;
-  --ck-color-button-on-background: #1b1b1b;
-  --ck-color-button-on-hover-background: #272727;
-  --ck-color-button-on-active-background: #272727;
-  --ck-color-button-disabled-background: #1b1b1b;
-  --ck-color-button-save: #264b5d;
+  --ck-color-base-background: #0b0f14;
+  --ck-color-base-foreground: #e5e7eb;
+  --ck-color-toolbar-background: #161f2e;
+  --ck-color-toolbar-border: rgba(255, 255, 255, 0.12);
+  --ck-color-button-default-background: #161f2e;
+  --ck-color-button-default-hover-background: #111827;
+  --ck-color-button-default-active-background: #111827;
+  --ck-color-button-on-background: #111827;
+  --ck-color-button-on-hover-background: #1d2a3a;
+  --ck-color-button-on-active-background: #1d2a3a;
+  --ck-color-button-disabled-background: #161f2e;
+  --ck-color-button-save: #1d5330;
   --ck-color-button-cancel: #570808;
-  --ck-color-dropdown-panel-background: #212121;
-  --ck-color-dropdown-panel-border: #353535;
-  --ck-color-input-background: #121212;
-  --ck-color-input-border: #353535;
-  --ck-color-input-text: #eeeeee;
-  --ck-color-input-focus-border: #81d4fa;
-  --ck-color-list-background: #212121;
-  --ck-color-list-button-hover-background: #1b1b1b;
-  --ck-color-list-button-on-background: #1b1b1b;
-  --ck-color-list-button-on-background-focus: #272727;
-  --ck-color-panel-background: #212121;
-  --ck-color-panel-border: #353535;
-  --ck-color-tooltip-background: #212121;
-  --ck-color-tooltip-text: #eeeeee;
-  --ck-color-base-border: #353535;
-  --ck-color-base-action: #81d4fa;
-  --ck-color-base-focus: #81d4fa;
-  --ck-color-text: #eeeeee;
-  --ck-color-shadow-drop: rgba(0, 0, 0, 0.3);
-  --ck-color-shadow-drop-active: rgba(0, 0, 0, 0.4);
+  --ck-color-dropdown-panel-background: #161f2e;
+  --ck-color-dropdown-panel-border: rgba(255, 255, 255, 0.12);
+  --ck-color-input-background: #0b0f14;
+  --ck-color-input-border: rgba(255, 255, 255, 0.12);
+  --ck-color-input-text: #e5e7eb;
+  --ck-color-input-focus-border: #2a7347;
+  --ck-color-list-background: #161f2e;
+  --ck-color-list-button-hover-background: #111827;
+  --ck-color-list-button-on-background: #111827;
+  --ck-color-list-button-on-background-focus: #1d2a3a;
+  --ck-color-panel-background: #161f2e;
+  --ck-color-panel-border: rgba(255, 255, 255, 0.12);
+  --ck-color-tooltip-background: #161f2e;
+  --ck-color-tooltip-text: #e5e7eb;
+  --ck-color-base-border: rgba(255, 255, 255, 0.12);
+  --ck-color-base-action: #2a7347;
+  --ck-color-base-focus: #2a7347;
+  --ck-color-text: #e5e7eb;
+  --ck-color-shadow-drop: rgba(0, 0, 0, 0.4);
+  --ck-color-shadow-drop-active: rgba(0, 0, 0, 0.55);
 }
 
-// Option list item styling (theme-agnostic — uses CSS variables that adapt per mode)
+// Option list item styling
 .option-list {
   .option-item {
-    background: rgba(42, 96, 65, 0.2);
+    background: rgba(29, 83, 48, 0.12);
     border-radius: var(--border-radius);
     margin-bottom: map.get($spacers, 2);
     transition: all 0.3s ease;
 
     &:hover {
-      background: rgba(255, 215, 0, 0.1);
+      background: rgba(42, 115, 71, 0.18);
       transform: translateX(5px);
     }
 
     &.active {
       background: var(--primary);
-      border: 1px solid var(--accent);
+      border: 1px solid rgba(42, 115, 71, 0.5);
     }
   }
 }

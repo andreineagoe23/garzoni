@@ -80,7 +80,7 @@ export default function ExerciseIntentBanner({
           <button
             type="button"
             onClick={onChangeCategory}
-            className="order-3 w-full rounded-full border border-[color:var(--primary,#1d5330)]/55 bg-[color:var(--card-bg,#ffffff)]/95 px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/35 sm:order-1 sm:w-auto"
+            className="order-3 w-full rounded-full border border-[color:var(--primary,#1d5330)]/55 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/35 sm:order-1 sm:w-auto"
           >
             {t("exercises.skillIntent.changeCategory")}
           </button>
@@ -88,7 +88,7 @@ export default function ExerciseIntentBanner({
             <button
               type="button"
               onClick={onClearFilter}
-              className="order-1 w-full rounded-full border border-[color:var(--primary,#1d5330)]/55 bg-[color:var(--card-bg,#ffffff)]/95 px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/35 sm:order-2 sm:w-auto"
+              className="order-1 w-full rounded-full border border-[color:var(--primary,#1d5330)]/55 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/35 sm:order-2 sm:w-auto"
             >
               {t("exercises.skillIntent.clearFilter")}
             </button>
@@ -96,7 +96,7 @@ export default function ExerciseIntentBanner({
           <button
             type="button"
             onClick={onDismissRecommendation}
-            className="order-2 w-full rounded-full border border-[color:var(--border-color,#6b7280)]/50 bg-[color:var(--card-bg,#ffffff)]/90 px-3 py-1.5 text-center text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/25 sm:order-3 sm:w-auto"
+            className="order-2 w-full rounded-full border border-[color:var(--border-color,#6b7280)]/50 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/25 sm:order-3 sm:w-auto"
           >
             {t("exercises.skillIntent.dismissRecommendation")}
           </button>

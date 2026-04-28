@@ -1,0 +1,442 @@
+/* ══════════════════════════════════════════════════════════════
+   App Theme — only rules that Tailwind cannot express.
+   Everything else lives as dark: prefixed Tailwind classes.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Typography ─────────────────────────────────────────────── */
+/* letter-spacing: 2px + uppercase + font-size 11px — no Tailwind default */
+.app-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Gold italic accent — Fraunces italic, achievement/editorial moments only */
+.app-em-gold {
+  font-family: var(--brand-font-display, "Fraunces", "Helvetica Neue", serif);
+  font-style: italic;
+  color: #e6c87a;
+  font-weight: 400;
+}
+
+/* Fraunces CSS var + optical sizing — can't express var() in Tailwind class */
+.app-display {
+  font-family: var(--brand-font-display, "Fraunces", "Helvetica Neue", serif);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+/* ── Auth Page Background ────────────────────────────────────── */
+/* Pseudo-element ambient glow — Tailwind can't do ::before radial gradients */
+.auth-ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* dark mode glow */
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 15% 10%,
+      rgba(29, 83, 48, 0.22) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 85% 15%,
+      rgba(230, 200, 122, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 50% 100%,
+      rgba(29, 83, 48, 0.1) 0%,
+      transparent 60%
+    );
+}
+
+/* light mode glow (default) */
+.auth-ambient {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Override for light — warmer, more visible glows on ivory bg */
+:root:not([data-theme="dark"]) .auth-ambient::before {
+  background:
+    radial-gradient(
+      ellipse 75% 55% at 8% 8%,
+      rgba(29, 83, 48, 0.18) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 55% 45% at 90% 12%,
+      rgba(192, 144, 64, 0.16) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 50% 95%,
+      rgba(29, 83, 48, 0.09) 0%,
+      transparent 55%
+    );
+}
+
+/* ── Floating Card ───────────────────────────────────────────── */
+/* Default = light mode: white card on cream (#f5f5f0) page bg */
+.app-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+}
+
+[data-theme="dark"] .app-card {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+}
+
+.app-card-sm {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.07),
+    0 1px 4px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-radius: 14px;
+}
+
+[data-theme="dark"] .app-card-sm {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.11);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    0 1px 4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Raised variant — slightly elevated surface */
+.app-card-raised {
+  background: #fafaf8;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+}
+
+[data-theme="dark"] .app-card-raised {
+  background: #161f2e;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ── Stat Tile ───────────────────────────────────────────────── */
+.app-stat-tile {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+[data-theme="dark"] .app-stat-tile {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ── Lesson Callout ─────────────────────────────────────────── */
+.app-callout {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 3px solid #2a7347;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-radius: 0 14px 14px 0;
+  padding: 16px 20px;
+  color: var(--color-text-primary, #1a1a1a);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .app-callout {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-left-color: #2a7347;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: var(--color-text-primary, rgba(229, 231, 235, 0.85));
+}
+
+/* ── Page Wrapper ────────────────────────────────────────────── */
+.app-page {
+  min-height: 100vh;
+  background-color: var(--color-surface-page, var(--bg-color, #f5f5f0));
+  color: var(--color-text-primary, #1a1a1a);
+}
+
+/* ── Section Glow ────────────────────────────────────────────── */
+.app-section-glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-section-glow::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: min(900px, 120%);
+  height: 320px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse 80% 100% at 50% 0%,
+    rgba(29, 83, 48, 0.07) 0%,
+    transparent 70%
+  );
+}
+
+[data-theme="dark"] .app-section-glow::before {
+  background: radial-gradient(
+    ellipse 80% 100% at 50% 0%,
+    rgba(29, 83, 48, 0.13) 0%,
+    transparent 70%
+  );
+}
+
+/* ── Tool Icon Tile ─────────────────────────────────────────── */
+.app-icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(29, 83, 48, 0.1);
+}
+
+[data-theme="dark"] .app-icon-tile {
+  background: rgba(29, 83, 48, 0.15);
+}
+
+/* ── Green Check ────────────────────────────────────────────── */
+.app-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(29, 83, 48, 0.15);
+  flex-shrink: 0;
+}
+
+/* ── Primary CTA Button ─────────────────────────────────────── */
+.app-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 54px;
+  border-radius: 27px;
+  background: linear-gradient(135deg, #2a7347 0%, #1d5330 100%);
+  box-shadow:
+    0 4px 20px rgba(29, 83, 48, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+  text-decoration: none;
+}
+
+.app-cta-btn:hover:not(:disabled) {
+  box-shadow:
+    0 6px 28px rgba(29, 83, 48, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
+}
+
+.app-cta-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Progress Bar Track ─────────────────────────────────────── */
+.app-progress-track {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .app-progress-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Progress Bar Glow ───────────────────────────────────────── */
+/* box-shadow glow on fill — arbitrary Tailwind shadow value is verbose */
+.app-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2a7347 0%, #1d5330 100%);
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(42, 115, 71, 0.5);
+  transition: width 0.4s ease;
+}
+
+/* ── Input Focus Ring ────────────────────────────────────────── */
+/* Green focus ring on form inputs — cleaner in CSS than repeating Tailwind focus: chain */
+.app-input {
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  /* default = light mode */
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--color-text-primary, #0f172a);
+}
+
+.app-input::placeholder {
+  color: rgba(15, 23, 42, 0.4);
+}
+
+.app-input:focus {
+  border-color: rgba(42, 115, 71, 0.6);
+  box-shadow: 0 0 0 3px rgba(42, 115, 71, 0.12);
+}
+
+[data-theme="dark"] .app-input {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary, #e5e7eb);
+}
+
+[data-theme="dark"] .app-input::placeholder {
+  color: rgba(229, 231, 235, 0.35);
+}
+
+/* ── Divider line ────────────────────────────────────────────── */
+.app-divider {
+  height: 1px;
+  background: var(--color-border-default, rgba(0, 0, 0, 0.08));
+  border: none;
+}
+
+[data-theme="dark"] .app-divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Mono font ────────────────────────────────────────────────── */
+.app-mono {
+  font-family: var(
+    --brand-font-mono,
+    "JetBrains Mono",
+    ui-monospace,
+    monospace
+  );
+}
+
+/* ── Ghost surface (faint tinted area, no card elevation) ─────── */
+.app-ghost {
+  background: var(--ghost-bg, rgba(26, 26, 26, 0.06));
+}
+
+[data-theme="dark"] .app-ghost {
+  background: rgba(229, 231, 235, 0.08);
+}
+
+/* ── Faint text ───────────────────────────────────────────────── */
+.app-faint {
+  color: var(--faint-text, rgba(26, 26, 26, 0.4));
+}
+
+[data-theme="dark"] .app-faint {
+  color: rgba(229, 231, 235, 0.4);
+}
+
+/* ── Badge ─────────────────────────────────────────────────────── */
+/* Inline pill badge — mirrors design prototype badge() helper */
+.app-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  line-height: 1;
+}
+
+.app-badge-primary {
+  background: var(--primary-soft, rgba(29, 83, 48, 0.1));
+  color: #2a7347;
+  border: 1px solid rgba(42, 115, 71, 0.35);
+}
+
+[data-theme="dark"] .app-badge-primary {
+  background: rgba(29, 83, 48, 0.18);
+  color: #2a7347;
+  border-color: rgba(42, 115, 71, 0.35);
+}
+
+.app-badge-error {
+  background: var(--error-soft, rgba(220, 38, 38, 0.1));
+  color: var(--error, #dc2626);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+[data-theme="dark"] .app-badge-error {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ── Primary soft action row (green tinted card) ─────────────── */
+.app-action-primary {
+  background: linear-gradient(
+    135deg,
+    var(--primary-soft, rgba(29, 83, 48, 0.08)),
+    var(--card-bg, #ffffff)
+  );
+  border: 1px solid rgba(42, 115, 71, 0.2);
+  border-radius: 22px;
+}
+
+[data-theme="dark"] .app-action-primary {
+  background: linear-gradient(135deg, rgba(29, 83, 48, 0.18), #111827);
+  border-color: rgba(42, 115, 71, 0.3);
+}
+
+/* ── Body background (ensure cream applies everywhere) ─────────── */
+body {
+  background-color: var(--color-surface-page, var(--bg-color, #f5f5f0));
+}

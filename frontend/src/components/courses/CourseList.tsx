@@ -17,10 +17,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
 
   if (!courses?.length) {
     return (
-      <GlassCard
-        padding="md"
-        className="bg-[color:var(--card-bg,#ffffff)]/60 text-content-muted"
-      >
+      <GlassCard padding="md" className="bg-surface-card text-content-muted">
         {t("courses.list.noCoursesAvailable")}
       </GlassCard>
     );
@@ -32,7 +29,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
         <GlassCard
           key={course.id}
           padding="md"
-          className="group cursor-pointer text-content-primary transition hover:-translate-y-1 hover:shadow-lg hover:shadow-[color:var(--primary,#2563eb)]/20 focus-within:ring-2 focus-within:ring-[color:var(--accent,#2563eb)]/40"
+          className="app-card group cursor-pointer transition hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.55)] focus-within:ring-2 focus-within:ring-[#2a7347]/40"
           onClick={() =>
             navigate(
               pathIdSegment
@@ -51,13 +48,13 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
           }}
           tabIndex={0}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+          <div className="absolute inset-0 rounded-[20px] bg-gradient-to-br from-[#2a7347]/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
           <div className="relative">
             <div className="flex items-baseline justify-between">
-              <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+              <h3 className="app-display text-xl text-content-primary">
                 {course.title}
               </h3>
-              <span className="text-xs font-semibold uppercase tracking-wide text-content-muted group-hover:text-[color:var(--accent,#2563eb)]">
+              <span className="app-eyebrow group-hover:text-[color:var(--primary-bright,#2a7347)]">
                 {t("courses.list.viewLesson")}
               </span>
             </div>

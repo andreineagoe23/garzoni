@@ -36,8 +36,6 @@ function Header() {
     return null;
   }
 
-  const isWelcome =
-    location.pathname === "/" || location.pathname === "/welcome";
   const isLogin = location.pathname === "/login";
   const isRegister = location.pathname === "/register";
 
@@ -49,7 +47,7 @@ function Header() {
   return (
     <header className="fixed left-0 right-0 top-0 z-[1100] px-3 pt-2 sm:px-4 sm:pt-3">
       <GlassContainer
-        variant={isWelcome ? "subtle" : "default"}
+        variant="subtle"
         className={[
           "mx-auto flex h-[56px] w-full max-w-6xl items-center justify-between px-3 sm:h-[72px] sm:px-6",
           // Make it feel like glass immediately (especially on the Welcome page).
@@ -77,7 +75,7 @@ function Header() {
           </Link>
 
           {isInitialized && isAuthenticated && (
-            <span className="rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 sm:px-3 sm:py-1 sm:text-[11px]">
+            <span className="rounded-full bg-gradient-to-r from-[#2a7347] to-[#1d5330] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-md shadow-[#1d5330]/30 sm:px-3 sm:py-1 sm:text-[11px]">
               {t("header.premiumReady")}
             </span>
           )}

@@ -69,10 +69,10 @@ const StatusSummary = ({
         />
       ) : (
         <div
-          className={`rounded-xl border p-4 backdrop-blur-sm transition ${
+          className={`app-stat-tile transition ${
             reviewsDue > 0
-              ? "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 shadow-lg shadow-[color:var(--error,#dc2626)]/20"
-              : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60"
+              ? "!border-[color:var(--error,#dc2626)]/40 !bg-[color:var(--error,#dc2626)]/10 !shadow-lg !shadow-[color:var(--error,#dc2626)]/20"
+              : ""
           }`}
         >
           <div className="flex items-center justify-between gap-2">
@@ -127,36 +127,45 @@ const StatusSummary = ({
           className="sm:col-span-2 lg:col-span-1"
         />
       ) : (
-        <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
+        <div className="app-stat-tile">
           <div className="flex items-center gap-2 text-sm font-medium text-content-muted">
             <GarzoniIcon
               name="rocket"
               size={16}
               className="text-content-muted"
             />
-            <span>{t("dashboard.statusSummary.activeMissions")}</span>
+            <span className="app-eyebrow">
+              {t("dashboard.statusSummary.activeMissions")}
+            </span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-content-primary">
+          <p className="mt-2 text-2xl font-bold text-[color:var(--color-text-primary,#e5e7eb)]">
             {formatNumber(activeMissionsCount, locale)}
           </p>
         </div>
       )}
 
-      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2 text-sm font-medium text-content-muted">
-          <GarzoniIcon name="fire" size={16} className="text-content-muted" />
-          <span>{t("dashboard.statusSummary.streak")}</span>
+      <div className="app-stat-tile">
+        <div className="flex items-center gap-2">
+          <GarzoniIcon
+            name="fire"
+            size={16}
+            className="text-[color:var(--primary-bright,#2a7347)]"
+          />
+          <span className="app-eyebrow">
+            {t("dashboard.statusSummary.streak")}
+          </span>
         </div>
-        <p className="mt-2 text-2xl font-bold text-content-primary">
+        <p className="mt-2 text-2xl font-bold text-[color:var(--color-text-primary,#e5e7eb)]">
           {formatNumber(streakCount, locale)}
         </p>
         {streakMeta?.streak_at_risk ? (
-          <p className="mt-1 text-xs font-semibold text-amber-700">
+          <p className="mt-1 text-xs font-semibold text-amber-500">
             {t("dashboard.statusSummary.streakAtRisk")}
           </p>
         ) : null}
         {streakMeta?.next_milestone != null && streakMeta.next_milestone > 0 ? (
           <p className="mt-1 text-xs text-content-muted">
+            <span className="text-[#e6c87a]">★</span>{" "}
             {t("dashboard.statusSummary.streakNextMilestone", {
               days: streakMeta.days_to_next_milestone ?? 0,
               milestone: streakMeta.next_milestone,

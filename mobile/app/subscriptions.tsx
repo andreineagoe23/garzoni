@@ -603,130 +603,133 @@ export default function SubscriptionsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.innerContent}>
-          {/* Eyebrow */}
-          <Text style={styles.eyebrow}>Subscription</Text>
+            {/* Eyebrow */}
+            <Text style={styles.eyebrow}>Subscription</Text>
 
-          {/* Editorial headline */}
-          <Text style={styles.headline}>
-            Pick the plan that{" "}
-            <Text
-              style={[styles.headlineEmphasis, { fontFamily: DISPLAY_FONT }]}
-            >
-              moves you forward
+            {/* Editorial headline */}
+            <Text style={styles.headline}>
+              Pick the plan that{" "}
+              <Text
+                style={[styles.headlineEmphasis, { fontFamily: DISPLAY_FONT }]}
+              >
+                moves you forward
+              </Text>
+              .
             </Text>
-            .
-          </Text>
 
-          {/* Status chip */}
-          <StatusChip plan={currentPlan} interval={currentInterval} />
+            {/* Status chip */}
+            <StatusChip plan={currentPlan} interval={currentInterval} />
 
-          {/* No-RC warning */}
-          {!rcNative ? (
-            <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
-              <Text style={[styles.cardTitle, { color: c.text }]}>
-                In-app purchases unavailable
-              </Text>
-              <Text style={[styles.cardBody, { color: c.textMuted }]}>
-                Rebuild the native app to enable subscriptions.
-              </Text>
-            </GlassCard>
-          ) : (
-            <>
-              {/* Cycle toggle */}
-              <View style={styles.cycleContainer}>
-                <CycleToggle
-                  value={cycle}
-                  onChange={setCycle}
-                  savingsPct={savingsPct}
-                />
-              </View>
-
-              {/* Tier cards */}
-              {loading ? (
-                <GlassCard padding="lg" style={{ marginBottom: spacing.md }}>
-                  <ActivityIndicator color={D.primaryBright} />
-                </GlassCard>
-              ) : (
-                <>
-                  <TierCard
-                    plan={PLAN_DATA.plus}
-                    pkg={plusPkg}
-                    cycle={cycle}
-                    isCurrent={
-                      currentPlan === "plus" && currentInterval === cycle
-                    }
-                    loading={purchasingTier === "plus"}
-                    onPress={() => plusPkg && void onPurchase("plus", plusPkg)}
+            {/* No-RC warning */}
+            {!rcNative ? (
+              <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
+                <Text style={[styles.cardTitle, { color: c.text }]}>
+                  In-app purchases unavailable
+                </Text>
+                <Text style={[styles.cardBody, { color: c.textMuted }]}>
+                  Rebuild the native app to enable subscriptions.
+                </Text>
+              </GlassCard>
+            ) : (
+              <>
+                {/* Cycle toggle */}
+                <View style={styles.cycleContainer}>
+                  <CycleToggle
+                    value={cycle}
+                    onChange={setCycle}
+                    savingsPct={savingsPct}
                   />
-                  <TierCard
-                    plan={PLAN_DATA.pro}
-                    pkg={proPkg}
-                    cycle={cycle}
-                    isCurrent={
-                      currentPlan === "pro" && currentInterval === cycle
-                    }
-                    loading={purchasingTier === "pro"}
-                    onPress={() => proPkg && void onPurchase("pro", proPkg)}
-                  />
-                </>
-              )}
+                </View>
 
-              {/* Compare matrix */}
-              <CompareMatrix />
-            </>
-          )}
+                {/* Tier cards */}
+                {loading ? (
+                  <GlassCard padding="lg" style={{ marginBottom: spacing.md }}>
+                    <ActivityIndicator color={D.primaryBright} />
+                  </GlassCard>
+                ) : (
+                  <>
+                    <TierCard
+                      plan={PLAN_DATA.plus}
+                      pkg={plusPkg}
+                      cycle={cycle}
+                      isCurrent={
+                        currentPlan === "plus" && currentInterval === cycle
+                      }
+                      loading={purchasingTier === "plus"}
+                      onPress={() =>
+                        plusPkg && void onPurchase("plus", plusPkg)
+                      }
+                    />
+                    <TierCard
+                      plan={PLAN_DATA.pro}
+                      pkg={proPkg}
+                      cycle={cycle}
+                      isCurrent={
+                        currentPlan === "pro" && currentInterval === cycle
+                      }
+                      loading={purchasingTier === "pro"}
+                      onPress={() => proPkg && void onPurchase("pro", proPkg)}
+                    />
+                  </>
+                )}
 
-          {/* Utility links — manage mode */}
-          {!isPaywall && (
-            <UtilityLinks
-              onRestore={() => void onRestore()}
-              onManageStore={() => void onManageStore()}
-            />
-          )}
+                {/* Compare matrix */}
+                <CompareMatrix />
+              </>
+            )}
 
-          {/* Paywall footer: restore + skip (Apple guideline 3.1.1) */}
-          {isPaywall && (
-            <View style={styles.paywallFooter}>
-              <Pressable
-                onPress={() => void onRestore()}
-                accessibilityRole="button"
-              >
-                <Text style={styles.utilityLink}>Restore purchases</Text>
-              </Pressable>
-              <Text style={styles.utilityDot}>·</Text>
-              <Pressable
-                onPress={() => router.replace("/(tabs)")}
-                accessibilityRole="button"
-              >
-                <Text style={styles.skipText}>Skip for now</Text>
-              </Pressable>
-            </View>
-          )}
+            {/* Utility links — manage mode */}
+            {!isPaywall && (
+              <UtilityLinks
+                onRestore={() => void onRestore()}
+                onManageStore={() => void onManageStore()}
+              />
+            )}
 
-          {/* Legal — iOS only (Apple IAP copy) */}
-          {Platform.OS === "ios" && (
-            <>
-              <Text style={styles.legal}>
-                Subscriptions renew automatically. Cancel anytime in your Apple
-                ID settings. Payment charged to your Apple ID on confirmation.
-              </Text>
-              <View style={styles.legalLinks}>
+            {/* Paywall footer: restore + skip (Apple guideline 3.1.1) */}
+            {isPaywall && (
+              <View style={styles.paywallFooter}>
                 <Pressable
-                  onPress={() => router.push("/legal/terms")}
-                  accessibilityRole="link"
+                  onPress={() => void onRestore()}
+                  accessibilityRole="button"
                 >
-                  <Text style={styles.legalLink}>Terms of Use</Text>
+                  <Text style={styles.utilityLink}>Restore purchases</Text>
                 </Pressable>
                 <Text style={styles.utilityDot}>·</Text>
                 <Pressable
-                  onPress={() => router.push("/legal/privacy")}
-                  accessibilityRole="link"
+                  onPress={() => router.replace("/(tabs)")}
+                  accessibilityRole="button"
                 >
-                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                  <Text style={styles.skipText}>Skip for now</Text>
                 </Pressable>
               </View>
-            </>
-          )}
+            )}
+
+            {/* Legal — iOS only (Apple IAP copy) */}
+            {Platform.OS === "ios" && (
+              <>
+                <Text style={styles.legal}>
+                  Subscriptions renew automatically. Cancel anytime in your
+                  Apple ID settings. Payment charged to your Apple ID on
+                  confirmation.
+                </Text>
+                <View style={styles.legalLinks}>
+                  <Pressable
+                    onPress={() => router.push("/legal/terms")}
+                    accessibilityRole="link"
+                  >
+                    <Text style={styles.legalLink}>Terms of Use</Text>
+                  </Pressable>
+                  <Text style={styles.utilityDot}>·</Text>
+                  <Pressable
+                    onPress={() => router.push("/legal/privacy")}
+                    accessibilityRole="link"
+                  >
+                    <Text style={styles.legalLink}>Privacy Policy</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
           </View>
         </ScrollView>
       </View>

@@ -190,7 +190,7 @@ function QuizPage() {
     return (
       <PageContainer maxWidth="4xl" layout="centered">
         <div className="flex items-center gap-3 text-content-muted">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:#2a7347] border-t-transparent" />
           {t("courses.quiz.loading")}
         </div>
       </PageContainer>
@@ -287,7 +287,7 @@ function QuizPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] text-xl font-light leading-none text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/50 hover:bg-[color:var(--accent,#ffd700)]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] text-xl font-light leading-none text-content-muted transition hover:border-[color:#2a7347]/50 hover:bg-[color:#2a7347]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
           aria-label={t("courses.quiz.exitQuizAria")}
         >
           ×
@@ -318,9 +318,9 @@ function QuizPage() {
             <label
               key={`${activeQuiz.id}-${choice.text}-${index}`}
               htmlFor={`choice-${activeQuiz.id}-${index}`}
-              className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-[color:var(--accent,#ffd700)]/40 ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-[color:#2a7347]/40 ${
                 selectedAnswer === choice.text
-                  ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
+                  ? "border-[color:#2a7347] bg-[color:#2a7347]/10 text-[color:#2a7347]"
                   : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] text-content-primary"
               }`}
             >
@@ -331,7 +331,7 @@ function QuizPage() {
                 value={choice.text}
                 checked={selectedAnswer === choice.text}
                 onChange={(event) => setSelectedAnswer(event.target.value)}
-                className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:#2a7347]"
               />
               {choice.text}
             </label>
@@ -342,7 +342,7 @@ function QuizPage() {
           <button
             type="button"
             onClick={() => void handleSubmit()}
-            className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+            className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
           >
             {t("courses.quiz.submitAnswer")}
           </button>
@@ -371,7 +371,7 @@ function QuizPage() {
           <div
             className={`rounded-2xl border px-5 py-4 text-sm shadow-inner ${
               feedbackCorrect === true
-                ? "border-[color:var(--accent,#ffd700)]/45 bg-[color:var(--accent,#ffd700)]/12 text-[color:var(--accent,#ffd700)]"
+                ? "border-[color:#2a7347]/45 bg-[color:#2a7347]/12 text-[color:#2a7347]"
                 : feedbackCorrect === false
                   ? "border-amber-400/60 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                   : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"

@@ -1453,24 +1453,24 @@ const ExercisePage = () => {
         return (
           <div className="space-y-4">
             {metaBadges}
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-content-primary">
               {exercise.question}
             </h3>
             <div className="grid gap-3">
               {exercise.exercise_data.options.map((option, index) => {
                 const id = `exercise-option-${index}`;
                 let frameClass =
-                  "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--accent,#ffd700)]/40 ";
+                  "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--primary-bright,#2a7347)]/40 ";
                 if (hasResult) {
                   if (
                     correctOptionIndex !== null &&
                     index === correctOptionIndex
                   ) {
                     frameClass +=
-                      "border-emerald-500/60 bg-emerald-500/10 text-emerald-700";
+                      "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 text-[color:var(--primary-bright,#2a7347)]";
                   } else if (userAnswer === index) {
                     frameClass += isAnswerCorrect
-                      ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700"
+                      ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 text-[color:var(--primary-bright,#2a7347)]"
                       : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
                   } else {
                     frameClass +=
@@ -1478,7 +1478,7 @@ const ExercisePage = () => {
                   }
                 } else if (userAnswer === index) {
                   frameClass +=
-                    "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]";
+                    "border-[color:var(--primary-bright,#2a7347)] bg-[color:var(--primary,#1d5330)]/15 text-[color:var(--primary-bright,#2a7347)]";
                 } else {
                   frameClass +=
                     "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
@@ -1513,7 +1513,7 @@ const ExercisePage = () => {
         return (
           <div className="space-y-4">
             {metaBadges}
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-content-primary">
               {exercise.question}
             </h3>
             <div className="flex flex-wrap gap-3">
@@ -1583,10 +1583,10 @@ const ExercisePage = () => {
                       tabIndex={0}
                       role="button"
                       aria-label={`${t("exercises.drag.slot", { n: index + 1 })}: ${item}`}
-                      className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-content-primary shadow-inner transition hover:border-[color:var(--accent,#ffd700)]/40 ${
+                      className={`flex min-h-[72px] min-w-[160px] cursor-move items-center justify-center rounded-2xl border bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm font-medium text-content-primary shadow-inner transition hover:border-[color:var(--primary-bright,#2a7347)]/40 ${
                         hasResult && isCorrectSlot !== null
                           ? isCorrectSlot
-                            ? "border-emerald-500/60 bg-emerald-500/10"
+                            ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10"
                             : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
                           : "border-[color:var(--border-color,#d1d5db)]"
                       }`}
@@ -1612,7 +1612,7 @@ const ExercisePage = () => {
         return (
           <div className="space-y-4">
             {metaBadges}
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-content-primary">
               {exercise.question}
             </h3>
             {exercise.exercise_data?.prompt && (
@@ -1629,10 +1629,10 @@ const ExercisePage = () => {
                   exercise.exercise_data?.placeholder ||
                   t("exercises.inputs.numberPlaceholder")
                 }
-                className={`w-full rounded-xl border bg-[color:var(--input-bg,#f9fafb)] px-3 py-3 text-base text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
+                className={`w-full rounded-xl border bg-surface-card px-3 py-3 text-base text-content-primary focus:outline-none ${
                   hasResult
                     ? isAnswerCorrect
-                      ? "border-emerald-500/60 bg-emerald-500/10"
+                      ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10"
                       : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
                     : "border-[color:var(--border-color,#d1d5db)]"
                 }`}
@@ -1674,7 +1674,7 @@ const ExercisePage = () => {
         return (
           <div className="space-y-4">
             {metaBadges}
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-content-primary">
               {exercise.question}
             </h3>
             <div className="grid gap-3 md:grid-cols-2">
@@ -1684,12 +1684,12 @@ const ExercisePage = () => {
                   className={`flex flex-col gap-2 rounded-2xl border px-4 py-4 ${
                     hasResult
                       ? isAnswerCorrect
-                        ? "border-emerald-500/60 bg-emerald-500/10"
+                        ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10"
                         : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
                       : "border-[color:var(--border-color,#d1d5db)] bg-surface-page"
                   }`}
                 >
-                  <span className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  <span className="text-sm font-semibold text-content-primary">
                     {category}
                   </span>
                   <input
@@ -1705,7 +1705,7 @@ const ExercisePage = () => {
                             : Math.max(0, parseFloat(value) || 0),
                       }));
                     }}
-                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-sm px-3 py-2 text-sm text-content-primary shadow-inner focus:outline-none"
                   />
                 </label>
               ))}
@@ -1720,7 +1720,7 @@ const ExercisePage = () => {
         return (
           <div className="space-y-4">
             {metaBadges}
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-content-primary">
               {exercise.question}
             </h3>
             <div className="overflow-x-auto">
@@ -1743,7 +1743,7 @@ const ExercisePage = () => {
                 <tbody>
                   {rows.map((row) => (
                     <tr key={row.id}>
-                      <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 font-semibold text-[color:var(--accent,#111827)]">
+                      <td className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 font-semibold text-content-primary">
                         {row.label ||
                           t("exercises.table.rowWithId", {
                             id: row.id,
@@ -1776,12 +1776,12 @@ const ExercisePage = () => {
                                 });
                               }}
                               aria-label={`${row.label || t("exercises.table.row")} ${column}`}
-                              className={`w-full rounded-xl border px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30 ${
+                              className={`w-full rounded-xl border px-3 py-2 text-sm text-content-primary shadow-inner focus:outline-none ${
                                 hasResult
                                   ? isCellCorrect
-                                    ? "border-emerald-500/60 bg-emerald-500/10"
+                                    ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10"
                                     : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
-                                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)]"
+                                  : "border-[color:var(--border-color,#d1d5db)] bg-surface-card"
                               }`}
                             />
                           </td>
@@ -1805,7 +1805,7 @@ const ExercisePage = () => {
         return (
           <div className="space-y-4">
             {metaBadges}
-            <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <h3 className="text-lg font-semibold text-content-primary">
               {exercise.question}
             </h3>
             {exercise.exercise_data?.scenario && (
@@ -1826,7 +1826,7 @@ const ExercisePage = () => {
                 setUserAnswer(parsed);
               }}
             >
-              <span className="font-semibold text-[color:var(--accent,#111827)]">
+              <span className="font-semibold text-content-primary">
                 {t("exercises.scenario.actionSlot")}
               </span>{" "}
               {selectedChoice?.label || t("exercises.scenario.dragHint")}
@@ -1837,11 +1837,11 @@ const ExercisePage = () => {
                 const isCorrectChoice =
                   hasResult && choice.id === correctChoiceId;
                 let choiceFrame =
-                  "flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ";
+                  "flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 ";
                 if (hasResult) {
                   if (isCorrectChoice) {
                     choiceFrame +=
-                      "border-emerald-500/60 bg-emerald-500/10 text-emerald-700";
+                      "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 text-[color:var(--primary-bright,#2a7347)]";
                   } else if (isSelected) {
                     choiceFrame +=
                       "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
@@ -1851,7 +1851,7 @@ const ExercisePage = () => {
                   }
                 } else if (isSelected) {
                   choiceFrame +=
-                    "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]";
+                    "border-[color:var(--primary-bright,#2a7347)] bg-[color:var(--primary,#1d5330)]/15 text-[color:var(--primary-bright,#2a7347)]";
                 } else {
                   choiceFrame +=
                     "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
@@ -1872,7 +1872,7 @@ const ExercisePage = () => {
                   >
                     <span>{choice.label}</span>
                     {isSelected && (
-                      <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#ffd700)]">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)]">
                         {t("exercises.scenario.selected")}
                       </span>
                     )}
@@ -1906,7 +1906,7 @@ const ExercisePage = () => {
     return (
       <div className="flex min-h-[calc(100vh-var(--top-nav-height,72px))] items-center justify-center bg-surface-page px-4">
         <div className="flex items-center gap-3 text-sm text-content-muted">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--primary-bright,#2a7347)] border-t-transparent" />
           {applyingSkillFocus
             ? t("exercises.skillIntent.applyingFocus")
             : t("exercises.loading")}
@@ -1926,7 +1926,7 @@ const ExercisePage = () => {
           <button
             type="button"
             onClick={fetchExercises}
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+            className="mt-4 inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40"
           >
             {t("exercises.retry")}
           </button>
@@ -1946,17 +1946,15 @@ const ExercisePage = () => {
   return (
     <div className="min-h-screen bg-surface-page px-4 py-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        <header className="space-y-2 text-center lg:text-left">
-          <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+        <header className="app-section-glow space-y-2 pb-2 text-center lg:text-left">
+          <p className="app-eyebrow">{t("exercises.header.subtitle")}</p>
+          <h1 className="app-display text-4xl text-content-primary">
             {t("exercises.header.title")}
           </h1>
-          <p className="text-sm text-content-muted">
-            {t("exercises.header.subtitle")}
-          </p>
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-content-muted lg:justify-start">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--accent,#ffd700)]/30 bg-[color:var(--accent,#ffd700)]/10 px-3 py-1 font-semibold text-[color:var(--accent,#ffd700)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--primary-bright,#2a7347)]/30 bg-[#2a7347]/10 px-3 py-1 font-semibold text-[color:var(--primary-bright,#2a7347)]">
               {t("exercises.reviewQueue.title")}
-              <span className="rounded-full bg-[color:var(--card-bg,#ffffff)]/80 px-2 py-0.5 text-[color:var(--accent,#ffd700)]">
+              <span className="rounded-full  px-2 py-0.5 text-[color:var(--primary-bright,#2a7347)]">
                 {t("exercises.reviewQueue.due", {
                   count: reviewQueue.count || 0,
                 })}
@@ -1974,9 +1972,9 @@ const ExercisePage = () => {
               type="button"
               onClick={startReviewMode}
               disabled={!reviewQueue?.count}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 ${
                 reviewQueue?.count
-                  ? "border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--card-bg,#ffffff)] text-[color:var(--accent,#ffd700)] hover:border-[color:var(--accent,#ffd700)]/60"
+                  ? "border border-[color:var(--primary-bright,#2a7347)]/40 bg-[#1d5330]/10 text-[color:var(--primary-bright,#2a7347)] hover:border-[#2a7347]/60 hover:bg-[#1d5330]/20"
                   : "cursor-not-allowed border border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-muted"
               }`}
             >
@@ -1986,12 +1984,9 @@ const ExercisePage = () => {
         </header>
 
         {mode === "review" && exercises.length === 0 && (
-          <GlassCard
-            padding="lg"
-            className="border-[color:var(--accent,#ffd700)]/30 bg-white"
-          >
+          <GlassCard padding="lg" className="app-card">
             <div className="flex flex-col gap-3 text-center">
-              <p className="text-base font-semibold text-[color:var(--accent,#111827)]">
+              <p className="text-base font-semibold text-content-primary">
                 {t("exercises.reviewQueue.emptyTitle")}
               </p>
               <p className="text-sm text-content-muted">
@@ -2001,7 +1996,7 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={exitReviewMode}
-                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--accent,#ffd700)]/50"
+                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[#2a7347]/50"
                 >
                   {t("exercises.reviewQueue.backToLesson")}
                 </button>
@@ -2018,10 +2013,13 @@ const ExercisePage = () => {
         )}
 
         <div className="flex flex-col gap-6 lg:flex-row">
-          <GlassCard padding="lg" className="relative w-full lg:flex-1">
+          <GlassCard
+            padding="lg"
+            className="app-card relative w-full lg:flex-1"
+          >
             {listRefreshing && (
               <div
-                className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit] bg-[color:var(--card-bg,#ffffff)]/75 backdrop-blur-sm"
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit] bg-surface-card backdrop-blur-sm"
                 aria-busy="true"
                 aria-live="polite"
               >
@@ -2049,7 +2047,7 @@ const ExercisePage = () => {
             ) : null}
             {!skillIntentBanner && collapsedIntentModel ? (
               <div
-                className="mb-4 flex flex-col gap-2 rounded-xl border border-[color:var(--accent,#ffd700)]/30 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="mb-4 flex flex-col gap-2 rounded-xl border border-[color:var(--primary-bright,#2a7347)]/30 bg-[#1d5330]/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 role="status"
               >
                 <p className="text-sm text-content-primary">
@@ -2065,7 +2063,7 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={restoreIntentBanner}
-                  className="shrink-0 rounded-full border border-[color:var(--accent,#ffd700)]/50 bg-[color:var(--card-bg,#ffffff)] px-4 py-1.5 text-xs font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)]/15"
+                  className="shrink-0 rounded-full border border-[#2a7347]/50 bg-[#1d5330]/10 px-4 py-1.5 text-xs font-semibold text-[color:var(--primary-bright,#2a7347)] transition hover:bg-[#1d5330]/20"
                 >
                   {t("exercises.skillIntent.restoreBanner")}
                 </button>
@@ -2074,7 +2072,7 @@ const ExercisePage = () => {
             <button
               type="button"
               onClick={() => setFiltersExpanded((open) => !open)}
-              className="mb-3 flex w-full items-center justify-between rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-3 text-left text-sm font-semibold text-content-primary lg:hidden"
+              className="mb-3 flex w-full items-center justify-between rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-4 py-3 text-left text-sm font-semibold text-content-primary lg:hidden"
               aria-expanded={filtersExpanded}
             >
               {filtersExpanded
@@ -2102,7 +2100,7 @@ const ExercisePage = () => {
                       type: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:outline-none"
                 >
                   <option value="">{t("exercises.filters.allTypes")}</option>
                   <option value="multiple-choice">
@@ -2135,7 +2133,7 @@ const ExercisePage = () => {
                   onChange={(event) =>
                     handleCategoryFilterChange(event.target.value)
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:outline-none"
                 >
                   <option value="">
                     {t("exercises.filters.allCategories")}
@@ -2160,7 +2158,7 @@ const ExercisePage = () => {
                       difficulty: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:outline-none"
                 >
                   <option value="">
                     {t("exercises.filters.allDifficulties")}
@@ -2210,7 +2208,7 @@ const ExercisePage = () => {
                         total: Math.max(exercises.length, 1),
                       })}
                     </p>
-                    <div className="h-2 w-full rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                    <div className="h-2 w-full rounded-full bg-surface-card">
                       <div
                         className="h-2 rounded-full bg-[color:var(--primary,#1d5330)] transition-all"
                         style={{ width: `${progressPercent}%` }}
@@ -2229,11 +2227,11 @@ const ExercisePage = () => {
                         }
                         className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
                       />
-                      <span className="absolute inset-0 rounded-full bg-[color:var(--border-color,#d1d5db)] transition peer-checked:bg-[color:var(--accent,#ffd700)]" />
+                      <span className="absolute inset-0 rounded-full bg-[color:var(--border-color,#d1d5db)] transition peer-checked:bg-[#2a7347]" />
                       <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
                     </div>
                     {isTimedMode && (
-                      <span className="text-xs font-semibold text-[color:var(--accent,#ffd700)]">
+                      <span className="text-xs font-semibold text-[color:var(--primary-bright,#2a7347)]">
                         {formatTime(timeRemaining)}
                       </span>
                     )}
@@ -2255,7 +2253,7 @@ const ExercisePage = () => {
                       type="button"
                       onClick={() => void handleSubmit()}
                       disabled={isSubmitting}
-                      className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:pointer-events-none disabled:opacity-60"
+                      className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:pointer-events-none disabled:opacity-60"
                     >
                       {isSubmitting
                         ? t("exercises.actions.submitting")
@@ -2268,7 +2266,7 @@ const ExercisePage = () => {
 
             {inlineHint && (
               <div
-                className="mt-4 rounded-2xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)]"
+                className="mt-4 rounded-2xl border border-[color:var(--primary-bright,#2a7347)]/40 bg-[#1d5330]/10 px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)]"
                 aria-live="polite"
               >
                 {inlineHint}
@@ -2278,7 +2276,7 @@ const ExercisePage = () => {
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-sm font-semibold text-content-primary">
                     {t("exercises.hints.title")}
                   </h4>
                   <button
@@ -2288,7 +2286,7 @@ const ExercisePage = () => {
                     className={`text-xs font-semibold underline ${
                       !hintEnabled || hintDepleted
                         ? "cursor-not-allowed text-content-muted"
-                        : "text-[color:var(--accent,#ffd700)]"
+                        : "text-[color:var(--primary-bright,#2a7347)]"
                     }`}
                   >
                     {t("exercises.hints.showNext", {
@@ -2335,7 +2333,7 @@ const ExercisePage = () => {
               </div>
 
               <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
-                <h4 className="text-sm font-semibold text-[color:var(--accent,#111827)]">
+                <h4 className="text-sm font-semibold text-content-primary">
                   {t("exercises.assist.title")}
                 </h4>
                 <div className="space-y-2">
@@ -2345,7 +2343,7 @@ const ExercisePage = () => {
                   <textarea
                     value={scratchpad}
                     onChange={(event) => setScratchpad(event.target.value)}
-                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="h-20 w-full rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card px-3 py-2 text-sm text-content-primary focus:outline-none"
                     placeholder={t("exercises.assist.scratchpadPlaceholder")}
                   />
                 </div>
@@ -2357,7 +2355,7 @@ const ExercisePage = () => {
                     <button
                       type="button"
                       onClick={() => setCalculatorOpen((prev) => !prev)}
-                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-[11px] font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-[11px] font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
                     >
                       {calculatorOpen
                         ? t("exercises.assist.hideCalculator")
@@ -2373,7 +2371,7 @@ const ExercisePage = () => {
                           onChange={(event) =>
                             setCalculatorValue(event.target.value)
                           }
-                          className="min-w-0 flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f9fafb)] px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                          className="min-w-0 flex-1 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card px-3 py-2 text-sm text-content-primary focus:outline-none"
                           placeholder={t(
                             "exercises.assist.calculatorPlaceholder"
                           )}
@@ -2398,7 +2396,7 @@ const ExercisePage = () => {
                               key={`${ri}-${key}`}
                               type="button"
                               onClick={() => appendCalculator(key)}
-                              className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                              className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--primary-bright,#2a7347)]/40"
                             >
                               {key === "*" ? "×" : key}
                             </button>
@@ -2407,14 +2405,14 @@ const ExercisePage = () => {
                         <button
                           type="button"
                           onClick={() => appendCalculator("+")}
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--primary-bright,#2a7347)]/40"
                         >
                           +
                         </button>
                         <button
                           type="button"
                           onClick={() => appendCalculator("%")}
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] py-2 text-sm font-semibold text-content-primary shadow-sm transition hover:border-[color:var(--primary-bright,#2a7347)]/40"
                         >
                           %
                         </button>
@@ -2423,14 +2421,14 @@ const ExercisePage = () => {
                           onClick={() =>
                             setCalculatorValue((prev) => prev.slice(0, -1))
                           }
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-surface-page py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-surface-page py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40"
                         >
                           {t("exercises.calculator.backspace")}
                         </button>
                         <button
                           type="button"
                           onClick={() => setCalculatorValue("")}
-                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-surface-page py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40"
+                          className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-surface-page py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40"
                         >
                           {t("exercises.calculator.clear")}
                         </button>
@@ -2444,7 +2442,7 @@ const ExercisePage = () => {
             {(submissionFeedback || showCorrection) && (
               <div className="mt-4 grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-primary">
                 {submissionFeedback && (
-                  <div className="rounded-xl border border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 px-3 py-2 text-[color:var(--accent,#ffd700)]">
+                  <div className="rounded-xl border border-[color:#2a7347]/40 bg-[color:#2a7347]/10 px-3 py-2 text-[color:var(--primary-bright,#2a7347)]">
                     {submissionFeedback}
                   </div>
                 )}
@@ -2463,7 +2461,7 @@ const ExercisePage = () => {
                       href={currentLearnMoreUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs font-semibold text-[color:var(--accent,#ffd700)] underline"
+                      className="text-xs font-semibold text-[color:var(--primary-bright,#2a7347)] underline"
                     >
                       {t("exercises.explanation.learnMore")}
                     </a>
@@ -2472,7 +2470,7 @@ const ExercisePage = () => {
                   <button
                     type="button"
                     onClick={openTutor}
-                    className="text-xs font-semibold text-[color:var(--accent,#ffd700)] underline"
+                    className="text-xs font-semibold text-[color:var(--primary-bright,#2a7347)] underline"
                   >
                     {t("exercises.explanation.askTutor")}
                   </button>
@@ -2500,7 +2498,7 @@ const ExercisePage = () => {
                       type="button"
                       onClick={() => setCurrentExerciseIndex(0)}
                       disabled={currentExerciseIndex === 0}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)] px-5 py-2 text-sm font-semibold text-[color:var(--accent,#ffd700)] transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center justify-center rounded-full border border-[color:#2a7347] px-5 py-2 text-sm font-semibold text-[color:var(--primary-bright,#2a7347)] transition hover:bg-[color:#2a7347] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {t("exercises.actions.restart")}
                     </button>
@@ -2510,7 +2508,7 @@ const ExercisePage = () => {
                         type="button"
                         onClick={handleRetry}
                         disabled={isRetrying}
-                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isRetrying
                           ? t("exercises.actions.retrying")
@@ -2521,7 +2519,7 @@ const ExercisePage = () => {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                      className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40"
                     >
                       {currentExerciseIndex === exercises.length - 1
                         ? t("exercises.actions.finish")
@@ -2533,7 +2531,7 @@ const ExercisePage = () => {
                         fetchExercises();
                         setCurrentExerciseIndex(0);
                       }}
-                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                      className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40"
                     >
                       {t("exercises.actions.tryVariant")}
                     </button>
@@ -2554,14 +2552,14 @@ const ExercisePage = () => {
                   mascotClassName="h-24 w-24 object-contain"
                 />
                 {recentSkillInsight && (
-                  <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-[color:var(--card-bg,#ffffff)]/65 px-3 py-2 text-xs text-content-primary shadow-sm backdrop-blur-sm animate-pulse">
+                  <div className="pointer-events-auto mt-3 rounded-xl border border-[color:var(--primary,#1d5330)]/25 bg-surface-card px-3 py-2 text-xs text-content-primary shadow-sm backdrop-blur-sm animate-pulse">
                     {recentSkillInsight}
                   </div>
                 )}
               </div>
             </div>
-            <GlassCard padding="lg" className="lg:flex-1">
-              <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+            <GlassCard padding="lg" className="app-card lg:flex-1">
+              <h3 className="app-display text-xl text-content-primary">
                 {t("exercises.progress.title")}
               </h3>
               {exercises.length > MAX_VISIBLE_PROGRESS_ITEMS && (
@@ -2632,7 +2630,7 @@ const ExercisePage = () => {
                               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
                               : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
                             : "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-muted"
-                        } ${isCurrent ? "ring-1 ring-[color:var(--accent,#ffd700)]/50" : ""}`}
+                        } ${isCurrent ? "ring-1 ring-[color:#2a7347]/50" : ""}`}
                       >
                         <span className="flex items-center gap-2 font-medium">
                           <span
@@ -2673,10 +2671,7 @@ const ExercisePage = () => {
             WebkitBackdropFilter: "blur(4px)",
           }}
         >
-          <GlassCard
-            padding="lg"
-            className="relative w-full max-w-xl shadow-2xl shadow-black/30"
-          >
+          <GlassCard padding="lg" className="app-card relative w-full max-w-xl">
             {animationsEnabled && (
               <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 {Array.from({ length: 18 }).map((_, index) => (
@@ -2700,7 +2695,7 @@ const ExercisePage = () => {
               </div>
             )}
             <div className="flex items-center justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
-              <h2 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+              <h2 className="text-lg font-semibold text-content-primary">
                 <span className="mr-2">
                   <GarzoniIcon name="trophy" size={18} />
                 </span>{" "}
@@ -2709,7 +2704,7 @@ const ExercisePage = () => {
               <button
                 type="button"
                 onClick={() => setShowStats(false)}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
               >
                 {t("exercises.summary.close")}
               </button>
@@ -2735,7 +2730,7 @@ const ExercisePage = () => {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.averageAccuracy")}
                   </h4>
                   <p>
@@ -2747,7 +2742,7 @@ const ExercisePage = () => {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.firstTryAccuracy")}
                   </h4>
                   <p>
@@ -2759,10 +2754,10 @@ const ExercisePage = () => {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.xpEarned")}
                   </h4>
-                  <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                  <p className="text-lg font-semibold text-content-primary">
                     {xpTotal}
                   </p>
                   <p className="text-xs">
@@ -2776,16 +2771,16 @@ const ExercisePage = () => {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.coinsEarned")}
                   </h4>
-                  <p className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+                  <p className="text-lg font-semibold text-content-primary">
                     {coinsEarned}
                   </p>
                   <p className="text-xs">{t("exercises.summary.coinsHint")}</p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.averageAttempts")}
                   </h4>
                   <p>
@@ -2797,7 +2792,7 @@ const ExercisePage = () => {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.reviewDue")}
                   </h4>
                   <p>
@@ -2815,7 +2810,7 @@ const ExercisePage = () => {
                   )}
                 </div>
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted">
-                  <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="text-base font-semibold text-content-primary">
                     {t("exercises.summary.totalTimeSpent")}
                   </h4>
                   <p>
@@ -2825,7 +2820,7 @@ const ExercisePage = () => {
                 </div>
                 {isTimedMode && (
                   <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-center text-sm text-content-muted md:col-span-2">
-                    <h4 className="text-base font-semibold text-[color:var(--accent,#111827)]">
+                    <h4 className="text-base font-semibold text-content-primary">
                       {t("exercises.summary.timeRemaining")}
                     </h4>
                     <p>{formatTime(timeRemaining)}</p>
@@ -2833,31 +2828,31 @@ const ExercisePage = () => {
                 )}
               </div>
               <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-muted">
-                <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                <h4 className="mb-2 text-base font-semibold text-content-primary">
                   {t("exercises.summary.missionProgress")}
                 </h4>
                 <p>
                   {t("exercises.summary.firstTryCorrect")}:{" "}
-                  <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  <span className="font-semibold text-content-primary">
                     {firstTryCorrect}
                   </span>
                 </p>
                 <p>
                   {t("exercises.summary.currentStreak")}:{" "}
-                  <span className="font-semibold text-[color:var(--accent,#111827)]">
+                  <span className="font-semibold text-content-primary">
                     {streak}
                   </span>
                 </p>
               </div>
               {Object.keys(skillGains).length > 0 && (
                 <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] px-4 py-4 text-sm text-content-primary">
-                  <h4 className="mb-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                  <h4 className="mb-2 text-base font-semibold text-content-primary">
                     {t("exercises.summary.skillHighlights")}
                   </h4>
                   <ul className="space-y-1 text-content-muted">
                     {Object.entries(skillGains).map(([skill, gain]) => (
                       <li key={skill}>
-                        <span className="font-semibold text-[color:var(--accent,#111827)]">
+                        <span className="font-semibold text-content-primary">
                           {`${skill}: +${gain} ${t("exercises.summary.masteryPoints")}`}
                         </span>
                       </li>
@@ -2880,7 +2875,7 @@ const ExercisePage = () => {
                 <button
                   type="button"
                   onClick={() => setShowStats(false)}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40"
                 >
                   {t("exercises.summary.close")}
                 </button>
@@ -2891,7 +2886,7 @@ const ExercisePage = () => {
                       setShowStats(false);
                       startReviewMode();
                     }}
-                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--accent,#ffd700)]/50 px-5 py-2 text-sm font-semibold text-[color:var(--accent,#ffd700)] shadow-sm shadow-[color:var(--accent,#ffd700)]/20 transition hover:bg-[color:var(--accent,#ffd700)] hover:text-white"
+                    className="inline-flex items-center justify-center rounded-full border border-[color:#2a7347]/50 px-5 py-2 text-sm font-semibold text-[color:var(--primary-bright,#2a7347)] shadow-sm shadow-[color:#2a7347]/20 transition hover:bg-[color:#2a7347] hover:text-white"
                   >
                     {t("exercises.summary.doReviews")}
                   </button>
@@ -2902,7 +2897,7 @@ const ExercisePage = () => {
                     setShowStats(false);
                     goToRecommended();
                   }}
-                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-primary transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40"
                 >
                   {t("exercises.summary.nextRecommended")}
                 </button>
@@ -2927,7 +2922,7 @@ const ExercisePage = () => {
                       );
                     }
                   }}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40"
                 >
                   {t("exercises.summary.startNewSession")}
                 </button>

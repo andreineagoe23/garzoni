@@ -18,7 +18,7 @@ const EntitlementUsage = ({
   if (!entitlementUsage.length) return null;
 
   return (
-    <div className="mt-6 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-4 backdrop-blur-sm">
+    <div className="mt-6 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-content-primary">
           {t("dashboard.entitlementUsage.dailyUsage")}
@@ -37,7 +37,7 @@ const EntitlementUsage = ({
           return (
             <div
               key={feature.key}
-              className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.08))] bg-[color:var(--card-bg,#ffffff)]/80 px-3 py-3 text-sm"
+              className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.08))] bg-surface-card px-3 py-3 text-sm"
             >
               <div className="font-semibold text-content-primary">
                 {feature.name}

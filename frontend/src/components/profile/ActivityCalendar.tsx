@@ -63,10 +63,7 @@ const ActivityCalendar = React.memo(
       0;
 
     return (
-      <GlassCard
-        padding="md"
-        className="space-y-4 bg-[color:var(--card-bg,#ffffff)]/60"
-      >
+      <GlassCard padding="md" className="space-y-4 bg-surface-card">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-content-primary">
             {currentMonth.month_name} {currentMonth.year}
@@ -140,25 +137,25 @@ const ActivityCalendar = React.memo(
             </p>
             {selectedHasDetails ? (
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg bg-[color:var(--card-bg,#fff)]/70 p-2">
+                <div className="rounded-lg bg-surface-card p-2">
                   <span className="text-content-muted">Lessons</span>
                   <p className="text-sm font-semibold text-content-primary">
                     {selectedDetails.lessons}
                   </p>
                 </div>
-                <div className="rounded-lg bg-[color:var(--card-bg,#fff)]/70 p-2">
+                <div className="rounded-lg bg-surface-card p-2">
                   <span className="text-content-muted">Sections</span>
                   <p className="text-sm font-semibold text-content-primary">
                     {selectedDetails.sections}
                   </p>
                 </div>
-                <div className="rounded-lg bg-[color:var(--card-bg,#fff)]/70 p-2">
+                <div className="rounded-lg bg-surface-card p-2">
                   <span className="text-content-muted">Exercises</span>
                   <p className="text-sm font-semibold text-content-primary">
                     {selectedDetails.exercises}
                   </p>
                 </div>
-                <div className="rounded-lg bg-[color:var(--card-bg,#fff)]/70 p-2">
+                <div className="rounded-lg bg-surface-card p-2">
                   <span className="text-content-muted">Quizzes</span>
                   <p className="text-sm font-semibold text-content-primary">
                     {selectedDetails.quizzes}

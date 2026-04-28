@@ -524,9 +524,9 @@ const Chatbot = () => {
                           type="button"
                           className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition hover:opacity-80"
                           style={{
-                            backgroundColor: "rgba(29,83,48,0.3)",
-                            color: "#4ade80",
-                            border: "1px solid rgba(74,222,128,0.2)",
+                            backgroundColor: "rgba(29,83,48,0.25)",
+                            color: "#2a7347",
+                            border: "1px solid rgba(42,115,71,0.4)",
                           }}
                           onClick={() => handleCourseClick(msg.link.path)}
                         >
@@ -549,9 +549,9 @@ const Chatbot = () => {
                                 type="button"
                                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition hover:opacity-80"
                                 style={{
-                                  backgroundColor: "rgba(29,83,48,0.3)",
-                                  color: "#4ade80",
-                                  border: "1px solid rgba(74,222,128,0.2)",
+                                  backgroundColor: "rgba(29,83,48,0.25)",
+                                  color: "#2a7347",
+                                  border: "1px solid rgba(42,115,71,0.4)",
                                 }}
                                 onClick={() => handleCourseClick(link.path)}
                               >
@@ -611,9 +611,9 @@ const Chatbot = () => {
                         type="button"
                         className="rounded-full px-2.5 py-1 text-xs font-semibold transition hover:opacity-80"
                         style={{
-                          backgroundColor: "rgba(29,83,48,0.2)",
-                          color: "#4ade80",
-                          border: "1px solid rgba(29,83,48,0.5)",
+                          backgroundColor: "rgba(29,83,48,0.18)",
+                          color: "#2a7347",
+                          border: "1px solid rgba(42,115,71,0.45)",
                         }}
                         onClick={() => handleMessageSend(reply)}
                       >

@@ -418,29 +418,49 @@ function Missions() {
     }
   }, [showSavingsMenu, suggestedSavings]);
 
-  const missionsRemaining = dailyMissions.filter(
-    (mission) => mission.status !== "completed"
+  // ── Daily stats ─────────────────────────────────────────────────
+  const dailyMissionsRemaining = dailyMissions.filter(
+    (m) => m.status !== "completed"
   ).length;
-
   const dailyXpEarned = dailyMissions
-    .filter((mission) => mission.status === "completed")
-    .reduce((total, mission) => total + (mission.points_reward || 0), 0);
-
+    .filter((m) => m.status === "completed")
+    .reduce((total, m) => total + (m.points_reward || 0), 0);
   const dailyXpRemaining = dailyMissions
-    .filter((mission) => mission.status !== "completed")
-    .reduce((total, mission) => total + (mission.points_reward || 0), 0);
-
+    .filter((m) => m.status !== "completed")
+    .reduce((total, m) => total + (m.points_reward || 0), 0);
   const dailyXpTotal = dailyXpEarned + dailyXpRemaining;
-
-  const allDailyCompleted = dailyMissions.length > 0 && missionsRemaining === 0;
-  const noMissionsAvailable =
-    dailyMissions.length === 0 && weeklyMissions.length === 0;
   const dailyCompletedCount = dailyMissions.filter(
     (m) => m.status === "completed"
   ).length;
+
+  // ── Weekly stats ─────────────────────────────────────────────────
+  const weeklyMissionsRemaining = weeklyMissions.filter(
+    (m) => m.status !== "completed"
+  ).length;
+  const weeklyXpEarned = weeklyMissions
+    .filter((m) => m.status === "completed")
+    .reduce((total, m) => total + (m.points_reward || 0), 0);
+  const weeklyXpRemaining = weeklyMissions
+    .filter((m) => m.status !== "completed")
+    .reduce((total, m) => total + (m.points_reward || 0), 0);
+  const weeklyXpTotal = weeklyXpEarned + weeklyXpRemaining;
   const weeklyCompletedCount = weeklyMissions.filter(
     (m) => m.status === "completed"
   ).length;
+
+  // ── Scope-aware stats (used in summary section) ──────────────────
+  const missionsRemaining =
+    missionScope === "daily" ? dailyMissionsRemaining : weeklyMissionsRemaining;
+  const activeXpEarned =
+    missionScope === "daily" ? dailyXpEarned : weeklyXpEarned;
+  const activeXpRemaining =
+    missionScope === "daily" ? dailyXpRemaining : weeklyXpRemaining;
+  const activeXpTotal = missionScope === "daily" ? dailyXpTotal : weeklyXpTotal;
+
+  const allDailyCompleted =
+    dailyMissions.length > 0 && dailyMissionsRemaining === 0;
+  const noMissionsAvailable =
+    dailyMissions.length === 0 && weeklyMissions.length === 0;
 
   const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
@@ -468,10 +488,10 @@ function Missions() {
           </p>
         </header>
 
-        <GlassCard padding="md" className="bg-[color:var(--card-bg)]/70">
+        <GlassCard padding="md" className="">
           <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
             {/* Left: compact "at a glance" mini-card */}
-            <div className="flex-1 rounded-xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm">
+            <div className="flex-1 rounded-xl border border-[color:var(--border-color)]  px-4 py-3 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-content-muted">
                 {t("missions.summary.title")}
               </p>
@@ -484,8 +504,8 @@ function Missions() {
                 </p>
                 <p className="text-sm text-content-muted">
                   {t("missions.summary.xp", {
-                    earned: dailyXpEarned,
-                    remaining: dailyXpRemaining,
+                    earned: activeXpEarned,
+                    remaining: activeXpRemaining,
                   })}
                 </p>
               </div>
@@ -523,13 +543,19 @@ function Missions() {
               <StatBadge
                 label={t("missions.summary.streak")}
                 value={t("missions.summary.streakDays", { count: streakCount })}
-                className="bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm"
+                className=" px-4 py-3 shadow-sm"
               />
               <StatBadge
-                label={t("missions.summary.totalXp")}
-                value={`${formatNumber(dailyXpEarned)} / ${formatNumber(dailyXpTotal)}`}
+                label={
+                  missionScope === "daily"
+                    ? t("missions.summary.totalXp")
+                    : t("missions.summary.totalXpWeekly", {
+                        defaultValue: "XP this week",
+                      })
+                }
+                value={`${formatNumber(activeXpEarned)} / ${formatNumber(activeXpTotal)}`}
                 unit="XP"
-                className="bg-[color:var(--card-bg)]/70 px-4 py-3 shadow-sm"
+                className=" px-4 py-3 shadow-sm"
               />
             </div>
           </div>
@@ -590,7 +616,7 @@ function Missions() {
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "daily"
                   ? "border-[color:var(--primary)] bg-[color:var(--primary)]/15 text-[color:var(--primary)]"
-                  : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
+                  : "border-[color:var(--border-color)]  text-content-muted hover:bg-[color:var(--card-bg)]"
               }`}
             >
               {t("missions.tab.dailyWithCount", {
@@ -605,7 +631,7 @@ function Missions() {
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "weekly"
                   ? "border-[color:var(--primary)] bg-[color:var(--primary)]/15 text-[color:var(--primary)]"
-                  : "border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 text-content-muted hover:bg-[color:var(--card-bg)]"
+                  : "border-[color:var(--border-color)]  text-content-muted hover:bg-[color:var(--card-bg)]"
               }`}
             >
               {t("missions.tab.weeklyWithCount", {
@@ -621,7 +647,7 @@ function Missions() {
             <Loader message={t("missions.loading")} />
           </div>
         ) : noMissionsAvailable ? (
-          <GlassCard padding="md" className="bg-[color:var(--card-bg)]/70">
+          <GlassCard padding="md" className="">
             <p className="text-base font-semibold text-content-primary">
               {t("missions.empty.title")}
             </p>
@@ -705,7 +731,7 @@ function Missions() {
             )}
 
             {missionScope === "daily" && allDailyCompleted && (
-              <GlassCard padding="lg" className="bg-[color:var(--card-bg)]/80">
+              <GlassCard padding="lg" className="">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex shrink-0 flex-col items-center gap-2">

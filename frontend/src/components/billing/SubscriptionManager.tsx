@@ -298,7 +298,7 @@ const SubscriptionManager = () => {
             {t("billing.manageSubtitle")}
           </p>
         </div>
-        <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)]/80 px-4 py-4 text-sm text-content-primary">
+        <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-surface-card px-4 py-4 text-sm text-content-primary">
           <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
             <div className="font-semibold">
               {t("billing.currentPlan")}:{" "}
@@ -392,7 +392,7 @@ const SubscriptionManager = () => {
 
         <div className="flex flex-col items-center gap-4">
           <div
-            className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-1"
+            className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-1"
             role="group"
             aria-label={t("subscriptions.choosePlan")}
           >
@@ -454,7 +454,7 @@ const SubscriptionManager = () => {
               return (
                 <div
                   key={`${plan.plan_id}-${billingLabel}`}
-                  className={`flex h-full min-h-[280px] flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left shadow-sm ${
+                  className={`flex h-full min-h-[280px] flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-5 text-left shadow-sm ${
                     isHighlight
                       ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--accent,#ffd700)]/20"
                       : ""

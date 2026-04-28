@@ -69,20 +69,20 @@ const EarlySkillInsights = ({
   }, [hasStarted]);
 
   return (
-    <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
+    <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm font-semibold text-content-primary">
           {t("dashboard.skillInsights.title")}
         </p>
         {showJustUnlocked && (
-          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
+          <span className="rounded-full bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)]">
             {t("dashboard.skillInsights.justUnlocked")}
           </span>
         )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-3">
+        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.foundation")}
           </p>
@@ -96,7 +96,7 @@ const EarlySkillInsights = ({
           </p>
         </div>
 
-        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-3">
+        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.currentFocus")}
           </p>
@@ -110,7 +110,7 @@ const EarlySkillInsights = ({
           </p>
         </div>
 
-        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70 p-3">
+        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.momentum")}
           </p>

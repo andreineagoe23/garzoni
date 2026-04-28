@@ -11,18 +11,14 @@ const ProtectedRoute = ({
 
   if (!isInitialized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6">
-        <div
-          className="flex flex-col items-center gap-4 rounded-2xl bg-slate-900/80 px-8 py-10 text-center shadow-2xl shadow-black/40 backdrop-blur"
-          style={{
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
-        >
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary,#1d5330)] border-t-transparent" />
+      <div className="app-page flex items-center justify-center px-6">
+        <div className="app-card flex flex-col items-center gap-4 px-8 py-10 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#2a7347] border-t-transparent" />
           <div>
-            <p className="text-base font-semibold text-white">Verifying...</p>
-            <p className="mt-1 text-sm text-slate-300">
+            <p className="text-base font-semibold text-content-primary">
+              Verifying...
+            </p>
+            <p className="mt-1 text-sm text-content-muted">
               Please hold on while we prepare your experience.
             </p>
           </div>

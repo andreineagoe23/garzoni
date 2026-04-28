@@ -101,7 +101,9 @@ export default function StreakFreezeModal({
           onPress={(e) => e.stopPropagation()}
         >
           <Animated.View
-            entering={SlideInDown.duration(280).easing(Easing.out(Easing.cubic))}
+            entering={SlideInDown.duration(280).easing(
+              Easing.out(Easing.cubic),
+            )}
             exiting={SlideOutDown.duration(200)}
             style={[
               styles.sheet,

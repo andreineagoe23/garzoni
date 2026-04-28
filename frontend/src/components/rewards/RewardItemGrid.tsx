@@ -86,7 +86,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
         {Array.from({ length: 3 }).map((_, idx) => (
           <div
             key={idx}
-            className="h-64 rounded-2xl bg-[color:var(--card-bg)]/40 animate-pulse"
+            className="h-64 rounded-2xl bg-surface-card animate-pulse"
           />
         ))}
       </div>
@@ -95,10 +95,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
 
   if (!cardRows.length) {
     return (
-      <GlassCard
-        padding="lg"
-        className="bg-[color:var(--card-bg)]/60 text-sm text-content-muted"
-      >
+      <GlassCard padding="lg" className=" text-sm text-content-muted">
         {emptyText}
       </GlassCard>
     );
@@ -181,7 +178,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       disabled={!canAfford}
                       className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-xs font-semibold text-white transition ${
                         isDonate
-                          ? "bg-emerald-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40"
+                          ? "bg-[color:var(--primary-bright,#2a7347)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
                           : "bg-[color:var(--primary)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
                       } ${!canAfford ? "opacity-50 cursor-not-allowed" : ""}`}
                       title={
@@ -199,7 +196,7 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       disabled={!canAfford}
                       className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-xs font-semibold text-white transition ${
                         isDonate
-                          ? "bg-emerald-500 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40"
+                          ? "bg-[color:var(--primary-bright,#2a7347)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
                           : "bg-[color:var(--primary)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
                       } ${!canAfford ? "opacity-50 cursor-not-allowed" : ""}`}
                       title={

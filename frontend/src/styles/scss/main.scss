@@ -15,7 +15,8 @@
 @use "layout/header";
 @use "layout/app-layout";
 
-// Theme overrides
+// Theme overrides — light first, dark overrides on top
+@use "themes/light-mode";
 @use "themes/dark-mode";
 
 // Component overrides (theme-aware)

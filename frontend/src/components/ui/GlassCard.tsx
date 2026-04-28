@@ -13,8 +13,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     { children, className = "", hover = true, padding = "md", ...props },
     ref
   ) => {
-    const baseStyles =
-      "relative overflow-hidden rounded-3xl border border-border bg-surface-card/95 shadow-xl shadow-black/10 backdrop-blur-lg transition-all";
+    const baseStyles = "app-card relative overflow-hidden transition-all";
 
     const paddingStyles = {
       none: "",
@@ -29,15 +28,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     const combinedClassName = `${baseStyles} ${paddingStyles[padding]} ${hoverStyles} ${className}`;
 
     return (
-      <div
-        ref={ref}
-        className={combinedClassName}
-        style={{
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        }}
-        {...props}
-      >
+      <div ref={ref} className={combinedClassName} {...props}>
         {children}
       </div>
     );

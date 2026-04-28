@@ -50,7 +50,7 @@ function ForgotPassword() {
         <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/20 via-transparent to-transparent" />
         <div className="relative w-full max-w-lg px-6 py-12 sm:px-10">
           <div
-            className="flex flex-col items-center rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#ffffff)] px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur transition-colors"
+            className="app-card flex flex-col items-center px-6 py-10"
             style={{
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
@@ -73,7 +73,7 @@ function ForgotPassword() {
               <div
                 role="status"
                 aria-live="polite"
-                className="mt-6 w-full rounded-lg border border-emerald-400/60 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+                className="mt-6 w-full rounded-lg border border-[color:var(--primary-bright,#2a7347)]/50 bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)]"
               >
                 {message}
               </div>
@@ -107,7 +107,7 @@ function ForgotPassword() {
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder={t("auth.forgotPassword.emailPlaceholder")}
                   required
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#2563eb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30"
+                  className="app-input"
                 />
               </div>
 

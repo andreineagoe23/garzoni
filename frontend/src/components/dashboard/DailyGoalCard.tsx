@@ -19,29 +19,25 @@ const DailyGoalCard = ({
 }: DailyGoalCardProps) => {
   const { t } = useTranslation();
   return (
-    <div
-      className={`rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm ${noMarginTop ? "" : "mt-6"}`}
-    >
-      <div className="mb-2 flex items-center justify-between">
+    <div className={`app-card p-4 ${noMarginTop ? "" : "mt-6"}`}>
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <GarzoniIcon
-            name="target"
-            size={20}
-            className="text-[color:var(--primary,#1d5330)]"
-          />
-          <span className="text-sm font-medium text-content-primary">
-            {t("dashboard.dailyGoal.label")}
-          </span>
+          <div className="app-icon-tile">
+            <GarzoniIcon
+              name="target"
+              size={18}
+              className="text-[color:var(--primary-bright,#2a7347)]"
+            />
+          </div>
+          <span className="app-eyebrow">{t("dashboard.dailyGoal.label")}</span>
         </div>
         <span className="text-sm font-semibold text-content-primary">
           {formatPercentage(dailyGoalProgress, locale, 0)}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+      <div className="app-progress-track">
         <div
-          className={`h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] ${
-            prefersReducedMotion ? "" : "duration-500"
-          }`}
+          className={`app-progress-fill transition-[width] ${prefersReducedMotion ? "" : "duration-500"}`}
           style={{ width: `${dailyGoalProgress}%` }}
           role="progressbar"
           aria-valuenow={dailyGoalProgress}
