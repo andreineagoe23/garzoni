@@ -549,9 +549,7 @@ function Missions() {
                 label={
                   missionScope === "daily"
                     ? t("missions.summary.totalXp")
-                    : t("missions.summary.totalXpWeekly", {
-                        defaultValue: "XP this week",
-                      })
+                    : t("missions.summary.totalXpWeekly")
                 }
                 value={`${formatNumber(activeXpEarned)} / ${formatNumber(activeXpTotal)}`}
                 unit="XP"

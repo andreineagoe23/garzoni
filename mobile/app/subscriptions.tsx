@@ -588,7 +588,6 @@ export default function SubscriptionsScreen() {
           title: isPaywall ? "Choose your plan" : "Manage Plan",
           headerShown: !isPaywall,
           headerStyle: { backgroundColor: D.bg },
-          headerTintColor: c.primary,
           gestureEnabled: !isPaywall,
         }}
       />

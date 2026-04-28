@@ -79,7 +79,6 @@ export default function FeedbackScreen() {
         options={{
           title: t("feedback.screenTitle"),
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <KeyboardAvoidingView

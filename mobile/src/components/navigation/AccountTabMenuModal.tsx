@@ -37,7 +37,9 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
 
   const sheetBottomPad = insets.bottom + TAB_BAR_HEIGHT + spacing.xs;
   const glassFill =
-    resolved === "dark" ? "rgba(28,28,30,0.94)" : "rgba(248,248,250,0.96)";
+    resolved === "dark"
+      ? "rgba(17, 24, 39, 0.97)" // brand surface #111827
+      : "rgba(255, 255, 255, 0.97)";
 
   const go = useCallback(
     (path: string) => {
@@ -69,7 +71,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
     <Modal
       visible
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
     >
@@ -138,7 +140,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
               <View style={[styles.divider, { backgroundColor: c.border }]} />
 
               {/* Navigate */}
-              <Text style={[styles.sectionLabel, { color: c.accent }]}>
+              <Text style={[styles.sectionLabel, { color: c.textFaint }]}>
                 {t("nav.navigateSection", { defaultValue: "Navigate" })}
               </Text>
 

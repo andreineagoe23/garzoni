@@ -21,6 +21,9 @@ const fontPrimary = Platform.select({
 export const brand = {
   green: "#1d5330",
   greenRgb: "29, 83, 48",
+  greenBright: "#2a7347",
+  greenSoft: "rgba(29, 83, 48, 0.18)", // dark mode badge tint
+  greenSoftLight: "rgba(29, 83, 48, 0.10)", // light mode badge tint
 
   gold: "#ffd700",
   goldRgb: "255, 215, 0",
@@ -29,6 +32,7 @@ export const brand = {
 
   bgDark: "#0b0f14",
   bgDarkRgb: "11, 15, 20",
+  bgDeep: "#070a0e",
   bgCard: "#111827",
   borderGlass: "rgba(255,255,255,0.12)",
 

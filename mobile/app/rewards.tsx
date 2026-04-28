@@ -191,7 +191,6 @@ export default function RewardsScreen() {
         options={{
           title: "Rewards",
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <View style={[styles.screen, { backgroundColor: c.bg }]}>

@@ -124,7 +124,6 @@ export default function PasswordResetConfirmScreen() {
           options={{
             title: t("auth.resetPassword.mobileSetTitle"),
             headerShown: true,
-            headerTintColor: c.primary,
           }}
         />
         <View style={[styles.container, styles.centered]}>
@@ -149,7 +148,6 @@ export default function PasswordResetConfirmScreen() {
         options={{
           title: t("auth.resetPassword.mobileSetTitle"),
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <KeyboardAvoidingView

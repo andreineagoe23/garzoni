@@ -62,7 +62,21 @@ function ThemedRoot() {
         <StatusBar style={resolved === "dark" ? "light" : "dark"} />
         <OfflineBanner />
         <View style={styles.stackHost}>
-          <Stack screenOptions={{ headerShown: false }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              // Header background matches page bg; text/back-button use readable text color.
+              // Individual screens set headerShown:true but MUST NOT set headerTintColor:primary.
+              headerStyle: { backgroundColor: colors.bg },
+              headerTitleStyle: {
+                color: colors.text,
+                fontSize: 17,
+                fontWeight: "600",
+              },
+              headerTintColor: colors.text,
+              headerShadowVisible: false,
+            }}
+          >
             <Stack.Screen name="index" />
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" options={{ title: "Home" }} />

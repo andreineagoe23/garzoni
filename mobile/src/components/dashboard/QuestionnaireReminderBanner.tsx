@@ -92,7 +92,7 @@ export default function QuestionnaireReminderBanner({
   return (
     <GlassCard
       padding="md"
-      style={{ borderColor: c.primary, backgroundColor: c.accentMuted }}
+      style={{ borderColor: c.primary, backgroundColor: c.primarySoft }}
     >
       <View style={styles.row}>
         <View style={{ flex: 1 }}>

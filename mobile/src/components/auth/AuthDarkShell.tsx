@@ -28,7 +28,7 @@ export const DARK = {
   surface: brand.bgCard,
   surfaceRaised: "#161f2e",
   primary: brand.green,
-  primaryBright: "#2a7347",
+  primaryBright: brand.greenBright,
   primarySoft: "rgba(29,83,48,0.18)",
   gold: brand.gold,
   goldWarm: brand.goldWarm,

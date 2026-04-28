@@ -87,7 +87,6 @@ export default function ChangePasswordScreen() {
         options={{
           title: t("settings.password.title"),
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <KeyboardAvoidingView

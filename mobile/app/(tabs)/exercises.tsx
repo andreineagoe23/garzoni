@@ -604,7 +604,14 @@ function ExercisesInner() {
           {/* ── Review mode banner ── */}
           {mode === "review" ? (
             <View
-              style={[styles.reviewBanner, { backgroundColor: c.accentMuted }]}
+              style={[
+                styles.reviewBanner,
+                {
+                  backgroundColor: c.primarySoft,
+                  borderColor: c.borderSoft,
+                  borderWidth: 1,
+                },
+              ]}
             >
               <Text style={[styles.reviewBannerText, { color: c.text }]}>
                 {t("exercises.practiceHub.reviewModeBanner", {

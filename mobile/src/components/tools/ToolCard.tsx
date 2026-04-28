@@ -60,10 +60,10 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
                 <View
                   style={[
                     styles.plusChip,
-                    { backgroundColor: "rgba(245,158,11,0.12)" },
+                    { backgroundColor: `rgba(255,215,0,0.12)` },
                   ]}
                 >
-                  <Text style={[styles.plusText, { color: "#f59e0b" }]}>
+                  <Text style={[styles.plusText, { color: c.accent }]}>
                     ✦ Plus
                   </Text>
                 </View>

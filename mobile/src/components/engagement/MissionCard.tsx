@@ -147,20 +147,20 @@ export default function MissionCard({
           style={[
             styles.completeBox,
             {
-              borderColor: "rgba(16,185,129,0.4)",
-              backgroundColor: "rgba(16,185,129,0.1)",
+              borderColor: c.primarySoft,
+              backgroundColor: c.successBg,
             },
           ]}
         >
           <View style={styles.completeRow}>
-            <Text style={[styles.completeTitle, { color: "#047857" }]}>
+            <Text style={[styles.completeTitle, { color: c.success }]}>
               {t("missions.complete.title")}
             </Text>
-            <Text style={[styles.completeTitle, { color: "#047857" }]}>
+            <Text style={[styles.completeTitle, { color: c.success }]}>
               +{mission.points_reward ?? 0} XP
             </Text>
           </View>
-          <Text style={[styles.completeSub, { color: "#047857" }]}>
+          <Text style={[styles.completeSub, { color: c.success }]}>
             {t("missions.complete.subtitle")}
           </Text>
         </View>
@@ -239,7 +239,7 @@ export default function MissionCard({
                         styles.addBtn,
                         {
                           opacity: pressed ? 0.9 : 1,
-                          backgroundColor: "#10b981",
+                          backgroundColor: c.primary,
                         },
                       ]}
                     >

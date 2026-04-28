@@ -13,7 +13,7 @@ type Props = {
 const DARK = {
   surface: brand.bgCard,
   primary: brand.green,
-  primaryBright: "#2a7347",
+  primaryBright: brand.greenBright,
   primarySoft: "rgba(29,83,48,0.18)",
   gold: brand.gold,
   border: brand.borderGlass,

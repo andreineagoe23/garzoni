@@ -138,13 +138,16 @@ export default function SettingsScreen() {
         options={{
           title: t("nav.settings"),
           headerShown: true,
-          headerTintColor: c.primary,
+          headerStyle: { backgroundColor: c.bg },
+          headerTitleStyle: { color: c.text },
+          headerTintColor: c.text,
+          headerShadowVisible: false,
         }}
       />
       <ScrollView
         contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
       >
-        <Text style={[styles.section, { color: c.accent }]}>
+        <Text style={[styles.section, { color: c.textFaint }]}>
           {t("settings.preferences.title")}
         </Text>
         <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
@@ -244,7 +247,7 @@ export default function SettingsScreen() {
           />
         </GlassCard>
 
-        <Text style={[styles.section, { color: c.accent }]}>
+        <Text style={[styles.section, { color: c.textFaint }]}>
           {t("settings.mobile.appearance")}
         </Text>
         <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
@@ -256,7 +259,7 @@ export default function SettingsScreen() {
           />
         </GlassCard>
 
-        <Text style={[styles.section, { color: c.accent }]}>
+        <Text style={[styles.section, { color: c.textFaint }]}>
           {t("language.label")}
         </Text>
         <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
@@ -273,7 +276,7 @@ export default function SettingsScreen() {
                   {
                     borderColor: active ? c.primary : c.border,
                     color: c.text,
-                    backgroundColor: active ? c.accentMuted : "transparent",
+                    backgroundColor: active ? c.primarySoft : "transparent",
                   },
                 ]}
               >
@@ -283,7 +286,9 @@ export default function SettingsScreen() {
           })}
         </GlassCard>
 
-        <Text style={[styles.section, { color: c.accent }]}>Subscription</Text>
+        <Text style={[styles.section, { color: c.textFaint }]}>
+          Subscription
+        </Text>
         <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
           <Pressable
             style={styles.linkRow}
@@ -298,7 +303,7 @@ export default function SettingsScreen() {
           </Pressable>
         </GlassCard>
 
-        <Text style={[styles.section, { color: c.accent }]}>
+        <Text style={[styles.section, { color: c.textFaint }]}>
           Help & Feedback
         </Text>
         <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>

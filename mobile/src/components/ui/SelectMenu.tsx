@@ -96,7 +96,7 @@ export default function SelectMenu({
                     style={[
                       styles.optionRow,
                       { borderBottomColor: c.border },
-                      selected && { backgroundColor: c.accentMuted },
+                      selected && { backgroundColor: c.primarySoft },
                     ]}
                   >
                     <Text
