@@ -120,7 +120,7 @@ export default function ToolSwitcherSheet({ visible, onClose }: Props) {
                         </Text>
                       </View>
                       {tool.plusOnly && (
-                        <Text style={[styles.plusBadge, { color: "#f59e0b" }]}>
+                        <Text style={[styles.plusBadge, { color: c.accent }]}>
                           ✦
                         </Text>
                       )}

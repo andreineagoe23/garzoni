@@ -23,7 +23,7 @@ export const CATEGORY_LABELS: Record<StepCategory, string> = {
 
 export const CATEGORY_COLORS: Record<StepCategory, string> = {
   learn: "#3b82f6",
-  action: "#10b981",
+  action: "#2a7347",
   review: "#f59e0b",
   explore: "#8b5cf6",
 };

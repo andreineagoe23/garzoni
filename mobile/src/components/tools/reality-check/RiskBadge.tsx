@@ -12,7 +12,7 @@ export function RiskBadge({ feasible, warnings }: Props) {
     warnings.length === 0 ? "low" : warnings.length === 1 ? "medium" : "high";
 
   const config = {
-    low: { label: "Low Risk", bg: "rgba(46,125,50,0.12)", color: "#2e7d32" },
+    low: { label: "Low Risk", bg: "rgba(42,115,71,0.12)", color: "#2a7347" },
     medium: {
       label: "Medium Risk",
       bg: "rgba(245,158,11,0.12)",

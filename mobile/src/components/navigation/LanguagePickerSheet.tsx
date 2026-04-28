@@ -43,7 +43,7 @@ export function LanguagePickerSheet({ visible, onClose }: Props) {
                       styles.langItem,
                       {
                         borderColor: active ? c.primary : c.border,
-                        backgroundColor: active ? c.accentMuted : "transparent",
+                        backgroundColor: active ? c.primarySoft : "transparent",
                       },
                     ]}
                     onPress={() => {

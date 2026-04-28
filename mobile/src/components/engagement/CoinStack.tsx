@@ -34,17 +34,15 @@ export default function CoinStack({
               style={[
                 styles.coin,
                 {
-                  borderColor: unlocked ? "rgba(16,185,129,0.45)" : c.border,
-                  backgroundColor: unlocked
-                    ? "rgba(16,185,129,0.12)"
-                    : c.surface,
+                  borderColor: unlocked ? c.primarySoft : c.border,
+                  backgroundColor: unlocked ? c.successBg : c.surface,
                 },
               ]}
             >
               <Text
                 style={[
                   styles.coinAmt,
-                  { color: unlocked ? "#10b981" : c.textMuted },
+                  { color: unlocked ? c.primaryBright : c.textMuted },
                 ]}
               >
                 £{amount}

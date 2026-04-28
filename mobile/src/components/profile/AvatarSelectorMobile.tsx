@@ -278,7 +278,7 @@ export default function AvatarSelectorMobile({
                             selectedStyle === s.id ? c.primary : c.border,
                           backgroundColor:
                             selectedStyle === s.id
-                              ? c.accentMuted
+                              ? c.primarySoft
                               : c.surfaceOffset,
                         },
                       ]}

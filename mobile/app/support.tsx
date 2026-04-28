@@ -185,7 +185,6 @@ export default function SupportScreen() {
         options={{
           title: t("support.mobile.screenTitle"),
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <FlatList

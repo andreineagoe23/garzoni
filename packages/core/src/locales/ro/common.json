@@ -1052,7 +1052,8 @@
       "suggestedSavings": "Țintă sugerată de economii: £{{amount}} (în funcție de nivelul tău {{level}})",
       "streak": "Serie",
       "streakDays": "{{count}} zile",
-      "totalXp": "Total XP azi"
+      "totalXp": "Total XP azi",
+      "totalXpWeekly": "XP săptămâna aceasta"
     },
     "streakItemAria": "{{type}}: {{quantity}} disponibile",
     "loading": "Se încarcă misiunile...",

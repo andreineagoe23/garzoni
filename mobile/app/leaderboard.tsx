@@ -325,7 +325,7 @@ export default function LeaderboardScreen() {
                 {
                   borderColor: c.border,
                   backgroundColor:
-                    timeFilter === opt.value ? c.accentMuted : c.surface,
+                    timeFilter === opt.value ? c.primarySoft : c.surface,
                 },
               ]}
             >
@@ -458,7 +458,6 @@ export default function LeaderboardScreen() {
         options={{
           title: headerTitle,
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <View style={[styles.screen, { backgroundColor: c.bg }]}>

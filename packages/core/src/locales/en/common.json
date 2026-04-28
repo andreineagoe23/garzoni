@@ -1052,7 +1052,8 @@
       "suggestedSavings": "Suggested savings target: £{{amount}} (based on your {{level}} level)",
       "streak": "Streak",
       "streakDays": "{{count}} days",
-      "totalXp": "Total XP today"
+      "totalXp": "Total XP today",
+      "totalXpWeekly": "XP this week"
     },
     "streakItemAria": "{{type}}: {{quantity}} available",
     "loading": "Loading missions...",

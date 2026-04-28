@@ -40,7 +40,7 @@ export default function FactCard({
             onPress={onMarkRead}
             style={({ pressed }) => [
               styles.markBtn,
-              { opacity: pressed ? 0.85 : 1, backgroundColor: "#10b981" },
+              { opacity: pressed ? 0.85 : 1, backgroundColor: c.primary },
             ]}
           >
             <Text style={styles.markBtnText}>

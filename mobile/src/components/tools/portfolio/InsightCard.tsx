@@ -16,8 +16,8 @@ export function InsightCard({ card }: Props) {
 
   const CONFIDENCE_COLORS: Record<string, { bg: string; text: string }> = {
     high: {
-      bg: dark ? "rgba(74,222,128,0.14)" : "rgba(46,125,50,0.12)",
-      text: dark ? "#4ade80" : "#2e7d32",
+      bg: dark ? "rgba(42,115,71,0.18)" : "rgba(42,115,71,0.10)",
+      text: dark ? "#2a7347" : "#1d5330",
     },
     medium: {
       bg: dark ? "rgba(251,191,36,0.14)" : "rgba(245,158,11,0.12)",

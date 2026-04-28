@@ -6,10 +6,11 @@ import GlassCard from "../ui/GlassCard";
 import { spacing } from "../../theme/tokens";
 import { leaderboardAvatarUri } from "./leaderboardAvatarUri";
 
+// Gold / Silver / Bronze — medal colours intentionally distinct from brand green
 const PODIUM_BORDER = [
-  ["#fbbf24", "rgba(251,191,36,0.35)"],
-  ["#94a3b8", "rgba(148,163,184,0.4)"],
-  ["#fb923c", "rgba(251,146,60,0.4)"],
+  ["#ffd700", "rgba(255,215,0,0.30)"], // 1st — brand gold
+  ["#9ca3af", "rgba(156,163,175,0.35)"], // 2nd — silver
+  ["#b45309", "rgba(180,83,9,0.35)"], // 3rd — bronze
 ] as const;
 
 type Props = {

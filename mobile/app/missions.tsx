@@ -467,7 +467,6 @@ export default function MissionsScreen() {
         options={{
           title: t("nav.missions", { defaultValue: "Missions" }),
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <View style={{ flex: 1, backgroundColor: c.bg }}>

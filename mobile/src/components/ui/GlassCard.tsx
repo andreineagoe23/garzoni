@@ -1,5 +1,11 @@
 import React, { type ReactNode } from "react";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../../theme/ThemeContext";
 import { radius, shadows, spacing } from "../../theme/tokens";
@@ -10,11 +16,10 @@ type GlassCardProps = {
   children: ReactNode;
   padding?: GlassCardPadding;
   style?: StyleProp<ViewStyle>;
-  /** Blur intensity (iOS/Android where supported) */
+  /** Blur intensity — only applied on iOS where BlurView is reliable */
   intensity?: number;
-  /** When the card uses flex:1 (e.g. equal-height dashboard tiles), stretch inner content vertically. */
   fillContent?: boolean;
-  /** Optional solid tint over blur (higher alpha = less see-through). */
+  /** Override the solid fill colour (rarely needed) */
   fillOverlay?: string;
 };
 
@@ -27,7 +32,10 @@ const paddingMap: Record<GlassCardPadding, number> = {
 };
 
 /**
- * Frosted glass surface (blur + translucent fill), aligned with web GlassCard.
+ * Surface card — uses blur on iOS for the glass effect; solid brand surface
+ * everywhere else.  This keeps colours consistent across Android / web and
+ * eliminates the dark-grey / blue-tinted containers that BlurView produces on
+ * non-iOS platforms.
  */
 export default function GlassCard({
   children,
@@ -39,37 +47,65 @@ export default function GlassCard({
 }: GlassCardProps) {
   const { resolved, colors } = useTheme();
   const p = paddingMap[padding];
-  const borderColor = colors.glassBorder;
-  const tint = resolved === "dark" ? "dark" : "light";
-  const overlay =
-    fillOverlay ??
-    (resolved === "dark" ? "rgba(30,30,30,0.78)" : "rgba(255,255,255,0.72)");
 
+  // Solid fill that matches the brand surface palette
+  const solidFill =
+    fillOverlay ?? (resolved === "dark" ? colors.surface : colors.surface);
+
+  const borderColor = colors.border;
+  const borderRadius = radius.xl;
+
+  // iOS — keep the frosted glass look with a lighter overlay so the blur shows through
+  if (Platform.OS === "ios") {
+    const iosFill =
+      fillOverlay ??
+      (resolved === "dark"
+        ? "rgba(17, 24, 39, 0.88)" // brand surface #111827 at 88%
+        : "rgba(255, 255, 255, 0.82)");
+    return (
+      <View
+        style={[
+          styles.outer,
+          { borderColor, borderRadius, overflow: "hidden" },
+          shadows.md,
+          style,
+        ]}
+      >
+        <BlurView
+          intensity={intensity}
+          tint={resolved === "dark" ? "dark" : "light"}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <View
+          style={[
+            styles.inner,
+            fillContent && styles.innerFill,
+            { padding: p, backgroundColor: iosFill },
+          ]}
+        >
+          {children}
+        </View>
+      </View>
+    );
+  }
+
+  // Android / web — solid surface, no blur
   return (
     <View
       style={[
         styles.outer,
         {
           borderColor,
-          borderRadius: radius.xl,
-          overflow: "hidden",
+          borderRadius,
+          backgroundColor: solidFill,
         },
         shadows.md,
         style,
       ]}
     >
-      <BlurView
-        intensity={intensity}
-        tint={tint}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
       <View
-        style={[
-          styles.inner,
-          fillContent && styles.innerFill,
-          { padding: p, backgroundColor: overlay },
-        ]}
+        style={[styles.inner, fillContent && styles.innerFill, { padding: p }]}
       >
         {children}
       </View>
@@ -78,7 +114,10 @@ export default function GlassCard({
 }
 
 const styles = StyleSheet.create({
-  outer: { position: "relative" },
+  outer: {
+    position: "relative",
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   inner: { position: "relative", zIndex: 1 },
   innerFill: { flex: 1, minHeight: 0 },
 });

@@ -50,7 +50,6 @@ export default function ReferralScreen() {
         options={{
           title: "Refer a Friend",
           headerShown: true,
-          headerTintColor: c.primary,
         }}
       />
       <ScrollView
