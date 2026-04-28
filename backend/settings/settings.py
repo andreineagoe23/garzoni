@@ -258,7 +258,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "50/day", "user": "500/day"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("THROTTLE_RATE_ANON", "50/day"),
+        "user": os.getenv("THROTTLE_RATE_USER", "500/day"),
+    },
 }
 
 SPECTACULAR_SETTINGS = {

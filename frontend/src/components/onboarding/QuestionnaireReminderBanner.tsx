@@ -39,10 +39,7 @@ const QuestionnaireReminderBanner: React.FC<
 
   if (!authReady || (isLoading && !progress)) {
     return (
-      <GlassCard
-        padding="md"
-        className="mb-6 border-[color:var(--primary,#1d5330)]/30 bg-gradient-to-r from-[color:var(--accent,#ffd700)]/10 to-[color:var(--primary,#1d5330)]/5"
-      >
+      <GlassCard padding="md" className="app-card mb-6">
         <div className="flex items-center gap-3 text-sm text-content-muted">
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
           {t("onboarding.reminderBanner.loading")}
@@ -53,10 +50,7 @@ const QuestionnaireReminderBanner: React.FC<
 
   if (isError) {
     return (
-      <GlassCard
-        padding="md"
-        className="mb-6 border-[color:var(--primary,#1d5330)]/30 bg-gradient-to-r from-[color:var(--accent,#ffd700)]/10 to-[color:var(--primary,#1d5330)]/5"
-      >
+      <GlassCard padding="md" className="app-card mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-content-muted">
             {t("onboarding.reminderBanner.error")}
@@ -96,13 +90,10 @@ const QuestionnaireReminderBanner: React.FC<
   const primaryCtaTarget = "/onboarding";
 
   return (
-    <GlassCard
-      padding="md"
-      className="mb-6 border-[color:var(--primary,#1d5330)]/30 bg-gradient-to-r from-[color:var(--accent,#ffd700)]/10 to-[color:var(--primary,#1d5330)]/5"
-    >
+    <GlassCard padding="md" className="app-card mb-6">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
-          <h3 className="mb-1 text-sm font-semibold text-content-primary">
+          <h3 className="app-eyebrow mb-1">
             {t("onboarding.reminderBanner.status")}
           </h3>
           <p className="text-xs text-content-muted">
@@ -121,10 +112,13 @@ const QuestionnaireReminderBanner: React.FC<
                   })}
           </p>
           {!isCompleted && (
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+            <div className="app-progress-track mt-2">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-[width] duration-300"
-                style={{ width: `${progress.progress_percentage}%` }}
+                className="app-progress-fill"
+                style={{
+                  width: `${progress.progress_percentage}%`,
+                  transition: "width 0.3s ease",
+                }}
                 role="progressbar"
                 aria-valuenow={progress.progress_percentage}
                 aria-valuemin={0}

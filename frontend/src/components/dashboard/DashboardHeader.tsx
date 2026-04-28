@@ -18,18 +18,23 @@ const DashboardHeader = ({
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[color:var(--color-brand-primary,var(--primary,#1d5330))] to-[color:var(--color-brand-primary,var(--primary,#1d5330))]/80 text-2xl shadow-lg shadow-[color:var(--color-brand-primary,var(--primary,#1d5330))]/30">
+        <div className="app-icon-tile h-12 w-12 rounded-2xl text-2xl shadow-lg shadow-[color:var(--color-brand-primary,var(--primary,#1d5330))]/30">
           👋
         </div>
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-[color:var(--color-text-primary,var(--text-color,#111827))]">
-            {displayName
-              ? t("dashboard.header.welcomeBackName", { name: displayName })
-              : `${t("dashboard.header.welcomeBack")}!`}
-          </h2>
-          <p className="mt-1 text-sm text-[color:var(--color-text-muted,var(--muted-text,#6b7280))]">
+          <p className="app-eyebrow mb-1">
             {t("dashboard.header.yourCoachSubtitle")}
           </p>
+          <h2 className="app-display text-3xl text-content-primary">
+            {displayName ? (
+              <>
+                {t("dashboard.header.welcomeBack")},{" "}
+                <em className="app-em-gold">{displayName}</em>!
+              </>
+            ) : (
+              `${t("dashboard.header.welcomeBack")}!`
+            )}
+          </h2>
         </div>
       </div>
       {canAdminister && (

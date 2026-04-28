@@ -51,7 +51,7 @@ const EconomicMap = () => {
     <section className="space-y-3 min-w-0 w-full">
       <div
         ref={containerRef}
-        className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 p-2 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
+        className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card p-2 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         style={{ height: "75vh", minHeight: "min(320px, 50vh)" }}
       >
         {/* theme attribute updates when user toggles dark/light; widget follows app theme. */}

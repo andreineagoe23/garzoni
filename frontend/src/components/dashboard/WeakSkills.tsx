@@ -147,7 +147,7 @@ const WeakSkills = ({
 
   return (
     <div className="mt-6">
-      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-4 backdrop-blur-sm">
+      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-content-primary sm:text-lg">
             {t("dashboard.weakSkills.areasToImprove")}
@@ -166,7 +166,7 @@ const WeakSkills = ({
           {weakestSkills.map((skill) => (
             <div
               key={skill.skill}
-              className="group rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-3 text-left transition hover:border-[color:var(--color-brand-primary,var(--primary,#1d5330))]/40 hover:shadow-md"
+              className="group rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3 text-left transition hover:border-[color:var(--color-brand-primary,var(--primary,#1d5330))]/40 hover:shadow-md"
             >
               <button
                 type="button"
@@ -182,7 +182,7 @@ const WeakSkills = ({
                   </span>
                   <div className="flex items-center gap-2">
                     {justUnlockedSkills.has(skill.skill) && (
-                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-600">
+                      <span className="rounded-full bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)]">
                         {t("dashboard.skillInsights.justUnlocked")}
                       </span>
                     )}

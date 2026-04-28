@@ -36,9 +36,9 @@ const GlassButton = ({
 
   const variantStyles = {
     primary:
-      "border border-border bg-surface-card/80 text-brand-primary hover:border-brand-primary/60 hover:bg-brand-primary hover:text-content-inverse hover:shadow-lg hover:shadow-brand-primary/30 focus:ring-brand-primary/40",
+      "border border-brand-primary/40 bg-surface-card/80 text-brand-primary hover:border-brand-primary/60 hover:bg-gradient-to-r hover:from-[#2a7347] hover:to-[#1d5330] hover:text-white hover:shadow-lg hover:shadow-brand-primary/40 focus:ring-brand-primary/40",
     active:
-      "bg-gradient-to-r from-brand-primary to-brand-primary/90 text-content-inverse shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-primary/40 focus:ring-brand-primary/40",
+      "bg-gradient-to-r from-[#2a7347] to-[#1d5330] text-white shadow-lg shadow-brand-primary/40 hover:shadow-xl hover:shadow-brand-primary/50 hover:-translate-y-px focus:ring-brand-primary/40",
     success:
       "border border-state-success/40 bg-surface-card/80 text-state-success hover:border-state-success/60 hover:bg-state-success hover:text-content-inverse hover:shadow-lg hover:shadow-state-success/30 focus:ring-state-success/40 [&>span:first-child]:!text-state-success [&>span:first-child]:font-bold",
     danger:

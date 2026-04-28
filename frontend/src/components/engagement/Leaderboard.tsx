@@ -13,7 +13,6 @@ import FriendRequests from "components/profile/FriendRequest";
 import ReferralLink from "components/profile/ReferralLink";
 import Loader from "components/common/Loader";
 import { useAuth } from "contexts/AuthContext";
-import { GlassCard } from "components/ui";
 import apiClient from "services/httpClient";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatNumber, getLocale } from "utils/format";
@@ -42,24 +41,24 @@ type SentRequest = {
 const LIST_PAGE_SIZE = 25;
 
 const podiumHighlight = [
-  "border-amber-400/50 bg-gradient-to-b from-amber-500/20 via-amber-400/10 to-transparent shadow-lg shadow-amber-500/10",
-  "border-slate-300/50 bg-gradient-to-b from-slate-200/25 via-slate-100/10 to-transparent shadow-md",
-  "border-orange-300/50 bg-gradient-to-b from-orange-400/15 via-amber-200/10 to-transparent shadow-md",
+  "border-[#e6c87a]/50 bg-gradient-to-b from-[#e6c87a]/15 via-[#e6c87a]/5 to-transparent shadow-lg shadow-[#e6c87a]/10",
+  "app-card shadow-md",
+  "app-card shadow-md",
 ];
 
 const listHighlightClasses = [
-  "bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border-amber-400/40",
-  "bg-gradient-to-r from-slate-300/20 via-slate-200/10 to-transparent border-slate-300/40",
-  "bg-gradient-to-r from-orange-400/10 via-amber-300/5 to-transparent border-orange-300/40",
+  "bg-gradient-to-r from-[#e6c87a]/8 via-[#e6c87a]/3 to-transparent border-[#e6c87a]/30",
+  "app-card",
+  "app-card",
 ];
 
 const MEDAL_EMOJI = ["🥇", "🥈", "🥉"] as const;
 
 function friendActionButtonClass(isFriend: boolean, pending: boolean) {
   return cx(
-    "ml-auto inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40",
+    "ml-auto inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40",
     isFriend &&
-      "cursor-not-allowed bg-emerald-500/10 text-[color:var(--accent,#ffd700)]",
+      "cursor-not-allowed bg-[#1d5330]/10 text-[color:var(--primary-bright,#2a7347)]",
     pending &&
       !isFriend &&
       "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted",
@@ -301,14 +300,13 @@ const Leaderboards = () => {
           const isYou =
             currentUserId !== null && entry.user.id === currentUserId;
           return (
-            <GlassCard
+            <div
               key={entry.user.id}
-              padding="md"
               className={cx(
-                "relative min-h-[160px] w-[31%] overflow-hidden border-2 p-2 transition hover:-translate-y-0.5 md:min-h-[260px] md:w-[220px] md:p-4",
+                "app-card relative min-h-[160px] w-[31%] overflow-hidden border-2 p-2 transition hover:-translate-y-0.5 md:min-h-[260px] md:w-[220px] md:p-4",
                 podiumHighlight[idxInTopThree] ?? podiumHighlight[2],
                 isYou &&
-                  "ring-2 ring-[color:var(--accent,#ffd700)] ring-offset-2 ring-offset-[color:var(--card-bg,#ffffff)]",
+                  "ring-2 ring-[color:var(--primary-bright,#2a7347)] ring-offset-2 ring-offset-transparent",
                 rank === 1 && "w-[34%] md:w-[220px]",
                 rank === 2 && "-translate-y-1 md:translate-y-0 md:order-1",
                 rank === 3 && "translate-y-1 md:translate-y-0 md:order-3",
@@ -317,7 +315,7 @@ const Leaderboards = () => {
                 rank === 3 && "md:order-3"
               )}
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/8 via-transparent to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent" />
               <div className="relative flex flex-col items-center gap-1.5 text-center md:gap-3">
                 <span
                   className="text-2xl leading-none md:text-4xl"
@@ -354,7 +352,7 @@ const Leaderboards = () => {
                   }}
                 />
                 <div className="w-full">
-                  <p className="flex items-center justify-center gap-1 text-[11px] font-semibold text-[color:var(--accent,#111827)] md:gap-2 md:text-base">
+                  <p className="flex items-center justify-center gap-1 text-[11px] font-semibold text-content-primary md:gap-2 md:text-base">
                     <span
                       className="max-w-[68px] truncate md:max-w-[150px]"
                       title={entry.user.username}
@@ -362,7 +360,7 @@ const Leaderboards = () => {
                       {entry.user.username}
                     </span>
                     {isYou && (
-                      <span className="shrink-0 rounded-full bg-[color:var(--accent,#ffd700)]/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)] md:px-2 md:text-xs">
+                      <span className="shrink-0 rounded-full bg-[#2a7347]/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)] md:px-2 md:text-xs">
                         {t("leaderboard.youBadge")}
                       </span>
                     )}
@@ -374,7 +372,7 @@ const Leaderboards = () => {
                   </p>
                 </div>
               </div>
-            </GlassCard>
+            </div>
           );
         })}
       </div>
@@ -397,17 +395,16 @@ const Leaderboards = () => {
         : "";
 
     return (
-      <GlassCard
+      <div
         key={entry.user.id}
-        padding="md"
         className={cx(
-          "group relative flex flex-col gap-4 overflow-hidden border transition hover:-translate-y-1",
-          highlight,
+          "group relative flex flex-col gap-4 overflow-hidden border p-4 transition hover:-translate-y-1",
+          highlight || "app-card-sm",
           isYou &&
-            "ring-2 ring-[color:var(--accent,#ffd700)]/80 ring-offset-2 ring-offset-[color:var(--card-bg,#ffffff)]"
+            "ring-2 ring-[color:var(--primary-bright,#2a7347)]/80 ring-offset-2 ring-offset-transparent"
         )}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#2a7347]/4 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         <div className="relative">
           <div className="flex flex-wrap items-center gap-4">
             <span
@@ -430,7 +427,7 @@ const Leaderboards = () => {
                 <p className="flex flex-wrap items-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
                   <span className="truncate">{entry.user.username}</span>
                   {isYou && (
-                    <span className="shrink-0 rounded-full bg-[color:var(--accent,#ffd700)]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+                    <span className="shrink-0 rounded-full bg-[color:#2a7347]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
                       {t("leaderboard.youBadge")}
                     </span>
                   )}
@@ -465,7 +462,7 @@ const Leaderboards = () => {
             )}
           </div>
         </div>
-      </GlassCard>
+      </div>
     );
   };
 
@@ -476,24 +473,22 @@ const Leaderboards = () => {
       innerClassName="flex flex-col gap-10"
     >
       <header className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <GlassCard padding="md">
+        <div className="app-card p-5">
           <ReferralLink referralCode={referralCode} />
-        </GlassCard>
-        <GlassCard padding="md">
+        </div>
+        <div className="app-card p-5">
           <FriendRequests />
-        </GlassCard>
+        </div>
       </header>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+        <div className="app-section-glow space-y-1 pb-2">
+          <p className="app-eyebrow">{t("leaderboard.subtitle")}</p>
+          <h1 className="app-display text-4xl text-content-primary">
             {activeTab === "global"
               ? t("leaderboard.title.global")
               : t("leaderboard.title.friends")}
           </h1>
-          <p className="text-sm text-content-muted">
-            {t("leaderboard.subtitle")}
-          </p>
         </div>
         <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
           <div className="flex overflow-hidden rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-1 text-sm shadow-sm">
@@ -503,10 +498,10 @@ const Leaderboards = () => {
                 type="button"
                 onClick={() => setActiveTab(tab as "global" | "friends")}
                 className={cx(
-                  "relative z-10 inline-flex flex-1 touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40",
+                  "relative z-10 inline-flex flex-1 touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40",
                   activeTab === tab
-                    ? "bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/90 text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40"
-                    : "border border-white/20 bg-[color:var(--card-bg,#ffffff)]/60 text-content-muted hover:border-[color:var(--accent,#ffd700)]/60 hover:bg-[color:var(--accent,#ffd700)]/10 hover:text-[color:var(--accent,#ffd700)]"
+                    ? "bg-gradient-to-r from-[#2a7347] to-[#1d5330] text-white shadow-lg shadow-[#1d5330]/30 hover:shadow-xl hover:shadow-[#1d5330]/40"
+                    : "border border-white/20 bg-transparent text-content-muted hover:border-[#2a7347]/50 hover:bg-[#1d5330]/10 hover:text-[color:var(--primary-bright,#2a7347)]"
                 )}
               >
                 {tab === "global"
@@ -521,7 +516,7 @@ const Leaderboards = () => {
                 value={timeFilter}
                 onChange={(event) => setTimeFilter(event.target.value)}
                 disabled={globalBusy}
-                className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-content-muted shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:opacity-60"
+                className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-content-muted shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:opacity-60"
               >
                 {timeFilterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -541,7 +536,7 @@ const Leaderboards = () => {
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={t("leaderboard.searchPlaceholder")}
             aria-label={t("leaderboard.searchAriaLabel")}
-            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 pr-11 text-sm text-content-primary shadow-sm focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 pr-11 text-sm text-content-primary shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/30"
             type="search"
             autoComplete="off"
           />
@@ -567,12 +562,9 @@ const Leaderboards = () => {
         !filteredLeaderboard.some(
           (entry) => entry.user.id === userRank.user.id
         ) && (
-          <GlassCard
-            padding="md"
-            className="border-[color:var(--accent,#ffd700)]/40 bg-[color:var(--accent,#ffd700)]/10 shadow-[color:var(--accent,#ffd700)]/20"
-          >
+          <div className="app-card p-4 border-[color:var(--primary-bright,#2a7347)]/40">
             <div className="flex flex-wrap items-center gap-4">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent,#ffd700)] text-lg font-bold text-white shadow-md">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#2a7347] to-[#1d5330] text-lg font-bold text-white shadow-md shadow-[#1d5330]/30">
                 #{userRank.rank ?? "—"}
               </span>
               <div className="flex items-center gap-3">
@@ -591,7 +583,7 @@ const Leaderboards = () => {
                       username: userRank.user.username,
                     })}
                   </p>
-                  <p className="text-[color:var(--accent,#ffd700)]">
+                  <p className="text-[color:#2a7347]">
                     {t("leaderboard.points", {
                       points: userRank.points,
                     })}
@@ -599,16 +591,16 @@ const Leaderboards = () => {
                 </div>
               </div>
             </div>
-          </GlassCard>
+          </div>
         )}
 
       <div className="space-y-4">
         {filteredLeaderboard.length === 0 ? (
-          <GlassCard padding="lg" className="text-center">
+          <div className="app-card p-8 text-center">
             <p className="text-sm text-content-muted">
               {t("leaderboard.empty")}
             </p>
-          </GlassCard>
+          </div>
         ) : (
           <>
             {renderPodium()}
@@ -618,7 +610,7 @@ const Leaderboards = () => {
                 <button
                   type="button"
                   onClick={() => setListVisible((v) => v + LIST_PAGE_SIZE)}
-                  className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] shadow-sm transition hover:border-[color:var(--accent,#ffd700)]/60 hover:bg-[color:var(--accent,#ffd700)]/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40"
+                  className="rounded-full border border-[#2a7347]/40 bg-[#1d5330]/10 px-6 py-2 text-sm font-semibold text-[color:var(--primary-bright,#2a7347)] shadow-sm transition hover:bg-[#1d5330]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40"
                 >
                   {t("leaderboard.loadMore")}
                 </button>

@@ -136,7 +136,7 @@ const EconomicCalendar = () => {
 
   return (
     <section className="space-y-6 min-w-0 w-full">
-      <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-3 py-4 sm:px-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
+      <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-3 py-4 sm:px-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -149,7 +149,7 @@ const EconomicCalendar = () => {
           <button
             type="button"
             onClick={() => setShowAllEvents((prev) => !prev)}
-            className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+            className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:#2a7347]/40 hover:text-[color:#2a7347]"
           >
             {showAllEvents
               ? t("tools.calendar.impactFilter.hideLow")
@@ -234,7 +234,7 @@ const EconomicCalendar = () => {
           return (
             <div
               key={event.id}
-              className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/90 px-4 py-4 shadow-sm"
+              className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-4 py-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-content-primary">

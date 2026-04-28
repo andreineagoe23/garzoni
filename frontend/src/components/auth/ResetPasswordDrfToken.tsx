@@ -103,7 +103,7 @@ function ResetPasswordDrfToken() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-emerald-800 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="w-full rounded-lg bg-[color:var(--primary,#1d5330)] py-2 font-medium text-white hover:bg-[color:var(--primary-bright,#2a7347)] disabled:opacity-50"
         >
           {submitting ? "Saving…" : "Update password"}
         </button>

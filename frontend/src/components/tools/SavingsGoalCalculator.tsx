@@ -102,8 +102,8 @@ const SavingsGoalCalculator = () => {
 
   return (
     <section className="space-y-6">
-      <header className="space-y-2 text-center">
-        <h3 className="text-lg font-semibold text-[color:var(--accent,#111827)]">
+      <header className="app-section-glow space-y-1 pb-2 text-center">
+        <h3 className="app-display text-xl text-content-primary sm:text-2xl">
           {t("tools.savingsCalc.title")}
         </h3>
         <p className="text-sm text-content-muted">
@@ -112,7 +112,7 @@ const SavingsGoalCalculator = () => {
       </header>
 
       <div
-        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
         style={{
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
@@ -128,7 +128,7 @@ const SavingsGoalCalculator = () => {
                 key={preset.label}
                 type="button"
                 onClick={() => setFormData(preset.values)}
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent,#111827)] transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[#2a7347]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
               >
                 {preset.label}
               </button>
@@ -156,7 +156,7 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -171,7 +171,7 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -186,7 +186,7 @@ const SavingsGoalCalculator = () => {
               required
               min="1"
               max="50"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -202,7 +202,7 @@ const SavingsGoalCalculator = () => {
               min="0"
               max="30"
               step="0.1"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -212,7 +212,7 @@ const SavingsGoalCalculator = () => {
               name="compound_frequency"
               value={formData.compound_frequency}
               onChange={handleChange}
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             >
               <option value="1">{t("tools.savingsCalc.annually")}</option>
               <option value="4">{t("tools.savingsCalc.quarterly")}</option>
@@ -224,7 +224,7 @@ const SavingsGoalCalculator = () => {
           <div className="md:col-span-2">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             >
               {t("tools.savingsCalc.calculate")}
             </button>
@@ -232,7 +232,7 @@ const SavingsGoalCalculator = () => {
         </form>
 
         {result && (
-          <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)] shadow-inner shadow-[color:var(--accent,#ffd700)]/20">
+          <div className="app-callout text-[color:var(--primary-bright,#2a7347)]">
             <p>
               {t("tools.savingsCalc.finalSavings")}:{" "}
               <span className="font-semibold">

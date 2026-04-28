@@ -4,12 +4,10 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
-import { Images } from "@garzoni/core";
 import Header from "components/layout/Header";
-import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
-import { GlassCard, GlassButton } from "components/ui";
+import { GlassButton } from "components/ui";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
 
@@ -29,10 +27,6 @@ function Login() {
   const location = useLocation();
   const { loginUser, isAuthenticated, isInitialized } = useAuth();
   const { executeRecaptcha } = useRecaptcha();
-  const { darkMode } = useTheme();
-
-  const authBackdropUrl = darkMode ? Images.loginBg : Images.authLightBg;
-  const authBackdropOverlay = darkMode ? "bg-black/60" : "bg-white/35";
 
   useEffect(() => {
     // Error from AuthCallback (e.g. after Google OAuth redirect)
@@ -170,23 +164,11 @@ function Login() {
       </Helmet>
       <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
-      <div
-        className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: authBackdropUrl
-            ? `url(${authBackdropUrl})`
-            : undefined,
-        }}
-      >
-        <div
-          className={`absolute inset-0 ${authBackdropOverlay}`}
-          aria-hidden="true"
-        />
-
-        <div className="relative flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
-          <GlassCard padding="lg" className="w-full max-w-md">
+      <div className="auth-ambient relative flex min-h-dvh flex-col overflow-hidden bg-[#f4ede2] dark:bg-[#0b0f14]">
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
+          <div className="w-full max-w-md rounded-2xl border border-black/10 dark:border-white/[0.12] bg-white dark:bg-[#111827] p-8 shadow-xl shadow-black/[0.08] dark:shadow-black/50">
             <div className="space-y-3 text-center">
-              <h2 className="text-3xl font-bold text-content-primary">
+              <h2 className="app-display text-3xl text-content-primary">
                 {t("auth.login.title")}
               </h2>
               <p className="text-sm text-content-muted">
@@ -222,7 +204,7 @@ function Login() {
                   onChange={handleChange}
                   required
                   autoComplete="username"
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="app-input"
                   placeholder={t("auth.login.usernamePlaceholder")}
                 />
               </div>
@@ -243,13 +225,13 @@ function Login() {
                     onChange={handleChange}
                     required
                     autoComplete="current-password"
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="app-input pr-12"
                     placeholder={t("auth.login.passwordPlaceholder")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--accent,#ffd700)]"
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--primary-bright,#2a7347)]"
                     aria-label={
                       showPassword
                         ? t("auth.login.hidePassword")
@@ -268,14 +250,14 @@ function Login() {
                     name="remember_me"
                     checked={formData.remember_me}
                     onChange={handleChange}
-                    className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                    className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[#2a7347]/30"
                   />
                   {t("auth.login.rememberMe")}
                 </label>
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
-                  className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--accent,#ffd700)]/80"
+                  className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary-bright,#2a7347)]"
                 >
                   {t("auth.login.forgotPassword")}
                 </button>
@@ -294,17 +276,17 @@ function Login() {
                 </GlassButton>
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[color:var(--border-color)]" />
+                    <div className="app-divider w-full" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[color:var(--card-bg)] px-2 text-content-muted">
+                    <span className="bg-surface-card px-2 text-content-muted">
                       {t("auth.orContinueWith")}
                     </span>
                   </div>
                 </div>
                 <a
                   href={buildGoogleOAuthInitHref("all-topics")}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-content-primary shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
+                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-black/[0.03] px-4 py-3 text-sm font-medium text-content-primary transition hover:bg-black/[0.06] hover:border-black/15 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] dark:hover:border-white/15"
                 >
                   <svg
                     className="h-5 w-5"
@@ -338,12 +320,12 @@ function Login() {
               <button
                 type="button"
                 onClick={() => navigate("/register")}
-                className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--accent,#ffd700)]/80"
+                className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary-bright,#2a7347)]"
               >
                 {t("auth.login.signUpNow")}
               </button>
             </div>
-          </GlassCard>
+          </div>
         </div>
       </div>
     </>

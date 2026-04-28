@@ -184,7 +184,7 @@ const NextStepsEngine = () => {
 
   return (
     <section className="space-y-6 min-w-0 w-full">
-      <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
+      <div className="app-card overflow-hidden px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -198,7 +198,7 @@ const NextStepsEngine = () => {
             <button
               type="button"
               onClick={() => setUseDemo((prev) => !prev)}
-              className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+              className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
             >
               {useDemo ? "Use live activity" : "Use demo suggestions"}
             </button>
@@ -235,7 +235,7 @@ const NextStepsEngine = () => {
                 });
               }
             }}
-            className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md min-w-0 block"
+            className="app-card block min-w-0 px-4 py-4 text-left transition hover:-translate-y-0.5"
           >
             <p className="text-sm font-semibold text-content-primary">
               {item.label}

@@ -243,7 +243,7 @@ const AllTopics = ({
       {/* Sorting and Filtering Controls */}
       <GlassCard
         padding="md"
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        className="app-card-sm flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex flex-wrap items-center gap-3 sm:flex-1">
           <label
@@ -318,7 +318,7 @@ const AllTopics = ({
           <GlassCard
             key={String(path.id)}
             id={String(path.id)}
-            className="group"
+            className="app-card group"
             padding="lg"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
@@ -338,7 +338,7 @@ const AllTopics = ({
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-content-primary">
+                    <h3 className="app-display text-xl text-content-primary">
                       {pathDisplayTitle(path.title)}
                     </h3>
                     {path.description && (
@@ -361,9 +361,9 @@ const AllTopics = ({
                             %
                           </span>
                         </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
+                        <div className="app-progress-track">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/70 transition-[width] duration-500"
+                            className="app-progress-fill"
                             style={{ width: `${path.progress}%` }}
                             role="progressbar"
                             aria-valuenow={path.progress}

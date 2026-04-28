@@ -1,6 +1,32 @@
 @use "sass:map";
 @use "../abstracts/variables" as *;
 
+// ── Global display headings — Fraunces serif, weight 400, tight tracking
+// Mirrors the design prototype's heading style across all app pages.
+// Use font-weight utilities to override where bold is needed (e.g. UI labels).
+h1,
+h2,
+h3 {
+  font-family: var(--brand-font-display, "Fraunces", "Helvetica Neue", serif);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+}
+
+// h4–h6 stay with body font (used in forms, labels, compact UI).
+
+// Mono numerics — stats, prices, percentages
+.font-mono,
+.app-mono {
+  font-family: var(
+    --brand-font-mono,
+    "JetBrains Mono",
+    ui-monospace,
+    monospace
+  );
+}
+
 // Use .section-heading on specific headings that intentionally need the brand underline treatment.
 // Avoid applying border-bottom globally to all h1–h6 — it bleeds into cards, modals, and tool UIs.
 .section-heading {

@@ -77,7 +77,7 @@ function RewardsPage() {
           <p className="text-sm text-content-muted">{t("rewards.subtitle")}</p>
         </div>
         <div
-          className={`rounded-3xl border border-[color:var(--border-color)] bg-surface-page/60 backdrop-blur-sm px-5 py-4 text-sm text-content-muted shadow-inner shadow-[color:var(--shadow-color)] transition-transform ${
+          className={`rounded-3xl border border-[color:var(--border-color)]  backdrop-blur-sm px-5 py-4 text-sm text-content-muted shadow-inner shadow-[color:var(--shadow-color)] transition-transform ${
             balanceFlash ? "scale-[1.02]" : ""
           }`}
           style={{

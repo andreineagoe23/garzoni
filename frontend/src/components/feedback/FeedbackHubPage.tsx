@@ -72,7 +72,7 @@ function FeedbackHubPage() {
       innerClassName="flex flex-col gap-8"
     >
       <header className="space-y-3 text-center lg:text-left">
-        <h1 className="text-3xl font-bold text-[color:var(--accent,#111827)]">
+        <h1 className="text-3xl font-bold text-content-primary">
           {t("feedback.title")}
         </h1>
         <p className="text-sm text-content-muted">{t("feedback.subtitle")}</p>
@@ -80,7 +80,7 @@ function FeedbackHubPage() {
 
       <GlassCard padding="lg">
         {submitMessage && (
-          <div className="mb-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-[color:var(--accent,#ffd700)] shadow-inner shadow-[color:var(--accent,#ffd700)]/20">
+          <div className="mb-4 rounded-2xl border border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)] shadow-inner shadow-[color:var(--primary-bright,#2a7347)]/15">
             {submitMessage}
           </div>
         )}
@@ -93,14 +93,14 @@ function FeedbackHubPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <label className="block text-sm font-semibold text-content-primary">
               {t("feedback.typeLabel")}
             </label>
             <select
               required
               value={feedbackType}
               onChange={(e) => setFeedbackType(e.target.value as FeedbackType)}
-              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="app-input mt-2"
             >
               <option value="bug">{t("feedback.typeBug")}</option>
               <option value="suggestion">{t("feedback.typeSuggestion")}</option>
@@ -109,7 +109,7 @@ function FeedbackHubPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <label className="block text-sm font-semibold text-content-primary">
               {t("feedback.messageLabel")}
             </label>
             <textarea
@@ -118,12 +118,12 @@ function FeedbackHubPage() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t("feedback.messagePlaceholder")}
-              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary placeholder:text-content-muted focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="app-input mt-2"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[color:var(--accent,#111827)]">
+            <label className="block text-sm font-semibold text-content-primary">
               {t("feedback.whereLabel")}
             </label>
             <input
@@ -131,21 +131,21 @@ function FeedbackHubPage() {
               value={where}
               onChange={(e) => setWhere(e.target.value)}
               placeholder={t("feedback.wherePlaceholder")}
-              className="mt-2 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-3 py-2 text-sm text-content-primary placeholder:text-content-muted focus:border-[color:var(--accent,#ffd700)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="app-input mt-2"
             />
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link
               to="/support"
-              className="text-sm font-medium text-content-muted hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 rounded"
+              className="text-sm font-medium text-content-muted hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30 rounded"
             >
               {t("feedback.backToSupport")}
             </Link>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-xl hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:opacity-60 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 disabled:opacity-60 disabled:pointer-events-none"
             >
               {submitting ? "…" : t("feedback.send")}
             </button>

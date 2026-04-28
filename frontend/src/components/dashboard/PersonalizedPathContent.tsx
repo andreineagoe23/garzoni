@@ -239,10 +239,7 @@ function PersonalizedPathContent({
   return (
     <div className="space-y-8">
       {heroCourse && (
-        <GlassCard
-          padding="lg"
-          className="relative overflow-hidden border border-[color:var(--primary,#1d5330)]/20"
-        >
+        <GlassCard padding="lg" className="app-card relative overflow-hidden">
           {(() => {
             const metrics = getCourseMetrics(heroCourse);
             return (
@@ -279,10 +276,10 @@ function PersonalizedPathContent({
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-content-muted">
+                    <p className="app-eyebrow mb-1">
                       {t("personalizedPath.continue")}
                     </p>
-                    <h3 className="text-lg font-semibold text-content-primary">
+                    <h3 className="app-display text-xl text-content-primary">
                       {heroCourse.title}
                     </h3>
                     <p className="mt-1 text-sm text-content-muted">
@@ -322,7 +319,7 @@ function PersonalizedPathContent({
                     <button
                       type="button"
                       onClick={() => openCourse(heroCourse)}
-                      className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white"
+                      className="app-cta-btn !w-auto px-5 py-2 !h-auto text-sm"
                     >
                       {heroCourse.locked
                         ? t("personalizedPath.unlock")
@@ -355,7 +352,7 @@ function PersonalizedPathContent({
       )}
 
       <section className="space-y-3">
-        <h4 className="text-sm font-semibold text-content-primary">
+        <h4 className="app-eyebrow">
           {t("personalizedPath.recommendedForYou")}
         </h4>
         <div className="relative">
@@ -391,7 +388,7 @@ function PersonalizedPathContent({
 
                 <GlassCard
                   padding="md"
-                  className="relative flex-1 overflow-hidden"
+                  className="app-card relative flex-1 overflow-hidden"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -450,7 +447,7 @@ function PersonalizedPathContent({
                     <button
                       type="button"
                       onClick={() => openCourse(course)}
-                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-xs font-semibold"
+                      className="rounded-full bg-[#1d5330] px-3 py-1.5 text-xs font-semibold text-white shadow shadow-[#1d5330]/30 hover:bg-[#2a7347] transition"
                     >
                       {course.locked
                         ? t("personalizedPath.unlock")
@@ -468,12 +465,15 @@ function PersonalizedPathContent({
       </section>
 
       <section className="space-y-3">
-        <h4 className="text-sm font-semibold text-content-primary">
+        <h4 className="app-eyebrow">
           {t("personalizedPath.skillsToReinforce")}
         </h4>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {reviewQueue.length === 0 ? (
-            <GlassCard padding="sm" className="text-xs text-content-muted">
+            <GlassCard
+              padding="sm"
+              className="app-card-sm text-xs text-content-muted"
+            >
               {t("personalizedPath.noSkillsDue")}
             </GlassCard>
           ) : (
@@ -481,7 +481,7 @@ function PersonalizedPathContent({
               <GlassCard
                 key={`${item.skill || "skill"}-${idx}`}
                 padding="sm"
-                className="min-w-[180px]"
+                className="app-card-sm min-w-[180px]"
               >
                 <p className="text-xs text-content-muted">{item.skill}</p>
                 <p className="text-sm font-semibold">
@@ -496,13 +496,13 @@ function PersonalizedPathContent({
       </section>
 
       {isPreview && personalizedQuery.data?.upgrade_prompt && (
-        <GlassCard padding="md" className="text-center">
+        <GlassCard padding="md" className="app-card text-center">
           <p className="text-sm text-content-muted">
             {personalizedQuery.data.upgrade_prompt}
           </p>
           <button
             type="button"
-            className="mt-3 rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white"
+            className="app-cta-btn mt-3 !w-auto px-6 py-2 !h-auto text-sm"
             onClick={() => navigate("/subscriptions")}
           >
             {t("personalizedPath.upgrade")}
@@ -510,7 +510,7 @@ function PersonalizedPathContent({
         </GlassCard>
       )}
 
-      <GlassCard padding="md" className="text-center">
+      <GlassCard padding="md" className="app-card text-center">
         <p className="text-sm text-content-muted">
           {t("personalizedPath.basedOnOnboarding")}{" "}
           <button

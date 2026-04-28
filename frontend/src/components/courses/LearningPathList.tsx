@@ -51,7 +51,7 @@ function LearningPathList({
     return (
       <GlassCard
         padding="lg"
-        className="bg-[color:var(--card-bg,#ffffff)]/60 text-center text-sm text-content-muted"
+        className="bg-surface-card text-center text-sm text-content-muted"
       >
         {t("courses.learningPath.noPathsAvailable")}
       </GlassCard>
@@ -64,12 +64,16 @@ function LearningPathList({
         const courses = Array.isArray(path.courses) ? path.courses : [];
         const isLocked = Boolean(path.is_locked);
         return (
-          <GlassCard key={path.id} padding="lg" className="group space-y-5">
-            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--accent,#ffd700)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+          <GlassCard
+            key={path.id}
+            padding="lg"
+            className="app-card group space-y-5"
+          >
+            <div className="absolute inset-0 rounded-[20px] bg-gradient-to-br from-[#2a7347]/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
             <div className="relative">
               {!hidePathHeader && (
                 <header className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-xl font-semibold text-content-primary">
+                  <h3 className="app-display text-xl text-content-primary">
                     {pathDisplayTitle(path.title) ||
                       t("courses.learningPath.customPath")}
                   </h3>
@@ -82,7 +86,7 @@ function LearningPathList({
               )}
               <div className={hidePathHeader ? "space-y-4" : "mt-4 space-y-4"}>
                 {courses.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-3 text-sm text-content-muted">
+                  <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-surface-card px-4 py-3 text-sm text-content-muted">
                     {t("courses.learningPath.noCoursesInPath")}
                   </div>
                 )}
@@ -93,10 +97,10 @@ function LearningPathList({
                     <GlassCard
                       key={course.id}
                       padding="none"
-                      className={`group flex flex-col overflow-hidden transition ${
+                      className={`app-card-sm group flex flex-col overflow-hidden transition ${
                         isLocked
                           ? "cursor-not-allowed opacity-60"
-                          : "cursor-pointer hover:-translate-y-1"
+                          : "cursor-pointer hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
                       }`}
                       onClick={() => {
                         if (isLocked) return;
@@ -123,7 +127,7 @@ function LearningPathList({
                       )}
 
                       <div className="flex flex-1 flex-col gap-3 px-4 py-5">
-                        <h4 className="text-lg font-semibold text-content-primary">
+                        <h4 className="app-display text-lg text-content-primary">
                           {course.title}
                         </h4>
                         {course.description && (

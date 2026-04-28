@@ -30,7 +30,7 @@ export default function WeakSkillsQuickCard({
   const buttonDisabled = hasSkill && !onRecommendedSkillExercises;
 
   return (
-    <div className="min-w-0 rounded-xl border border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5 p-3 transition-all sm:p-4">
+    <div className="app-card min-w-0 p-3 transition-all sm:p-4">
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full min-w-0 flex-col items-center gap-2 text-center sm:flex-1 sm:flex-row sm:items-center sm:gap-3 sm:text-left">
           <span

@@ -167,7 +167,7 @@ function ToolSwitcherDropdown({
                     {t(`tools.entries.${tool.id}.title`)}
                   </span>
                   {tool.requiredPlan === "plus_or_pro" && (
-                    <span className="text-[9px] font-bold uppercase text-[color:var(--accent,#ffd700)]">
+                    <span className="text-[9px] font-bold uppercase text-[#e6c87a]">
                       +
                     </span>
                   )}
@@ -195,7 +195,7 @@ const ToolSignalStrip = ({
   const portfolioLabel = useMemo(() => readPortfolioLabel(), []);
 
   return (
-    <GlassCard padding="sm" hover={false} className="w-full">
+    <GlassCard padding="sm" hover={false} className="app-card-sm w-full">
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         {/* Tool switcher dropdown — shown when a tool is active */}
         {activeTool && (
@@ -214,7 +214,7 @@ const ToolSignalStrip = ({
         {/* Chip 1: Next economic event */}
         <Link
           to="/tools/calendar"
-          className="flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 px-3 py-1.5 text-xs font-medium text-content-muted transition hover:border-[color:var(--primary)]/40 hover:text-content-primary"
+          className="flex items-center gap-2 rounded-full border border-[color:var(--border-color)]  px-3 py-1.5 text-xs font-medium text-content-muted transition hover:border-[color:var(--primary)]/40 hover:text-content-primary"
         >
           <svg
             width="12"
@@ -254,7 +254,7 @@ const ToolSignalStrip = ({
         {portfolioLabel && (
           <Link
             to="/tools/portfolio"
-            className="flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/60 px-3 py-1.5 text-xs font-medium text-content-muted transition hover:border-[color:var(--primary)]/40 hover:text-content-primary"
+            className="flex items-center gap-2 rounded-full border border-[color:var(--border-color)]  px-3 py-1.5 text-xs font-medium text-content-muted transition hover:border-[color:var(--primary)]/40 hover:text-content-primary"
           >
             <svg
               width="12"
@@ -284,8 +284,7 @@ const ToolSignalStrip = ({
         {/* Chip 3: Next Steps — always present */}
         <Link
           to="/tools/next-steps"
-          className="flex items-center gap-2 rounded-full border border-[color:var(--primary)]/30 px-3 py-1.5 text-xs font-semibold text-[color:var(--primary)] transition hover:border-[color:var(--primary)]/60"
-          style={{ backgroundColor: "rgba(var(--primary-rgb), 0.08)" }}
+          className="flex items-center gap-2 rounded-full border border-[color:var(--primary)]/30 bg-brand-primary/[0.08] px-3 py-1.5 text-xs font-semibold text-[color:var(--primary)] transition hover:border-[color:var(--primary)]/60"
         >
           <svg
             width="12"
@@ -311,7 +310,7 @@ const ToolSignalStrip = ({
               href={toolbar.feedbackHref}
               title={t("tools.workspace.actionTooltipFeedback")}
               aria-label={t("tools.workspace.actionAriaFeedback")}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default,rgba(255,255,255,0.20))] text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
             >
               <svg
                 width="13"
@@ -343,7 +342,7 @@ const ToolSignalStrip = ({
               title={t("tools.workspace.actionTooltipReset")}
               aria-label={t("tools.workspace.actionAriaReset")}
               onClick={toolbar.onReset}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default,rgba(255,255,255,0.20))] text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
             >
               <svg
                 width="13"
@@ -373,7 +372,7 @@ const ToolSignalStrip = ({
                 title={t("tools.workspace.actionTooltipExport")}
                 aria-label={t("tools.workspace.actionAriaExport")}
                 onClick={toolbar.onExport}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-content-muted transition hover:border-[color:var(--accent,#ffd700)]/40 hover:text-[color:var(--accent,#ffd700)]"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default,rgba(255,255,255,0.20))] text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
               >
                 <svg
                   width="13"

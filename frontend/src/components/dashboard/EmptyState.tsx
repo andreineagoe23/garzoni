@@ -23,7 +23,7 @@ export const EmptyState = ({
 }: EmptyStateProps) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/40 p-8 text-center ${className}`}
+      className={`flex flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-8 text-center ${className}`}
     >
       {icon && <span className="text-4xl mb-4">{icon}</span>}
       <h3 className="text-lg font-semibold text-content-primary mb-2">

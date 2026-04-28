@@ -63,7 +63,7 @@ const getSessionId = () => {
 
 const ToolLoadingSkeleton = () => (
   <div className="space-y-6">
-    <div className="rounded-2xl border border-white/30 bg-[color:var(--card-bg,#ffffff)]/70 px-4 py-4 shadow-sm backdrop-blur-sm sm:px-6">
+    <div className="app-card px-4 py-4 shadow-sm backdrop-blur-sm sm:px-6">
       <SkeletonGroup>
         <Skeleton className="h-5 w-48" rounded="lg" />
         <Skeleton className="h-4 w-80" />
@@ -106,7 +106,7 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
           <ChevronDown className="h-3 w-3 transition-transform duration-200 group-open:rotate-180" />
           {t("tools.detail.aboutTool")}
         </summary>
-        <div className="mt-3 space-y-3 rounded-2xl border border-white/30 bg-[color:var(--card-bg,#ffffff)]/70 p-4 backdrop-blur-sm">
+        <div className="mt-3 space-y-3 app-card p-4 backdrop-blur-sm">
           <div className="text-sm text-content-muted">
             <span className="font-semibold text-content-primary">
               {t("tools.detail.whoItsFor")}
@@ -139,7 +139,7 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
                 });
               }
             }}
-            className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:text-[color:var(--accent,#ffd700)]/80"
+            className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)] hover:text-[color:var(--primary,#1d5330)] transition"
           >
             {t("tools.detail.learnConcept")}
           </Link>
@@ -303,9 +303,9 @@ const ToolsPage = () => {
       <PageContainer maxWidth="4xl" layout="centered" className="py-16">
         <GlassCard
           padding="xl"
-          className="flex flex-col items-center gap-4 text-center"
+          className="app-card flex flex-col items-center gap-4 text-center"
         >
-          <h2 className="text-2xl font-semibold text-content-primary">
+          <h2 className="app-display text-2xl text-content-primary">
             {t("tools.authRequired.title")}
           </h2>
           <p className="max-w-xl text-sm text-content-muted">

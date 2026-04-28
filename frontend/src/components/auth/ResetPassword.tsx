@@ -56,19 +56,19 @@ function ResetPassword() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#0B0F14)] px-6 py-12 sm:px-8 transition-colors">
+    <div className="app-page flex items-center justify-center px-6 py-12 sm:px-8">
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/30 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(29,83,48,0.35),_transparent_55%)] pointer-events-none" />
 
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-[color:var(--border-color,#1f2937)] bg-[color:var(--card-bg,#111827)] px-6 py-10 shadow-2xl shadow-black/40 backdrop-blur transition-colors"
+        className="app-card relative w-full max-w-lg px-6 py-10"
         style={{
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
         }}
       >
         <div className="mb-8 space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-[color:var(--accent,#ffffff)]">
+          <h1 className="app-display text-3xl text-content-primary">
             {t("auth.resetPassword.title")}
           </h1>
           <p className="text-sm text-content-muted">
@@ -80,7 +80,7 @@ function ResetPassword() {
           <div
             role="status"
             aria-live="polite"
-            className="mb-6 rounded-lg border border-emerald-400/60 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+            className="mb-6 rounded-lg border border-[color:var(--primary-bright,#2a7347)]/50 bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)]"
           >
             {message}
           </div>
@@ -110,7 +110,7 @@ function ResetPassword() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-content-primary shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="app-input"
               placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
             />
           </div>
@@ -128,7 +128,7 @@ function ResetPassword() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
-              className="w-full rounded-lg border border-[color:var(--border-color,#334155)] bg-[color:var(--input-bg,#0B0F14)] px-4 py-3 text-content-primary shadow-inner shadow-black/20 transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+              className="app-input"
               placeholder={t("auth.resetPassword.confirmPlaceholder")}
             />
           </div>

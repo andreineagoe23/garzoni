@@ -329,7 +329,7 @@ const SubscriptionPlansPage = () => {
 
           <div className="flex flex-col items-center gap-4">
             <div
-              className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/60 p-1"
+              className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-1"
               role="group"
               aria-label={t("subscriptions.choosePlan")}
             >
@@ -383,7 +383,7 @@ const SubscriptionPlansPage = () => {
                 return (
                   <div
                     key={plan.plan_id}
-                    className={`relative flex flex-col gap-4 rounded-2xl border bg-[color:var(--card-bg,#ffffff)]/70 p-5 text-left transition-shadow duration-200 ${
+                    className={`relative flex flex-col gap-4 rounded-2xl border bg-surface-card p-5 text-left transition-shadow duration-200 ${
                       isHighlight
                         ? "border-[color:var(--gold,#E6C87A)]/50 shadow-lg shadow-[color:var(--gold,#E6C87A)]/10 ring-1 ring-[color:var(--gold,#E6C87A)]/20"
                         : "border-[color:var(--border-color,rgba(0,0,0,0.1))] shadow-sm hover:shadow-md"
@@ -486,7 +486,7 @@ const SubscriptionPlansPage = () => {
           )}
 
           <div
-            className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             style={{
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)",

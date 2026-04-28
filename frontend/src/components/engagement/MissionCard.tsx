@@ -1,5 +1,4 @@
 import React from "react";
-import { GlassCard } from "components/ui";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 import type { Mission } from "@garzoni/core";
 import CoinStack from "./CoinStack";
@@ -84,19 +83,18 @@ const MissionCard = ({
       : null;
 
   return (
-    <GlassCard
-      padding="lg"
-      className="group transition hover:-translate-y-1"
+    <div
+      className="app-card relative overflow-hidden p-6 group transition hover:-translate-y-1"
       role="article"
       aria-labelledby={`mission-title-${mission.id}`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
       <div className="relative">
-        <header className="space-y-3 border-b border-white/20 pb-4">
+        <header className="space-y-3 border-b border-border pb-4">
           <div className="flex items-center justify-between gap-4">
             <h3
               id={`mission-title-${mission.id}`}
-              className="text-lg font-semibold text-content-primary"
+              className="app-display text-lg text-content-primary"
             >
               {mission.name}
             </h3>
@@ -114,7 +112,7 @@ const MissionCard = ({
               <span className="text-content-primary">{progressLabel}</span>
             </div>
             <div
-              className="h-2 rounded-full bg-[color:var(--input-bg,#f3f4f6)]"
+              className="app-progress-track"
               role="progressbar"
               aria-valuenow={progressPercent}
               aria-valuemin={0}
@@ -124,8 +122,11 @@ const MissionCard = ({
               })}
             >
               <div
-                className="h-full rounded-full bg-[color:var(--primary,#1d5330)] transition-[width] duration-500 ease-out"
-                style={{ width: `${progressPercent}%` }}
+                className="app-progress-fill"
+                style={{
+                  width: `${progressPercent}%`,
+                  transition: "width 0.5s ease-out",
+                }}
               />
             </div>
             <p className="text-xs text-content-muted">
@@ -155,7 +156,7 @@ const MissionCard = ({
         </header>
 
         {isCompleted ? (
-          <div className="mt-4 space-y-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-700 shadow-inner shadow-emerald-500/20">
+          <div className="mt-4 space-y-3 rounded-2xl border border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 px-4 py-3 text-xs text-[color:var(--primary-bright,#2a7347)] shadow-inner shadow-[color:var(--primary-bright,#2a7347)]/15">
             <div className="flex items-center justify-between font-semibold">
               <span>{t("missions.complete.title")}</span>
               <span>+{mission.points_reward} XP</span>
@@ -179,7 +180,7 @@ const MissionCard = ({
               </button>
             )}
             {mission.goal_type === "add_savings" && (
-              <GlassCard padding="md" className="space-y-4 bg-surface-page/60">
+              <div className="app-surface-subtle mt-2 space-y-4 rounded-2xl p-4">
                 <button
                   type="button"
                   onClick={() => setShowSavingsMenu((prev) => !prev)}
@@ -214,13 +215,13 @@ const MissionCard = ({
                             ? t("missions.savings.placeholderDaily")
                             : t("missions.savings.placeholderWeekly")
                         }
-                        className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-sm focus:border-[color:var(--primary,#1d5330)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                        className="app-input flex-1 rounded-full py-2"
                         disabled={isDaily && isCompleted}
                       />
                       <button
                         type="submit"
                         disabled={isDaily && isCompleted}
-                        className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-xl hover:shadow-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary-bright,#2a7347)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary-bright,#2a7347)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary-bright,#2a7347)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isDaily && isCompleted
                           ? t("missions.savings.savedToday")
@@ -229,7 +230,7 @@ const MissionCard = ({
                     </form>
                   </div>
                 )}
-              </GlassCard>
+              </div>
             )}
 
             {mission.goal_type === "read_fact" && isDaily && (
@@ -249,7 +250,7 @@ const MissionCard = ({
           </div>
         )}
       </div>
-    </GlassCard>
+    </div>
   );
 };
 

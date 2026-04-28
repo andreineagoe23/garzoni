@@ -1,3 +1,5 @@
+@import "./styles/app-theme.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,8 +15,8 @@ body {
   );
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--color-surface-page, var(--bg-color, #f8fafc));
-  color: var(--color-text-primary, var(--text-color, #111827));
+  background-color: var(--color-surface-page, var(--bg-color, #f5f5f0));
+  color: var(--color-text-primary, var(--text-color, #1a1a1a));
 }
 
 code {

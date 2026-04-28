@@ -4,12 +4,10 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Images } from "@garzoni/core";
 import Header from "components/layout/Header";
-import { useTheme } from "contexts/ThemeContext";
 import { useAuth } from "contexts/AuthContext";
 import { useRecaptcha } from "contexts/RecaptchaContext";
-import { GlassCard, GlassButton } from "components/ui";
+import { GlassButton } from "components/ui";
 import apiClient from "services/httpClient";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
@@ -45,11 +43,6 @@ function Register() {
   const navigate = useNavigate();
   const { registerUser } = useAuth();
   const { executeRecaptcha } = useRecaptcha();
-  const { darkMode } = useTheme();
-
-  /** Same backdrop as login: dark = login hero image, light = renaissance cover. */
-  const authBackdropUrl = darkMode ? Images.loginBg : Images.authLightBg;
-  const authBackdropOverlay = darkMode ? "bg-black/60" : "bg-white/35";
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -197,23 +190,11 @@ function Register() {
       </Helmet>
       <RecaptchaVerifyingModal open={showVerifyingModal} />
       <Header />
-      <div
-        className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: authBackdropUrl
-            ? `url(${authBackdropUrl})`
-            : undefined,
-        }}
-      >
-        <div
-          className={`absolute inset-0 ${authBackdropOverlay}`}
-          aria-hidden="true"
-        />
-
-        <div className="relative flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
-          <GlassCard padding="lg" className="w-full max-w-md">
+      <div className="auth-ambient relative flex min-h-dvh flex-col overflow-hidden bg-[#f4ede2] dark:bg-[#0b0f14]">
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
+          <div className="w-full max-w-md rounded-2xl border border-black/10 dark:border-white/[0.12] bg-white dark:bg-[#111827] p-8 shadow-xl shadow-black/[0.08] dark:shadow-black/50">
             <div className="space-y-3 text-center">
-              <h2 className="text-3xl font-bold text-content-primary">
+              <h2 className="app-display text-3xl text-content-primary">
                 {t("auth.register.title")}
               </h2>
               <p className="text-sm text-content-muted">
@@ -260,7 +241,7 @@ function Register() {
                     required
                     autoComplete="given-name"
                     placeholder={t("auth.register.firstNamePlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="app-input"
                   />
                 </div>
 
@@ -280,7 +261,7 @@ function Register() {
                     required
                     autoComplete="family-name"
                     placeholder={t("auth.register.lastNamePlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="app-input"
                   />
                 </div>
               </div>
@@ -301,7 +282,7 @@ function Register() {
                   required
                   autoComplete="username"
                   placeholder={t("auth.register.usernamePlaceholder")}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="app-input"
                 />
               </div>
 
@@ -321,7 +302,7 @@ function Register() {
                   required
                   autoComplete="email"
                   placeholder={t("auth.register.emailPlaceholder")}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="app-input"
                 />
               </div>
 
@@ -342,7 +323,7 @@ function Register() {
                     required
                     autoComplete="new-password"
                     placeholder={t("auth.register.passwordPlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 pr-12 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                    className="app-input pr-12"
                   />
                   <button
                     type="button"
@@ -379,13 +360,13 @@ function Register() {
                     void validateReferralCode(formData.referral_code);
                   }}
                   placeholder={t("auth.register.referralPlaceholder")}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--primary,#1d5330)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="app-input"
                 />
                 {referralValidationState !== "idle" && (
                   <p
                     className={`text-xs ${
                       referralValidationState === "valid"
-                        ? "text-emerald-700"
+                        ? "text-[color:var(--primary-bright,#2a7347)]"
                         : referralValidationState === "checking"
                           ? "text-content-muted"
                           : "text-[color:var(--error,#dc2626)]"
@@ -400,7 +381,7 @@ function Register() {
 
               <label
                 htmlFor="marketing_opt_in"
-                className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--border-color,#e5e7eb)] bg-[color:var(--card-bg,#ffffff)] px-4 py-3 text-sm text-content-muted"
+                className="app-surface-subtle flex cursor-pointer items-start gap-3 rounded-xl px-4 py-3 text-sm text-content-muted"
               >
                 <input
                   id="marketing_opt_in"
@@ -426,17 +407,17 @@ function Register() {
                 </GlassButton>
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[color:var(--border-color)]" />
+                    <div className="app-divider w-full" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[color:var(--card-bg)] px-2 text-content-muted">
+                    <span className="bg-surface-card px-2 text-content-muted">
                       {t("auth.orContinueWith")}
                     </span>
                   </div>
                 </div>
                 <a
                   href={buildGoogleOAuthInitHref("onboarding")}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3 text-sm font-medium text-content-primary shadow-sm transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
+                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-black/[0.03] px-4 py-3 text-sm font-medium text-content-primary transition hover:bg-black/[0.06] hover:border-black/15 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] dark:hover:border-white/15"
                 >
                   <svg
                     className="h-5 w-5"
@@ -475,7 +456,7 @@ function Register() {
                 {t("auth.register.loginHere")}
               </button>
             </div>
-          </GlassCard>
+          </div>
         </div>
       </div>
     </>

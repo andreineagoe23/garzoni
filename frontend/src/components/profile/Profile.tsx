@@ -390,7 +390,7 @@ function Profile() {
             <button
               type="button"
               onClick={() => navigate("/personalized-path")}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
             >
               <span aria-hidden>🧭</span>
               {t("profile.actions.personalizedPath")}
@@ -404,7 +404,7 @@ function Profile() {
                     : "/subscriptions"
                 )
               }
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--primary)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--primary)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
             >
               <span aria-hidden>💳</span>
               {["active", "trialing"].includes(entitlements?.status ?? "")
@@ -435,7 +435,7 @@ function Profile() {
                 <GlassCard
                   key={key}
                   padding="md"
-                  className={`bg-[color:var(--card-bg)]/60 transition ${
+                  className={` transition ${
                     goal.completed ? "ring-2 ring-[color:var(--accent)]/40" : ""
                   }`}
                 >
@@ -506,18 +506,15 @@ function Profile() {
                 }
               )}
               unit={t("rewards.coins")}
-              className="text-center bg-[color:var(--input-bg)]/60"
+              className="text-center "
             />
             <StatBadge
               label={t("profile.stats.points")}
               value={formatNumber(Number(profileData.points || 0), locale)}
               unit="XP"
-              className="text-center bg-[color:var(--input-bg)]/60"
+              className="text-center "
             />
-            <GlassCard
-              padding="md"
-              className="bg-[color:var(--input-bg)]/60 text-center"
-            >
+            <GlassCard padding="md" className=" text-center">
               <p className="text-xs uppercase tracking-wide text-content-muted">
                 {t("profile.stats.streak")}
               </p>
@@ -571,7 +568,7 @@ function Profile() {
                   setBadgeFilter(e.target.value);
                   setShowAllBadges(false);
                 }}
-                className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
+                className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
               >
                 <option value="all">
                   {t("profile.achievements.filterAll")}
@@ -588,7 +585,7 @@ function Profile() {
                 <button
                   type="button"
                   onClick={() => setShowAllBadges((prev) => !prev)}
-                  className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent)]/50 hover:text-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
+                  className="rounded-full border border-[color:var(--border-color)]  px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
                 >
                   {showAllBadges
                     ? t("profile.achievements.showLess")
@@ -604,7 +601,7 @@ function Profile() {
                 <GlassCard
                   key={userBadge.badge.id}
                   padding="md"
-                  className="flex h-28 flex-col items-center justify-center bg-[color:var(--input-bg)]/60 text-center transition"
+                  className="flex h-28 flex-col items-center justify-center  text-center transition"
                   title={`${userBadge.badge.name}\n${
                     userBadge.badge.description ||
                     t("profile.achievements.earnedAchievement")
@@ -665,7 +662,7 @@ function Profile() {
                 <GlassCard
                   key={activity.id}
                   padding="sm"
-                  className="flex flex-wrap items-center justify-between gap-2 bg-[color:var(--card-bg)]/60"
+                  className="flex flex-wrap items-center justify-between gap-2 "
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-content-primary">
@@ -699,7 +696,7 @@ function Profile() {
               <button
                 type="button"
                 onClick={() => setShowAllActivity((prev) => !prev)}
-                className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--card-bg)]/70 px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--accent)]/50 hover:text-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/40"
+                className="rounded-full border border-[color:var(--border-color)]  px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
               >
                 {showAllActivity
                   ? t("profile.achievements.showLess")

@@ -71,7 +71,7 @@ function TradingViewNewsWidget() {
     <section className="space-y-3 min-w-0 w-full">
       {/* Theme (dark/light) is set at first load from app theme; script embed cannot update on toggle. */}
       <div
-        className="tradingview-widget-container rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]/95 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
+        className="tradingview-widget-container rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         ref={container}
         style={{
           height: WIDGET_HEIGHT,

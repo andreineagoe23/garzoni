@@ -344,10 +344,10 @@ const OnboardingQuestionnaire: React.FC = () => {
                   type="button"
                   onClick={() => handleOptionSelect(option.value)}
                   disabled={isSaving}
-                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
+                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
-                      ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-content-primary hover:border-[color:var(--accent,#ffd700)]/40"
+                      ? "border-[#2a7347] bg-[#1d5330]/15 text-[color:var(--primary-bright,#2a7347)]"
+                      : "border-white/12 bg-white/5 text-content-primary hover:border-[#2a7347]/40"
                   }`}
                   aria-pressed={isSelected}
                   style={{ WebkitTapHighlightColor: "transparent" }}
@@ -378,10 +378,10 @@ const OnboardingQuestionnaire: React.FC = () => {
                   type="button"
                   onClick={() => handleOptionSelect([option.value])}
                   disabled={isSaving}
-                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent,#ffd700)]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
+                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
-                      ? "border-[color:var(--accent,#ffd700)] bg-[color:var(--accent,#ffd700)]/10 text-[color:var(--accent,#ffd700)]"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-content-primary hover:border-[color:var(--accent,#ffd700)]/40"
+                      ? "border-[#2a7347] bg-[#1d5330]/15 text-[color:var(--primary-bright,#2a7347)]"
+                      : "border-white/12 bg-white/5 text-content-primary hover:border-[#2a7347]/40"
                   }`}
                   aria-pressed={isSelected}
                   style={{ WebkitTapHighlightColor: "transparent" }}

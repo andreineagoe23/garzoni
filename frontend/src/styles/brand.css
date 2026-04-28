@@ -8,6 +8,8 @@
    Edit this file first, then update those. */
 :root {
   --brand-font-primary: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --brand-font-display: "Fraunces", "Helvetica Neue", serif;
+  --brand-font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --brand-green: #1d5330;
   --brand-green-rgb: 29, 83, 48;

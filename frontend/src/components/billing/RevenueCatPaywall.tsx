@@ -253,7 +253,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-48 animate-pulse rounded-2xl bg-[color:var(--card-bg,#e5e7eb)]/60"
+              className="h-48 animate-pulse rounded-2xl bg-surface-card"
             />
           ))}
         </div>
@@ -270,8 +270,8 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                 className={[
                   "relative flex flex-col gap-4 rounded-2xl border p-5 text-left shadow-sm transition",
                   plan.isBestValue
-                    ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--primary,#1d5330)]/20 bg-[color:var(--card-bg,#ffffff)]/90"
-                    : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/70",
+                    ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--primary,#1d5330)]/20 bg-surface-card"
+                    : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card",
                 ].join(" ")}
               >
                 {/* Best value badge */}
