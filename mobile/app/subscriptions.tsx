@@ -506,9 +506,12 @@ export default function SubscriptionsScreen() {
   }, [profileQ.data?.user, rcNative]);
 
   useEffect(() => {
-    if (!rcNative || !profileQ.isFetched) return;
+    if (!rcNative) return;
+    // When unauthenticated (onboarding paywall, Apple review), load immediately with anonymous RC user.
+    // When authenticated, wait for profile so RC is configured with the correct user ID.
+    if (accessToken && !profileQ.isFetched) return;
     void loadOfferings();
-  }, [loadOfferings, profileQ.isFetched, profileQ.data?.user, rcNative]);
+  }, [loadOfferings, accessToken, profileQ.isFetched, profileQ.data?.user, rcNative]);
 
   const onPurchase = useCallback(
     async (tier: Tier, pkg: PurchasesPackage) => {
