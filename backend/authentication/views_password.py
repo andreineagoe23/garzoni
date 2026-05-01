@@ -104,6 +104,11 @@ class PasswordResetRequestView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
+            # Run dummy token generation to equalise timing with the found-user path
+            # and prevent user-enumeration via response latency.
+            _dummy = User()
+            _dummy.password = "!"
+            PasswordResetTokenGenerator().make_token(_dummy)
             return generic_response
         except User.MultipleObjectsReturned:
             user = (
@@ -151,6 +156,7 @@ class PasswordResetConfirmView(APIView):
     """Handle password reset confirmation by validating the token and updating the user's password."""
 
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def get(self, request, uidb64, token):
         """Validate the reset token and user ID to ensure the reset process can proceed."""

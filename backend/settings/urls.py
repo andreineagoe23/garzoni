@@ -14,10 +14,17 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from django.views.static import serve as static_serve
-from core.views import root_view, robots_txt_view, serve_mascot_media, apple_app_site_association
+from core.views import (
+    root_view,
+    robots_txt_view,
+    serve_mascot_media,
+    apple_app_site_association,
+    health_view,
+)
 
 urlpatterns = [
     path("", root_view),
+    path("health/", health_view),
     path("robots.txt", robots_txt_view),
     # Universal Links: iOS fetches this to verify the app can handle garzoni.app URLs.
     # Must be served WITHOUT authentication or trailing-slash redirects.

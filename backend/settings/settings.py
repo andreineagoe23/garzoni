@@ -999,6 +999,15 @@ if SENTRY_DSN and "test" not in sys.argv:
         sample_rate=1.0 if not DEBUG else 0.2,
         release=os.getenv("RAILWAY_GIT_COMMIT_SHA", ""),
     )
+    import logging as _logging
+
+    _logging.getLogger(__name__).info("Sentry initialised env=%s", DJANGO_ENV)
+elif not SENTRY_DSN and "test" not in sys.argv:
+    import logging as _logging
+
+    _logging.getLogger(__name__).warning(
+        "SENTRY_DSN not set — error tracking disabled. Set SENTRY_DSN in env."
+    )
 
 if "test" in sys.argv:
     # Use same PostgreSQL as dev/prod (DATABASE_URL). No SQLite override.
