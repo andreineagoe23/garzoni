@@ -1003,11 +1003,14 @@ if SENTRY_DSN and "test" not in sys.argv:
 
     _logging.getLogger(__name__).info("Sentry initialised env=%s", DJANGO_ENV)
 elif not SENTRY_DSN and "test" not in sys.argv:
-    import logging as _logging
+    # Only warn when actually serving traffic, not during management commands (migrate, makemigrations, etc.)
+    _server_commands = {"runserver", "gunicorn"}
+    if not _server_commands.isdisjoint(sys.argv):
+        import logging as _logging
 
-    _logging.getLogger(__name__).warning(
-        "SENTRY_DSN not set — error tracking disabled. Set SENTRY_DSN in env."
-    )
+        _logging.getLogger(__name__).warning(
+            "SENTRY_DSN not set — error tracking disabled. Set SENTRY_DSN in env."
+        )
 
 if "test" in sys.argv:
     # Use same PostgreSQL as dev/prod (DATABASE_URL). No SQLite override.

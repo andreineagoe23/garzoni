@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 "indexes": [
                     models.Index(
                         fields=["created_at"],
-                        name="finance_str_created_idx",
+                        name="finance_str_created_29adec_idx",
                     )
                 ],
             },

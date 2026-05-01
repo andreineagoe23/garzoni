@@ -256,7 +256,7 @@ class StripeWebhookEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        indexes = [models.Index(fields=["created_at"])]
+        indexes = [models.Index(fields=["created_at"], name="finance_str_created_29adec_idx")]
 
     def __str__(self):
         return f"{self.event_type} ({self.event_id})"
