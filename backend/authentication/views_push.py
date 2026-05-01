@@ -1,11 +1,17 @@
 """Register or clear Expo push notification token for the authenticated user."""
 
+import logging
+
 from django.db import transaction
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+
+from authentication.throttles import PushTokenRateThrottle
+
+logger = logging.getLogger(__name__)
 
 
 class ExpoPushTokenView(APIView):
@@ -16,6 +22,7 @@ class ExpoPushTokenView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [PushTokenRateThrottle]
 
     def post(self, request):
         raw = request.data.get("expo_push_token")
@@ -33,8 +40,15 @@ class ExpoPushTokenView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         profile = request.user.profile
+        old_token = profile.expo_push_token
         profile.expo_push_token = token or None
         profile.save(update_fields=["expo_push_token"])
+        if old_token != profile.expo_push_token:
+            logger.info(
+                "push_token.changed user_id=%s cleared=%s",
+                request.user.id,
+                not bool(token),
+            )
 
         def _sync_cio():
             from notifications.tasks import safe_enqueue_sync_user_to_customer_io

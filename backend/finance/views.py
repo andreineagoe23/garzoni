@@ -44,6 +44,7 @@ from finance.models import (
     UserPurchase,
     PortfolioEntry,
     FinancialGoal,
+    StripeWebhookEvent,
 )
 from django.contrib.auth import get_user_model
 from finance.serializers import (
@@ -1331,6 +1332,19 @@ class StripeWebhookView(APIView):
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
             logger.info("Stripe webhook received", extra={"event_type": event.get("type")})
+
+            # Idempotency: reject duplicate deliveries before any side-effects.
+            event_id = event.get("id", "")
+            if event_id:
+                from django.db import IntegrityError
+
+                try:
+                    StripeWebhookEvent.objects.create(
+                        event_id=event_id, event_type=event.get("type", "")
+                    )
+                except IntegrityError:
+                    logger.info("Stripe webhook duplicate skipped event_id=%s", event_id)
+                    return HttpResponse(status=200)
 
             record_funnel_event(
                 "webhook_received",

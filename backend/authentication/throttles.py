@@ -71,3 +71,23 @@ class PasswordResetRateThrottle(AnonRateThrottle):
 
     def get_rate(self):
         return getattr(settings, "PASSWORD_RESET_THROTTLE_RATE", "5/hour")
+
+
+class PushTokenRateThrottle(AnonRateThrottle):
+    """Throttle push token registration changes per authenticated user."""
+
+    scope = "push_token"
+
+    def get_cache_key(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return None
+        ident = str(request.user.pk)
+        return self.cache_format % {"scope": self.scope, "ident": ident}
+
+    def allow_request(self, request, view):
+        if _in_unit_tests():
+            return True
+        return super().allow_request(request, view)
+
+    def get_rate(self):
+        return getattr(settings, "PUSH_TOKEN_THROTTLE_RATE", "10/hour")

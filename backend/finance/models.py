@@ -241,3 +241,22 @@ class FunnelEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} ({self.status})"
+
+
+class StripeWebhookEvent(models.Model):
+    """Deduplication log for processed Stripe webhook events.
+
+    Insert event_id before acting on the event. The unique constraint on
+    event_id causes a db.IntegrityError on duplicate delivery, which the
+    webhook handler catches to return 200 without double-processing.
+    """
+
+    event_id = models.CharField(max_length=255, unique=True)
+    event_type = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["created_at"])]
+
+    def __str__(self):
+        return f"{self.event_type} ({self.event_id})"

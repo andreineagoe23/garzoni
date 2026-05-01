@@ -321,16 +321,20 @@ class LeaderboardViewSet(APIView):
             # Apply time-based filtering
             if time_filter == "week":
                 one_week_ago = timezone.now().date() - timedelta(days=7)
-                top_profiles = UserProfile.objects.filter(
-                    last_completed_date__gte=one_week_ago
-                ).order_by("-points")[:10]
+                top_profiles = (
+                    UserProfile.objects.filter(last_completed_date__gte=one_week_ago)
+                    .select_related("user")
+                    .order_by("-points")[:10]
+                )
             elif time_filter == "month":
                 one_month_ago = timezone.now().date() - timedelta(days=30)
-                top_profiles = UserProfile.objects.filter(
-                    last_completed_date__gte=one_month_ago
-                ).order_by("-points")[:10]
+                top_profiles = (
+                    UserProfile.objects.filter(last_completed_date__gte=one_month_ago)
+                    .select_related("user")
+                    .order_by("-points")[:10]
+                )
             else:  # all-time
-                top_profiles = UserProfile.objects.all().order_by("-points")[:10]
+                top_profiles = UserProfile.objects.select_related("user").order_by("-points")[:10]
 
             serializer = LeaderboardSerializer(
                 top_profiles, many=True, context={"request": request}

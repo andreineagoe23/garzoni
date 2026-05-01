@@ -74,7 +74,6 @@ jobs:
           python manage.py validate_lesson_quality_gates
 
       - name: Security (pip-audit)
-        continue-on-error: true
         run: |
           pip-audit -r backend/requirements.txt
 
@@ -115,6 +114,10 @@ jobs:
 
       - name: Build
         run: pnpm --filter @garzoni/web build
+
+      - name: Security (pnpm audit)
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
 
   docker-build-check:
     name: Docker Build Check

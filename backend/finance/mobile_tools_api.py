@@ -6,7 +6,7 @@ JSON routes under /api/.
 
 from datetime import date, timedelta
 
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -77,7 +77,7 @@ _NEXT_STEPS_BODY = {
 
 
 class EconomicCalendarMobileView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response(_economic_calendar_events())
