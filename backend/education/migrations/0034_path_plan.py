@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PathPlan",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
                 ("rank", models.PositiveSmallIntegerField(default=1)),
                 ("reason", models.TextField(blank=True, default="")),
                 ("micro_goal", models.CharField(blank=True, default="", max_length=300)),
