@@ -1823,6 +1823,16 @@ class PersonalizedPathView(APIView):
             answers = self._get_onboarding_answers(user)
             mastery_boosts = self._get_low_mastery_boosts(user)
             course_ids = [c.id for c in courses]
+
+            # Load PathPlan reasons (AI-generated per course)
+            path_plan_reasons: dict[int, str] = {}
+            try:
+                from education.models import PathPlan
+
+                for pp in PathPlan.objects.filter(user=user, course_id__in=course_ids):
+                    path_plan_reasons[pp.course_id] = pp.reason
+            except Exception:
+                pass
             sections_total_map = {
                 row["lesson__course_id"]: int(row["total"])
                 for row in LessonSection.objects.filter(
@@ -1874,7 +1884,11 @@ class PersonalizedPathView(APIView):
                 )
                 item["completion_percent"] = completion_percent
                 item["estimated_minutes"] = max(total_lessons * 4, 8)
-                item["reason"] = self._build_course_reason(path_key, answers, mastery_boosts)
+                # Use AI-generated reason from PathPlan if available; fallback to static
+                ai_reason = path_plan_reasons.get(course_id, "")
+                item["reason"] = ai_reason or self._build_course_reason(
+                    path_key, answers, mastery_boosts
+                )
                 item["locked"] = False
                 item["priority_rank"] = idx + 1
                 item["completed_lessons"] = completed_lessons
@@ -1935,31 +1949,79 @@ class PersonalizedPathView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    def _build_mastery_context(self, user) -> str:
+        """Compact mastery summary for GPT path ranking."""
+        try:
+            top = list(
+                Mastery.objects.filter(user=user)
+                .order_by("-proficiency")
+                .values("skill", "proficiency")[:5]
+            )
+            weak = list(
+                Mastery.objects.filter(user=user)
+                .order_by("proficiency")
+                .values("skill", "proficiency")[:5]
+            )
+            parts = []
+            if top:
+                parts.append(
+                    "Strong: " + ", ".join(f"{s['skill']}({s['proficiency']})" for s in top)
+                )
+            if weak:
+                parts.append(
+                    "Weak: " + ", ".join(f"{s['skill']}({s['proficiency']})" for s in weak)
+                )
+            return ". ".join(parts)
+        except Exception:
+            return ""
+
+    def _input_hash(self, answers: dict, mastery_context: str) -> str:
+        import hashlib, json
+
+        data = json.dumps({"answers": answers, "mastery": mastery_context}, sort_keys=True)
+        return hashlib.md5(data.encode()).hexdigest()[:16]
+
     def generate_recommendations(self, user_profile, user, allowed_path_ids):
+        import hashlib, json as _json
+
         answers = self._get_onboarding_answers(user)
         mastery_boosts = self._get_low_mastery_boosts(user)
+        mastery_context = self._build_mastery_context(user)
+        input_hash = self._input_hash(answers, mastery_context)
+
+        # Skip LLM call if inputs unchanged since last generation
+        if (
+            getattr(user_profile, "path_input_hash", None) == input_hash
+            and user_profile.recommended_courses
+            and user_profile.recommendations_generated_at
+        ):
+            logger.debug("path_regen_skipped user=%s hash_unchanged", user.id)
+            return
 
         sorted_paths = None
+        gpt_reasons: dict[str, str] = {}
 
-        # Attempt GPT-based ranking first
-        if answers:
+        # GPT-based ranking with mastery context
+        if answers or mastery_context:
             paths_qs = list(
                 Path.objects.filter(id__in=allowed_path_ids).order_by("sort_order", "id")
             )
             path_dicts = [
                 {"title": p.title or "", "description": p.description or ""} for p in paths_qs
             ]
-            ranked = generate_path_recommendations(answers=answers, paths=path_dicts)
+            ranked = generate_path_recommendations(
+                answers=answers,
+                paths=path_dicts,
+                mastery_context=mastery_context,
+            )
             if ranked:
                 title_to_path = {p.title: p for p in paths_qs}
                 ordered = [
                     title_to_path[r["title"]] for r in ranked if r.get("title") in title_to_path
                 ]
+                gpt_reasons = {r["title"]: r.get("reason", "") for r in ranked if r.get("title")}
                 seen = {p.id for p in ordered}
                 ordered += [p for p in paths_qs if p.id not in seen]
-                # Apply mastery boosts as a secondary sort nudge for un-ranked paths
-                for key, boost in mastery_boosts.items():
-                    pass  # boost already reflected via GPT context; no additional reorder needed
                 sorted_paths = ordered
 
         # Fallback: keyword weight matching
@@ -1974,14 +2036,40 @@ class PersonalizedPathView(APIView):
         recommended_courses = self.get_recommended_courses(sorted_paths, allowed_path_ids)
         user_profile.recommended_courses = [c.id for c in recommended_courses]
         user_profile.recommendations_generated_at = timezone.now()
-        user_profile.save(update_fields=["recommended_courses", "recommendations_generated_at"])
+
+        update_fields = ["recommended_courses", "recommendations_generated_at"]
+
+        # Store the input hash to enable short-circuit on next call
+        if hasattr(user_profile, "path_input_hash"):
+            user_profile.path_input_hash = input_hash
+            update_fields.append("path_input_hash")
+
+        user_profile.save(update_fields=update_fields)
+
+        # Persist enriched per-course reasons in PathPlan
+        try:
+            from education.models import PathPlan
+
+            for idx, course in enumerate(recommended_courses):
+                path_title = course.path.title if course.path else ""
+                reason = gpt_reasons.get(path_title, "") or gpt_reasons.get(course.title, "")
+                PathPlan.objects.update_or_create(
+                    user=user,
+                    course=course,
+                    defaults={
+                        "rank": idx + 1,
+                        "reason": reason,
+                    },
+                )
+        except Exception as exc:
+            logger.debug("pathplan_save_error: %s", exc)
 
     def _should_regenerate(self, user_profile, user, allowed_path_ids, force_refresh=False):
         if force_refresh:
             return True
         if not user_profile.recommended_courses or not user_profile.recommendations_generated_at:
             return True
-        if user_profile.recommendations_generated_at <= timezone.now() - timezone.timedelta(days=7):
+        if user_profile.recommendations_generated_at <= timezone.now() - timezone.timedelta(days=1):
             return True
         if UserProgress.objects.filter(
             user=user,

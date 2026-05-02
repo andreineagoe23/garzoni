@@ -61,3 +61,36 @@ def enqueue_section_translation(sender, instance, **kwargs):
     from education.tasks import translate_section_async
 
     _safe_delay(translate_section_async, instance.pk)
+
+
+# ---------------------------------------------------------------------------
+# Embedding signals
+# ---------------------------------------------------------------------------
+
+
+def _should_embed() -> bool:
+    return bool(getattr(settings, "OPENAI_API_KEY", ""))
+
+
+@receiver(post_save, sender="education.Lesson")
+def enqueue_lesson_embedding(sender, instance, **kwargs):
+    if not _should_embed():
+        return
+    try:
+        from education.tasks import embed_lesson_async
+
+        _safe_delay(embed_lesson_async, instance.pk)
+    except Exception:
+        logger.debug("embed_lesson_async not available yet")
+
+
+@receiver(post_save, sender="education.Course")
+def enqueue_course_embedding(sender, instance, **kwargs):
+    if not _should_embed():
+        return
+    try:
+        from education.tasks import embed_course_async
+
+        _safe_delay(embed_course_async, instance.pk)
+    except Exception:
+        logger.debug("embed_course_async not available yet")

@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { href } from "../../src/navigation/href";
 import {
+  apiClient,
   fetchActivityHeatmap,
   fetchEntitlements,
   fetchMasterySummary,
@@ -224,6 +225,14 @@ function DashboardInner() {
     queryFn: () =>
       fetchMasterySummary().then((r) => r.data || { masteries: [] }),
     staleTime: 120_000,
+    enabled: authReady && Boolean(accessToken),
+  });
+
+  const smartResumeQuery = useQuery<{ action: string | null; cached: boolean }>({
+    queryKey: ["smartResume"],
+    queryFn: () => apiClient.get("/smart-resume/").then((r) => r.data),
+    staleTime: 86_400_000,
+    retry: false,
     enabled: authReady && Boolean(accessToken),
   });
 
@@ -801,6 +810,27 @@ function DashboardInner() {
             onOpenMissions={() => router.push(href("/missions"))}
             locale={i18n.language}
           />
+
+          {/* AI Smart Resume nudge */}
+          {smartResumeQuery.data?.action ? (
+            <View
+              style={{
+                borderRadius: 14,
+                padding: 14,
+                backgroundColor: c.accent + "18",
+                borderWidth: 1,
+                borderColor: c.accent + "35",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <Text style={{ fontSize: 18 }}>✨</Text>
+              <Text style={{ flex: 1, fontSize: 13, color: c.text, lineHeight: 20 }}>
+                {smartResumeQuery.data.action}
+              </Text>
+            </View>
+          ) : null}
 
           <PrimaryCTAMobile primaryCTA={primaryCTA} />
         </View>

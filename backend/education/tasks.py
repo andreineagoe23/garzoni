@@ -308,3 +308,36 @@ def _translate_section(translator, section, ctx: Dict[str, Any]):
             language=LANGUAGE_CODE,
             defaults=payload,
         )
+
+
+# ---------------------------------------------------------------------------
+# Embedding tasks
+# ---------------------------------------------------------------------------
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=30)
+def embed_lesson_async(self, lesson_id: int) -> None:
+    try:
+        from education.services.retrieval import index_lesson
+
+        index_lesson(lesson_id)
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=30)
+def embed_course_async(self, course_id: int) -> None:
+    try:
+        from education.services.retrieval import index_course
+
+        index_course(course_id)
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@shared_task
+def backfill_embeddings_async(batch_size: int = 50) -> dict:
+    """Run from a management command or periodic task to embed all unindexed content."""
+    from education.services.retrieval import backfill_all
+
+    return backfill_all(batch_size=batch_size)

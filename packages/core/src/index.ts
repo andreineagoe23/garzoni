@@ -29,11 +29,13 @@ export {
   requestAiTutorResponse,
   requestAiTutorPayload,
   requestAiTutorHint,
+  explainExercise,
 } from "./services/aiTutor";
 export type {
   AiTutorLink,
   AiTutorPayload,
   AiTutorExerciseContext,
+  ExplainResult,
 } from "./services/aiTutor";
 export {
   updateAvatar,

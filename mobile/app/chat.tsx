@@ -502,6 +502,15 @@ export default function ChatScreen() {
           headerTintColor: D.primaryBright,
           headerShadowVisible: false,
           headerBackTitle: "",
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push("/voice-chat" as any)}
+              style={{ marginRight: 12, padding: 4 }}
+              accessibilityLabel="Voice tutor"
+            >
+              <MaterialCommunityIcons name="microphone" size={22} color={D.primaryBright} />
+            </Pressable>
+          ),
         }}
       />
       <KeyboardAvoidingView
