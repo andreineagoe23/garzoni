@@ -41,7 +41,7 @@
     "qa:backend": "pnpm run lint:backend",
     "qa:mobile": "pnpm run typecheck:mobile && pnpm run lint:mobile && pnpm run test:core",
     "test:core": "pnpm --filter @garzoni/core test",
-    "precommit": "pnpm run typecheck && pnpm lint && pnpm --filter @garzoni/web format:check",
+    "precommit": "pnpm run typecheck && pnpm lint && pnpm --filter @garzoni/web format:check && pnpm --filter @garzoni/web test",
     "upload:cloudinary": "node scripts/upload-cloudinary-images.js",
     "upload:cloudinary:dry-run": "node scripts/upload-cloudinary-images.js --dry-run"
   },

@@ -2095,7 +2095,10 @@
       "remember": "Remember:",
       "learnMore": "Learn more about this topic",
       "learnMoreLink": "Learn more",
-      "askTutor": "Ask the AI tutor for a deeper explanation"
+      "askTutor": "Ask the AI tutor for a deeper explanation",
+      "loading": "Garzoni is explaining...",
+      "title": "Garzoni explains",
+      "tryThis": "Try a similar question"
     },
     "saveError": "Error saving progress. Please try again.",
     "mc": {
@@ -2739,5 +2742,8 @@
       "progress_1": "Steady habits beat perfect days.",
       "progress_2": "You’re building momentum—nice."
     }
+  },
+  "coachBrief": {
+    "title": "Your Weekly Coach Brief"
   }
 }

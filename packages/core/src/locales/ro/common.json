@@ -2095,7 +2095,10 @@
       "remember": "Amintește-ți:",
       "learnMore": "Află mai multe despre acest subiect",
       "learnMoreLink": "Află mai multe",
-      "askTutor": "Întreabă tutorul AI pentru o explicație mai detaliată"
+      "askTutor": "Întreabă tutorul AI pentru o explicație mai detaliată",
+      "loading": "Garzoni explică...",
+      "title": "Garzoni explică",
+      "tryThis": "Încearcă o întrebare similară"
     },
     "saveError": "Nu s-a putut salva progresul. Te rugăm să încerci din nou.",
     "mc": {
@@ -2739,5 +2742,8 @@
       "progress_1": "Obiceiurile stabile bat zilele perfecte.",
       "progress_2": "Construiești elan—bravo."
     }
+  },
+  "coachBrief": {
+    "title": "Rezumatul tău săptămânal de coaching"
   }
 }
