@@ -1976,13 +1976,15 @@ class PersonalizedPathView(APIView):
             return ""
 
     def _input_hash(self, answers: dict, mastery_context: str) -> str:
-        import hashlib, json
+        import hashlib
+        import json
 
         data = json.dumps({"answers": answers, "mastery": mastery_context}, sort_keys=True)
         return hashlib.md5(data.encode()).hexdigest()[:16]
 
     def generate_recommendations(self, user_profile, user, allowed_path_ids):
-        import hashlib, json as _json
+        import hashlib
+        import json as _json
 
         answers = self._get_onboarding_answers(user)
         mastery_boosts = self._get_low_mastery_boosts(user)
