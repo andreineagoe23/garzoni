@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { NotificationFeedbackType } from "expo-haptics";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { submitExerciseAnswer } from "@garzoni/core";
+import { submitExerciseAnswer, explainExercise } from "@garzoni/core";
+import type { ExplainResult } from "@garzoni/core";
 import { safeNotificationAsync } from "../../utils/safeHaptics";
 import { Card, Button } from "../ui";
 import { spacing, typography, radius } from "../../theme/tokens";
@@ -25,6 +26,7 @@ type Props = {
   gradingMode?: ExerciseGradingMode;
   hintsUsed?: number;
   onStandaloneSubmitResult?: (r: StandaloneSubmitResult) => void;
+  skill?: string | null;
 };
 
 function createStyles(c: ThemeColors) {
@@ -71,6 +73,53 @@ function createStyles(c: ThemeColors) {
       marginTop: spacing.sm,
       lineHeight: 20,
     },
+    aiExplainBox: {
+      marginTop: spacing.sm,
+      borderWidth: 1,
+      borderColor: c.accent + "40",
+      borderRadius: radius.md,
+      padding: spacing.md,
+      backgroundColor: c.accent + "12",
+    },
+    aiExplainLabel: {
+      fontSize: 10,
+      fontWeight: "700",
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      color: c.accent,
+      marginBottom: spacing.xs,
+    },
+    aiExplainText: {
+      fontSize: typography.sm,
+      color: c.text,
+      lineHeight: 20,
+    },
+    practiceBox: {
+      marginTop: spacing.sm,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      backgroundColor: c.surfaceElevated,
+    },
+    practiceLabel: {
+      fontSize: 10,
+      fontWeight: "700",
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      color: c.textMuted,
+      marginBottom: spacing.xs,
+    },
+    practiceQuestion: {
+      fontSize: typography.sm,
+      color: c.text,
+      fontWeight: "600",
+    },
+    practiceChoice: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      marginTop: 2,
+    },
   });
 }
 
@@ -85,6 +134,7 @@ export default function MultipleChoice({
   gradingMode = "lesson",
   hintsUsed = 0,
   onStandaloneSubmitResult,
+  skill,
 }: Props) {
   const c = useThemeColors();
   const { t } = useTranslation("common");
@@ -94,14 +144,15 @@ export default function MultipleChoice({
   const options = (data?.options ?? []) as string[];
   const correctAnswer = data?.correctAnswer as number | undefined;
   const explanation = data?.explanation as string | undefined;
+  const dataSkill = (data?.skill as string | undefined) ?? skill ?? null;
 
   const [selected, setSelected] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
-    null,
-  );
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
   const [submitting, setSubmitting] = useState(false);
+  const [explainResult, setExplainResult] = useState<ExplainResult | null>(null);
+  const [loadingExplain, setLoadingExplain] = useState(false);
 
   useEffect(() => {
     setSelected(null);
@@ -109,7 +160,29 @@ export default function MultipleChoice({
     setFeedbackType(null);
     setIsCompleted(Boolean(isCompletedProp));
     setSubmitting(false);
+    setExplainResult(null);
+    setLoadingExplain(false);
   }, [exerciseId, sectionId, isCompletedProp, data]);
+
+  const fetchExplanation = async (userAnswerText: string) => {
+    if (!question) return;
+    setLoadingExplain(true);
+    try {
+      const result = await explainExercise({
+        exerciseQuestion: question,
+        exerciseType: "multiple_choice",
+        correctAnswer: correctAnswer != null ? options[correctAnswer] : undefined,
+        userAnswer: userAnswerText,
+        skill: dataSkill,
+        exerciseId: exerciseId ?? null,
+      });
+      setExplainResult(result);
+    } catch {
+      // silent — static feedback still shown
+    } finally {
+      setLoadingExplain(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (disabled || selected === null || submitting) return;
@@ -194,6 +267,9 @@ export default function MultipleChoice({
       void safeNotificationAsync(NotificationFeedbackType.Error);
       setFeedback(t("exercises.widgets.notQuiteTryAgain"));
       setFeedbackType("error");
+      if (question) {
+        void fetchExplanation(options[selected] ?? String(selected));
+      }
     }
   };
 
@@ -255,6 +331,41 @@ export default function MultipleChoice({
 
       {explanation && isCompleted ? (
         <Text style={styles.explanation}>{explanation}</Text>
+      ) : null}
+
+      {/* AI explanation block (wrong answer only) */}
+      {feedbackType === "error" && loadingExplain && (
+        <View style={[styles.aiExplainBox, { flexDirection: "row", alignItems: "center", gap: spacing.sm }]}>
+          <ActivityIndicator size="small" color={c.accent} />
+          <Text style={styles.aiExplainText}>
+            {t("exercises.explanation.loading", "Garzoni is explaining...")}
+          </Text>
+        </View>
+      )}
+      {feedbackType === "error" && explainResult?.explanation ? (
+        <View style={styles.aiExplainBox}>
+          <Text style={styles.aiExplainLabel}>
+            {t("exercises.explanation.title", "Garzoni explains")}
+          </Text>
+          <Text style={styles.aiExplainText}>{explainResult.explanation}</Text>
+        </View>
+      ) : null}
+      {feedbackType === "error" && explainResult?.practice_question ? (
+        <View style={styles.practiceBox}>
+          <Text style={styles.practiceLabel}>
+            {t("exercises.explanation.tryThis", "Try a similar question")}
+          </Text>
+          <Text style={styles.practiceQuestion}>
+            {explainResult.practice_question.question}
+          </Text>
+          {Array.isArray(explainResult.practice_question.choices)
+            ? explainResult.practice_question.choices.map((c: string, i: number) => (
+                <Text key={i} style={styles.practiceChoice}>
+                  {String.fromCharCode(65 + i)}. {c}
+                </Text>
+              ))
+            : null}
+        </View>
       ) : null}
 
       {!isCompleted && selected !== null ? (

@@ -124,6 +124,14 @@ function PersonalizedPathContent({
     },
   });
 
+  const coachBriefQuery = useQuery<{ brief: string; cached: boolean }>({
+    queryKey: ["coachBrief"],
+    queryFn: async () => (await apiClient.get("/coach-brief/")).data,
+    enabled: isAuthenticated && questionnaireCompleted,
+    staleTime: 86_400_000, // 24h
+    retry: false,
+  });
+
   const progressByCourse = useMemo(() => {
     const entries = progressSummaryQuery.data?.paths || [];
     const map = new Map<
@@ -238,6 +246,20 @@ function PersonalizedPathContent({
 
   return (
     <div className="space-y-8">
+      {/* Coach Brief card — Plus/Pro weekly coaching note */}
+      {coachBriefQuery.data?.brief && (
+        <GlassCard padding="md" className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[color:#2a7347]">
+              {t("coachBrief.title", "Your Weekly Coach Brief")}
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed text-content-primary whitespace-pre-line">
+            {coachBriefQuery.data.brief}
+          </p>
+        </GlassCard>
+      )}
+
       {heroCourse && (
         <GlassCard padding="lg" className="app-card relative overflow-hidden">
           {(() => {

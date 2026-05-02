@@ -87,7 +87,7 @@ const Chatbot = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
-  const [chatHistory, setChatHistory] = useState([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [lockedFeature, setLockedFeature] = useState(null);
   const [showUpsell, setShowUpsell] = useState(false);
 
@@ -138,12 +138,32 @@ const Chatbot = () => {
     }
   };
 
+  // Load persisted conversation history from server when chat first opens
   useEffect(() => {
-    if (!hasGreeted) {
-      setMessages([{ sender: "bot", text: t("chatbot.greeting") }]);
-      setHasGreeted(true);
-    }
-  }, [hasGreeted, t]);
+    if (!isOpen || historyLoaded || !isAuthenticated) return;
+    setHistoryLoaded(true);
+    apiClient
+      .get("/conversation/history/", { params: { source: "chat", limit: 50 } })
+      .then((res) => {
+        const serverMessages = (res.data?.messages || []).map((m) => ({
+          sender: m.role === "user" ? "user" : "bot",
+          text: m.content,
+        }));
+        if (serverMessages.length > 0) {
+          setMessages(serverMessages);
+          setHasGreeted(true);
+        } else if (!hasGreeted) {
+          setMessages([{ sender: "bot", text: t("chatbot.greeting") }]);
+          setHasGreeted(true);
+        }
+      })
+      .catch(() => {
+        if (!hasGreeted) {
+          setMessages([{ sender: "bot", text: t("chatbot.greeting") }]);
+          setHasGreeted(true);
+        }
+      });
+  }, [isOpen, historyLoaded, isAuthenticated, hasGreeted, t]);
 
   useEffect(() => {
     const handleTutorOpen = (event) => {
@@ -231,10 +251,6 @@ const Chatbot = () => {
 
     const userChatObj = { sender: "user", text: userMessage };
     setMessages((prev) => [...prev, userChatObj]);
-
-    const userHistoryObj = { role: "user", content: userMessage };
-    const updatedHistory = [...chatHistory, userHistoryObj];
-    setChatHistory(updatedHistory);
 
     if (aiTutorFeature) {
       if (!aiTutorFeature.enabled) {
@@ -368,7 +384,7 @@ const Chatbot = () => {
         if (!token) throw new Error(t("chatbot.authTokenMissing"));
         const response = await apiClient.post("/proxy/openai/", {
           inputs: userMessage,
-          chatHistory: updatedHistory.slice(-10),
+          source: "chat",
           parameters: { temperature: 0.7 },
         });
         botResponse = response.data.response;
@@ -385,10 +401,6 @@ const Chatbot = () => {
           link: responseLink,
           links: responseLinks,
         },
-      ]);
-      setChatHistory([
-        ...updatedHistory,
-        { role: "assistant", content: botResponse },
       ]);
     } catch (error) {
       let errorMessage = t("chatbot.genericError");

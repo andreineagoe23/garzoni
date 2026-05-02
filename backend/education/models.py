@@ -756,6 +756,59 @@ class QuizTranslation(models.Model):
         unique_together = [("quiz", "language")]
 
 
+class PathPlan(models.Model):
+    """
+    Stores per-course AI-generated reasons and rank for a user's personalized path.
+    Updated daily by the path generator.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="path_plans")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="path_plans")
+    rank = models.PositiveSmallIntegerField(default=1)
+    reason = models.TextField(blank=True, default="")
+    micro_goal = models.CharField(max_length=300, blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "education_path_plan"
+        unique_together = [("user", "course")]
+        ordering = ["rank"]
+
+    def __str__(self):
+        return f"PathPlan({self.user_id}, course={self.course_id}, rank={self.rank})"
+
+
+class ContentEmbedding(models.Model):
+    """
+    Stores OpenAI text embeddings for curriculum content (lessons, courses, skills).
+    Use pgvector VectorField in production for fast ANN search.
+    Until pgvector migration, embedding is stored as JSON and similarity computed in Python.
+    """
+
+    CONTENT_TYPE_CHOICES = [
+        ("lesson", "Lesson"),
+        ("course", "Course"),
+        ("section", "Section"),
+        ("skill", "Skill"),
+    ]
+
+    content_type = models.CharField(max_length=16, choices=CONTENT_TYPE_CHOICES, db_index=True)
+    content_id = models.PositiveIntegerField(db_index=True)
+    title = models.CharField(max_length=300)
+    body_snippet = models.TextField(blank=True, default="")
+    embedding = models.JSONField(help_text="List[float] from text-embedding-3-small (1536-d)")
+    embedding_model = models.CharField(max_length=64, default="text-embedding-3-small")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "education_content_embedding"
+        unique_together = [("content_type", "content_id")]
+        indexes = [models.Index(fields=["content_type", "updated_at"])]
+
+    def __str__(self):
+        return f"{self.content_type}:{self.content_id} — {self.title[:60]}"
+
+
 class ExerciseTranslation(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="translations")
     language = models.CharField(max_length=10, db_index=True)

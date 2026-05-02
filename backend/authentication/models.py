@@ -31,6 +31,7 @@ class UserProfile(models.Model):
     profile_avatar = models.URLField(max_length=2000, null=True, blank=True)
     recommended_courses = models.JSONField(default=list, blank=True)
     recommendations_generated_at = models.DateTimeField(null=True, blank=True)
+    path_input_hash = models.CharField(max_length=32, blank=True, default="")
     referral_code = models.CharField(
         max_length=20,
         unique=True,

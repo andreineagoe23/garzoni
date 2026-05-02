@@ -22,6 +22,10 @@ FEATURE_FLAGS = {
     "analytics": "feature.analytics.access",
     "ai_tutor": "feature.ai.tutor",
     "personalized_path": "feature.learning.personalized_path",
+    "ai_explain": "feature.ai.explain",
+    "ai_coach_brief": "feature.ai.coach_brief",
+    "ai_voice": "feature.ai.voice",
+    "ai_scan": "feature.ai.scan",
 }
 
 PLAN_ORDER = {
@@ -74,6 +78,26 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": 0,
                 "description": "Personalized path (Plus/Pro only)",
             },
+            "ai_explain": {
+                "enabled": True,
+                "daily_quota": 3,
+                "description": "3 AI exercise explanations per day",
+            },
+            "ai_coach_brief": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Weekly coaching brief (Plus/Pro only)",
+            },
+            "ai_voice": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Voice tutor (Pro only)",
+            },
+            "ai_scan": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Receipt scan (Pro only)",
+            },
         },
     },
     "plus": {
@@ -114,6 +138,26 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": None,
                 "description": "Personalized learning path based on your goals",
             },
+            "ai_explain": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Unlimited AI exercise explanations",
+            },
+            "ai_coach_brief": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Weekly AI coaching brief",
+            },
+            "ai_voice": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Voice tutor (Pro only)",
+            },
+            "ai_scan": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Receipt scan (Pro only)",
+            },
         },
     },
     "pro": {
@@ -153,6 +197,26 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "enabled": True,
                 "daily_quota": None,
                 "description": "Personalized learning path based on your goals",
+            },
+            "ai_explain": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Unlimited AI exercise explanations",
+            },
+            "ai_coach_brief": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Weekly AI coaching brief",
+            },
+            "ai_voice": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Voice tutor — speak with Garzoni",
+            },
+            "ai_scan": {
+                "enabled": True,
+                "daily_quota": 5,
+                "description": "5 receipt/statement scans per day",
             },
         },
     },

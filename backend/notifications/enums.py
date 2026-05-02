@@ -21,6 +21,8 @@ class CioTemplate(str, Enum):
     REFERRAL_REFERRED = "referral-referred"
     STREAK_BROKEN = "streak-broken"
     PORTFOLIO_UPDATE = "portfolio-update"
+    AI_NUDGE = "ai-nudge"
+    COACH_BRIEF = "coach-brief"
 
 
 class CioEventName(str, Enum):
