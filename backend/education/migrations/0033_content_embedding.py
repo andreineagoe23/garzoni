@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
             model_name="contentembedding",
             index=models.Index(
                 fields=["content_type", "updated_at"],
-                name="emb_type_updated_idx",
+                name="education_c_content_160b99_idx",
             ),
         ),
     ]

@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
             model_name="conversation",
             index=models.Index(
                 fields=["user", "source", "-updated_at"],
-                name="conv_user_source_idx",
+                name="core_ai_con_user_id_2a21ac_idx",
             ),
         ),
         migrations.CreateModel(
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
             model_name="message",
             index=models.Index(
                 fields=["conversation", "created_at"],
-                name="msg_conv_created_idx",
+                name="core_ai_mes_convers_297d58_idx",
             ),
         ),
     ]
