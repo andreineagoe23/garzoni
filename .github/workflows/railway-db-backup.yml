@@ -38,7 +38,7 @@ jobs:
 
       - name: Upload backup artifact
         if: steps.check.outputs.skipped != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: railway-db-backup
           path: ${{ env.BACKUP_FILE }}
