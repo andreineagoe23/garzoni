@@ -11,7 +11,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ContentEmbedding",
             fields=[
-                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 (
                     "content_type",
                     models.CharField(
@@ -30,9 +35,7 @@ class Migration(migrations.Migration):
                 ("body_snippet", models.TextField(blank=True, default="")),
                 (
                     "embedding",
-                    models.JSONField(
-                        help_text="List[float] from text-embedding-3-small (1536-d)"
-                    ),
+                    models.JSONField(help_text="List[float] from text-embedding-3-small (1536-d)"),
                 ),
                 (
                     "embedding_model",
