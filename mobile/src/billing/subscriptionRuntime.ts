@@ -44,12 +44,12 @@ const RC_OFFERING_PRO_CANDIDATES = [
  */
 export const APPLE_PRODUCT_IDS = {
   plus: {
-    monthly: "app.garzoni.mobile.plus_monthly",
-    yearly: "app.garzoni.mobile.plus_yearly",
+    monthly: "app.garzoni.mobile.plus_monthly_v2",
+    yearly: "app.garzoni.mobile.plus_yearly_v2",
   },
   pro: {
-    monthly: "app.garzoni.mobile.pro_monthly",
-    yearly: "app.garzoni.mobile.pro_yearly",
+    monthly: "app.garzoni.mobile.pro_monthly_v2",
+    yearly: "app.garzoni.mobile.pro_yearly_v2",
   },
 } as const;
 
@@ -59,6 +59,11 @@ export const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
   [APPLE_PRODUCT_IDS.plus.yearly]: "plus",
   [APPLE_PRODUCT_IDS.pro.monthly]: "pro",
   [APPLE_PRODUCT_IDS.pro.yearly]: "pro",
+  // legacy v1 IDs — keep so existing subscribers aren't broken
+  "app.garzoni.mobile.plus_monthly": "plus",
+  "app.garzoni.mobile.plus_yearly": "plus",
+  "app.garzoni.mobile.pro_monthly": "pro",
+  "app.garzoni.mobile.pro_yearly": "pro",
   "tech.garzoni.app.plus_monthly": "plus",
   "tech.garzoni.app.plus_yearly": "plus",
   "tech.garzoni.app.pro_monthly": "pro",
