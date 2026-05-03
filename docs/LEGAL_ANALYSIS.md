@@ -11,18 +11,18 @@
 
 ## 1. Product Identity
 
-| Field | Value |
-|---|---|
-| Product name | **Garzoni** |
-| Tagline | Gamified Financial Learning Platform |
-| Platforms | Web (`@garzoni/web`, React + Vite), iOS, Android (Expo / React Native) |
-| Backend | Django 4.2 + DRF, PostgreSQL, Redis, Celery |
-| Repo languages | Python (backend), TypeScript (web/mobile/core) |
-| Domain (web) | TBD — confirm on Vercel/DNS |
-| Mobile bundle IDs | TBD — confirm in `mobile/app.json` |
-| Operator legal entity | **TBD — fill in (company name, registered address, company number)** |
-| Contact email | Set via `CONTACT_EMAIL` / `DEFAULT_FROM_EMAIL` env vars |
-| DPO / Privacy contact | **TBD** |
+| Field                 | Value                                                                  |
+| --------------------- | ---------------------------------------------------------------------- |
+| Product name          | **Garzoni**                                                            |
+| Tagline               | Gamified Financial Learning Platform                                   |
+| Platforms             | Web (`@garzoni/web`, React + Vite), iOS, Android (Expo / React Native) |
+| Backend               | Django 4.2 + DRF, PostgreSQL, Redis, Celery                            |
+| Repo languages        | Python (backend), TypeScript (web/mobile/core)                         |
+| Domain (web)          | TBD — confirm on Vercel/DNS                                            |
+| Mobile bundle IDs     | TBD — confirm in `mobile/app.json`                                     |
+| Operator legal entity | **TBD — fill in (company name, registered address, company number)**   |
+| Contact email         | Set via `CONTACT_EMAIL` / `DEFAULT_FROM_EMAIL` env vars                |
+| DPO / Privacy contact | **TBD**                                                                |
 
 > **Action for legal docs:** confirm operating entity, jurisdiction (UK based on £/GBP pricing), registered address, and a published privacy/DPO contact email.
 
@@ -65,6 +65,7 @@ Garzoni is an interactive personal-finance education app with:
 **Data export:** No user-facing GDPR data-export endpoint exists. Only an admin command `export_for_postgres.py`.
 
 > **Action for legal docs:**
+>
 > - Disclose Google/Apple SSO and that minimal profile data is received from those providers (email, name, avatar URL, stable subject ID).
 > - If targeting EU/UK users, **add a self-service data-export endpoint** (Subject Access Request) — currently missing and required under GDPR Art. 15 / 20.
 
@@ -134,6 +135,7 @@ Garzoni is an interactive personal-finance education app with:
 - Web: localStorage / sessionStorage (`scrollToPathId`, theme, language, last-seen banners).
 
 > **Action for legal docs:**
+>
 > - Privacy Policy must list every personal-data category above with **purpose** and **legal basis** (UK GDPR Art. 6).
 > - Cookie Policy must enumerate first-party cookies + third-party set by Stripe Checkout, reCAPTCHA, Amplitude, Customer.io, Cloudinary, Sentry. A cookie banner with consent management is **required** for EU/UK users — confirm if implemented.
 
@@ -141,26 +143,27 @@ Garzoni is an interactive personal-finance education app with:
 
 ## 5. Third-Party Sub-Processors
 
-| Vendor | Purpose | Data sent | Region |
-|---|---|---|---|
-| **OpenAI** | AI tutor (`gpt-4o-mini`, `gpt-4o`), embeddings (`text-embedding-3-small`), Whisper transcription, TTS (`tts-1`), GPT-4o vision (receipt scan) | User prompts, exercise context, financial profile via tools, audio (voice), images (scan) | US |
-| **Stripe** | Payment processing (web), subscription billing, webhooks | Name, email, card data (direct to Stripe), billing address | US/IE |
-| **RevenueCat** | Mobile IAP entitlement management | App user ID, purchase events | US |
-| **Apple App Store** | iOS in-app purchases, Sign in with Apple | Email (private relay supported), Apple ID `sub`, purchase | Global |
-| **Google Play / OAuth** | Android IAP, Google sign-in | Email, name, avatar, Google `sub`, purchase | Global |
-| **Customer.io** | Email + push delivery, CDP events | Email, name, user ID, event payload (lesson done, streak, AI nudge) | US/EU configurable (`CIO_REGION`) |
-| **Resend** (via django-anymail) | Transactional email (password reset, etc.) | Email, name, message body | EU/US |
-| **SMTP (Gmail by default)** | Fallback email transport | Email contents | US |
-| **Cloudinary** | Image hosting + transformations (lesson art, avatars) | Image binaries; URLs may include public IDs | US/global CDN |
-| **Sentry** | Error tracking | Stack traces, request URL, user ID (if not scrubbed) | EU/US |
-| **Amplitude** | Web analytics | Event names, properties, anonymized device/IP | US |
-| **Google reCAPTCHA Enterprise** | Bot prevention on auth | reCAPTCHA token, IP, user-agent | US |
-| **CoinGecko**, **Alpha Vantage**, **ExchangeRate-API** | Market data (stocks, crypto, forex) — read-only price queries | None user-specific (server-side fetch) | US/global |
-| **Vercel** | Web hosting | Logs, request metadata | US/EU |
-| **Railway** (per `mcp__railway-mcp-server`) | Backend hosting | Logs, server data | US |
-| **Groq** (`groq>=0.12.0` in requirements) | Possible alternate LLM provider | Verify if used in prod | US |
+| Vendor                                                 | Purpose                                                                                                                                       | Data sent                                                                                 | Region                            |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------- |
+| **OpenAI**                                             | AI tutor (`gpt-4o-mini`, `gpt-4o`), embeddings (`text-embedding-3-small`), Whisper transcription, TTS (`tts-1`), GPT-4o vision (receipt scan) | User prompts, exercise context, financial profile via tools, audio (voice), images (scan) | US                                |
+| **Stripe**                                             | Payment processing (web), subscription billing, webhooks                                                                                      | Name, email, card data (direct to Stripe), billing address                                | US/IE                             |
+| **RevenueCat**                                         | Mobile IAP entitlement management                                                                                                             | App user ID, purchase events                                                              | US                                |
+| **Apple App Store**                                    | iOS in-app purchases, Sign in with Apple                                                                                                      | Email (private relay supported), Apple ID `sub`, purchase                                 | Global                            |
+| **Google Play / OAuth**                                | Android IAP, Google sign-in                                                                                                                   | Email, name, avatar, Google `sub`, purchase                                               | Global                            |
+| **Customer.io**                                        | Email + push delivery, CDP events                                                                                                             | Email, name, user ID, event payload (lesson done, streak, AI nudge)                       | US/EU configurable (`CIO_REGION`) |
+| **Resend** (via django-anymail)                        | Transactional email (password reset, etc.)                                                                                                    | Email, name, message body                                                                 | EU/US                             |
+| **SMTP (Gmail by default)**                            | Fallback email transport                                                                                                                      | Email contents                                                                            | US                                |
+| **Cloudinary**                                         | Image hosting + transformations (lesson art, avatars)                                                                                         | Image binaries; URLs may include public IDs                                               | US/global CDN                     |
+| **Sentry**                                             | Error tracking                                                                                                                                | Stack traces, request URL, user ID (if not scrubbed)                                      | EU/US                             |
+| **Amplitude**                                          | Web analytics                                                                                                                                 | Event names, properties, anonymized device/IP                                             | US                                |
+| **Google reCAPTCHA Enterprise**                        | Bot prevention on auth                                                                                                                        | reCAPTCHA token, IP, user-agent                                                           | US                                |
+| **CoinGecko**, **Alpha Vantage**, **ExchangeRate-API** | Market data (stocks, crypto, forex) — read-only price queries                                                                                 | None user-specific (server-side fetch)                                                    | US/global                         |
+| **Vercel**                                             | Web hosting                                                                                                                                   | Logs, request metadata                                                                    | US/EU                             |
+| **Railway** (per `mcp__railway-mcp-server`)            | Backend hosting                                                                                                                               | Logs, server data                                                                         | US                                |
+| **Groq** (`groq>=0.12.0` in requirements)              | Possible alternate LLM provider                                                                                                               | Verify if used in prod                                                                    | US                                |
 
 > **Action for legal docs:**
+>
 > - Privacy Policy must include a **list of sub-processors** with links to their privacy policies. The table above is the starting point.
 > - For GDPR: **Standard Contractual Clauses** are needed for US transfers (OpenAI, Stripe, Cloudinary, Sentry US instance, Customer.io US, Amplitude). Mention "appropriate safeguards under Art. 46 UK/EU GDPR".
 
@@ -170,11 +173,11 @@ Garzoni is an interactive personal-finance education app with:
 
 ### Plans (from `backend/authentication/entitlements.py::PLAN_CATALOG`)
 
-| Plan | Monthly | Yearly | Trial |
-|---|---|---|---|
-| Starter | £0 | — | — |
-| Plus | £7.99 | £69 | 7 days (yearly only) |
-| Pro | £11.99 | £79 | 7 days (yearly only) |
+| Plan    | Monthly | Yearly | Trial                |
+| ------- | ------- | ------ | -------------------- |
+| Starter | £0      | —      | —                    |
+| Plus    | £7.99   | £69    | 7 days (yearly only) |
+| Pro     | £11.99  | £79    | 7 days (yearly only) |
 
 Currency: **GBP**. Channels: Stripe (web), Apple/Google IAP via RevenueCat (mobile).
 
@@ -185,6 +188,7 @@ Currency: **GBP**. Channels: Stripe (web), Apple/Google IAP via RevenueCat (mobi
 - Trial: 7 days on yearly Plus/Pro. `trial_end` is stored in `UserProfile`.
 
 > **Action for legal docs (ToS / EULA):**
+>
 > - State auto-renewal terms clearly (required by Apple guidelines + EU Consumer Rights Directive).
 > - State refund policy for each channel (Stripe-issued, Apple-issued, Google-issued — operator does not control mobile refunds).
 > - State 14-day right of withdrawal under UK/EU consumer law and how trial interacts with it.
@@ -196,17 +200,17 @@ Currency: **GBP**. Channels: Stripe (web), Apple/Google IAP via RevenueCat (mobi
 
 Garzoni embeds OpenAI deeply. Legal docs must include an **AI Disclosure** section.
 
-| Feature | Endpoint | Data sent to OpenAI | Notes |
-|---|---|---|---|
-| Chat tutor | `POST /api/proxy/openai/` | Prompt + persistent history (server-side) + system prompt with mastery + financial profile (via tools) | gpt-4o-mini (Free/Plus), gpt-4o (Pro) |
-| Inline exercise explanation | `POST /api/exercises/explain/` | Question, correct answer, user answer, skill | Free 3/day, Plus/Pro unlimited |
-| Personalized path | server cron / refresh | Onboarding answers, mastery summary | Daily re-eval; cached |
-| Coach Brief | `GET /api/coach-brief/` | Weekly summary stats | Plus/Pro, cached 24h |
-| Push nudge generation | Celery beat | Streak, weakest skill, plan tier | Daily |
-| Voice tutor | `POST /api/voice-tutor/` | Audio file (Whisper) → text → TTS audio | Pro |
-| Receipt scan | `POST /api/scan/` | Image (base64 to GPT-4o vision) | Pro, max 20 MB |
-| Smart resume | `GET /api/smart-resume/` | Streak, active course, weak skills | All tiers, cached 24h |
-| Embeddings (RAG) | server-side only | Lesson titles + descriptions (no user data) | text-embedding-3-small |
+| Feature                     | Endpoint                       | Data sent to OpenAI                                                                                    | Notes                                 |
+| --------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| Chat tutor                  | `POST /api/proxy/openai/`      | Prompt + persistent history (server-side) + system prompt with mastery + financial profile (via tools) | gpt-4o-mini (Free/Plus), gpt-4o (Pro) |
+| Inline exercise explanation | `POST /api/exercises/explain/` | Question, correct answer, user answer, skill                                                           | Free 3/day, Plus/Pro unlimited        |
+| Personalized path           | server cron / refresh          | Onboarding answers, mastery summary                                                                    | Daily re-eval; cached                 |
+| Coach Brief                 | `GET /api/coach-brief/`        | Weekly summary stats                                                                                   | Plus/Pro, cached 24h                  |
+| Push nudge generation       | Celery beat                    | Streak, weakest skill, plan tier                                                                       | Daily                                 |
+| Voice tutor                 | `POST /api/voice-tutor/`       | Audio file (Whisper) → text → TTS audio                                                                | Pro                                   |
+| Receipt scan                | `POST /api/scan/`              | Image (base64 to GPT-4o vision)                                                                        | Pro, max 20 MB                        |
+| Smart resume                | `GET /api/smart-resume/`       | Streak, active course, weak skills                                                                     | All tiers, cached 24h                 |
+| Embeddings (RAG)            | server-side only               | Lesson titles + descriptions (no user data)                                                            | text-embedding-3-small                |
 
 **Critical AI disclosures to add to ToS/Privacy:**
 
@@ -224,6 +228,7 @@ Garzoni embeds OpenAI deeply. Legal docs must include an **AI Disclosure** secti
 No age gate or `min_age` field exists in the codebase. App Store / Play Store ratings will determine the apparent audience.
 
 > **Action for legal docs:**
+>
 > - Set a **minimum age** (recommend 16+ for EU GDPR, 13+ for COPPA US elsewhere; or adopt 18+ given financial topic).
 > - Add an age-confirmation checkbox at signup.
 > - Add a parental-notice clause if you allow under-16/13 users in any market.
@@ -237,6 +242,7 @@ No age gate or `min_age` field exists in the codebase. App Store / Play Store ra
 - Referral program (referral codes, points).
 
 > **Action for legal docs:**
+>
 > - Privacy Policy must distinguish **transactional emails** (lawful basis: contract / legitimate interest) from **marketing emails** (lawful basis: consent, with an unsubscribe link).
 > - Confirm the unsubscribe flow works for each channel.
 > - Confirm GDPR-safe defaults claim is accurate by inspecting `signals.py`.
@@ -257,6 +263,7 @@ No age gate or `min_age` field exists in the codebase. App Store / Play Store ra
 - Rate-limited AI tutor (per-plan daily quotas + per-user token budget).
 
 > **Action for legal docs:**
+>
 > - Don't claim ISO 27001 / SOC 2 unless certified.
 > - Mention breach-notification commitment under UK GDPR Art. 33 (notify ICO within 72h).
 
@@ -264,16 +271,16 @@ No age gate or `min_age` field exists in the codebase. App Store / Play Store ra
 
 ## 11. User Rights (UK / EU GDPR)
 
-| Right | Status in app |
-|---|---|
-| Access (Art. 15) | ❌ No self-service export. Only via support email. |
-| Rectification (Art. 16) | ✅ Settings → profile edit. |
-| Erasure (Art. 17) | ✅ `POST /auth/delete-account/`. Verify cascading deletes across `Conversation`, `StripePayment`, `Mastery`, etc. |
-| Restriction (Art. 18) | Manual via support. |
-| Portability (Art. 20) | ❌ Same as access — **gap**. |
-| Object (Art. 21) | Manual via support. |
-| Withdraw consent | Settings → email preferences (marketing); deleting account ends processing. |
-| Complaint to supervisory authority | Mention ICO (UK) and equivalent in privacy policy. |
+| Right                              | Status in app                                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Access (Art. 15)                   | ❌ No self-service export. Only via support email.                                                                |
+| Rectification (Art. 16)            | ✅ Settings → profile edit.                                                                                       |
+| Erasure (Art. 17)                  | ✅ `POST /auth/delete-account/`. Verify cascading deletes across `Conversation`, `StripePayment`, `Mastery`, etc. |
+| Restriction (Art. 18)              | Manual via support.                                                                                               |
+| Portability (Art. 20)              | ❌ Same as access — **gap**.                                                                                      |
+| Object (Art. 21)                   | Manual via support.                                                                                               |
+| Withdraw consent                   | Settings → email preferences (marketing); deleting account ends processing.                                       |
+| Complaint to supervisory authority | Mention ICO (UK) and equivalent in privacy policy.                                                                |
 
 > **Action for legal docs / engineering:** add a `/api/auth/export-data/` endpoint that emits a JSON dump of the user's records (profile, progress, conversations, payments) to satisfy Art. 15/20. This is a known gap.
 
@@ -286,6 +293,7 @@ No age gate or `min_age` field exists in the codebase. App Store / Play Store ra
 - User-generated content: chat messages, receipt images. Operator needs a **limited licence** from the user to process and store.
 
 > **Action for ToS:**
+>
 > - "User content licence" clause: user grants Garzoni a worldwide, non-exclusive licence to process user inputs for the purpose of operating the service.
 > - "Garzoni IP" clause: the curriculum, brand, code are operator IP and not licensed to users beyond personal use of the app.
 
@@ -324,6 +332,7 @@ This disclaimer should be linked from the chatbot UI, every tool page, and Setti
 Pricing in GBP and `tests/test_signup_email_defaults.py::"GDPR-safe"` annotations strongly suggest UK as primary jurisdiction.
 
 > **Action for legal docs:**
+>
 > - Default governing law: **England & Wales** (or Scotland if registered there).
 > - Consumer disputes: preserve EU consumer's right to local courts as required by Rome I / Brussels I bis.
 > - Provide ODR link (`https://ec.europa.eu/consumers/odr`) per EU Reg. 524/2013 if selling to EU.
@@ -349,18 +358,18 @@ Pricing in GBP and `tests/test_signup_email_defaults.py::"GDPR-safe"` annotation
 
 These are claims the policy will likely make that the codebase doesn't yet fully back:
 
-| Gap | Priority |
-|---|---|
-| Self-service GDPR data export endpoint | **High** |
-| Cookie consent banner (web) for EU/UK | **High** |
-| Age gate at signup | **High** |
-| Sentry PII scrubbing config (verify `before_send` hook) | Medium |
+| Gap                                                                                                                                                   | Priority |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Self-service GDPR data export endpoint                                                                                                                | **High** |
+| Cookie consent banner (web) for EU/UK                                                                                                                 | **High** |
+| Age gate at signup                                                                                                                                    | **High** |
+| Sentry PII scrubbing config (verify `before_send` hook)                                                                                               | Medium   |
 | Audit cascade-delete coverage on `delete_account` (does it delete `Conversation`, `Message`, `StripePayment`, `Mastery`, `UserProgress`, `PathPlan`?) | **High** |
-| AI conversation retention policy (how long do we keep `Message` rows?) | Medium |
-| Marketing-email double opt-in (UK PECR) | Medium |
-| Disclosure of OpenAI region (US) at the chat surface | Low |
-| Confirm receipt-scan images aren't logged in Sentry / Cloudinary | Medium |
-| Verify reCAPTCHA cookie disclosure | Low |
+| AI conversation retention policy (how long do we keep `Message` rows?)                                                                                | Medium   |
+| Marketing-email double opt-in (UK PECR)                                                                                                               | Medium   |
+| Disclosure of OpenAI region (US) at the chat surface                                                                                                  | Low      |
+| Confirm receipt-scan images aren't logged in Sentry / Cloudinary                                                                                      | Medium   |
+| Verify reCAPTCHA cookie disclosure                                                                                                                    | Low      |
 
 ---
 
@@ -384,4 +393,4 @@ packages/core/           # Shared TypeScript: API client, services, i18n, types
 
 ---
 
-*This document is an internal working analysis for legal-doc drafting. It does not itself constitute legal advice. A solicitor (UK) or licensed attorney must review the final policies before publication.*
+_This document is an internal working analysis for legal-doc drafting. It does not itself constitute legal advice. A solicitor (UK) or licensed attorney must review the final policies before publication._

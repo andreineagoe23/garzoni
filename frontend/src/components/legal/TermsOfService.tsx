@@ -59,6 +59,19 @@ const TermsOfService = () => {
         <h2>{t("legal.terms.sections.educational.title")}</h2>
         <p>{t("legal.terms.sections.educational.body")}</p>
 
+        <h2>{t("legal.terms.sections.aiTutor.title")}</h2>
+        <p>{t("legal.terms.sections.aiTutor.intro")}</p>
+        <ul>
+          <li>{t("legal.terms.sections.aiTutor.items.noAdvice")}</li>
+          <li>{t("legal.terms.sections.aiTutor.items.notRegulated")}</li>
+          <li>{t("legal.terms.sections.aiTutor.items.noReliance")}</li>
+          <li>{t("legal.terms.sections.aiTutor.items.errors")}</li>
+          <li>{t("legal.terms.sections.aiTutor.items.quotas")}</li>
+        </ul>
+
+        <h2>{t("legal.terms.sections.gamification.title")}</h2>
+        <p>{t("legal.terms.sections.gamification.body")}</p>
+
         <h2>{t("legal.terms.sections.subscriptions.title")}</h2>
         <p>{t("legal.terms.sections.subscriptions.body")}</p>
 

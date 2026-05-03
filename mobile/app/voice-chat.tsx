@@ -94,15 +94,28 @@ function createStyles(c: ThemeColors) {
       padding: spacing.xl,
       gap: spacing.md,
     },
-    proGateTitle: { fontSize: typography.lg, fontWeight: "700", color: c.text, textAlign: "center" },
-    proGateBody: { fontSize: typography.base, color: c.textMuted, textAlign: "center" },
+    proGateTitle: {
+      fontSize: typography.lg,
+      fontWeight: "700",
+      color: c.text,
+      textAlign: "center",
+    },
+    proGateBody: {
+      fontSize: typography.base,
+      color: c.textMuted,
+      textAlign: "center",
+    },
     upgradeBtn: {
       backgroundColor: c.accent,
       borderRadius: radius.lg,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.xl,
     },
-    upgradeBtnText: { color: "#fff", fontWeight: "700", fontSize: typography.base },
+    upgradeBtnText: {
+      color: "#fff",
+      fontWeight: "700",
+      fontSize: typography.base,
+    },
   });
 }
 
@@ -122,7 +135,9 @@ export default function VoiceChat() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [status, setStatus] = useState<"idle" | "recording" | "processing">("idle");
+  const [status, setStatus] = useState<"idle" | "recording" | "processing">(
+    "idle",
+  );
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -136,10 +151,16 @@ export default function VoiceChat() {
     try {
       const { granted } = await Audio.requestPermissionsAsync();
       if (!granted) {
-        Alert.alert("Permission required", "Microphone access is needed for the voice tutor.");
+        Alert.alert(
+          "Permission required",
+          "Microphone access is needed for the voice tutor.",
+        );
         return;
       }
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
       const { recording: rec } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY,
       );
@@ -160,7 +181,11 @@ export default function VoiceChat() {
       if (!uri) throw new Error("No recording URI");
 
       const formData = new FormData();
-      formData.append("audio", { uri, name: "voice.m4a", type: "audio/m4a" } as any);
+      formData.append("audio", {
+        uri,
+        name: "voice.m4a",
+        type: "audio/m4a",
+      } as any);
 
       const res = await apiClient.post("/voice-tutor/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -194,9 +219,13 @@ export default function VoiceChat() {
       <View style={styles.proGate}>
         <Text style={styles.proGateTitle}>Voice Tutor is Pro-only</Text>
         <Text style={styles.proGateBody}>
-          Upgrade to Pro to speak directly with Garzoni and get instant spoken answers.
+          Upgrade to Pro to speak directly with Garzoni and get instant spoken
+          answers.
         </Text>
-        <Pressable style={styles.upgradeBtn} onPress={() => router.push("/subscriptions")}>
+        <Pressable
+          style={styles.upgradeBtn}
+          onPress={() => router.push("/subscriptions")}
+        >
           <Text style={styles.upgradeBtnText}>Upgrade to Pro</Text>
         </Pressable>
       </View>
@@ -216,19 +245,31 @@ export default function VoiceChat() {
         ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: spacing.xl }}
-        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={() =>
+          scrollRef.current?.scrollToEnd({ animated: true })
+        }
       >
         {messages.length === 0 && (
-          <Text style={[styles.statusText, { textAlign: "center", marginTop: spacing.xl }]}>
+          <Text
+            style={[
+              styles.statusText,
+              { textAlign: "center", marginTop: spacing.xl },
+            ]}
+          >
             Hold the button to ask Garzoni anything about finance.
           </Text>
         )}
         {messages.map((m, i) => (
           <View
             key={i}
-            style={[styles.bubble, m.role === "user" ? styles.userBubble : styles.aiBubble]}
+            style={[
+              styles.bubble,
+              m.role === "user" ? styles.userBubble : styles.aiBubble,
+            ]}
           >
-            <Text style={styles.roleLabel}>{m.role === "user" ? "You" : "Garzoni"}</Text>
+            <Text style={styles.roleLabel}>
+              {m.role === "user" ? "You" : "Garzoni"}
+            </Text>
             <Text style={styles.bubbleText}>{m.text}</Text>
           </View>
         ))}
@@ -245,14 +286,20 @@ export default function VoiceChat() {
         <Pressable
           style={[
             styles.recordBtn,
-            status === "recording" ? styles.recordBtnActive : styles.recordBtnIdle,
+            status === "recording"
+              ? styles.recordBtnActive
+              : styles.recordBtnIdle,
           ]}
           onPressIn={startRecording}
           onPressOut={stopRecordingAndProcess}
           disabled={status === "processing"}
         >
           <Text style={styles.recordBtnText}>
-            {status === "recording" ? "⏹" : status === "processing" ? "⏳" : "🎙"}
+            {status === "recording"
+              ? "⏹"
+              : status === "processing"
+                ? "⏳"
+                : "🎙"}
           </Text>
         </Pressable>
       </View>

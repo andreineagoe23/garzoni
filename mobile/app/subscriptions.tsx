@@ -511,7 +511,13 @@ export default function SubscriptionsScreen() {
     // When authenticated, wait for profile so RC is configured with the correct user ID.
     if (accessToken && !profileQ.isFetched) return;
     void loadOfferings();
-  }, [loadOfferings, accessToken, profileQ.isFetched, profileQ.data?.user, rcNative]);
+  }, [
+    loadOfferings,
+    accessToken,
+    profileQ.isFetched,
+    profileQ.data?.user,
+    rcNative,
+  ]);
 
   const onPurchase = useCallback(
     async (tier: Tier, pkg: PurchasesPackage) => {

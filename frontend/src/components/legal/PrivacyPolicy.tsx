@@ -71,6 +71,18 @@ const PrivacyPolicy = () => {
             </strong>{" "}
             {t("legal.privacy.sections.data.items.inputs.text")}
           </li>
+          <li>
+            <strong>
+              {t("legal.privacy.sections.data.items.aiConversations.label")}
+            </strong>{" "}
+            {t("legal.privacy.sections.data.items.aiConversations.text")}
+          </li>
+          <li>
+            <strong>
+              {t("legal.privacy.sections.data.items.voiceScan.label")}
+            </strong>{" "}
+            {t("legal.privacy.sections.data.items.voiceScan.text")}
+          </li>
         </ul>
 
         <h2>{t("legal.privacy.sections.collection.title")}</h2>
@@ -147,6 +159,10 @@ const PrivacyPolicy = () => {
           <li>{t("legal.privacy.sections.processors.items.sentry")}</li>
           <li>{t("legal.privacy.sections.processors.items.hosting")}</li>
           <li>{t("legal.privacy.sections.processors.items.email")}</li>
+          <li>{t("legal.privacy.sections.processors.items.openai")}</li>
+          <li>{t("legal.privacy.sections.processors.items.revenuecat")}</li>
+          <li>{t("legal.privacy.sections.processors.items.customerio")}</li>
+          <li>{t("legal.privacy.sections.processors.items.cloudinary")}</li>
         </ul>
         <p>{t("legal.privacy.sections.processors.body2")}</p>
 

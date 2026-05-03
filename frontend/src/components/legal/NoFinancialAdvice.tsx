@@ -21,6 +21,7 @@ const NoFinancialAdvice = () => {
         <li>{t("legal.noAdvice.sections.regulatory.items.euRegulation")}</li>
         <li>{t("legal.noAdvice.sections.regulatory.items.noAdvisor")}</li>
         <li>{t("legal.noAdvice.sections.regulatory.items.noRelationship")}</li>
+        <li>{t("legal.noAdvice.sections.regulatory.items.consumerDuty")}</li>
       </ul>
 
       <h2>{t("legal.noAdvice.sections.infer.title")}</h2>
@@ -28,6 +29,7 @@ const NoFinancialAdvice = () => {
         <li>{t("legal.noAdvice.sections.infer.items.outputs")}</li>
         <li>{t("legal.noAdvice.sections.infer.items.workflows")}</li>
         <li>{t("legal.noAdvice.sections.infer.items.labels")}</li>
+        <li>{t("legal.noAdvice.sections.infer.items.aiOutputs")}</li>
       </ul>
 
       <h2>{t("legal.noAdvice.sections.professional.title")}</h2>

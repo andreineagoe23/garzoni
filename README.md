@@ -22,7 +22,7 @@ Garzoni delivers interactive personal finance education with gamified progressio
 ### Exercises and review
 
 - **Exercises**: From the Exercises page, filter by type (Multiple Choice, Numeric, Drag and Drop, Budget Allocation, Fill in Table, Scenario Simulation) and category. Do standalone exercises, earn XP, and see skill feedback.
-- **Inline AI explanations**: When you get an exercise wrong, Garzoni explains *why* using the Socratic method and offers a similar follow-up practice question — no leaving the lesson. Free users get 3 explanations/day; Plus/Pro: unlimited.
+- **Inline AI explanations**: When you get an exercise wrong, Garzoni explains _why_ using the Socratic method and offers a similar follow-up practice question — no leaving the lesson. Free users get 3 explanations/day; Plus/Pro: unlimited.
 - **Review queue**: See due reviews and "next up" by skill; start a review session to strengthen retention.
 
 ### AI tutor
@@ -77,16 +77,16 @@ Garzoni delivers interactive personal finance education with gamified progressio
 
 ## Premium value matrix
 
-| Capability | Free (Starter) | Plus £7.99/mo | Pro £11.99/mo |
-|---|---|---|---|
-| Tutor chat (server-persisted history) | 5/day | 50/day | 200/day |
-| Inline "explain wrong answer" + practice question | 3/day | unlimited | unlimited |
-| Personalized Path 2.0 + daily re-plan | — | ✔ | ✔ |
-| Weekly AI Coach Brief | — | ✔ | ✔ |
-| Voice tutor (mobile) | — | — | ✔ |
-| Receipt / statement scan (mobile) | — | — | ✔ |
-| AI push nudges | basic streak | personalised | personalised + market-aware |
-| Tutor model | gpt-4o-mini | gpt-4o-mini | **gpt-4o** |
+| Capability                                        | Free (Starter) | Plus £7.99/mo | Pro £11.99/mo               |
+| ------------------------------------------------- | -------------- | ------------- | --------------------------- |
+| Tutor chat (server-persisted history)             | 5/day          | 50/day        | 200/day                     |
+| Inline "explain wrong answer" + practice question | 3/day          | unlimited     | unlimited                   |
+| Personalized Path 2.0 + daily re-plan             | —              | ✔             | ✔                           |
+| Weekly AI Coach Brief                             | —              | ✔             | ✔                           |
+| Voice tutor (mobile)                              | —              | —             | ✔                           |
+| Receipt / statement scan (mobile)                 | —              | —             | ✔                           |
+| AI push nudges                                    | basic streak   | personalised  | personalised + market-aware |
+| Tutor model                                       | gpt-4o-mini    | gpt-4o-mini   | **gpt-4o**                  |
 
 ## Features (summary)
 

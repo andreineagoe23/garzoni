@@ -228,13 +228,15 @@ function DashboardInner() {
     enabled: authReady && Boolean(accessToken),
   });
 
-  const smartResumeQuery = useQuery<{ action: string | null; cached: boolean }>({
-    queryKey: ["smartResume"],
-    queryFn: () => apiClient.get("/smart-resume/").then((r) => r.data),
-    staleTime: 86_400_000,
-    retry: false,
-    enabled: authReady && Boolean(accessToken),
-  });
+  const smartResumeQuery = useQuery<{ action: string | null; cached: boolean }>(
+    {
+      queryKey: ["smartResume"],
+      queryFn: () => apiClient.get("/smart-resume/").then((r) => r.data),
+      staleTime: 86_400_000,
+      retry: false,
+      enabled: authReady && Boolean(accessToken),
+    },
+  );
 
   const profilePayload = profileQuery.data;
 
@@ -826,7 +828,9 @@ function DashboardInner() {
               }}
             >
               <Text style={{ fontSize: 18 }}>✨</Text>
-              <Text style={{ flex: 1, fontSize: 13, color: c.text, lineHeight: 20 }}>
+              <Text
+                style={{ flex: 1, fontSize: 13, color: c.text, lineHeight: 20 }}
+              >
                 {smartResumeQuery.data.action}
               </Text>
             </View>

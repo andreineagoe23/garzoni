@@ -38,24 +38,24 @@ flowchart LR
 
 ## Tech stack
 
-| Layer | Tech |
-|---|---|
-| Web | React 19, TypeScript, Vite 6, Tailwind 3.4 + SCSS, React Router v7 |
-| Mobile | Expo SDK 54, React Native 0.81, Expo Router, expo-av (voice), expo-image-picker (scan), react-native-purchases (RevenueCat) |
-| Shared | TypeScript core package (axios client, React Query helpers, i18next) |
-| State | Zustand (client), React Query (server), React Context (theme, auth) |
-| UI system | Custom glass morphism: GlassCard, GlassContainer, GlassButton |
-| Animation | Framer Motion, Three.js (landing globe), Lottie, Canvas Confetti |
-| Rich text | CKEditor 5 (lessons), react-native-render-html (mobile) |
-| i18n | i18next (EN + RO); locale source-of-truth in `packages/core/src/locales/` |
-| Backend | Django 4.2, DRF, Celery 5, Redis 5, PostgreSQL 15+, pgvector |
-| AI | OpenAI Python SDK (gpt-4o-mini, gpt-4o, text-embedding-3-small, whisper-1, tts-1, gpt-4o vision) |
-| Auth | JWT (simplejwt), Google OAuth (web + mobile), Sign in with Apple (mobile), reCAPTCHA Enterprise on sensitive endpoints |
-| Payments | Stripe (web), RevenueCat → Apple/Google IAP (mobile) |
-| Comms | Customer.io (CDP + transactional + push), Resend (email), Expo Push |
-| Observability | Sentry (web + Django), Amplitude (web analytics) |
-| Deploy | Vercel (web), Railway (backend, Postgres, Redis), App Store / Play Store (mobile) |
-| Static / media | WhiteNoise (Django statics); Cloudinary (lesson images, avatars) |
+| Layer          | Tech                                                                                                                        |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Web            | React 19, TypeScript, Vite 6, Tailwind 3.4 + SCSS, React Router v7                                                          |
+| Mobile         | Expo SDK 54, React Native 0.81, Expo Router, expo-av (voice), expo-image-picker (scan), react-native-purchases (RevenueCat) |
+| Shared         | TypeScript core package (axios client, React Query helpers, i18next)                                                        |
+| State          | Zustand (client), React Query (server), React Context (theme, auth)                                                         |
+| UI system      | Custom glass morphism: GlassCard, GlassContainer, GlassButton                                                               |
+| Animation      | Framer Motion, Three.js (landing globe), Lottie, Canvas Confetti                                                            |
+| Rich text      | CKEditor 5 (lessons), react-native-render-html (mobile)                                                                     |
+| i18n           | i18next (EN + RO); locale source-of-truth in `packages/core/src/locales/`                                                   |
+| Backend        | Django 4.2, DRF, Celery 5, Redis 5, PostgreSQL 15+, pgvector                                                                |
+| AI             | OpenAI Python SDK (gpt-4o-mini, gpt-4o, text-embedding-3-small, whisper-1, tts-1, gpt-4o vision)                            |
+| Auth           | JWT (simplejwt), Google OAuth (web + mobile), Sign in with Apple (mobile), reCAPTCHA Enterprise on sensitive endpoints      |
+| Payments       | Stripe (web), RevenueCat → Apple/Google IAP (mobile)                                                                        |
+| Comms          | Customer.io (CDP + transactional + push), Resend (email), Expo Push                                                         |
+| Observability  | Sentry (web + Django), Amplitude (web analytics)                                                                            |
+| Deploy         | Vercel (web), Railway (backend, Postgres, Redis), App Store / Play Store (mobile)                                           |
+| Static / media | WhiteNoise (Django statics); Cloudinary (lesson images, avatars)                                                            |
 
 ## Key directories
 
