@@ -2385,6 +2385,14 @@
             "inputs": {
               "label": "Date financiare furnizate de utilizator:",
               "text": "intrări de portofoliu simulate și date introduse în instrumentele de învățare."
+            },
+            "voiceScan": {
+              "label": "Date vocale și de imagine (Pro, mobil):",
+              "text": "înregistrări audio trimise prin tutorul vocal (transcrise de OpenAI Whisper, apoi șterse) și imagini de chitanțe sau extrase de cont încărcate pentru scanare (procesate de OpenAI Vision, apoi șterse). Nici sunetul, nici imaginile nu sunt stocate pe serverele noastre mai mult decât durata cererii."
+            },
+            "aiConversations": {
+              "label": "Istoricul conversațiilor cu tutorul AI:",
+              "text": "mesajele trimise tutorului AI și răspunsurile generate, stocate pe server pentru a oferi un istoric persistent al conversațiilor între sesiuni și dispozitive."
             }
           }
         },
@@ -2444,7 +2452,11 @@
             "amplitude": "Amplitude (analiză de produs).",
             "sentry": "Sentry (monitorizare erori).",
             "hosting": "Furnizori de găzduire și infrastructură.",
-            "email": "Furnizori de email și mesaje tranzacționale."
+            "email": "Furnizori de email și mesaje tranzacționale.",
+            "openai": "OpenAI (răspunsuri tutor AI, transcriere vocală, scanare chitanțe/extrase — date procesate conform politicilor de utilizare a API-ului OpenAI).",
+            "revenuecat": "RevenueCat (gestionarea achizițiilor în aplicație și verificarea drepturilor pe iOS și Android).",
+            "customerio": "Customer.io (e-mail tranzacțional, notificări push și mesaje zilnice generate de AI).",
+            "cloudinary": "Cloudinary (stocare media pentru avatare și active încărcate de utilizatori)."
           },
           "body2": "Acești furnizori prelucrează date în baza unor contracte și doar pentru scopuri aprobate."
         },
@@ -2475,7 +2487,7 @@
         },
         "children": {
           "title": "11. Copiii",
-          "body": "Garzoni nu este destinat copiilor sub 16 ani. Dacă crezi că un copil a furnizat date personale, contactează-ne și vom investiga."
+          "body": "Garzoni este destinat utilizatorilor cu vârsta de cel puțin 18 ani. Nu colectăm cu bună știință date personale de la copii sub 16 ani. În conformitate cu UK Online Safety Act și Codul pentru copii, luăm măsuri pentru a verifica că utilizatorii sunt adulți și pentru a preveni accesul minorilor la conținut legat de produse financiare complexe. Dacă credeți că un copil și-a creat un cont sau a furnizat date personale, contactați-ne și vom investiga și șterge datele prompt."
         },
         "changes": {
           "title": "12. Modificări ale politicii",
@@ -2491,7 +2503,7 @@
     },
     "financialDisclaimer": {
       "title": "Declinare de responsabilitate financiară",
-      "intro": "Conținutul Garzoni este doar în scopuri <strong>educaționale și informative</strong>. Această declinare se aplică utilizatorilor din Regatul Unit și din Uniunea Europeană / SEE.",
+      "intro": "Conținutul Garzoni este destinat exclusiv <strong>scopurilor educaționale și informaționale</strong>. Această declinare de responsabilitate se aplică tuturor utilizatorilor, inclusiv celor din Regatul Unit și Uniunea Europeană / Spațiul Economic European. Garzoni nu este autorizat sau reglementat de Financial Conduct Authority (FCA) pentru a furniza consiliere financiară.",
       "sections": {
         "meaning": {
           "title": "Ce înseamnă asta",
@@ -2514,6 +2526,18 @@
         "related": {
           "title": "Notificări conexe",
           "body": "Te rugăm să consulți și <terms>Termenii de serviciu</terms> și <privacy>Politica de confidențialitate</privacy>."
+        },
+        "gamification": {
+          "title": "Gamificare și funcții de implicare",
+          "body": "Garzoni utilizează puncte, insigne, serii, clasamente și misiuni ca mecanisme de implicare. Aceste funcții recompensează exclusiv progresul educațional — de exemplu finalizarea cursurilor, promovarea testelor și menținerea unei serii de învățare. Ele nu recompensează, nu stimulează și nu punctează tranzacțiile simulate sau reale, speculațiile sau deciziile de investiții. FCA a evidențiat riscurile asociate cu elementele asemănătoare jocurilor în aplicațiile financiare care pot încuraja comportamente contrare intereselor financiare ale utilizatorilor. Conform acestei orientări, stratul de gamificare al Garzoni este strict limitat la motivarea învățării și dobândirii de cunoștințe."
+        },
+        "aiTutor": {
+          "title": "Tutorul AI și ieșirile automate",
+          "body": "Tutorul AI al Garzoni este conceput pentru a răspunde la întrebări educaționale generale despre finanțe personale, bugetare, investiții și subiecte conexe. Acesta nu furnizează și nu trebuie interpretat ca furnizând consiliere financiară personalizată, recomandări de cumpărare sau vânzare a unui anumit activ sau orice formă de îndrumare financiară reglementată. Garzoni este responsabil pentru ieșirile generate de tutorul său AI și a implementat măsuri tehnice de protecție pentru a preveni modelul să facă recomandări de investiții specifice. Dacă tutorul AI pare să sugereze o acțiune de investiție specifică, ar trebui să o ignorați și să consultați un consilier financiar calificat și reglementat. Ieșirile AI pot conține erori sau inexactități și ar trebui întotdeauna verificate independent înainte de orice decizie financiară."
+        },
+        "consumerDuty": {
+          "title": "Obligația FCA față de consumatori",
+          "body": "Garzoni este conceput în conformitate cu principiile Consumer Duty ale FCA, care impun platformelor să ofere rezultate bune consumatorilor, să acționeze cu bună credință, să evite prejudiciile previzibile și să sprijine clienții în atingerea obiectivelor lor financiare. Consecvent cu aceasta, instrumentele noastre — inclusiv Analizorul de Portofoliu, Harta Economică și Exploratorul de Piață — sunt furnizate exclusiv ca sandbox-uri analitice și educaționale. Ele nu sunt conectate la conturi de brokeraj, nu execută tranzacții și nu trebuie tratate ca platforme de investiții."
         }
       }
     },
@@ -2597,7 +2621,7 @@
         },
         "security": {
           "title": "3. Eligibilitate și securitatea contului",
-          "body": "Trebuie să oferi informații de cont corecte și să-ți păstrezi în siguranță credențialele. Ești responsabil pentru activitatea din contul tău."
+          "body": "Trebuie să aveți cel puțin 18 ani pentru a utiliza Garzoni. Prin crearea unui cont confirmați că îndepliniți această cerință. Trebuie să furnizați informații corecte de cont și să vă păstrați datele de autentificare în siguranță. Sunteți responsabil pentru toate activitățile din contul dvs. Ne rezervăm dreptul de a rezilia conturile în care avem motive rezonabile să credem că utilizatorul are sub 18 ani, în conformitate cu UK Online Safety Act și reglementările aplicabile privind siguranța copiilor."
         },
         "acceptableUse": {
           "title": "4. Utilizare acceptabilă",
@@ -2611,7 +2635,7 @@
         },
         "educational": {
           "title": "5. Conținut educațional și deciziile utilizatorului",
-          "body": "Conținutul este oferit doar în scop educațional general și poate fi incomplet, simplificat, întârziat sau depășit. Ești singurul responsabil pentru deciziile și rezultatele tale financiare."
+          "body": "Conținutul este furnizat exclusiv în scopuri educaționale generale și poate fi incomplet, simplificat, întârziat sau depășit. Sunteți singurul responsabil pentru deciziile și rezultatele dvs. financiare. Conform Consumer Duty al FCA, concepem conținutul nostru educațional pentru a sprijini utilizatorii în îmbunătățirea cunoștințelor lor financiare și pentru a evita provocarea de prejudicii financiare previzibile. Nimic pe platformă nu constituie o recomandare personală sau consiliere financiară reglementată."
         },
         "subscriptions": {
           "title": "6. Abonamente, facturare și plăți",
@@ -2652,6 +2676,21 @@
         "contact": {
           "title": "15. Contact",
           "body": "Pentru întrebări despre termeni:"
+        },
+        "aiTutor": {
+          "title": "5a. Tutorul AI și funcțiile automate",
+          "intro": "Garzoni include un tutor chat alimentat de AI și funcții automate conexe. Prin utilizarea acestor funcții recunoașteți că:",
+          "items": {
+            "noAdvice": "Răspunsurile AI sunt exclusiv în scopuri educaționale și nu constituie consiliere financiară personalizată.",
+            "notRegulated": "Tutorul AI nu este un consilier financiar autorizat și nu este reglementat de FCA.",
+            "noReliance": "Nu ar trebui să vă bazați exclusiv pe ieșirile AI atunci când luați decizii financiare.",
+            "errors": "Ieșirile AI pot conține erori. Verificați întotdeauna informațiile din surse autorizate înainte de a acționa.",
+            "quotas": "Utilizarea tutorului AI este supusă cotelor zilnice în funcție de nivelul abonamentului dvs."
+          }
+        },
+        "gamification": {
+          "title": "5b. Gamificare și funcții de implicare",
+          "body": "Punctele, insignele, seriile, clasamentele, misiunile și monedele sunt mecanisme de implicare destinate exclusiv motivării progresului educațional. Aceste funcții nu reprezintă valoare financiară reală, nu sunt răscumpărabile contra numerar și nu constituie instrumente financiare. Ele recompensează numai activitatea de învățare și nu stimulează sau punctează niciun comportament de investiții sau tranzacționare."
         }
       }
     },
@@ -2666,7 +2705,8 @@
             "fca": "În UK: Garzoni nu este autorizat de FCA să ofere consultanță de investiții reglementată.",
             "euRegulation": "În UE/SEE: Garzoni nu oferă sfaturi de investiții în sensul Directivelor 2014/65/UE (MiFID II) sau al legilor naționale echivalente.",
             "noAdvisor": "Garzoni nu acționează ca adviser financiar, consilier de investiții, broker sau fiduciary.",
-            "noRelationship": "Utilizarea Garzoni nu creează o relație adviser-client sau fiduciary."
+            "noRelationship": "Utilizarea Garzoni nu creează o relație adviser-client sau fiduciary.",
+            "consumerDuty": "Garzoni se aliniază la Consumer Duty al FCA: acționăm cu bună credință, urmărim să evităm prejudiciile previzibile și sprijinim utilizatorii în îmbunătățirea cunoștințelor lor financiare."
           }
         },
         "infer": {
@@ -2674,7 +2714,8 @@
           "items": {
             "outputs": "Rezultatele instrumentelor, clasamentele, prompturile și scenariile nu sunt recomandări personale.",
             "workflows": "Fluxurile educaționale nu sunt instrucțiuni pentru a efectua tranzacții sau investiții.",
-            "labels": "Etichete precum „pasul următor” se referă la fluxul de învățare, nu la sfaturi reglementate."
+            "labels": "Etichete precum „pasul următor” se referă la fluxul de învățare, nu la sfaturi reglementate.",
+            "aiOutputs": "Răspunsurile tutorului AI sunt răspunsuri educaționale generale, nu recomandări de investiții personalizate. Garzoni a implementat măsuri de protecție pentru a preveni AI-ul să ofere consiliere reglementată specifică."
           }
         },
         "professional": {

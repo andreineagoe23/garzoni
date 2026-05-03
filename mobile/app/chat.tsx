@@ -508,7 +508,11 @@ export default function ChatScreen() {
               style={{ marginRight: 12, padding: 4 }}
               accessibilityLabel="Voice tutor"
             >
-              <MaterialCommunityIcons name="microphone" size={22} color={D.primaryBright} />
+              <MaterialCommunityIcons
+                name="microphone"
+                size={22}
+                color={D.primaryBright}
+              />
             </Pressable>
           ),
         }}

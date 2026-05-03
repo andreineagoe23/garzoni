@@ -22,7 +22,12 @@ import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 import type { ThemeColors } from "../src/theme/palettes";
 
-type Category = { name: string; amount: number; percent: number; emoji: string };
+type Category = {
+  name: string;
+  amount: number;
+  percent: number;
+  emoji: string;
+};
 type Lesson = { title: string; content_id: number; content_type: string };
 type ScanResult = {
   categories: Category[];
@@ -54,7 +59,11 @@ function createStyles(c: ThemeColors) {
       alignItems: "center",
       marginBottom: spacing.lg,
     },
-    pickBtnText: { color: "#fff", fontWeight: "700", fontSize: typography.base },
+    pickBtnText: {
+      color: "#fff",
+      fontWeight: "700",
+      fontSize: typography.base,
+    },
     card: {
       backgroundColor: c.surfaceElevated,
       borderRadius: radius.lg,
@@ -85,17 +94,40 @@ function createStyles(c: ThemeColors) {
       borderBottomWidth: 1,
       borderBottomColor: c.border + "40",
     },
-    lessonText: { fontSize: typography.base, color: c.accent, fontWeight: "600" },
-    proGate: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, gap: spacing.md },
-    proTitle: { fontSize: typography.lg, fontWeight: "700", color: c.text, textAlign: "center" },
-    proBody: { fontSize: typography.base, color: c.textMuted, textAlign: "center" },
+    lessonText: {
+      fontSize: typography.base,
+      color: c.accent,
+      fontWeight: "600",
+    },
+    proGate: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xl,
+      gap: spacing.md,
+    },
+    proTitle: {
+      fontSize: typography.lg,
+      fontWeight: "700",
+      color: c.text,
+      textAlign: "center",
+    },
+    proBody: {
+      fontSize: typography.base,
+      color: c.textMuted,
+      textAlign: "center",
+    },
     upgradeBtn: {
       backgroundColor: c.accent,
       borderRadius: radius.lg,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.xl,
     },
-    upgradeBtnText: { color: "#fff", fontWeight: "700", fontSize: typography.base },
+    upgradeBtnText: {
+      color: "#fff",
+      fontWeight: "700",
+      fontSize: typography.base,
+    },
   });
 }
 
@@ -119,7 +151,10 @@ export default function Scan() {
   const pickAndScan = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission required", "Photo library access is needed to scan receipts.");
+      Alert.alert(
+        "Permission required",
+        "Photo library access is needed to scan receipts.",
+      );
       return;
     }
     const picked = await ImagePicker.launchImageLibraryAsync({
@@ -137,7 +172,11 @@ export default function Scan() {
       const uri = asset.uri;
       const mimeType = asset.mimeType || "image/jpeg";
       const ext = mimeType.split("/")[1] || "jpg";
-      formData.append("image", { uri, name: `receipt.${ext}`, type: mimeType } as any);
+      formData.append("image", {
+        uri,
+        name: `receipt.${ext}`,
+        type: mimeType,
+      } as any);
 
       const res = await apiClient.post("/scan/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -156,10 +195,13 @@ export default function Scan() {
       <View style={styles.proGate}>
         <Text style={styles.proTitle}>Receipt Scan is Pro-only</Text>
         <Text style={styles.proBody}>
-          Upgrade to Pro to scan receipts and statements. Garzoni will analyse your spending
-          and recommend the perfect lesson.
+          Upgrade to Pro to scan receipts and statements. Garzoni will analyse
+          your spending and recommend the perfect lesson.
         </Text>
-        <Pressable style={styles.upgradeBtn} onPress={() => router.push("/subscriptions")}>
+        <Pressable
+          style={styles.upgradeBtn}
+          onPress={() => router.push("/subscriptions")}
+        >
           <Text style={styles.upgradeBtnText}>Upgrade to Pro</Text>
         </Pressable>
       </View>
@@ -175,8 +217,15 @@ export default function Scan() {
         </Pressable>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Pressable style={styles.pickBtn} onPress={pickAndScan} disabled={loading}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={{ paddingBottom: spacing.xl }}
+      >
+        <Pressable
+          style={styles.pickBtn}
+          onPress={pickAndScan}
+          disabled={loading}
+        >
           <Text style={styles.pickBtnText}>
             {loading ? "Analysing…" : "Pick Photo / Receipt"}
           </Text>
@@ -185,7 +234,12 @@ export default function Scan() {
         {loading && (
           <View style={{ alignItems: "center", marginTop: spacing.xl }}>
             <ActivityIndicator size="large" color={c.accent} />
-            <Text style={[styles.bodyText, { marginTop: spacing.sm, color: c.textMuted }]}>
+            <Text
+              style={[
+                styles.bodyText,
+                { marginTop: spacing.sm, color: c.textMuted },
+              ]}
+            >
               Garzoni is reading your spending…
             </Text>
           </View>

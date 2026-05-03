@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { NotificationFeedbackType } from "expo-haptics";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -148,10 +154,14 @@ export default function MultipleChoice({
 
   const [selected, setSelected] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(null);
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
+    null,
+  );
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
   const [submitting, setSubmitting] = useState(false);
-  const [explainResult, setExplainResult] = useState<ExplainResult | null>(null);
+  const [explainResult, setExplainResult] = useState<ExplainResult | null>(
+    null,
+  );
   const [loadingExplain, setLoadingExplain] = useState(false);
 
   useEffect(() => {
@@ -171,7 +181,8 @@ export default function MultipleChoice({
       const result = await explainExercise({
         exerciseQuestion: question,
         exerciseType: "multiple_choice",
-        correctAnswer: correctAnswer != null ? options[correctAnswer] : undefined,
+        correctAnswer:
+          correctAnswer != null ? options[correctAnswer] : undefined,
         userAnswer: userAnswerText,
         skill: dataSkill,
         exerciseId: exerciseId ?? null,
@@ -335,7 +346,12 @@ export default function MultipleChoice({
 
       {/* AI explanation block (wrong answer only) */}
       {feedbackType === "error" && loadingExplain && (
-        <View style={[styles.aiExplainBox, { flexDirection: "row", alignItems: "center", gap: spacing.sm }]}>
+        <View
+          style={[
+            styles.aiExplainBox,
+            { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+          ]}
+        >
           <ActivityIndicator size="small" color={c.accent} />
           <Text style={styles.aiExplainText}>
             {t("exercises.explanation.loading", "Garzoni is explaining...")}
@@ -359,11 +375,13 @@ export default function MultipleChoice({
             {explainResult.practice_question.question}
           </Text>
           {Array.isArray(explainResult.practice_question.choices)
-            ? explainResult.practice_question.choices.map((c: string, i: number) => (
-                <Text key={i} style={styles.practiceChoice}>
-                  {String.fromCharCode(65 + i)}. {c}
-                </Text>
-              ))
+            ? explainResult.practice_question.choices.map(
+                (c: string, i: number) => (
+                  <Text key={i} style={styles.practiceChoice}>
+                    {String.fromCharCode(65 + i)}. {c}
+                  </Text>
+                ),
+              )
             : null}
         </View>
       ) : null}
