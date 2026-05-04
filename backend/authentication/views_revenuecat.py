@@ -33,6 +33,17 @@ logger = logging.getLogger(__name__)
 # Map RevenueCat product identifier → internal plan ID.
 # Update these to match the product IDs you create in App Store Connect.
 PRODUCT_PLAN_MAP: dict[str, str] = {
+    # v3 — current production (App Store Connect)
+    "app.garzoni.mobile.plus_monthly_v3": "plus",
+    "app.garzoni.mobile.plus_yearly_v3": "plus",
+    "app.garzoni.mobile.pro_monthly_v3": "pro",
+    "app.garzoni.mobile.pro_yearly_v3": "pro",
+    # v2 — sandbox / test store
+    "app.garzoni.mobile.plus_monthly_v2": "plus",
+    "app.garzoni.mobile.plus_yearly_v2": "plus",
+    "app.garzoni.mobile.pro_monthly_v2": "pro",
+    "app.garzoni.mobile.pro_yearly_v2": "pro",
+    # v1 — legacy, keep for existing subscribers
     "app.garzoni.mobile.plus_monthly": "plus",
     "app.garzoni.mobile.plus_yearly": "plus",
     "app.garzoni.mobile.pro_monthly": "pro",
