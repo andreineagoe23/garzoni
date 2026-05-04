@@ -129,6 +129,12 @@ function planFromEntitlements(ent?: Entitlements | null): Tier | "starter" {
   return "starter";
 }
 
+function planRank(plan?: string | null) {
+  if (plan === "pro") return 2;
+  if (plan === "plus") return 1;
+  return 0;
+}
+
 function intervalFromEntitlements(ent?: Entitlements | null): Cycle | null {
   const raw = ent?.billing_interval;
   if (raw === "yearly" || raw === "monthly") return raw;
@@ -439,6 +445,89 @@ function UtilityLinks({
   );
 }
 
+// ─── Purchase progress overlay ───────────────────────────────────────────────
+
+function PurchaseProgressOverlay({
+  step,
+  tier,
+  error,
+  onRetry,
+  onDismiss,
+}: {
+  step: "syncing" | "success" | "error";
+  tier: Tier | null;
+  error: string | null;
+  onRetry: () => void;
+  onDismiss: () => void;
+}) {
+  const tierLabel = tier === "pro" ? "Pro" : "Plus";
+  const accent = tier === "pro" ? D.goldWarm : D.primaryBright;
+
+  return (
+    <View style={styles.overlayBackdrop} pointerEvents="auto">
+      <View style={styles.overlayCard}>
+        {step === "syncing" && (
+          <>
+            <ActivityIndicator size="large" color={accent} />
+            <Text style={styles.overlayTitle}>
+              Activating Garzoni {tierLabel}…
+            </Text>
+            <Text style={styles.overlayBody}>
+              Apple has confirmed your purchase. Just syncing your account —
+              this only takes a few seconds.
+            </Text>
+          </>
+        )}
+
+        {step === "success" && (
+          <>
+            <View style={[styles.overlayCheck, { backgroundColor: accent }]}>
+              <MaterialCommunityIcons name="check" size={36} color="#fff" />
+            </View>
+            <Text style={[styles.overlayTitle, { color: accent }]}>
+              You're all set
+            </Text>
+            <Text style={styles.overlayBody}>
+              Welcome to Garzoni {tierLabel}. Your new tools are unlocked.
+            </Text>
+          </>
+        )}
+
+        {step === "error" && (
+          <>
+            <View
+              style={[
+                styles.overlayCheck,
+                { backgroundColor: "rgba(220,38,38,0.85)" },
+              ]}
+            >
+              <MaterialCommunityIcons name="alert" size={32} color="#fff" />
+            </View>
+            <Text style={styles.overlayTitle}>Almost there</Text>
+            <Text style={styles.overlayBody}>
+              {error ?? "We couldn't activate your subscription. Please retry."}
+            </Text>
+            <View style={styles.overlayBtnRow}>
+              <Pressable
+                style={[styles.overlayBtn, styles.overlayBtnPrimary]}
+                onPress={onRetry}
+              >
+                <Text style={styles.overlayBtnPrimaryText}>Retry</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.overlayBtn, styles.overlayBtnSecondary]}
+                onPress={onDismiss}
+              >
+                <Text style={styles.overlayBtnSecondaryText}>Close</Text>
+              </Pressable>
+            </View>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function SubscriptionsScreen() {
@@ -465,6 +554,11 @@ export default function SubscriptionsScreen() {
   const [proPkgs, setProPkgs] = useState<PurchasesPackage[] | null>(null);
   const [loading, setLoading] = useState(rcNative);
   const [purchasingTier, setPurchasingTier] = useState<Tier | null>(null);
+  const [purchaseStep, setPurchaseStep] = useState<
+    "idle" | "syncing" | "success" | "error"
+  >("idle");
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
 
   const profileQ = useQuery({
     queryKey: queryKeys.profile(),
@@ -524,44 +618,113 @@ export default function SubscriptionsScreen() {
       const rc = getRevenueCatPurchases();
       if (!rc) return;
       setPurchasingTier(tier);
+      setPurchaseError(null);
       try {
+        // 1. Apple's native purchase flow (RC SDK shows the system overlay)
         await rc.Purchases.purchasePackage(pkg);
-        await waitForActiveSubscription(queryClient);
-        if (isPaywall) router.replace("/(tabs)");
+
+        // 2. Backend sync — show our own progress UI now
+        setPurchaseStep("syncing");
+        const entitlements = await waitForActiveSubscription(queryClient);
+
+        if (entitlements && planRank(entitlements.plan) >= 1) {
+          setPurchaseStep("success");
+          // Brief celebration, then redirect / close
+          setTimeout(() => {
+            setPurchaseStep("idle");
+            setPurchasingTier(null);
+            if (isPaywall) router.replace("/(tabs)");
+          }, 1400);
+        } else {
+          // Apple confirmed but backend didn't catch up — surface a retry
+          setPurchaseError(
+            "Your purchase went through, but we couldn't activate it yet. Tap retry below.",
+          );
+          setPurchaseStep("error");
+        }
       } catch (e: unknown) {
         const err = e as {
           code?: string;
           userCancelled?: boolean;
           message?: string;
         };
+        // User cancelled the Apple sheet — silent dismiss
         if (
           err.userCancelled ||
           err.code === rc.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR
-        )
+        ) {
+          setPurchasingTier(null);
+          setPurchaseStep("idle");
           return;
-        Alert.alert("Purchase failed", err.message ?? "Please try again.");
-      } finally {
-        setPurchasingTier(null);
+        }
+        setPurchaseError(err.message ?? "Please try again.");
+        setPurchaseStep("error");
       }
     },
     [isPaywall, queryClient],
   );
 
+  const onRetrySync = useCallback(async () => {
+    setPurchaseStep("syncing");
+    setPurchaseError(null);
+    try {
+      const entitlements = await waitForActiveSubscription(queryClient, {
+        maxAttempts: 5,
+        delayMs: 1500,
+      });
+      if (entitlements && planRank(entitlements.plan) >= 1) {
+        setPurchaseStep("success");
+        setTimeout(() => {
+          setPurchaseStep("idle");
+          setPurchasingTier(null);
+          if (isPaywall) router.replace("/(tabs)");
+        }, 1400);
+      } else {
+        setPurchaseError(
+          "Still no luck. Tap Restore Purchases or contact support if this persists.",
+        );
+        setPurchaseStep("error");
+      }
+    } catch {
+      setPurchaseError("Retry failed. Please try Restore Purchases.");
+      setPurchaseStep("error");
+    }
+  }, [isPaywall, queryClient]);
+
+  const dismissPurchaseOverlay = useCallback(() => {
+    setPurchaseStep("idle");
+    setPurchasingTier(null);
+    setPurchaseError(null);
+  }, []);
+
   const onRestore = useCallback(async () => {
     const rc = getRevenueCatPurchases();
     if (!rc) return;
+    setRestoring(true);
     try {
       await rc.Purchases.restorePurchases();
-      await waitForActiveSubscription(queryClient, {
+      const entitlements = await waitForActiveSubscription(queryClient, {
         maxAttempts: 3,
         delayMs: 1000,
       });
-      Alert.alert("Restored", "Your purchases have been restored.");
+      if (entitlements && planRank(entitlements.plan) >= 1) {
+        Alert.alert(
+          "Restored",
+          `Welcome back to Garzoni ${entitlements.plan === "pro" ? "Pro" : "Plus"}.`,
+        );
+      } else {
+        Alert.alert(
+          "Nothing to restore",
+          "We couldn't find an active subscription on this Apple ID.",
+        );
+      }
     } catch (e: unknown) {
       Alert.alert(
         "Restore failed",
         (e as { message?: string }).message ?? "Please try again.",
       );
+    } finally {
+      setRestoring(false);
     }
   }, [queryClient]);
 
@@ -740,6 +903,30 @@ export default function SubscriptionsScreen() {
             )}
           </View>
         </ScrollView>
+
+        {/* Purchase progress overlay (syncing → success → error) */}
+        {purchaseStep !== "idle" && (
+          <PurchaseProgressOverlay
+            step={purchaseStep}
+            tier={purchasingTier}
+            error={purchaseError}
+            onRetry={() => void onRetrySync()}
+            onDismiss={dismissPurchaseOverlay}
+          />
+        )}
+
+        {/* Restore in-progress overlay */}
+        {restoring && (
+          <View style={styles.overlayBackdrop} pointerEvents="auto">
+            <View style={styles.overlayCard}>
+              <ActivityIndicator size="large" color={D.primaryBright} />
+              <Text style={styles.overlayTitle}>Restoring purchases…</Text>
+              <Text style={styles.overlayBody}>
+                Checking your Apple ID for active subscriptions.
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
     </>
   );
@@ -1152,5 +1339,86 @@ const styles = StyleSheet.create({
     color: D.muted,
     textDecorationLine: "underline",
     textDecorationColor: "rgba(229,231,235,0.3)",
+  },
+
+  // ── Purchase progress overlay ──────────────────────────────────────────────
+  overlayBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(11,15,20,0.92)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.xl,
+    zIndex: 10,
+  },
+  overlayCard: {
+    width: "100%",
+    maxWidth: 360,
+    borderRadius: 24,
+    backgroundColor: D.surfaceRaised,
+    borderWidth: 1,
+    borderColor: D.border,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    alignItems: "center",
+    gap: spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.45,
+    shadowRadius: 32,
+    elevation: 12,
+  },
+  overlayCheck: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  overlayTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: D.text,
+    textAlign: "center",
+    letterSpacing: -0.2,
+  },
+  overlayBody: {
+    fontSize: 13,
+    color: D.muted,
+    textAlign: "center",
+    lineHeight: 19,
+    paddingHorizontal: spacing.sm,
+  },
+  overlayBtnRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    width: "100%",
+    marginTop: 4,
+  },
+  overlayBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  overlayBtnPrimary: {
+    backgroundColor: D.primaryBright,
+  },
+  overlayBtnPrimaryText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  overlayBtnSecondary: {
+    backgroundColor: D.ghost,
+  },
+  overlayBtnSecondaryText: {
+    color: D.text,
+    fontWeight: "600",
+    fontSize: 14,
   },
 });
