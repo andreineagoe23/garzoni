@@ -333,6 +333,47 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Repair backend entitlement state on app launch.
+ *
+ * If the user already has an active RC entitlement (e.g. previous install on
+ * the same Apple ID, or a prior purchase that didn't sync) but the backend
+ * thinks they're on starter, call the sync endpoint to fix it.
+ *
+ * Safe to call on every app launch — early-exits when not entitled or
+ * already in sync.
+ */
+export async function syncEntitlementOnLaunch(
+  queryClient: QueryClient,
+  userId?: string,
+): Promise<void> {
+  const rc = getRevenueCatPurchases();
+  if (!rc) return;
+  if (!configureRevenueCatForUser(userId)) return;
+
+  try {
+    const customerInfo = await rc.Purchases.getCustomerInfo();
+    const activePlan = rcGetActivePlan(customerInfo);
+    if (activePlan === "starter") return; // nothing to repair
+
+    // Check if backend already knows
+    const entitlements = await queryClient
+      .fetchQuery({
+        queryKey: queryKeys.entitlements(),
+        queryFn: () => fetchEntitlements().then((r) => r.data as Entitlements),
+      })
+      .catch(() => null);
+
+    if (planRank(entitlements?.plan) >= planRank(activePlan)) return; // already in sync
+
+    // Backend out of sync — repair it
+    await postRevenueCatSync().catch(() => null);
+    await refreshSubscriptionQueries(queryClient);
+  } catch {
+    /* best-effort; don't block app launch on this */
+  }
+}
+
 export async function syncRevenueCatSubscription(queryClient: QueryClient) {
   // Call the RC sync endpoint first — activates the plan immediately via RC REST API.
   try {
@@ -355,8 +396,8 @@ export async function waitForActiveSubscription(
   queryClient: QueryClient,
   options?: { maxAttempts?: number; delayMs?: number },
 ): Promise<Entitlements | null> {
-  const maxAttempts = options?.maxAttempts ?? 10;
-  const delayMs = options?.delayMs ?? 2000;
+  const maxAttempts = options?.maxAttempts ?? 3;
+  const delayMs = options?.delayMs ?? 1500;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     await syncRevenueCatSubscription(queryClient);

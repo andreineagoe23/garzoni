@@ -7,7 +7,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { href } from "../../src/navigation/href";
@@ -239,6 +239,24 @@ function DashboardInner() {
   );
 
   const profilePayload = profileQuery.data;
+
+  // Repair backend entitlement state on mount when RC says user is entitled
+  // but backend says starter (e.g. previous purchase that didn't sync).
+  const queryClient = useQueryClient();
+  const launchSyncRanRef = useRef(false);
+  useEffect(() => {
+    if (launchSyncRanRef.current) return;
+    if (!authReady || !accessToken || !profilePayload?.user) return;
+    launchSyncRanRef.current = true;
+    void import("../../src/billing/subscriptionRuntime").then(
+      ({ syncEntitlementOnLaunch }) => {
+        void syncEntitlementOnLaunch(
+          queryClient,
+          profilePayload.user?.toString(),
+        );
+      },
+    );
+  }, [authReady, accessToken, profilePayload?.user, queryClient]);
 
   const activityHeatmapQuery = useQuery({
     queryKey: queryKeys.activityHeatmap(),
