@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   fetchEntitlements,
+  postRevenueCatSync,
   postSubscriptionSync,
   queryKeys,
   type Entitlements,
@@ -45,12 +46,12 @@ const RC_OFFERING_PRO_CANDIDATES = [
  */
 export const APPLE_PRODUCT_IDS = {
   plus: {
-    monthly: "app.garzoni.mobile.plus_monthly_v2",
-    yearly: "app.garzoni.mobile.plus_yearly_v2",
+    monthly: "app.garzoni.mobile.plus_monthly_v3",
+    yearly: "app.garzoni.mobile.plus_yearly_v3",
   },
   pro: {
-    monthly: "app.garzoni.mobile.pro_monthly_v2",
-    yearly: "app.garzoni.mobile.pro_yearly_v2",
+    monthly: "app.garzoni.mobile.pro_monthly_v3",
+    yearly: "app.garzoni.mobile.pro_yearly_v3",
   },
 } as const;
 
@@ -60,6 +61,11 @@ export const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
   [APPLE_PRODUCT_IDS.plus.yearly]: "plus",
   [APPLE_PRODUCT_IDS.pro.monthly]: "pro",
   [APPLE_PRODUCT_IDS.pro.yearly]: "pro",
+  // legacy v2 IDs (test store — keep for sandbox)
+  "app.garzoni.mobile.plus_monthly_v2": "plus",
+  "app.garzoni.mobile.plus_yearly_v2": "plus",
+  "app.garzoni.mobile.pro_monthly_v2": "pro",
+  "app.garzoni.mobile.pro_yearly_v2": "pro",
   // legacy v1 IDs — keep so existing subscribers aren't broken
   "app.garzoni.mobile.plus_monthly": "plus",
   "app.garzoni.mobile.plus_yearly": "plus",
@@ -328,14 +334,20 @@ function sleep(ms: number) {
 }
 
 export async function syncRevenueCatSubscription(queryClient: QueryClient) {
+  // Call the RC sync endpoint first — activates the plan immediately via RC REST API.
   try {
-    await postSubscriptionSync();
-    void import("../bootstrap/customerIoMobile").then(({ trackGarzoniEvent }) =>
-      trackGarzoniEvent("subscription_synced", {}),
-    );
+    await postRevenueCatSync();
   } catch {
-    /* best-effort; webhook may still finish activation */
+    // Fallback to Stripe sync (no-op for RC users but harmless)
+    try {
+      await postSubscriptionSync();
+    } catch {
+      /* best-effort; webhook will still fire and activate */
+    }
   }
+  void import("../bootstrap/customerIoMobile").then(({ trackGarzoniEvent }) =>
+    trackGarzoniEvent("subscription_synced", {}),
+  );
   await refreshSubscriptionQueries(queryClient);
 }
 
@@ -343,8 +355,8 @@ export async function waitForActiveSubscription(
   queryClient: QueryClient,
   options?: { maxAttempts?: number; delayMs?: number },
 ): Promise<Entitlements | null> {
-  const maxAttempts = options?.maxAttempts ?? 6;
-  const delayMs = options?.delayMs ?? 1500;
+  const maxAttempts = options?.maxAttempts ?? 10;
+  const delayMs = options?.delayMs ?? 2000;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     await syncRevenueCatSubscription(queryClient);

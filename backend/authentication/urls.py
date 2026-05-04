@@ -44,6 +44,7 @@ from .views_hearts import (
 )
 from .views_push import ExpoPushTokenView
 from .views_revenuecat import RevenueCatWebhookView
+from .views_revenuecat_sync import RevenueCatSyncView
 
 router = DefaultRouter()
 router.register(r"friend-requests", FriendRequestView, basename="friend-request")
@@ -107,6 +108,11 @@ urlpatterns = [
         "revenuecat-webhook/",
         RevenueCatWebhookView.as_view(),
         name="revenuecat-webhook",
+    ),
+    path(
+        "revenuecat-sync/",
+        RevenueCatSyncView.as_view(),
+        name="revenuecat-sync",
     ),
     # Hearts (lives) system
     path("user/hearts/", UserHeartsView.as_view(), name="user-hearts"),
