@@ -21,11 +21,12 @@ export const RC_ENTITLEMENT_PLUS = "Garzoni Plus";
 /** @deprecated Prefer RC_ENTITLEMENT_PRO / PLUS; kept for older imports. */
 export const RC_ENTITLEMENT = RC_ENTITLEMENT_PRO;
 
-export const RC_OFFERING_PLUS = "default";
-export const RC_OFFERING_PRO = "pro";
+export const RC_OFFERING_PLUS = "plus_subscriptions";
+export const RC_OFFERING_PRO = "pro_subscriptions";
 
 /** Candidate identifiers tried in order when resolving the Pro offering. Covers dashboard drift. */
 const RC_OFFERING_PRO_CANDIDATES = [
+  "pro_subscriptions",
   "pro",
   "Garzoni Pro",
   "garzoni_pro",
@@ -212,7 +213,7 @@ export async function fetchRevenueCatOffering(): Promise<PurchasesOffering | nul
 }
 
 /**
- * Resolve a specific offering. Plus / "default" uses `offerings.current` (RC default offering).
+ * Resolve a specific offering by identifier.
  */
 export async function fetchRevenueCatOfferingByIdentifier(
   offeringId: string,
@@ -221,8 +222,8 @@ export async function fetchRevenueCatOfferingByIdentifier(
   if (!rc || !assertPurchasesReadyForOfferings()) return null;
   const offerings = await rc.Purchases.getOfferings();
   const id = offeringId.trim();
-  if (id === RC_OFFERING_PLUS || id === "default") {
-    return offerings.current ?? offerings.all[RC_OFFERING_PLUS] ?? null;
+  if (id === RC_OFFERING_PLUS) {
+    return offerings.all[RC_OFFERING_PLUS] ?? offerings.current ?? null;
   }
   const direct = offerings.all[id];
   if (direct) return direct;
@@ -278,7 +279,7 @@ export async function fetchRevenueCatPaywallOffering(
   const explicit = options?.offeringId?.trim();
   let result: PurchasesOffering | null = null;
 
-  if (explicit && explicit !== RC_OFFERING_PLUS && explicit !== "default") {
+  if (explicit && explicit !== RC_OFFERING_PLUS) {
     result = await fetchRevenueCatOfferingByIdentifier(explicit);
   } else {
     const extra = Constants.expoConfig?.extra as
