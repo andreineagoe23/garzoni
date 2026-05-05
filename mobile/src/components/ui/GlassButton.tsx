@@ -1,6 +1,5 @@
 import React, { type ReactNode } from "react";
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";
 import { radius, spacing, typography } from "../../theme/tokens";
+import LoadingSpinner from "./LoadingSpinner";
 
 export type GlassButtonVariant =
   | "primary"
@@ -110,7 +110,7 @@ export default function GlassButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={text} size="small" />
+        <LoadingSpinner size="sm" color={text} />
       ) : (
         <>
           {icon}

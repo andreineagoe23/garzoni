@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   Modal,
   Pressable,
@@ -28,6 +27,7 @@ import {
 } from "../../services/cloudinaryUpload";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../theme/tokens";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 type Tab = "photo" | "prebuilt";
 
@@ -392,7 +392,7 @@ export default function AvatarSelectorMobile({
 
           {saving ? (
             <View style={styles.savingOverlay}>
-              <ActivityIndicator size="large" color={c.primary} />
+              <LoadingSpinner size="lg" />
             </View>
           ) : null}
         </View>

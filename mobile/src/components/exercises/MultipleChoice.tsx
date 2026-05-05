@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -12,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { submitExerciseAnswer, explainExercise } from "@garzoni/core";
 import type { ExplainResult } from "@garzoni/core";
 import { safeNotificationAsync } from "../../utils/safeHaptics";
-import { Card, Button } from "../ui";
+import { Card, Button, LoadingSpinner } from "../ui";
 import { spacing, typography, radius } from "../../theme/tokens";
 import { useThemeColors } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/palettes";
@@ -352,7 +351,7 @@ export default function MultipleChoice({
             { flexDirection: "row", alignItems: "center", gap: spacing.sm },
           ]}
         >
-          <ActivityIndicator size="small" color={c.accent} />
+          <LoadingSpinner size="sm" color={c.accent} />
           <Text style={styles.aiExplainText}>
             {t("exercises.explanation.loading", "Garzoni is explaining...")}
           </Text>

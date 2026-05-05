@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
+import LoadingSpinner from "./ui/LoadingSpinner";
 import {
   AppleAuthenticationButton,
   AppleAuthenticationButtonStyle,
@@ -98,7 +99,7 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
         />
         {busy ? (
           <View style={styles.busyOverlay} pointerEvents="auto">
-            <ActivityIndicator color={useDarkAppearance ? "#000" : "#fff"} />
+            <LoadingSpinner size="sm" color={useDarkAppearance ? "#000" : "#fff"} />
           </View>
         ) : null}
       </View>

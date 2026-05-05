@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   StyleSheet,
@@ -20,6 +19,7 @@ import {
 } from "../bootstrap/googleOAuthConfig";
 import { useTheme } from "../theme/ThemeContext";
 import { radius, spacing, typography } from "../theme/tokens";
+import LoadingSpinner from "./ui/LoadingSpinner";
 
 export type SocialAuthSuccessMeta = { next?: string };
 
@@ -176,7 +176,7 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
       ]}
     >
       {busy ? (
-        <ActivityIndicator color={shell.textColor} />
+        <LoadingSpinner size="sm" color={shell.textColor} />
       ) : (
         <View style={styles.row}>
           <GoogleMark />

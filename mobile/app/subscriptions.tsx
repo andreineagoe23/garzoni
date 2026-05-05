@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Animated,
   Linking,
@@ -25,6 +24,7 @@ import {
   type Entitlements,
 } from "@garzoni/core";
 import GlassCard from "../src/components/ui/GlassCard";
+import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../src/theme/tokens";
 import { brand } from "../src/theme/brand";
@@ -307,7 +307,7 @@ function TierCard({
         ]}
       >
         {loading ? (
-          <ActivityIndicator color={isPro ? D.bg : "#fff"} size="small" />
+          <LoadingSpinner size="sm" color={isPro ? D.bg : "#fff"} />
         ) : (
           <Text style={[styles.tierCtaText, { color: isPro ? D.bg : "#fff" }]}>
             {ctaLabel}
@@ -469,7 +469,7 @@ function PurchaseProgressOverlay({
       <View style={styles.overlayCard}>
         {step === "syncing" && (
           <>
-            <ActivityIndicator size="large" color={accent} />
+            <LoadingSpinner size="lg" color={accent} />
             <Text style={styles.overlayTitle}>
               Activating Garzoni {tierLabel}…
             </Text>
@@ -822,7 +822,7 @@ export default function SubscriptionsScreen() {
                 {/* Tier cards */}
                 {loading ? (
                   <GlassCard padding="lg" style={{ marginBottom: spacing.md }}>
-                    <ActivityIndicator color={D.primaryBright} />
+                    <LoadingSpinner size="lg" color={D.primaryBright} />
                   </GlassCard>
                 ) : (
                   <>
@@ -926,7 +926,7 @@ export default function SubscriptionsScreen() {
         {restoring && (
           <View style={styles.overlayBackdrop} pointerEvents="auto">
             <View style={styles.overlayCard}>
-              <ActivityIndicator size="large" color={D.primaryBright} />
+              <LoadingSpinner size="lg" color={D.primaryBright} />
               <Text style={styles.overlayTitle}>Restoring purchases…</Text>
               <Text style={styles.overlayBody}>
                 Checking your Apple ID for active subscriptions.

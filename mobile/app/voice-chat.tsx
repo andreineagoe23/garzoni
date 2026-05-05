@@ -20,6 +20,7 @@ try {
   /* native module not in this dev build — feature gated at runtime */
 }
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
 import { useQuery } from "@tanstack/react-query";
@@ -42,7 +43,6 @@ function createStyles(c: ThemeColors) {
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
       paddingBottom: spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: c.border,
@@ -130,6 +130,7 @@ export default function VoiceChat() {
   const c = useThemeColors();
   const styles = createStyles(c);
   const { t } = useTranslation("common");
+  const insets = useSafeAreaInsets();
 
   const { data: entitlementsRaw } = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -160,6 +161,16 @@ export default function VoiceChat() {
       return;
     }
     try {
+      // Unload any leftover recording from a previous session
+      if (recording) {
+        try {
+          await recording.stopAndUnloadAsync();
+        } catch {
+          // already unloaded — safe to ignore
+        }
+        setRecording(null);
+      }
+
       const { granted } = await Audio.requestPermissionsAsync();
       if (!granted) {
         Alert.alert(
@@ -228,7 +239,7 @@ export default function VoiceChat() {
   if (!isProUser) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
           <Text style={styles.title}>Voice Tutor</Text>
           <Pressable style={styles.closeBtn} onPress={() => router.back()}>
             <Text style={styles.closeBtnText}>Done</Text>
@@ -253,7 +264,7 @@ export default function VoiceChat() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.title}>Voice Tutor</Text>
         <Pressable style={styles.closeBtn} onPress={() => router.back()}>
           <Text style={styles.closeBtnText}>Done</Text>

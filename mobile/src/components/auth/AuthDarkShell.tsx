@@ -1,6 +1,5 @@
 import { forwardRef, useState, type ReactNode } from "react";
 import {
-  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -22,6 +21,7 @@ import Svg, {
 import { Ionicons } from "@expo/vector-icons";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { brand } from "../../theme/brand";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 export const DARK = {
   bg: brand.bgDark,
@@ -222,7 +222,7 @@ export function DarkCta({
     >
       <View style={s.ctaHighlight} pointerEvents="none" />
       {loading ? (
-        <ActivityIndicator color="#fff" />
+        <LoadingSpinner size="sm" color="#fff" />
       ) : (
         <Text style={s.ctaLabel}>{label}</Text>
       )}

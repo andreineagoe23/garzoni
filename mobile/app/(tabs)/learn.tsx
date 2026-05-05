@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   LayoutAnimation,
@@ -658,7 +657,15 @@ function LearnInner() {
         </View>
         {personalizedGatingWait ? (
           <View style={styles.personalizedLoading}>
-            <ActivityIndicator size="large" color={c.primary} />
+            {[1, 2, 3].map((i) => (
+              <Skeleton
+                key={i}
+                width="100%"
+                height={72}
+                borderRadius={radius.lg}
+                style={{ marginBottom: spacing.sm }}
+              />
+            ))}
           </View>
         ) : hasPlusAccess ? (
           <ScrollView
@@ -687,7 +694,15 @@ function LearnInner() {
           </ScrollView>
         ) : (
           <View style={styles.personalizedLoading}>
-            <ActivityIndicator size="large" color={c.primary} />
+            {[1, 2, 3].map((i) => (
+              <Skeleton
+                key={i}
+                width="100%"
+                height={72}
+                borderRadius={radius.lg}
+                style={{ marginBottom: spacing.sm }}
+              />
+            ))}
           </View>
         )}
       </View>
