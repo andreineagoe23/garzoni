@@ -1,0 +1,6 @@
+{
+  "name": "query-string",
+  "version": "7.1.3-shim",
+  "main": "index.js",
+  "private": true
+}

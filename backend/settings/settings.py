@@ -488,6 +488,8 @@ BACKEND_URL = (os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/ap
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+
+REVENUECAT_API_KEY = os.getenv("REVENUECAT_API_KEY", "")
 # Stripe Price IDs for subscription plans (create in Stripe Dashboard → Products → Prices)
 # Yearly plans first; 7-day free trial only on yearly Pro/Plus.
 STRIPE_PRICE_PLUS_YEARLY = os.getenv("STRIPE_PRICE_PLUS_YEARLY") or os.getenv(

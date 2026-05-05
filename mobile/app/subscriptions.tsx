@@ -31,6 +31,7 @@ import { brand } from "../src/theme/brand";
 import { getRevenueCatPurchases } from "../src/billing/safeRevenueCat";
 import {
   configureRevenueCatForUser,
+  identifyRevenueCatUser,
   fetchRevenueCatOfferingByIdentifier,
   fetchRevenueCatPaywallOffering,
   RC_OFFERING_PLUS,
@@ -584,6 +585,11 @@ export default function SubscriptionsScreen() {
       setLoading(false);
       return;
     }
+    // If the user is identified, ensure RC's session is logged in under their
+    // real ID. This transfers any anonymous purchases so backend sync works.
+    if (userId) {
+      await identifyRevenueCatUser(userId);
+    }
     setLoading(true);
     try {
       const [plus, pro] = await Promise.all([
@@ -629,11 +635,11 @@ export default function SubscriptionsScreen() {
 
         if (entitlements && planRank(entitlements.plan) >= 1) {
           setPurchaseStep("success");
-          // Brief celebration, then redirect / close
           setTimeout(() => {
             setPurchaseStep("idle");
             setPurchasingTier(null);
             if (isPaywall) router.replace("/(tabs)");
+            else router.back();
           }, 1400);
         } else {
           // Apple confirmed but backend didn't catch up — surface a retry
@@ -678,6 +684,7 @@ export default function SubscriptionsScreen() {
           setPurchaseStep("idle");
           setPurchasingTier(null);
           if (isPaywall) router.replace("/(tabs)");
+          else router.back();
         }, 1400);
       } else {
         setPurchaseError(

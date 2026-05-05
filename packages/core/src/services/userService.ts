@@ -204,8 +204,10 @@ export const postSubscriptionPortal = () =>
 export const postSubscriptionSync = () =>
   apiClient.post<{ ok: boolean }>("/subscriptions/sync/", {});
 
-export const postRevenueCatSync = () =>
-  apiClient.post<{ ok: boolean; plan?: string }>("/revenuecat-sync/", {});
+export const postRevenueCatSync = (rcAppUserId?: string) =>
+  apiClient.post<{ ok: boolean; plan?: string }>("/revenuecat-sync/", {
+    ...(rcAppUserId ? { rc_app_user_id: rcAppUserId } : {}),
+  });
 
 export const postSubscriptionCheckout = (body: {
   plan_id: string;

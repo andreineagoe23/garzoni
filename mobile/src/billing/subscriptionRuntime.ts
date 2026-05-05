@@ -173,10 +173,36 @@ export function configureRevenueCatForUser(userId?: string) {
     return true;
   }
 
-  rc.Purchases.configure({ apiKey, appUserID: normalizedUser });
-  configuredUserId = normalizedUser;
-  revenueCatSdkReady = true;
+  if (!revenueCatSdkReady) {
+    // First call — configure SDK with the user's ID (or anonymous if not known yet).
+    rc.Purchases.configure({ apiKey, appUserID: normalizedUser });
+    configuredUserId = normalizedUser;
+    revenueCatSdkReady = true;
+  } else if (normalizedUser && configuredUserId !== normalizedUser) {
+    // SDK already running as anonymous or different user — logIn transfers any
+    // anonymous purchases to this user so the backend sync can find them by
+    // str(user.pk). Caller should await identifyRevenueCatUser() for this path.
+    configuredUserId = normalizedUser;
+  }
   return true;
+}
+
+/**
+ * Call after configureRevenueCatForUser when the user is authenticated.
+ * Uses RC's logIn to transfer any anonymous session purchases to the real
+ * user ID so the backend sync endpoint can find them by str(user.pk).
+ */
+export async function identifyRevenueCatUser(userId: string): Promise<void> {
+  const rc = getRevenueCatPurchases();
+  if (!rc || !revenueCatSdkReady) return;
+  try {
+    const anonymous = await rc.Purchases.isAnonymous();
+    if (anonymous) {
+      await rc.Purchases.logIn(userId);
+    }
+  } catch {
+    /* best-effort — purchase will still work, sync may need retry */
+  }
 }
 
 export async function clearRevenueCatSession() {
@@ -261,7 +287,15 @@ export const rcIsEntitled = (ci: CustomerInfo) =>
 export function rcGetActivePlan(ci: CustomerInfo): "pro" | "plus" | "starter" {
   if (rcIsProEntitled(ci)) return "pro";
   if (rcIsPlusEntitled(ci)) return "plus";
-  return "starter";
+  // Fallback: derive plan from active product IDs when RC entitlement names
+  // don't match (e.g. RC dashboard maps pro product to wrong entitlement).
+  let best: "starter" | "plus" | "pro" = "starter";
+  for (const productId of ci.activeSubscriptions) {
+    const p = PRODUCT_TO_PLAN[productId] ?? planFromStoreProductIdentifier(productId);
+    if (p === "pro") return "pro";
+    if (p === "plus") best = "plus";
+  }
+  return best;
 }
 
 export type FetchRevenueCatPaywallOptions = {
@@ -366,8 +400,10 @@ export async function syncEntitlementOnLaunch(
 
     if (planRank(entitlements?.plan) >= planRank(activePlan)) return; // already in sync
 
-    // Backend out of sync — repair it
-    await postRevenueCatSync().catch(() => null);
+    // Backend out of sync — repair it. Pass RC user ID so backend can find
+    // the subscriber even if the RC session is anonymous (dev/sandbox).
+    const rcAppUserId = customerInfo.originalAppUserId || undefined;
+    await postRevenueCatSync(rcAppUserId).catch(() => null);
     await refreshSubscriptionQueries(queryClient);
   } catch {
     /* best-effort; don't block app launch on this */
@@ -375,9 +411,21 @@ export async function syncEntitlementOnLaunch(
 }
 
 export async function syncRevenueCatSubscription(queryClient: QueryClient) {
-  // Call the RC sync endpoint first — activates the plan immediately via RC REST API.
+  // Pass the RC appUserID so the backend can look up the right subscriber,
+  // even when the RC session is anonymous (e.g. dev testing before login).
+  let rcAppUserId: string | undefined;
+  const rc = getRevenueCatPurchases();
+  if (rc && revenueCatSdkReady) {
+    try {
+      const ci = await rc.Purchases.getCustomerInfo();
+      rcAppUserId = ci.originalAppUserId || undefined;
+    } catch {
+      /* best-effort */
+    }
+  }
+
   try {
-    await postRevenueCatSync();
+    await postRevenueCatSync(rcAppUserId);
   } catch {
     // Fallback to Stripe sync (no-op for RC users but harmless)
     try {
@@ -398,6 +446,30 @@ export async function waitForActiveSubscription(
 ): Promise<Entitlements | null> {
   const maxAttempts = options?.maxAttempts ?? 3;
   const delayMs = options?.delayMs ?? 1500;
+
+  // Fast-path: RC SDK has authoritative local entitlement data immediately
+  // after a purchase. If RC says entitled, kick off backend sync async and
+  // return a synthetic entitlements object so the UI shows success instantly.
+  // This also handles the case where the backend user ID differs from the RC
+  // user ID (e.g. anonymous RC session in dev).
+  const rc = getRevenueCatPurchases();
+  if (rc && revenueCatSdkReady) {
+    try {
+      const ci = await rc.Purchases.getCustomerInfo();
+      if (rcIsEntitled(ci)) {
+        const activePlan = rcGetActivePlan(ci);
+        const synthetic = { plan: activePlan, entitled: true } as Entitlements;
+        // Write to cache immediately so home screen sees correct plan on mount.
+        queryClient.setQueryData(queryKeys.entitlements(), synthetic);
+        // Background sync activates backend; refreshSubscriptionQueries will
+        // then replace synthetic cache entry with real data from the server.
+        void syncRevenueCatSubscription(queryClient);
+        return synthetic;
+      }
+    } catch {
+      /* fall through to backend loop */
+    }
+  }
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     await syncRevenueCatSubscription(queryClient);
