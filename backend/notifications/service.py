@@ -76,31 +76,32 @@ class NotificationService:
         if not pr.allowed:
             return f"policy_denied:{pr.reason}"
         display_name = normalize_display_string(user.first_name or user.username or "there")
+        app_url = getattr(settings, "FRONTEND_URL", "https://garzoni.app")
         ctx = {
             "display_name": display_name,
-            "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
+            "app_url": app_url,
             "year": timezone.now().year,
         }
+        cio_data = {
+            "customer_name": display_name,
+            "app_url": app_url,
+            "year": ctx["year"],
+        }
+        # Always fire USER_REGISTERED track event so CIO journeys/automations can deliver
+        # the welcome email independently of the transactional template being configured.
+        self.publish_domain_event(user, CioEventName.USER_REGISTERED, cio_data)
         if _use_cio_transactional(CioTemplate.WELCOME):
-            ok, err = self.transactional.send(
-                CioTemplate.WELCOME,
-                user,
-                {
-                    "customer_name": display_name,
-                    "app_url": ctx["app_url"],
-                    "year": ctx["year"],
-                },
-            )
+            ok, err = self.transactional.send(CioTemplate.WELCOME, user, cio_data)
             return "sent_cio" if ok else f"cio_failed:{err}"
-        if not smtp_configured():
-            return "skipped_no_smtp"
-        send_html_email(
-            subject="Welcome to Garzoni",
-            template_name="emails/welcome.html",
-            context=ctx,
-            to_emails=[user.email],
-        )
-        return "sent_smtp"
+        if smtp_configured():
+            send_html_email(
+                subject="Welcome to Garzoni",
+                template_name="emails/welcome.html",
+                context=ctx,
+                to_emails=[user.email],
+            )
+            return "sent_smtp"
+        return "journey_event_published"
 
     def send_subscription_cancelled(
         self,
