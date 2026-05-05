@@ -1,7 +1,6 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { Badge } from "../ui";
-import ProgressRing from "./ProgressRing";
 import { spacing, typography, radius, shadows } from "../../theme/tokens";
 
 export type LearnCourseRow = {
@@ -31,8 +30,6 @@ export default function CourseCard({ course, totalLessons, onPress }: Props) {
   const pct = totalLessons > 0 ? done / totalLessons : 0;
   const status = pct >= 1 ? "Completed" : pct > 0 ? "In progress" : "Start";
   const statusColor = pct >= 1 ? c.success : pct > 0 ? c.accent : c.primary;
-  const raw = course.image?.trim();
-  const uri = raw?.startsWith("http") ? raw : undefined;
 
   return (
     <Pressable
@@ -46,19 +43,6 @@ export default function CourseCard({ course, totalLessons, onPress }: Props) {
       ]}
       onPress={onPress}
     >
-      {uri ? (
-        <Image source={{ uri }} style={styles.thumb} resizeMode="cover" />
-      ) : (
-        <View
-          style={[
-            styles.thumb,
-            styles.thumbInner,
-            { backgroundColor: c.surfaceOffset },
-          ]}
-        >
-          <ProgressRing value={pct} size={44} strokeWidth={4} />
-        </View>
-      )}
       <View style={styles.info}>
         <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
           {courseTitle(course)}
@@ -82,16 +66,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
     gap: spacing.md,
-  },
-  thumb: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.sm,
-    overflow: "hidden",
-  },
-  thumbInner: {
-    alignItems: "center",
-    justifyContent: "center",
   },
   info: { flex: 1, minWidth: 0 },
   title: {

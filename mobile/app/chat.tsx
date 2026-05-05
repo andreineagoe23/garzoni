@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { isAxiosError } from "axios";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,7 @@ import {
 import type { AiTutorLink, Entitlements } from "@garzoni/core";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { brand } from "../src/theme/brand";
+import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
 // ── Always-dark design constants (matches subscriptions page) ────────────────
@@ -198,6 +199,7 @@ function TypingBubble() {
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ChatScreen() {
+  const colors = useThemeColors();
   const { t } = useTranslation("common");
   const { accessToken } = useAuthSession();
   const isAuthenticated = Boolean(accessToken);
@@ -495,31 +497,71 @@ export default function ChatScreen() {
   return (
     <>
       <Stack.Screen
-        options={{
-          title: t("chatbot.title"),
-          headerShown: true,
-          headerStyle: { backgroundColor: D.surface },
-          headerTintColor: D.primaryBright,
-          headerShadowVisible: false,
-          headerBackTitle: "",
-          headerRight: () => (
+        options={
+          {
+            title: t("chatbot.title"),
+            headerShown: true,
+            headerStyle: { backgroundColor: colors.bg },
+            headerTintColor: colors.text,
+            headerTitleStyle: {
+              color: colors.text,
+              fontSize: 17,
+              fontWeight: "600",
+            },
+            headerShadowVisible: false,
+            headerBackTitle: "",
+            /**
+             * iOS: Native stack already applies trailing safe-area inset — extra paddingRight
+             * stacks on top and pushes the icon left vs TabScreenHeader icons. Keep minimal.
+             * Match HeaderChatButton: Ionicons + padding only (no fixed 44 box).
+             */
+            headerRightContainerStyle: Platform.select({
+              ios: {
+                paddingRight: spacing.sm,
+                justifyContent: "center",
+                alignItems: "flex-end",
+              },
+              default: {
+                paddingRight: spacing.xl,
+                justifyContent: "center",
+                alignItems: "flex-end",
+              },
+            }),
+            headerRight: () => (
             <Pressable
               onPress={() => router.push("/voice-chat" as any)}
-              style={{ marginRight: 12, padding: 4 }}
               accessibilityLabel="Voice tutor"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={({ pressed }) => ({
+                padding: 4,
+                justifyContent: "center",
+                alignItems: "center",
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
-              <MaterialCommunityIcons
-                name="microphone"
-                size={22}
-                color={D.primaryBright}
-              />
+              <View
+                style={
+                  Platform.OS === "ios"
+                    ? { transform: [{ translateX: 1.5 }] }
+                    : undefined
+                }
+              >
+                <Ionicons
+                  name="mic-outline"
+                  size={22}
+                  color={colors.text}
+                />
+              </View>
             </Pressable>
           ),
-        }}
+          } as React.ComponentProps<typeof Stack.Screen>["options"] & {
+            headerRightContainerStyle?: object;
+          }
+        }
       />
       <KeyboardAvoidingView
         style={[styles.flex, { backgroundColor: D.bg }]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={keyboardOffset}
       >
         <ScrollView
@@ -576,6 +618,7 @@ export default function ChatScreen() {
             multiline
             editable={!busy}
             returnKeyType="send"
+            onFocus={() => scrollRef.current?.scrollToEnd({ animated: true })}
             onSubmitEditing={() => {
               if (input.trim()) onSendPress();
             }}
@@ -591,7 +634,9 @@ export default function ChatScreen() {
               },
             ]}
           >
-            <MaterialCommunityIcons name="send" size={18} color="#fff" />
+            <View style={styles.sendBtnIconWrap}>
+              <MaterialCommunityIcons name="send" size={18} color="#fff" />
+            </View>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -633,12 +678,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
+    overflow: "hidden",
     marginTop: 2,
   },
   botAvatarText: {
     color: "#fff",
     fontSize: 13,
     fontWeight: "700",
+    textAlign: "center",
+    ...Platform.select({
+      android: { includeFontPadding: false },
+      ios: { lineHeight: 15 },
+    }),
   },
 
   // Bubbles
@@ -780,5 +831,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
+    overflow: "hidden",
+  },
+  sendBtnIconWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -181,7 +181,48 @@ COINGECKO_ID_MAP = {
     "ada": "cardano",
     "doge": "dogecoin",
     "bnb": "binancecoin",
+    "matic": "matic-network",
+    "link": "chainlink",
+    "dot": "polkadot",
+    "avax": "avalanche-2",
+    "ltc": "litecoin",
+    "uni": "uniswap",
+    "atom": "cosmos",
+    "near": "near",
+    "etc": "ethereum-classic",
+    "xlm": "stellar",
+    "apt": "aptos",
+    "arb": "arbitrum",
+    "op": "optimism",
+    "cro": "crypto-com-chain",
 }
+
+
+def _yahoo_symbol_to_quote_rows(yf_json: dict) -> dict:
+    """symbol.upper() -> quote row from Yahoo quoteResponse."""
+    rows = {}
+    for q in yf_json.get("quoteResponse", {}).get("result") or []:
+        sym = (q.get("symbol") or "").upper()
+        if sym:
+            rows[sym] = q
+    return rows
+
+
+def _yahoo_quote_row_for_ticker(sym_to_row: dict, ticker: str) -> dict:
+    """Match a user/search ticker to Yahoo's canonical symbol (e.g. MATIC -> MATIC-USD)."""
+    if not ticker or not sym_to_row:
+        return {}
+    u = ticker.strip().upper()
+    if not u:
+        return {}
+    for key in (u, f"{u}-USD", f"{u}=X"):
+        row = sym_to_row.get(key)
+        if row:
+            return row
+    for sym, row in sym_to_row.items():
+        if sym == u or sym.startswith(f"{u}-") or sym.startswith(f"{u}="):
+            return row
+    return {}
 
 
 def _pick_category(title: str, description: str):
@@ -1036,6 +1077,35 @@ class MarketSearchView(APIView):
             except Exception as exc:
                 logger.error("CoinGecko market search failed for '%s': %s", query, exc)
 
+        # Enrich stock/forex results with live prices from Yahoo Finance
+        if results and asset_type in ("stocks", "forex"):
+            stock_symbols = [r["ticker"] for r in results if r.get("ticker")]
+            try:
+                yf = requests.get(
+                    "https://query1.finance.yahoo.com/v7/finance/quote",
+                    params={
+                        "symbols": ",".join(stock_symbols),
+                        "fields": "regularMarketPrice,regularMarketChangePercent",
+                    },
+                    headers={"User-Agent": "Mozilla/5.0"},
+                    timeout=3,
+                )
+                if yf.status_code == 200:
+                    price_map = _yahoo_symbol_to_quote_rows(yf.json())
+                    for r in results:
+                        q = _yahoo_quote_row_for_ticker(price_map, r["ticker"])
+                        r["price"] = float(q.get("regularMarketPrice", 0) or 0)
+                        r["change_pct"] = float(q.get("regularMarketChangePercent", 0) or 0)
+                        # Cache for batch endpoint
+                        if r["price"]:
+                            cache.set(
+                                f"yf_quote_{r['ticker']}",
+                                {"price": r["price"], "change": r["change_pct"], "name": r["name"]},
+                                timeout=60,
+                            )
+            except Exception as exc:
+                logger.warning("MarketSearchView price enrichment failed: %s", exc)
+
         cache.set(cache_key, results, timeout=60)
         return Response({"results": results})
 
@@ -1077,11 +1147,12 @@ class MarketQuoteView(APIView):
                     price = float(payload.get("usd", 0) or 0)
                     change_pct = float(payload.get("usd_24h_change", 0) or 0)
                     market_cap = float(payload.get("usd_market_cap", 0) or 0)
-                    cache.set(
-                        cache_key,
-                        {"price": price, "change": change_pct, "marketCap": market_cap},
-                        timeout=60,
-                    )
+                    if price > 0:
+                        cache.set(
+                            cache_key,
+                            {"price": price, "change": change_pct, "marketCap": market_cap},
+                            timeout=60,
+                        )
                 except Exception as exc:
                     logger.error("MarketQuoteView crypto fetch failed for %s: %s", ticker, exc)
             return Response(
@@ -1094,44 +1165,178 @@ class MarketQuoteView(APIView):
                 }
             )
 
-        # Stock path
-        api_key = settings.ALPHA_VANTAGE_API_KEY
-        cache_key = f"alpha_quote_{ticker}"
+        # Stock / forex path — Yahoo Finance (no API key, generous rate limits)
+        cache_key = f"yf_quote_{ticker}"
         cached = cache.get(cache_key)
-        price = change_pct = 0.0
+        price = change_pct = open_ = high = low = volume = market_cap = 0.0
+        name = ticker
         if cached:
             price = float(cached.get("price", 0) or 0)
             change_pct = float(cached.get("change", 0) or 0)
-        elif api_key:
+            open_ = float(cached.get("open", 0) or 0)
+            high = float(cached.get("high", 0) or 0)
+            low = float(cached.get("low", 0) or 0)
+            volume = float(cached.get("volume", 0) or 0)
+            market_cap = float(cached.get("market_cap", 0) or 0)
+            name = cached.get("name", ticker)
+        else:
             try:
-                result = request_with_backoff(
-                    method="GET",
-                    url="https://www.alphavantage.co/query",
-                    params={"function": "GLOBAL_QUOTE", "symbol": ticker, "apikey": api_key},
-                    allow_retry=True,
-                    max_attempts=3,
+                yf = requests.get(
+                    "https://query1.finance.yahoo.com/v7/finance/quote",
+                    params={
+                        "symbols": ticker,
+                        "fields": "shortName,regularMarketPrice,regularMarketChangePercent,regularMarketOpen,regularMarketDayHigh,regularMarketDayLow,regularMarketVolume,marketCap",
+                    },
+                    headers={"User-Agent": "Mozilla/5.0"},
+                    timeout=5,
                 )
-                quote = result.response.json().get("Global Quote", {})
-                price_raw = quote.get("05. price")
-                change_raw = quote.get("10. change percent", "0")
-                if price_raw is not None:
-                    price = float(price_raw)
-                try:
-                    change_pct = float(str(change_raw).rstrip("%"))
-                except (TypeError, ValueError):
-                    change_pct = 0.0
-                cache.set(cache_key, {"price": price, "change": change_pct}, timeout=60)
+                q = (yf.json().get("quoteResponse", {}).get("result") or [{}])[0]
+                price = float(q.get("regularMarketPrice", 0) or 0)
+                change_pct = float(q.get("regularMarketChangePercent", 0) or 0)
+                open_ = float(q.get("regularMarketOpen", 0) or 0)
+                high = float(q.get("regularMarketDayHigh", 0) or 0)
+                low = float(q.get("regularMarketDayLow", 0) or 0)
+                volume = float(q.get("regularMarketVolume", 0) or 0)
+                market_cap = float(q.get("marketCap", 0) or 0)
+                name = q.get("shortName") or q.get("longName") or ticker
+                if price > 0:
+                    cache.set(
+                        cache_key,
+                        {
+                            "price": price,
+                            "change": change_pct,
+                            "open": open_,
+                            "high": high,
+                            "low": low,
+                            "volume": volume,
+                            "market_cap": market_cap,
+                            "name": name,
+                        },
+                        timeout=60,
+                    )
             except Exception as exc:
-                logger.error("MarketQuoteView stock fetch failed for %s: %s", ticker, exc)
+                logger.error("MarketQuoteView Yahoo Finance failed for %s: %s", ticker, exc)
 
         return Response(
             {
                 "ticker": ticker,
-                "name": ticker,
+                "name": name,
                 "price": price,
                 "change_pct": change_pct,
+                "open": open_ or None,
+                "high": high or None,
+                "low": low or None,
+                "volume": int(volume) if volume else None,
+                "market_cap": int(market_cap) if market_cap else None,
             }
         )
+
+
+class MarketBatchQuotesView(APIView):
+    """Return live price + change_pct for a list of tickers in one call.
+
+    GET /api/market/quotes/?tickers=AAPL,BTC,EURUSD
+    Returns: [{"ticker": "AAPL", "price": 123.45, "change_pct": 0.5}, ...]
+    Crypto is batch-fetched from CoinGecko; stocks are served from cache when
+    available (Alpha Vantage free tier doesn't support batch requests).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        raw = request.query_params.get("tickers", "")
+        tickers = [t.strip().upper() for t in raw.split(",") if t.strip()][:20]  # cap at 20
+        if not tickers:
+            return Response([], status=status.HTTP_200_OK)
+
+        results = {}
+        crypto_tickers = [t for t in tickers if t.lower() in COINGECKO_ID_MAP]
+        stock_tickers = [t for t in tickers if t.lower() not in COINGECKO_ID_MAP]
+
+        # --- Stocks/forex: single Yahoo Finance batch call ---
+        if stock_tickers:
+            uncached = [t for t in stock_tickers if not cache.get(f"yf_quote_{t}")]
+            if uncached:
+                try:
+                    yf = requests.get(
+                        "https://query1.finance.yahoo.com/v7/finance/quote",
+                        params={
+                            "symbols": ",".join(uncached),
+                            "fields": "shortName,regularMarketPrice,regularMarketChangePercent",
+                        },
+                        headers={"User-Agent": "Mozilla/5.0"},
+                        timeout=5,
+                    )
+                    sym_rows = _yahoo_symbol_to_quote_rows(yf.json())
+                    for ticker in uncached:
+                        q = _yahoo_quote_row_for_ticker(sym_rows, ticker)
+                        if not q:
+                            continue
+                        t_sym = (q.get("symbol") or "").upper()
+                        price = float(q.get("regularMarketPrice", 0) or 0)
+                        change = float(q.get("regularMarketChangePercent", 0) or 0)
+                        name = q.get("shortName") or q.get("longName") or t_sym or ticker
+                        if price > 0:
+                            payload = {"price": price, "change": change, "name": name}
+                            cache.set(f"yf_quote_{ticker}", payload, timeout=60)
+                            if t_sym and t_sym != ticker:
+                                cache.set(f"yf_quote_{t_sym}", payload, timeout=60)
+                except Exception as exc:
+                    logger.warning("MarketBatchQuotesView Yahoo Finance failed: %s", exc)
+
+            for ticker in stock_tickers:
+                cached = cache.get(f"yf_quote_{ticker}") or {}
+                results[ticker] = {
+                    "ticker": ticker,
+                    "price": float(cached.get("price", 0) or 0),
+                    "change_pct": float(cached.get("change", 0) or 0),
+                }
+
+        # --- Crypto: batch fetch from CoinGecko ---
+        if crypto_tickers:
+            coingecko_ids = [COINGECKO_ID_MAP.get(t.lower(), t.lower()) for t in crypto_tickers]
+            id_to_ticker = {COINGECKO_ID_MAP.get(t.lower(), t.lower()): t for t in crypto_tickers}
+            missing_ids = [cid for cid in coingecko_ids if not cache.get(f"crypto_{cid}")]
+            if missing_ids:
+                try:
+                    result = request_with_backoff(
+                        method="GET",
+                        url="https://api.coingecko.com/api/v3/simple/price",
+                        params={
+                            "ids": ",".join(missing_ids),
+                            "vs_currencies": "usd",
+                            "include_24hr_change": "true",
+                            "include_market_cap": "true",
+                        },
+                        allow_retry=True,
+                        max_attempts=2,
+                    )
+                    data = result.response.json()
+                    for cid in missing_ids:
+                        payload = data.get(cid, {})
+                        px = float(payload.get("usd", 0) or 0)
+                        if px > 0:
+                            cache.set(
+                                f"crypto_{cid}",
+                                {
+                                    "price": px,
+                                    "change": float(payload.get("usd_24h_change", 0) or 0),
+                                    "marketCap": float(payload.get("usd_market_cap", 0) or 0),
+                                },
+                                timeout=60,
+                            )
+                except Exception as exc:
+                    logger.warning("MarketBatchQuotesView crypto batch fetch failed: %s", exc)
+
+            for cid, ticker in id_to_ticker.items():
+                cached = cache.get(f"crypto_{cid}") or {}
+                results[ticker] = {
+                    "ticker": ticker,
+                    "price": float(cached.get("price", 0) or 0),
+                    "change_pct": float(cached.get("change", 0) or 0),
+                }
+
+        return Response(list(results.values()))
 
 
 class FinanceFactView(APIView):

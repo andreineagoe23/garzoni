@@ -78,9 +78,8 @@ export default function MissionsScreen() {
   const missionsQuery = useQuery({
     queryKey: queryKeys.missions(),
     queryFn: () => fetchMissions().then((r) => r.data),
-    staleTime: 30_000,
-    refetchInterval: 30_000,
-    refetchIntervalInBackground: true,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   });
 
   const profileQuery = useQuery({

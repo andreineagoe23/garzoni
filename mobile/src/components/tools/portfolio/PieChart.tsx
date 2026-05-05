@@ -66,8 +66,9 @@ export function PortfolioPieChart({ summary, size = 200 }: Props) {
 
   const paths = useMemo(() => {
     let currentAngle = 0;
-    return slices.map((slice) => {
-      const sweepAngle = (slice.percentage / 100) * 360;
+    return slices.map((slice, idx) => {
+      // Avoid a degenerate 360° arc (single full-circle slice).
+      const sweepAngle = Math.min((slice.percentage / 100) * 360, 359.99);
       const path = describeArc(
         cx,
         cy,
@@ -76,48 +77,75 @@ export function PortfolioPieChart({ summary, size = 200 }: Props) {
         currentAngle + sweepAngle,
       );
       currentAngle += sweepAngle;
-      return { ...slice, path };
+      return { ...slice, path, idx };
     });
   }, [slices, cx, cy, outerR]);
 
-  if (paths.length === 0) return null;
+  if (paths.length === 0) {
+    return (
+      <View style={styles.wrapper}>
+        <View style={[styles.emptyDonut, { borderColor: c.border }]}>
+          <Text style={[styles.emptyLabel, { color: c.textMuted }]}>
+            Allocation
+          </Text>
+          <Text style={[styles.emptyHint, { color: c.textFaint }]}>
+            Add holdings to see your split
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.wrapper}>
-      {/* Pie */}
-      <Svg width={size} height={size}>
-        <G>
-          {paths.map((slice) => (
-            <Path
-              key={slice.label}
-              d={slice.path}
-              fill={slice.color}
-              stroke={c.surface}
-              strokeWidth={2}
-            />
-          ))}
-          {/* Donut hole */}
-          <Circle cx={cx} cy={cy} r={innerR} fill={c.surface} />
-          {/* Center text */}
-          {/* Rendered via absolute View overlay below */}
-        </G>
-      </Svg>
-
-      {/* Center overlay: total value */}
+      {/* Fixed-size chart box so absolute overlay shares the same origin as the SVG (parent alignItems:center was shifting labels). */}
       <View
-        style={[
-          styles.centerOverlay,
-          { width: innerR * 2, height: innerR * 2, borderRadius: innerR },
-        ]}
+        style={[styles.chartBox, { width: size, height: size }]}
+        accessibilityRole="image"
+        accessibilityLabel={`Asset allocation total ${formatCurrency(summary.total_value || 0)}`}
       >
-        <Text style={[styles.centerLabel, { color: c.textMuted }]}>Total</Text>
-        <Text
-          style={[styles.centerValue, { color: c.text }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
+        <Svg width={size} height={size}>
+          <G>
+            {paths.map((slice) => (
+              <Path
+                key={`${slice.label}-${slice.idx}`}
+                d={slice.path}
+                fill={slice.color}
+                stroke={c.surface}
+                strokeWidth={2}
+              />
+            ))}
+            <Circle cx={cx} cy={cy} r={innerR} fill={c.surface} />
+          </G>
+        </Svg>
+
+        <View
+          style={[
+            styles.centerOverlay,
+            {
+              width: innerR * 2,
+              height: innerR * 2,
+              borderRadius: innerR,
+              left: cx - innerR,
+              top: cy - innerR,
+            },
+          ]}
         >
-          {formatCurrency(summary.total_value || 0)}
-        </Text>
+          {/* Column centers both lines as blocks; full-width lines + textAlign for currency clarity */}
+          <View style={styles.centerTextColumn}>
+            <Text style={[styles.centerLabel, { color: c.textMuted }]}>
+              Total
+            </Text>
+            <Text
+              style={[styles.centerValue, { color: c.text }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              maxFontSizeMultiplier={1.2}
+            >
+              {formatCurrency(summary.total_value || 0)}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {/* Legend */}
@@ -142,26 +170,61 @@ export function PortfolioPieChart({ summary, size = 200 }: Props) {
 
 const styles = StyleSheet.create({
   wrapper: {
+    width: "100%",
     alignItems: "center",
     gap: spacing.md,
   },
-  centerOverlay: {
-    position: "absolute",
-    top: 8,
+  chartBox: {
+    position: "relative",
+    alignSelf: "center",
+  },
+  emptyDonut: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 2,
+    borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.xs,
+    padding: spacing.lg,
+    gap: spacing.xs,
+  },
+  emptyLabel: {
+    fontSize: typography.sm,
+    fontWeight: "700",
+  },
+  emptyHint: {
+    fontSize: typography.xs,
+    textAlign: "center",
+  },
+  centerOverlay: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  centerTextColumn: {
+    width: "100%",
+    paddingHorizontal: 4,
+    alignItems: "center",
+    justifyContent: "center",
   },
   centerLabel: {
     fontSize: typography.xs,
     fontWeight: "600",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    textAlign: "center",
+    width: "100%",
+    includeFontPadding: false,
   },
   centerValue: {
     fontSize: typography.sm,
     fontWeight: "700",
     marginTop: 2,
+    width: "100%",
+    textAlign: "center",
+    fontVariant: ["tabular-nums"],
+    includeFontPadding: false,
   },
   legend: {
     flexDirection: "row",

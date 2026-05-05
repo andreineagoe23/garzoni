@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
@@ -297,25 +296,6 @@ export default function AvatarSelectorMobile({
                   ))}
                 </View>
 
-                <Text style={[styles.label, { color: c.textMuted }]}>
-                  {t("profile.avatarSelector.customizationSeed")}
-                </Text>
-                <TextInput
-                  value={seed}
-                  onChangeText={setSeed}
-                  placeholder={t("profile.avatarSelector.customizePlaceholder")}
-                  placeholderTextColor={c.textFaint}
-                  autoCapitalize="none"
-                  style={[
-                    styles.seedInput,
-                    {
-                      color: c.text,
-                      borderColor: c.border,
-                      backgroundColor: c.inputBg,
-                    },
-                  ]}
-                />
-
                 <View style={styles.quickHeader}>
                   <Text style={[styles.label, { color: c.textMuted }]}>
                     {t("profile.avatarSelector.quickOptions")}
@@ -460,13 +440,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   styleChipText: { fontSize: typography.xs, fontWeight: "600" },
-  seedInput: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: typography.base,
-  },
   quickHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

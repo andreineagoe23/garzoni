@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -227,6 +228,7 @@ export default function LessonFlowScreen({
 }: LessonFlowScreenProps) {
   const { t } = useTranslation("common");
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const queryClient = useQueryClient();
   const confettiRef = useRef<ConfettiCannon>(null);
 
@@ -581,13 +583,25 @@ export default function LessonFlowScreen({
         edges={["top", "left", "right", "bottom"]}
       >
         <Stack.Screen options={{ headerShown: false }} />
-        <ConfettiCannon
-          ref={confettiRef}
-          count={120}
-          origin={{ x: -10, y: 0 }}
-          fadeOut
-          autoStart={false}
-        />
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}
+        >
+          <ConfettiCannon
+            ref={confettiRef}
+            count={120}
+            origin={{ x: width / 2, y: 0 }}
+            fadeOut
+            autoStart={false}
+          />
+        </View>
         <Text style={styles.completeEmoji}>🎉</Text>
         <Text style={styles.completeTitle}>
           {t("courses.flow.courseComplete")}

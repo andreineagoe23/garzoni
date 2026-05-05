@@ -169,30 +169,35 @@ function DashboardInner() {
     null,
   );
   const [freezeModalVisible, setFreezeModalVisible] = useState(false);
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
   const freezeModalShownRef = useRef(false);
   const { t, i18n } = useTranslation("common");
   const { hydrated, accessToken } = useAuthSession();
   const authReady = hydrated;
+  const hasSession = authReady && Boolean(accessToken);
 
   const progressQuery = useQuery({
     queryKey: queryKeys.progressSummary(),
     queryFn: () => fetchProgressSummary().then((r) => r.data),
     staleTime: staleTimes.progressSummary,
-    enabled: authReady && Boolean(accessToken),
+    enabled: hasSession,
   });
 
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(),
     queryFn: () => fetchProfile().then((r) => r.data as UserProfile),
     staleTime: staleTimes.profile,
-    enabled: authReady && Boolean(accessToken),
+    enabled: hasSession,
   });
+
+  const secondaryQueriesEnabled =
+    hasSession && progressQuery.isSuccess && profileQuery.isSuccess;
 
   const entitlementsQuery = useQuery({
     queryKey: queryKeys.entitlements(),
     queryFn: () => fetchEntitlements().then((r) => r.data as Entitlements),
     staleTime: staleTimes.entitlements,
-    enabled: authReady && Boolean(accessToken),
+    enabled: hasSession,
   });
 
   const questionnaireQuery = useQuery({
@@ -200,7 +205,7 @@ function DashboardInner() {
     queryFn: fetchQuestionnaireProgress,
     staleTime: 0,
     refetchOnMount: true,
-    enabled: authReady && Boolean(accessToken),
+    enabled: hasSession,
   });
 
   const reviewQuery = useQuery({
@@ -210,14 +215,14 @@ function DashboardInner() {
         (r) => r.data as { count?: number; due?: Array<{ skill?: string }> },
       ),
     staleTime: staleTimes.progressSummary,
-    enabled: authReady && Boolean(accessToken),
+    enabled: secondaryQueriesEnabled,
   });
 
   const missionsQuery = useQuery({
     queryKey: queryKeys.missions(),
     queryFn: () => fetchMissions().then((r) => r.data),
     staleTime: 60_000,
-    enabled: authReady && Boolean(accessToken),
+    enabled: secondaryQueriesEnabled,
   });
 
   const masteryQuery = useQuery({
@@ -225,7 +230,7 @@ function DashboardInner() {
     queryFn: () =>
       fetchMasterySummary().then((r) => r.data || { masteries: [] }),
     staleTime: 120_000,
-    enabled: authReady && Boolean(accessToken),
+    enabled: secondaryQueriesEnabled,
   });
 
   const smartResumeQuery = useQuery<{ action: string | null; cached: boolean }>(
@@ -234,7 +239,7 @@ function DashboardInner() {
       queryFn: () => apiClient.get("/smart-resume/").then((r) => r.data),
       staleTime: 86_400_000,
       retry: false,
-      enabled: authReady && Boolean(accessToken),
+      enabled: secondaryQueriesEnabled,
     },
   );
 
@@ -262,7 +267,7 @@ function DashboardInner() {
     queryKey: queryKeys.activityHeatmap(),
     queryFn: () => fetchActivityHeatmap(120).then((r) => r.data ?? []),
     staleTime: staleTimes.activityHeatmap,
-    enabled: authReady && Boolean(accessToken),
+    enabled: secondaryQueriesEnabled,
   });
 
   const profile = useMemo(() => {
@@ -434,28 +439,22 @@ function DashboardInner() {
   const questionnaireProgress = questionnaireQuery.data;
   const questionnaireCompletedForUi =
     isQuestionnaireCompleted || questionnaireProgress?.status === "completed";
+  const onboardingRedirectedRef = useRef(false);
 
   useEffect(() => {
     if (!authReady || !accessToken) return;
     if (hasPlusAccess) return;
-    if (
-      !questionnaireQuery.isFetched ||
-      questionnaireQuery.isPending ||
-      questionnaireQuery.isFetching
-    )
-      return;
-    if (!questionnaireProgress) return;
-    if (questionnaireProgress.status === "completed") return;
-    if (questionnaireProgress.status === "abandoned") return;
+    const status = questionnaireProgress?.status;
+    if (!status) return;
+    if (status === "completed" || status === "abandoned") return;
+    if (onboardingRedirectedRef.current) return;
+    onboardingRedirectedRef.current = true;
     router.replace(href("/onboarding"));
   }, [
     authReady,
     accessToken,
     hasPlusAccess,
-    questionnaireQuery.isFetched,
-    questionnaireQuery.isPending,
-    questionnaireQuery.isFetching,
-    questionnaireProgress,
+    questionnaireProgress?.status,
   ]);
 
   const STREAK_STORAGE_KEY = "garzoni:last_known_streak";
@@ -599,6 +598,34 @@ function DashboardInner() {
     />
   );
 
+  const isMainLoading =
+    !authReady || (authReady && Boolean(accessToken) && (progressQuery.isPending || profileQuery.isPending));
+
+  useEffect(() => {
+    if (!isMainLoading) {
+      setLoadTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => setLoadTimedOut(true), 8000);
+    return () => clearTimeout(t);
+  }, [isMainLoading]);
+
+  if (loadTimedOut) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        {headerBar}
+        <ErrorState
+          message="Taking too long to load. Check your connection."
+          onRetry={() => {
+            setLoadTimedOut(false);
+            void progressQuery.refetch();
+            void profileQuery.refetch();
+          }}
+        />
+      </View>
+    );
+  }
+
   if (!authReady) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -632,7 +659,9 @@ function DashboardInner() {
             {t("dashboard.header.welcomeBack")}
           </Text>
           <Text style={{ color: c.textMuted, marginBottom: spacing.lg }}>
-            Sign in on the Profile tab to see your dashboard.
+            {t("dashboard.signInProfilePrompt", {
+              defaultValue: "Sign in on the Profile tab to see your dashboard.",
+            })}
           </Text>
         </ScreenScroll>
       </View>
@@ -793,7 +822,9 @@ function DashboardInner() {
             ]}
           >
             <Text style={[styles.sectionTitle, { color: c.text }]}>
-              Your consistency
+              {t("dashboard.consistencyTitle", {
+                defaultValue: "Your consistency",
+              })}
             </Text>
             <Text style={[styles.sectionSub, { color: c.textMuted }]}>
               {heatmapDates.monthLabel}

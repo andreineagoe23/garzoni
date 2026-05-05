@@ -262,6 +262,8 @@ function LearnInner() {
   const [courseFilter, setCourseFilter] = useState<FilterMode>("all");
   const [pathSortBy, setPathSortBy] = useState("default");
   const [pathListFilter, setPathListFilter] = useState("all");
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const lastExpandParamHandledRef = useRef<string | null>(null);
 
   const pathsQuery = useQuery<PathRow[]>({
     queryKey: queryKeys.learningPaths(),
@@ -415,11 +417,15 @@ function LearnInner() {
 
   useEffect(() => {
     if (expandPath == null || expandPath === "") return;
+    if (lastExpandParamHandledRef.current === String(expandPath)) return;
+    lastExpandParamHandledRef.current = String(expandPath);
     const n = Number(expandPath);
     if (!Number.isFinite(n)) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedPathId(n);
-    router.replace("/(tabs)/learn");
+    setTimeout(() => {
+      router.replace("/(tabs)/learn");
+    }, 0);
   }, [expandPath]);
 
   const filteredPaths = useMemo(() => {
@@ -594,6 +600,39 @@ function LearnInner() {
     ],
   );
 
+  const isMainLoading =
+    !hydrated ||
+    (activeView === "all-topics" && pathsQuery.isPending) ||
+    (activeView === "personalized-path" &&
+      (profileQuery.isPending ||
+        entitlementsQuery.isPending ||
+        questionnaireQuery.isPending));
+
+  useEffect(() => {
+    if (!isMainLoading) {
+      setLoadTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => setLoadTimedOut(true), 8000);
+    return () => clearTimeout(t);
+  }, [isMainLoading]);
+
+  if (loadTimedOut) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        <ErrorState
+          message="Taking too long to load. Check your connection."
+          onRetry={() => {
+            setLoadTimedOut(false);
+            void pathsQuery.refetch();
+            void profileQuery.refetch();
+            void progressQuery.refetch();
+          }}
+        />
+      </View>
+    );
+  }
+
   if (!hydrated) {
     return (
       <View style={styles.loadingWrap}>
@@ -694,15 +733,43 @@ function LearnInner() {
           </ScrollView>
         ) : (
           <View style={styles.personalizedLoading}>
-            {[1, 2, 3].map((i) => (
-              <Skeleton
-                key={i}
-                width="100%"
-                height={72}
-                borderRadius={radius.lg}
-                style={{ marginBottom: spacing.sm }}
-              />
-            ))}
+            <GlassCard
+              padding="lg"
+              style={{
+                borderRadius: radius.lg,
+                borderColor: c.border,
+                backgroundColor: c.surface,
+              }}
+            >
+              <Text style={[styles.pathTitle, { color: c.text }]}>
+                Personalized path is locked
+              </Text>
+              <Text
+                style={[
+                  styles.pathDesc,
+                  { color: c.textMuted, marginTop: spacing.xs },
+                ]}
+              >
+                {questionnaireCompletedForUi
+                  ? "Upgrade to Plus to unlock your personalized learning path."
+                  : "Complete onboarding first to unlock your personalized path."}
+              </Text>
+              <View style={{ marginTop: spacing.md }}>
+                <GlassButton
+                  onPress={() =>
+                    router.push(
+                      questionnaireCompletedForUi
+                        ? href("/subscriptions?reason=personalized_path")
+                        : href("/onboarding?reason=personalized_path"),
+                    )
+                  }
+                >
+                  {questionnaireCompletedForUi
+                    ? "View plans"
+                    : "Continue onboarding"}
+                </GlassButton>
+              </View>
+            </GlassCard>
           </View>
         )}
       </View>
@@ -714,7 +781,7 @@ function LearnInner() {
       style={{ flex: 1, backgroundColor: c.bg }}
       data={displayPaths}
       keyExtractor={(item, i) => String(item.id ?? i)}
-      nestedScrollEnabled
+      nestedScrollEnabled={Platform.OS === "android"}
       contentContainerStyle={styles.listContent}
       refreshControl={
         <RefreshControl

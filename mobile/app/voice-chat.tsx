@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { Audio as AudioType } from "expo-av";
 let Audio: typeof AudioType | null = null;
 try {
@@ -89,10 +90,6 @@ function createStyles(c: ThemeColors) {
     },
     recordBtnIdle: { backgroundColor: c.accent },
     recordBtnActive: { backgroundColor: c.error },
-    recordBtnText: {
-      fontSize: 28,
-      color: "#fff",
-    },
     statusText: { fontSize: typography.sm, color: c.textMuted },
     proGate: {
       flex: 1,
@@ -324,13 +321,17 @@ export default function VoiceChat() {
           onPressOut={stopRecordingAndProcess}
           disabled={status === "processing"}
         >
-          <Text style={styles.recordBtnText}>
-            {status === "recording"
-              ? "⏹"
-              : status === "processing"
-                ? "⏳"
-                : "🎙"}
-          </Text>
+          <MaterialCommunityIcons
+            name={
+              status === "recording"
+                ? "stop"
+                : status === "processing"
+                  ? "timer-sand"
+                  : "microphone"
+            }
+            size={32}
+            color="#fff"
+          />
         </Pressable>
       </View>
     </View>
