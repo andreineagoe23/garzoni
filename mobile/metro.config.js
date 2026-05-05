@@ -28,11 +28,21 @@ config.resolver.nodeModulesPaths = [path.resolve(projectRoot, "node_modules")];
 
 const mobileReact = path.resolve(projectRoot, "node_modules", "react");
 const mobileReactDom = path.resolve(projectRoot, "node_modules", "react-dom");
+// query-string lives inside pnpm's virtual store (.pnpm/...) which Metro can't
+// SHA-1 reliably. Use a local copy of v7 (CJS) so Metro reads a real file
+// inside the watched mobile project, not a symlink target outside scope.
+const mobileQueryString = path.resolve(
+  projectRoot,
+  "src",
+  "shims",
+  "query-string-pkg",
+);
 
 config.resolver.extraNodeModules = {
   "@garzoni/core": coreSrc,
   react: mobileReact,
   "react-dom": mobileReactDom,
+  "query-string": mobileQueryString,
 };
 
 function resolveSourceFile(basePath) {
@@ -58,8 +68,15 @@ const coreAliasRoots = {
   "messages/": path.join(coreSrc, "messages"),
 };
 
+// Path to the query-string v7 CJS entry via the mobile node_modules symlink.
+// Use the symlink path (not realpath) so Metro keeps the file inside watched scope.
+const queryStringEntry = path.join(mobileQueryString, "index.js");
+
 const upstreamResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === "query-string") {
+    return { type: "sourceFile", filePath: queryStringEntry };
+  }
   for (const [prefix, rootDir] of Object.entries(coreAliasRoots)) {
     if (moduleName.startsWith(prefix)) {
       const rel = moduleName.slice(prefix.length);

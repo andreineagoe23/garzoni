@@ -11,7 +11,14 @@ import {
   Text,
   View,
 } from "react-native";
-import { Audio } from "expo-av";
+import type { Audio as AudioType } from "expo-av";
+let Audio: typeof AudioType | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Audio = require("expo-av").Audio;
+} catch {
+  /* native module not in this dev build — feature gated at runtime */
+}
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
@@ -134,11 +141,11 @@ export default function VoiceChat() {
   const isProUser = voiceEntitlement?.enabled === true;
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recording, setRecording] = useState<AudioType.Recording | null>(null);
   const [status, setStatus] = useState<"idle" | "recording" | "processing">(
     "idle",
   );
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [sound, setSound] = useState<AudioType.Sound | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -148,6 +155,10 @@ export default function VoiceChat() {
   }, [sound]);
 
   const startRecording = async () => {
+    if (!Audio) {
+      Alert.alert("Not available", "Voice requires a development build with expo-av.");
+      return;
+    }
     try {
       const { granted } = await Audio.requestPermissionsAsync();
       if (!granted) {
@@ -199,7 +210,7 @@ export default function VoiceChat() {
       ]);
 
       // Play TTS audio
-      if (audio_base64) {
+      if (audio_base64 && Audio) {
         const dataUri = `data:${mime || "audio/mpeg"};base64,${audio_base64}`;
         const { sound: snd } = await Audio.Sound.createAsync({ uri: dataUri });
         setSound(snd);
@@ -216,18 +227,26 @@ export default function VoiceChat() {
 
   if (!isProUser) {
     return (
-      <View style={styles.proGate}>
-        <Text style={styles.proGateTitle}>Voice Tutor is Pro-only</Text>
-        <Text style={styles.proGateBody}>
-          Upgrade to Pro to speak directly with Garzoni and get instant spoken
-          answers.
-        </Text>
-        <Pressable
-          style={styles.upgradeBtn}
-          onPress={() => router.push("/subscriptions")}
-        >
-          <Text style={styles.upgradeBtnText}>Upgrade to Pro</Text>
-        </Pressable>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Voice Tutor</Text>
+          <Pressable style={styles.closeBtn} onPress={() => router.back()}>
+            <Text style={styles.closeBtnText}>Done</Text>
+          </Pressable>
+        </View>
+        <View style={styles.proGate}>
+          <Text style={styles.proGateTitle}>Voice Tutor is Pro-only</Text>
+          <Text style={styles.proGateBody}>
+            Upgrade to Pro to speak directly with Garzoni and get instant spoken
+            answers.
+          </Text>
+          <Pressable
+            style={styles.upgradeBtn}
+            onPress={() => router.push("/subscriptions")}
+          >
+            <Text style={styles.upgradeBtnText}>Upgrade to Pro</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }

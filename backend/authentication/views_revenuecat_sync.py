@@ -51,30 +51,39 @@ def _fetch_rc_subscriber(app_user_id: str) -> dict | None:
     return None
 
 
+_PLAN_RANK = {"starter": 0, "plus": 1, "pro": 2}
+
+
 def _resolve_plan_from_subscriber(data: dict) -> str | None:
     """
-    Extract the active plan from a RevenueCat subscriber response.
+    Extract the highest active plan from a RevenueCat subscriber response.
     Checks entitlements first (most reliable), then active subscriptions.
+    Takes the highest-rank plan found to handle misconfigured RC dashboards
+    where a Pro product is mapped to the wrong entitlement identifier.
     """
     subscriber = data.get("subscriber", {})
+    best: str | None = None
 
     # Check entitlements (e.g. "Garzoni Pro", "Garzoni Plus")
     entitlements = subscriber.get("entitlements", {})
     for entitlement_id, ent_data in entitlements.items():
         if ent_data.get("expires_date") is None or _is_active(ent_data):
             plan = _ENTITLEMENT_PLAN_MAP.get(entitlement_id)
-            if plan:
-                return plan
+            if plan and _PLAN_RANK.get(plan, 0) > _PLAN_RANK.get(best or "starter", 0):
+                best = plan
+
+    if best:
+        return best
 
     # Fallback: check active subscriptions by product ID
     subscriptions = subscriber.get("subscriptions", {})
     for product_id, sub_data in subscriptions.items():
         if sub_data.get("unsubscribe_detected_at") is None:
             plan = PRODUCT_PLAN_MAP.get(product_id)
-            if plan:
-                return plan
+            if plan and _PLAN_RANK.get(plan, 0) > _PLAN_RANK.get(best or "starter", 0):
+                best = plan
 
-    return None
+    return best
 
 
 def _is_active(entitlement: dict) -> bool:
@@ -108,9 +117,14 @@ class RevenueCatSyncView(APIView):
 
     def post(self, request):
         user = request.user
-        app_user_id = str(user.pk)
+        # Mobile may pass its RC appUserID (e.g. anonymous session) so the
+        # backend looks up the right subscriber even when RC user != backend user.
+        rc_user_id = request.data.get("rc_app_user_id") or str(user.pk)
 
-        data = _fetch_rc_subscriber(app_user_id)
+        data = _fetch_rc_subscriber(rc_user_id)
+        # Fallback: if the RC-provided ID returns nothing, try the backend user PK
+        if not data and rc_user_id != str(user.pk):
+            data = _fetch_rc_subscriber(str(user.pk))
         if not data:
             return Response({"ok": False, "error": "Could not reach RevenueCat."}, status=502)
 
