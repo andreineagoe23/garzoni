@@ -4,7 +4,6 @@
  */
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
@@ -20,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import type { ThemeColors } from "../src/theme/palettes";
 
 type Category = {
@@ -233,7 +233,7 @@ export default function Scan() {
 
         {loading && (
           <View style={{ alignItems: "center", marginTop: spacing.xl }}>
-            <ActivityIndicator size="large" color={c.accent} />
+            <LoadingSpinner size="lg" color={c.accent} />
             <Text
               style={[
                 styles.bodyText,

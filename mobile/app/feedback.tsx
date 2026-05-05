@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,6 +18,7 @@ import { submitFeedback, type FeedbackPayload } from "@garzoni/core";
 import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 
 const FEEDBACK_TYPES = [
   { key: "general", labelKey: "feedback.types.general" },
@@ -190,7 +190,7 @@ export default function FeedbackScreen() {
             ]}
           >
             {mutation.isPending ? (
-              <ActivityIndicator color={c.textOnPrimary} />
+              <LoadingSpinner size="sm" color={c.textOnPrimary} />
             ) : (
               <Text style={[styles.submitText, { color: c.textOnPrimary }]}>
                 {t("feedback.send")}

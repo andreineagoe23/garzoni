@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   Image,
   Modal,
   Pressable,
@@ -10,6 +9,7 @@ import {
 import { getMediaBaseUrl } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
+import LoadingSpinner from "../ui/LoadingSpinner";
 import type { RewardItem } from "./RewardCard";
 
 type Props = {
@@ -109,7 +109,7 @@ export default function ConfirmRedeemSheet({
             accessibilityRole="button"
           >
             {isPending ? (
-              <ActivityIndicator color={c.textOnPrimary} />
+              <LoadingSpinner size="sm" color={c.textOnPrimary} />
             ) : (
               <Text style={[styles.confirmText, { color: c.textOnPrimary }]}>
                 {isDonate ? "Donate" : "Buy Now"}

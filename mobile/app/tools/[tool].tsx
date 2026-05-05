@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import LoadingSpinner from "../../src/components/ui/LoadingSpinner";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { WebView } from "react-native-webview";
 import { getWebAppBaseUrl } from "../../src/bootstrap/webAppUrl";
@@ -35,7 +36,7 @@ export default function ToolWebScreen() {
             startInLoadingState
             renderLoading={() => (
               <View style={styles.center}>
-                <ActivityIndicator size="large" color={c.primary} />
+                <LoadingSpinner size="lg" />
               </View>
             )}
           />

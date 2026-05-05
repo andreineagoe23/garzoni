@@ -18,7 +18,6 @@ import { router, Stack } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -35,7 +34,8 @@ import LeaderboardRow from "../src/components/leaderboard/LeaderboardRow";
 import LeaderboardSelfBar from "../src/components/leaderboard/LeaderboardSelfBar";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import GlassCard from "../src/components/ui/GlassCard";
-import { spacing, typography } from "../src/theme/tokens";
+import Skeleton from "../src/components/ui/Skeleton";
+import { spacing, typography, radius } from "../src/theme/tokens";
 
 const LIST_PAGE_SIZE = 25;
 
@@ -430,7 +430,18 @@ export default function LeaderboardScreen() {
 
   const listEmpty = pageLoading ? (
     <View style={styles.loader}>
-      <ActivityIndicator color={c.primary} size="large" />
+      {[1, 2, 3, 4, 5].map((i) => (
+        <View key={i} style={styles.skeletonRow}>
+          <Skeleton width={36} height={36} borderRadius={radius.full} />
+          <Skeleton
+            width="60%"
+            height={16}
+            borderRadius={radius.sm}
+            style={{ marginLeft: spacing.md, flexShrink: 1 }}
+          />
+          <Skeleton width={40} height={16} borderRadius={radius.sm} />
+        </View>
+      ))}
       <Text style={{ color: c.textMuted, marginTop: spacing.md }}>
         {t("leaderboard.loading")}
       </Text>
@@ -601,7 +612,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     fontSize: typography.sm,
   },
-  loader: { paddingVertical: spacing.xxl, alignItems: "center" },
+  loader: { paddingVertical: spacing.xxl, alignItems: "center", width: "100%", paddingHorizontal: spacing.lg },
+  skeletonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: spacing.md,
+    gap: spacing.md,
+  },
   rankCircleLarge: {
     width: 48,
     height: 48,

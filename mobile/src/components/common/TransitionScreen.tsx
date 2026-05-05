@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
-import { brand } from "../../theme/brand";
 import { spacing, typography, radius, shadows } from "../../theme/tokens";
 import { Button } from "../ui";
+import AuthLogoMark from "../auth/AuthLogoMark";
 
-export type TransitionVariant = "onboarding" | "payment";
+export type TransitionVariant = "onboarding" | "payment" | "path-refresh" | "upgrade";
 
 interface Props {
   variant: TransitionVariant;
@@ -13,6 +13,8 @@ interface Props {
   xp?: number;
   /** Coins earned — shown for onboarding variant only */
   coins?: number;
+  /** Optional real-time step statuses — advances steps as work completes. Falls back to timer if absent. */
+  stepStatuses?: ("pending" | "done")[];
   onComplete: () => void;
 }
 
@@ -28,7 +30,10 @@ const T = {
 };
 
 // ─── Per-variant copy ──────────────────────────────────────────
-const COPY = {
+const COPY: Record<
+  TransitionVariant,
+  { steps: [string, string, string]; headline: string; sub: string; cta: string }
+> = {
   onboarding: {
     steps: [
       "Reading your answers",
@@ -49,7 +54,27 @@ const COPY = {
     sub: "Full access is now active. Let's get to work.",
     cta: "Explore your path",
   },
-} as const;
+  "path-refresh": {
+    steps: [
+      "Analyzing your progress",
+      "Recalibrating your path",
+      "Updating your lessons",
+    ],
+    headline: "Your path is updated",
+    sub: "We refreshed it based on how far you've come.",
+    cta: "See what's new",
+  },
+  upgrade: {
+    steps: [
+      "Confirming your upgrade",
+      "Unlocking new features",
+      "Setting up your account",
+    ],
+    headline: "Upgrade complete",
+    sub: "Your new plan is active and ready.",
+    cta: "Get started",
+  },
+};
 
 // ─── Single animated step row ──────────────────────────────────
 function StepRow({
@@ -202,6 +227,7 @@ export default function TransitionScreen({
   variant,
   xp,
   coins,
+  stepStatuses,
   onComplete,
 }: Props) {
   const c = useThemeColors();
@@ -214,11 +240,33 @@ export default function TransitionScreen({
   const [step3Visible, setStep3Visible] = useState(false);
   const [step3Done, setStep3Done] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [ctaReady, setCtaReady] = useState(false);
 
   const revealOpacity = useRef(new Animated.Value(0)).current;
   const revealSlide = useRef(new Animated.Value(16)).current;
+  const minCtaGuard = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const triggerReveal = () => {
+    setRevealed(true);
+    Animated.parallel([
+      Animated.timing(revealOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(revealSlide, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    // Wait for reveal fade animation before showing CTA
+    minCtaGuard.current = setTimeout(() => setCtaReady(true), 420);
+  };
+
+  // Timer-based flow (default, or when stepStatuses absent)
   useEffect(() => {
+    if (stepStatuses) return;
     const ids = [
       setTimeout(() => setStep1Visible(true), T.step1Appear),
       setTimeout(() => setStep1Done(true), T.step1Done),
@@ -226,39 +274,39 @@ export default function TransitionScreen({
       setTimeout(() => setStep2Done(true), T.step2Done),
       setTimeout(() => setStep3Visible(true), T.step3Appear),
       setTimeout(() => setStep3Done(true), T.step3Done),
-      setTimeout(() => {
-        setRevealed(true);
-        Animated.parallel([
-          Animated.timing(revealOpacity, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(revealSlide, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }, T.reveal),
+      setTimeout(triggerReveal, T.reveal),
     ];
-    return () => ids.forEach(clearTimeout);
+    return () => {
+      ids.forEach(clearTimeout);
+      if (minCtaGuard.current) clearTimeout(minCtaGuard.current);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Status-driven flow: advance steps as real async work completes
+  useEffect(() => {
+    if (!stepStatuses) return;
+    const [s1, s2, s3] = stepStatuses;
+    setStep1Visible(true);
+    if (s1 === "done") {
+      setStep1Done(true);
+      setStep2Visible(true);
+    }
+    if (s2 === "done") {
+      setStep2Done(true);
+      setStep3Visible(true);
+    }
+    if (s3 === "done") {
+      setStep3Done(true);
+      if (!revealed) triggerReveal();
+    }
+  }, [stepStatuses]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]}>
       <View style={styles.inner}>
-        {/* Logo mark */}
-        <View
-          style={[
-            styles.logoMark,
-            {
-              backgroundColor: brand.green,
-              borderColor: `rgba(42,115,71,0.5)`,
-            },
-          ]}
-        >
-          <Text style={styles.logoLetter}>G</Text>
+        {/* Logo */}
+        <View style={styles.logoWrap}>
+          <AuthLogoMark />
         </View>
 
         {/* Steps */}
@@ -291,14 +339,11 @@ export default function TransitionScreen({
               },
             ]}
           >
-            {/* Divider */}
-            <View style={[styles.divider, { backgroundColor: c.border }]} />
-
             {/* Headline */}
             <Text style={[styles.headline, { color: c.text }]}>
               {copy.headline}
             </Text>
-            <Text style={[styles.sub, { color: c.textMuted }]}>{copy.sub}</Text>
+            <Text style={[styles.sub, { color: c.text }]}>{copy.sub}</Text>
 
             {/* Rewards row — onboarding only */}
             {variant === "onboarding" &&
@@ -323,10 +368,12 @@ export default function TransitionScreen({
                 </View>
               )}
 
-            {/* CTA */}
-            <Button onPress={onComplete} style={styles.cta}>
-              {copy.cta}
-            </Button>
+            {/* CTA — unlocks once all steps done + min 1200ms */}
+            {ctaReady && (
+              <Button onPress={onComplete} style={styles.cta}>
+                {copy.cta}
+              </Button>
+            )}
           </Animated.View>
         )}
       </View>
@@ -344,22 +391,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: spacing.xxl,
   },
-  logoMark: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  logoWrap: {
     marginBottom: spacing.xxxl,
-  },
-  logoLetter: {
-    fontFamily: brand.fontPrimary,
-    fontSize: 28,
-    fontStyle: "italic",
-    color: brand.goldWarm,
-    fontWeight: "400",
-    lineHeight: 32,
+    alignItems: "center",
   },
   stepsBlock: {
     width: "100%",
@@ -401,13 +435,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing.xl,
   },
-  divider: {
-    width: 40,
-    height: 1,
-    marginBottom: spacing.xl,
-  },
   headline: {
-    fontSize: typography.xxl,
+    fontSize: typography.hero,
     fontWeight: "800",
     letterSpacing: -0.4,
     textAlign: "center",
@@ -435,7 +464,7 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   badgeValue: {
-    fontSize: typography.xl,
+    fontSize: typography.hero,
     fontWeight: "800",
   },
   badgeLabel: {

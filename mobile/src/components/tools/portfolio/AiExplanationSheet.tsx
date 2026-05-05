@@ -8,10 +8,10 @@ import {
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
+import LoadingSpinner from "../../ui/LoadingSpinner";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.6;
@@ -106,7 +106,7 @@ export function AiExplanationSheet({
 
           {loading && (
             <View style={styles.loadingRow}>
-              <ActivityIndicator color={c.primary} size="small" />
+              <LoadingSpinner size="sm" />
               <Text style={[styles.loadingText, { color: c.textMuted }]}>
                 Analyzing your portfolio…
               </Text>

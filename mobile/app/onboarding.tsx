@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Animated,
   KeyboardAvoidingView,
@@ -46,6 +45,7 @@ import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/Questi
 import { href } from "../src/navigation/href";
 import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
 import { brand } from "../src/theme/brand";
+import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 
 const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
@@ -311,7 +311,7 @@ export default function OnboardingScreen() {
     return (
       <SafeAreaView style={[styles.safe, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator size="large" color={DARK.primary} />
+        <LoadingSpinner size="lg" color={DARK.primary} />
       </SafeAreaView>
     );
   }
@@ -431,7 +431,7 @@ export default function OnboardingScreen() {
         >
           {loading ? (
             <View style={styles.centeredLoader}>
-              <ActivityIndicator color={DARK.primary} />
+              <LoadingSpinner size="sm" color={DARK.primary} />
             </View>
           ) : question ? (
             <Animated.View style={{ transform: [{ translateY }] }}>
@@ -487,7 +487,7 @@ export default function OnboardingScreen() {
                 >
                   <View style={styles.ctaHighlight} pointerEvents="none" />
                   {submitting ? (
-                    <ActivityIndicator color="#fff" />
+                    <LoadingSpinner size="sm" color="#fff" />
                   ) : (
                     <Text style={styles.ctaLabel}>
                       {isLast

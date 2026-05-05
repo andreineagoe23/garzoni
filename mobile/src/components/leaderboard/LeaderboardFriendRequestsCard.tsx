@@ -9,7 +9,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -18,6 +17,7 @@ import {
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 export default function LeaderboardFriendRequestsCard() {
   const { t } = useTranslation("common");
@@ -104,7 +104,7 @@ export default function LeaderboardFriendRequestsCard() {
       <View style={{ marginTop: spacing.lg }}>
         {loading ? (
           <View style={styles.center}>
-            <ActivityIndicator color={c.accent} />
+            <LoadingSpinner size="sm" color={c.accent} />
           </View>
         ) : requestsQuery.isError ? (
           <Text style={{ color: c.error, fontSize: typography.sm }}>

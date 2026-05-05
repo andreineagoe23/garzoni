@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Linking,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import LoadingSpinner from "../../src/components/ui/LoadingSpinner";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { WebView } from "react-native-webview";
@@ -106,7 +106,7 @@ export default function LegalPageScreen() {
             onHttpError={() => setLoadFailed(true)}
             renderLoading={() => (
               <View style={styles.center}>
-                <ActivityIndicator size="large" color={c.primary} />
+                <LoadingSpinner size="lg" />
               </View>
             )}
           />
