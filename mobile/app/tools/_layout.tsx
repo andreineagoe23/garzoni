@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pressable, Text } from "react-native";
 import { Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/theme/ThemeContext";
 import ToolSwitcherSheet from "../../src/components/tools/ToolSwitcherSheet";
 
@@ -26,6 +27,7 @@ function SwitcherButton({
 
 export default function ToolsLayout() {
   const { colors } = useTheme();
+  const { t } = useTranslation("common");
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const headerRight = () => (
@@ -46,7 +48,13 @@ export default function ToolsLayout() {
           headerRight,
         }}
       >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+            title: t("nav.tools"),
+          }}
+        />
         <Stack.Screen
           name="portfolio/index"
           options={{ title: "Portfolio Analyzer" }}

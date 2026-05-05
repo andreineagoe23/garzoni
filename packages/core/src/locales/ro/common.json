@@ -132,6 +132,8 @@
       "adminMode": "Mod admin",
       "enableAdmin": "Activează admin"
     },
+    "signInProfilePrompt": "Autentifică-te din tabul Profil pentru a vedea dashboardul.",
+    "consistencyTitle": "Consecvența ta",
     "statusSummary": {
       "coursesCompleted": "Cursuri finalizate",
       "overallProgress": "Progres general",

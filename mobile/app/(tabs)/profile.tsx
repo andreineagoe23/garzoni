@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { href } from "../../src/navigation/href";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  clearExpoPushToken,
   deleteAccount,
   fetchBadges,
   fetchEntitlements,
@@ -84,6 +85,7 @@ function ProfileInner() {
   const [deletePhrase, setDeletePhrase] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [taglineHydrated, setTaglineHydrated] = useState(false);
 
   const enabled = Boolean(accessToken);
 
@@ -135,6 +137,30 @@ function ProfileInner() {
       if (v === "0") setShowHeartsUi(false);
     });
   }, []);
+
+  useEffect(() => {
+    let alive = true;
+    void AsyncStorage.getItem(PROFILE_TAGLINE_KEY)
+      .then((saved) => {
+        if (!alive) return;
+        if (typeof saved === "string") setTagline(saved);
+      })
+      .finally(() => {
+        if (alive) setTaglineHydrated(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!taglineHydrated) return;
+    const handle = setTimeout(() => {
+      if (!taglineHydrated) return;
+      void AsyncStorage.setItem(PROFILE_TAGLINE_KEY, tagline.trim());
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [tagline, taglineHydrated]);
 
   const persistShowHearts = useCallback(async (next: boolean) => {
     setShowHeartsUi(next);
@@ -194,7 +220,17 @@ function ProfileInner() {
           Alert.alert(t("profile.notificationsTitle"), r.message);
         }
       } else {
-        setPushEnabled(false);
+        try {
+          await clearExpoPushToken();
+          setPushEnabled(false);
+        } catch {
+          Alert.alert(
+            t("profile.notificationsTitle"),
+            t("profile.pushDisableError", {
+              defaultValue: "Could not disable notifications. Please try again.",
+            }),
+          );
+        }
       }
       setPushBusy(false);
     },
@@ -788,12 +824,6 @@ function ProfileInner() {
               colors={colors}
             />
             <MenuRow
-              icon={navIcons.billing}
-              label={t("billing.subscriptionManagement")}
-              onPress={() => router.push(href("/subscriptions"))}
-              colors={colors}
-            />
-            <MenuRow
               icon={navIcons.support}
               label={t("footer.support")}
               onPress={() => router.push(href("/support"))}
@@ -1302,12 +1332,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   statLabel: {
-    fontSize: 9,
+    fontSize: 12,
     marginTop: 2,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
+    textTransform: "none",
+    letterSpacing: 0.1,
     textAlign: "center",
     paddingHorizontal: 2,
+    lineHeight: 15,
   },
   sectionTitle: {
     fontSize: typography.md,

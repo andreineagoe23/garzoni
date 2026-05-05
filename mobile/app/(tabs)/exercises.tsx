@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -126,6 +127,7 @@ function difficultyColor(
 function ExercisesInner() {
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const { hydrated, accessToken } = useAuthSession();
@@ -1145,7 +1147,7 @@ function ExercisesInner() {
           <ConfettiCannon
             ref={confettiRef}
             count={72}
-            origin={{ x: -10, y: 0 }}
+            origin={{ x: width / 2, y: 0 }}
             fadeOut
             autoStart={false}
             colors={["#ffd700", c.primary, "#ffffff", c.accent]}

@@ -94,7 +94,7 @@ export default function WeakSkillsQuickCardMobile({
           </View>
         </View>
         <GlassButton
-          variant="primary"
+          variant="ghost"
           size="sm"
           style={styles.ctaWide}
           disabled={buttonDisabled}

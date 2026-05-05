@@ -83,7 +83,6 @@ export default function PersonalizedPathContentMobile({
     queryFn: () => fetchPersonalizedPath().then((r) => r.data),
     enabled: isAuthenticated && questionnaireCompleted,
     staleTime: 60_000,
-    refetchInterval: 30_000,
   });
 
   const progressSummaryQuery = useQuery({

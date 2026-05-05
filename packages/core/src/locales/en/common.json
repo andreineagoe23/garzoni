@@ -132,6 +132,8 @@
       "adminMode": "Admin Mode",
       "enableAdmin": "Enable Admin"
     },
+    "signInProfilePrompt": "Sign in on the Profile tab to see your dashboard.",
+    "consistencyTitle": "Your consistency",
     "statusSummary": {
       "coursesCompleted": "Courses Completed",
       "overallProgress": "Overall Progress",

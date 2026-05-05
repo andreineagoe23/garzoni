@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Stack, usePathname } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import Toast from "react-native-toast-message";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { I18nextProvider } from "react-i18next";
 import {
@@ -24,13 +24,10 @@ import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 
-initStorageMobile();
-initHttpClientMobile();
-initI18nMobile();
-
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const [shakeModalVisible, setShakeModalVisible] = useState(false);
   useNativeOnlineSync();
 
@@ -65,6 +62,8 @@ function ThemedRoot() {
           <Stack
             screenOptions={{
               headerShown: false,
+              gestureEnabled: true,
+              presentation: "card",
               // Header background matches page bg; text/back-button use readable text color.
               // Individual screens set headerShown:true but MUST NOT set headerTintColor:primary.
               headerStyle: { backgroundColor: colors.bg },
@@ -79,13 +78,13 @@ function ThemedRoot() {
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" options={{ title: "Home" }} />
+            <Stack.Screen name="(tabs)" options={{ title: "Home", gestureEnabled: false }} />
             <Stack.Screen name="lesson" options={{ headerShown: false }} />
             <Stack.Screen name="course" options={{ headerShown: false }} />
             <Stack.Screen name="flow" options={{ headerShown: false }} />
             <Stack.Screen name="path" options={{ headerShown: false }} />
             <Stack.Screen name="quiz" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
             <Stack.Screen
               name="change-password"
               options={{ headerShown: true, title: "Change password" }}
@@ -99,6 +98,21 @@ function ThemedRoot() {
               name="subscriptions"
               options={{ headerShown: true }}
             />
+            {/* Explicitly registered so gestureEnabled + presentation apply */}
+            <Stack.Screen name="chat" options={{ headerShown: false }} />
+            <Stack.Screen name="voice-chat" options={{ headerShown: false }} />
+            <Stack.Screen name="missions" options={{ headerShown: false }} />
+            <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
+            <Stack.Screen name="rewards" options={{ headerShown: false }} />
+            <Stack.Screen name="settings" options={{ headerShown: false }} />
+            <Stack.Screen name="support" options={{ headerShown: false }} />
+            <Stack.Screen name="referral" options={{ headerShown: false }} />
+            <Stack.Screen name="personalized-path" options={{ headerShown: false }} />
+            <Stack.Screen name="welcome" options={{ headerShown: false, gestureEnabled: false }} />
+            <Stack.Screen name="scan" options={{ headerShown: false }} />
+            <Stack.Screen name="legal" options={{ headerShown: false }} />
+            <Stack.Screen name="password-reset/[uidb64]/[token]" options={{ headerShown: false }} />
+            <Stack.Screen name="tools" options={{ headerShown: false }} />
           </Stack>
         </View>
         <ShakeFeedbackModal
@@ -106,13 +120,44 @@ function ThemedRoot() {
           currentRoute={pathname}
           onDismiss={() => setShakeModalVisible(false)}
         />
-        <Toast />
+        <Toast topOffset={insets.top + 8} />
       </View>
     </NavigationThemeProvider>
   );
 }
 
 export default function RootLayout() {
+  const [bootstrapReady, setBootstrapReady] = useState(false);
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      initStorageMobile();
+      initHttpClientMobile();
+      initI18nMobile();
+      setBootstrapReady(true);
+    } catch (e) {
+      setBootstrapError(
+        e instanceof Error ? e.message : "Failed to initialize app services.",
+      );
+    }
+  }, []);
+
+  if (bootstrapError) {
+    return (
+      <View style={[styles.root, styles.bootstrapFallback]}>
+        <Text style={styles.bootstrapTitle}>App failed to start</Text>
+        <Text style={styles.bootstrapBody}>
+          {bootstrapError}
+        </Text>
+      </View>
+    );
+  }
+
+  if (!bootstrapReady) {
+    return <View style={styles.root} />;
+  }
+
   return (
     <RootErrorBoundary>
       <I18nextProvider i18n={i18n}>
@@ -135,4 +180,21 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   stackHost: { flex: 1 },
+  bootstrapFallback: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#0b1020",
+  },
+  bootstrapTitle: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  bootstrapBody: {
+    color: "#d1d5db",
+    fontSize: 14,
+    textAlign: "center",
+  },
 });

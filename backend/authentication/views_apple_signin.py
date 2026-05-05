@@ -26,7 +26,9 @@ APPLE_JWKS_URL = "https://appleid.apple.com/auth/keys"
 APPLE_ISSUER = "https://appleid.apple.com"
 
 # Cached at module level — reuses fetched keys across requests.
-_apple_jwks_client = PyJWKClient(APPLE_JWKS_URL, cache_keys=True)
+# lifespan=3600: Apple rotates JWKS rarely; default 300s causes a live network
+# round-trip every 5 minutes which can take 30s+ if Apple's endpoint is slow.
+_apple_jwks_client = PyJWKClient(APPLE_JWKS_URL, cache_keys=True, lifespan=3600)
 
 
 def _decode_apple_identity_token(token: str, allowed_audiences: list) -> dict:

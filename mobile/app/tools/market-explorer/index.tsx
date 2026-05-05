@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
-  Modal,
+
   Pressable,
   StyleSheet,
   Text,
@@ -44,22 +44,73 @@ export default function MarketExplorerScreen() {
   const [selectedAsset, setSelectedAsset] = useState<QuoteDetail | null>(null);
   const [quoteVisible, setQuoteVisible] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteWarning, setQuoteWarning] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [buyModalVisible, setBuyModalVisible] = useState(false);
-  const [buyAmount, setBuyAmount] = useState("500");
-  const [buyLoading, setBuyLoading] = useState(false);
+  const searchGenerationRef = useRef(0);
 
   const search = useCallback(async (q: string, t: MarketTab) => {
     if (!q.trim()) {
       setResults([]);
       return;
     }
+    const gen = ++searchGenerationRef.current;
     setSearching(true);
     try {
       const res = await (apiClient as any).get("/market/search/", {
         params: { q: q.trim(), type: t },
       });
-      setResults(res.data?.results ?? []);
+      if (searchGenerationRef.current !== gen) return;
+      const searchResults: Asset[] = res.data?.results ?? [];
+      setResults(searchResults);
+
+      // Enrich with live prices asynchronously — don't block the list render.
+      // Backend caps ?tickers= at 20 per request; merge case-insensitively by ticker.
+      if (searchResults.length > 0) {
+        const ids = searchResults.map((a) => a.ticker);
+        const chunkSize = 20;
+        void (async () => {
+          try {
+            const chunks: string[][] = [];
+            for (let i = 0; i < ids.length; i += chunkSize) {
+              chunks.push(ids.slice(i, i + chunkSize));
+            }
+            const settled = await Promise.allSettled(
+              chunks.map((slice) =>
+                (apiClient as any).get("/market/quotes/", {
+                  params: { tickers: slice.join(",") },
+                }),
+              ),
+            );
+            if (searchGenerationRef.current !== gen) return;
+            const liveMap: Record<string, { price: number; change_pct: number }> = {};
+            for (const s of settled) {
+              if (s.status !== "fulfilled") continue;
+              for (const row of s.value.data ?? []) {
+                const key = String(row.ticker ?? "").toUpperCase();
+                const px = Number(row.price);
+                if (key && Number.isFinite(px) && px > 0) {
+                  liveMap[key] = {
+                    price: px,
+                    change_pct: Number(row.change_pct),
+                  };
+                }
+              }
+            }
+            if (searchGenerationRef.current !== gen) return;
+            setResults((prev) =>
+              prev.map((a) => {
+                const k = String(a.ticker ?? "").toUpperCase();
+                const live = liveMap[k];
+                return live
+                  ? { ...a, price: live.price, change_pct: live.change_pct }
+                  : a;
+              }),
+            );
+          } catch {
+            // Live price enrichment is best-effort; stale prices remain visible
+          }
+        })();
+      }
     } catch (e) {
       logDevError("tools/market-explorer/search", e);
       setResults([]);
@@ -90,14 +141,34 @@ export default function MarketExplorerScreen() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setQuoteVisible(true);
     setQuoteLoading(true);
-    setSelectedAsset(null);
+    setQuoteWarning(null);
+    setSelectedAsset({ ...asset });
     try {
       const res = await (apiClient as any).get(
-        `/market/quote/${asset.ticker}/`,
+        `/market/quote/${encodeURIComponent(asset.ticker)}/`,
       );
-      setSelectedAsset(res.data ?? asset);
+      const data = res.data ?? {};
+      const merged: QuoteDetail = {
+        ...asset,
+        ...data,
+        ticker: data.ticker ?? asset.ticker,
+        name: data.name ?? asset.name,
+        price: typeof data.price === "number" ? data.price : asset.price,
+        change_pct:
+          typeof data.change_pct === "number" ? data.change_pct : asset.change_pct,
+      };
+      setSelectedAsset(merged);
+      const px = Number(merged.price);
+      if (!Number.isFinite(px) || px <= 0) {
+        setQuoteWarning(
+          "Live price unavailable. Pull to refresh the search or try again.",
+        );
+      }
     } catch (e) {
       logDevError("tools/market-explorer/quote", e);
+      setQuoteWarning(
+        "Could not load quote. Check your connection and try again.",
+      );
       setSelectedAsset({ ...asset });
     } finally {
       setQuoteLoading(false);
@@ -110,38 +181,18 @@ export default function MarketExplorerScreen() {
     setQuery("");
   }, []);
 
-  const handleBuyVirtual = useCallback(() => {
-    setBuyAmount("500");
-    setBuyModalVisible(true);
-  }, []);
-
-  const handleConfirmBuy = useCallback(async () => {
+  const handleConfirmBuy = useCallback(async (amount: number) => {
     if (!selectedAsset) return;
-    const amount = Number(buyAmount);
-    if (!amount || amount <= 0) {
-      Alert.alert("Invalid amount", "Enter a positive dollar amount.");
-      return;
-    }
-    setBuyLoading(true);
-    try {
-      const res = await (apiClient as any).post("/paper-trade/buy/", {
-        symbol: selectedAsset.ticker,
-        amount_to_spend: amount,
-      });
-      const remaining = Number(res.data?.remaining_balance ?? 0).toFixed(2);
-      setBuyModalVisible(false);
-      Alert.alert(
-        "Trade executed!",
-        `Bought $${amount} of ${selectedAsset.ticker.toUpperCase()} with virtual cash.\nRemaining balance: $${remaining}`,
-      );
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.error ?? "Could not execute trade. Try again.";
-      Alert.alert("Trade failed", msg);
-    } finally {
-      setBuyLoading(false);
-    }
-  }, [selectedAsset, buyAmount]);
+    const res = await (apiClient as any).post("/paper-trade/buy/", {
+      symbol: selectedAsset.ticker,
+      amount_to_spend: amount,
+    });
+    const remaining = Number(res.data?.remaining_balance ?? 0).toFixed(2);
+    Alert.alert(
+      "Trade executed!",
+      `Bought $${amount} of ${selectedAsset.ticker.toUpperCase()} with virtual cash.\nRemaining balance: $${remaining}`,
+    );
+  }, [selectedAsset]);
 
   return (
     <>
@@ -229,97 +280,16 @@ export default function MarketExplorerScreen() {
         quote={selectedAsset}
         visible={quoteVisible}
         loading={quoteLoading}
-        onClose={() => setQuoteVisible(false)}
-        onBuyVirtual={handleBuyVirtual}
+        quoteWarning={quoteWarning}
+        onClose={() => {
+          setQuoteVisible(false);
+          setQuoteWarning(null);
+        }}
+        onConfirmBuy={handleConfirmBuy}
       />
-
-      {/* Buy with Virtual Cash modal */}
-      <Modal
-        visible={buyModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setBuyModalVisible(false)}
-      >
-        <Pressable
-          style={buyStyles.backdrop}
-          onPress={() => setBuyModalVisible(false)}
-        />
-        <View style={[buyStyles.card, { backgroundColor: c.surface }]}>
-          <Text style={[buyStyles.title, { color: c.text }]}>
-            Buy {selectedAsset?.ticker?.toUpperCase()} with Virtual Cash
-          </Text>
-          <Text style={[buyStyles.label, { color: c.textMuted }]}>
-            Dollar amount to spend
-          </Text>
-          <TextInput
-            style={[
-              buyStyles.input,
-              { color: c.text, borderColor: c.border, backgroundColor: c.bg },
-            ]}
-            value={buyAmount}
-            onChangeText={setBuyAmount}
-            keyboardType="numeric"
-            placeholder="500"
-            placeholderTextColor={c.textFaint}
-            selectTextOnFocus
-          />
-          <View style={buyStyles.actions}>
-            <Pressable
-              onPress={() => setBuyModalVisible(false)}
-              style={[buyStyles.btn, { borderColor: c.border, borderWidth: 1 }]}
-            >
-              <Text style={[buyStyles.btnText, { color: c.textMuted }]}>
-                Cancel
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => void handleConfirmBuy()}
-              disabled={buyLoading}
-              style={[buyStyles.btn, { backgroundColor: c.primary }]}
-            >
-              <Text style={[buyStyles.btnText, { color: "#fff" }]}>
-                {buyLoading ? "Buying…" : "Buy"}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </>
   );
 }
-
-const buyStyles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  card: {
-    position: "absolute",
-    left: 24,
-    right: 24,
-    top: "35%",
-    borderRadius: 20,
-    padding: 24,
-    gap: 16,
-  },
-  title: { fontSize: 16, fontWeight: "700" },
-  label: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  actions: { flexDirection: "row", gap: 12 },
-  btn: { flex: 1, borderRadius: 12, paddingVertical: 12, alignItems: "center" },
-  btnText: { fontSize: 14, fontWeight: "700" },
-});
 
 const styles = StyleSheet.create({
   root: { flex: 1 },

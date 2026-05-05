@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -54,6 +55,7 @@ export default function QuizScreen() {
     courseId: string;
   }>();
   const courseId = Number(courseIdParam);
+  const { width } = useWindowDimensions();
   const queryClient = useQueryClient();
   const confettiRef = useRef<ConfettiCannon>(null);
 
@@ -278,13 +280,25 @@ export default function QuizScreen() {
         <Stack.Screen
           options={{ title: t("courses.quiz.recapTitle"), headerShown: true }}
         />
-        <ConfettiCannon
-          ref={confettiRef}
-          count={90}
-          origin={{ x: -10, y: 0 }}
-          fadeOut
-          autoStart={false}
-        />
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+          }}
+        >
+          <ConfettiCannon
+            ref={confettiRef}
+            count={90}
+            origin={{ x: width / 2, y: 0 }}
+            fadeOut
+            autoStart={false}
+          />
+        </View>
         <Text style={styles.resultTitle}>{t("courses.quiz.recapTitle")}</Text>
         <Text style={styles.resultSub}>{t("courses.quiz.recapSubtitle")}</Text>
         <Text style={styles.earn}>

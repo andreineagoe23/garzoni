@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -25,6 +26,7 @@ import { logDevError } from "../../../src/lib/logDevError";
 
 export default function NextStepsScreen() {
   const c = useThemeColors();
+  const { width } = useWindowDimensions();
   const [steps, setSteps] = useState<NextStep[]>([]);
   const [completedToday, setCompletedToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(3);
@@ -167,14 +169,26 @@ export default function NextStepsScreen() {
         )}
       </ScrollView>
 
-      <ConfettiCannon
-        ref={confettiRef}
-        count={60}
-        origin={{ x: -10, y: 0 }}
-        autoStart={false}
-        fadeOut
-        colors={["#ffd700", "#2a6041", "#ffffff", "#f59e0b"]}
-      />
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+        }}
+      >
+        <ConfettiCannon
+          ref={confettiRef}
+          count={60}
+          origin={{ x: width / 2, y: 0 }}
+          autoStart={false}
+          fadeOut
+          colors={["#ffd700", "#2a6041", "#ffffff", "#f59e0b"]}
+        />
+      </View>
     </>
   );
 }

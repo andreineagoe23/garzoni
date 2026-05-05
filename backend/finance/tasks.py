@@ -17,6 +17,35 @@ def refresh_news_feed_cache_task():
     refresh_news_feed_cache()
 
 
+@shared_task(ignore_result=True)
+def record_funnel_event_task(
+    event_type: str,
+    user_id=None,
+    status: str = "success",
+    session_id: str = "",
+    metadata: dict | None = None,
+):
+    """Async wrapper for record_funnel_event — keeps caller request latency low."""
+    from django.contrib.auth import get_user_model
+    from finance.utils import record_funnel_event
+
+    user = None
+    if user_id is not None:
+        User = get_user_model()
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            pass
+
+    record_funnel_event(
+        event_type,
+        user=user,
+        status=status,
+        session_id=session_id,
+        metadata=metadata or {},
+    )
+
+
 @shared_task
 def send_portfolio_push_notifications():
     """

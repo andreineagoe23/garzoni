@@ -1,5 +1,6 @@
 import { forwardRef, type ReactElement, type ReactNode } from "react";
 import {
+  Platform,
   RefreshControl,
   type RefreshControlProps,
   ScrollView,
@@ -17,6 +18,11 @@ export type ScreenScrollProps = ScrollViewProps & {
 /**
  * Vertical screen scroll with bounded height (`flex: 1`) so content scrolls inside tab/stack
  * layouts. Enables nested horizontal scroll on Android.
+ *
+ * iOS: defaults `contentInsetAdjustmentBehavior` to `never` so the system does not add an extra
+ * top safe-area inset to scroll *content* when screens already use `TabScreenHeader` (which pads
+ * `paddingTop: insets.top`). Without this, returning from stack/modal routes can leave a large
+ * blank band between the header and the first card.
  */
 const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
   function ScreenScroll(
@@ -25,6 +31,7 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
       style,
       contentContainerStyle,
       contentPaddingBottom = 72,
+      contentInsetAdjustmentBehavior,
       keyboardShouldPersistTaps = "handled",
       keyboardDismissMode = "on-drag",
       showsVerticalScrollIndicator = true,
@@ -38,6 +45,11 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
         ? { paddingBottom: contentPaddingBottom }
         : {};
 
+    const insetAdjustment =
+      Platform.OS === "ios"
+        ? contentInsetAdjustmentBehavior ?? "never"
+        : contentInsetAdjustmentBehavior;
+
     return (
       <ScrollView
         ref={ref}
@@ -48,6 +60,7 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
         showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         nestedScrollEnabled={nestedScrollEnabled}
         {...rest}
+        contentInsetAdjustmentBehavior={insetAdjustment}
       >
         {children}
       </ScrollView>

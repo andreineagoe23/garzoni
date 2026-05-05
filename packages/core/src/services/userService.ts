@@ -377,6 +377,12 @@ export const submitExpoPushToken = (expoPushToken: string) =>
     expo_push_token: expoPushToken,
   });
 
+/** Clear Expo push token server-side so notifications can be disabled. */
+export const clearExpoPushToken = () =>
+  apiClient.post<{ ok: boolean }>("/auth/push-token/", {
+    expo_push_token: "",
+  });
+
 // Immersive course flow state (per course)
 export const fetchCourseFlowState = (courseId: string | number) =>
   apiClient.get("/userprogress/flow_state/", { params: { course: courseId } });
