@@ -14,7 +14,10 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu"
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu",
+        "EXPO_PUBLIC_CIO_SITE_ID": "c32143b82d01f682a0db",
+        "EXPO_PUBLIC_CIO_CDP_API_KEY": "d14f57bb2a01e6979459",
+        "EXPO_PUBLIC_CIO_REGION": "eu"
       }
     },
     "production": {
@@ -27,7 +30,10 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu"
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu",
+        "EXPO_PUBLIC_CIO_SITE_ID": "c32143b82d01f682a0db",
+        "EXPO_PUBLIC_CIO_CDP_API_KEY": "d14f57bb2a01e6979459",
+        "EXPO_PUBLIC_CIO_REGION": "eu"
       }
     }
   },

@@ -78,6 +78,12 @@ The workflow stores encrypted DB dumps as build artifacts for recovery.
 3. Section 4 video plays in representative lessons.
 4. Exercises render and submit.
 5. Dashboard progress and continue-learning cards work.
+6. Notification scheduler checks:
+   - `django_celery_beat` rows exist and are enabled for `send-ai-nudges-daily` and `send-portfolio-push`.
+   - Beat logs show periodic dispatch at expected windows.
+7. Customer.io checks:
+   - `/api/notifications/cio-ping/` returns `identify_ok=true` when called with `X-Garzoni-Cio-Ping`.
+   - `CIO_TRANSACTIONAL_TRIGGERS_JSON` contains mapped IDs for `ai-nudge` and `portfolio-update`.
 
 ## Rollback Procedure
 

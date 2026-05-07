@@ -27,6 +27,14 @@ def _use_cio_transactional(template: CioTemplate) -> bool:
     return resolve_transactional_ref(template.value) is not None
 
 
+def _outcome_from_cio(ok: bool, err: str | None) -> str:
+    if ok:
+        return "sent_cio"
+    if err and err.startswith("skipped_"):
+        return err
+    return f"cio_failed:{err}"
+
+
 class NotificationService:
     """
     Single entry for outbound notifications: policy → Customer.io or SMTP fallback.
@@ -58,7 +66,7 @@ class NotificationService:
                     "customer_name": user.first_name or user.username or "there",
                 },
             )
-            return "sent_cio" if ok else f"cio_failed:{err}"
+            return _outcome_from_cio(ok, err)
         if not smtp_configured():
             return "skipped_no_smtp"
         send_html_email(
@@ -92,7 +100,7 @@ class NotificationService:
         self.publish_domain_event(user, CioEventName.USER_REGISTERED, cio_data)
         if _use_cio_transactional(CioTemplate.WELCOME):
             ok, err = self.transactional.send(CioTemplate.WELCOME, user, cio_data)
-            return "sent_cio" if ok else f"cio_failed:{err}"
+            return _outcome_from_cio(ok, err)
         if smtp_configured():
             send_html_email(
                 subject="Welcome to Garzoni",
@@ -158,7 +166,7 @@ class NotificationService:
                     identifiers={"email": email.strip()},
                     data=md,
                 )
-            return "sent_cio" if ok else f"cio_failed:{err}"
+            return _outcome_from_cio(ok, err)
         if not smtp_configured():
             return "skipped_no_smtp"
         send_html_email(
@@ -208,7 +216,7 @@ class NotificationService:
                 if isinstance(v, (str, int, float, bool)) or v is None
             }
             ok, err = self.transactional.send(template, user, md)
-            return "sent_cio" if ok else f"cio_failed:{err}"
+            return _outcome_from_cio(ok, err)
         if not smtp_configured():
             return "skipped_no_smtp"
         send_html_email(
@@ -250,7 +258,7 @@ class NotificationService:
             return f"policy_denied:{pr.reason}"
         if _use_cio_transactional(template):
             ok, err = self.transactional.send(template, user, message_data)
-            return "sent_cio" if ok else f"cio_failed:{err}"
+            return _outcome_from_cio(ok, err)
         if smtp_template and smtp_subject and smtp_configured():
             ctx: dict[str, Any] = {**(extra_smtp_context or {}), **message_data}
             ctx.setdefault("year", timezone.now().year)

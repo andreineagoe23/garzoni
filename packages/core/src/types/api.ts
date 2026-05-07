@@ -23,6 +23,7 @@ export type UserProfile = {
   financial_profile?: FinancialProfile;
   profile_avatar?: string;
   profile_avatar_url?: string;
+  expo_push_token?: string | null;
   avatar?: string;
   avatar_url?: string;
   referral_code?: string;

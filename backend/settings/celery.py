@@ -71,4 +71,8 @@ app.conf.beat_schedule = {
         "task": "finance.tasks.send_portfolio_push_notifications",
         "schedule": crontab(hour=17, minute=0),
     },
+    "send-ai-nudges-daily": {
+        "task": "notifications.tasks.send_ai_nudges_batch",
+        "schedule": crontab(hour=9, minute=0),
+    },
 }

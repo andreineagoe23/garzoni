@@ -248,6 +248,11 @@ function ProfileInner() {
     return p;
   }, [profileQuery.data]);
 
+  useEffect(() => {
+    const token = merged?.expo_push_token;
+    setPushEnabled(typeof token === "string" && token.trim().length > 0);
+  }, [merged?.expo_push_token]);
+
   const entitlementUsage = useMemo(() => {
     const features = entitlementsQuery.data?.features || {};
     return Object.values(features)

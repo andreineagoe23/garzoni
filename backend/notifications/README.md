@@ -17,6 +17,10 @@
 | `CIO_REMINDERS_VIA_JOURNEYS`      | When `true` with journey events + track enabled, reminder beat jobs **track only** (no direct email). |
 
 Transactional sends require a mapping for each `CioTemplate` slug you enable; otherwise the service falls back to Django SMTP + HTML templates.
+Under `django_celery_beat` production scheduler, ensure periodic DB rows exist for
+`notifications.tasks.send_ai_nudges_batch` and
+`finance.tasks.send_portfolio_push_notifications`; static `settings.celery`
+`beat_schedule` is only a fallback for non-DB schedulers.
 
 ## Client-track API (web)
 

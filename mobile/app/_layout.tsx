@@ -22,13 +22,16 @@ import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
 import { RootErrorBoundary } from "../src/components/common/RootErrorBoundary";
+import { useAuthSession } from "../src/auth/AuthContext";
 import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
+import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
+  const { accessToken } = useAuthSession();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const [shakeModalVisible, setShakeModalVisible] = useState(false);
@@ -42,6 +45,7 @@ function ThemedRoot() {
   useEffect(() => {
     void initCustomerIoMobile();
   }, []);
+  usePushNotifications(Boolean(accessToken));
 
   const navTheme = {
     ...(resolved === "dark" ? DarkTheme : DefaultTheme),
