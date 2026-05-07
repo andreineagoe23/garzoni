@@ -31,27 +31,25 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [{ opacity: dimmed ? 0.72 : pressed ? 0.88 : 1 }]}
+      style={({ pressed }) => [
+        styles.pressable,
+        { opacity: dimmed ? 0.72 : pressed ? 0.88 : 1 },
+      ]}
     >
-      <GlassCard padding="none" style={styles.card}>
-        {/* Left accent bar */}
-        <View
-          style={[styles.accentBar, { backgroundColor: tool.accentColor }]}
-        />
-
+      <GlassCard padding="none" style={styles.card} fillContent>
         <View style={styles.content}>
           {/* Top row: icon + badges */}
           <View style={styles.topRow}>
             <Text style={styles.icon}>{emoji}</Text>
-            <View style={styles.badges}>
+            <View style={styles.chipRow}>
               {tool.comingSoon && comingSoonLabel ? (
                 <View
                   style={[
-                    styles.plusChip,
+                    styles.chip,
                     { backgroundColor: "rgba(100,116,139,0.15)" },
                   ]}
                 >
-                  <Text style={[styles.plusText, { color: c.textMuted }]}>
+                  <Text style={[styles.chipText, { color: c.textMuted }]}>
                     {comingSoonLabel}
                   </Text>
                 </View>
@@ -59,18 +57,18 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
               {tool.plusOnly && (
                 <View
                   style={[
-                    styles.plusChip,
-                    { backgroundColor: `rgba(255,215,0,0.12)` },
+                    styles.chip,
+                    { backgroundColor: "rgba(255,215,0,0.12)" },
                   ]}
                 >
-                  <Text style={[styles.plusText, { color: c.accent }]}>
+                  <Text style={[styles.chipText, { color: c.accent }]}>
                     ✦ Plus
                   </Text>
                 </View>
               )}
               {tool.estimatedMinutes != null && (
-                <View style={[styles.timeChip, { backgroundColor: c.border }]}>
-                  <Text style={[styles.timeText, { color: c.textMuted }]}>
+                <View style={[styles.chip, { backgroundColor: c.border }]}>
+                  <Text style={[styles.chipText, { color: c.textMuted }]}>
                     {tool.estimatedMinutes} min
                   </Text>
                 </View>
@@ -78,8 +76,13 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
             </View>
           </View>
 
-          <Text style={[styles.title, { color: c.text }]}>{tool.title}</Text>
-          <Text style={[styles.sub, { color: c.textMuted }]}>
+          {/* Title */}
+          <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
+            {tool.title}
+          </Text>
+
+          {/* Subtitle */}
+          <Text style={[styles.sub, { color: c.textMuted }]} numberOfLines={2}>
             {tool.subtitle}
           </Text>
         </View>
@@ -89,56 +92,51 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    overflow: "hidden",
+  pressable: {
+    flex: 1,
   },
-  accentBar: {
-    width: 4,
-    alignSelf: "stretch",
+  card: {
+    overflow: "hidden",
+    flex: 1,
   },
   content: {
-    flex: 1,
-    padding: spacing.xl,
+    padding: spacing.lg,
     gap: spacing.xs,
+    flex: 1,
   },
   topRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: spacing.sm,
+    gap: spacing.xs,
   },
   icon: {
-    fontSize: 22,
+    fontSize: 26,
   },
-  badges: {
+  chipRow: {
     flexDirection: "row",
-    gap: spacing.sm,
+    flexWrap: "wrap",
+    gap: spacing.xs,
     alignItems: "center",
-  },
-  plusChip: {
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  plusText: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-  },
-  timeChip: {
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  timeText: {
-    fontSize: typography.xs,
+    justifyContent: "flex-end",
+    flexShrink: 1,
   },
   title: {
     fontSize: typography.md,
     fontWeight: "700",
   },
   sub: {
-    fontSize: typography.sm,
-    lineHeight: 18,
+    fontSize: typography.xs,
+    lineHeight: 16,
+  },
+  chip: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  chipText: {
+    fontSize: typography.xs,
+    fontWeight: "700",
   },
 });

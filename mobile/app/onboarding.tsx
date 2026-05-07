@@ -311,7 +311,13 @@ export default function OnboardingScreen() {
     return (
       <SafeAreaView style={[styles.safe, styles.centered]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <LoadingSpinner size="lg" color={DARK.primary} />
+        <View style={styles.loadingCard}>
+          <LoadingSpinner size="lg" color={DARK.primary} />
+          <Text style={styles.loadingTitle}>Preparing your onboarding</Text>
+          <Text style={styles.loadingSub}>
+            Loading your progress and personalizing what comes next.
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -353,14 +359,6 @@ export default function OnboardingScreen() {
             stopFar={0.55}
           />
         </View>
-        <View style={styles.introHeader}>
-          <Text style={styles.eyebrow}>
-            {(personalizedPathReason
-              ? t("onboarding.questionnaireHeaderPersonalized")
-              : t("onboarding.welcomeTitle")
-            ).toUpperCase()}
-          </Text>
-        </View>
         <OnboardingIntroPager
           onDone={() => void beginQuestionnaireAfterIntro()}
         />
@@ -370,7 +368,7 @@ export default function OnboardingScreen() {
 
   if (phase === "done" && completionRewards) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView style={styles.safe}>
         <Stack.Screen options={{ headerShown: false }} />
         <OnboardingCompletionOverlay
           xp={completionRewards.xp}
@@ -432,6 +430,12 @@ export default function OnboardingScreen() {
           {loading ? (
             <View style={styles.centeredLoader}>
               <LoadingSpinner size="sm" color={DARK.primary} />
+              <Text style={styles.inlineLoadingTitle}>
+                Curating your next question
+              </Text>
+              <Text style={styles.inlineLoadingSub}>
+                We are syncing your answers and preparing the next step.
+              </Text>
             </View>
           ) : question ? (
             <Animated.View style={{ transform: [{ translateY }] }}>
@@ -540,7 +544,15 @@ function hasAnswer(v: AnswerValue): boolean {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DARK.bg },
   centered: { alignItems: "center", justifyContent: "center", padding: 24 },
-  centeredLoader: { paddingVertical: 64, alignItems: "center" },
+  centeredLoader: {
+    paddingVertical: 64,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: DARK.borderSoft,
+    borderRadius: 20,
+    backgroundColor: DARK.surface,
+    paddingHorizontal: 20,
+  },
 
   ambientTop: {
     position: "absolute",
@@ -590,7 +602,52 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 80 },
+  content: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 80,
+  },
+  loadingCard: {
+    width: "100%",
+    maxWidth: 360,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: DARK.border,
+    backgroundColor: DARK.surface,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    gap: 10,
+  },
+  loadingTitle: {
+    color: DARK.text,
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 6,
+  },
+  loadingSub: {
+    color: DARK.muted,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  inlineLoadingTitle: {
+    color: DARK.text,
+    fontSize: 17,
+    fontWeight: "700",
+    marginTop: 12,
+    textAlign: "center",
+  },
+  inlineLoadingSub: {
+    color: DARK.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+    marginTop: 6,
+  },
 
   screenEyebrow: {
     fontSize: 11,

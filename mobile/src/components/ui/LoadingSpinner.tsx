@@ -1,4 +1,10 @@
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography } from "../../theme/tokens";

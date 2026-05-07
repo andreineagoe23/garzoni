@@ -56,6 +56,12 @@ export const queryKeys = {
   badgesCatalog: () => ["badgesCatalog"] as const,
   userBadges: () => ["userBadges"] as const,
   subscriptionPlans: () => ["subscriptionPlans"] as const,
+
+  /** Portfolio Analyzer: holdings merged with live /market/quotes (+ virtual balance when included). */
+  portfolioDashboard: () => ["portfolioDashboard"] as const,
+  /** Market Explorer debounced server search (+ live prices when returned). */
+  marketSearch: (tab: string, normalizedQuery: string) =>
+    ["marketSearch", tab, normalizedQuery] as const,
 };
 
 export const staleTimes = {
@@ -72,6 +78,10 @@ export const staleTimes = {
 
   // "Static-ish" content.
   content: 6 * HOUR,
+
+  // Tools: fresher holdings / search so trades and quotes feel live.
+  portfolioDashboard: MINUTE / 2,
+  marketSearch: 15 * 1000,
 };
 
 export function defaultRetry(failureCount: number, error: unknown) {

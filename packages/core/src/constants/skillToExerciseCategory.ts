@@ -8,6 +8,15 @@
  * deep links always resolve to a visible category.
  */
 export const MASTERY_SKILL_TO_EXERCISE_CATEGORY: Record<string, string> = {
+  // Generic section title fallbacks — map to the most relevant category
+  overview: "Basic Finance",
+  "core concept": "Basic Finance",
+  "applied insight": "Basic Finance",
+  "practical walkthrough": "Basic Finance",
+  introduction: "Basic Finance",
+  summary: "Basic Finance",
+  "key concepts": "Basic Finance",
+  fundamentals: "Basic Finance",
   budgeting: "Basic Finance",
   "personal finance": "Personal Finance",
   investing: "Investing",

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Minimal query-string shim — only `parse` and `stringify` are used by
 // @react-navigation/core. Compatible behavior with query-string@7. No external
@@ -10,7 +10,7 @@ function encode(value) {
 
 function decode(value) {
   try {
-    return decodeURIComponent(value.replace(/\+/g, ' '));
+    return decodeURIComponent(value.replace(/\+/g, " "));
   } catch {
     return value;
   }
@@ -18,12 +18,12 @@ function decode(value) {
 
 function parse(input) {
   const result = Object.create(null);
-  if (typeof input !== 'string') return result;
-  const str = input.trim().replace(/^[?#&]/, '');
+  if (typeof input !== "string") return result;
+  const str = input.trim().replace(/^[?#&]/, "");
   if (!str) return result;
-  for (const part of str.split('&')) {
+  for (const part of str.split("&")) {
     if (!part) continue;
-    const eqIdx = part.indexOf('=');
+    const eqIdx = part.indexOf("=");
     let key;
     let val;
     if (eqIdx === -1) {
@@ -45,7 +45,7 @@ function parse(input) {
 }
 
 function stringify(obj) {
-  if (!obj) return '';
+  if (!obj) return "";
   const parts = [];
   for (const key of Object.keys(obj)) {
     const value = obj[key];
@@ -56,14 +56,14 @@ function stringify(obj) {
       for (const item of value) {
         if (item === undefined) continue;
         parts.push(
-          item === null ? encode(key) : encode(key) + '=' + encode(item),
+          item === null ? encode(key) : encode(key) + "=" + encode(item),
         );
       }
     } else {
-      parts.push(encode(key) + '=' + encode(value));
+      parts.push(encode(key) + "=" + encode(value));
     }
   }
-  return parts.join('&');
+  return parts.join("&");
 }
 
 module.exports.parse = parse;

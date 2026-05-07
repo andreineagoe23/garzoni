@@ -174,6 +174,8 @@ export type PersonalizedPathResponse = {
     skill?: string;
     proficiency?: number;
     due_at?: string | null;
+    level_band?: "beginner" | "building" | "confident" | "pro";
+    level_label?: string;
   }>;
   upgrade_prompt?: string;
   message?: string;

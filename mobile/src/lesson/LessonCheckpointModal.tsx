@@ -84,6 +84,8 @@ export default function LessonCheckpointModal({
         queryKey: queryKeys.lessonsWithProgress(courseId),
       });
     }
+    void queryClient.invalidateQueries({ queryKey: queryKeys.learningPaths() });
+    void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
   }, [courseId, queryClient]);
 
   const submit = useCallback(async () => {

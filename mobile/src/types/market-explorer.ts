@@ -5,6 +5,8 @@ export type Asset = {
   name: string;
   price: number;
   change_pct: number;
+  /** CoinGecko id from search — used for batch quotes and consistent pricing vs paper trade. */
+  coingecko_id?: string;
 };
 
 export type QuoteDetail = Asset & {

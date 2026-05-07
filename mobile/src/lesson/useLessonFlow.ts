@@ -63,6 +63,11 @@ export function useLessonFlow(courseId: number) {
 
   const flowEnabled = Number.isFinite(courseId) && courseId > 0;
 
+  const invalidatePathProgress = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.learningPaths() });
+    void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
+  }, [queryClient]);
+
   const lessonsQuery = useQuery<FlowLesson[]>({
     queryKey: queryKeys.lessonsWithProgress(courseId),
     enabled: flowEnabled,
@@ -160,6 +165,7 @@ export function useLessonFlow(courseId: number) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.recentActivity(),
       });
+      invalidatePathProgress();
     },
   });
 
@@ -180,6 +186,7 @@ export function useLessonFlow(courseId: number) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.recentActivity(),
       });
+      invalidatePathProgress();
     },
   });
 

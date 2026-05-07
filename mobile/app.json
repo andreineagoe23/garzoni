@@ -17,14 +17,12 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "10",
+      "buildNumber": "11",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": [
-              "CA92.1"
-            ]
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
           }
         ]
       },

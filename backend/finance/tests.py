@@ -1,9 +1,15 @@
 """Tests for finance views: news feed robustness, provider failure, malformed RSS."""
 
 from unittest.mock import patch
+
 from django.core.cache import cache
-from django.test import override_settings
+from django.test import SimpleTestCase
 from django.urls import reverse
+from finance.views import (
+    _parse_crypto_map_param,
+    _parse_truthy_query_param,
+    _yahoo_extract_price_and_change_pct,
+)
 from rest_framework.test import APITestCase
 
 
@@ -76,3 +82,51 @@ class NewsFeedViewTest(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["items"], [])
         self.assertIn("generated_at", response.data)
+
+
+class MarketQuoteParsingHelpersTest(SimpleTestCase):
+    """Stable parsing for crypto_map / force_refresh query strings."""
+
+    def test_parse_crypto_map_basic(self):
+        self.assertEqual(
+            _parse_crypto_map_param("BTC:bitcoin,ADA:cardano"),
+            {"BTC": "bitcoin", "ADA": "cardano"},
+        )
+
+    def test_parse_crypto_map_ignores_bad_segments(self):
+        self.assertEqual(
+            _parse_crypto_map_param("BTC:bitcoin,garbage,NOSYMBOL"),
+            {"BTC": "bitcoin"},
+        )
+
+    def test_parse_truthy_param(self):
+        self.assertTrue(_parse_truthy_query_param("1"))
+        self.assertTrue(_parse_truthy_query_param("true"))
+        self.assertTrue(_parse_truthy_query_param("fresh"))
+        self.assertFalse(_parse_truthy_query_param("0"))
+        self.assertFalse(_parse_truthy_query_param(None))
+
+
+class YahooFxPriceExtractionTest(SimpleTestCase):
+    """Yahoo rows for forex often lack regularMarketPrice."""
+
+    def test_bid_ask_mid_when_spot_missing(self):
+        px, _ch = _yahoo_extract_price_and_change_pct(
+            {
+                "symbol": "EURUSD=X",
+                "bid": 1.08,
+                "ask": 1.081,
+                "regularMarketPreviousClose": 1.07,
+            }
+        )
+        self.assertAlmostEqual(px, 1.0805, places=4)
+
+    def test_derive_change_from_prev_close(self):
+        px, ch = _yahoo_extract_price_and_change_pct(
+            {
+                "regularMarketPrice": 1.09,
+                "regularMarketPreviousClose": 1.0,
+            }
+        )
+        self.assertEqual(px, 1.09)
+        self.assertAlmostEqual(ch, 9.0, places=5)

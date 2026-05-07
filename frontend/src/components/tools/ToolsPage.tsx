@@ -22,6 +22,7 @@ import { GlassCard } from "components/ui";
 import { ChevronDown } from "components/ui/icons";
 import { useAuth } from "contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import UpsellModal from "components/billing/UpsellModal";
 import ToolSignalStrip, { type ToolStripToolbar } from "./ToolSignalStrip";
 import { recordToolEvent } from "services/toolsAnalytics";
 import {
@@ -94,10 +95,16 @@ const UnknownToolRedirect = () => {
 
 const ToolView = ({ tool }: { tool: ToolDefinition }) => {
   const { t } = useTranslation();
+  const { entitlements } = useAuth();
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const toolWhoItsFor = t(`tools.entries.${tool.id}.whoItsFor`);
   const toolQuestion = t(`tools.entries.${tool.id}.questionItAnswers`);
   const toolExample = t(`tools.entries.${tool.id}.sampleUseCase`);
   const Component = tool.component;
+
+  const plan = entitlements?.plan ?? "starter";
+  const hasPlus = plan === "plus" || plan === "pro";
+  const isLocked = tool.requiredPlan === "plus_or_pro" && !hasPlus;
 
   return (
     <div className="space-y-5 min-w-0">
@@ -146,11 +153,30 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
         </div>
       </details>
 
-      <ErrorBoundary>
-        <Suspense fallback={<ToolLoadingSkeleton />}>
-          <Component />
-        </Suspense>
-      </ErrorBoundary>
+      {isLocked ? (
+        <div className="app-card flex flex-col items-center gap-4 p-10 text-center">
+          <span className="text-3xl">✦</span>
+          <p className="text-lg font-semibold text-content-primary">
+            {t("billing.plusProOnly")}
+          </p>
+          <p className="text-sm text-content-muted">
+            {t("billing.unlockPremium")}
+          </p>
+          <button
+            className="btn-primary mt-2"
+            onClick={() => setUpsellOpen(true)}
+          >
+            {t("billing.upgradeCta")}
+          </button>
+          <UpsellModal open={upsellOpen} onClose={() => setUpsellOpen(false)} />
+        </div>
+      ) : (
+        <ErrorBoundary>
+          <Suspense fallback={<ToolLoadingSkeleton />}>
+            <Component />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </div>
   );
 };

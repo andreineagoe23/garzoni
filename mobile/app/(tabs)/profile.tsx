@@ -227,7 +227,8 @@ function ProfileInner() {
           Alert.alert(
             t("profile.notificationsTitle"),
             t("profile.pushDisableError", {
-              defaultValue: "Could not disable notifications. Please try again.",
+              defaultValue:
+                "Could not disable notifications. Please try again.",
             }),
           );
         }

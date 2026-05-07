@@ -1,10 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  Linking,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Linking, StyleSheet, Text, View } from "react-native";
 import LoadingSpinner from "../../src/components/ui/LoadingSpinner";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";

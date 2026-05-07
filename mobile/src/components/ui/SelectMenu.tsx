@@ -35,7 +35,9 @@ export default function SelectMenu({
   style,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(null);
+  const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(
+    null,
+  );
   const triggerRef = useRef<View>(null);
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
@@ -55,7 +57,8 @@ export default function SelectMenu({
   const dropdownTop = triggerLayout
     ? triggerLayout.y + triggerLayout.height + 4
     : 0;
-  const overflows = dropdownTop + DROPDOWN_MAX_HEIGHT > screenHeight - insets.bottom - 16;
+  const overflows =
+    dropdownTop + DROPDOWN_MAX_HEIGHT > screenHeight - insets.bottom - 16;
   const dropdownY = triggerLayout
     ? overflows
       ? triggerLayout.y - DROPDOWN_MAX_HEIGHT - 4
@@ -81,7 +84,10 @@ export default function SelectMenu({
           accessibilityLabel={`${label}: ${currentLabel}`}
           accessibilityHint="Opens a list of options"
         >
-          <Text style={[styles.triggerText, { color: c.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.triggerText, { color: c.text }]}
+            numberOfLines={1}
+          >
             {currentLabel}
           </Text>
           <MaterialCommunityIcons

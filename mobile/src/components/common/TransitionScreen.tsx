@@ -5,7 +5,11 @@ import { spacing, typography, radius, shadows } from "../../theme/tokens";
 import { Button } from "../ui";
 import AuthLogoMark from "../auth/AuthLogoMark";
 
-export type TransitionVariant = "onboarding" | "payment" | "path-refresh" | "upgrade";
+export type TransitionVariant =
+  | "onboarding"
+  | "payment"
+  | "path-refresh"
+  | "upgrade";
 
 interface Props {
   variant: TransitionVariant;
@@ -32,7 +36,12 @@ const T = {
 // ─── Per-variant copy ──────────────────────────────────────────
 const COPY: Record<
   TransitionVariant,
-  { steps: [string, string, string]; headline: string; sub: string; cta: string }
+  {
+    steps: [string, string, string];
+    headline: string;
+    sub: string;
+    cta: string;
+  }
 > = {
   onboarding: {
     steps: [
@@ -303,6 +312,7 @@ export default function TransitionScreen({
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]}>
+      <View style={[styles.ambientTop, { backgroundColor: c.primary }]} />
       <View style={styles.inner}>
         {/* Logo */}
         <View style={styles.logoWrap}>
@@ -385,19 +395,31 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  ambientTop: {
+    position: "absolute",
+    top: -80,
+    left: -60,
+    right: -60,
+    height: 240,
+    borderRadius: 120,
+    opacity: 0.06,
+  },
   inner: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.xl,
+    width: "100%",
   },
   logoWrap: {
-    marginBottom: spacing.xxxl,
+    width: "100%",
     alignItems: "center",
+    marginBottom: spacing.xl,
+    minHeight: 56,
   },
   stepsBlock: {
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 380,
   },
   stepRow: {
     flexDirection: "row",
@@ -426,14 +448,15 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     fontSize: typography.base,
-    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     lineHeight: 22,
   },
   revealBlock: {
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 380,
     alignItems: "center",
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
   headline: {
     fontSize: typography.hero,
@@ -446,8 +469,8 @@ const styles = StyleSheet.create({
     fontSize: typography.base,
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: spacing.xxl,
-    maxWidth: 300,
+    marginBottom: spacing.xl,
+    maxWidth: 340,
   },
   badgeRow: {
     flexDirection: "row",

@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Toast from "react-native-toast-message";
-import { ScrollView, SectionList, StyleSheet, Text, View } from "react-native";
+import {
+  ScrollView,
+  SectionList,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { Chip } from "../../src/components/ui";
 import { useRouter } from "expo-router";
 import { href } from "../../src/navigation/href";
@@ -28,15 +35,18 @@ const ALL_GROUPS: ToolGroup[] = [
 
 type FilterOption = ToolGroup | "all";
 
+type ToolPair = [MobileToolDef, MobileToolDef | null];
+
 type Section = {
   group: ToolGroup;
-  data: MobileToolDef[];
+  data: ToolPair[];
 };
 
 export default function ToolsHubScreen() {
   const c = useThemeColors();
   const { t } = useTranslation("common");
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
 
@@ -53,10 +63,14 @@ export default function ToolsHubScreen() {
     return ALL_GROUPS.filter(
       (g) => activeFilter === "all" || g === activeFilter,
     )
-      .map((g) => ({
-        group: g,
-        data: MOBILE_TOOLS.filter((t) => t.group === g),
-      }))
+      .map((g) => {
+        const tools = MOBILE_TOOLS.filter((t) => t.group === g);
+        const pairs: ToolPair[] = [];
+        for (let i = 0; i < tools.length; i += 2) {
+          pairs.push([tools[i], tools[i + 1] ?? null]);
+        }
+        return { group: g, data: pairs };
+      })
       .filter((s) => s.data.length > 0);
   }, [activeFilter]);
 
@@ -92,10 +106,10 @@ export default function ToolsHubScreen() {
         })}
       </ScrollView>
 
-      {/* Grouped tool list */}
+      {/* Grouped tool grid */}
       <SectionList
         sections={sections}
-        keyExtractor={(item) => item.id}
+        keyExtractor={([a, b]) => `${a.id}-${b?.id ?? "empty"}`}
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) => (
@@ -103,17 +117,19 @@ export default function ToolsHubScreen() {
             {t(`tools.groups.${section.group}.title`).toUpperCase()}
           </Text>
         )}
-        renderItem={({ item }) => {
-          const locked = !!item.plusOnly && !hasPlus;
-          return (
-            <View style={styles.cardWrap}>
+        renderItem={({ item: [left, right] }) => {
+          const cardWidth = (width - spacing.xl * 2 - spacing.md) / 2;
+
+          const renderCard = (tool: MobileToolDef) => {
+            const locked = !!tool.plusOnly && !hasPlus;
+            return (
               <ToolCard
-                tool={item}
+                tool={tool}
                 comingSoonLabel={
-                  item.comingSoon ? t("tools.hub.comingSoon") : undefined
+                  tool.comingSoon ? t("tools.hub.comingSoon") : undefined
                 }
                 onPress={() => {
-                  if (item.comingSoon) {
+                  if (tool.comingSoon) {
                     Toast.show({
                       type: "info",
                       text1: t("tools.hub.comingSoon"),
@@ -125,9 +141,20 @@ export default function ToolsHubScreen() {
                     setPlusSheetVisible(true);
                     return;
                   }
-                  router.push(href(`/(tabs)/tools/${item.route}`));
+                  router.push(href(`/(tabs)/tools/${tool.route}`));
                 }}
               />
+            );
+          };
+
+          return (
+            <View style={[styles.row, { marginBottom: spacing.md }]}>
+              <View style={{ width: cardWidth, minHeight: 140 }}>
+                {renderCard(left)}
+              </View>
+              <View style={{ width: cardWidth, minHeight: 140 }}>
+                {right ? renderCard(right) : null}
+              </View>
             </View>
           );
         }}
@@ -149,6 +176,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     gap: spacing.sm,
+    alignItems: "center",
   },
   list: {
     paddingHorizontal: spacing.xl,
@@ -161,7 +189,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
-  cardWrap: {
-    marginBottom: spacing.md,
+  row: {
+    flexDirection: "row",
+    gap: spacing.md,
   },
 });

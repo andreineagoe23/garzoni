@@ -109,6 +109,7 @@ function courseTotalLessons(c: CourseRow): number {
 }
 
 type FilterMode = "all" | "in_progress" | "completed";
+const LEARNING_PATHS_STALE_MS = 60_000;
 
 function createLearnStyles(c: ThemeColors) {
   return StyleSheet.create({
@@ -206,9 +207,8 @@ function createLearnStyles(c: ThemeColors) {
     },
     personalizedLoading: {
       flex: 1,
-      minHeight: 200,
-      alignItems: "center",
-      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
     },
   });
 }
@@ -270,7 +270,7 @@ function LearnInner() {
     enabled: hydrated,
     queryFn: () =>
       pathService.fetchPaths().then((r) => unwrapApiList<PathRow>(r.data)),
-    staleTime: staleTimes.content,
+    staleTime: LEARNING_PATHS_STALE_MS,
   });
 
   const progressQuery = useQuery({
@@ -405,7 +405,7 @@ function LearnInner() {
       courseService
         .fetchForPath(expandedPathId!)
         .then((r) => unwrapApiList<CourseRow>(r.data)),
-    staleTime: staleTimes.content,
+    staleTime: LEARNING_PATHS_STALE_MS,
   });
 
   const togglePath = useCallback((id: number) => {
@@ -696,11 +696,19 @@ function LearnInner() {
         </View>
         {personalizedGatingWait ? (
           <View style={styles.personalizedLoading}>
+            {/* Hero card */}
+            <Skeleton
+              width="100%"
+              height={200}
+              borderRadius={radius.lg}
+              style={{ marginBottom: spacing.md }}
+            />
+            {/* Recommendation cards */}
             {[1, 2, 3].map((i) => (
               <Skeleton
                 key={i}
                 width="100%"
-                height={72}
+                height={110}
                 borderRadius={radius.lg}
                 style={{ marginBottom: spacing.sm }}
               />

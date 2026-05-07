@@ -20,7 +20,15 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { apiClient, requestAiTutorResponse } from "@garzoni/core";
+import {
+  apiClient,
+  requestAiTutorResponse,
+  fetchEntitlements,
+  queryKeys,
+  staleTimes,
+} from "@garzoni/core";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFocusEffect } from "@react-navigation/native";
 import { useTheme, useThemeColors } from "../../../src/theme/ThemeContext";
 import {
   spacing,
@@ -52,6 +60,12 @@ import { logDevError } from "../../../src/lib/logDevError";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { href } from "../../../src/navigation/href";
+import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
+
+type PortfolioDashboardPayload = {
+  entries: PortfolioEntry[];
+  balance: number | null;
+};
 
 // ─── Allocation bar component ────────────────────────────────────────────────
 
@@ -331,20 +345,151 @@ function useStatusConfigs() {
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
+async function fetchMarketQuotesMapRemote(
+  tickers: string[],
+  signal?: AbortSignal,
+): Promise<Record<string, number>> {
+  const unique = [...new Set(tickers.map((t) => t.trim()).filter(Boolean))];
+  const out: Record<string, number> = {};
+  const chunkSize = 20;
+  for (let i = 0; i < unique.length; i += chunkSize) {
+    const slice = unique.slice(i, i + chunkSize);
+    try {
+      const res = await (apiClient as any).get("/market/quotes/", {
+        params: { tickers: slice.map((s) => s.toUpperCase()).join(",") },
+        signal,
+      });
+      for (const q of res.data ?? []) {
+        const key = String(q.ticker ?? "").toUpperCase();
+        const price = Number(q.price);
+        if (key && Number.isFinite(price) && price > 0) {
+          out[key] = price;
+        }
+      }
+    } catch (e) {
+      logDevError("tools/portfolio/market-quotes", e);
+    }
+  }
+  return out;
+}
+
+function applyQuotesToEntries(
+  fetched: PortfolioEntry[],
+  quoteMap: Record<string, number>,
+): PortfolioEntry[] {
+  return fetched.map((entry) => {
+    const basis = entry.purchase_price * entry.quantity;
+    const sym = entry.symbol.trim().toUpperCase();
+    const quotable =
+      entry.asset_type === "stock" ||
+      entry.asset_type === "etf" ||
+      entry.asset_type === "crypto";
+    const live = quotable ? quoteMap[sym] : undefined;
+
+    if (live != null && live > 0) {
+      const currentValue = live * entry.quantity;
+      const gainLoss = currentValue - basis;
+      const gainLossPercentage = basis > 0 ? (gainLoss / basis) * 100 : 0;
+      return {
+        ...entry,
+        current_price: live,
+        current_value: currentValue,
+        gain_loss: gainLoss,
+        gain_loss_percentage: gainLossPercentage,
+      };
+    }
+
+    const serverVal =
+      typeof entry.current_value === "number" && entry.current_value > 0
+        ? entry.current_value
+        : undefined;
+    const fallbackValue = serverVal ?? basis;
+    const gainLoss = fallbackValue - basis;
+    return {
+      ...entry,
+      current_value: fallbackValue,
+      gain_loss: gainLoss,
+      gain_loss_percentage: basis > 0 ? (gainLoss / basis) * 100 : 0,
+    };
+  });
+}
+
 export default function PortfolioScreen() {
   const c = useThemeColors();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const invalidatePortfolioTools = useInvalidatePortfolioTools();
   const { risk: RISK_CONFIG, alignment: ALIGNMENT_CONFIG } = useStatusConfigs();
 
-  // Data state
-  const [entries, setEntries] = useState<PortfolioEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const entQuery = useQuery({
+    queryKey: queryKeys.entitlements(),
+    queryFn: () => fetchEntitlements().then((r) => r.data),
+    staleTime: staleTimes.entitlements,
+  });
+  const hasPlus = ["plus", "pro"].includes(entQuery.data?.plan ?? "");
+
+  useEffect(() => {
+    if (entQuery.isFetched && !hasPlus) {
+      router.replace("/(tabs)/tools");
+    }
+  }, [entQuery.isFetched, hasPlus, router]);
+
+  const portfolioQuery = useQuery({
+    queryKey: queryKeys.portfolioDashboard(),
+    queryFn: async ({ signal }) => {
+      const res = await (apiClient as any).get("/portfolio/", { signal });
+      const fetched = (res.data || []) as PortfolioEntry[];
+
+      const quoteSymbols = fetched
+        .filter(
+          (e) =>
+            e.asset_type === "stock" ||
+            e.asset_type === "etf" ||
+            e.asset_type === "crypto",
+        )
+        .map((e) => e.symbol);
+      const quoteMap = await fetchMarketQuotesMapRemote(quoteSymbols, signal);
+      const entries = applyQuotesToEntries(fetched, quoteMap);
+
+      let balance: number | null = null;
+      try {
+        const savingsRes = await (apiClient as any).get("/savings-account/", {
+          signal,
+        });
+        balance = Number(savingsRes.data?.balance ?? 0);
+      } catch {
+        balance = null;
+      }
+
+      return { entries, balance } satisfies PortfolioDashboardPayload;
+    },
+    enabled: entQuery.isFetched && hasPlus,
+    staleTime: staleTimes.portfolioDashboard,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasPlus) return;
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.portfolioDashboard(),
+      });
+    }, [hasPlus, queryClient]),
+  );
+
+  const entries = portfolioQuery.data?.entries ?? [];
+  const virtualBalance =
+    portfolioQuery.data?.balance !== undefined
+      ? portfolioQuery.data.balance
+      : null;
+  const loading = portfolioQuery.isPending;
+  const refreshing = portfolioQuery.isRefetching;
+  const error = portfolioQuery.isError
+    ? "Failed to load portfolio. Pull down to retry."
+    : null;
 
   // Mode toggle
   const [mode, setMode] = useState<"real" | "virtual">("real");
-  const [virtualBalance, setVirtualBalance] = useState<number | null>(null);
 
   // Sheet visibility
   const [addSheetOpen, setAddSheetOpen] = useState(false);
@@ -372,149 +517,23 @@ export default function PortfolioScreen() {
     purchase_price: string;
   } | null>(null);
 
-  // ── API helpers ──────────────────────────────────────────────────────────
-
-  /** Batch live quotes (same pipeline as Market Explorer). Backend caps at 20 tickers per request. */
-  const fetchMarketQuotesMap = useCallback(
-    async (tickers: string[]): Promise<Record<string, number>> => {
-      const unique = [...new Set(tickers.map((t) => t.trim()).filter(Boolean))];
-      const out: Record<string, number> = {};
-      const chunkSize = 20;
-      for (let i = 0; i < unique.length; i += chunkSize) {
-        const slice = unique.slice(i, i + chunkSize);
-        try {
-          const res = await (apiClient as any).get("/market/quotes/", {
-            params: { tickers: slice.map((s) => s.toUpperCase()).join(",") },
-          });
-          for (const q of res.data ?? []) {
-            const key = String(q.ticker ?? "").toUpperCase();
-            const price = Number(q.price);
-            if (key && Number.isFinite(price) && price > 0) {
-              out[key] = price;
-            }
-          }
-        } catch (e) {
-          logDevError("tools/portfolio/market-quotes", e);
-        }
-      }
-      return out;
-    },
-    [],
-  );
-
-  const applyQuotesToEntries = useCallback(
-    (
-      fetched: PortfolioEntry[],
-      quoteMap: Record<string, number>,
-    ): PortfolioEntry[] => {
-      return fetched.map((entry) => {
-        const basis = entry.purchase_price * entry.quantity;
-        const sym = entry.symbol.trim().toUpperCase();
-        const quotable =
-          entry.asset_type === "stock" ||
-          entry.asset_type === "etf" ||
-          entry.asset_type === "crypto";
-        const live = quotable ? quoteMap[sym] : undefined;
-
-        if (live != null && live > 0) {
-          const currentValue = live * entry.quantity;
-          const gainLoss = currentValue - basis;
-          const gainLossPercentage = basis > 0 ? (gainLoss / basis) * 100 : 0;
-          return {
-            ...entry,
-            current_price: live,
-            current_value: currentValue,
-            gain_loss: gainLoss,
-            gain_loss_percentage: gainLossPercentage,
-          };
-        }
-
-        const serverVal =
-          typeof entry.current_value === "number" && entry.current_value > 0
-            ? entry.current_value
-            : undefined;
-        const fallbackValue = serverVal ?? basis;
-        const gainLoss = fallbackValue - basis;
-        return {
-          ...entry,
-          current_value: fallbackValue,
-          gain_loss: gainLoss,
-          gain_loss_percentage: basis > 0 ? (gainLoss / basis) * 100 : 0,
-        };
-      });
-    },
-    [],
-  );
-
-  const fetchPortfolio = useCallback(
-    async (silent = false) => {
-      if (!silent) setLoading(true);
-      try {
-        const res = await (apiClient as any).get("/portfolio/");
-        const fetched = (res.data || []) as PortfolioEntry[];
-
-        const quoteSymbols = fetched
-          .filter(
-            (e) =>
-              e.asset_type === "stock" ||
-              e.asset_type === "etf" ||
-              e.asset_type === "crypto",
-          )
-          .map((e) => e.symbol);
-        const quoteMap = await fetchMarketQuotesMap(quoteSymbols);
-        const withPrices = applyQuotesToEntries(fetched, quoteMap);
-
-        setEntries(withPrices);
-        setError(null);
-
-        // Fetch virtual cash balance (non-critical)
-        try {
-          const savingsRes = await (apiClient as any).get("/savings-account/");
-          setVirtualBalance(Number(savingsRes.data?.balance ?? 0));
-        } catch {
-          // ignore
-        }
-      } catch (e) {
-        logDevError("tools/portfolio/fetch", e);
-        setError("Failed to load portfolio. Pull down to retry.");
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [applyQuotesToEntries, fetchMarketQuotesMap],
-  );
-
-  // Initial load + 5-minute auto-refresh
-  useEffect(() => {
-    void fetchPortfolio();
-    const interval = setInterval(
-      () => void fetchPortfolio(true),
-      5 * 60 * 1000,
-    );
-    return () => clearInterval(interval);
-  }, [fetchPortfolio]);
-
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    void fetchPortfolio(true);
-  }, [fetchPortfolio]);
-
-  // ── Delete ──────────────────────────────────────────────────────────────
+    void portfolioQuery.refetch();
+  }, [portfolioQuery]);
 
   const handleDelete = useCallback(
     (id: string | number) => {
       void (async () => {
         try {
           await (apiClient as any).delete(`/portfolio/${id}/`);
-          void fetchPortfolio(true);
+          await invalidatePortfolioTools();
         } catch (e) {
           logDevError("tools/portfolio/delete", e);
           Alert.alert("Error", "Could not delete holding. Please try again.");
         }
       })();
     },
-    [fetchPortfolio],
+    [invalidatePortfolioTools],
   );
 
   // ── Demo prefill ─────────────────────────────────────────────────────────
@@ -1228,7 +1247,7 @@ export default function PortfolioScreen() {
       <AddEntrySheet
         visible={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
-        onAdded={() => void fetchPortfolio(true)}
+        onAdded={() => void invalidatePortfolioTools()}
         isPaperTrade={mode === "virtual"}
         onFirstTrade={handleFirstTrade}
       />
@@ -1257,7 +1276,6 @@ export default function PortfolioScreen() {
           <Text style={xpBannerStyles.badge}>🥉</Text>
         </View>
       )}
-
     </>
   );
 }

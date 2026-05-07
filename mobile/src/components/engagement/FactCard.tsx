@@ -1,9 +1,4 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { FinanceFact } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";

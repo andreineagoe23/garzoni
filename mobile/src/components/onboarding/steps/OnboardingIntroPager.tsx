@@ -11,6 +11,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -22,6 +23,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { ImpactFeedbackStyle } from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
+import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { safeImpactAsync } from "../../../utils/safeHaptics";
 import LottieHero from "../../motion/LottieHero";
 import { Button } from "../../ui";
@@ -42,6 +44,23 @@ type Props = {
   onDone: () => void;
   slides?: IntroSlide[];
 };
+
+function IntroLogo() {
+  const uri = authLogoWhiteRectangularUrl({ width: 560 });
+  const [failed, setFailed] = useState(false);
+  if (!uri || failed) {
+    return <Text style={styles.logoFallback}>Garzoni</Text>;
+  }
+  return (
+    <Image
+      accessibilityLabel="Garzoni"
+      source={{ uri }}
+      resizeMode="contain"
+      style={styles.logo}
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 function buildDefaultSlides(t: (k: string) => string): IntroSlide[] {
   return [
@@ -153,22 +172,19 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
   return (
     <View style={[styles.root, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        {!isLast ? (
-          <Pressable
-            onPress={() => {
-              void safeImpactAsync(ImpactFeedbackStyle.Light);
-              onDone();
-            }}
-            hitSlop={12}
-            style={styles.skipBtn}
-          >
-            <Text style={[styles.skipText, { color: c.textMuted }]}>
-              {t("onboarding.introSkip")}
-            </Text>
-          </Pressable>
-        ) : (
-          <View style={styles.skipBtn} />
-        )}
+        <IntroLogo />
+        <Pressable
+          onPress={() => {
+            void safeImpactAsync(ImpactFeedbackStyle.Light);
+            onDone();
+          }}
+          hitSlop={12}
+          style={styles.skipBtn}
+        >
+          <Text style={[styles.skipText, { color: c.textMuted }]}>
+            {t("onboarding.introSkip")}
+          </Text>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -178,6 +194,7 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onScrollEnd}
         keyboardShouldPersistTaps="handled"
+        style={styles.pager}
       >
         {resolvedSlides.map((s, i) => {
           const isActive = i === page;
@@ -275,20 +292,33 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   topBar: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.xs,
     paddingBottom: spacing.xs,
   },
+  logo: {
+    width: 210,
+    height: 56,
+  },
+  logoFallback: {
+    fontSize: typography.xl,
+    fontWeight: "700",
+    letterSpacing: -0.4,
+  },
+  pager: { flex: 1 },
   skipBtn: { minHeight: 32, justifyContent: "center" },
   skipText: {
     fontSize: typography.sm,
     fontWeight: "600",
   },
   page: {
+    flex: 1,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     alignItems: "center",
+    justifyContent: "center",
   },
   heroWrap: {
     width: HERO_SIZE,

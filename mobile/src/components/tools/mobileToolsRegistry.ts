@@ -73,6 +73,7 @@ export const MOBILE_TOOLS: MobileToolDef[] = [
     icon: "PieChart",
     accentColor: "#006494",
     estimatedMinutes: 12,
+    plusOnly: true,
   },
   {
     id: "reality-check",

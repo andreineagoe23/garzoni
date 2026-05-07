@@ -612,7 +612,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     fontSize: typography.sm,
   },
-  loader: { paddingVertical: spacing.xxl, alignItems: "center", width: "100%", paddingHorizontal: spacing.lg },
+  loader: {
+    paddingVertical: spacing.xxl,
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: spacing.lg,
+  },
   skeletonRow: {
     flexDirection: "row",
     alignItems: "center",

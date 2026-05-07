@@ -490,31 +490,85 @@ function PersonalizedPathContent({
         <h4 className="app-eyebrow">
           {t("personalizedPath.skillsToReinforce")}
         </h4>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {reviewQueue.length === 0 ? (
-            <GlassCard
-              padding="sm"
-              className="app-card-sm text-xs text-content-muted"
-            >
-              {t("personalizedPath.noSkillsDue")}
-            </GlassCard>
-          ) : (
-            reviewQueue.map((item, idx) => (
-              <GlassCard
-                key={`${item.skill || "skill"}-${idx}`}
-                padding="sm"
-                className="app-card-sm min-w-[180px]"
-              >
-                <p className="text-xs text-content-muted">{item.skill}</p>
-                <p className="text-sm font-semibold">
-                  {t("personalizedPath.skillScore", {
-                    value: item.proficiency ?? 0,
-                  })}
-                </p>
-              </GlassCard>
-            ))
-          )}
-        </div>
+        {reviewQueue.length === 0 ? (
+          <GlassCard
+            padding="sm"
+            className="app-card-sm text-xs text-content-muted"
+          >
+            {t("personalizedPath.noSkillsDue")}
+          </GlassCard>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {reviewQueue.map((item, idx) => {
+              const pct = item.proficiency ?? 0;
+              const band = item.level_band ?? "beginner";
+              const label = item.level_label ?? "Beginner";
+              const dueAt = item.due_at ? new Date(item.due_at) : null;
+              const now = new Date();
+              const daysUntil = dueAt
+                ? Math.ceil((dueAt.getTime() - now.getTime()) / 86400000)
+                : 0;
+              const dueLabel =
+                !dueAt || dueAt <= now
+                  ? "Due now"
+                  : daysUntil === 1
+                    ? "Due tomorrow"
+                    : `Due in ${daysUntil} days`;
+
+              const bandColor: Record<string, string> = {
+                beginner: "text-content-muted",
+                building: "text-[#e6c87a]",
+                confident: "text-blue-400",
+                pro: "text-[color:var(--primary,#1d5330)]",
+              };
+              const bandBg: Record<string, string> = {
+                beginner: "bg-slate-500/15",
+                building: "bg-yellow-400/15",
+                confident: "bg-blue-500/15",
+                pro: "bg-[color:var(--primary,#1d5330)]/10",
+              };
+
+              return (
+                <GlassCard
+                  key={`${item.skill || "skill"}-${idx}`}
+                  padding="sm"
+                  className="app-card-sm flex items-center gap-3"
+                >
+                  {/* Progress ring */}
+                  <ProgressRing value={pct} />
+
+                  {/* Skill info */}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-content-primary">
+                      {item.skill}
+                    </p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${bandBg[band] ?? ""} ${bandColor[band] ?? ""}`}
+                      >
+                        {label}
+                      </span>
+                      <span className="text-xs text-content-muted">{pct}%</span>
+                    </div>
+                  </div>
+
+                  {/* Due + practice */}
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] text-content-muted">
+                      {dueLabel}
+                    </span>
+                    <a
+                      href="/exercises"
+                      className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5 text-[10px] font-bold text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/20 transition"
+                    >
+                      Practice →
+                    </a>
+                  </div>
+                </GlassCard>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {isPreview && personalizedQuery.data?.upgrade_prompt && (

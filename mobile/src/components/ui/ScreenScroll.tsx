@@ -47,7 +47,7 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
 
     const insetAdjustment =
       Platform.OS === "ios"
-        ? contentInsetAdjustmentBehavior ?? "never"
+        ? (contentInsetAdjustmentBehavior ?? "never")
         : contentInsetAdjustmentBehavior;
 
     return (

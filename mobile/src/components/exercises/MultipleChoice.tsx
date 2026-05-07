@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { NotificationFeedbackType } from "expo-haptics";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,7 @@
 # finance/views.py
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from authentication.entitlements import get_user_plan, plan_allows
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -223,6 +224,299 @@ def _yahoo_quote_row_for_ticker(sym_to_row: dict, ticker: str) -> dict:
         if sym == u or sym.startswith(f"{u}-") or sym.startswith(f"{u}="):
             return row
     return {}
+
+
+def _yahoo_num(row: dict, *keys: str) -> float | None:
+    for k in keys:
+        if k not in row or row[k] is None:
+            continue
+        try:
+            v = float(row[k])
+        except (TypeError, ValueError):
+            continue
+        if v == v and abs(v) < 1e20:  # not NaN, sane magnitude
+            return v
+    return None
+
+
+def _yahoo_extract_price_and_change_pct(q: dict) -> tuple[float, float]:
+    """Price + daily change % for stocks, ETFs, forex CURRENCY pairs (=X suffix).
+
+    Forex rows often omit `regularMarketPrice` in sparse API responses; Yahoo still
+    provides bid/ask and/or regularMarketPreviousClose.
+    """
+    prev = _yahoo_num(q, "regularMarketPreviousClose", "regularMarketClose", "previousClose")
+    bid = _yahoo_num(q, "bid")
+    ask = _yahoo_num(q, "ask")
+
+    price = _yahoo_num(q, "regularMarketPrice")
+    if (price is None or price <= 0) and bid and ask and bid > 0 and ask > 0:
+        price = (bid + ask) / 2.0
+    if (price is None or price <= 0) and bid and bid > 0:
+        price = bid
+    if (price is None or price <= 0) and ask and ask > 0:
+        price = ask
+    if price is None or price <= 0:
+        price = _yahoo_num(
+            q,
+            "postMarketPrice",
+            "preMarketPrice",
+            "regularMarketOpen",
+        )
+    # Last resort: prior close keeps FX list non‑zero until a fuller quote succeeds.
+    if (price is None or price <= 0) and prev and prev > 0:
+        price = prev
+
+    pct = _yahoo_num(
+        q, "regularMarketChangePercent", "postMarketChangePercent", "preMarketChangePercent"
+    )
+    if (pct is None or pct == 0) and price and prev and prev > 0 and price != prev:
+        pct = ((price / prev) - 1.0) * 100.0
+
+    px = float(price or 0.0)
+    ch = float(pct if pct is not None else 0.0)
+    return px, ch
+
+
+# --- Unified market quoting (Market Explorer / batch / paper trade) -------------
+MARKET_QUOTE_CACHE_SECONDS = 60
+
+
+def _parse_truthy_query_param(raw) -> bool:
+    if raw is None:
+        return False
+    return str(raw).strip().lower() in {"1", "true", "yes", "on", "fresh"}
+
+
+def _parse_crypto_map_param(raw: str | None) -> dict[str, str]:
+    """Parse `BTC:bitcoin,ADA:cardano` → { 'BTC': 'bitcoin', … } (ticker uppercase)."""
+    out: dict[str, str] = {}
+    if not raw or not isinstance(raw, str):
+        return out
+    for segment in raw.split(","):
+        segment = segment.strip()
+        if not segment or ":" not in segment:
+            continue
+        left, right = segment.split(":", 1)
+        sym = left.strip().upper()
+        cid = right.strip().lower()
+        if sym and cid:
+            out[sym] = cid
+    return out
+
+
+def _yahoo_quote_cache_ttl_seconds() -> int:
+    return int(getattr(settings, "MARKET_YAHOO_QUOTE_CACHE_TTL", MARKET_QUOTE_CACHE_SECONDS))
+
+
+def _crypto_quote_cache_ttl_seconds() -> int:
+    return int(getattr(settings, "MARKET_CRYPTO_QUOTE_CACHE_TTL", MARKET_QUOTE_CACHE_SECONDS))
+
+
+def _yahoo_bulk_fetch_and_cache(
+    tickers: list[str],
+    *,
+    force_refresh: bool = False,
+) -> None:
+    """Populate `yf_quote_{T}` caches for Yahoo-backed symbols."""
+    if not tickers:
+        return
+    upper = []
+    seen = set()
+    for t in tickers:
+        u = (t or "").strip().upper()
+        if u and u not in seen:
+            seen.add(u)
+            upper.append(u)
+    if not upper:
+        return
+    ttl = _yahoo_quote_cache_ttl_seconds()
+    if force_refresh:
+        for t in upper:
+            cache.delete(f"yf_quote_{t}")
+    uncached = [t for t in upper if not cache.get(f"yf_quote_{t}")]
+    if not uncached:
+        return
+    try:
+        # Omit `fields` — Yahoo strips fields needed for currencies (=X pairs) and some ETFs.
+        yf = requests.get(
+            "https://query1.finance.yahoo.com/v7/finance/quote",
+            params={"symbols": ",".join(uncached)},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=8,
+        )
+        payload = yf.json()
+        q_err = payload.get("quoteResponse", {}).get("error")
+        if q_err:
+            logger.warning(
+                "Yahoo quoteResponse error batch=%s detail=%s",
+                uncached[:5],
+                q_err,
+            )
+        sym_rows = _yahoo_symbol_to_quote_rows(payload)
+        for ticker in uncached:
+            q = _yahoo_quote_row_for_ticker(sym_rows, ticker)
+            if not q:
+                logger.info(
+                    "market_quote_miss",
+                    extra={"phase": "yahoo_batch", "ticker": ticker, "reason": "no_row"},
+                )
+                continue
+            t_sym = (q.get("symbol") or "").upper()
+            price, change = _yahoo_extract_price_and_change_pct(q)
+            if price <= 0:
+                logger.info(
+                    "market_quote_miss",
+                    extra={
+                        "phase": "yahoo_batch",
+                        "ticker": ticker,
+                        "yahoo_symbol": t_sym,
+                        "reason": "zero_price_after_fallbacks",
+                    },
+                )
+                continue
+            name = q.get("shortName") or q.get("longName") or (t_sym or ticker)
+            cache_blob = {
+                "price": price,
+                "change": change,
+                "name": name,
+                "open": float(q.get("regularMarketOpen", 0) or 0),
+                "high": float(q.get("regularMarketDayHigh", 0) or 0),
+                "low": float(q.get("regularMarketDayLow", 0) or 0),
+                "volume": float(q.get("regularMarketVolume", 0) or 0),
+                "market_cap": float(q.get("marketCap", 0) or 0),
+            }
+            cache.set(f"yf_quote_{ticker}", cache_blob, ttl)
+            if t_sym and t_sym != ticker:
+                cache.set(f"yf_quote_{t_sym}", cache_blob, ttl)
+    except Exception as exc:
+        logger.warning("Yahoo Finance batch quote failed: %s", exc)
+
+
+def _yahoo_read_cached_quote_details(ticker: str) -> dict:
+    ticker = ticker.strip().upper()
+    cached = cache.get(f"yf_quote_{ticker}") or {}
+    return {
+        "ticker": ticker,
+        "price": float(cached.get("price", 0) or 0),
+        "change_pct": float(cached.get("change", 0) or 0),
+        "name": cached.get("name") or ticker,
+        "open": float(cached.get("open", 0) or 0),
+        "high": float(cached.get("high", 0) or 0),
+        "low": float(cached.get("low", 0) or 0),
+        "volume": float(cached.get("volume", 0) or 0),
+        "market_cap": float(cached.get("market_cap", 0) or 0),
+    }
+
+
+def _coingecko_bulk_fetch_and_cache(
+    coingecko_ids: list[str],
+    *,
+    force_refresh: bool = False,
+) -> None:
+    if not coingecko_ids:
+        return
+    unique: list[str] = []
+    seen = set()
+    for cid in coingecko_ids:
+        c = (cid or "").strip().lower()
+        if c and c not in seen:
+            seen.add(c)
+            unique.append(c)
+    if not unique:
+        return
+    ttl = _crypto_quote_cache_ttl_seconds()
+    if force_refresh:
+        for cid in unique:
+            cache.delete(f"crypto_{cid}")
+    missing = [cid for cid in unique if not cache.get(f"crypto_{cid}")]
+    if not missing:
+        return
+    try:
+        result = request_with_backoff(
+            method="GET",
+            url="https://api.coingecko.com/api/v3/simple/price",
+            params={
+                "ids": ",".join(missing),
+                "vs_currencies": "usd",
+                "include_24hr_change": "true",
+                "include_market_cap": "true",
+            },
+            allow_retry=True,
+            max_attempts=3,
+        )
+        response = result.response
+        response.raise_for_status()
+        data = response.json()
+        for cid in missing:
+            payload = data.get(cid, {}) or {}
+            px = float(payload.get("usd", 0) or 0)
+            if px <= 0:
+                logger.info(
+                    "market_quote_miss",
+                    extra={
+                        "phase": "coingecko_batch",
+                        "coingecko_id": cid,
+                        "reason": "zero_price",
+                    },
+                )
+                continue
+            cache.set(
+                f"crypto_{cid}",
+                {
+                    "price": px,
+                    "change": float(payload.get("usd_24h_change", 0) or 0),
+                    "marketCap": float(payload.get("usd_market_cap", 0) or 0),
+                },
+                ttl,
+            )
+    except Exception as exc:
+        logger.warning("CoinGecko batch quote failed: %s", exc)
+
+
+def _coingecko_read_cached(cg_id: str) -> dict:
+    cid = cg_id.strip().lower()
+    cached = cache.get(f"crypto_{cid}") or {}
+    return {
+        "price": float(cached.get("price", 0) or 0),
+        "change_pct": float(cached.get("change", 0) or 0),
+        "market_cap": float(cached.get("marketCap", 0) or 0),
+    }
+
+
+def _paper_trade_resolve_price(symbol: str, coingecko_id: str | None) -> tuple[float | None, str]:
+    """Return (usd_price, asset_type) using the same Yahoo / CoinGecko stack as Explorer."""
+    symbol_u = symbol.strip().upper()
+    sym_low = symbol_u.lower()
+
+    cid = None
+    if coingecko_id and coingecko_id.strip():
+        cid = coingecko_id.strip().lower()
+    elif sym_low in COINGECKO_ID_MAP:
+        cid = COINGECKO_ID_MAP[sym_low]
+
+    if cid:
+        _coingecko_bulk_fetch_and_cache([cid], force_refresh=True)
+        q = _coingecko_read_cached(cid)
+        price = float(q.get("price", 0) or 0)
+        if price > 0:
+            return price, "crypto"
+        logger.info(
+            "paper_trade_quote_miss",
+            extra={"symbol": symbol_u, "coingecko_id": cid},
+        )
+        return None, "crypto"
+
+    _yahoo_bulk_fetch_and_cache([symbol_u], force_refresh=True)
+    y = _yahoo_read_cached_quote_details(symbol_u)
+    px = float(y.get("price", 0) or 0)
+    if px > 0:
+        return px, "stock"
+    logger.info(
+        "paper_trade_quote_miss",
+        extra={"symbol": symbol_u, "path": "yahoo"},
+    )
+    return None, "stock"
 
 
 def _pick_category(title: str, description: str):
@@ -798,6 +1092,12 @@ class PaperTradeBuyView(APIView):
 
     def post(self, request):
         symbol = str(request.data.get("symbol", "")).upper().strip()
+        coingecko_body = (
+            request.data.get("coingecko_id")
+            or request.data.get("coingeckoId")
+            or request.data.get("cg_id")
+        )
+        cg_id_optional = str(coingecko_body).strip().lower() if coingecko_body else None
         try:
             amount_to_spend = Decimal(str(request.data.get("amount_to_spend", 0)))
         except InvalidOperation:
@@ -810,66 +1110,16 @@ class PaperTradeBuyView(APIView):
         if len(symbol) > 32:
             return Response({"error": "Symbol too long."}, status=400)
 
-        is_crypto = symbol.lower() in COINGECKO_ID_MAP
-        price = None
+        resolved_price, asset_kind = _paper_trade_resolve_price(symbol, cg_id_optional)
 
-        if is_crypto:
-            crypto_id = COINGECKO_ID_MAP.get(symbol.lower(), symbol.lower())
-            cache_key = f"crypto_{crypto_id}"
-            cached = cache.get(cache_key)
-            if cached:
-                price = float(cached.get("price", 0) or 0)
-            else:
-                try:
-                    result = request_with_backoff(
-                        method="GET",
-                        url="https://api.coingecko.com/api/v3/simple/price",
-                        params={
-                            "ids": crypto_id,
-                            "vs_currencies": "usd",
-                            "include_24hr_change": "true",
-                        },
-                        allow_retry=True,
-                        max_attempts=3,
-                    )
-                    payload = result.response.json().get(crypto_id)
-                    if payload:
-                        price = float(payload.get("usd", 0) or 0)
-                except Exception as exc:
-                    logger.error("PaperTrade crypto price fetch failed: %s", exc)
-        else:
-            api_key = settings.ALPHA_VANTAGE_API_KEY
-            if api_key:
-                cache_key = f"alpha_quote_{symbol}"
-                cached = cache.get(cache_key)
-                if cached:
-                    price = float(cached.get("price", 0) or 0)
-                else:
-                    try:
-                        result = request_with_backoff(
-                            method="GET",
-                            url="https://www.alphavantage.co/query",
-                            params={
-                                "function": "GLOBAL_QUOTE",
-                                "symbol": symbol,
-                                "apikey": api_key,
-                            },
-                            allow_retry=True,
-                            max_attempts=3,
-                        )
-                        quote = result.response.json().get("Global Quote", {})
-                        price_raw = quote.get("05. price")
-                        if price_raw is not None:
-                            price = float(price_raw)
-                    except Exception as exc:
-                        logger.error("PaperTrade stock price fetch failed: %s", exc)
-
-        if not price or price <= 0:
+        if not resolved_price or resolved_price <= 0:
             return Response({"error": "Could not fetch current price for symbol."}, status=502)
+
+        price = resolved_price
 
         price_decimal = Decimal(str(price))
         quantity = amount_to_spend / price_decimal
-        asset_type = "crypto" if is_crypto else "stock"
+        asset_type = "crypto" if asset_kind == "crypto" else "stock"
 
         with transaction.atomic():
             account, _ = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
@@ -937,6 +1187,9 @@ class AssetSearchView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        gate = _require_plus(request)
+        if gate:
+            return gate
         query = request.query_params.get("q", "").strip()
         if len(query) < 2:
             return Response([])
@@ -1007,106 +1260,120 @@ class MarketSearchView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        gate = _require_plus(request)
+        if gate:
+            return gate
         query = request.query_params.get("q", "").strip()
         asset_type = request.query_params.get("type", "stocks")
         if len(query) < 1:
             return Response({"results": []})
 
-        cache_key = f"market_search_v1_{asset_type}_{query.lower()}"
-        cached = cache.get(cache_key)
-        if cached:
-            return Response({"results": cached})
+        # Metadata only (symbols + names); prices are hydrated every request via shared quote layer.
+        cache_key_meta = f"market_search_meta_v2_{asset_type}_{query.lower()}"
+        cached_meta = cache.get(cache_key_meta)
 
-        results = []
+        meta_rows = None
+        if cached_meta:
+            meta_rows = list(cached_meta)
 
-        if asset_type in ("stocks", "forex"):
-            try:
-                yh = requests.get(
-                    "https://query2.finance.yahoo.com/v1/finance/search",
-                    params={"q": query, "quotesCount": 8, "newsCount": 0},
-                    headers={"User-Agent": "Mozilla/5.0"},
-                    timeout=3,
-                )
-                if yh.status_code == 200:
-                    for q in yh.json().get("quotes", []):
-                        qt = q.get("quoteType", "")
-                        if asset_type == "forex" and qt != "CURRENCY":
-                            continue
-                        if asset_type == "stocks" and qt not in ("EQUITY", "ETF", "MUTUALFUND"):
-                            continue
-                        ticker = q.get("symbol", "")
-                        results.append(
-                            {
-                                "ticker": ticker,
-                                "name": q.get("shortname") or q.get("longname") or ticker,
-                                "price": 0,
-                                "change_pct": 0,
-                            }
-                        )
-                else:
-                    logger.warning(
-                        "Yahoo Market search returned %s for query: %s", yh.status_code, query
+        if meta_rows is None:
+            meta_rows = []
+
+            if asset_type in ("stocks", "forex"):
+                try:
+                    yh = requests.get(
+                        "https://query2.finance.yahoo.com/v1/finance/search",
+                        params={"q": query, "quotesCount": 8, "newsCount": 0},
+                        headers={"User-Agent": "Mozilla/5.0"},
+                        timeout=4,
                     )
-            except Exception as exc:
-                logger.error("Yahoo Market search failed for '%s': %s", query, exc)
-
-        if asset_type == "crypto":
-            try:
-                cg = requests.get(
-                    "https://api.coingecko.com/api/v3/search",
-                    params={"query": query},
-                    timeout=3,
-                )
-                if cg.status_code == 200:
-                    for coin in cg.json().get("coins", [])[:8]:
-                        symbol = (coin.get("symbol") or "").upper()
-                        results.append(
-                            {
-                                "ticker": symbol,
-                                "name": coin.get("name", ""),
-                                "price": 0,
-                                "change_pct": 0,
-                            }
-                        )
-                elif cg.status_code == 429:
-                    logger.warning("CoinGecko rate limit hit for market search query: %s", query)
-                else:
-                    logger.warning(
-                        "CoinGecko market search returned %s for query: %s", cg.status_code, query
-                    )
-            except Exception as exc:
-                logger.error("CoinGecko market search failed for '%s': %s", query, exc)
-
-        # Enrich stock/forex results with live prices from Yahoo Finance
-        if results and asset_type in ("stocks", "forex"):
-            stock_symbols = [r["ticker"] for r in results if r.get("ticker")]
-            try:
-                yf = requests.get(
-                    "https://query1.finance.yahoo.com/v7/finance/quote",
-                    params={
-                        "symbols": ",".join(stock_symbols),
-                        "fields": "regularMarketPrice,regularMarketChangePercent",
-                    },
-                    headers={"User-Agent": "Mozilla/5.0"},
-                    timeout=3,
-                )
-                if yf.status_code == 200:
-                    price_map = _yahoo_symbol_to_quote_rows(yf.json())
-                    for r in results:
-                        q = _yahoo_quote_row_for_ticker(price_map, r["ticker"])
-                        r["price"] = float(q.get("regularMarketPrice", 0) or 0)
-                        r["change_pct"] = float(q.get("regularMarketChangePercent", 0) or 0)
-                        # Cache for batch endpoint
-                        if r["price"]:
-                            cache.set(
-                                f"yf_quote_{r['ticker']}",
-                                {"price": r["price"], "change": r["change_pct"], "name": r["name"]},
-                                timeout=60,
+                    if yh.status_code == 200:
+                        for row in yh.json().get("quotes", []) or []:
+                            qt = row.get("quoteType", "")
+                            if asset_type == "forex" and qt != "CURRENCY":
+                                continue
+                            if asset_type == "stocks" and qt not in ("EQUITY", "ETF", "MUTUALFUND"):
+                                continue
+                            ticker = row.get("symbol", "")
+                            if not ticker:
+                                continue
+                            meta_rows.append(
+                                {
+                                    "ticker": ticker,
+                                    "name": row.get("shortname") or row.get("longname") or ticker,
+                                }
                             )
-            except Exception as exc:
-                logger.warning("MarketSearchView price enrichment failed: %s", exc)
+                    else:
+                        logger.warning(
+                            "Yahoo Market search returned %s for query: %s", yh.status_code, query
+                        )
+                except Exception as exc:
+                    logger.error("Yahoo Market search failed for '%s': %s", query, exc)
 
-        cache.set(cache_key, results, timeout=60)
+            if asset_type == "crypto":
+                try:
+                    cg = requests.get(
+                        "https://api.coingecko.com/api/v3/search",
+                        params={"query": query},
+                        timeout=4,
+                    )
+                    if cg.status_code == 200:
+                        for coin in (cg.json().get("coins", []) or [])[:8]:
+                            symbol = (coin.get("symbol") or "").upper()
+                            cg_id = (coin.get("id") or "").strip().lower()
+                            if not symbol or not cg_id:
+                                continue
+                            meta_rows.append(
+                                {
+                                    "ticker": symbol,
+                                    "name": coin.get("name", "") or symbol,
+                                    "coingecko_id": cg_id,
+                                }
+                            )
+                    elif cg.status_code == 429:
+                        logger.warning(
+                            "CoinGecko rate limit hit for market search query: %s", query
+                        )
+                    else:
+                        logger.warning(
+                            "CoinGecko market search returned %s for query: %s",
+                            cg.status_code,
+                            query,
+                        )
+                except Exception as exc:
+                    logger.error("CoinGecko market search failed for '%s': %s", query, exc)
+
+            cache.set(cache_key_meta, meta_rows, timeout=120)
+
+        results = [
+            {
+                "ticker": m.get("ticker", ""),
+                "name": m.get("name", ""),
+                **({"coingecko_id": m["coingecko_id"]} if m.get("coingecko_id") else {}),
+                "price": 0,
+                "change_pct": 0,
+            }
+            for m in meta_rows
+        ]
+
+        if results and asset_type in ("stocks", "forex"):
+            symbols = [r["ticker"] for r in results if r.get("ticker")]
+            _yahoo_bulk_fetch_and_cache(symbols, force_refresh=False)
+            for r in results:
+                y = _yahoo_read_cached_quote_details(r["ticker"])
+                r["price"] = y["price"]
+                r["change_pct"] = y["change_pct"]
+
+        if results and asset_type == "crypto":
+            ids = [r.get("coingecko_id") for r in results if r.get("coingecko_id")]
+            _coingecko_bulk_fetch_and_cache(ids, force_refresh=False)
+            for r in results:
+                cid = r.get("coingecko_id")
+                if cid:
+                    cq = _coingecko_read_cached(cid)
+                    r["price"] = cq["price"]
+                    r["change_pct"] = cq["change_pct"]
+
         return Response({"results": results})
 
 
@@ -1116,224 +1383,111 @@ class MarketQuoteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, ticker: str):
-        ticker = ticker.upper().strip()
-        ticker_lower = ticker.lower()
-        is_crypto = ticker_lower in COINGECKO_ID_MAP
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        ticker_u = ticker.upper().strip()
+        ticker_lower = ticker_u.lower()
+        qp_cg = request.query_params.get("coingecko_id") or request.query_params.get("cg_id")
+        coingecko_id_param = qp_cg.strip().lower() if qp_cg else None
+        force_refresh = _parse_truthy_query_param(request.query_params.get("force_refresh"))
 
-        if is_crypto:
-            crypto_id = COINGECKO_ID_MAP.get(ticker_lower, ticker_lower)
-            cache_key = f"crypto_{crypto_id}"
-            cached = cache.get(cache_key)
-            price = change_pct = market_cap = 0.0
-            if cached:
-                price = float(cached.get("price", 0) or 0)
-                change_pct = float(cached.get("change", 0) or 0)
-                market_cap = float(cached.get("marketCap", 0) or 0)
-            else:
-                try:
-                    result = request_with_backoff(
-                        method="GET",
-                        url="https://api.coingecko.com/api/v3/simple/price",
-                        params={
-                            "ids": crypto_id,
-                            "vs_currencies": "usd",
-                            "include_24hr_change": "true",
-                            "include_market_cap": "true",
-                        },
-                        allow_retry=True,
-                        max_attempts=3,
-                    )
-                    payload = result.response.json().get(crypto_id, {})
-                    price = float(payload.get("usd", 0) or 0)
-                    change_pct = float(payload.get("usd_24h_change", 0) or 0)
-                    market_cap = float(payload.get("usd_market_cap", 0) or 0)
-                    if price > 0:
-                        cache.set(
-                            cache_key,
-                            {"price": price, "change": change_pct, "marketCap": market_cap},
-                            timeout=60,
-                        )
-                except Exception as exc:
-                    logger.error("MarketQuoteView crypto fetch failed for %s: %s", ticker, exc)
+        use_crypto_path = bool(coingecko_id_param) or ticker_lower in COINGECKO_ID_MAP
+
+        if use_crypto_path:
+            cg_resolve = coingecko_id_param or COINGECKO_ID_MAP.get(ticker_lower, ticker_lower)
+            _coingecko_bulk_fetch_and_cache([cg_resolve], force_refresh=force_refresh)
+            cq = _coingecko_read_cached(cg_resolve)
+            market_cap = float(cq["market_cap"] or 0)
             return Response(
                 {
-                    "ticker": ticker,
-                    "name": ticker,
-                    "price": price,
-                    "change_pct": change_pct,
+                    "ticker": ticker_u,
+                    "name": ticker_u,
+                    "coingecko_id": cg_resolve,
+                    "price": cq["price"],
+                    "change_pct": cq["change_pct"],
                     "market_cap": market_cap if market_cap else None,
                 }
             )
 
-        # Stock / forex path — Yahoo Finance (no API key, generous rate limits)
-        cache_key = f"yf_quote_{ticker}"
-        cached = cache.get(cache_key)
-        price = change_pct = open_ = high = low = volume = market_cap = 0.0
-        name = ticker
-        if cached:
-            price = float(cached.get("price", 0) or 0)
-            change_pct = float(cached.get("change", 0) or 0)
-            open_ = float(cached.get("open", 0) or 0)
-            high = float(cached.get("high", 0) or 0)
-            low = float(cached.get("low", 0) or 0)
-            volume = float(cached.get("volume", 0) or 0)
-            market_cap = float(cached.get("market_cap", 0) or 0)
-            name = cached.get("name", ticker)
-        else:
-            try:
-                yf = requests.get(
-                    "https://query1.finance.yahoo.com/v7/finance/quote",
-                    params={
-                        "symbols": ticker,
-                        "fields": "shortName,regularMarketPrice,regularMarketChangePercent,regularMarketOpen,regularMarketDayHigh,regularMarketDayLow,regularMarketVolume,marketCap",
-                    },
-                    headers={"User-Agent": "Mozilla/5.0"},
-                    timeout=5,
-                )
-                q = (yf.json().get("quoteResponse", {}).get("result") or [{}])[0]
-                price = float(q.get("regularMarketPrice", 0) or 0)
-                change_pct = float(q.get("regularMarketChangePercent", 0) or 0)
-                open_ = float(q.get("regularMarketOpen", 0) or 0)
-                high = float(q.get("regularMarketDayHigh", 0) or 0)
-                low = float(q.get("regularMarketDayLow", 0) or 0)
-                volume = float(q.get("regularMarketVolume", 0) or 0)
-                market_cap = float(q.get("marketCap", 0) or 0)
-                name = q.get("shortName") or q.get("longName") or ticker
-                if price > 0:
-                    cache.set(
-                        cache_key,
-                        {
-                            "price": price,
-                            "change": change_pct,
-                            "open": open_,
-                            "high": high,
-                            "low": low,
-                            "volume": volume,
-                            "market_cap": market_cap,
-                            "name": name,
-                        },
-                        timeout=60,
-                    )
-            except Exception as exc:
-                logger.error("MarketQuoteView Yahoo Finance failed for %s: %s", ticker, exc)
-
+        _yahoo_bulk_fetch_and_cache([ticker_u], force_refresh=force_refresh)
+        y = _yahoo_read_cached_quote_details(ticker_u)
         return Response(
             {
-                "ticker": ticker,
-                "name": name,
-                "price": price,
-                "change_pct": change_pct,
-                "open": open_ or None,
-                "high": high or None,
-                "low": low or None,
-                "volume": int(volume) if volume else None,
-                "market_cap": int(market_cap) if market_cap else None,
+                "ticker": ticker_u,
+                "name": y["name"],
+                "price": y["price"],
+                "change_pct": y["change_pct"],
+                "open": y["open"] or None,
+                "high": y["high"] or None,
+                "low": y["low"] or None,
+                "volume": int(y["volume"]) if y["volume"] else None,
+                "market_cap": int(y["market_cap"]) if y["market_cap"] else None,
             }
         )
 
 
 class MarketBatchQuotesView(APIView):
-    """Return live price + change_pct for a list of tickers in one call.
+    """Return live price + change_pct for a list of tickers.
 
-    GET /api/market/quotes/?tickers=AAPL,BTC,EURUSD
-    Returns: [{"ticker": "AAPL", "price": 123.45, "change_pct": 0.5}, ...]
-    Crypto is batch-fetched from CoinGecko; stocks are served from cache when
-    available (Alpha Vantage free tier doesn't support batch requests).
+    GET /api/market/quotes/?tickers=AAPL,BTC,EURUSD&crypto_map=BTC:bitcoin,ADA:cardano
+    Optional: force_refresh=1 to bypass cache for the requested symbols / mapped ids.
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        gate = _require_plus(request)
+        if gate:
+            return gate
         raw = request.query_params.get("tickers", "")
-        tickers = [t.strip().upper() for t in raw.split(",") if t.strip()][:20]  # cap at 20
+        tickers = [t.strip().upper() for t in raw.split(",") if t.strip()][:20]
         if not tickers:
             return Response([], status=status.HTTP_200_OK)
 
-        results = {}
-        crypto_tickers = [t for t in tickers if t.lower() in COINGECKO_ID_MAP]
-        stock_tickers = [t for t in tickers if t.lower() not in COINGECKO_ID_MAP]
+        qp_map_raw = (
+            request.query_params.get("crypto_map") or request.query_params.get("cg_map") or ""
+        )
+        ticker_to_cgid = _parse_crypto_map_param(qp_map_raw)
+        force_refresh = _parse_truthy_query_param(request.query_params.get("force_refresh"))
 
-        # --- Stocks/forex: single Yahoo Finance batch call ---
-        if stock_tickers:
-            uncached = [t for t in stock_tickers if not cache.get(f"yf_quote_{t}")]
-            if uncached:
-                try:
-                    yf = requests.get(
-                        "https://query1.finance.yahoo.com/v7/finance/quote",
-                        params={
-                            "symbols": ",".join(uncached),
-                            "fields": "shortName,regularMarketPrice,regularMarketChangePercent",
-                        },
-                        headers={"User-Agent": "Mozilla/5.0"},
-                        timeout=5,
-                    )
-                    sym_rows = _yahoo_symbol_to_quote_rows(yf.json())
-                    for ticker in uncached:
-                        q = _yahoo_quote_row_for_ticker(sym_rows, ticker)
-                        if not q:
-                            continue
-                        t_sym = (q.get("symbol") or "").upper()
-                        price = float(q.get("regularMarketPrice", 0) or 0)
-                        change = float(q.get("regularMarketChangePercent", 0) or 0)
-                        name = q.get("shortName") or q.get("longName") or t_sym or ticker
-                        if price > 0:
-                            payload = {"price": price, "change": change, "name": name}
-                            cache.set(f"yf_quote_{ticker}", payload, timeout=60)
-                            if t_sym and t_sym != ticker:
-                                cache.set(f"yf_quote_{t_sym}", payload, timeout=60)
-                except Exception as exc:
-                    logger.warning("MarketBatchQuotesView Yahoo Finance failed: %s", exc)
+        yahoo_candidates: list[str] = []
+        crypto_pairs: dict[str, str] = {}
 
-            for ticker in stock_tickers:
-                cached = cache.get(f"yf_quote_{ticker}") or {}
-                results[ticker] = {
-                    "ticker": ticker,
-                    "price": float(cached.get("price", 0) or 0),
-                    "change_pct": float(cached.get("change", 0) or 0),
+        for t in tickers:
+            cid = ticker_to_cgid.get(t)
+            if not cid and t.lower() in COINGECKO_ID_MAP:
+                cid = COINGECKO_ID_MAP[t.lower()]
+            if cid:
+                crypto_pairs[t] = cid
+            else:
+                yahoo_candidates.append(t)
+
+        results: dict[str, dict] = {}
+
+        if yahoo_candidates:
+            _yahoo_bulk_fetch_and_cache(yahoo_candidates, force_refresh=force_refresh)
+            for yt in yahoo_candidates:
+                y = _yahoo_read_cached_quote_details(yt)
+                results[yt] = {
+                    "ticker": yt,
+                    "price": y["price"],
+                    "change_pct": y["change_pct"],
+                    "quote_source": "yahoo",
+                    "detail_name": y.get("name"),
                 }
 
-        # --- Crypto: batch fetch from CoinGecko ---
-        if crypto_tickers:
-            coingecko_ids = [COINGECKO_ID_MAP.get(t.lower(), t.lower()) for t in crypto_tickers]
-            id_to_ticker = {COINGECKO_ID_MAP.get(t.lower(), t.lower()): t for t in crypto_tickers}
-            missing_ids = [cid for cid in coingecko_ids if not cache.get(f"crypto_{cid}")]
-            if missing_ids:
-                try:
-                    result = request_with_backoff(
-                        method="GET",
-                        url="https://api.coingecko.com/api/v3/simple/price",
-                        params={
-                            "ids": ",".join(missing_ids),
-                            "vs_currencies": "usd",
-                            "include_24hr_change": "true",
-                            "include_market_cap": "true",
-                        },
-                        allow_retry=True,
-                        max_attempts=2,
-                    )
-                    data = result.response.json()
-                    for cid in missing_ids:
-                        payload = data.get(cid, {})
-                        px = float(payload.get("usd", 0) or 0)
-                        if px > 0:
-                            cache.set(
-                                f"crypto_{cid}",
-                                {
-                                    "price": px,
-                                    "change": float(payload.get("usd_24h_change", 0) or 0),
-                                    "marketCap": float(payload.get("usd_market_cap", 0) or 0),
-                                },
-                                timeout=60,
-                            )
-                except Exception as exc:
-                    logger.warning("MarketBatchQuotesView crypto batch fetch failed: %s", exc)
-
-            for cid, ticker in id_to_ticker.items():
-                cached = cache.get(f"crypto_{cid}") or {}
-                results[ticker] = {
-                    "ticker": ticker,
-                    "price": float(cached.get("price", 0) or 0),
-                    "change_pct": float(cached.get("change", 0) or 0),
+        if crypto_pairs:
+            ids = list(crypto_pairs.values())
+            _coingecko_bulk_fetch_and_cache(ids, force_refresh=force_refresh)
+            for sym, cid in crypto_pairs.items():
+                cq = _coingecko_read_cached(cid)
+                results[sym] = {
+                    "ticker": sym,
+                    "price": cq["price"],
+                    "change_pct": cq["change_pct"],
+                    "quote_source": "coingecko",
+                    "coingecko_id": cid,
                 }
 
         return Response(list(results.values()))
@@ -2937,9 +3091,59 @@ class FunnelMetricsView(APIView):
         )
 
 
+_PLUS_REQUIRED = {"error": "Requires Plus or Pro plan.", "reason": "upgrade"}
+
+
+def _require_plus(request):
+    """Return a 402 Response if user lacks plus/pro, else None."""
+    if not plan_allows(get_user_plan(request.user), "plus"):
+        return Response(_PLUS_REQUIRED, status=402)
+    return None
+
+
 class PortfolioViewSet(viewsets.ModelViewSet):
     serializer_class = PortfolioEntrySerializer
     permission_classes = [IsAuthenticated]
+
+    def dispatch(self, request, *args, **kwargs):
+        base = super().dispatch(request, *args, **kwargs)
+        return base
+
+    def list(self, request, *args, **kwargs):
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        gate = _require_plus(request)
+        if gate:
+            return gate
+        return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
         return PortfolioEntry.objects.filter(user=self.request.user)
@@ -2949,6 +3153,9 @@ class PortfolioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
+        gate = _require_plus(request)
+        if gate:
+            return gate
         portfolio = self.get_queryset()
         current_or_purchase = Case(
             When(current_price__isnull=False, then=F("current_price")),
