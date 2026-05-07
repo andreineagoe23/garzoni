@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -10,6 +11,33 @@ import requests
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_loose_trigger_map(raw: str) -> dict[str, str | int]:
+    """
+    Accept Railway-style loose map strings, e.g.
+    {password-reset:3,welcome:4,ai-nudge:20}
+    """
+    text = raw.strip()
+    if not (text.startswith("{") and text.endswith("}")):
+        return {}
+    inner = text[1:-1].strip()
+    if not inner:
+        return {}
+    out: dict[str, str | int] = {}
+    for part in inner.split(","):
+        if ":" not in part:
+            continue
+        key, value = part.split(":", 1)
+        k = key.strip().strip("'\"")
+        v = value.strip().strip("'\"")
+        if not k:
+            continue
+        if re.fullmatch(r"\d+", v):
+            out[k] = int(v)
+        elif v:
+            out[k] = v
+    return out
 
 
 def expand_transactional_message_data(data: dict[str, Any] | None) -> dict[str, Any]:
@@ -275,7 +303,7 @@ def send_transactional_email(
     identifiers must include one of id, email, or cio_id per Customer.io docs.
     """
     if not getattr(settings, "CIO_TRANSACTIONAL_ENABLED", False):
-        return True, "skipped (CIO_TRANSACTIONAL_ENABLED=false)"
+        return False, "skipped_transactional_disabled"
     bearer = _app_bearer()
     if not bearer:
         return False, "missing CIO_APP_API_KEY"
@@ -309,7 +337,7 @@ def send_transactional_push(
 ) -> tuple[bool, str | None]:
     """POST /v1/send/push — targets last_used device when template is push."""
     if not getattr(settings, "CIO_TRANSACTIONAL_ENABLED", False):
-        return True, "skipped (CIO_TRANSACTIONAL_ENABLED=false)"
+        return False, "skipped_transactional_disabled"
     bearer = _app_bearer()
     if not bearer:
         return False, "missing CIO_APP_API_KEY"
@@ -342,8 +370,10 @@ def load_transactional_map() -> dict[str, str | int]:
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        logger.warning("CIO_TRANSACTIONAL_TRIGGERS_JSON is not valid JSON")
-        return {}
+        data = _parse_loose_trigger_map(raw)
+        if not data:
+            logger.warning("CIO_TRANSACTIONAL_TRIGGERS_JSON is not valid JSON")
+            return {}
     out: dict[str, str | int] = {}
     for k, v in data.items():
         if isinstance(v, bool):

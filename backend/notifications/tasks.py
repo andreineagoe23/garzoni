@@ -192,6 +192,11 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
     push_token = getattr(getattr(user, "profile", None), "expo_push_token", None)
     if not push_token:
         return "skipped_no_token"
+    from notifications.policy import should_send_push
+
+    policy = should_send_push(user, "marketing")
+    if not policy.allowed:
+        return f"skipped_policy:{policy.reason}"
 
     try:
         from education.services.ai_tutor import generate_push_nudge
@@ -204,6 +209,7 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
         from notifications.enums import CioTemplate
 
         transactional = TransactionalMessages()
+        NotificationService().sync_user_profile(user)
         ok, err = transactional.send_push(
             CioTemplate.AI_NUDGE,
             user,
@@ -212,6 +218,9 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
         if ok:
             logger.info("ai_nudge_sent user=%s", user_pk)
             return "sent"
+        if err and err.startswith("skipped_"):
+            logger.info("ai_nudge_skipped user=%s reason=%s", user_pk, err)
+            return err
         logger.warning("ai_nudge_cio_failed user=%s err=%s", user_pk, err)
         return f"cio_failed:{err}"
     except Exception as exc:
@@ -235,6 +244,7 @@ def send_ai_nudges_batch() -> dict:
 
     users = User.objects.filter(
         profile__expo_push_token__isnull=False,
+        profile__expo_push_token__gt="",
         is_active=True,
     ).select_related("profile")[:500]
 

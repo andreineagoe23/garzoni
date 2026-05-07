@@ -133,6 +133,8 @@ The Vite config exposes **`VITE_*`** and **`REACT_APP_*`** to the browser bundle
 | `VITE_GOOGLE_OAUTH_CLIENT_ID` or `REACT_APP_GOOGLE_OAUTH_CLIENT_ID` | Web Google One Tap / button (same value as `GOOGLE_OAUTH_CLIENT_ID` on Railway) |
 | `VITE_RECAPTCHA_SITE_KEY` or `REACT_APP_RECAPTCHA_SITE_KEY`         | Must match backend `RECAPTCHA_SITE_KEY`                                         |
 | `VITE_SENTRY_DSN` or `REACT_APP_SENTRY_DSN`                         | Frontend Sentry DSN                                                             |
+| `VITE_CIO_SITE_ID`                                                   | Customer.io site id for web tracking hook                                       |
+| `VITE_CIO_REGION`                                                    | Optional (`eu` or `us`) for Customer.io web region routing                      |
 
 CKEditor: `REACT_APP_CKEDITOR_LICENSE_KEY_*` continue to work with the prefix above.
 
@@ -160,7 +162,7 @@ CKEditor: `REACT_APP_CKEDITOR_LICENSE_KEY_*` continue to work with the prefix ab
 | `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS`                                                                                                                    |
 | `EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID`                                                                                                                |
 | `EXPO_PUBLIC_SENTRY_DSN` (optional; mobile error reporting)                                                                                             |
-| `EXPO_PUBLIC_CIO_SITE_ID`, `EXPO_PUBLIC_CIO_API_KEY` (Customer.io React Native SDK)                                                                     |
+| `EXPO_PUBLIC_CIO_SITE_ID`, `EXPO_PUBLIC_CIO_CDP_API_KEY`, `EXPO_PUBLIC_CIO_REGION` (Customer.io React Native SDK)                                      |
 
 **Formatting:** no space after `=` in `.env` (e.g. `EXPO_PUBLIC_BACKEND_URL=https://…`, not `= https://…`). Use **`https://`** for production Railway/Vercel, not `http://`.
 
