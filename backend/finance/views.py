@@ -1,7 +1,7 @@
 # finance/views.py
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from authentication.entitlements import get_user_plan, plan_allows
+from authentication.entitlements import plan_allows
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
