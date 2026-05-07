@@ -291,7 +291,8 @@ export function rcGetActivePlan(ci: CustomerInfo): "pro" | "plus" | "starter" {
   // don't match (e.g. RC dashboard maps pro product to wrong entitlement).
   let best: "starter" | "plus" | "pro" = "starter";
   for (const productId of ci.activeSubscriptions) {
-    const p = PRODUCT_TO_PLAN[productId] ?? planFromStoreProductIdentifier(productId);
+    const p =
+      PRODUCT_TO_PLAN[productId] ?? planFromStoreProductIdentifier(productId);
     if (p === "pro") return "pro";
     if (p === "plus") best = "plus";
   }

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { useRef, useState } from "react";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { i18n, normalizeLanguage } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../theme/tokens";
@@ -8,13 +8,28 @@ import { LanguagePickerSheet } from "./LanguagePickerSheet";
 export function HeaderLanguageButton() {
   const c = useThemeColors();
   const [open, setOpen] = useState(false);
+  const [anchorTop, setAnchorTop] = useState<number | undefined>(undefined);
+  const [anchorRight, setAnchorRight] = useState<number | undefined>(undefined);
+  const buttonRef = useRef<View>(null);
 
   const langCode = normalizeLanguage(i18n.language).toUpperCase().slice(0, 2);
+
+  const openPicker = () => {
+    requestAnimationFrame(() => {
+      buttonRef.current?.measureInWindow((x, y, width, height) => {
+        const screenW = Dimensions.get("window").width;
+        setAnchorTop(y + height + 35);
+        setAnchorRight(Math.max(8, screenW - (x + width)));
+        setOpen(true);
+      });
+    });
+  };
 
   return (
     <>
       <Pressable
-        onPress={() => setOpen(true)}
+        ref={buttonRef}
+        onPress={openPicker}
         accessibilityRole="button"
         accessibilityLabel="Change language"
         style={[
@@ -24,7 +39,12 @@ export function HeaderLanguageButton() {
       >
         <Text style={[styles.label, { color: c.text }]}>{langCode}</Text>
       </Pressable>
-      <LanguagePickerSheet visible={open} onClose={() => setOpen(false)} />
+      <LanguagePickerSheet
+        visible={open}
+        onClose={() => setOpen(false)}
+        anchorTop={anchorTop}
+        anchorRight={anchorRight}
+      />
     </>
   );
 }

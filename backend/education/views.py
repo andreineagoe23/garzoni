@@ -1024,6 +1024,14 @@ def _extract_section_skill(section: LessonSection) -> str:
     if lesson_category:
         return str(lesson_category)
 
+    # Use the path title (e.g. "Basic Finance") — maps directly to exercise categories.
+    try:
+        path_title = section.lesson.course.path.title
+        if path_title:
+            return str(path_title).strip()
+    except Exception:
+        pass
+
     if section.title:
         return str(section.title).strip()
     return str(section.lesson.title).strip() or "General"
@@ -1034,7 +1042,7 @@ def _grant_initial_mastery(user, skill: str, baseline: int = 12):
     baseline = max(1, min(100, int(baseline)))
     if mastery.proficiency < baseline:
         mastery.proficiency = baseline
-        mastery.due_at = timezone.now()
+        mastery.due_at = timezone.now() + timedelta(days=1)
         mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
     return mastery
 
@@ -2202,14 +2210,16 @@ class PersonalizedPathView(APIView):
 
     def _skills_to_reinforce(self, user):
         items = []
-        for mastery in Mastery.objects.filter(user=user, due_at__lte=timezone.now()).order_by(
-            "due_at"
-        )[:6]:
+        for mastery in Mastery.objects.filter(
+            user=user, due_at__lte=timezone.now(), proficiency__gte=20
+        ).order_by("due_at")[:6]:
             items.append(
                 {
                     "skill": mastery.skill,
                     "proficiency": mastery.proficiency,
                     "due_at": mastery.due_at.isoformat() if mastery.due_at else None,
+                    "level_band": _mastery_level_band(mastery.proficiency),
+                    "level_label": _mastery_level_label(mastery.proficiency),
                 }
             )
         return items

@@ -293,7 +293,7 @@ export function AddEntrySheet({
     } finally {
       setSubmitting(false);
     }
-  }, [form, onAdded, onClose]);
+  }, [form, isPaperTrade, onAdded, onClose, onFirstTrade]);
 
   const currentAssetLabel =
     ASSET_TYPES.find((t) => t.value === form.asset_type)?.label ?? "Stock";

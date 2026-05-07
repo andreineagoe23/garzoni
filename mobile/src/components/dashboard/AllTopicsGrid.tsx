@@ -48,6 +48,7 @@ type PathRow = {
 };
 
 type CourseInPath = NonNullable<PathRow["courses"]>[number];
+const LEARNING_PATHS_STALE_MS = 60_000;
 
 function coverForPath(p: PathRow): string {
   if (p.image) {
@@ -80,7 +81,7 @@ export default function AllTopicsGrid() {
     enabled: hydrated,
     queryFn: () =>
       fetchLearningPaths().then((r) => unwrapApiList<PathRow>(r.data)),
-    staleTime: staleTimes.content,
+    staleTime: LEARNING_PATHS_STALE_MS,
   });
 
   const paths = useMemo((): PathRow[] => q.data ?? [], [q.data]);
@@ -107,7 +108,7 @@ export default function AllTopicsGrid() {
       fetchLearningPathCourses(expandedPathId!).then((r) =>
         unwrapApiList<CourseInPath>(r.data),
       ),
-    staleTime: staleTimes.content,
+    staleTime: LEARNING_PATHS_STALE_MS,
   });
 
   const expandedCoursesMerged = useMemo((): CourseInPath[] => {

@@ -490,9 +490,10 @@ export default function ChatScreen() {
 
   const showQuickReplies = messages.length <= 1 && !busy;
 
-  // KAV sits below the Stack header, so no top offset needed.
-  // On Android use height mode to avoid double-shifting.
-  const keyboardOffset = 0;
+  // Header is visible on this screen; account for it so the composer is never covered.
+  // 44 is native iOS nav bar height; add safe-area top inset for notch devices.
+  const keyboardOffset =
+    Platform.OS === "ios" ? Math.max(44, insets.top + 44) : 0;
 
   return (
     <>
@@ -528,32 +529,28 @@ export default function ChatScreen() {
               },
             }),
             headerRight: () => (
-            <Pressable
-              onPress={() => router.push("/voice-chat" as any)}
-              accessibilityLabel="Voice tutor"
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={({ pressed }) => ({
-                padding: 4,
-                justifyContent: "center",
-                alignItems: "center",
-                opacity: pressed ? 0.6 : 1,
-              })}
-            >
-              <View
-                style={
-                  Platform.OS === "ios"
-                    ? { transform: [{ translateX: 1.5 }] }
-                    : undefined
-                }
+              <Pressable
+                onPress={() => router.push("/voice-chat" as any)}
+                accessibilityLabel="Voice tutor"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={({ pressed }) => ({
+                  padding: 4,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  opacity: pressed ? 0.6 : 1,
+                })}
               >
-                <Ionicons
-                  name="mic-outline"
-                  size={22}
-                  color={colors.text}
-                />
-              </View>
-            </Pressable>
-          ),
+                <View
+                  style={
+                    Platform.OS === "ios"
+                      ? { transform: [{ translateX: 1.5 }] }
+                      : undefined
+                  }
+                >
+                  <Ionicons name="mic-outline" size={22} color={colors.text} />
+                </View>
+              </Pressable>
+            ),
           } as React.ComponentProps<typeof Stack.Screen>["options"] & {
             headerRightContainerStyle?: object;
           }
@@ -561,11 +558,12 @@ export default function ChatScreen() {
       />
       <KeyboardAvoidingView
         style={[styles.flex, { backgroundColor: D.bg }]}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={keyboardOffset}
       >
         <ScrollView
           ref={scrollRef}
+          style={styles.flex}
           contentContainerStyle={styles.scroll}
           onContentSizeChange={() =>
             scrollRef.current?.scrollToEnd({ animated: true })

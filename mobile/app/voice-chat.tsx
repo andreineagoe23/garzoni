@@ -154,7 +154,10 @@ export default function VoiceChat() {
 
   const startRecording = async () => {
     if (!Audio) {
-      Alert.alert("Not available", "Voice requires a development build with expo-av.");
+      Alert.alert(
+        "Not available",
+        "Voice requires a development build with expo-av.",
+      );
       return;
     }
     try {

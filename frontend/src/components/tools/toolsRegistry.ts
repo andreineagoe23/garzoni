@@ -44,6 +44,7 @@ export const toolsRegistry: ToolDefinition[] = [
     component: PortfolioAnalyzer,
     learnPath: "/all-topics?topic=investing",
     exportable: true,
+    requiredPlan: "plus_or_pro",
     cardImage: "tools/portfolio_analyzer.png",
     keywords: ["stocks", "allocation", "diversification", "returns"],
     activityStorageKey: "garzoni:tools:activity:portfolio",

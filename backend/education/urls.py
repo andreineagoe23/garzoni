@@ -41,6 +41,7 @@ urlpatterns = [
         name="exercise-progress-batch",
     ),
     path("exercises/reset/", reset_exercise, name="reset-exercise"),
+    path("exercises/explain/", ExerciseExplainView.as_view(), name="exercise-explain"),
     path("", include(router.urls)),
     path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
     path(
@@ -51,7 +52,6 @@ urlpatterns = [
     path("review-queue/", review_queue, name="review-queue"),
     path("mastery-summary/", mastery_summary, name="mastery-summary"),
     path("next/", next_exercise, name="next-exercise"),
-    path("exercises/explain/", ExerciseExplainView.as_view(), name="exercise-explain"),
     path("coach-brief/", CoachBriefView.as_view(), name="coach-brief"),
     path(
         "progress/complete/",

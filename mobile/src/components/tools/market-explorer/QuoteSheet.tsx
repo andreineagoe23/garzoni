@@ -93,7 +93,11 @@ export function QuoteSheet({
       <Animated.View
         style={[
           styles.sheet,
-          { backgroundColor: c.surface, transform: [{ translateY }], paddingBottom: insets.bottom },
+          {
+            backgroundColor: c.surface,
+            transform: [{ translateY }],
+            paddingBottom: insets.bottom,
+          },
         ]}
       >
         <TouchableOpacity
@@ -151,22 +155,46 @@ export function QuoteSheet({
               </View>
 
               {/* Stats grid */}
-              {(quote.open != null || quote.high != null || quote.low != null || quote.volume != null || quote.market_cap != null) && (
+              {(quote.open != null ||
+                quote.high != null ||
+                quote.low != null ||
+                quote.volume != null ||
+                quote.market_cap != null) && (
                 <View style={[styles.statsGrid, { borderTopColor: c.border }]}>
                   {quote.open != null && (
-                    <QuoteStat label="Open" value={formatPrice(quote.open)} colors={c} />
+                    <QuoteStat
+                      label="Open"
+                      value={formatPrice(quote.open)}
+                      colors={c}
+                    />
                   )}
                   {quote.high != null && (
-                    <QuoteStat label="High" value={formatPrice(quote.high)} colors={c} />
+                    <QuoteStat
+                      label="High"
+                      value={formatPrice(quote.high)}
+                      colors={c}
+                    />
                   )}
                   {quote.low != null && (
-                    <QuoteStat label="Low" value={formatPrice(quote.low)} colors={c} />
+                    <QuoteStat
+                      label="Low"
+                      value={formatPrice(quote.low)}
+                      colors={c}
+                    />
                   )}
                   {quote.volume != null && (
-                    <QuoteStat label="Volume" value={formatLargeNumber(quote.volume)} colors={c} />
+                    <QuoteStat
+                      label="Volume"
+                      value={formatLargeNumber(quote.volume)}
+                      colors={c}
+                    />
                   )}
                   {quote.market_cap != null && (
-                    <QuoteStat label="Mkt Cap" value={formatLargeNumber(quote.market_cap)} colors={c} />
+                    <QuoteStat
+                      label="Mkt Cap"
+                      value={formatLargeNumber(quote.market_cap)}
+                      colors={c}
+                    />
                   )}
                 </View>
               )}
@@ -191,7 +219,11 @@ export function QuoteSheet({
                   <TextInput
                     style={[
                       styles.buyInput,
-                      { color: c.text, borderColor: c.border, backgroundColor: c.bg },
+                      {
+                        color: c.text,
+                        borderColor: c.border,
+                        backgroundColor: c.bg,
+                      },
                     ]}
                     value={buyAmount}
                     onChangeText={setBuyAmount}
@@ -203,20 +235,38 @@ export function QuoteSheet({
                   />
                   <View style={styles.buyActions}>
                     <TouchableOpacity
-                      onPress={() => { setBuyMode(false); setBuyAmount("500"); }}
-                      style={[styles.buyActionBtn, { borderColor: c.border, borderWidth: 1 }]}
+                      onPress={() => {
+                        setBuyMode(false);
+                        setBuyAmount("500");
+                      }}
+                      style={[
+                        styles.buyActionBtn,
+                        { borderColor: c.border, borderWidth: 1 },
+                      ]}
                     >
-                      <Text style={[styles.buyActionText, { color: c.textMuted }]}>Cancel</Text>
+                      <Text
+                        style={[styles.buyActionText, { color: c.textMuted }]}
+                      >
+                        Cancel
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => void handleConfirmBuy()}
                       disabled={buyLoading || !Number(buyAmount)}
-                      style={[styles.buyActionBtn, { backgroundColor: c.primary, opacity: buyLoading ? 0.7 : 1 }]}
+                      style={[
+                        styles.buyActionBtn,
+                        {
+                          backgroundColor: c.primary,
+                          opacity: buyLoading ? 0.7 : 1,
+                        },
+                      ]}
                     >
                       {buyLoading ? (
                         <ActivityIndicator color="#fff" size="small" />
                       ) : (
-                        <Text style={[styles.buyActionText, { color: "#fff" }]}>Confirm Buy</Text>
+                        <Text style={[styles.buyActionText, { color: "#fff" }]}>
+                          Confirm Buy
+                        </Text>
                       )}
                     </TouchableOpacity>
                   </View>
@@ -245,7 +295,9 @@ function QuoteStat({
 }) {
   return (
     <View style={statStyles.item}>
-      <Text style={[statStyles.label, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[statStyles.label, { color: colors.textMuted }]}>
+        {label}
+      </Text>
       <Text style={[statStyles.value, { color: colors.text }]}>{value}</Text>
     </View>
   );
@@ -253,7 +305,11 @@ function QuoteStat({
 
 const statStyles = StyleSheet.create({
   item: { gap: spacing.xs, minWidth: "45%" },
-  label: { fontSize: typography.xs, textTransform: "uppercase", letterSpacing: 0.3 },
+  label: {
+    fontSize: typography.xs,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
   value: { fontSize: typography.base, fontWeight: "700" },
 });
 
@@ -273,7 +329,12 @@ const styles = StyleSheet.create({
   handleArea: { alignItems: "center", paddingVertical: spacing.md },
   handle: { width: 36, height: 4, borderRadius: 2 },
   content: { padding: spacing.xl, gap: spacing.xl },
-  loadingRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xl },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.xl,
+  },
   loadingText: { fontSize: typography.sm },
   warnBanner: {
     borderWidth: 1,
@@ -282,7 +343,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   warnText: { fontSize: typography.sm, lineHeight: 20 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
   ticker: { fontSize: typography.xl, fontWeight: "800" },
   name: { fontSize: typography.sm, marginTop: spacing.xs },
   priceGroup: { alignItems: "flex-end", gap: spacing.xs },
@@ -308,7 +373,12 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   buyFormTitle: { fontSize: typography.base, fontWeight: "700" },
-  buyFormLabel: { fontSize: typography.xs, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 },
+  buyFormLabel: {
+    fontSize: typography.xs,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   buyInput: {
     borderWidth: 1,
     borderRadius: radius.md,
@@ -317,6 +387,11 @@ const styles = StyleSheet.create({
     fontSize: typography.base,
   },
   buyActions: { flexDirection: "row", gap: spacing.sm },
-  buyActionBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: "center" },
+  buyActionBtn: {
+    flex: 1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm + 2,
+    alignItems: "center",
+  },
   buyActionText: { fontSize: typography.sm, fontWeight: "700" },
 });

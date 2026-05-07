@@ -1,6 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { i18n, normalizeLanguage, SUPPORTED_LANGUAGES } from "@garzoni/core";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../theme/tokens";
 import GlassCard from "../ui/GlassCard";
@@ -8,10 +9,18 @@ import GlassCard from "../ui/GlassCard";
 type Props = {
   visible: boolean;
   onClose: () => void;
+  anchorTop?: number;
+  anchorRight?: number;
 };
 
-export function LanguagePickerSheet({ visible, onClose }: Props) {
+export function LanguagePickerSheet({
+  visible,
+  onClose,
+  anchorTop,
+  anchorRight,
+}: Props) {
   const c = useThemeColors();
+  const insets = useSafeAreaInsets();
   const activeLang = normalizeLanguage(i18n.language);
 
   const availableLanguages = SUPPORTED_LANGUAGES.filter(
@@ -25,15 +34,22 @@ export function LanguagePickerSheet({ visible, onClose }: Props) {
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
+      presentationStyle="overFullScreen"
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          style={styles.sheetWrap}
+          style={[
+            styles.sheetWrap,
+            {
+              top: anchorTop ?? insets.top + 44,
+              right: anchorRight ?? spacing.md,
+            },
+          ]}
         >
           <GlassCard padding="none" style={styles.sheet}>
             <Text style={[styles.title, { color: c.textMuted }]}>Language</Text>
-            <View style={styles.grid}>
+            <View style={styles.stack}>
               {availableLanguages.map((lng) => {
                 const active = activeLang === lng.code;
                 return (
@@ -82,15 +98,21 @@ export function LanguagePickerSheet({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
+    backgroundColor: "transparent",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
   },
   sheetWrap: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxxl,
+    position: "absolute",
+    right: spacing.md,
+    zIndex: 1000,
+    elevation: 1000,
   },
   sheet: {
-    paddingBottom: spacing.lg,
+    minWidth: 164,
+    borderRadius: radius.lg,
+    zIndex: 1001,
+    elevation: 1001,
   },
   title: {
     fontSize: typography.xs,
@@ -101,11 +123,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+  stack: {
+    gap: spacing.xs,
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   langItem: {
     flexDirection: "row",
@@ -115,7 +136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    minWidth: 100,
+    minWidth: 120,
   },
   langLabel: {
     fontSize: typography.sm,

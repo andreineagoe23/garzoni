@@ -9,12 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import Svg, {
-  Circle,
-  Defs,
-  RadialGradient,
-  Stop,
-} from "react-native-svg";
+import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { fetchProfile, fetchQuestionnaireProgress } from "@garzoni/core";

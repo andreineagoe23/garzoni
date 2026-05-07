@@ -450,12 +450,7 @@ function DashboardInner() {
     if (onboardingRedirectedRef.current) return;
     onboardingRedirectedRef.current = true;
     router.replace(href("/onboarding"));
-  }, [
-    authReady,
-    accessToken,
-    hasPlusAccess,
-    questionnaireProgress?.status,
-  ]);
+  }, [authReady, accessToken, hasPlusAccess, questionnaireProgress?.status]);
 
   const STREAK_STORAGE_KEY = "garzoni:last_known_streak";
   useEffect(() => {
@@ -599,7 +594,10 @@ function DashboardInner() {
   );
 
   const isMainLoading =
-    !authReady || (authReady && Boolean(accessToken) && (progressQuery.isPending || profileQuery.isPending));
+    !authReady ||
+    (authReady &&
+      Boolean(accessToken) &&
+      (progressQuery.isPending || profileQuery.isPending));
 
   useEffect(() => {
     if (!isMainLoading) {

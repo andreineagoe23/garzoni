@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Skeleton } from "../ui";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -17,6 +25,7 @@ import {
   type UserProfile,
 } from "@garzoni/core";
 import { href } from "../../navigation/href";
+import { navigateToExercisesFromDashboardSkill } from "../../hooks/useDashboardSkillExercisesNavigation";
 import { useAuthSession } from "../../auth/AuthContext";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
@@ -216,12 +225,12 @@ export default function PersonalizedPathContentMobile({
     (questionnaireCompleted && personalizedQuery.isPending)
   ) {
     return (
-      <GlassCard padding="lg" style={{ gap: spacing.md }}>
-        <View style={[styles.skel, { backgroundColor: c.border }]} />
-        <View
-          style={[styles.skel, { height: 100, backgroundColor: c.border }]}
-        />
-      </GlassCard>
+      <View style={{ gap: spacing.md }}>
+        <Skeleton width="100%" height={200} borderRadius={radius.lg} />
+        <Skeleton width="100%" height={110} borderRadius={radius.lg} />
+        <Skeleton width="100%" height={110} borderRadius={radius.lg} />
+        <Skeleton width="100%" height={110} borderRadius={radius.lg} />
+      </View>
     );
   }
 
@@ -519,36 +528,116 @@ export default function PersonalizedPathContentMobile({
       <Text style={[styles.sectionH, { color: c.text }]}>
         {t("personalizedPath.skillsToReinforce")}
       </Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: spacing.sm }}
-      >
-        {reviewQueue.length === 0 ? (
-          <GlassCard padding="sm">
-            <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
-              {t("personalizedPath.noSkillsDue")}
-            </Text>
-          </GlassCard>
-        ) : (
-          reviewQueue.map((item, idx) => (
-            <GlassCard
-              key={`${item.skill || "s"}-${idx}`}
-              padding="sm"
-              style={{ minWidth: 160 }}
-            >
-              <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                {item.skill}
-              </Text>
-              <Text style={[styles.courseTitle, { color: c.text }]}>
-                {t("personalizedPath.skillScore", {
-                  value: item.proficiency ?? 0,
+      {reviewQueue.length === 0 ? (
+        <Text style={{ color: c.textMuted, fontSize: typography.xs }}>
+          {t("personalizedPath.noSkillsDue")}
+        </Text>
+      ) : (
+        <View
+          style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+        >
+          {reviewQueue.map((item, idx) => {
+            const pct = item.proficiency ?? 0;
+            const band = item.level_band ?? "beginner";
+            const label = item.level_label ?? "Beginner";
+            const dueAt = item.due_at ? new Date(item.due_at) : null;
+            const now = new Date();
+            const daysUntil = dueAt
+              ? Math.ceil((dueAt.getTime() - now.getTime()) / 86400000)
+              : 0;
+            const dueLabel =
+              !dueAt || dueAt <= now
+                ? "Due now"
+                : daysUntil === 1
+                  ? "Due tomorrow"
+                  : `Due in ${daysUntil}d`;
+
+            const bandColor: Record<string, string> = {
+              beginner: c.textMuted,
+              building: c.accent,
+              confident: "#3b82f6",
+              pro: c.primary,
+            };
+            const bandBg: Record<string, string> = {
+              beginner: "rgba(100,116,139,0.15)",
+              building: "rgba(255,215,0,0.15)",
+              confident: "rgba(59,130,246,0.15)",
+              pro: `${c.primary}22`,
+            };
+
+            return (
+              <Pressable
+                key={`${item.skill || "s"}-${idx}`}
+                onPress={() =>
+                  navigateToExercisesFromDashboardSkill(
+                    item.skill ?? "",
+                    "weak_skill_practice",
+                  )
+                }
+                style={({ pressed }) => ({
+                  opacity: pressed ? 0.8 : 1,
+                  width: "48%",
+                  backgroundColor: c.surface,
+                  borderRadius: radius.lg,
+                  padding: spacing.md,
+                  gap: spacing.sm,
                 })}
-              </Text>
-            </GlassCard>
-          ))
-        )}
-      </ScrollView>
+              >
+                {/* Ring + % */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <CircularProgressRing
+                    value={Math.max(0.12, pct / 100)}
+                    size={44}
+                    strokeWidth={5}
+                    activeColor={bandColor[band] ?? c.primary}
+                  />
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 3,
+                      borderRadius: 999,
+                      backgroundColor: bandBg[band] ?? "transparent",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: "700",
+                        color: bandColor[band] ?? c.text,
+                      }}
+                    >
+                      {label}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Skill name */}
+                <Text
+                  style={{
+                    fontSize: typography.sm,
+                    fontWeight: "700",
+                    color: c.text,
+                  }}
+                  numberOfLines={2}
+                >
+                  {item.skill}
+                </Text>
+
+                {/* Due */}
+                <Text style={{ fontSize: 10, color: c.textMuted }}>
+                  {dueLabel}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {isPreview && personalizedQuery.data?.upgrade_prompt ? (
         <GlassCard padding="md" style={{ alignItems: "center" }}>

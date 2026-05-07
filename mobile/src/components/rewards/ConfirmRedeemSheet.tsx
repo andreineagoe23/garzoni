@@ -1,11 +1,4 @@
-import {
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { getMediaBaseUrl } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";

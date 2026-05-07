@@ -13,7 +13,7 @@ export function HeaderChatButton() {
       onPress={() => router.push(href("/chat"))}
       accessibilityRole="button"
       accessibilityLabel="Open AI tutor"
-      style={{ marginRight: 16, padding: 4 }}
+      style={{ padding: 4 }}
     >
       <Ionicons
         name={navIcons.chat as keyof typeof Ionicons.glyphMap}

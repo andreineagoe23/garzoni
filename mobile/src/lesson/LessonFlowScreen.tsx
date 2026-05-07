@@ -26,7 +26,9 @@ import {
   type MascotType,
 } from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
+import { Ionicons } from "@expo/vector-icons";
 import { Button, ErrorState, HeartBar, ProgressBar } from "../components/ui";
+import { HeaderChatButton } from "../components/navigation/HeaderChatButton";
 import MascotWithMessage from "../components/common/MascotWithMessage";
 import TextSection from "../components/lesson/TextSection";
 import VideoSection from "../components/lesson/VideoSection";
@@ -41,7 +43,6 @@ import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
 import type { ThemeColors } from "../theme/palettes";
 import { useTranslation } from "react-i18next";
-import { HeaderChatButton } from "../components/navigation/HeaderChatButton";
 
 const LESSON_FONT_SCALE_KEY = "garzoni:lesson_font_scale";
 
@@ -101,30 +102,26 @@ export function createLessonFlowStyles(c: ThemeColors) {
     bottomBar: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
       gap: spacing.sm,
       paddingHorizontal: spacing.md,
       paddingTop: spacing.md,
-      backgroundColor: c.surface,
+      backgroundColor: c.bg,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: c.border,
     },
     bottomBarBack: {
-      flexShrink: 0,
-      maxWidth: "32%",
+      flex: 1,
+      paddingVertical: 16,
+      borderRadius: 999,
+      backgroundColor: c.surface,
+      alignItems: "center",
+      justifyContent: "center",
     },
     bottomBarBackText: {
-      fontSize: typography.sm,
+      fontSize: typography.base,
       fontWeight: "700",
       color: c.text,
     },
-    midNav: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-    midLink: {
-      fontSize: typography.xs,
-      fontWeight: "600",
-      color: c.accent,
-    },
-    midSep: { color: c.textFaint, fontSize: typography.sm },
     contentHeader: {
       marginBottom: spacing.lg,
     },
@@ -153,15 +150,15 @@ export function createLessonFlowStyles(c: ThemeColors) {
       marginTop: spacing.sm,
     },
     continueBtn: {
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.md,
+      flex: 1,
+      paddingVertical: 16,
+      borderRadius: 999,
       backgroundColor: c.primary,
-      minWidth: 96,
       alignItems: "center",
+      justifyContent: "center",
     },
     continueBtnText: {
-      fontSize: typography.sm,
+      fontSize: typography.base,
       fontWeight: "700",
       color: c.textOnPrimary,
     },
@@ -440,6 +437,10 @@ export default function LessonFlowScreen({
       void queryClient.invalidateQueries({
         queryKey: queryKeys.recentActivity(),
       });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.learningPaths(),
+      });
+      void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
       setTimeout(() => confettiRef.current?.start(), 400);
     }
   }, [courseComplete, queryClient]);
@@ -652,25 +653,73 @@ export default function LessonFlowScreen({
       <View
         style={{
           flexDirection: "row",
-          justifyContent: "space-between",
           alignItems: "center",
           paddingHorizontal: spacing.md,
           paddingTop: spacing.xs,
+          paddingBottom: spacing.xs,
           opacity: immersive ? 0 : 1,
         }}
       >
-        <HeaderChatButton />
-        <View style={{ flexDirection: "row", gap: spacing.sm }}>
+        {/* Left: exit lesson → back (preserves caller's view state) */}
+        <Pressable
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(tabs)/learn");
+            }
+          }}
+          hitSlop={8}
+          style={{ width: 36, alignItems: "flex-start" }}
+        >
+          <Ionicons name="chevron-back" size={22} color={themeColors.text} />
+        </Pressable>
+
+        {/* Center: Aa | Focus */}
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <Pressable onPress={() => setReadingSettingsOpen(true)} hitSlop={8}>
-            <Text style={{ color: themeColors.accent, fontWeight: "800" }}>
+            <Text
+              style={{
+                color: themeColors.accent,
+                fontWeight: "800",
+                fontSize: typography.base,
+              }}
+            >
               Aa
             </Text>
           </Pressable>
+          <Text
+            style={{
+              color: themeColors.border,
+              fontSize: typography.base,
+              marginHorizontal: spacing.sm,
+            }}
+          >
+            |
+          </Text>
           <Pressable onPress={() => setImmersive((v) => !v)} hitSlop={8}>
-            <Text style={{ color: themeColors.textMuted, fontWeight: "700" }}>
-              {immersive ? "UI" : "Focus"}
+            <Text
+              style={{
+                color: immersive ? themeColors.accent : themeColors.textMuted,
+                fontWeight: "600",
+                fontSize: typography.base,
+              }}
+            >
+              Focus
             </Text>
           </Pressable>
+        </View>
+
+        {/* Right: AI tutor */}
+        <View style={{ width: 36, alignItems: "flex-end" }}>
+          <HeaderChatButton />
         </View>
       </View>
 
@@ -702,33 +751,42 @@ export default function LessonFlowScreen({
               {stepHeading}
             </Text>
           ) : null}
-          <Text style={[styles.stepFoot, { marginBottom: spacing.xs }]}>
-            Reading {Math.round(stepPosition * 100)}%
-          </Text>
-          <ProgressBar
-            value={stepPosition}
-            height={5}
-            style={{ marginTop: spacing.xs }}
-          />
-          <ProgressBar
-            value={progress}
-            height={4}
-            style={{ marginTop: spacing.sm }}
-          />
-          {showHeartsUi ? (
-            <View style={styles.heartsRow}>
+          {/* Progress bar + percentage */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+              marginTop: spacing.sm,
+            }}
+          >
+            <ProgressBar value={progress} height={5} style={{ flex: 1 }} />
+            <Text style={styles.stepFoot}>{Math.round(progress * 100)}%</Text>
+          </View>
+
+          {/* Hearts + section count */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: spacing.sm,
+            }}
+          >
+            {showHeartsUi ? (
               <HeartBar
                 hearts={hearts}
                 maxHearts={maxHearts}
                 countdownLabel={heartCountdown}
               />
-            </View>
-          ) : null}
-          <Text style={styles.stepFoot}>
-            {t("shared.progress")}{" "}
-            {Math.min(currentIndex + 1, Math.max(totalSteps, 1))} /{" "}
-            {Math.max(totalSteps, 1)}
-          </Text>
+            ) : (
+              <View />
+            )}
+            <Text style={styles.stepFoot}>
+              {Math.min(currentIndex + 1, Math.max(totalSteps, 1))} /{" "}
+              {Math.max(totalSteps, 1)} sections
+            </Text>
+          </View>
         </View>
 
         {currentItem ? (
@@ -796,20 +854,10 @@ export default function LessonFlowScreen({
           }}
           style={styles.bottomBarBack}
         >
-          <Text style={styles.bottomBarBackText} numberOfLines={2}>
+          <Text style={styles.bottomBarBackText} numberOfLines={1}>
             {isFirst ? t("courses.flow.backToDashboard") : t("shared.back")}
           </Text>
         </Pressable>
-
-        <View style={[styles.midNav, { flex: 1, justifyContent: "center" }]}>
-          <Pressable onPress={() => router.replace("/(tabs)")}>
-            <Text style={styles.midLink}>{t("nav.dashboard")}</Text>
-          </Pressable>
-          <Text style={styles.midSep}>|</Text>
-          <Pressable onPress={() => router.replace("/(tabs)/learn")}>
-            <Text style={styles.midLink}>{t("nav.learn")}</Text>
-          </Pressable>
-        </View>
 
         <Pressable
           onPress={() => void handleContinuePress()}

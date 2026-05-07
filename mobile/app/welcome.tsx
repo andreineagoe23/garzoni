@@ -463,7 +463,7 @@ function SlidePlans() {
 }
 
 // ─── Cloudinary wordmark (logo on slide 1 only) ─────────────────────────────
-function WelcomeLogo() {
+function WelcomeLogo({ large = false }: { large?: boolean }) {
   const uri = authLogoWhiteRectangularUrl({ width: 560 });
   const [failed, setFailed] = useState(false);
   if (!uri || failed) {
@@ -484,7 +484,10 @@ function WelcomeLogo() {
     <Image
       accessibilityLabel="Garzoni"
       source={{ uri }}
-      style={{ width: 180, height: 44 }}
+      style={{
+        width: large ? 220 : 180,
+        height: large ? 56 : 44,
+      }}
       resizeMode="contain"
       onError={() => setFailed(true)}
     />
@@ -555,9 +558,7 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={s.topBar}>
-        <View style={{ opacity: idx === 0 ? 1 : 0 }}>
-          <WelcomeLogo />
-        </View>
+        <WelcomeLogo large />
         <Pressable onPress={() => void markSeenAndGo("/login")} hitSlop={10}>
           <Text style={s.skip}>Skip</Text>
         </Pressable>
@@ -576,15 +577,14 @@ export default function WelcomeScreen() {
         renderItem={({ item }) => (
           <View style={[s.slide, { width }]}>
             <View style={s.heroSlot}>{renderHero(item.id)}</View>
+            <View style={s.copyBlock}>
+              <Text style={s.eyebrow}>{item.eyebrow.toUpperCase()}</Text>
+              <Text style={s.headline}>{item.headline}</Text>
+              <Text style={s.sub}>{item.sub}</Text>
+            </View>
           </View>
         )}
       />
-
-      <View style={s.copyBlock}>
-        <Text style={s.eyebrow}>{slide.eyebrow.toUpperCase()}</Text>
-        <Text style={s.headline}>{slide.headline}</Text>
-        <Text style={s.sub}>{slide.sub}</Text>
-      </View>
 
       <View style={s.dots}>
         {SLIDES.map((_, i) => {
@@ -651,9 +651,9 @@ const s = StyleSheet.create({
     right: -60,
   },
   topBar: {
-    paddingTop: 12,
+    paddingTop: 8,
     paddingHorizontal: 24,
-    paddingBottom: 8,
+    paddingBottom: 6,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -666,7 +666,7 @@ const s = StyleSheet.create({
     padding: 6,
   },
 
-  slide: { paddingTop: 16, alignItems: "center" },
+  slide: { paddingTop: 8, alignItems: "center" },
   heroSlot: {
     width: "100%",
     minHeight: 320,
@@ -675,7 +675,7 @@ const s = StyleSheet.create({
     alignItems: "center",
   },
 
-  copyBlock: { paddingHorizontal: 28, paddingTop: 18 },
+  copyBlock: { paddingHorizontal: 28, paddingTop: 10, width: "100%" },
   eyebrow: {
     fontSize: 11,
     letterSpacing: 2,
