@@ -3,9 +3,7 @@ import { Redirect } from "expo-router";
 import {
   Animated,
   Dimensions,
-  Image,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,7 +16,6 @@ import {
   setPlanChosenCache,
 } from "../src/auth/firstRunFlags";
 import { brand } from "../src/theme/brand";
-import { spacing } from "../src/theme/tokens";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 
 const { width: SW } = Dimensions.get("window");
@@ -36,19 +33,6 @@ type OnboardingStatus = "pending" | "done" | "needs_onboarding";
 type WelcomeStatus = "pending" | "seen" | "unseen";
 type PlanStatus = "pending" | "chosen" | "not_chosen";
 
-const LOCAL_LOGO = require("../assets/garzoni-logo.png");
-
-function SplashLogo() {
-  return (
-    <Image
-      accessibilityLabel="Garzoni"
-      accessibilityRole="image"
-      source={LOCAL_LOGO}
-      style={styles.logoImage}
-      resizeMode="contain"
-    />
-  );
-}
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
@@ -57,11 +41,9 @@ export default function Index() {
     useState<OnboardingStatus>("pending");
   const [planStatus, setPlanStatus] = useState<PlanStatus>("pending");
 
-  const [showSpinner, setShowSpinner] = useState(false);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Fade in on mount so the transition from native splash isn't a hard cut
+  // Fade in on mount so transition from native splash isn't a hard cut
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -69,32 +51,6 @@ export default function Index() {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
-
-  // Pulse the logo gently while loading
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.04,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulseAnim]);
-
-  // Delay spinner so fast loads feel instant
-  useEffect(() => {
-    const id = setTimeout(() => setShowSpinner(true), 400);
-    return () => clearTimeout(id);
-  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -181,17 +137,9 @@ export default function Index() {
           </Svg>
         </View>
 
-        {/* Logo centered with pulse */}
+        {/* Spinner centered */}
         <View style={styles.center}>
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <SplashLogo />
-          </Animated.View>
-
-          <View style={styles.spinnerSlot}>
-            {showSpinner && (
-              <LoadingSpinner size="sm" color="rgba(229,231,235,0.45)" />
-            )}
-          </View>
+          <LoadingSpinner size="md" color="rgba(229,231,235,0.55)" />
         </View>
 
         {/* Subtle gold glow bottom */}
@@ -255,22 +203,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  logoImage: {
-    height: 52,
-    width: SW * 0.55,
-    maxWidth: 280,
-  },
-  logoFallback: {
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-    color: brand.text,
-  },
-  spinnerSlot: {
-    height: 32,
-    marginTop: spacing.xxl,
-    justifyContent: "center",
-    alignItems: "center",
   },
 });
