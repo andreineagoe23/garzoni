@@ -119,7 +119,6 @@ function ThemedRoot() {
             <Stack.Screen name="rewards" options={{ headerShown: false }} />
             <Stack.Screen name="settings" options={{ headerShown: false }} />
             <Stack.Screen name="support" options={{ headerShown: false }} />
-            <Stack.Screen name="referral" options={{ headerShown: false }} />
             <Stack.Screen
               name="personalized-path"
               options={{ headerShown: false }}

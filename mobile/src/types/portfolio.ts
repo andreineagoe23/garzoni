@@ -9,6 +9,8 @@ export type PortfolioEntry = {
   current_value?: number;
   gain_loss?: number;
   gain_loss_percentage?: number;
+  /** Present on paper-trade rows from the API. */
+  is_paper_trade?: boolean;
 };
 
 export type PortfolioSummary = {
@@ -128,7 +130,39 @@ export const COINGECKO_ID_MAP: Record<string, string> = {
   ada: "cardano",
   doge: "dogecoin",
   bnb: "binancecoin",
+  matic: "matic-network",
+  link: "chainlink",
+  dot: "polkadot",
+  avax: "avalanche-2",
+  ltc: "litecoin",
+  uni: "uniswap",
+  atom: "cosmos",
+  near: "near",
+  etc: "ethereum-classic",
+  xlm: "stellar",
+  apt: "aptos",
+  arb: "arbitrum",
+  op: "optimism",
+  cro: "crypto-com-chain",
 };
+
+/** Map a user-typed symbol to CoinGecko id when we don't have `coingecko_id` from search. */
+export function inferCoingeckoIdFromSymbol(rawSymbol: string): string | null {
+  const symbol = rawSymbol.trim().toLowerCase();
+  if (!symbol) return null;
+  const mapped = COINGECKO_ID_MAP[symbol];
+  if (mapped) return mapped;
+  const normalized = symbol.replace("/", "-");
+  if (normalized.endsWith("-usd")) {
+    const base = normalized.slice(0, -4);
+    return COINGECKO_ID_MAP[base] ?? null;
+  }
+  if (normalized.endsWith("usd") && normalized.length > 3) {
+    const base = normalized.slice(0, -3);
+    return COINGECKO_ID_MAP[base] ?? null;
+  }
+  return null;
+}
 
 export function inferAssetType(symbol: string): "stock" | "crypto" {
   const s = (symbol || "").trim().toLowerCase();

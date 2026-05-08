@@ -8,7 +8,6 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -17,9 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { href } from "../../src/navigation/href";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  clearExpoPushToken,
   deleteAccount,
   fetchBadges,
   fetchEntitlements,
@@ -45,7 +42,6 @@ import {
   Skeleton,
 } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
-import { registerForPushAndSubmitToken } from "../../src/bootstrap/pushNotificationsMobile";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { navIcons } from "../../src/theme/navIcons";
 import { Ionicons } from "@expo/vector-icons";
@@ -57,8 +53,6 @@ import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { formatRelativeTime } from "../../src/utils/formatRelativeTime";
 import AnimatedStatValue from "../../src/components/profile/AnimatedStatValue";
 
-const SHOW_HEARTS_KEY = "garzoni:show_hearts_ui";
-const PROFILE_TAGLINE_KEY = "garzoni:profile_tagline";
 
 type BadgeRow = {
   badge: BadgeCatalogItem;
@@ -66,26 +60,53 @@ type BadgeRow = {
   earned_at: string | null;
 };
 
+/**
+ * Map a recent-activity entry to the in-app route it should open, when one exists.
+ * Returns null for entries that aren't navigable (generic rewards, streak milestones, …).
+ */
+function getActivityHref(activity: RecentActivityItem): string | null {
+  const lessonId = activity.lesson_id;
+  const courseId = activity.course_id;
+  switch (activity.type) {
+    case "lesson":
+      if (typeof lessonId === "number" && lessonId > 0) {
+        return courseId
+          ? `/lesson/${lessonId}?courseId=${courseId}`
+          : `/lesson/${lessonId}`;
+      }
+      return null;
+    case "course":
+      return typeof courseId === "number" && courseId > 0
+        ? `/course/${courseId}`
+        : null;
+    case "quiz":
+      return typeof courseId === "number" && courseId > 0
+        ? `/quiz/${courseId}`
+        : null;
+    case "mission":
+      return "/missions";
+    case "exercise":
+      return "/(tabs)/exercises";
+    default:
+      return null;
+  }
+}
+
 function ProfileInner() {
   const colors = useThemeColors();
   const { t, i18n } = useTranslation("common");
   const { clearSession, accessToken } = useAuthSession();
-  const [showHeartsUi, setShowHeartsUi] = useState(true);
-  const [pushEnabled, setPushEnabled] = useState(false);
-  const [pushBusy, setPushBusy] = useState(false);
   const [showAllActivity, setShowAllActivity] = useState(false);
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeFilter, setBadgeFilter] = useState<"all" | "earned" | "locked">(
     "all",
   );
-  const [tagline, setTagline] = useState("");
   const [deleteFlow, setDeleteFlow] = useState<"hidden" | "warning" | "phrase">(
     "hidden",
   );
   const [deletePhrase, setDeletePhrase] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
-  const [taglineHydrated, setTaglineHydrated] = useState(false);
 
   const enabled = Boolean(accessToken);
 
@@ -132,41 +153,6 @@ function ProfileInner() {
     enabled,
   });
 
-  useEffect(() => {
-    void AsyncStorage.getItem(SHOW_HEARTS_KEY).then((v) => {
-      if (v === "0") setShowHeartsUi(false);
-    });
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-    void AsyncStorage.getItem(PROFILE_TAGLINE_KEY)
-      .then((saved) => {
-        if (!alive) return;
-        if (typeof saved === "string") setTagline(saved);
-      })
-      .finally(() => {
-        if (alive) setTaglineHydrated(true);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!taglineHydrated) return;
-    const handle = setTimeout(() => {
-      if (!taglineHydrated) return;
-      void AsyncStorage.setItem(PROFILE_TAGLINE_KEY, tagline.trim());
-    }, 300);
-    return () => clearTimeout(handle);
-  }, [tagline, taglineHydrated]);
-
-  const persistShowHearts = useCallback(async (next: boolean) => {
-    setShowHeartsUi(next);
-    await AsyncStorage.setItem(SHOW_HEARTS_KEY, next ? "1" : "0");
-  }, []);
-
   const signOut = useCallback(async () => {
     await clearSession();
     router.replace(href("/welcome"));
@@ -210,34 +196,6 @@ function ProfileInner() {
     }
   }, [clearSession, closeDeleteFlow, t]);
 
-  const onPushToggle = useCallback(
-    async (next: boolean) => {
-      setPushBusy(true);
-      if (next) {
-        const r = await registerForPushAndSubmitToken();
-        setPushEnabled(r.ok);
-        if (!r.ok) {
-          Alert.alert(t("profile.notificationsTitle"), r.message);
-        }
-      } else {
-        try {
-          await clearExpoPushToken();
-          setPushEnabled(false);
-        } catch {
-          Alert.alert(
-            t("profile.notificationsTitle"),
-            t("profile.pushDisableError", {
-              defaultValue:
-                "Could not disable notifications. Please try again.",
-            }),
-          );
-        }
-      }
-      setPushBusy(false);
-    },
-    [t],
-  );
-
   const merged = useMemo(() => {
     const p = profileQuery.data;
     if (!p) return null;
@@ -247,11 +205,6 @@ function ProfileInner() {
     }
     return p;
   }, [profileQuery.data]);
-
-  useEffect(() => {
-    const token = merged?.expo_push_token;
-    setPushEnabled(typeof token === "string" && token.trim().length > 0);
-  }, [merged?.expo_push_token]);
 
   const entitlementUsage = useMemo(() => {
     const features = entitlementsQuery.data?.features || {};
@@ -497,22 +450,6 @@ function ProfileInner() {
               <Text style={[styles.email, { color: colors.textMuted }]}>
                 {email}
               </Text>
-              <TextInput
-                value={tagline}
-                onChangeText={setTagline}
-                placeholder="Short bio (saved on this device)"
-                placeholderTextColor={colors.textFaint}
-                multiline
-                maxLength={160}
-                style={[
-                  styles.taglineInput,
-                  {
-                    color: colors.text,
-                    borderColor: colors.border,
-                    backgroundColor: colors.surfaceOffset,
-                  },
-                ]}
-              />
             </View>
           </View>
 
@@ -729,32 +666,86 @@ function ProfileInner() {
             <>
               {activityVisible.map(
                 (activity: RecentActivityItem, idx: number) => {
-                  const title = String(activity.title || activity.name || "");
+                  const fallback = String(
+                    activity.title || activity.name || "",
+                  );
+                  // Prefer translated ledger label when present; fall back to
+                  // server-provided English title (lesson titles, etc.).
+                  const title = activity.label_key
+                    ? t(activity.label_key, { defaultValue: fallback })
+                    : fallback;
                   const ts = activity.timestamp
                     ? formatRelativeTime(activity.timestamp, i18n.language)
                     : "";
+                  const target = getActivityHref(activity);
+                  const meta = `${activity.action ?? ""}${ts ? ` · ${ts}` : ""}${
+                    activity.course ? ` · ${activity.course}` : ""
+                  }`.trim();
+
+                  const cardInner = (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.sm,
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{ color: colors.text, fontWeight: "600" }}
+                        >
+                          {title}
+                        </Text>
+                        {meta ? (
+                          <Text
+                            style={{
+                              color: colors.textMuted,
+                              fontSize: typography.xs,
+                              marginTop: 4,
+                            }}
+                          >
+                            {meta}
+                          </Text>
+                        ) : null}
+                      </View>
+                      {target ? (
+                        <Ionicons
+                          name="chevron-forward"
+                          size={18}
+                          color={colors.textMuted}
+                        />
+                      ) : null}
+                    </View>
+                  );
+
+                  const cardStyle = {
+                    marginBottom: spacing.sm,
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  };
+
+                  if (target) {
+                    return (
+                      <Pressable
+                        key={`${activity.type}-${activity.timestamp}-${idx}`}
+                        onPress={() => router.push(href(target))}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${title}${meta ? `, ${meta}` : ""}`}
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.7 : 1,
+                        })}
+                      >
+                        <Card style={cardStyle}>{cardInner}</Card>
+                      </Pressable>
+                    );
+                  }
+
                   return (
                     <Card
                       key={`${activity.type}-${activity.timestamp}-${idx}`}
-                      style={{
-                        marginBottom: spacing.sm,
-                        backgroundColor: colors.surface,
-                        borderColor: colors.border,
-                      }}
+                      style={cardStyle}
                     >
-                      <Text style={{ color: colors.text, fontWeight: "600" }}>
-                        {title}
-                      </Text>
-                      <Text
-                        style={{
-                          color: colors.textMuted,
-                          fontSize: typography.xs,
-                          marginTop: 4,
-                        }}
-                      >
-                        {activity.action} {ts ? `· ${ts}` : ""}
-                        {activity.course ? ` · ${activity.course}` : ""}
-                      </Text>
+                      {cardInner}
                     </Card>
                   );
                 },
@@ -776,37 +767,6 @@ function ProfileInner() {
               ) : null}
             </>
           )}
-
-          {merged.referral_code ? (
-            <Card
-              style={{
-                marginBottom: spacing.lg,
-                backgroundColor: colors.surfaceOffset,
-              }}
-            >
-              <Text style={[styles.subheading, { color: colors.textMuted }]}>
-                {t("profile.referral.title")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: typography.lg,
-                  fontWeight: "800",
-                  color: colors.accent,
-                }}
-              >
-                {String(merged.referral_code)}
-              </Text>
-              <Text
-                style={{
-                  color: colors.textMuted,
-                  fontSize: typography.xs,
-                  marginTop: spacing.xs,
-                }}
-              >
-                {t("profile.referral.subtitle")}
-              </Text>
-            </Card>
-          ) : null}
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             {t("profile.menuSection")}
@@ -860,12 +820,6 @@ function ProfileInner() {
               colors={colors}
             />
             <MenuRow
-              icon="gift-outline"
-              label="Refer a Friend"
-              onPress={() => router.push(href("/referral"))}
-              colors={colors}
-            />
-            <MenuRow
               icon={navIcons.chat}
               label={t("chatbot.title")}
               onPress={() => router.push(href("/chat"))}
@@ -875,30 +829,6 @@ function ProfileInner() {
               icon={navIcons.legal}
               label={t("footer.termsConditions")}
               onPress={() => router.push(href("/legal/terms"))}
-              colors={colors}
-            />
-          </Card>
-
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t("profile.quickTogglesSection")}
-          </Text>
-          <Card
-            style={{
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-            }}
-          >
-            <RowSwitch
-              label={t("profile.heartsUi")}
-              value={showHeartsUi}
-              onValueChange={(v) => void persistShowHearts(v)}
-              colors={colors}
-            />
-            <RowSwitch
-              label={t("profile.pushNotifications")}
-              value={pushEnabled}
-              disabled={pushBusy}
-              onValueChange={(v) => void onPushToggle(v)}
               colors={colors}
             />
           </Card>
@@ -1204,31 +1134,6 @@ function InfoRow({
   );
 }
 
-function RowSwitch({
-  label,
-  value,
-  onValueChange,
-  disabled,
-  colors,
-}: {
-  label: string;
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-  disabled?: boolean;
-  colors: ThemeColors;
-}) {
-  return (
-    <View style={styles.switchRow}>
-      <Text style={[styles.switchLabel, { color: colors.text }]}>{label}</Text>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        disabled={disabled}
-        trackColor={{ true: colors.primary, false: colors.border }}
-      />
-    </View>
-  );
-}
 
 function MenuRow({
   icon,
@@ -1303,17 +1208,6 @@ const styles = StyleSheet.create({
   email: {
     fontSize: typography.sm,
     marginTop: 2,
-  },
-  taglineInput: {
-    marginTop: spacing.sm,
-    minHeight: 40,
-    maxHeight: 88,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    fontSize: typography.sm,
-    textAlignVertical: "top",
   },
   actionRow: {
     flexDirection: "row",

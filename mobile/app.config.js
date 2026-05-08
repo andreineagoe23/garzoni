@@ -98,7 +98,6 @@ module.exports = ({ config }) => ({
   },
   android: {
     ...config.android,
-    ...(allowInsecureLocalHttp ? { usesCleartextTraffic: true } : {}),
   },
   extra: {
     ...(config.extra ?? {}),
@@ -146,6 +145,13 @@ module.exports = ({ config }) => ({
           deploymentTarget: "15.1",
           privacyManifestAggregationEnabled: true,
         },
+        ...(allowInsecureLocalHttp
+          ? {
+              android: {
+                usesCleartextTraffic: true,
+              },
+            }
+          : {}),
       },
     ],
   ],

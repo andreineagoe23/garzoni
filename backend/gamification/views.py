@@ -451,6 +451,7 @@ class RecentActivityView(APIView):
                     "type": "quiz",
                     "action": "completed",
                     "title": qc.quiz.title,
+                    "course_id": qc.quiz.course_id,
                     "timestamp": qc.completed_at,
                 }
             )
@@ -482,6 +483,7 @@ class RecentActivityView(APIView):
                     "type": "course",
                     "action": "completed",
                     "title": cc.course.title,
+                    "course_id": cc.course_id,
                     "timestamp": cc.course_completed_at,
                 }
             )

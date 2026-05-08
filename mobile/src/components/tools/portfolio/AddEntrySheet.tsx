@@ -22,13 +22,20 @@ import {
   ASSET_TYPES,
   inferAssetType,
   formatCurrency,
+  inferCoingeckoIdFromSymbol,
 } from "../../../types/portfolio";
 import type { NewEntryForm } from "../../../types/portfolio";
 import { apiClient } from "@garzoni/core";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  fetchMarketQuoteFresh,
+  getMarketQuoteQueryOptions,
+} from "../../../hooks/useMarketQuote";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SNAP_PARTIAL = SCREEN_HEIGHT * 0.75;
 const SNAP_FULL = SCREEN_HEIGHT * 0.95;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 type Props = {
   visible: boolean;
@@ -46,6 +53,23 @@ const EMPTY_FORM: NewEntryForm = {
   purchase_date: new Date().toISOString().split("T")[0],
 };
 
+function isValidIsoDate(raw: string): boolean {
+  if (!ISO_DATE_RE.test(raw)) return false;
+  const [y, m, d] = raw.split("-").map((p) => Number(p));
+  const parsed = new Date(Date.UTC(y, m - 1, d));
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.getUTCFullYear() === y &&
+    parsed.getUTCMonth() === m - 1 &&
+    parsed.getUTCDate() === d
+  );
+}
+
+function isFutureIsoDate(raw: string): boolean {
+  const today = new Date().toISOString().split("T")[0];
+  return raw > today;
+}
+
 export function AddEntrySheet({
   visible,
   onClose,
@@ -54,6 +78,7 @@ export function AddEntrySheet({
   onFirstTrade,
 }: Props) {
   const c = useThemeColors();
+  const queryClient = useQueryClient();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   const [form, setForm] = useState<NewEntryForm>(EMPTY_FORM);
@@ -64,8 +89,11 @@ export function AddEntrySheet({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [symbolQuery, setSymbolQuery] = useState("");
   const [symbolResults, setSymbolResults] = useState<
-    { symbol: string; name: string; type: string }[]
+    { symbol: string; name: string; type: string; coingecko_id?: string }[]
   >([]);
+  const [selectedCoingeckoId, setSelectedCoingeckoId] = useState<string | null>(
+    null,
+  );
   const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
   const symbolDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestSymbolQueryRef = useRef("");
@@ -106,6 +134,7 @@ export function AddEntrySheet({
     setForm((prev) => ({ ...prev, symbol: value }));
     setLookupPrice(null);
     setLookupError(null);
+    setSelectedCoingeckoId(null);
     latestSymbolQueryRef.current = value.trim();
 
     if (symbolDebounceRef.current) clearTimeout(symbolDebounceRef.current);
@@ -138,11 +167,17 @@ export function AddEntrySheet({
   }, []);
 
   const handleSelectAsset = useCallback(
-    async (asset: { symbol: string; name: string; type: string }) => {
+    async (asset: {
+      symbol: string;
+      name: string;
+      type: string;
+      coingecko_id?: string;
+    }) => {
       Keyboard.dismiss();
       setSymbolQuery(asset.symbol);
       setSymbolResults([]);
       latestSymbolQueryRef.current = asset.symbol;
+      setSelectedCoingeckoId(asset.coingecko_id || null);
       setForm((prev) => ({
         ...prev,
         symbol: asset.symbol,
@@ -153,26 +188,31 @@ export function AddEntrySheet({
       setLookupLoading(true);
       setLookupError(null);
       try {
-        const isCrypto = asset.type === "crypto";
-        const res = isCrypto
-          ? await (apiClient as any).get("/crypto-price/", {
-              params: { id: asset.symbol.toLowerCase() },
-            })
-          : await (apiClient as any).get("/stock-price/", {
-              params: { symbol: asset.symbol },
-            });
-        const price = res.data?.price ?? null;
-        if (price != null) {
-          setLookupPrice(price);
-          setForm((prev) => ({ ...prev, purchase_price: String(price) }));
+        const data = await queryClient.fetchQuery({
+          ...getMarketQuoteQueryOptions({
+            ticker: asset.symbol,
+            coingeckoId: asset.coingecko_id,
+          }),
+        });
+        const price = data?.price ?? null;
+        if (price != null && Number(price) > 0) {
+          setLookupPrice(Number(price));
+          // Keep user-entered buy price intact for historical P&L basis.
+          setForm((prev) =>
+            prev.purchase_price.trim()
+              ? prev
+              : { ...prev, purchase_price: String(price) },
+          );
+        } else {
+          setLookupError("Price not found for that symbol");
         }
       } catch {
-        // non-critical
+        setLookupError("Could not fetch price");
       } finally {
         setLookupLoading(false);
       }
     },
-    [],
+    [queryClient],
   );
 
   const handleAssetTypePicker = useCallback(() => {
@@ -205,57 +245,92 @@ export function AddEntrySheet({
 
     try {
       const assetType = form.asset_type || inferAssetType(symbol);
-      if (assetType === "crypto") {
-        const normalized = symbol.trim().toLowerCase();
-        const COINGECKO: Record<string, string> = {
-          btc: "bitcoin",
-          bitcoin: "bitcoin",
-          eth: "ethereum",
-          ethereum: "ethereum",
-          sol: "solana",
-          solana: "solana",
-          xrp: "ripple",
-          ada: "cardano",
-          doge: "dogecoin",
-          bnb: "binancecoin",
-        };
-        const id = COINGECKO[normalized] || normalized;
-        const res = await (apiClient as any).get("/crypto-price/", {
-          params: { id },
-        });
-        const price = res.data?.price ?? null;
-        if (price != null) {
-          setLookupPrice(price);
-          setForm((prev) => ({
-            ...prev,
-            purchase_price: String(price),
-            asset_type: "crypto",
-          }));
-        } else {
-          setLookupError("Price not found for that symbol");
+      const inferredCryptoId =
+        assetType === "crypto"
+          ? selectedCoingeckoId || inferCoingeckoIdFromSymbol(symbol)
+          : null;
+
+      const data = await queryClient.fetchQuery({
+        ...getMarketQuoteQueryOptions({
+          ticker: symbol.toUpperCase(),
+          coingeckoId: inferredCryptoId,
+        }),
+      });
+      const price = data?.price ?? null;
+      if (price != null && Number(price) > 0) {
+        setLookupPrice(Number(price));
+        setForm((prev) => ({
+          ...prev,
+          purchase_price: prev.purchase_price.trim()
+            ? prev.purchase_price
+            : String(price),
+          asset_type: inferredCryptoId ? "crypto" : prev.asset_type,
+        }));
+        if (inferredCryptoId) {
+          setSelectedCoingeckoId(inferredCryptoId);
         }
       } else {
-        const res = await (apiClient as any).get("/stock-price/", {
-          params: { symbol: symbol.toUpperCase() },
-        });
-        const price = res.data?.price ?? null;
-        if (price != null) {
-          setLookupPrice(price);
-          setForm((prev) => ({ ...prev, purchase_price: String(price) }));
-        } else {
-          setLookupError("Price not found for that symbol");
-        }
+        setLookupError("Price not found for that symbol");
       }
     } catch {
       setLookupError("Could not fetch price");
     } finally {
       setLookupLoading(false);
     }
-  }, [form.symbol, form.asset_type]);
+  }, [form.symbol, form.asset_type, selectedCoingeckoId, queryClient]);
+
+  const handleLookupPriceFresh = useCallback(async () => {
+    const symbol = form.symbol.trim();
+    if (!symbol) {
+      setLookupError("Enter a symbol first");
+      return;
+    }
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupPrice(null);
+    try {
+      const assetType = form.asset_type || inferAssetType(symbol);
+      const inferredCryptoId =
+        assetType === "crypto"
+          ? selectedCoingeckoId || inferCoingeckoIdFromSymbol(symbol)
+          : null;
+      const data = await fetchMarketQuoteFresh(queryClient, {
+        ticker: symbol.toUpperCase(),
+        coingeckoId: inferredCryptoId,
+      });
+      const price = data?.price ?? null;
+      if (price != null && Number(price) > 0) {
+        setLookupPrice(Number(price));
+        setForm((prev) => ({
+          ...prev,
+          purchase_price: prev.purchase_price.trim()
+            ? prev.purchase_price
+            : String(price),
+          asset_type: inferredCryptoId ? "crypto" : prev.asset_type,
+        }));
+        if (inferredCryptoId) setSelectedCoingeckoId(inferredCryptoId);
+      } else {
+        setLookupError("Price not found for that symbol");
+      }
+    } catch {
+      setLookupError("Could not fetch price");
+    } finally {
+      setLookupLoading(false);
+    }
+  }, [form.symbol, form.asset_type, selectedCoingeckoId, queryClient]);
 
   const handleSubmit = useCallback(async () => {
     if (!form.symbol.trim() || !form.quantity || !form.purchase_price) {
       setSubmitError("Symbol, quantity, and purchase price are required");
+      return;
+    }
+    const dateInput = form.purchase_date.trim();
+    if (!isValidIsoDate(dateInput)) {
+      setSubmitError("Purchase date must be valid and use YYYY-MM-DD format");
+      return;
+    }
+    if (isFutureIsoDate(dateInput)) {
+      setSubmitError("Purchase date cannot be in the future");
       return;
     }
     setSubmitting(true);
@@ -265,9 +340,15 @@ export function AddEntrySheet({
       if (isPaperTrade) {
         const amountToSpend =
           parseFloat(form.quantity) * parseFloat(form.purchase_price);
+        const coingeckoId =
+          selectedCoingeckoId ||
+          (form.asset_type === "crypto"
+            ? inferCoingeckoIdFromSymbol(form.symbol)
+            : null);
         const res = await (apiClient as any).post("/paper-trade/buy/", {
           symbol: form.symbol.trim().toUpperCase(),
           amount_to_spend: amountToSpend,
+          ...(coingeckoId ? { coingecko_id: coingeckoId } : {}),
         });
         xpGained = res.data?.xp_gained ?? 0;
       } else {
@@ -276,13 +357,14 @@ export function AddEntrySheet({
           symbol: form.symbol.trim(),
           quantity: parseFloat(form.quantity),
           purchase_price: parseFloat(form.purchase_price),
-          purchase_date: form.purchase_date,
+          purchase_date: dateInput,
         });
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setForm(EMPTY_FORM);
       setSymbolQuery("");
       setSymbolResults([]);
+      setSelectedCoingeckoId(null);
       setLookupPrice(null);
       onAdded();
       onClose();
@@ -463,7 +545,7 @@ export function AddEntrySheet({
                   )}
                   {symbolResults.map((asset, idx) => (
                     <Pressable
-                      key={asset.symbol}
+                      key={`${asset.symbol}-${idx}`}
                       onPress={() => void handleSelectAsset(asset)}
                       style={({ pressed }) => [
                         styles.dropdownRow,
@@ -504,9 +586,27 @@ export function AddEntrySheet({
                 </View>
               )}
               {lookupError && (
-                <Text style={[styles.fieldError, { color: c.error }]}>
-                  {lookupError}
-                </Text>
+                <View>
+                  <Text style={[styles.fieldError, { color: c.error }]}>
+                    {lookupError}
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      void handleLookupPriceFresh();
+                    }}
+                    disabled={lookupLoading || !form.symbol.trim()}
+                    style={({ pressed }) => [
+                      styles.freshQuoteLink,
+                      { opacity: lookupLoading || !form.symbol.trim() ? 0.4 : pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.freshQuoteLinkText, { color: c.primary }]}
+                    >
+                      Fetch fresh quote
+                    </Text>
+                  </Pressable>
+                </View>
               )}
               {lookupPrice != null && !lookupError && (
                 <Text style={[styles.fieldHint, { color: c.textMuted }]}>
@@ -557,6 +657,10 @@ export function AddEntrySheet({
                 keyboardType="decimal-pad"
                 returnKeyType="done"
               />
+              <Text style={[styles.fieldHint, { color: c.textMuted }]}>
+                This is your buy price (cost basis). "Get Price" does not
+                overwrite it once you edit it.
+              </Text>
             </FieldLabel>
 
             {/* Purchase Date */}
@@ -580,6 +684,9 @@ export function AddEntrySheet({
                 returnKeyType="done"
                 maxLength={10}
               />
+              <Text style={[styles.fieldHint, { color: c.textMuted }]}>
+                Profit/Loss is computed from your buy price until now.
+              </Text>
             </FieldLabel>
 
             {submitError && (
@@ -730,6 +837,15 @@ const styles = StyleSheet.create({
   },
   fieldHint: {
     fontSize: typography.xs,
+  },
+  freshQuoteLink: {
+    marginTop: spacing.sm,
+    alignSelf: "flex-start",
+  },
+  freshQuoteLinkText: {
+    fontSize: typography.sm,
+    fontWeight: "700",
+    textDecorationLine: "underline",
   },
   errorBox: {
     borderWidth: 1,
