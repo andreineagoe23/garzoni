@@ -1686,22 +1686,28 @@ def reset_exercise(request):
         return Response({"error": "No progress found to reset."}, status=404)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def review_queue(request):
-    """Return a lightweight review queue based on mastery due dates."""
+def _review_queue_payload(request):
+    """Build review queue list with one batched exercise query (avoids N+1 per due skill)."""
     now = timezone.now()
-    due_mastery = Mastery.objects.filter(user=request.user, due_at__lte=now).order_by("due_at")
+    due_mastery = list(
+        Mastery.objects.filter(user=request.user, due_at__lte=now).order_by("due_at")
+    )
+    if not due_mastery:
+        return []
+
+    skills = [m.skill for m in due_mastery]
+    exercises_by_skill = {}
+    exercise_qs = apply_learner_exercise_filters(
+        Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(category__in=skills),
+        request.user,
+    ).order_by("category", "difficulty", "id")
+    for ex in exercise_qs:
+        if ex.category not in exercises_by_skill:
+            exercises_by_skill[ex.category] = ex
+
     queue = []
     for mastery in due_mastery:
-        exercise = (
-            apply_learner_exercise_filters(
-                Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(category=mastery.skill),
-                request.user,
-            )
-            .order_by("difficulty", "id")
-            .first()
-        )
+        exercise = exercises_by_skill.get(mastery.skill)
         if not exercise:
             continue
         queue.append(
@@ -1716,6 +1722,14 @@ def review_queue(request):
                 "level_label": _mastery_level_label(mastery.proficiency),
             }
         )
+    return queue
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def review_queue(request):
+    """Return a lightweight review queue based on mastery due dates."""
+    queue = _review_queue_payload(request)
     logger.info(
         "review_queue",
         extra={
@@ -1752,11 +1766,11 @@ def next_exercise(request):
     last_exercise_id = request.data.get("last_exercise_id")
     last_correct = request.data.get("last_correct")
 
-    queue_response = review_queue(request)
-    if queue_response.data.get("due"):
+    due_queue = _review_queue_payload(request)
+    if due_queue:
         return Response(
             {
-                "exercise_id": queue_response.data["due"][0]["exercise_id"],
+                "exercise_id": due_queue[0]["exercise_id"],
                 "reason": "review_due",
             }
         )

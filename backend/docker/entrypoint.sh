@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+# Cold-start mitigation (Railway Hobby sleeps ~15m idle): schedule GET /health/ every ~10 minutes
+# via Railway Cron or an external uptime monitor so Django/Gunicorn stay warm.
+
 MIGRATE_MAX_TRIES="${MIGRATE_MAX_TRIES:-60}"
 MIGRATE_SLEEP_SECONDS="${MIGRATE_SLEEP_SECONDS:-2}"
 
@@ -22,20 +25,32 @@ if [ "${DJANGO_ENV:-production}" = "production" ] && [ "${DEBUG:-}" != "True" ] 
 fi
 
 if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
-  i=0
-  until python manage.py migrate --noinput 2>/dev/null || python manage.py migrate --noinput --fake-initial; do
-    i=$((i+1))
-    if [ "$i" -ge "$MIGRATE_MAX_TRIES" ]; then
-      echo "[entrypoint] migrate still failing after ${MIGRATE_MAX_TRIES} tries; trying --fake-initial..." >&2
-      python manage.py migrate --fake-initial --noinput || {
-        echo "[entrypoint] Migration failed. If tables already exist, you may need to fake migrations manually." >&2
-        echo "[entrypoint] Continuing anyway..." >&2
-      }
-      break
+  # Skip migrate when nothing is pending — avoids 5–15s showmigrations/migrate work on cold starts.
+  # If showmigrations fails (DB not ready), run migrate anyway.
+  _skip_migrate=0
+  if _sm_out="$(python manage.py showmigrations 2>/dev/null)"; then
+    if ! printf '%s\n' "$_sm_out" | grep -q '\[ \]'; then
+      _skip_migrate=1
     fi
-    echo "[entrypoint] waiting for database... ($i/${MIGRATE_MAX_TRIES})" >&2
-    sleep "$MIGRATE_SLEEP_SECONDS"
-  done
+  fi
+  if [ "$_skip_migrate" = "1" ]; then
+    echo "[entrypoint] no pending migrations — skipping migrate" >&2
+  else
+    i=0
+    until python manage.py migrate --noinput 2>/dev/null || python manage.py migrate --noinput --fake-initial; do
+      i=$((i+1))
+      if [ "$i" -ge "$MIGRATE_MAX_TRIES" ]; then
+        echo "[entrypoint] migrate still failing after ${MIGRATE_MAX_TRIES} tries; trying --fake-initial..." >&2
+        python manage.py migrate --fake-initial --noinput || {
+          echo "[entrypoint] Migration failed. If tables already exist, you may need to fake migrations manually." >&2
+          echo "[entrypoint] Continuing anyway..." >&2
+        }
+        break
+      fi
+      echo "[entrypoint] waiting for database... ($i/${MIGRATE_MAX_TRIES})" >&2
+      sleep "$MIGRATE_SLEEP_SECONDS"
+    done
+  fi
 
   # Legacy compatibility: opt-in only. Never run by default because it can fake
   # framework migrations (e.g. contenttypes/auth) before schema exists.

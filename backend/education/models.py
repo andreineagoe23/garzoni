@@ -479,6 +479,9 @@ class Mastery(models.Model):
     class Meta:
         unique_together = ("user", "skill")
         db_table = "core_mastery"
+        indexes = [
+            models.Index(fields=["user", "due_at"], name="mastery_user_due_idx"),
+        ]
 
     def bump(
         self,
@@ -537,6 +540,9 @@ class UserExerciseProgress(models.Model):
     class Meta:
         unique_together = ("user", "exercise")
         db_table = "core_userexerciseprogress"
+        indexes = [
+            models.Index(fields=["user", "completed"], name="progress_user_completed_idx"),
+        ]
 
 
 class ExerciseCompletion(models.Model):

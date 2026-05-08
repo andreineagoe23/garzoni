@@ -90,10 +90,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const AUTH_NOT_READY: AuthSessionValue = {
+  hydrated: false,
+  accessToken: null,
+  applyTokens: async () => {},
+  clearSession: async () => {},
+};
+
 export function useAuthSession() {
   const ctx = useContext(AuthSessionContext);
-  if (!ctx) {
-    throw new Error("useAuthSession must be used within AuthProvider");
-  }
-  return ctx;
+  // Return a safe "not ready" default when rendered outside the provider.
+  // Expo Router can pre-render the initial route before the layout mounts,
+  // so the provider may genuinely not be present on the very first render.
+  return ctx ?? AUTH_NOT_READY;
 }

@@ -3,6 +3,7 @@ import { Redirect } from "expo-router";
 import {
   Animated,
   Dimensions,
+  Image,
   StyleSheet,
   View,
 } from "react-native";
@@ -19,6 +20,7 @@ import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 
 const { width: SW } = Dimensions.get("window");
+const LOGO = require("../assets/garzoni-logo-square-no-bg.png");
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -137,9 +139,15 @@ export default function Index() {
           </Svg>
         </View>
 
-        {/* Spinner centered */}
+        {/* Logo + spinner centered */}
         <View style={styles.center}>
-          <LoadingSpinner size="md" color="rgba(229,231,235,0.55)" />
+          <Image
+            source={LOGO}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="Garzoni"
+          />
+          <LoadingSpinner size="sm" color="rgba(229,231,235,0.45)" />
         </View>
 
         {/* Subtle gold glow bottom */}
@@ -203,5 +211,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    gap: 28,
+  },
+  logo: {
+    width: SW * 0.28,
+    height: SW * 0.28,
+    maxWidth: 120,
+    maxHeight: 120,
   },
 });

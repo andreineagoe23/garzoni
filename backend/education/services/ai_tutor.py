@@ -40,6 +40,11 @@ def _default_model() -> str:
     return allowed[0] if allowed else "gpt-4o-mini"
 
 
+def _blocking_timeout_seconds() -> float:
+    """Short HTTP-bound tutor calls (feedback, hints, etc.); avoids wedging Gunicorn workers."""
+    return float(getattr(settings, "OPENAI_BLOCKING_TIMEOUT_SECONDS", 3.0))
+
+
 def _post(
     messages: List[Dict],
     model: Optional[str] = None,
@@ -57,6 +62,7 @@ def _post(
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            timeout=_blocking_timeout_seconds(),
         )
         return (resp.choices[0].message.content or "").strip() or None
     except Exception as exc:
@@ -170,12 +176,14 @@ def chat_stream(
 
     try:
         client = _get_client()
+        stream_timeout = float(getattr(settings, "OPENAI_REQUEST_TIMEOUT_SECONDS", 90) or 90)
         stream = client.chat.completions.create(
             model=_default_model(),
             messages=messages,
             temperature=0.6,
             max_tokens=300,
             stream=True,
+            timeout=stream_timeout,
         )
         for chunk in stream:
             token = (chunk.choices[0].delta.content or "") if chunk.choices else ""

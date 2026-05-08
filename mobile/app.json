@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/garzoni-logo-square-no-bg.png",
       "resizeMode": "contain",
       "backgroundColor": "#0b0f14"
     },

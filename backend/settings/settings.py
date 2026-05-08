@@ -299,6 +299,9 @@ SIMPLE_JWT = {
 EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECONDS", "15"))
 # OpenAI chat completions can exceed the generic external timeout; keep separate.
 OPENAI_REQUEST_TIMEOUT_SECONDS = int(os.getenv("OPENAI_REQUEST_TIMEOUT_SECONDS", "90"))
+# Synchronous tutor endpoints (exercise feedback, hints, brief generation, etc.) — short default
+# so request threads are not blocked for tens of seconds on slow OpenAI responses.
+OPENAI_BLOCKING_TIMEOUT_SECONDS = float(os.getenv("OPENAI_BLOCKING_TIMEOUT_SECONDS", "3"))
 HTTP_POOL_CONNECTIONS = int(os.getenv("HTTP_POOL_CONNECTIONS", "20"))
 HTTP_POOL_MAXSIZE = int(os.getenv("HTTP_POOL_MAXSIZE", "20"))
 
