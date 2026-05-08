@@ -53,12 +53,25 @@ export async function registerForPushAndSubmitToken(): Promise<{
       return { ok: false, message: "Could not read Expo push token." };
     }
     await submitExpoPushToken(token);
-    // Customer.io push requires the SDK to register the same token (Expo) after identify.
+
     const access = await tokenStorage.getAccess();
     if (access) {
       await identifyGarzoniUserFromAccessToken(access);
     }
-    await registerPushTokenWithCustomerIo(token);
+
+    // Customer.io needs the *native* APNs (iOS) / FCM (Android) device token —
+    // not the Expo push token. Expo's getDevicePushTokenAsync returns the raw token.
+    try {
+      const native = await Notifications.getDevicePushTokenAsync();
+      if (native?.data && typeof native.data === "string") {
+        await registerPushTokenWithCustomerIo(native.data);
+      }
+    } catch (e) {
+      if (__DEV__) {
+        console.warn("[push] getDevicePushTokenAsync failed:", e);
+      }
+    }
+
     return { ok: true, message: "Notifications enabled." };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Push registration failed.";
