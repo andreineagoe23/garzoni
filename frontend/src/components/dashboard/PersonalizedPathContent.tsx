@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -7,6 +7,15 @@ import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 import apiClient from "services/httpClient";
+import {
+  buildProgressByCourse,
+  buildSkillPracticeHref,
+  type CoachBriefResponse,
+  derivePersonalizedPathState,
+  fetchCoachBrief,
+  getCourseMetrics,
+  shouldAutoRefreshEmptyPath,
+} from "@garzoni/core";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import {
   PersonalizedPathCourse,
@@ -112,11 +121,11 @@ function PersonalizedPathContent({
   });
 
   const refreshMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (_opts?: { silent?: boolean }) => {
       await apiClient.post("/personalized-path/refresh/");
     },
-    onSuccess: async () => {
-      toast.success(t("personalizedPath.refreshed"));
+    onSuccess: async (_data, variables) => {
+      if (!variables?.silent) toast.success(t("personalizedPath.refreshed"));
       await personalizedQuery.refetch();
     },
     onError: () => {
@@ -124,51 +133,45 @@ function PersonalizedPathContent({
     },
   });
 
-  const coachBriefQuery = useQuery<{ brief: string; cached: boolean }>({
+  const coachBriefQuery = useQuery<CoachBriefResponse>({
     queryKey: ["coachBrief"],
-    queryFn: async () => (await apiClient.get("/coach-brief/")).data,
+    queryFn: async () => (await fetchCoachBrief()).data,
     enabled: isAuthenticated && questionnaireCompleted,
     staleTime: 86_400_000, // 24h
     retry: false,
   });
 
-  const progressByCourse = useMemo(() => {
-    const entries = progressSummaryQuery.data?.paths || [];
-    const map = new Map<
-      number,
-      {
-        percent: number;
-        completedSections: number;
-        totalSections: number;
-        completedLessons: number;
-        totalLessons: number;
-      }
-    >();
-    entries.forEach((entry) => {
-      if (entry.course_id) {
-        const totalSections = Number(entry.total_sections || 0);
-        const completedSections = Number(entry.completed_sections || 0);
-        const sectionPercent =
-          totalSections > 0
-            ? Math.round((completedSections / totalSections) * 100)
-            : Number(entry.percent_complete || 0);
-        map.set(entry.course_id, {
-          percent: sectionPercent,
-          completedSections,
-          totalSections,
-          completedLessons: Number(entry.completed_lessons || 0),
-          totalLessons: Number(entry.total_lessons || 0),
-        });
-      }
-    });
-    return map;
-  }, [progressSummaryQuery.data]);
+  const progressByCourse = useMemo(
+    () => buildProgressByCourse(progressSummaryQuery.data),
+    [progressSummaryQuery.data]
+  );
 
-  const courses = personalizedQuery.data?.courses || [];
-  const heroCourse = courses[0];
-  const restCourses = courses.slice(1);
-  const reviewQueue = personalizedQuery.data?.review_queue || [];
-  const isPreview = Boolean(personalizedQuery.data?.meta?.preview);
+  const { courses, heroCourse, restCourses, reviewQueue, isPreview } = useMemo(
+    () => derivePersonalizedPathState(personalizedQuery.data),
+    [personalizedQuery.data]
+  );
+  const autoRefreshTriggered = useRef(false);
+
+  useEffect(() => {
+    if (
+      !shouldAutoRefreshEmptyPath({
+        questionnaireCompleted,
+        personalizedFetchSucceeded: personalizedQuery.isSuccess,
+        coursesLength: courses.length,
+        isRefreshing: refreshMutation.isPending,
+        alreadyTriggered: autoRefreshTriggered.current,
+      })
+    ) {
+      return;
+    }
+    autoRefreshTriggered.current = true;
+    refreshMutation.mutate({ silent: true });
+  }, [
+    courses.length,
+    personalizedQuery.isSuccess,
+    questionnaireCompleted,
+    refreshMutation,
+  ]);
 
   const openCourse = (course: PersonalizedPathCourse) => {
     if (course.locked) {
@@ -176,36 +179,6 @@ function PersonalizedPathContent({
       return;
     }
     onCourseClick?.(course.id, Number(course.path || 0) || undefined);
-  };
-
-  const getCourseMetrics = (course: PersonalizedPathCourse) => {
-    const progress = progressByCourse.get(course.id);
-    const fallbackCompletedLessons = Number(course.completed_lessons || 0);
-    const fallbackTotalLessons = Number(course.total_lessons || 0);
-    const completedLessons =
-      progress?.completedLessons ?? fallbackCompletedLessons;
-    const totalLessons = progress?.totalLessons ?? fallbackTotalLessons;
-    const completedSections =
-      progress?.completedSections ?? Number(course.completed_sections || 0);
-    const totalSections =
-      progress?.totalSections ?? Number(course.total_sections || 0);
-    const percent =
-      progress?.percent ??
-      (totalLessons > 0
-        ? Math.round((completedLessons / Math.max(totalLessons, 1)) * 100)
-        : Number(course.completion_percent || 0));
-    const estimatedMinutes =
-      Number(course.estimated_minutes || 0) > 0
-        ? Number(course.estimated_minutes || 0)
-        : Math.max(totalLessons * 4, 8);
-    return {
-      percent,
-      completedLessons,
-      totalLessons,
-      completedSections,
-      totalSections,
-      estimatedMinutes,
-    };
   };
 
   if (!isAuthenticated) {
@@ -263,7 +236,7 @@ function PersonalizedPathContent({
       {heroCourse && (
         <GlassCard padding="lg" className="app-card relative overflow-hidden">
           {(() => {
-            const metrics = getCourseMetrics(heroCourse);
+            const metrics = getCourseMetrics(heroCourse, progressByCourse);
             return (
               <>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--border-color,#d1d5db)]/70 pb-3">
@@ -286,7 +259,7 @@ function PersonalizedPathContent({
                     </span>
                     <button
                       type="button"
-                      onClick={() => refreshMutation.mutate()}
+                      onClick={() => refreshMutation.mutate(undefined)}
                       disabled={refreshMutation.isPending}
                       className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold"
                     >
@@ -379,7 +352,7 @@ function PersonalizedPathContent({
         </h4>
         <div className="relative">
           {restCourses.map((course, index) => {
-            const metrics = getCourseMetrics(course);
+            const metrics = getCourseMetrics(course, progressByCourse);
             const percent = metrics.percent;
             const focusHint =
               percent < 30
@@ -558,7 +531,7 @@ function PersonalizedPathContent({
                       {dueLabel}
                     </span>
                     <a
-                      href="/exercises"
+                      href={buildSkillPracticeHref(item.skill || "")}
                       className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5 text-[10px] font-bold text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/20 transition"
                     >
                       Practice →

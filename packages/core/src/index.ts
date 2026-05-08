@@ -103,6 +103,13 @@ export {
   defaultRetry,
   defaultRetryDelay,
 } from "./lib/reactQuery";
+export {
+  buildProgressByCourse,
+  getCourseMetrics,
+  derivePersonalizedPathState,
+  shouldAutoRefreshEmptyPath,
+  buildSkillPracticeHref,
+} from "./lib/personalizedPath";
 export { createMutationOptions } from "./lib/createMutation";
 export {
   selectPrimaryCTA,

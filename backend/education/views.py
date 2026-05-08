@@ -57,7 +57,12 @@ from education.exercise_visibility import (
     learner_can_access_exercise,
 )
 from authentication.models import UserProfile
-from authentication.entitlements import allowed_plan_tiers, get_user_plan, plan_allows
+from authentication.entitlements import (
+    allowed_plan_tiers,
+    get_entitlements_for_user,
+    get_user_plan,
+    plan_allows,
+)
 from onboarding.models import QuestionnaireProgress
 from gamification.models import MissionCompletion
 from gamification.services.rewards import (
@@ -1791,11 +1796,16 @@ class PersonalizedPathView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    def _personalized_path_enabled(self, user) -> bool:
+        entitlements = get_entitlements_for_user(user)
+        feature = (entitlements.get("features") or {}).get("personalized_path") or {}
+        return bool(feature.get("enabled", False))
+
     def get(self, request):
         try:
             user = request.user
             user_profile = UserProfile.objects.get(user=user)
-            plan = get_user_plan(user)
+            personalized_path_enabled = self._personalized_path_enabled(user)
             allowed_path_ids = _allowed_path_ids(user)
             force_refresh = str(request.query_params.get("refresh", "")).lower() in {
                 "1",
@@ -1933,7 +1943,7 @@ class PersonalizedPathView(APIView):
                 "message": "Recommended courses based on your goals, progress, and mastery.",
             }
 
-            if not plan_allows(plan, "plus"):
+            if not personalized_path_enabled:
                 preview_courses = response_payload["courses"][:2]
                 for item in preview_courses:
                     item["locked"] = True
@@ -2194,11 +2204,26 @@ class PersonalizedPathView(APIView):
         return boosts
 
     def _extract_onboarding_goals(self, answers):
+        goal_labels = {
+            "budget": "Budgeting",
+            "debt": "Debt",
+            "savings": "Savings",
+            "invest": "Investing",
+            "overspending": "Spending control",
+            "no_plan": "Financial planning",
+            "confidence": "Investing confidence",
+        }
         goals = []
+        seen = set()
         for key in ("primary_goal", "biggest_challenge"):
-            value = answers.get(key)
+            value = str(answers.get(key) or "").strip().lower()
             if value:
-                goals.append(str(value))
+                label = goal_labels.get(value, value.replace("_", " ").title())
+                dedupe_key = label.lower()
+                if dedupe_key in seen:
+                    continue
+                seen.add(dedupe_key)
+                goals.append(label)
         return goals
 
     def _build_course_reason(self, path_key, answers, mastery_boosts):
@@ -2244,19 +2269,31 @@ class PersonalizedPathRefreshView(APIView):
 
     def post(self, request):
         try:
+            user = request.user
+            path_view = PersonalizedPathView()
+            if not path_view._has_completed_questionnaire(user):
+                return Response(
+                    {
+                        "error": "Please complete onboarding to unlock your personalized path.",
+                        "redirect": "/onboarding",
+                    },
+                    status=400,
+                )
             user_profile = UserProfile.objects.get(user=request.user)
             allowed_path_ids = _allowed_path_ids(request.user)
-            PersonalizedPathView().generate_recommendations(
+            path_view.generate_recommendations(
                 user_profile=user_profile,
                 user=request.user,
                 allowed_path_ids=allowed_path_ids,
             )
+            personalized_path_enabled = path_view._personalized_path_enabled(user)
             return Response(
                 {
                     "status": "ok",
                     "generated_at": (
                         user_profile.recommendations_generated_at or timezone.now()
                     ).isoformat(),
+                    "preview": not personalized_path_enabled,
                 },
                 status=200,
             )

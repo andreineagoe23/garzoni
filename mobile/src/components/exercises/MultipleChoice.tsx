@@ -146,6 +146,21 @@ export default function MultipleChoice({
   const explanation = data?.explanation as string | undefined;
   const dataSkill = (data?.skill as string | undefined) ?? skill ?? null;
 
+  // Stable shuffle per exercise. `selected` always holds the original index.
+  const shuffled = useMemo(() => {
+    if (options.length === 0) return { options, originalOf: (i: number) => i };
+    const order = options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return {
+      options: order.map((i) => options[i]),
+      originalOf: (shuffledIdx: number) => order[shuffledIdx],
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseId, sectionId]);
+
   const [selected, setSelected] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
@@ -287,15 +302,16 @@ export default function MultipleChoice({
         </Text>
       ) : null}
       <View style={styles.options}>
-        {options.map((opt, i) => {
-          const isSelected = selected === i;
+        {shuffled.options.map((opt, i) => {
+          const origIdx = shuffled.originalOf(i);
+          const isSelected = selected === origIdx;
           const showResult = feedbackType != null && isSelected;
           return (
             <Pressable
               key={i}
               disabled={isCompleted || disabled}
               onPress={() => {
-                setSelected(i);
+                setSelected(origIdx);
                 setFeedback("");
                 setFeedbackType(null);
               }}

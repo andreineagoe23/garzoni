@@ -311,6 +311,14 @@ export const fetchPersonalizedPath = () =>
 export const postPersonalizedPathRefresh = () =>
   apiClient.post("/personalized-path/refresh/");
 
+export type CoachBriefResponse = {
+  brief?: string;
+  cached?: boolean;
+};
+
+export const fetchCoachBrief = () =>
+  apiClient.get<CoachBriefResponse>("/coach-brief/");
+
 export const fetchMissions = () => apiClient.get<MissionBuckets>("/missions/");
 
 export type FinanceFact = { id: number; text: string; category?: string };

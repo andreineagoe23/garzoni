@@ -13,12 +13,17 @@ import { router } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
+  buildProgressByCourse,
+  derivePersonalizedPathState,
+  fetchCoachBrief,
+  getCourseMetrics,
   fetchPersonalizedPath,
   fetchProfile,
   fetchProgressSummary,
   fetchQuestionnaireProgress,
   postPersonalizedPathRefresh,
   queryKeys,
+  shouldAutoRefreshEmptyPath,
   staleTimes,
   type PersonalizedPathCourse,
   type ProgressSummary,
@@ -117,50 +122,36 @@ export default function PersonalizedPathContentMobile({
     },
   });
   const autoRefreshTriggered = useRef(false);
+  const coachBriefQuery = useQuery({
+    queryKey: ["coachBrief"],
+    queryFn: () => fetchCoachBrief().then((r) => r.data),
+    enabled: isAuthenticated && questionnaireCompleted,
+    staleTime: 86_400_000,
+    retry: false,
+  });
 
-  const progressByCourse = useMemo(() => {
-    const entries = progressSummaryQuery.data?.paths || [];
-    const map = new Map<
-      number,
-      {
-        percent: number;
-        completedSections: number;
-        totalSections: number;
-        completedLessons: number;
-        totalLessons: number;
-      }
-    >();
-    entries.forEach((entry) => {
-      if (entry.course_id) {
-        const totalSections = Number(entry.total_sections || 0);
-        const completedSections = Number(entry.completed_sections || 0);
-        const sectionPercent =
-          totalSections > 0
-            ? Math.round((completedSections / totalSections) * 100)
-            : Number(entry.percent_complete || 0);
-        map.set(entry.course_id, {
-          percent: sectionPercent,
-          completedSections,
-          totalSections,
-          completedLessons: Number(entry.completed_lessons || 0),
-          totalLessons: Number(entry.total_lessons || 0),
-        });
-      }
-    });
-    return map;
-  }, [progressSummaryQuery.data]);
+  const progressByCourse = useMemo(
+    () => buildProgressByCourse(progressSummaryQuery.data),
+    [progressSummaryQuery.data],
+  );
 
-  const courses = personalizedQuery.data?.courses || [];
-  const heroCourse = courses[0];
-  const restCourses = courses.slice(1);
-  const reviewQueue = personalizedQuery.data?.review_queue || [];
-  const isPreview = Boolean(personalizedQuery.data?.meta?.preview);
+  const { courses, heroCourse, restCourses, reviewQueue, isPreview } = useMemo(
+    () => derivePersonalizedPathState(personalizedQuery.data),
+    [personalizedQuery.data],
+  );
 
   useEffect(() => {
-    if (!questionnaireCompleted) return;
-    if (!personalizedQuery.isSuccess) return;
-    if (courses.length > 0) return;
-    if (refreshMutation.isPending || autoRefreshTriggered.current) return;
+    if (
+      !shouldAutoRefreshEmptyPath({
+        questionnaireCompleted,
+        personalizedFetchSucceeded: personalizedQuery.isSuccess,
+        coursesLength: courses.length,
+        isRefreshing: refreshMutation.isPending,
+        alreadyTriggered: autoRefreshTriggered.current,
+      })
+    ) {
+      return;
+    }
     autoRefreshTriggered.current = true;
     refreshMutation.mutate({ silent: true });
   }, [
@@ -182,40 +173,17 @@ export default function PersonalizedPathContentMobile({
     }
   };
 
-  const getCourseMetrics = (course: PersonalizedPathCourse) => {
-    const progress = progressByCourse.get(course.id);
-    const fallbackCompletedLessons = Number(course.completed_lessons || 0);
-    const fallbackTotalLessons = Number(course.total_lessons || 0);
-    const completedLessons =
-      progress?.completedLessons ?? fallbackCompletedLessons;
-    const totalLessons = progress?.totalLessons ?? fallbackTotalLessons;
-    const completedSections =
-      progress?.completedSections ?? Number(course.completed_sections || 0);
-    const totalSections =
-      progress?.totalSections ?? Number(course.total_sections || 0);
-    const percent =
-      progress?.percent ??
-      (totalLessons > 0
-        ? Math.round((completedLessons / Math.max(totalLessons, 1)) * 100)
-        : Number(course.completion_percent || 0));
-    const estimatedMinutes =
-      Number(course.estimated_minutes || 0) > 0
-        ? Number(course.estimated_minutes || 0)
-        : Math.max(totalLessons * 4, 8);
-    return {
-      percent,
-      completedLessons,
-      totalLessons,
-      completedSections,
-      totalSections,
-      estimatedMinutes,
-    };
-  };
-
   if (!isAuthenticated) {
     return (
-      <GlassCard padding="md">
+      <GlassCard padding="md" style={{ gap: spacing.md }}>
         <Text style={{ color: c.textMuted }}>Sign in to view your path.</Text>
+        <GlassButton
+          variant="primary"
+          size="sm"
+          onPress={() => router.push(href("/(auth)/login"))}
+        >
+          Sign in
+        </GlassButton>
       </GlassCard>
     );
   }
@@ -286,10 +254,20 @@ export default function PersonalizedPathContentMobile({
 
   return (
     <View style={{ gap: spacing.lg }}>
+      {coachBriefQuery.data?.brief ? (
+        <GlassCard padding="md" style={{ gap: spacing.xs }}>
+          <Text style={[styles.kicker, { color: c.primary }]}>
+            {t("coachBrief.title", "Your Weekly Coach Brief")}
+          </Text>
+          <Text style={[styles.reason, { color: c.text }]}>
+            {coachBriefQuery.data.brief}
+          </Text>
+        </GlassCard>
+      ) : null}
       {heroCourse ? (
         <GlassCard padding="lg" style={{ borderColor: `${c.primary}33` }}>
           {(() => {
-            const metrics = getCourseMetrics(heroCourse);
+            const metrics = getCourseMetrics(heroCourse, progressByCourse);
             return (
               <View style={{ gap: spacing.md, position: "relative" }}>
                 <View
@@ -415,7 +393,7 @@ export default function PersonalizedPathContentMobile({
         {t("personalizedPath.recommendedForYou")}
       </Text>
       {restCourses.map((course, index) => {
-        const metrics = getCourseMetrics(course);
+        const metrics = getCourseMetrics(course, progressByCourse);
         const percent = metrics.percent;
         const focusHint =
           percent < 30
