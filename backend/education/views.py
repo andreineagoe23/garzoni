@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
+from django.core.cache import cache
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Count, F, Prefetch, Q
@@ -522,6 +523,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                     return _path_access_denied_response(lesson.course.path)
             _complete_lesson_for_user(request.user, lesson)
             invalidate_profile_cache(request.user)
+            cache.delete(f"progress_summary_{request.user.id}")
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -714,6 +716,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
             user_progress = _complete_lesson_for_user(request.user, lesson)
             invalidate_profile_cache(request.user)
+            cache.delete(f"progress_summary_{request.user.id}")
             return Response(
                 {
                     "status": "Lesson completed",
@@ -732,6 +735,11 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         Includes all courses in allowed paths (0%% for not started) so overall progress is meaningful.
         """
         user = request.user
+        _cache_key = f"progress_summary_{user.id}"
+        _cached = cache.get(_cache_key)
+        if _cached is not None:
+            return Response(_cached)
+
         allowed_ids = list(_allowed_path_ids(user))
         if not allowed_ids:
             progress_data = []
@@ -770,8 +778,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 total_sections = section_counts.get(course.id, 0)
                 total_lessons = lesson_counts.get(course.id, 0)
                 progress = progress_by_course.get(course.id)
-                completed_sections = progress.completed_sections.count() if progress else 0
-                completed_lessons = progress.completed_lessons.count() if progress else 0
+                # Use len() not .count() — prefetch_related already loaded these; .count() re-hits DB
+                completed_sections = len(progress.completed_sections.all()) if progress else 0
+                completed_lessons = len(progress.completed_lessons.all()) if progress else 0
                 percent_complete = (
                     (completed_sections / total_sections) * 100 if total_sections > 0 else 0
                 )
@@ -794,15 +803,8 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 )
 
         # Global totals across ALL published content (not gated by plan).
-        all_course_ids = list(Course.objects.values_list("id", flat=True))
-        global_total_sections = (
-            LessonSection.objects.filter(lesson__course_id__in=all_course_ids).count()
-            if all_course_ids
-            else 0
-        )
-        global_total_lessons = (
-            Lesson.objects.filter(course_id__in=all_course_ids).count() if all_course_ids else 0
-        )
+        global_total_sections = LessonSection.objects.filter(lesson__course__isnull=False).count()
+        global_total_lessons = Lesson.objects.filter(course__isnull=False).count()
 
         # Resume: last place in the flow (most recently updated flow position)
         resume = None
@@ -831,7 +833,6 @@ class UserProgressViewSet(viewsets.ModelViewSet):
 
         # Start here: first course of first path the user can access (for "Browse topics" with no resume)
         start_here = None
-        allowed_ids = list(_allowed_path_ids(user))
         if allowed_ids:
             first_path = (
                 Path.objects.filter(id__in=allowed_ids)
@@ -849,22 +850,22 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 if first_course:
                     start_here = {"path_id": first_path, "course_id": first_course}
 
-        return Response(
-            {
-                "overall_progress": (
-                    sum(d["percent_complete"] for d in progress_data) / len(progress_data)
-                    if progress_data
-                    else 0
-                ),
-                "completed_sections": total_completed_sections if progress_data else 0,
-                "total_sections": global_total_sections,
-                "completed_lessons": total_completed_lessons if progress_data else 0,
-                "total_lessons": global_total_lessons,
-                "paths": progress_data,
-                "resume": resume,
-                "start_here": start_here,
-            }
-        )
+        _payload = {
+            "overall_progress": (
+                sum(d["percent_complete"] for d in progress_data) / len(progress_data)
+                if progress_data
+                else 0
+            ),
+            "completed_sections": total_completed_sections if progress_data else 0,
+            "total_sections": global_total_sections,
+            "completed_lessons": total_completed_lessons if progress_data else 0,
+            "total_lessons": global_total_lessons,
+            "paths": progress_data,
+            "resume": resume,
+            "start_here": start_here,
+        }
+        cache.set(_cache_key, _payload, 60)
+        return Response(_payload)
 
     @action(detail=False, methods=["post"], url_path="complete_section")
     def complete_section(self, request):
@@ -880,6 +881,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                     return _path_access_denied_response(section.lesson.course.path)
             _complete_section_for_user(user, section)
             invalidate_profile_cache(user)
+            cache.delete(f"progress_summary_{user.id}")
             return Response({"status": "Section completed"})
         except LessonSection.DoesNotExist:
             return Response({"error": "Invalid section"}, status=400)
