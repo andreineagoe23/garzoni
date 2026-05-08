@@ -17,7 +17,7 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
@@ -48,6 +48,18 @@
     "experiments": {
       "typedRoutes": true
     },
+    "plugins": [
+      [
+        "customerio-reactnative",
+        {
+          "ios": {
+            "pushNotification": {
+              "useRichPush": false
+            }
+          }
+        }
+      ]
+    ],
     "extra": {
       "router": {},
       "eas": {

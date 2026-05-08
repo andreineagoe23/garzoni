@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { forceReregisterPushToken } from "../src/hooks/usePushNotifications";
 import {
   Pressable,
   ScrollView,
@@ -335,11 +336,46 @@ export default function SettingsScreen() {
           </Pressable>
         </GlassCard>
 
+        <SyncNotificationsButton c={c} />
         <Text style={[styles.muted, { color: c.textFaint }]}>
           {t("settings.mobile.pushNote")}
         </Text>
       </ScrollView>
     </>
+  );
+}
+
+function SyncNotificationsButton({ c }: { c: ReturnType<typeof useThemeColors> }) {
+  const [status, setStatus] = useState<"idle" | "syncing" | "ok" | "error">("idle");
+
+  const handlePress = async () => {
+    if (status === "syncing") return;
+    setStatus("syncing");
+    const result = await forceReregisterPushToken();
+    setStatus(result.ok ? "ok" : "error");
+    setTimeout(() => setStatus("idle"), 3000);
+  };
+
+  const label =
+    status === "syncing" ? "Syncing…"
+    : status === "ok" ? "Device registered ✓"
+    : status === "error" ? "Failed — check permissions"
+    : "Sync push notifications";
+
+  return (
+    <Pressable
+      onPress={() => void handlePress()}
+      disabled={status === "syncing"}
+      style={[
+        styles.syncBtn,
+        { borderColor: c.border, backgroundColor: c.surface },
+      ]}
+    >
+      <Ionicons name="notifications-outline" size={16} color={c.primary} />
+      <Text style={[styles.syncLabel, { color: status === "error" ? "#ef4444" : status === "ok" ? c.primary : c.text }]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -433,6 +469,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   muted: { fontSize: typography.xs, marginTop: spacing.xl, lineHeight: 18 },
+  syncBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignSelf: "flex-start",
+    marginTop: spacing.lg,
+  },
+  syncLabel: { fontSize: typography.sm, fontWeight: "500" },
   linkRow: {
     flexDirection: "row",
     alignItems: "center",
