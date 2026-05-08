@@ -78,17 +78,26 @@ def _get_or_create_apple_user(
             return user, False
 
     is_new_user = True
-    safe_sub = "".join(c if c.isalnum() else "_" for c in sub)[:25] or "apple"
-    username = safe_sub
-    suffix = 0
-    while User.objects.filter(username=username).exists():
-        suffix += 1
-        username = f"{safe_sub}_{suffix}"[:30]
 
-    email_final = email_clean or f"apple_{sub}@signin.placeholder.local"
+    def _ascii_slug(text: str, max_len: int = 12) -> str:
+        """Lowercase ASCII-only slug from arbitrary text."""
+        return "".join(c.lower() for c in text if c.isascii() and c.isalnum())[:max_len]
+
+    import secrets as _secrets
+
+    # Priority: given name → email local part (skip Apple relay garbage) → fallback
+    base_name = _ascii_slug(first_name) if first_name else ""
+    if not base_name and email_clean and "privaterelay.appleid.com" not in email_clean:
+        base_name = _ascii_slug(email_clean.split("@")[0])
+    username_base = base_name or "user"
+
+    username = f"{username_base}_{_secrets.token_hex(4)}"
+    while User.objects.filter(username=username).exists():
+        username = f"{username_base}_{_secrets.token_hex(4)}"
+
     user = User(
         username=username,
-        email=email_final,
+        email=email_clean or "",
         first_name=first_name[:150] if first_name else "",
         last_name=last_name[:150] if last_name else "",
     )
