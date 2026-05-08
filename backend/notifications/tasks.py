@@ -158,14 +158,34 @@ def send_password_changed_email_task(
 def safe_enqueue_sync_user_to_customer_io(user_id: int) -> None:
     """
     Queue Customer.io profile sync without failing the HTTP request if Celery/Redis is down.
-    Matches the pattern used for welcome email in authentication.signals.
+    Falls back to synchronous sync so traits (e.g. expo_push_token) still reach Customer.io.
     """
     try:
         sync_user_to_customer_io.delay(user_id)
+        return
     except Exception:
         logger.warning(
             "sync_user_to_customer_io.delay failed for user_id=%s — "
-            "broker may be unavailable (Redis, Celery).",
+            "broker may be unavailable (Redis, Celery). Running inline sync.",
+            user_id,
+            exc_info=True,
+        )
+    try:
+        User = get_user_model()
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return
+    try:
+        ok, err = NotificationService().sync_user_profile(user)
+        if not ok:
+            logger.warning(
+                "inline Customer.io sync failed user_id=%s: %s",
+                user_id,
+                err,
+            )
+    except Exception:
+        logger.warning(
+            "inline Customer.io sync raised for user_id=%s",
             user_id,
             exc_info=True,
         )

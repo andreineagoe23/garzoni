@@ -92,16 +92,22 @@ class OpenAIService:
         return conv
 
     def _load_history(self, conversation) -> List[Dict]:
-        """Load persisted messages as OpenAI-format dicts."""
+        """Load persisted messages as OpenAI-format dicts.
+
+        Tool and tool-call placeholder messages are stripped: they are transient
+        (only valid within a single request's tool-use loop) and cause OpenAI to
+        reject the next request with 'tool role must follow tool_calls'.
+        """
         rows = list(conversation.messages.order_by("created_at"))
         messages = []
         for m in rows:
-            msg: Dict[str, Any] = {"role": m.role, "content": m.content}
-            if m.tool_call_id:
-                msg["tool_call_id"] = m.tool_call_id
-            if m.tool_name:
-                msg["name"] = m.tool_name
-            messages.append(msg)
+            if m.role == "tool":
+                continue
+            content = m.content or ""
+            # Skip assistant placeholder lines emitted during tool-call rounds
+            if m.role == "assistant" and content.startswith("[tool calls:"):
+                continue
+            messages.append({"role": m.role, "content": content})
         return messages
 
     def _save_message(

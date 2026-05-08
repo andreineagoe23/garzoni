@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -180,7 +182,10 @@ export default function SupportScreen() {
   );
 
   return (
-    <>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <Stack.Screen
         options={{
           title: t("support.mobile.screenTitle"),
@@ -213,7 +218,7 @@ export default function SupportScreen() {
           backgroundColor: c.bg,
         }}
       />
-    </>
+    </KeyboardAvoidingView>
   );
 }
 

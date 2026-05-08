@@ -83,9 +83,39 @@ export async function clearGarzoniCustomerIo(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
+    await cio.CustomerIO.deleteDeviceToken();
+  } catch {
+    /* noop */
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.clearIdentify();
   } catch {
     /* noop */
+  }
+}
+
+/**
+ * Associate the Expo push token with Customer.io for the current profile.
+ * Call after {@link identifyGarzoniUserFromAccessToken} so the device is linked to the right person.
+ */
+export async function registerPushTokenWithCustomerIo(
+  expoPushToken: string,
+): Promise<void> {
+  const t = expoPushToken?.trim();
+  if (!CDP_KEY || !nativeAvailable || !t) return;
+  await initCustomerIoMobile();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
+    await cio.CustomerIO.registerDeviceToken(t);
+  } catch (e) {
+    if (__DEV__) {
+      console.warn("[Customer.io] registerDeviceToken failed:", e);
+    }
   }
 }
 
