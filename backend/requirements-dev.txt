@@ -1,7 +1,7 @@
 -r requirements.txt
-django-extensions==3.2.3
+django-extensions==4.1
 werkzeug
 ipython
 # Pin versions used by CI (.github/workflows/ci.yml) so local and GitHub match.
-black==25.1.0
-flake8==7.1.1
+black==26.3.1
+flake8==7.3.0
