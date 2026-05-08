@@ -51,7 +51,7 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: ^16.1.0
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@testing-library/user-event':
         specifier: ^14.5.2
         version: 14.6.1(@testing-library/dom@10.4.1)
@@ -93,7 +93,7 @@ importers:
         version: 1.11.6(react@19.1.0)
       react-dnd:
         specifier: ^16.0.1
-        version: 16.0.1(@types/node@22.19.15)(@types/react@19.2.7)(react@19.1.0)
+        version: 16.0.1(@types/node@22.19.15)(@types/react@18.3.28)(react@19.1.0)
       react-dnd-html5-backend:
         specifier: ^16.0.1
         version: 16.0.1
@@ -135,7 +135,7 @@ importers:
         version: 4.2.4
       zustand:
         specifier: ^4.5.5
-        version: 4.5.7(@types/react@19.2.7)(react@19.1.0)
+        version: 4.5.7(@types/react@18.3.28)(react@19.1.0)
     devDependencies:
       '@types/node':
         specifier: ^22.10.0
@@ -144,11 +144,11 @@ importers:
         specifier: ^15.7.14
         version: 15.7.15
       '@types/react':
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: ^18.3.21
+        version: 18.3.28
       '@types/react-dom':
-        specifier: 19.2.3
-        version: 19.2.3(@types/react@19.2.7)
+        specifier: ^18.3.7
+        version: 18.3.7(@types/react@18.3.28)
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.53.1
         version: 8.58.0(@typescript-eslint/parser@8.58.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
@@ -2526,6 +2526,11 @@ packages:
   '@types/ramda@0.27.66':
     resolution: {integrity: sha512-i2YW+E2U6NfMt3dp0RxNcejox+bxJUNDjB7BpYuRuoHIzv5juPHkJkNgcUOu+YSQEmaWu8cnAo/8r63C0NnuVA==}
 
+  '@types/react-dom@18.3.7':
+    resolution: {integrity: sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==}
+    peerDependencies:
+      '@types/react': ^18.0.0
+
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
@@ -2534,6 +2539,9 @@ packages:
   '@types/react-native@0.73.0':
     resolution: {integrity: sha512-6ZRPQrYM72qYKGWidEttRe6M5DZBEV5F+MHMHqd4TTYx0tfkcdrUFGdef6CCxY0jXU7wldvd/zA/b0A/kTeJmA==}
     deprecated: This is a stub types definition. react-native provides its own type definitions, so you do not need this installed.
+
+  '@types/react@18.3.28':
+    resolution: {integrity: sha512-z9VXpC7MWrhfWipitjNdgCauoMLRdIILQsAEV+ZesIzBq/oUlxk0m3ApZuMFCXdnS4U7KrI+l3WRUEGQ8K1QKw==}
 
   '@types/react@19.2.7':
     resolution: {integrity: sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg==}
@@ -7968,6 +7976,11 @@ snapshots:
   '@ckeditor/ckeditor5-font@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-heading@41.4.2':
     dependencies:
@@ -7981,6 +7994,11 @@ snapshots:
   '@ckeditor/ckeditor5-highlight@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-horizontal-line@41.4.2':
     dependencies:
@@ -7994,16 +8012,16 @@ snapshots:
   '@ckeditor/ckeditor5-html-embed@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-html-support@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-image@41.4.2':
     dependencies:
@@ -9407,7 +9425,9 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.81.5': {}
@@ -9650,15 +9670,15 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
 
-  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@babel/runtime': 7.29.2
       '@testing-library/dom': 10.4.1
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
     optionalDependencies:
-      '@types/react': 19.2.7
-      '@types/react-dom': 19.2.3(@types/react@19.2.7)
+      '@types/react': 18.3.28
+      '@types/react-dom': 18.3.7(@types/react@18.3.28)
 
   '@testing-library/user-event@14.6.1(@testing-library/dom@10.4.1)':
     dependencies:
@@ -9759,9 +9779,14 @@ snapshots:
     dependencies:
       ts-toolbelt: 6.15.5
 
+  '@types/react-dom@18.3.7(@types/react@18.3.28)':
+    dependencies:
+      '@types/react': 18.3.28
+
   '@types/react-dom@19.2.3(@types/react@19.2.7)':
     dependencies:
       '@types/react': 19.2.7
+    optional: true
 
   '@types/react-native@0.73.0(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.7)(react@19.1.0)':
     dependencies:
@@ -9775,6 +9800,11 @@ snapshots:
       - react
       - supports-color
       - utf-8-validate
+
+  '@types/react@18.3.28':
+    dependencies:
+      '@types/prop-types': 15.7.15
+      csstype: 3.2.3
 
   '@types/react@19.2.7':
     dependencies:
@@ -13552,7 +13582,7 @@ snapshots:
     dependencies:
       dnd-core: 16.0.1
 
-  react-dnd@16.0.1(@types/node@22.19.15)(@types/react@19.2.7)(react@19.1.0):
+  react-dnd@16.0.1(@types/node@22.19.15)(@types/react@18.3.28)(react@19.1.0):
     dependencies:
       '@react-dnd/invariant': 4.0.2
       '@react-dnd/shallowequal': 4.0.2
@@ -13562,7 +13592,7 @@ snapshots:
       react: 19.1.0
     optionalDependencies:
       '@types/node': 22.19.15
-      '@types/react': 19.2.7
+      '@types/react': 18.3.28
 
   react-dom@19.1.0(react@19.1.0):
     dependencies:
@@ -15011,6 +15041,13 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zen-observable@0.10.0: {}
+
+  zustand@4.5.7(@types/react@18.3.28)(react@19.1.0):
+    dependencies:
+      use-sync-external-store: 1.6.0(react@19.1.0)
+    optionalDependencies:
+      '@types/react': 18.3.28
+      react: 19.1.0
 
   zustand@4.5.7(@types/react@19.2.7)(react@19.1.0):
     dependencies:
