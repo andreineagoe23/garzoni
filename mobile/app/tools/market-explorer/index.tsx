@@ -8,6 +8,8 @@ import React, {
 import {
   Alert,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -269,7 +271,10 @@ export default function MarketExplorerScreen() {
   );
 
   return (
-    <>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <Stack.Screen options={{ title: "Market Explorer" }} />
       <View style={[styles.root, { backgroundColor: c.bg }]}>
         <View style={styles.tabSection}>
@@ -377,7 +382,7 @@ export default function MarketExplorerScreen() {
         }}
         onConfirmBuy={handleConfirmBuy}
       />
-    </>
+    </KeyboardAvoidingView>
   );
 }
 

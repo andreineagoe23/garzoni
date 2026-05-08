@@ -2,6 +2,11 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { submitExpoPushToken } from "@garzoni/core";
+import { tokenStorage } from "../auth/tokenStorage";
+import {
+  identifyGarzoniUserFromAccessToken,
+  registerPushTokenWithCustomerIo,
+} from "./customerIoMobile";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -48,6 +53,12 @@ export async function registerForPushAndSubmitToken(): Promise<{
       return { ok: false, message: "Could not read Expo push token." };
     }
     await submitExpoPushToken(token);
+    // Customer.io push requires the SDK to register the same token (Expo) after identify.
+    const access = await tokenStorage.getAccess();
+    if (access) {
+      await identifyGarzoniUserFromAccessToken(access);
+    }
+    await registerPushTokenWithCustomerIo(token);
     return { ok: true, message: "Notifications enabled." };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Push registration failed.";

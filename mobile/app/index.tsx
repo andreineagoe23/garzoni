@@ -4,13 +4,12 @@ import {
   Animated,
   Dimensions,
   Image,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
-import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { fetchProfile, fetchQuestionnaireProgress } from "@garzoni/core";
 import {
@@ -37,22 +36,16 @@ type OnboardingStatus = "pending" | "done" | "needs_onboarding";
 type WelcomeStatus = "pending" | "seen" | "unseen";
 type PlanStatus = "pending" | "chosen" | "not_chosen";
 
+const LOCAL_LOGO = require("../assets/garzoni-logo.png");
+
 function SplashLogo() {
-  const uri = authLogoWhiteRectangularUrl({ width: 560 });
-  const [failed, setFailed] = useState(false);
-
-  if (failed || !uri) {
-    return <Text style={styles.logoFallback}>Garzoni</Text>;
-  }
-
   return (
     <Image
       accessibilityLabel="Garzoni"
       accessibilityRole="image"
-      source={{ uri }}
+      source={LOCAL_LOGO}
       style={styles.logoImage}
       resizeMode="contain"
-      onError={() => setFailed(true)}
     />
   );
 }
@@ -66,6 +59,16 @@ export default function Index() {
 
   const [showSpinner, setShowSpinner] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Fade in on mount so the transition from native splash isn't a hard cut
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   // Pulse the logo gently while loading
   useEffect(() => {
@@ -163,6 +166,7 @@ export default function Index() {
       (onboardingStatus === "pending" || planStatus === "pending"))
   ) {
     return (
+      <Animated.View style={[styles.root, { opacity: fadeAnim }]}>
       <SafeAreaView style={styles.root}>
         {/* Ambient green glow top-center */}
         <View style={styles.glowTop} pointerEvents="none">
@@ -211,6 +215,7 @@ export default function Index() {
           </Svg>
         </View>
       </SafeAreaView>
+      </Animated.View>
     );
   }
 
