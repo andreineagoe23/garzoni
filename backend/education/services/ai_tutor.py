@@ -23,6 +23,12 @@ from support.prompts.tutor import (
 
 logger = logging.getLogger(__name__)
 
+# OpenAI HTTP timeouts (seconds) — single place; no Railway env vars required.
+_SYNC_BLOCKING_TIMEOUT_SEC = 3.0  # feedback, hints, nudge
+_SYNC_HEAVY_TIMEOUT_SEC = 180.0  # path ranking, coach brief, checkpoints, exercise explain
+_STREAM_TIMEOUT_SEC = 90.0
+_SYNC_MAX_RETRIES = 0
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -35,14 +41,16 @@ def _get_client():
     return OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
+def _sync_openai_client():
+    """Non-streaming calls: no SDK retries (avoids stacked timeouts on slow completions)."""
+    from openai import OpenAI
+
+    return OpenAI(api_key=settings.OPENAI_API_KEY, max_retries=_SYNC_MAX_RETRIES)
+
+
 def _default_model() -> str:
     allowed = getattr(settings, "OPENAI_ALLOWED_MODELS_CSV", ["gpt-4o-mini"])
     return allowed[0] if allowed else "gpt-4o-mini"
-
-
-def _blocking_timeout_seconds() -> float:
-    """Short HTTP-bound tutor calls (feedback, hints, etc.); avoids wedging Gunicorn workers."""
-    return float(getattr(settings, "OPENAI_BLOCKING_TIMEOUT_SECONDS", 3.0))
 
 
 def _post(
@@ -50,23 +58,30 @@ def _post(
     model: Optional[str] = None,
     temperature: float = 0.4,
     max_tokens: int = 512,
+    *,
+    timeout: Optional[float] = None,
 ) -> Optional[str]:
-    """Single-turn synchronous call via SDK. Returns content string or None."""
+    """Single-turn synchronous call via SDK. Returns content string or None.
+
+    Default ``timeout`` is short (feedback/hints). Pass ``timeout=_SYNC_HEAVY_TIMEOUT_SEC`` for
+    path ranking, coach brief, checkpoints, exercise explain.
+    """
     if not getattr(settings, "OPENAI_API_KEY", ""):
         logger.error("[ai_tutor] OPENAI_API_KEY not configured")
         return None
+    effective_timeout = float(timeout) if timeout is not None else _SYNC_BLOCKING_TIMEOUT_SEC
     try:
-        client = _get_client()
+        client = _sync_openai_client()
         resp = client.chat.completions.create(
             model=model or _default_model(),
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            timeout=_blocking_timeout_seconds(),
+            timeout=effective_timeout,
         )
         return (resp.choices[0].message.content or "").strip() or None
     except Exception as exc:
-        logger.error("[ai_tutor] API error: %s", exc)
+        logger.warning("[ai_tutor] API error: %s", exc)
         return None
 
 
@@ -176,14 +191,13 @@ def chat_stream(
 
     try:
         client = _get_client()
-        stream_timeout = float(getattr(settings, "OPENAI_REQUEST_TIMEOUT_SECONDS", 90) or 90)
         stream = client.chat.completions.create(
             model=_default_model(),
             messages=messages,
             temperature=0.6,
             max_tokens=300,
             stream=True,
-            timeout=stream_timeout,
+            timeout=_STREAM_TIMEOUT_SEC,
         )
         for chunk in stream:
             token = (chunk.choices[0].delta.content or "") if chunk.choices else ""
@@ -223,6 +237,7 @@ def generate_path_recommendations(
         ],
         temperature=0.2,
         max_tokens=600,
+        timeout=_SYNC_HEAVY_TIMEOUT_SEC,
     )
     if not raw:
         return []
@@ -257,6 +272,7 @@ def generate_checkpoint_questions(
         ],
         temperature=0.5,
         max_tokens=900,
+        timeout=_SYNC_HEAVY_TIMEOUT_SEC,
     )
     if not raw:
         return []
@@ -300,6 +316,7 @@ def generate_exercise_explanation(
         ],
         temperature=0.4,
         max_tokens=300,
+        timeout=_SYNC_HEAVY_TIMEOUT_SEC,
     )
     if not explanation:
         return None
@@ -316,6 +333,7 @@ def generate_exercise_explanation(
             ],
             temperature=0.6,
             max_tokens=400,
+            timeout=_SYNC_HEAVY_TIMEOUT_SEC,
         )
         if raw:
             try:
@@ -374,6 +392,7 @@ def generate_coach_brief(*, user) -> Optional[str]:
             ],
             temperature=0.7,
             max_tokens=350,
+            timeout=_SYNC_HEAVY_TIMEOUT_SEC,
         )
     except Exception as exc:
         logger.error("[ai_tutor] coach_brief error: %s", exc)

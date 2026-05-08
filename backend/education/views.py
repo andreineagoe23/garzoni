@@ -2046,11 +2046,15 @@ class PersonalizedPathView(APIView):
             path_dicts = [
                 {"title": p.title or "", "description": p.description or ""} for p in paths_qs
             ]
-            ranked = generate_path_recommendations(
-                answers=answers,
-                paths=path_dicts,
-                mastery_context=mastery_context,
-            )
+            try:
+                ranked = generate_path_recommendations(
+                    answers=answers,
+                    paths=path_dicts,
+                    mastery_context=mastery_context,
+                )
+            except Exception as exc:
+                logger.warning("path_gpt_rank_failed user=%s err=%s", user.id, exc)
+                ranked = []
             if ranked:
                 title_to_path = {p.title: p for p in paths_qs}
                 ordered = [

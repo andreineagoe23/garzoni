@@ -25,6 +25,7 @@ from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
 import json
 import logging
+import time
 import re
 import urllib.parse
 from html import unescape
@@ -83,6 +84,9 @@ from finance.plan_resolution import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Cap sequential Stooq/v8 Yahoo quote fallbacks (seconds of wall time per batch request).
+_MARKET_QUOTE_FALLBACK_BUDGET_SEC = 15.0
 
 
 def _safe_enqueue_celery(task_fn, *args, **kwargs) -> None:
@@ -664,7 +668,17 @@ def _yahoo_bulk_fetch_and_cache(
         # (free, IP-rate-limit-safe in regions where Yahoo blocks us), then
         # Yahoo v8 chart, which doesn't strictly require crumb auth.
         unfilled = [t for t in uncached if not cache.get(f"yf_quote_{t}")]
+        _fb_deadline = time.monotonic() + max(3.0, _MARKET_QUOTE_FALLBACK_BUDGET_SEC)
         for ticker in unfilled:
+            if time.monotonic() > _fb_deadline:
+                logger.info(
+                    "market_quote_fallback_budget_exceeded",
+                    extra={
+                        "uncached_sample": uncached[:8],
+                        "budget_sec": _MARKET_QUOTE_FALLBACK_BUDGET_SEC,
+                    },
+                )
+                break
             fallback_row = _stooq_quote(ticker) or _yahoo_v8_chart_quote(ticker, cookies=cookies)
             if not fallback_row:
                 continue
