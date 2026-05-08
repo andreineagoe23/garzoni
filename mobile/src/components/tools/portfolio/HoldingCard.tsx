@@ -15,11 +15,34 @@ type Props = {
   onDelete: (id: string | number) => void;
 };
 
+function formatBoughtDate(raw?: string): string | null {
+  if (!raw) return null;
+  const date = new Date(`${raw}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return raw;
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function getHeldDays(raw?: string): number | null {
+  if (!raw) return null;
+  const bought = new Date(`${raw}T00:00:00`);
+  if (Number.isNaN(bought.getTime())) return null;
+  const now = new Date();
+  const diffMs = now.getTime() - bought.getTime();
+  if (diffMs < 0) return 0;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
 export function HoldingCard({ entry, onDelete }: Props) {
   const c = useThemeColors();
   const isGain = (entry.gain_loss ?? 0) >= 0;
   const gainColor = isGain ? c.success : c.error;
   const gainBg = isGain ? c.successBg : c.errorBg;
+  const heldDays = getHeldDays(entry.purchase_date);
+  const boughtDateLabel = formatBoughtDate(entry.purchase_date);
 
   const handleLongPress = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -113,6 +136,13 @@ export function HoldingCard({ entry, onDelete }: Props) {
           value={formatCurrency(entry.purchase_price)}
           color={c.textMuted}
         />
+        {entry.current_price != null && entry.current_price > 0 && (
+          <MetaItem
+            label="Now"
+            value={formatCurrency(entry.current_price)}
+            color={c.textMuted}
+          />
+        )}
         {entry.gain_loss != null && (
           <MetaItem
             label="P&L"
@@ -120,10 +150,17 @@ export function HoldingCard({ entry, onDelete }: Props) {
             color={gainColor}
           />
         )}
-        {entry.purchase_date && (
+        {boughtDateLabel && (
           <MetaItem
             label="Bought"
-            value={entry.purchase_date}
+            value={boughtDateLabel}
+            color={c.textMuted}
+          />
+        )}
+        {heldDays != null && (
+          <MetaItem
+            label="Held"
+            value={`${heldDays}d`}
             color={c.textMuted}
           />
         )}

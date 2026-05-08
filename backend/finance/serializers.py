@@ -1,4 +1,5 @@
 # finance/serializers.py
+from datetime import date
 from decimal import InvalidOperation
 from rest_framework import serializers
 
@@ -184,8 +185,15 @@ class PortfolioEntrySerializer(serializers.ModelSerializer):
             p = float(value)
         except (TypeError, ValueError, InvalidOperation):
             raise serializers.ValidationError("Purchase price must be a number.")
-        if p < 0:
-            raise serializers.ValidationError("Purchase price cannot be negative.")
+        if p <= 0:
+            raise serializers.ValidationError("Purchase price must be greater than zero.")
+        return value
+
+    def validate_purchase_date(self, value):
+        if value is None:
+            raise serializers.ValidationError("Purchase date is required.")
+        if value > date.today():
+            raise serializers.ValidationError("Purchase date cannot be in the future.")
         return value
 
     def validate(self, attrs):

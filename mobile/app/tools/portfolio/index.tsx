@@ -18,7 +18,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
 import {
   apiClient,
@@ -27,8 +26,7 @@ import {
   queryKeys,
   staleTimes,
 } from "@garzoni/core";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useFocusEffect } from "@react-navigation/native";
+import { useQuery } from "@tanstack/react-query";
 import { useTheme, useThemeColors } from "../../../src/theme/ThemeContext";
 import {
   spacing,
@@ -39,9 +37,8 @@ import {
 import {
   formatCurrency,
   formatPercent,
-  inferAssetType,
-  CRYPTO_SYMBOLS,
   PIE_COLORS,
+  inferCoingeckoIdFromSymbol,
 } from "../../../src/types/portfolio";
 import type {
   PortfolioEntry,
@@ -58,7 +55,7 @@ import { AddEntrySheet } from "../../../src/components/tools/portfolio/AddEntryS
 import { AiExplanationSheet } from "../../../src/components/tools/portfolio/AiExplanationSheet";
 import { logDevError } from "../../../src/lib/logDevError";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { href } from "../../../src/navigation/href";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
 
@@ -345,18 +342,36 @@ function useStatusConfigs() {
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
+/** CoinGecko ids for crypto holdings — aligns batch quotes with Market Explorer. */
+function buildPortfolioCryptoMapParam(entries: PortfolioEntry[]): string | undefined {
+  const parts: string[] = [];
+  for (const e of entries) {
+    if (e.asset_type !== "crypto") continue;
+    const sym = e.symbol.trim().toUpperCase();
+    const id = inferCoingeckoIdFromSymbol(e.symbol);
+    if (sym && id) parts.push(`${sym}:${id}`);
+  }
+  return parts.length ? parts.join(",") : undefined;
+}
+
 async function fetchMarketQuotesMapRemote(
-  tickers: string[],
+  quoteEntries: PortfolioEntry[],
   signal?: AbortSignal,
 ): Promise<Record<string, number>> {
-  const unique = [...new Set(tickers.map((t) => t.trim()).filter(Boolean))];
+  const unique = [
+    ...new Set(quoteEntries.map((e) => e.symbol.trim()).filter(Boolean)),
+  ];
+  const cryptoMap = buildPortfolioCryptoMapParam(quoteEntries);
   const out: Record<string, number> = {};
   const chunkSize = 20;
   for (let i = 0; i < unique.length; i += chunkSize) {
     const slice = unique.slice(i, i + chunkSize);
     try {
       const res = await (apiClient as any).get("/market/quotes/", {
-        params: { tickers: slice.map((s) => s.toUpperCase()).join(",") },
+        params: {
+          tickers: slice.map((s) => s.toUpperCase()).join(","),
+          ...(cryptoMap ? { crypto_map: cryptoMap } : {}),
+        },
         signal,
       });
       for (const q of res.data ?? []) {
@@ -414,10 +429,25 @@ function applyQuotesToEntries(
   });
 }
 
+function formatPortfolioStartDate(entries: PortfolioEntry[]): string | null {
+  const purchaseDates = entries
+    .map((e) => e.purchase_date?.trim())
+    .filter((value): value is string => Boolean(value))
+    .sort();
+  const earliest = purchaseDates[0];
+  if (!earliest) return null;
+  const parsed = new Date(`${earliest}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return earliest;
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(parsed);
+}
+
 export default function PortfolioScreen() {
   const c = useThemeColors();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const invalidatePortfolioTools = useInvalidatePortfolioTools();
   const { risk: RISK_CONFIG, alignment: ALIGNMENT_CONFIG } = useStatusConfigs();
 
@@ -434,21 +464,19 @@ export default function PortfolioScreen() {
     }
   }, [entQuery.isFetched, hasPlus, router]);
 
-  const portfolioQuery = useQuery({
+  const portfolioQuery = useQuery<PortfolioDashboardPayload, Error>({
     queryKey: queryKeys.portfolioDashboard(),
     queryFn: async ({ signal }) => {
       const res = await (apiClient as any).get("/portfolio/", { signal });
       const fetched = (res.data || []) as PortfolioEntry[];
 
-      const quoteSymbols = fetched
-        .filter(
-          (e) =>
-            e.asset_type === "stock" ||
-            e.asset_type === "etf" ||
-            e.asset_type === "crypto",
-        )
-        .map((e) => e.symbol);
-      const quoteMap = await fetchMarketQuotesMapRemote(quoteSymbols, signal);
+      const quoteEntries = fetched.filter(
+        (e) =>
+          e.asset_type === "stock" ||
+          e.asset_type === "etf" ||
+          e.asset_type === "crypto",
+      );
+      const quoteMap = await fetchMarketQuotesMapRemote(quoteEntries, signal);
       const entries = applyQuotesToEntries(fetched, quoteMap);
 
       let balance: number | null = null;
@@ -461,21 +489,12 @@ export default function PortfolioScreen() {
         balance = null;
       }
 
-      return { entries, balance } satisfies PortfolioDashboardPayload;
+      return { entries, balance };
     },
     enabled: entQuery.isFetched && hasPlus,
     staleTime: staleTimes.portfolioDashboard,
     refetchInterval: 5 * 60 * 1000,
   });
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!hasPlus) return;
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.portfolioDashboard(),
-      });
-    }, [hasPlus, queryClient]),
-  );
 
   const entries = portfolioQuery.data?.entries ?? [];
   const virtualBalance =
@@ -565,8 +584,8 @@ export default function PortfolioScreen() {
   const filteredEntries = useMemo(
     () =>
       mode === "virtual"
-        ? entries.filter((e) => (e as any).is_paper_trade)
-        : entries.filter((e) => !(e as any).is_paper_trade),
+        ? entries.filter((e) => e.is_paper_trade)
+        : entries.filter((e) => !e.is_paper_trade),
     [entries, mode],
   );
 
@@ -599,6 +618,17 @@ export default function PortfolioScreen() {
     if (totalCost === 0) return 0;
     return (filteredSummary.total_gain_loss / totalCost) * 100;
   }, [filteredSummary, filteredEntries]);
+
+  const totalCostBasis = useMemo(
+    () =>
+      filteredEntries.reduce((s, e) => s + (e.purchase_price * e.quantity || 0), 0),
+    [filteredEntries],
+  );
+
+  const performanceStartLabel = useMemo(
+    () => formatPortfolioStartDate(filteredEntries),
+    [filteredEntries],
+  );
 
   const insight = useMemo((): PortfolioInsight | null => {
     if (!filteredSummary || filteredEntries.length === 0) return null;
@@ -1003,6 +1033,8 @@ export default function PortfolioScreen() {
                 summary={filteredSummary}
                 totalGainLossPercentage={totalGainLossPercentage}
                 holdingsCount={filteredEntries.length}
+                totalCostBasis={totalCostBasis}
+                periodLabel={performanceStartLabel}
               />
             )}
 

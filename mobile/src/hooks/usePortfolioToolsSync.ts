@@ -12,6 +12,8 @@ export function useInvalidatePortfolioTools() {
     await Promise.all([
       qc.invalidateQueries({ queryKey: queryKeys.portfolioDashboard() }),
       qc.invalidateQueries({ queryKey: queryKeys.savingsBalance() }),
+      // Drop cached per-asset quotes so the next open uses server truth after a trade.
+      qc.invalidateQueries({ queryKey: ["marketQuote"] }),
     ]);
   }, [qc]);
 }

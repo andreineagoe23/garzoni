@@ -309,6 +309,14 @@ AI_TUTOR_THROTTLE_RATE_FREE = os.getenv("AI_TUTOR_THROTTLE_RATE_FREE", "30/min")
 AI_TUTOR_THROTTLE_RATE_PREMIUM = os.getenv("AI_TUTOR_THROTTLE_RATE_PREMIUM", "120/min")
 FINANCE_EXTERNAL_THROTTLE_RATE = os.getenv("FINANCE_EXTERNAL_THROTTLE_RATE", "60/min")
 
+# Unified Yahoo/CoinGecko quote caches (seconds). Override per deploy if needed.
+MARKET_YAHOO_QUOTE_CACHE_TTL = int(os.getenv("MARKET_YAHOO_QUOTE_CACHE_TTL", "90"))
+MARKET_CRYPTO_QUOTE_CACHE_TTL = int(os.getenv("MARKET_CRYPTO_QUOTE_CACHE_TTL", "90"))
+# Short-lived negative cache after a failed quote to reduce thundering herds.
+MARKET_QUOTE_MISS_CACHE_SECONDS = int(os.getenv("MARKET_QUOTE_MISS_CACHE_SECONDS", "45"))
+# Yahoo crumb/cookie session lifetime (seconds). Crumbs typically last ~1 hour.
+MARKET_YAHOO_SESSION_TTL = int(os.getenv("MARKET_YAHOO_SESSION_TTL", "1800"))
+
 # Daily token budgets for the AI tutor (tracked in Redis/cache).
 # Limits total OpenAI token spend per user per UTC day regardless of request rate.
 OPENAI_DAILY_TOKEN_BUDGET_FREE = int(os.getenv("OPENAI_DAILY_TOKEN_BUDGET_FREE", "50000"))

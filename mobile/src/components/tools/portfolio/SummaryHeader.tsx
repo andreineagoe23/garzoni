@@ -9,12 +9,16 @@ type Props = {
   summary: PortfolioSummary;
   totalGainLossPercentage: number;
   holdingsCount: number;
+  totalCostBasis: number;
+  periodLabel?: string | null;
 };
 
 export function SummaryHeader({
   summary,
   totalGainLossPercentage,
   holdingsCount,
+  totalCostBasis,
+  periodLabel,
 }: Props) {
   const c = useThemeColors();
   const isGain = (summary.total_gain_loss ?? 0) >= 0;
@@ -79,6 +83,14 @@ export function SummaryHeader({
         <Text style={[styles.sub, { color: gainColor }]}>
           {formatPercent(totalGainLossPercentage)}
         </Text>
+        <Text style={[styles.sub, { color: c.textFaint }]}>
+          vs cost basis {formatCurrency(totalCostBasis)}
+        </Text>
+        {periodLabel ? (
+          <Text style={[styles.sub, { color: c.textFaint }]}>
+            since {periodLabel}
+          </Text>
+        ) : null}
         {/* Animated bar */}
         <View style={[styles.barTrack, { backgroundColor: c.surfaceOffset }]}>
           <Animated.View

@@ -24,7 +24,7 @@ import {
   queryKeys,
   staleTimes,
 } from "@garzoni/core";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import {
   spacing,
@@ -42,6 +42,7 @@ import { AssetCard } from "../../../src/components/tools/market-explorer/AssetCa
 import { QuoteSheet } from "../../../src/components/tools/market-explorer/QuoteSheet";
 import { logDevError } from "../../../src/lib/logDevError";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
+import { getMarketQuoteQueryOptions } from "../../../src/hooks/useMarketQuote";
 
 const PLACEHOLDER: Record<MarketTab, string> = {
   stocks: "Search stocks (e.g. AAPL)",
@@ -66,6 +67,7 @@ function buildCryptoMapParam(rows: Asset[]): string | undefined {
 export default function MarketExplorerScreen() {
   const c = useThemeColors();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const invalidatePortfolioTools = useInvalidatePortfolioTools();
 
   const entQuery = useQuery({
@@ -195,15 +197,12 @@ export default function MarketExplorerScreen() {
     setQuoteWarning(null);
     setSelectedAsset({ ...asset });
     try {
-      const qp: Record<string, string> = {};
-      if (asset.coingecko_id) {
-        qp.coingecko_id = asset.coingecko_id;
-      }
-      const res = await (apiClient as any).get(
-        `/market/quote/${encodeURIComponent(asset.ticker)}/`,
-        { params: Object.keys(qp).length ? qp : undefined },
-      );
-      const data = res.data ?? {};
+      const data = await queryClient.fetchQuery({
+        ...getMarketQuoteQueryOptions({
+          ticker: asset.ticker,
+          coingeckoId: asset.coingecko_id,
+        }),
+      });
       const merged: QuoteDetail = {
         ...asset,
         ...data,
@@ -236,7 +235,7 @@ export default function MarketExplorerScreen() {
     } finally {
       setQuoteLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const handleConfirmBuy = useCallback(
     async (amount: number) => {

@@ -305,12 +305,217 @@ def _parse_crypto_map_param(raw: str | None) -> dict[str, str]:
     return out
 
 
+_YAHOO_BROWSER_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+
+
+def _yahoo_session_cache_ttl_seconds() -> int:
+    """Crumb tokens are valid for ~1 hour in practice; refresh well before that."""
+    return int(getattr(settings, "MARKET_YAHOO_SESSION_TTL", 30 * 60))
+
+
+def _yahoo_get_session(force_refresh: bool = False) -> tuple[dict[str, str], str | None]:
+    """Return (cookies, crumb) for authenticated Yahoo Finance v7 calls.
+
+    Yahoo's v7 quote endpoint started returning 401 for anonymous requests in 2024:
+    callers must present a `B`/`A1S`/etc. cookie set + a per-session `crumb` token.
+    We cache the (cookies, crumb) pair in Django cache to avoid the round-trip per
+    request; falls back to (empty, None) if Yahoo blocks the cookie/crumb handshake.
+    """
+    cache_key = "market_yahoo_session_v1"
+    if not force_refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return cached.get("cookies", {}), cached.get("crumb") or None
+
+    cookies: dict[str, str] = {}
+    crumb: str | None = None
+    headers = {
+        "User-Agent": _YAHOO_BROWSER_USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+
+    session = requests.Session()
+    # Primer order matters: fc.yahoo.com sets the `B` cookie used to authorize the
+    # crumb endpoint; finance.yahoo.com adds A1/A3 + the EU consent cookies.
+    for primer_url in (
+        "https://fc.yahoo.com",
+        "https://finance.yahoo.com/quote/AAPL/",
+    ):
+        try:
+            session.get(
+                primer_url,
+                headers=headers,
+                timeout=6,
+                allow_redirects=True,
+            )
+        except Exception as exc:
+            logger.info(
+                "yahoo_session_primer_failed",
+                extra={"url": primer_url, "error": str(exc)},
+            )
+
+    cookies = {k: v for k, v in session.cookies.items()}
+
+    try:
+        crumb_resp = session.get(
+            "https://query2.finance.yahoo.com/v1/test/getcrumb",
+            headers={**headers, "Accept": "*/*"},
+            timeout=6,
+        )
+        if crumb_resp.status_code == 200:
+            text = (crumb_resp.text or "").strip()
+            if text and "<html" not in text.lower() and len(text) < 64:
+                crumb = text
+        else:
+            logger.info("yahoo_crumb_status: %s", crumb_resp.status_code)
+    except Exception as exc:
+        logger.info("yahoo_crumb_fetch_failed: %s", exc)
+
+    payload = {"cookies": cookies, "crumb": crumb}
+    # Short TTL when we couldn't get a crumb — try again sooner on next request.
+    ttl = _yahoo_session_cache_ttl_seconds() if crumb else 60
+    cache.set(cache_key, payload, ttl)
+    return cookies, crumb
+
+
+def _stooq_symbol_for(ticker: str) -> str | None:
+    """Map a Yahoo-style ticker to its Stooq symbol.
+
+    Stooq supports US equities/ETFs via `<symbol>.us` and forex pairs via the
+    plain pair name (e.g. `eurusd`). Returns None for assets we can't reliably
+    map (rest of the world tickers, indices, etc.).
+    """
+    sym = (ticker or "").strip().upper()
+    if not sym:
+        return None
+    if sym.endswith("=X"):
+        return sym[:-2].lower() or None
+    if "-" in sym or "." in sym:
+        return None
+    return f"{sym.lower()}.us"
+
+
+def _stooq_quote(ticker: str) -> dict | None:
+    """Fetch a single quote from Stooq's CSV endpoint (free, no auth)."""
+    stooq_sym = _stooq_symbol_for(ticker)
+    if not stooq_sym:
+        return None
+    try:
+        resp = requests.get(
+            "https://stooq.com/q/l/",
+            params={"s": stooq_sym, "f": "sd2t2ohlcv", "h": "", "e": "csv"},
+            headers={"User-Agent": _YAHOO_BROWSER_USER_AGENT},
+            timeout=6,
+        )
+        if resp.status_code != 200:
+            return None
+        text = (resp.text or "").strip()
+    except Exception as exc:
+        logger.info("stooq_request_failed: %s", exc)
+        return None
+
+    lines = [line for line in text.splitlines() if line.strip()]
+    if len(lines) < 2:
+        return None
+    cols = lines[1].split(",")
+    if len(cols) < 7:
+        return None
+
+    # Columns: Symbol, Date, Time, Open, High, Low, Close, Volume
+    def _maybe_float(value: str) -> float | None:
+        if value is None:
+            return None
+        v = value.strip()
+        if not v or v.upper() == "N/D":
+            return None
+        try:
+            f = float(v)
+        except ValueError:
+            return None
+        return f if f == f else None
+
+    o = _maybe_float(cols[3])
+    h = _maybe_float(cols[4])
+    low = _maybe_float(cols[5])
+    close = _maybe_float(cols[6])
+    vol = _maybe_float(cols[7]) if len(cols) > 7 else 0.0
+
+    if close is None or close <= 0:
+        return None
+
+    # Stooq doesn't return previous close — derive a daily change from open if available.
+    change_pct = 0.0
+    if o and o > 0 and close != o:
+        change_pct = ((close / o) - 1.0) * 100.0
+
+    return {
+        "symbol": ticker.strip().upper(),
+        "regularMarketPrice": close,
+        "regularMarketPreviousClose": o or close,
+        "regularMarketDayHigh": h or 0.0,
+        "regularMarketDayLow": low or 0.0,
+        "regularMarketOpen": o or 0.0,
+        "regularMarketVolume": vol or 0.0,
+        "regularMarketChangePercent": change_pct,
+        "shortName": ticker.strip().upper(),
+        "_source": "stooq",
+    }
+
+
+def _yahoo_v8_chart_quote(ticker: str, *, cookies: dict[str, str] | None) -> dict | None:
+    """Per-symbol fallback using v8/finance/chart (works without crumb auth)."""
+    sym = (ticker or "").strip().upper()
+    if not sym:
+        return None
+    try:
+        resp = requests.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}",
+            params={"range": "2d", "interval": "1d"},
+            headers={"User-Agent": _YAHOO_BROWSER_USER_AGENT, "Accept": "*/*"},
+            cookies=cookies or None,
+            timeout=6,
+        )
+        if resp.status_code != 200:
+            logger.info(
+                "yahoo_v8_chart_status",
+                extra={"ticker": sym, "status": resp.status_code},
+            )
+            return None
+        body = resp.json() or {}
+    except Exception as exc:
+        logger.info("yahoo_v8_chart_failed: %s", exc)
+        return None
+
+    chart = body.get("chart") or {}
+    results = chart.get("result") or []
+    if not results:
+        return None
+    meta = (results[0] or {}).get("meta") or {}
+    return {
+        "symbol": (meta.get("symbol") or sym).upper(),
+        "regularMarketPrice": meta.get("regularMarketPrice"),
+        "regularMarketPreviousClose": meta.get("chartPreviousClose") or meta.get("previousClose"),
+        "regularMarketDayHigh": meta.get("regularMarketDayHigh"),
+        "regularMarketDayLow": meta.get("regularMarketDayLow"),
+        "regularMarketVolume": meta.get("regularMarketVolume"),
+        "shortName": meta.get("shortName") or meta.get("instrumentType") or sym,
+    }
+
+
 def _yahoo_quote_cache_ttl_seconds() -> int:
     return int(getattr(settings, "MARKET_YAHOO_QUOTE_CACHE_TTL", MARKET_QUOTE_CACHE_SECONDS))
 
 
 def _crypto_quote_cache_ttl_seconds() -> int:
     return int(getattr(settings, "MARKET_CRYPTO_QUOTE_CACHE_TTL", MARKET_QUOTE_CACHE_SECONDS))
+
+
+def _quote_miss_cache_seconds() -> int:
+    return max(10, int(getattr(settings, "MARKET_QUOTE_MISS_CACHE_SECONDS", 45)))
 
 
 def _yahoo_bulk_fetch_and_cache(
@@ -331,21 +536,84 @@ def _yahoo_bulk_fetch_and_cache(
     if not upper:
         return
     ttl = _yahoo_quote_cache_ttl_seconds()
+    miss_ttl = _quote_miss_cache_seconds()
     if force_refresh:
         for t in upper:
             cache.delete(f"yf_quote_{t}")
-    uncached = [t for t in upper if not cache.get(f"yf_quote_{t}")]
+            cache.delete(f"yf_quote_miss_{t}")
+    uncached: list[str] = []
+    for t in upper:
+        if cache.get(f"yf_quote_{t}"):
+            continue
+        if cache.get(f"yf_quote_miss_{t}"):
+            continue
+        uncached.append(t)
     if not uncached:
         return
+
+    cookies, crumb = _yahoo_get_session()
+    yahoo_headers = {
+        "User-Agent": _YAHOO_BROWSER_USER_AGENT,
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Origin": "https://finance.yahoo.com",
+        "Referer": "https://finance.yahoo.com/",
+    }
     try:
-        # Omit `fields` — Yahoo strips fields needed for currencies (=X pairs) and some ETFs.
-        yf = requests.get(
-            "https://query1.finance.yahoo.com/v7/finance/quote",
-            params={"symbols": ",".join(uncached)},
-            headers={"User-Agent": "Mozilla/5.0"},
-            timeout=8,
-        )
-        payload = yf.json()
+        payload: dict = {"quoteResponse": {"result": []}}
+        if crumb:
+            # Omit `fields` — Yahoo strips fields needed for currencies (=X pairs) and some ETFs.
+            params: dict[str, str] = {"symbols": ",".join(uncached), "crumb": crumb}
+            yf_session = requests.Session()
+            yf_session.cookies.update(cookies or {})
+            try:
+                yf = yf_session.get(
+                    "https://query2.finance.yahoo.com/v7/finance/quote",
+                    params=params,
+                    headers=yahoo_headers,
+                    timeout=8,
+                )
+            except Exception as exc:
+                logger.info("yahoo_v7_request_failed: %s", exc)
+                yf = None
+
+            if yf is not None and yf.status_code in (401, 403):
+                # Crumb / cookies likely expired — refresh once and retry the batch.
+                cookies, crumb = _yahoo_get_session(force_refresh=True)
+                if crumb:
+                    params["crumb"] = crumb
+                    yf_session = requests.Session()
+                    yf_session.cookies.update(cookies or {})
+                    try:
+                        yf = yf_session.get(
+                            "https://query2.finance.yahoo.com/v7/finance/quote",
+                            params=params,
+                            headers=yahoo_headers,
+                            timeout=8,
+                        )
+                    except Exception as exc:
+                        logger.info("yahoo_v7_retry_failed: %s", exc)
+                        yf = None
+
+            if yf is None or yf.status_code != 200:
+                logger.info(
+                    "yahoo_quote_unavailable",
+                    extra={
+                        "status": yf.status_code if yf is not None else None,
+                        "batch": uncached[:5],
+                    },
+                )
+            else:
+                try:
+                    payload = yf.json() or payload
+                except Exception:
+                    payload = {"quoteResponse": {"result": []}}
+        else:
+            logger.info(
+                "yahoo_no_crumb_skip_v7",
+                extra={"batch": uncached[:5]},
+            )
+
         q_err = payload.get("quoteResponse", {}).get("error")
         if q_err:
             logger.warning(
@@ -386,9 +654,45 @@ def _yahoo_bulk_fetch_and_cache(
                 "volume": float(q.get("regularMarketVolume", 0) or 0),
                 "market_cap": float(q.get("marketCap", 0) or 0),
             }
+            cache.delete(f"yf_quote_miss_{ticker}")
             cache.set(f"yf_quote_{ticker}", cache_blob, ttl)
             if t_sym and t_sym != ticker:
+                cache.delete(f"yf_quote_miss_{t_sym}")
                 cache.set(f"yf_quote_{t_sym}", cache_blob, ttl)
+
+        # Fallback chain for symbols Yahoo v7 couldn't price: try Stooq first
+        # (free, IP-rate-limit-safe in regions where Yahoo blocks us), then
+        # Yahoo v8 chart, which doesn't strictly require crumb auth.
+        unfilled = [t for t in uncached if not cache.get(f"yf_quote_{t}")]
+        for ticker in unfilled:
+            fallback_row = _stooq_quote(ticker) or _yahoo_v8_chart_quote(ticker, cookies=cookies)
+            if not fallback_row:
+                continue
+            price, change = _yahoo_extract_price_and_change_pct(fallback_row)
+            if price <= 0:
+                continue
+            t_sym = (fallback_row.get("symbol") or ticker).upper()
+            name = fallback_row.get("shortName") or t_sym
+            cache_blob = {
+                "price": price,
+                "change": change,
+                "name": name,
+                "open": float(fallback_row.get("regularMarketOpen", 0) or 0),
+                "high": float(fallback_row.get("regularMarketDayHigh", 0) or 0),
+                "low": float(fallback_row.get("regularMarketDayLow", 0) or 0),
+                "volume": float(fallback_row.get("regularMarketVolume", 0) or 0),
+                "market_cap": 0.0,
+                "_source": fallback_row.get("_source") or "yahoo_v8",
+            }
+            cache.delete(f"yf_quote_miss_{ticker}")
+            cache.set(f"yf_quote_{ticker}", cache_blob, ttl)
+            if t_sym and t_sym != ticker:
+                cache.delete(f"yf_quote_miss_{t_sym}")
+                cache.set(f"yf_quote_{t_sym}", cache_blob, ttl)
+
+        for ticker in uncached:
+            if not cache.get(f"yf_quote_{ticker}"):
+                cache.set(f"yf_quote_miss_{ticker}", 1, miss_ttl)
     except Exception as exc:
         logger.warning("Yahoo Finance batch quote failed: %s", exc)
 
@@ -426,10 +730,18 @@ def _coingecko_bulk_fetch_and_cache(
     if not unique:
         return
     ttl = _crypto_quote_cache_ttl_seconds()
+    miss_ttl = _quote_miss_cache_seconds()
     if force_refresh:
         for cid in unique:
             cache.delete(f"crypto_{cid}")
-    missing = [cid for cid in unique if not cache.get(f"crypto_{cid}")]
+            cache.delete(f"crypto_miss_{cid}")
+    missing: list[str] = []
+    for cid in unique:
+        if cache.get(f"crypto_{cid}"):
+            continue
+        if cache.get(f"crypto_miss_{cid}"):
+            continue
+        missing.append(cid)
     if not missing:
         return
     try:
@@ -461,6 +773,7 @@ def _coingecko_bulk_fetch_and_cache(
                     },
                 )
                 continue
+            cache.delete(f"crypto_miss_{cid}")
             cache.set(
                 f"crypto_{cid}",
                 {
@@ -470,6 +783,9 @@ def _coingecko_bulk_fetch_and_cache(
                 },
                 ttl,
             )
+        for cid in missing:
+            if not cache.get(f"crypto_{cid}"):
+                cache.set(f"crypto_miss_{cid}", 1, miss_ttl)
     except Exception as exc:
         logger.warning("CoinGecko batch quote failed: %s", exc)
 
@@ -494,8 +810,23 @@ def _paper_trade_resolve_price(symbol: str, coingecko_id: str | None) -> tuple[f
         cid = coingecko_id.strip().lower()
     elif sym_low in COINGECKO_ID_MAP:
         cid = COINGECKO_ID_MAP[sym_low]
+    else:
+        # Common user inputs include quote suffixes (e.g. BTC-USD / ETHUSD / BTC/USD).
+        compact = sym_low.replace("/", "-")
+        if compact.endswith("-usd"):
+            compact = compact[: -len("-usd")]
+        elif compact.endswith("usd") and len(compact) > 3:
+            compact = compact[:-3]
+        compact = compact.strip("-")
+        if compact in COINGECKO_ID_MAP:
+            cid = COINGECKO_ID_MAP[compact]
 
     if cid:
+        _coingecko_bulk_fetch_and_cache([cid], force_refresh=False)
+        q = _coingecko_read_cached(cid)
+        price = float(q.get("price", 0) or 0)
+        if price > 0:
+            return price, "crypto"
         _coingecko_bulk_fetch_and_cache([cid], force_refresh=True)
         q = _coingecko_read_cached(cid)
         price = float(q.get("price", 0) or 0)
@@ -507,6 +838,11 @@ def _paper_trade_resolve_price(symbol: str, coingecko_id: str | None) -> tuple[f
         )
         return None, "crypto"
 
+    _yahoo_bulk_fetch_and_cache([symbol_u], force_refresh=False)
+    y = _yahoo_read_cached_quote_details(symbol_u)
+    px = float(y.get("price", 0) or 0)
+    if px > 0:
+        return px, "stock"
     _yahoo_bulk_fetch_and_cache([symbol_u], force_refresh=True)
     y = _yahoo_read_cached_quote_details(symbol_u)
     px = float(y.get("price", 0) or 0)
@@ -1195,7 +1531,7 @@ class AssetSearchView(APIView):
         if len(query) < 2:
             return Response([])
 
-        cache_key = f"asset_search_v1_{query.lower()}"
+        cache_key = f"asset_search_v2_{query.lower()}"
         cached = cache.get(cache_key)
         if cached:
             return Response(cached)
@@ -1241,6 +1577,7 @@ class AssetSearchView(APIView):
                             "symbol": (coin.get("symbol") or "").upper(),
                             "name": coin.get("name", ""),
                             "type": "crypto",
+                            "coingecko_id": (coin.get("id") or "").lower(),
                             "exchange": "Crypto",
                         }
                     )

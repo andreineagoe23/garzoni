@@ -411,6 +411,12 @@ export type RecentActivityItem = {
   course?: string;
   lesson_id?: number;
   course_id?: number;
+  /** Stable i18n key for ledger entries (e.g. `gamification.ledger.lesson_reward`). */
+  label_key?: string;
+  /** XP awarded for this entry, when present (ledger entries only). */
+  points?: number;
+  /** Coins awarded for this entry, as a string-decimal (ledger entries only). */
+  coins?: string;
   timestamp?: string;
 };
 

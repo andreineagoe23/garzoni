@@ -62,6 +62,14 @@ export const queryKeys = {
   /** Market Explorer debounced server search (+ live prices when returned). */
   marketSearch: (tab: string, normalizedQuery: string) =>
     ["marketSearch", tab, normalizedQuery] as const,
+  /**
+   * Single-asset quote from `/market/quote/:ticker/` (optional CoinGecko id for crypto).
+   * Second segment is lowercase coingecko id or omitted when Yahoo-only.
+   */
+  marketQuote: (ticker: string, coingeckoId?: string) =>
+    coingeckoId
+      ? (["marketQuote", ticker.toUpperCase(), coingeckoId.toLowerCase()] as const)
+      : (["marketQuote", ticker.toUpperCase()] as const),
 };
 
 export const staleTimes = {
@@ -82,6 +90,8 @@ export const staleTimes = {
   // Tools: fresher holdings / search so trades and quotes feel live.
   portfolioDashboard: MINUTE / 2,
   marketSearch: 15 * 1000,
+  /** Single quote: SWR — background refresh without hammering providers. */
+  marketQuote: 90 * 1000,
 };
 
 export function defaultRetry(failureCount: number, error: unknown) {

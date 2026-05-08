@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { forceReregisterPushToken } from "../src/hooks/usePushNotifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
 import {
   Pressable,
   ScrollView,
@@ -62,6 +63,9 @@ export default function SettingsScreen() {
   const [emailReminderPreference, setEmailReminderPreference] =
     useState<ReminderCadence>("none");
   const [emailPrefs, setEmailPrefs] = useState<EmailPrefs>(DEFAULT_EMAIL_PREFS);
+  const [pushOn, setPushOn] = useState(true);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [heartsOn, setHeartsOn] = useState(true);
 
   const settingsQ = useQuery({
     queryKey: queryKeys.userSettings(),
@@ -83,7 +87,14 @@ export default function SettingsScreen() {
       billing_alerts: Boolean(p?.billing_alerts ?? true),
       marketing: Boolean(p?.marketing ?? false),
     });
+    setPushOn(Boolean((d as Record<string, unknown>)?.push_notifications !== false));
   }, [settingsQ.data]);
+
+  useEffect(() => {
+    void AsyncStorage.getItem("garzoni:show_hearts_ui").then((v) => {
+      if (v === "0") setHeartsOn(false);
+    });
+  }, []);
 
   const mutation = useMutation({
     mutationFn: patchUserSettings,
@@ -97,6 +108,21 @@ export default function SettingsScreen() {
     },
     [mutation],
   );
+
+  const onHeartsToggle = useCallback(async (next: boolean) => {
+    setHeartsOn(next);
+    await AsyncStorage.setItem("garzoni:show_hearts_ui", next ? "1" : "0");
+  }, []);
+
+  const onPushToggle = useCallback(async (next: boolean) => {
+    setPushBusy(true);
+    setPushOn(next);
+    patchPrefs({ push_notifications: next } as Parameters<typeof patchUserSettings>[0]);
+    if (next) {
+      await registerForPushAndSubmitToken();
+    }
+    setPushBusy(false);
+  }, [patchPrefs]);
 
   const persistEmailBlock = useCallback(
     (nextPrefs: EmailPrefs, cadence: ReminderCadence) => {
@@ -246,6 +272,19 @@ export default function SettingsScreen() {
             onValueChange={(v) => patchPrefs({ animations_enabled: v })}
             c={c}
           />
+          <Row
+            label="Push notifications"
+            value={pushOn}
+            onValueChange={(v) => void onPushToggle(v)}
+            disabled={pushBusy}
+            c={c}
+          />
+          <Row
+            label={t("profile.heartsUi")}
+            value={heartsOn}
+            onValueChange={(v) => void onHeartsToggle(v)}
+            c={c}
+          />
         </GlassCard>
 
         <Text style={[styles.section, { color: c.textFaint }]}>
@@ -336,58 +375,23 @@ export default function SettingsScreen() {
           </Pressable>
         </GlassCard>
 
-        <SyncNotificationsButton c={c} />
-        <Text style={[styles.muted, { color: c.textFaint }]}>
-          {t("settings.mobile.pushNote")}
-        </Text>
       </ScrollView>
     </>
   );
 }
 
-function SyncNotificationsButton({ c }: { c: ReturnType<typeof useThemeColors> }) {
-  const [status, setStatus] = useState<"idle" | "syncing" | "ok" | "error">("idle");
-
-  const handlePress = async () => {
-    if (status === "syncing") return;
-    setStatus("syncing");
-    const result = await forceReregisterPushToken();
-    setStatus(result.ok ? "ok" : "error");
-    setTimeout(() => setStatus("idle"), 3000);
-  };
-
-  const label =
-    status === "syncing" ? "Syncing…"
-    : status === "ok" ? "Device registered ✓"
-    : status === "error" ? "Failed — check permissions"
-    : "Sync push notifications";
-
-  return (
-    <Pressable
-      onPress={() => void handlePress()}
-      disabled={status === "syncing"}
-      style={[
-        styles.syncBtn,
-        { borderColor: c.border, backgroundColor: c.surface },
-      ]}
-    >
-      <Ionicons name="notifications-outline" size={16} color={c.primary} />
-      <Text style={[styles.syncLabel, { color: status === "error" ? "#ef4444" : status === "ok" ? c.primary : c.text }]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 
 function Row({
   label,
   value,
   onValueChange,
+  disabled,
   c,
 }: {
   label: string;
   value: boolean;
   onValueChange: (v: boolean) => void;
+  disabled?: boolean;
   c: ReturnType<typeof useThemeColors>;
 }) {
   return (
@@ -396,6 +400,7 @@ function Row({
       <Switch
         value={value}
         onValueChange={onValueChange}
+        disabled={disabled}
         trackColor={{ true: c.primary, false: c.border }}
       />
     </View>
@@ -468,19 +473,6 @@ const styles = StyleSheet.create({
     fontSize: typography.base,
     fontWeight: "600",
   },
-  muted: { fontSize: typography.xs, marginTop: spacing.xl, lineHeight: 18 },
-  syncBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignSelf: "flex-start",
-    marginTop: spacing.lg,
-  },
-  syncLabel: { fontSize: typography.sm, fontWeight: "500" },
   linkRow: {
     flexDirection: "row",
     alignItems: "center",
