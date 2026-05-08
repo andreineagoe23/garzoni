@@ -45,12 +45,7 @@ export async function initCustomerIoMobile(): Promise<void> {
       });
     } catch (e) {
       nativeAvailable = false;
-      if (__DEV__) {
-        console.warn(
-          "[Customer.io] initialize failed (rebuild native app with customerio-reactnative):",
-          e,
-        );
-      }
+      console.warn("[Customer.io] initialize failed:", e);
     }
   })();
   return initPromise;
