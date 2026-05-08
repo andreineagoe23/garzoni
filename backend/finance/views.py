@@ -1089,6 +1089,7 @@ class PaperTradeBuyView(APIView):
     """Buy an asset with virtual cash from the user's SimulatedSavingsAccount."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [FinanceExternalRateThrottle]
 
     def post(self, request):
         symbol = str(request.data.get("symbol", "")).upper().strip()

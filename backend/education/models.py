@@ -178,6 +178,9 @@ class UserProgress(models.Model):
         verbose_name = "User Progress"
         verbose_name_plural = "User Progress"
         db_table = "core_userprogress"
+        indexes = [
+            models.Index(fields=["user", "course"], name="userprogress_user_course_idx"),
+        ]
 
     def update_streak(self):
         """Update per-course activity counters and bump the canonical profile streak."""
