@@ -141,6 +141,10 @@ def cdp_identify(
     """
     POST /v1/identify — CDP API (same contract as Pipelines "Customer.io API" source test curl).
     Authorization: Basic base64("API_KEY:")
+
+    Email is intentionally excluded from CDP traits: CIO tries to set it as an identifier
+    and fails with "Failed Attribute Change" when another profile already claims that email.
+    Email is set via the Track API (PUT /api/v1/customers/{id}) instead.
     """
     if not getattr(settings, "CIO_CDP_ENABLED", True):
         return True, "skipped (CIO_CDP_ENABLED=false)"
@@ -149,6 +153,9 @@ def cdp_identify(
         return False, "missing CIO_CDP_API_KEY"
     clean_traits: dict[str, Any] = {}
     for k, v in (traits or {}).items():
+        # Skip email (set via Track API) and id (redundant, already the userId)
+        if k in ("email", "id"):
+            continue
         if isinstance(v, (str, int, float, bool)):
             clean_traits[str(k)] = v
     payload = {"userId": str(person_id), "traits": clean_traits}
@@ -175,10 +182,12 @@ def _track_upsert_customer(
     if not auth:
         return False, "missing CIO_SITE_ID or CIO_TRACK_API_KEY"
     url = f"{_track_api_base()}/api/v1/customers/{person_id}"
+    # Strip "id" — it's already in the URL path; sending it in body confuses CIO.
+    clean = {k: v for k, v in (traits or {}).items() if k != "id"}
     try:
         r = requests.put(
             url,
-            json=traits,
+            json=clean,
             headers={"Authorization": auth, "Content-Type": "application/json"},
             timeout=_http_timeout(http_timeout),
         )
