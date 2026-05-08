@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Modal,
   Pressable,
@@ -66,6 +67,7 @@ type ReviewDueItem = {
 type PracticeMode = "normal" | "review";
 
 const SESSION_BATCH = 5;
+const STORAGE_KEY_PICKED_ID = "garzoni_exercises_picked_id_v1";
 
 const EXERCISE_TYPES = [
   { value: undefined, label: "All Types" },
@@ -187,6 +189,24 @@ function ExercisesInner() {
     setFeedbackLine("");
     setFeedbackTone(null);
     setHintIndex(0);
+  }, [pickedId]);
+
+  // Restore last picked exercise ID on mount
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY_PICKED_ID)
+      .then((v) => {
+        const id = v ? Number(v) : null;
+        if (id && Number.isFinite(id)) setPickedId(id);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Persist picked exercise ID whenever it changes
+  useEffect(() => {
+    if (pickedId == null) return;
+    AsyncStorage.setItem(STORAGE_KEY_PICKED_ID, String(pickedId)).catch(
+      () => {},
+    );
   }, [pickedId]);
 
   useEffect(() => {

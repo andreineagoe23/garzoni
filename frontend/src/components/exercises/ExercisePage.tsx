@@ -184,6 +184,23 @@ const ExercisePage = () => {
     [exercises, currentExerciseIndex]
   );
 
+  // Stable shuffle per exercise — keyed on exercise id so options re-shuffle on navigation.
+  // userAnswer always stores the original (pre-shuffle) index so submit/grading are unaffected.
+  const shuffledMCOptions = useMemo(() => {
+    if (currentExercise?.type !== "multiple-choice") return null;
+    const opts = currentExercise.exercise_data?.options;
+    if (!Array.isArray(opts) || opts.length === 0) return null;
+    const order = opts.map((_: unknown, i: number) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return {
+      options: order.map((i: number) => opts[i] as string),
+      originalOf: (shuffledIdx: number) => order[shuffledIdx] as number,
+    };
+  }, [currentExercise?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const skillIntentReceivedKeyRef = useRef<string | null>(null);
   const skillIntentOutcomeKeyRef = useRef<string | null>(null);
   const skillIntentEngagedRef = useRef(false);
@@ -655,7 +672,7 @@ const ExercisePage = () => {
     lastLessonSessionRestoreKeyRef.current = compositeKey;
 
     try {
-      const raw = sessionStorage.getItem(LESSON_SESSION_STORAGE_KEY);
+      const raw = localStorage.getItem(LESSON_SESSION_STORAGE_KEY);
       const parsed = raw ? JSON.parse(raw) : null;
       if (
         parsed &&
@@ -691,10 +708,7 @@ const ExercisePage = () => {
           difficulty: filters.difficulty,
         },
       };
-      sessionStorage.setItem(
-        LESSON_SESSION_STORAGE_KEY,
-        JSON.stringify(payload)
-      );
+      localStorage.setItem(LESSON_SESSION_STORAGE_KEY, JSON.stringify(payload));
     } catch {
       /* ignore */
     }
@@ -828,7 +842,7 @@ const ExercisePage = () => {
     }
     resetIntentUiForClearFilter();
     try {
-      sessionStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
+      localStorage.removeItem(LESSON_SESSION_STORAGE_KEY);
     } catch {
       /* ignore */
     }
@@ -1457,18 +1471,23 @@ const ExercisePage = () => {
               {exercise.question}
             </h3>
             <div className="grid gap-3">
-              {exercise.exercise_data.options.map((option, index) => {
+              {(
+                shuffledMCOptions?.options ?? exercise.exercise_data.options
+              ).map((option, index) => {
+                const origIndex = shuffledMCOptions
+                  ? shuffledMCOptions.originalOf(index)
+                  : index;
                 const id = `exercise-option-${index}`;
                 let frameClass =
                   "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition hover:border-[color:var(--primary-bright,#2a7347)]/40 ";
                 if (hasResult) {
                   if (
                     correctOptionIndex !== null &&
-                    index === correctOptionIndex
+                    origIndex === correctOptionIndex
                   ) {
                     frameClass +=
                       "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 text-[color:var(--primary-bright,#2a7347)]";
-                  } else if (userAnswer === index) {
+                  } else if (userAnswer === origIndex) {
                     frameClass += isAnswerCorrect
                       ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 text-[color:var(--primary-bright,#2a7347)]"
                       : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]";
@@ -1476,7 +1495,7 @@ const ExercisePage = () => {
                     frameClass +=
                       "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
                   }
-                } else if (userAnswer === index) {
+                } else if (userAnswer === origIndex) {
                   frameClass +=
                     "border-[color:var(--primary-bright,#2a7347)] bg-[color:var(--primary,#1d5330)]/15 text-[color:var(--primary-bright,#2a7347)]";
                 } else {
@@ -1489,8 +1508,8 @@ const ExercisePage = () => {
                       id={id}
                       type="radio"
                       name="exercise-options"
-                      checked={userAnswer === index}
-                      onChange={() => setUserAnswer(index)}
+                      checked={userAnswer === origIndex}
+                      onChange={() => setUserAnswer(origIndex)}
                       className="h-4 w-4 border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]"
                     />
                     <span>{option}</span>

@@ -429,9 +429,11 @@ function StatusChip({
 function UtilityLinks({
   onRestore,
   onManageStore,
+  onRedeemCode,
 }: {
   onRestore: () => void;
   onManageStore: () => void;
+  onRedeemCode: () => void;
 }) {
   return (
     <View style={styles.utilityWrap}>
@@ -442,6 +444,14 @@ function UtilityLinks({
       <Pressable onPress={onManageStore}>
         <Text style={styles.utilityLink}>Manage subscription</Text>
       </Pressable>
+      {Platform.OS === "ios" && (
+        <>
+          <Text style={styles.utilityDot}>·</Text>
+          <Pressable onPress={onRedeemCode}>
+            <Text style={styles.utilityLink}>Redeem code</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
@@ -743,6 +753,16 @@ export default function SubscriptionsScreen() {
     await Linking.openURL(url).catch(() => null);
   }, []);
 
+  const onRedeemCode = useCallback(async () => {
+    const rc = getRevenueCatPurchases();
+    if (!rc) return;
+    try {
+      await rc.Purchases.presentCodeRedemptionSheet();
+    } catch {
+      // Sheet dismissed or not supported — no-op
+    }
+  }, []);
+
   const plusPkg = pickPackage(plusPkgs ?? undefined, cycle);
   const proPkg = pickPackage(proPkgs ?? undefined, cycle);
 
@@ -861,10 +881,11 @@ export default function SubscriptionsScreen() {
               <UtilityLinks
                 onRestore={() => void onRestore()}
                 onManageStore={() => void onManageStore()}
+                onRedeemCode={() => void onRedeemCode()}
               />
             )}
 
-            {/* Paywall footer: restore + skip (Apple guideline 3.1.1) */}
+            {/* Paywall footer: restore + redeem + skip (Apple guideline 3.1.1) */}
             {isPaywall && (
               <View style={styles.paywallFooter}>
                 <Pressable
@@ -873,6 +894,17 @@ export default function SubscriptionsScreen() {
                 >
                   <Text style={styles.utilityLink}>Restore purchases</Text>
                 </Pressable>
+                {Platform.OS === "ios" && (
+                  <>
+                    <Text style={styles.utilityDot}>·</Text>
+                    <Pressable
+                      onPress={() => void onRedeemCode()}
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.utilityLink}>Redeem code</Text>
+                    </Pressable>
+                  </>
+                )}
                 <Text style={styles.utilityDot}>·</Text>
                 <Pressable
                   onPress={() => router.replace("/(tabs)")}
