@@ -2,17 +2,16 @@ import React, { useCallback, useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import KeyboardAwareScrollView from "../../../components/ui/KeyboardAwareScrollView";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
 import type { RealityCheckForm } from "../../../types/reality-check";
@@ -84,10 +83,19 @@ export function InputSheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        Keyboard.dismiss();
+        onClose();
+      }}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={() => {
+          Keyboard.dismiss();
+          onClose();
+        }}
+      >
         <View style={[styles.backdropFill, { backgroundColor: c.overlay }]} />
       </Pressable>
 
@@ -105,11 +113,10 @@ export function InputSheet({
           <View style={[styles.handle, { backgroundColor: c.border }]} />
         </TouchableOpacity>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
+        <View style={{ flex: 1 }}>
+          <KeyboardAwareScrollView
+            keyboardActive={visible}
+            basePaddingBottom={48}
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -172,8 +179,8 @@ export function InputSheet({
                 Calculate
               </Text>
             </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -212,7 +219,7 @@ const styles = StyleSheet.create({
   },
   handleArea: { alignItems: "center", paddingVertical: spacing.md },
   handle: { width: 36, height: 4, borderRadius: 2 },
-  content: { padding: spacing.xl, gap: spacing.lg, paddingBottom: 48 },
+  content: { padding: spacing.xl, gap: spacing.lg },
   title: { fontSize: typography.xl, fontWeight: "700" },
   subtitle: { fontSize: typography.sm, marginTop: -spacing.xs },
   sectionDivider: {

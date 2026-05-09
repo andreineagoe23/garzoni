@@ -21,8 +21,13 @@ logger = logging.getLogger(__name__)
 LANGUAGE_CODE = "ro"
 
 
-@shared_task
-def reset_inactive_streaks():
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 3},
+)
+def reset_inactive_streaks(self):
     """
     Reset streaks for users who have been inactive for over 24 hours.
 

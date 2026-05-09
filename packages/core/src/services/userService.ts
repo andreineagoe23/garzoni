@@ -454,6 +454,8 @@ export type UserSettingsPayload = {
   dark_mode?: boolean;
   sound_enabled?: boolean;
   animations_enabled?: boolean;
+  /** When false, mobile should stop registering push tokens with the backend/CIO. */
+  push_notifications?: boolean;
   email_reminder_preference?: string;
   email_preferences?: Record<string, unknown>;
   profile?: Record<string, unknown>;
@@ -464,6 +466,7 @@ export const fetchUserSettings = () =>
     dark_mode?: boolean;
     sound_enabled?: boolean;
     animations_enabled?: boolean;
+    push_notifications?: boolean;
     email_reminder_preference?: string;
     email_preferences?: Record<string, unknown>;
     profile?: Record<string, unknown>;
@@ -475,6 +478,7 @@ export const patchUserSettings = (data: UserSettingsPayload) =>
     dark_mode?: boolean;
     sound_enabled?: boolean;
     animations_enabled?: boolean;
+    push_notifications?: boolean;
     email_reminder_preference?: string;
     email_preferences?: Record<string, unknown>;
   }>("/user/settings/", data);

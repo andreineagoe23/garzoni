@@ -63,8 +63,15 @@ export async function registerForPushAndSubmitToken(): Promise<{
     // not the Expo push token. Expo's getDevicePushTokenAsync returns the raw token.
     try {
       const native = await Notifications.getDevicePushTokenAsync();
-      if (native?.data && typeof native.data === "string") {
-        await registerPushTokenWithCustomerIo(native.data);
+      const raw = native?.data as unknown;
+      const nativeToken =
+        typeof raw === "string"
+          ? raw
+          : raw != null && raw !== undefined
+            ? String(raw)
+            : "";
+      if (nativeToken) {
+        await registerPushTokenWithCustomerIo(nativeToken);
       }
     } catch (e) {
       if (__DEV__) {

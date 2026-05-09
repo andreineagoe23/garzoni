@@ -1635,7 +1635,7 @@ class MarketSearchView(APIView):
                 try:
                     yh = requests.get(
                         "https://query2.finance.yahoo.com/v1/finance/search",
-                        params={"q": query, "quotesCount": 8, "newsCount": 0},
+                        params={"q": query, "quotesCount": 5, "newsCount": 0},
                         headers={"User-Agent": "Mozilla/5.0"},
                         timeout=4,
                     )
@@ -1655,6 +1655,8 @@ class MarketSearchView(APIView):
                                     "name": row.get("shortname") or row.get("longname") or ticker,
                                 }
                             )
+                            if len(meta_rows) >= 5:
+                                break
                     else:
                         logger.warning(
                             "Yahoo Market search returned %s for query: %s", yh.status_code, query
@@ -1670,7 +1672,7 @@ class MarketSearchView(APIView):
                         timeout=4,
                     )
                     if cg.status_code == 200:
-                        for coin in (cg.json().get("coins", []) or [])[:8]:
+                        for coin in (cg.json().get("coins", []) or [])[:5]:
                             symbol = (coin.get("symbol") or "").upper()
                             cg_id = (coin.get("id") or "").strip().lower()
                             if not symbol or not cg_id:
@@ -1682,6 +1684,8 @@ class MarketSearchView(APIView):
                                     "coingecko_id": cg_id,
                                 }
                             )
+                            if len(meta_rows) >= 5:
+                                break
                     elif cg.status_code == 429:
                         logger.warning(
                             "CoinGecko rate limit hit for market search query: %s", query
@@ -1695,7 +1699,11 @@ class MarketSearchView(APIView):
                 except Exception as exc:
                     logger.error("CoinGecko market search failed for '%s': %s", query, exc)
 
+            meta_rows = meta_rows[:5]
             cache.set(cache_key_meta, meta_rows, timeout=120)
+
+        # Cap at 5 for legacy cache entries and Yahoo overflow before filtering.
+        meta_rows = (meta_rows or [])[:5]
 
         results = [
             {

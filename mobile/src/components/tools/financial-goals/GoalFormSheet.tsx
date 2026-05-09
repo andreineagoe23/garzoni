@@ -2,11 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,6 +14,7 @@ import * as Haptics from "expo-haptics";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
+import KeyboardAwareScrollView from "../../../components/ui/KeyboardAwareScrollView";
 import type { FinancialGoalDto } from "../../../types/financial-goals";
 import {
   EMPTY_GOAL_FORM,
@@ -184,10 +183,19 @@ export function GoalFormSheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        Keyboard.dismiss();
+        onClose();
+      }}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdropTap} onPress={onClose}>
+      <Pressable
+        style={styles.backdropTap}
+        onPress={() => {
+          Keyboard.dismiss();
+          onClose();
+        }}
+      >
         <View style={[styles.backdropFill, { backgroundColor: c.overlay }]} />
       </Pressable>
       <Animated.View
@@ -202,11 +210,10 @@ export function GoalFormSheet({
       >
         <View style={[styles.handle, { backgroundColor: c.border }]} />
         <Text style={[styles.sheetTitle, { color: c.text }]}>{title}</Text>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
+        <View style={styles.sheetScrollWrap}>
+          <KeyboardAwareScrollView
+            keyboardActive={visible}
+            basePaddingBottom={spacing.xl}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.sheetBody}
@@ -343,8 +350,8 @@ export function GoalFormSheet({
                 </Text>
               </Pressable>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -381,7 +388,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.sm,
   },
-  sheetBody: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+  sheetScrollWrap: { flex: 1 },
+  sheetBody: { paddingHorizontal: spacing.lg },
   label: {
     fontSize: typography.sm,
     fontWeight: "600",

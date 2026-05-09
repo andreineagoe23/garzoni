@@ -13,7 +13,8 @@ from notifications.customer_io import resolve_transactional_ref
 from notifications.delivery_smtp import send_html_email, smtp_configured
 from notifications.enums import CioEventName, CioTemplate
 from notifications.events import NotificationEvents
-from notifications.idempotency import claim_idempotency_key
+from notifications.idempotency import idempotency_already_sent, record_idempotency_success
+from notifications.message_data import flatten_context_for_cio
 from notifications.policy import should_send_email
 from notifications.profile_sync import NotificationProfileSync
 from notifications.transactional import TransactionalMessages
@@ -35,6 +36,13 @@ def _outcome_from_cio(ok: bool, err: str | None) -> str:
     return f"cio_failed:{err}"
 
 
+def _record_successful_idempotency(idempotency_key: str | None, purpose: str, outcome: str) -> None:
+    if not idempotency_key:
+        return
+    if outcome.startswith("sent_") or outcome == "journey_event_published":
+        record_idempotency_success(idempotency_key, purpose)
+
+
 class NotificationService:
     """
     Single entry for outbound notifications: policy → Customer.io or SMTP fallback.
@@ -51,7 +59,7 @@ class NotificationService:
     def send_password_reset(
         self, user: User, reset_link: str, *, idempotency_key: str | None = None
     ) -> str:
-        if idempotency_key and not claim_idempotency_key(idempotency_key, "password_reset"):
+        if idempotency_key and idempotency_already_sent(idempotency_key):
             return "skipped_duplicate"
         pr = should_send_email(user, CioTemplate.PASSWORD_RESET)
         if not pr.allowed:
@@ -66,7 +74,9 @@ class NotificationService:
                     "customer_name": user.first_name or user.username or "there",
                 },
             )
-            return _outcome_from_cio(ok, err)
+            out = _outcome_from_cio(ok, err)
+            _record_successful_idempotency(idempotency_key, "password_reset", out)
+            return out
         if not smtp_configured():
             return "skipped_no_smtp"
         send_html_email(
@@ -75,10 +85,11 @@ class NotificationService:
             context=ctx,
             to_emails=[user.email],
         )
+        _record_successful_idempotency(idempotency_key, "password_reset", "sent_smtp")
         return "sent_smtp"
 
     def send_welcome(self, user: User, *, idempotency_key: str | None = None) -> str:
-        if idempotency_key and not claim_idempotency_key(idempotency_key, "welcome"):
+        if idempotency_key and idempotency_already_sent(idempotency_key):
             return "skipped_duplicate"
         pr = should_send_email(user, CioTemplate.WELCOME)
         if not pr.allowed:
@@ -100,7 +111,9 @@ class NotificationService:
         self.publish_domain_event(user, CioEventName.USER_REGISTERED, cio_data)
         if _use_cio_transactional(CioTemplate.WELCOME):
             ok, err = self.transactional.send(CioTemplate.WELCOME, user, cio_data)
-            return _outcome_from_cio(ok, err)
+            out = _outcome_from_cio(ok, err)
+            _record_successful_idempotency(idempotency_key, "welcome", out)
+            return out
         if smtp_configured():
             send_html_email(
                 subject="Welcome to Garzoni",
@@ -108,7 +121,9 @@ class NotificationService:
                 context=ctx,
                 to_emails=[user.email],
             )
+            _record_successful_idempotency(idempotency_key, "welcome", "sent_smtp")
             return "sent_smtp"
+        _record_successful_idempotency(idempotency_key, "welcome", "journey_event_published")
         return "journey_event_published"
 
     def send_subscription_cancelled(
@@ -120,7 +135,7 @@ class NotificationService:
         user: User | None = None,
         idempotency_key: str | None = None,
     ) -> str:
-        if idempotency_key and not claim_idempotency_key(idempotency_key, "subscription_cancelled"):
+        if idempotency_key and idempotency_already_sent(idempotency_key):
             return "skipped_duplicate"
         User = get_user_model()
         resolved_user = user or User.objects.filter(email__iexact=email.strip()).first()
@@ -166,7 +181,9 @@ class NotificationService:
                     identifiers={"email": email.strip()},
                     data=md,
                 )
-            return _outcome_from_cio(ok, err)
+            out = _outcome_from_cio(ok, err)
+            _record_successful_idempotency(idempotency_key, "subscription_cancelled", out)
+            return out
         if not smtp_configured():
             return "skipped_no_smtp"
         send_html_email(
@@ -175,6 +192,7 @@ class NotificationService:
             context=ctx,
             to_emails=[email],
         )
+        _record_successful_idempotency(idempotency_key, "subscription_cancelled", "sent_smtp")
         return "sent_smtp"
 
     def send_staff_contact_email(self, *, from_email: str, topic: str, message: str) -> None:
@@ -203,25 +221,23 @@ class NotificationService:
         idempotency_key: str | None = None,
         purpose: str = "generic",
     ) -> str:
-        if idempotency_key and not claim_idempotency_key(idempotency_key, purpose):
+        if idempotency_key and idempotency_already_sent(idempotency_key):
             return "skipped_duplicate"
         pr = should_send_email(user, template)
         if not pr.allowed:
             return f"policy_denied:{pr.reason}"
         if _use_cio_transactional(template):
-            # CIO templates use Liquid; pass a flattened message_data subset from context keys
-            md = {
-                k: v
-                for k, v in context.items()
-                if isinstance(v, (str, int, float, bool)) or v is None
-            }
+            md = flatten_context_for_cio(context)
             ok, err = self.transactional.send(template, user, md)
-            return _outcome_from_cio(ok, err)
+            out = _outcome_from_cio(ok, err)
+            _record_successful_idempotency(idempotency_key, purpose, out)
+            return out
         if not smtp_configured():
             return "skipped_no_smtp"
         send_html_email(
             subject=subject, template_name=django_template, context=context, to_emails=[user.email]
         )
+        _record_successful_idempotency(idempotency_key, purpose, "sent_smtp")
         return "sent_smtp"
 
     def track_journey_eligible(
@@ -251,14 +267,16 @@ class NotificationService:
         smtp_template: str | None = None,
         extra_smtp_context: dict[str, Any] | None = None,
     ) -> str:
-        if idempotency_key and not claim_idempotency_key(idempotency_key, purpose):
+        if idempotency_key and idempotency_already_sent(idempotency_key):
             return "skipped_duplicate"
         pr = should_send_email(user, template)
         if not pr.allowed:
             return f"policy_denied:{pr.reason}"
         if _use_cio_transactional(template):
             ok, err = self.transactional.send(template, user, message_data)
-            return _outcome_from_cio(ok, err)
+            out = _outcome_from_cio(ok, err)
+            _record_successful_idempotency(idempotency_key, purpose, out)
+            return out
         if smtp_template and smtp_subject and smtp_configured():
             ctx: dict[str, Any] = {**(extra_smtp_context or {}), **message_data}
             ctx.setdefault("year", timezone.now().year)
@@ -269,6 +287,7 @@ class NotificationService:
                 context=ctx,
                 to_emails=[user.email],
             )
+            _record_successful_idempotency(idempotency_key, purpose, "sent_smtp")
             return "sent_smtp"
         logger.info(
             "Transactional template %s has no CIO mapping and no SMTP fallback; skipped",

@@ -69,6 +69,15 @@ const isAuthError = (error: { response?: { status?: number } }) => {
   return status === 401 || status === 403;
 };
 
+/** Aborted / superseded requests (debounced search, React Query cancellation) — do not toast. */
+function shouldSilenceGlobalToast(error: unknown): boolean {
+  if (axios.isCancel(error)) return true;
+  const err = error as { code?: string; message?: string };
+  if (err.code === "ERR_CANCELED") return true;
+  const msg = String(err.message ?? "").toLowerCase();
+  return msg === "canceled" || msg === "cancelled";
+}
+
 const clearAuthHeaders = () => {
   delete axios.defaults.headers.common.Authorization;
   delete apiClient.defaults.headers.common.Authorization;
@@ -92,7 +101,7 @@ apiClient.interceptors.response.use(
       }
       return Promise.reject(error);
     }
-    if (!skipGlobalErrorToast) {
+    if (!skipGlobalErrorToast && !shouldSilenceGlobalToast(error)) {
       const message =
         error.response?.data?.detail ||
         error.response?.data?.error ||

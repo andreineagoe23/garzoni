@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput as RNTextInput,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TextInput as RNTextInput, View } from "react-native";
 import { Link } from "expo-router";
 import { requestPasswordReset } from "@garzoni/core";
 import { useTranslation } from "react-i18next";
@@ -15,6 +7,7 @@ import AuthLogoMark from "../../src/components/auth/AuthLogoMark";
 import AuthScreenLayout from "../../src/components/auth/AuthScreenLayout";
 import GlassAuthCard from "../../src/components/auth/GlassAuthCard";
 import GlassButton from "../../src/components/ui/GlassButton";
+import KeyboardAwareScrollView from "../../src/components/ui/KeyboardAwareScrollView";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../../src/theme/tokens";
 
@@ -51,8 +44,9 @@ export default function ForgotPasswordScreen() {
   if (sent) {
     return (
       <AuthScreenLayout mode="minimal">
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.flex}
+          basePaddingBottom={spacing.xxxxl}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -73,19 +67,17 @@ export default function ForgotPasswordScreen() {
               </Text>
             </Link>
           </GlassAuthCard>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </AuthScreenLayout>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <View style={styles.flex}>
       <AuthScreenLayout mode="minimal">
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.flex}
+          basePaddingBottom={spacing.xxxxl}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -155,9 +147,9 @@ export default function ForgotPasswordScreen() {
               </Text>
             </Link>
           </GlassAuthCard>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </AuthScreenLayout>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -166,7 +158,6 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingBottom: spacing.xxxxl,
     paddingTop: spacing.md,
   },
 

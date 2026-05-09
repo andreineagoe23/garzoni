@@ -1,14 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Stack } from "expo-router";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import {
@@ -23,6 +14,7 @@ import {
 } from "../../../src/types/savings-calculator";
 import { ResultSummary } from "../../../src/components/tools/savings-calculator/ResultSummary";
 import { GrowthChart } from "../../../src/components/tools/savings-calculator/GrowthChart";
+import KeyboardAwareScrollView from "../../../src/components/ui/KeyboardAwareScrollView";
 
 const PRESETS: Array<{ label: string; form: Partial<SavingsForm> }> = [
   {
@@ -81,11 +73,9 @@ export default function SavingsGoalsScreen() {
   return (
     <>
       <Stack.Screen options={{ title: "Savings Goals" }} />
-      <KeyboardAvoidingView
-        style={[styles.root, { backgroundColor: c.bg }]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
+      <View style={[styles.root, { backgroundColor: c.bg }]}>
+        <KeyboardAwareScrollView
+          basePaddingBottom={spacing.xxxxl}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -168,8 +158,8 @@ export default function SavingsGoalsScreen() {
               </Text>
             </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
     </>
   );
 }
@@ -211,7 +201,6 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: {
     padding: spacing.xl,
-    paddingBottom: spacing.xxxxl,
     gap: spacing.lg,
   },
   intro: {

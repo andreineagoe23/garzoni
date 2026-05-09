@@ -17,6 +17,10 @@ from education.models import LessonCompletion
 from finance.models import UserPurchase
 from notifications.delivery_smtp import smtp_configured
 from notifications.enums import CioEventName, CioTemplate
+from notifications.message_data import (
+    build_weekly_digest_message_data,
+    weekly_digest_week_bounds,
+)
 from notifications.service import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -90,14 +94,21 @@ def send_email_reminders(self):
                     {"frequency": "weekly", "source": "celery_beat"},
                 )
             else:
-                week_start = now - timedelta(days=7)
-                lessons_completed_this_week = LessonCompletion.objects.filter(
-                    user_progress__user=profile.user,
-                    completed_at__gte=week_start,
-                ).count()
+                monday, metrics_end, sunday = weekly_digest_week_bounds(reference=now.date())
+                cio_digest = build_weekly_digest_message_data(
+                    user=profile.user,
+                    profile=profile,
+                    metrics_start=monday,
+                    metrics_end=metrics_end,
+                    label_start=monday,
+                    label_end=sunday,
+                )
+                lessons_completed_this_week = int(cio_digest["modules_completed"])
                 coins_spent = (
                     UserPurchase.objects.filter(
-                        user=profile.user, purchased_at__gte=week_start
+                        user=profile.user,
+                        purchased_at__date__gte=monday,
+                        purchased_at__date__lte=metrics_end,
                     ).aggregate(total=Sum("reward__cost"))["total"]
                     or 0
                 )
@@ -113,6 +124,7 @@ def send_email_reminders(self):
                     "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
                     "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/dashboard",
                     "year": now.year,
+                    **cio_digest,
                 }
                 r = svc.send_template_for_user(
                     profile.user,

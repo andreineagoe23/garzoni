@@ -332,9 +332,21 @@ def send_transactional_email(
             timeout=_http_timeout(),
         )
         if r.status_code >= 400:
+            logger.warning(
+                "CIO transactional email failed status=%s ref=%s identifier_keys=%s",
+                r.status_code,
+                transactional_message_ref,
+                sorted(identifiers.keys()),
+            )
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
         return True, None
     except requests.RequestException as e:
+        logger.warning(
+            "CIO transactional email request error ref=%s identifier_keys=%s err=%s",
+            transactional_message_ref,
+            sorted(identifiers.keys()),
+            e,
+        )
         return False, str(e)
 
 
@@ -366,9 +378,21 @@ def send_transactional_push(
             timeout=_http_timeout(),
         )
         if r.status_code >= 400:
+            logger.warning(
+                "CIO transactional push failed status=%s ref=%s identifier_keys=%s",
+                r.status_code,
+                transactional_message_ref,
+                sorted(identifiers.keys()),
+            )
             return False, f"HTTP {r.status_code}: {r.text[:500]}"
         return True, None
     except requests.RequestException as e:
+        logger.warning(
+            "CIO transactional push request error ref=%s identifier_keys=%s err=%s",
+            transactional_message_ref,
+            sorted(identifiers.keys()),
+            e,
+        )
         return False, str(e)
 
 

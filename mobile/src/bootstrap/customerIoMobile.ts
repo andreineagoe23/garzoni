@@ -72,6 +72,20 @@ export async function identifyGarzoniUserFromAccessToken(
   }
 }
 
+/** Remove device from Customer.io without clearing identify (e.g. user disabled push in Settings). */
+export async function deleteCustomerIoDeviceTokenOnly(): Promise<void> {
+  if (!CDP_KEY || !nativeAvailable) return;
+  await initCustomerIoMobile();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const cio =
+      require("customerio-reactnative") as typeof import("customerio-reactnative");
+    await cio.CustomerIO.deleteDeviceToken();
+  } catch {
+    /* noop */
+  }
+}
+
 export async function clearGarzoniCustomerIo(): Promise<void> {
   if (!CDP_KEY || !nativeAvailable) return;
   try {

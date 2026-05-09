@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  Keyboard,
   Modal,
   Pressable,
   ScrollView,
@@ -12,9 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
+import KeyboardAwareScrollView from "../../../components/ui/KeyboardAwareScrollView";
 import {
   formatPrice,
   formatChangePct,
@@ -44,11 +45,24 @@ export function QuoteSheet({
   onConfirmBuy,
 }: Props) {
   const c = useThemeColors();
-  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const scrollRef = useRef<ScrollView>(null);
   const [buyMode, setBuyMode] = useState(false);
   const [buyAmount, setBuyAmount] = useState("500");
   const [buyLoading, setBuyLoading] = useState(false);
+
+  const dismissKeyboardAndClose = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
+
+  useEffect(() => {
+    if (!buyMode || !visible) return;
+    const id = requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [buyMode, visible]);
 
   useEffect(() => {
     Animated.spring(translateY, {
@@ -57,6 +71,7 @@ export function QuoteSheet({
       bounciness: 3,
     }).start();
     if (!visible) {
+      Keyboard.dismiss();
       setBuyMode(false);
       setBuyAmount("500");
     }
@@ -83,10 +98,10 @@ export function QuoteSheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={dismissKeyboardAndClose}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={styles.backdrop} onPress={dismissKeyboardAndClose}>
         <View style={[styles.backdropFill, { backgroundColor: c.overlay }]} />
       </Pressable>
 
@@ -96,23 +111,26 @@ export function QuoteSheet({
           {
             backgroundColor: c.surface,
             transform: [{ translateY }],
-            paddingBottom: insets.bottom,
           },
         ]}
       >
-        <TouchableOpacity
-          style={styles.handleArea}
-          onPress={onClose}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.handle, { backgroundColor: c.border }]} />
-        </TouchableOpacity>
+        <View style={styles.kav}>
+          <TouchableOpacity
+            style={styles.handleArea}
+            onPress={dismissKeyboardAndClose}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.handle, { backgroundColor: c.border }]} />
+          </TouchableOpacity>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+          <KeyboardAwareScrollView
+            ref={scrollRef}
+            keyboardActive={visible}
+            basePaddingBottom={spacing.xl}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
           {loading ? (
             <View style={styles.loadingRow}>
               <ActivityIndicator color={c.primary} />
@@ -236,6 +254,7 @@ export function QuoteSheet({
                   <View style={styles.buyActions}>
                     <TouchableOpacity
                       onPress={() => {
+                        Keyboard.dismiss();
                         setBuyMode(false);
                         setBuyAmount("500");
                       }}
@@ -278,7 +297,8 @@ export function QuoteSheet({
               No data available.
             </Text>
           )}
-        </ScrollView>
+          </KeyboardAwareScrollView>
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -326,6 +346,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.xl,
     overflow: "hidden",
   },
+  kav: { flex: 1 },
   handleArea: { alignItems: "center", paddingVertical: spacing.md },
   handle: { width: 36, height: 4, borderRadius: 2 },
   content: { padding: spacing.xl, gap: spacing.xl },

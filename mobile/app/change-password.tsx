@@ -1,18 +1,12 @@
 import { useMemo, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { changePassword } from "@garzoni/core";
 import { Button, FormInput } from "../src/components/ui";
+import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
 import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
@@ -89,14 +83,11 @@ export default function ChangePasswordScreen() {
           headerShown: true,
         }}
       />
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
           {error ? (
             <View style={styles.errorBanner}>
               <Text style={styles.errorText}>{error}</Text>
@@ -135,8 +126,7 @@ export default function ChangePasswordScreen() {
           <Button loading={loading} onPress={() => void onSubmit()}>
             {t("settings.password.update")}
           </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </>
   );
 }

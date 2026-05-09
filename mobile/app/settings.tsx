@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { href } from "../src/navigation/href";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  clearExpoPushToken,
   fetchUserSettings,
   patchUserSettings,
   queryKeys,
@@ -27,6 +28,7 @@ import { spacing, typography, radius } from "../src/theme/tokens";
 import { useTranslation } from "react-i18next";
 import GlassCard from "../src/components/ui/GlassCard";
 import GlassButton from "../src/components/ui/GlassButton";
+import { deleteCustomerIoDeviceTokenOnly } from "../src/bootstrap/customerIoMobile";
 
 type EmailPrefs = {
   reminders: boolean;
@@ -120,6 +122,13 @@ export default function SettingsScreen() {
     patchPrefs({ push_notifications: next } as Parameters<typeof patchUserSettings>[0]);
     if (next) {
       await registerForPushAndSubmitToken();
+    } else {
+      try {
+        await clearExpoPushToken();
+      } catch {
+        /* offline */
+      }
+      await deleteCustomerIoDeviceTokenOnly();
     }
     setPushBusy(false);
   }, [patchPrefs]);

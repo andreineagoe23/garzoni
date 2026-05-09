@@ -17,6 +17,18 @@ from notifications.identity import customer_io_person_id
 logger = logging.getLogger(__name__)
 
 
+def cio_email_identifiers(person_id: str, email: str) -> dict[str, str]:
+    """
+    Customer.io transactional email expects ``to`` plus identifiers; including ``email``
+    keeps Liquid ``customer.email`` populated even when templates reference it.
+    """
+    ids: dict[str, str] = {"id": person_id}
+    e = (email or "").strip()
+    if e:
+        ids["email"] = e
+    return ids
+
+
 class TransactionalMessages:
     """Programmatic transactional email/push via Customer.io App API."""
 
@@ -41,7 +53,7 @@ class TransactionalMessages:
             to_email=email,
             transactional_message_ref=ref,
             message_data=data,
-            identifiers={"id": pid},
+            identifiers=cio_email_identifiers(pid, email),
         )
         if not ok:
             logger.warning(
@@ -85,11 +97,15 @@ class TransactionalMessages:
             return False, "missing recipient email"
         if not customer_io_transactional_configured():
             return False, "transactional API not configured"
+        merged = dict(identifiers)
+        em = email.strip()
+        if em and "email" not in merged:
+            merged["email"] = em
         ok, err = send_transactional_email(
             to_email=email,
             transactional_message_ref=ref,
             message_data=data,
-            identifiers=identifiers,
+            identifiers=merged,
         )
         if not ok:
             logger.warning(

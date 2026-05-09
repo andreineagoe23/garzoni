@@ -8,8 +8,7 @@ import React, {
 import {
   Alert,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -43,6 +42,7 @@ import { QuoteSheet } from "../../../src/components/tools/market-explorer/QuoteS
 import { logDevError } from "../../../src/lib/logDevError";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
 import { getMarketQuoteQueryOptions } from "../../../src/hooks/useMarketQuote";
+import { useFormKeyboardPadding } from "../../../src/hooks/useFormKeyboardPadding";
 
 const PLACEHOLDER: Record<MarketTab, string> = {
   stocks: "Search stocks (e.g. AAPL)",
@@ -66,6 +66,7 @@ function buildCryptoMapParam(rows: Asset[]): string | undefined {
 
 export default function MarketExplorerScreen() {
   const c = useThemeColors();
+  const keyboardPad = useFormKeyboardPadding();
   const router = useRouter();
   const queryClient = useQueryClient();
   const invalidatePortfolioTools = useInvalidatePortfolioTools();
@@ -113,7 +114,7 @@ export default function MarketExplorerScreen() {
         params: { q: searchKey, type: tab },
         signal,
       });
-      let searchResults: Asset[] = res.data?.results ?? [];
+      let searchResults: Asset[] = (res.data?.results ?? []).slice(0, 5);
       /* Legacy clients enriched here; backend now attaches live prices — keep CG map batch as backup when any row lacks price */
       const needsFill =
         searchResults.some(
@@ -270,10 +271,7 @@ export default function MarketExplorerScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: "Market Explorer" }} />
       <View style={[styles.root, { backgroundColor: c.bg }]}>
         <View style={styles.tabSection}>
@@ -297,6 +295,8 @@ export default function MarketExplorerScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
           {query.length > 0 && (
             <Pressable
@@ -340,7 +340,10 @@ export default function MarketExplorerScreen() {
           )}
           refreshing={searching && searchKey.length > 0}
           onRefresh={() => void marketSearchQuery.refetch()}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: spacing.xxxxl + keyboardPad },
+          ]}
           ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
           ListEmptyComponent={
             <View style={styles.empty}>
@@ -367,6 +370,7 @@ export default function MarketExplorerScreen() {
           }
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         />
       </View>
 
@@ -381,7 +385,7 @@ export default function MarketExplorerScreen() {
         }}
         onConfirmBuy={handleConfirmBuy}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -417,7 +421,6 @@ const styles = StyleSheet.create({
   warnStripText: { fontSize: typography.xs, lineHeight: 17 },
   listContent: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xxxxl,
   },
   empty: { alignItems: "center", gap: spacing.md, paddingTop: spacing.xxxxl },
   emptyIcon: { fontSize: 40 },

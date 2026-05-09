@@ -15,7 +15,10 @@ import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import type { PurchasesPackage } from "react-native-purchases";
+import type {
+  PurchasesIntroPrice,
+  PurchasesPackage,
+} from "react-native-purchases";
 import {
   fetchEntitlements,
   fetchProfile,
@@ -36,6 +39,8 @@ import {
   fetchRevenueCatPaywallOffering,
   RC_OFFERING_PLUS,
   RC_OFFERING_PRO,
+  rcGetActivePlan,
+  rcIsEntitled,
   waitForActiveSubscription,
 } from "../src/billing/subscriptionRuntime";
 import { useAuthSession } from "../src/auth/AuthContext";
@@ -140,6 +145,20 @@ function intervalFromEntitlements(ent?: Entitlements | null): Cycle | null {
   const raw = ent?.billing_interval;
   if (raw === "yearly" || raw === "monthly") return raw;
   return null;
+}
+
+/** Uses StoreKit intro `periodUnit` — avoids showing "1 day" when Apple reports a 1-week trial as WEEK × 1. */
+function formatIntroTrialLabel(intro: PurchasesIntroPrice): string {
+  const n = intro.periodNumberOfUnits ?? 0;
+  const unit = String(intro.periodUnit ?? "DAY").toUpperCase();
+  const plural = n === 1 ? "" : "s";
+  let unitWord: string;
+  if (unit === "DAY") unitWord = `day${plural}`;
+  else if (unit === "WEEK") unitWord = `week${plural}`;
+  else if (unit === "MONTH") unitWord = `month${plural}`;
+  else if (unit === "YEAR") unitWord = `year${plural}`;
+  else unitWord = `period${plural}`;
+  return `${n} ${unitWord} free trial`;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -260,11 +279,9 @@ function TierCard({
         <Text style={[styles.tierTagline, { fontFamily: DISPLAY_FONT }]}>
           {plan.tagline}
         </Text>
-        {showTrial && (
+        {showTrial && intro && (
           <View style={styles.trialBadge}>
-            <Text style={styles.trialText}>
-              {intro?.periodNumberOfUnits ?? 0} day free trial
-            </Text>
+            <Text style={styles.trialText}>{formatIntroTrialLabel(intro)}</Text>
           </View>
         )}
         {isCurrent && (
@@ -471,7 +488,8 @@ function PurchaseProgressOverlay({
   onRetry: () => void;
   onDismiss: () => void;
 }) {
-  const tierLabel = tier === "pro" ? "Pro" : "Plus";
+  const tierLabel =
+    tier === "pro" ? "Pro" : tier === "plus" ? "Plus" : null;
   const accent = tier === "pro" ? D.goldWarm : D.primaryBright;
 
   return (
@@ -481,11 +499,12 @@ function PurchaseProgressOverlay({
           <>
             <LoadingSpinner size="lg" color={accent} />
             <Text style={styles.overlayTitle}>
-              Activating Garzoni {tierLabel}…
+              {tierLabel
+                ? `Activating Garzoni ${tierLabel}…`
+                : "Activating your subscription…"}
             </Text>
             <Text style={styles.overlayBody}>
-              Apple has confirmed your purchase. Just syncing your account —
-              this only takes a few seconds.
+              Syncing your Garzoni account — this only takes a few seconds.
             </Text>
           </>
         )}
@@ -499,7 +518,9 @@ function PurchaseProgressOverlay({
               You're all set
             </Text>
             <Text style={styles.overlayBody}>
-              Welcome to Garzoni {tierLabel}. Your new tools are unlocked.
+              {tierLabel
+                ? `Welcome to Garzoni ${tierLabel}. Your new tools are unlocked.`
+                : "Welcome — your new tools are unlocked."}
             </Text>
           </>
         )}
@@ -756,12 +777,77 @@ export default function SubscriptionsScreen() {
   const onRedeemCode = useCallback(async () => {
     const rc = getRevenueCatPurchases();
     if (!rc) return;
+    const userId = profileQ.data?.user?.toString();
+    if (!configureRevenueCatForUser(userId)) return;
+    if (userId) {
+      await identifyRevenueCatUser(userId);
+    }
+
+    setPurchaseStep("syncing");
+    setPurchasingTier(null);
+    setPurchaseError(null);
+
     try {
       await rc.Purchases.presentCodeRedemptionSheet();
     } catch {
-      // Sheet dismissed or not supported — no-op
+      setPurchaseStep("idle");
+      return;
     }
-  }, []);
+
+    // Redemption can finish slightly after the sheet dismisses — poll RC until entitled or timeout.
+    const pollMs = 1500;
+    const maxPolls = 24;
+    let detectedTier: Tier | null = null;
+
+    for (let i = 0; i < maxPolls; i++) {
+      try {
+        await rc.Purchases.syncPurchasesForResult();
+      } catch {
+        /* ignore transient sync errors */
+      }
+      try {
+        const ci = await rc.Purchases.getCustomerInfo();
+        if (rcIsEntitled(ci)) {
+          const p = rcGetActivePlan(ci);
+          if (p === "plus" || p === "pro") {
+            detectedTier = p;
+            setPurchasingTier(p);
+          }
+          break;
+        }
+      } catch {
+        /* ignore */
+      }
+      await new Promise<void>((resolve) => setTimeout(resolve, pollMs));
+    }
+
+    const entitlements = await waitForActiveSubscription(queryClient, {
+      maxAttempts: 8,
+      delayMs: 1000,
+    });
+
+    const plan = entitlements?.plan;
+    if (planRank(plan) >= 1 && (plan === "plus" || plan === "pro")) {
+      setPurchasingTier(plan);
+      setPurchaseStep("success");
+      setTimeout(() => {
+        setPurchaseStep("idle");
+        setPurchasingTier(null);
+        if (isPaywall) router.replace("/(tabs)");
+        else router.back();
+      }, 1400);
+    } else if (detectedTier) {
+      setPurchaseError(
+        "Apple shows an active subscription, but your Garzoni account hasn't updated yet. Tap Retry.",
+      );
+      setPurchaseStep("error");
+    } else {
+      setPurchaseError(
+        "If your code was accepted, wait a moment and tap Restore purchases — or try again shortly.",
+      );
+      setPurchaseStep("error");
+    }
+  }, [isPaywall, profileQ.data?.user, queryClient]);
 
   const plusPkg = pickPackage(plusPkgs ?? undefined, cycle);
   const proPkg = pickPackage(proPkgs ?? undefined, cycle);

@@ -1,8 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -24,8 +22,10 @@ import GlassButton from "../src/components/ui/GlassButton";
 import { Skeleton } from "../src/components/ui";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useFormKeyboardPadding } from "../src/hooks/useFormKeyboardPadding";
 
 export default function SupportScreen() {
+  const keyboardPad = useFormKeyboardPadding();
   const c = useThemeColors();
   const { t } = useTranslation("common");
   const [openId, setOpenId] = useState<number | null>(null);
@@ -182,10 +182,7 @@ export default function SupportScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={{ flex: 1 }}>
       <Stack.Screen
         options={{
           title: t("support.mobile.screenTitle"),
@@ -214,11 +211,11 @@ export default function SupportScreen() {
         }
         contentContainerStyle={{
           padding: spacing.lg,
-          paddingBottom: 48,
+          paddingBottom: spacing.lg + keyboardPad,
           backgroundColor: c.bg,
         }}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

@@ -95,14 +95,16 @@ if [ "$_is_web" = "1" ]; then
     exit 1
   fi
 
-  # Cloudinary image migration: update DB ImageField paths to Cloudinary public IDs.
-  # Runs only when CLOUDINARY_URL is set and the upload results JSON is present in the image.
-  # Safe to run on every deploy: already-migrated rows are skipped automatically.
+  # Optional one-shot: rewrite ImageField paths using upload JSON (command must exist in repo).
   if [ -n "${CLOUDINARY_URL:-}" ] && [ -f /app/cloudinary-upload-results.json ]; then
-    echo "[entrypoint] Running Cloudinary image migration..." >&2
-    python manage.py migrate_cloudinary_images \
-      --json-path /app/cloudinary-upload-results.json 2>&1 || \
-      echo "[entrypoint] WARN: migrate_cloudinary_images had errors (non-fatal)" >&2
+    if python manage.py help 2>/dev/null | grep -qF migrate_cloudinary_images; then
+      echo "[entrypoint] Running Cloudinary image migration..." >&2
+      python manage.py migrate_cloudinary_images \
+        --json-path /app/cloudinary-upload-results.json 2>&1 || \
+        echo "[entrypoint] WARN: migrate_cloudinary_images had errors (non-fatal)" >&2
+    else
+      echo "[entrypoint] migrate_cloudinary_images not in project — skipping (Cloudinary URLs unchanged)." >&2
+    fi
   fi
 
   # Media files are served via Cloudinary — no local seeding needed.

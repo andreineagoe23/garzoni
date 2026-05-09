@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchUserSettings,
+  queryKeys,
+  staleTimes,
+} from "@garzoni/core";
 import { registerForPushAndSubmitToken } from "../bootstrap/pushNotificationsMobile";
 
 const LAST_REGISTERED_KEY = "push_last_registered_at";
@@ -34,8 +40,17 @@ export async function forceReregisterPushToken(): Promise<{ ok: boolean; message
 export function usePushNotifications(isAuthenticated: boolean) {
   const registeredRef = useRef(false);
 
+  const settingsQ = useQuery({
+    queryKey: queryKeys.userSettings(),
+    queryFn: () => fetchUserSettings().then((r) => r.data),
+    enabled: isAuthenticated,
+    staleTime: staleTimes.profile,
+  });
+
+  const pushAllowed = settingsQ.data?.push_notifications !== false;
+
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !pushAllowed) return;
 
     async function tryRegister() {
       if (!await shouldReregister()) return;
@@ -53,5 +68,5 @@ export function usePushNotifications(isAuthenticated: boolean) {
     });
 
     return () => sub.remove();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, pushAllowed]);
 }

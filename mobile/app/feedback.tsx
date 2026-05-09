@@ -1,14 +1,5 @@
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Stack } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -19,6 +10,7 @@ import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
+import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
 
 const FEEDBACK_TYPES = [
   { key: "general", labelKey: "feedback.types.general" },
@@ -81,15 +73,12 @@ export default function FeedbackScreen() {
           headerShown: true,
         }}
       />
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={{ flex: 1, backgroundColor: c.bg }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={88}
+        basePaddingBottom={spacing.xxxxl}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
           {/* Type picker */}
           <Text style={[styles.label, { color: c.text }]}>
             {t("feedback.typeLabel")}
@@ -197,8 +186,7 @@ export default function FeedbackScreen() {
               </Text>
             )}
           </Pressable>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </>
   );
 }
@@ -206,7 +194,6 @@ export default function FeedbackScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxxxl,
   },
   label: {
     fontSize: typography.sm,

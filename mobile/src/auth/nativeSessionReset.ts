@@ -1,5 +1,5 @@
 import { DeviceEventEmitter } from "react-native";
-import { attachToken, queryClient } from "@garzoni/core";
+import { attachToken, clearExpoPushToken, queryClient } from "@garzoni/core";
 import { clearRevenueCatSession } from "../billing/subscriptionRuntime";
 import { clearGarzoniCustomerIo } from "../bootstrap/customerIoMobile";
 import { tokenStorage } from "./tokenStorage";
@@ -23,6 +23,11 @@ export function notifyNativeAuthStorageCleared(): void {
  * or call `notifyNativeAuthStorageCleared()` if clearing from outside React.
  */
 export async function resetNativeSessionStores(): Promise<void> {
+  try {
+    await clearExpoPushToken();
+  } catch {
+    /* offline or session already invalid */
+  }
   await clearGarzoniCustomerIo();
   await clearRevenueCatSession();
   await clearPlanChosenCache();

@@ -27,7 +27,7 @@ class ResetInactiveStreaksTests(TestCase):
             last_course_activity_date=today - timedelta(days=1),
         )
         # Should not raise FieldError
-        reset_inactive_streaks()
+        reset_inactive_streaks.apply()
 
     def test_no_reset_when_active_today(self):
         today = timezone.localdate()
@@ -38,7 +38,7 @@ class ResetInactiveStreaksTests(TestCase):
         )
         profile = self.user.profile
         UserProfile.objects.filter(pk=profile.pk).update(streak=4, last_completed_date=today)
-        reset_inactive_streaks()
+        reset_inactive_streaks.apply()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 4)
 
@@ -53,7 +53,7 @@ class ResetInactiveStreaksTests(TestCase):
         UserProfile.objects.filter(pk=profile.pk).update(
             streak=3, last_completed_date=today - timedelta(days=1)
         )
-        reset_inactive_streaks()
+        reset_inactive_streaks.apply()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 3)
 
@@ -69,7 +69,7 @@ class ResetInactiveStreaksTests(TestCase):
             streak=5, last_completed_date=today - timedelta(days=3)
         )
         with patch("authentication.tasks.send_streak_broken_email") as m:
-            reset_inactive_streaks()
+            reset_inactive_streaks.apply()
             m.delay.assert_called_once_with(self.user.id, 5)
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 0)
@@ -91,7 +91,7 @@ class ResetInactiveStreaksTests(TestCase):
             streak=2, last_completed_date=today - timedelta(days=3)
         )
         with patch("authentication.tasks.send_streak_broken_email") as m:
-            reset_inactive_streaks()
+            reset_inactive_streaks.apply()
             m.delay.assert_not_called()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 0)
@@ -111,6 +111,6 @@ class ResetInactiveStreaksTests(TestCase):
         )
         profile = self.user.profile
         UserProfile.objects.filter(pk=profile.pk).update(streak=2, last_completed_date=today)
-        reset_inactive_streaks()
+        reset_inactive_streaks.apply()
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 2)

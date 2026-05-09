@@ -5,6 +5,14 @@ from django.test import TestCase, override_settings
 
 from authentication.models import UserEmailPreference, UserProfile
 from notifications.customer_io import load_transactional_map
+from notifications.idempotency import idempotency_already_sent
+from notifications.message_data import (
+    build_weekly_digest_message_data,
+    flatten_context_for_cio,
+    normalize_scalar_for_message_data,
+    weekly_digest_week_bounds,
+)
+from notifications.service import NotificationService
 from notifications.tasks import send_ai_nudge_task
 
 
@@ -56,3 +64,105 @@ class AiNudgeTaskTests(TestCase):
 
         self.assertEqual(result, "sent")
         mock_send_push.assert_called_once()
+
+
+class TransactionalEmailIdentifiersTests(TestCase):
+    """Transactional email must set ``to`` and include ``email`` in identifiers for CIO Liquid."""
+
+    @override_settings(
+        CIO_TRANSACTIONAL_ENABLED=True,
+        CIO_APP_API_KEY="test-app-key",
+        CIO_TRANSACTIONAL_TRIGGERS_JSON='{"welcome": 8}',
+    )
+    @patch("notifications.customer_io.send_transactional_email")
+    def test_send_includes_id_and_email_identifiers(self, mock_send):
+        mock_send.return_value = (True, None)
+        user = User.objects.create_user(
+            username="cio-ident",
+            email="cio-ident@example.com",
+            password="pass12345",
+        )
+        from notifications.enums import CioTemplate
+        from notifications.transactional import TransactionalMessages
+
+        tm = TransactionalMessages()
+        ok, err = tm.send(
+            CioTemplate.WELCOME,
+            user,
+            {"customer_name": "Pat", "app_url": "https://garzoni.app", "year": 2026},
+        )
+        self.assertTrue(ok)
+        self.assertIsNone(err)
+        mock_send.assert_called_once()
+        kwargs = mock_send.call_args[1]
+        self.assertEqual(kwargs["to_email"], "cio-ident@example.com")
+        self.assertEqual(kwargs["identifiers"]["id"], str(user.pk))
+        self.assertEqual(kwargs["identifiers"]["email"], "cio-ident@example.com")
+
+
+class WeeklyDigestMessageDataTests(TestCase):
+    def test_required_keys_present(self):
+        user = User.objects.create_user(
+            username="digest-u",
+            email="digest@example.com",
+            password="pass12345",
+        )
+        profile = user.profile
+        monday, metrics_end, sunday = weekly_digest_week_bounds()
+        md = build_weekly_digest_message_data(
+            user=user,
+            profile=profile,
+            metrics_start=monday,
+            metrics_end=metrics_end,
+            label_start=monday,
+            label_end=sunday,
+        )
+        for k in (
+            "week_label",
+            "modules_completed",
+            "modules_completed_plural",
+            "streak_days",
+            "xp_earned",
+        ):
+            self.assertIn(k, md)
+        self.assertIsInstance(md["modules_completed"], int)
+        self.assertIn(md["modules_completed_plural"], ("", "s"))
+
+
+class FlattenContextTests(TestCase):
+    def test_decimal_normalized(self):
+        from decimal import Decimal
+
+        ctx = {"coins_spent_this_week": Decimal("12.50"), "name": "x"}
+        flat = flatten_context_for_cio(ctx)
+        self.assertEqual(flat["name"], "x")
+        self.assertIn("coins_spent_this_week", flat)
+
+    def test_normalize_bool_before_int(self):
+        self.assertIs(normalize_scalar_for_message_data(False), False)
+
+
+class WelcomeIdempotencyTests(TestCase):
+    @override_settings(
+        CIO_TRANSACTIONAL_ENABLED=True,
+        CIO_APP_API_KEY="k",
+        CIO_TRANSACTIONAL_TRIGGERS_JSON='{"welcome": 3}',
+        CIO_TRACK_ENABLED=False,
+    )
+    @patch("notifications.customer_io.send_transactional_email")
+    def test_idempotency_recorded_only_after_success(self, mock_send):
+        mock_send.return_value = (False, "HTTP 500: err")
+        user = User.objects.create_user(
+            username="idem-u",
+            email="idem@example.com",
+            password="pass12345",
+        )
+        svc = NotificationService()
+        out = svc.send_welcome(user, idempotency_key="welcome:idempotency-fail")
+        self.assertTrue(out.startswith("cio_failed"))
+        self.assertFalse(idempotency_already_sent("welcome:idempotency-fail"))
+
+        mock_send.return_value = (True, None)
+        out2 = svc.send_welcome(user, idempotency_key="welcome:idempotency-ok")
+        self.assertEqual(out2, "sent_cio")
+        self.assertTrue(idempotency_already_sent("welcome:idempotency-ok"))

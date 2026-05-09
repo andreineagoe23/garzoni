@@ -124,7 +124,18 @@ Aliases Garzoni adds automatically so templates match common naming styles:
 | Template (slug)   | Primary keys in `message_data`                                                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `welcome`         | `customer_name`, `app_url`, `year`                                                                                                                      |
+| `weekly-digest`   | `week_label`, `modules_completed`, `modules_completed_plural`, `streak_days`, `xp_earned` (ISO week metrics; see `notifications.message_data`)        |
 | `order-confirmed` | `customer_name`, `order_id`, `plan_name`, `amount`, `period_end` (`period_end` = next billing date when Stripe `current_period_end` exists; else empty) |
+
+## Post-deploy verification (staging / production)
+
+After changing transactional payloads or credentials:
+
+1. **Backend env**: `CIO_REGION=eu`, `CIO_APP_API_KEY`, `CIO_TRANSACTIONAL_ENABLED=true`, `CIO_TRANSACTIONAL_TRIGGERS_JSON` maps every enabled slug to the correct transactional message id.
+2. **Smoke send**: Trigger welcome or weekly digest for a test user; confirm Customer.io activity shows **Sent** (not Failed) and subject/body Liquid resolves (`trigger.*` / `customer.*`).
+3. **Idempotency**: A failed send should **not** insert an idempotency row — retry the task and confirm delivery succeeds. A successful send should dedupe duplicate scheduler runs.
+4. **Mobile**: Log out or disable push in Settings — profile `expo_push_token` clears server-side; CIO device registration matches expectations.
+5. **Re-send**: Failed deliveries in CIO stay failed — re-trigger from Django/Celery after the fix is live.
 
 **Django SMTP HTML templates** (fallback when CIO is off) live under `core/templates/emails/` and already set `<meta charset="utf-8" />` in `_base.html`.
 

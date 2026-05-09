@@ -46,8 +46,13 @@ def record_funnel_event_task(
     )
 
 
-@shared_task
-def send_portfolio_push_notifications():
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=120,
+    retry_kwargs={"max_retries": 3},
+)
+def send_portfolio_push_notifications(self):
     """
     Daily push: find paper-trade users whose top holding moved >= 2% today,
     send a personalised push, then snapshot current_price → previous_price.

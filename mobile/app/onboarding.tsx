@@ -3,11 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -46,6 +43,7 @@ import { href } from "../src/navigation/href";
 import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
+import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
 
 const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
@@ -418,15 +416,13 @@ export default function OnboardingScreen() {
         </Text>
       </View>
 
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        basePaddingBottom={80}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {loading ? (
             <View style={styles.centeredLoader}>
               <LoadingSpinner size="sm" color={DARK.primary} />
@@ -523,8 +519,7 @@ export default function OnboardingScreen() {
               </Text>
             </Animated.View>
           ) : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -607,7 +602,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 24,
     paddingTop: 8,
-    paddingBottom: 80,
   },
   loadingCard: {
     width: "100%",

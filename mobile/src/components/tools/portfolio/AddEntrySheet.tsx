@@ -3,7 +3,6 @@ import {
   Animated,
   Dimensions,
   Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -11,7 +10,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   ActionSheetIOS,
 } from "react-native";
@@ -31,10 +29,16 @@ import {
   fetchMarketQuoteFresh,
   getMarketQuoteQueryOptions,
 } from "../../../hooks/useMarketQuote";
+import { useBottomSheetVerticalHandle } from "../../../hooks/useBottomSheetVerticalHandle";
+import KeyboardAwareScrollView from "../../../components/ui/KeyboardAwareScrollView";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SNAP_PARTIAL = SCREEN_HEIGHT * 0.75;
 const SNAP_FULL = SCREEN_HEIGHT * 0.95;
+/** translateY when sheet is at partial / full snap (smaller Y = more expanded). */
+const Y_PARTIAL = SCREEN_HEIGHT - SNAP_PARTIAL;
+const Y_FULL = SCREEN_HEIGHT - SNAP_FULL;
+const Y_HIDDEN = SCREEN_HEIGHT;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 type Props = {
@@ -80,6 +84,7 @@ export function AddEntrySheet({
   const c = useThemeColors();
   const queryClient = useQueryClient();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const scrollRef = useRef<ScrollView>(null);
 
   const [form, setForm] = useState<NewEntryForm>(EMPTY_FORM);
   const [lookupPrice, setLookupPrice] = useState<number | null>(null);
@@ -128,6 +133,30 @@ export function AddEntrySheet({
       if (symbolDebounceRef.current) clearTimeout(symbolDebounceRef.current);
     };
   }, []);
+
+  const dismissAndClose = useCallback(() => {
+    Keyboard.dismiss();
+    onClose();
+  }, [onClose]);
+
+  const scrollFocusedFieldIntoView = useCallback(() => {
+    expandFull();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 280);
+    });
+  }, [expandFull]);
+
+  const { panHandlers: sheetPanHandlers } = useBottomSheetVerticalHandle({
+    translateY,
+    yExpanded: Y_FULL,
+    yCollapsed: Y_PARTIAL,
+    yHidden: Y_HIDDEN,
+    screenHeight: SCREEN_HEIGHT,
+    onDismiss: onClose,
+    onTapExpand: expandFull,
+  });
 
   const handleSymbolQueryChange = useCallback((value: string) => {
     setSymbolQuery(value);
@@ -385,11 +414,11 @@ export function AddEntrySheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={dismissAndClose}
       statusBarTranslucent
     >
       {/* Backdrop */}
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={styles.backdrop} onPress={dismissAndClose}>
         <View style={[styles.backdropFill, { backgroundColor: c.overlay }]} />
       </Pressable>
 
@@ -400,22 +429,20 @@ export function AddEntrySheet({
           { backgroundColor: c.surface, transform: [{ translateY }] },
         ]}
       >
-        {/* Drag handle — tap to expand to full height */}
-        <TouchableOpacity
+        {/* Drag handle — drag vertically to resize / dismiss; short tap expands */}
+        <View
           style={styles.handleArea}
-          onPress={expandFull}
-          activeOpacity={0.7}
-          accessibilityLabel="Expand sheet"
+          {...sheetPanHandlers}
+          accessibilityLabel="Resize sheet"
         >
           <View style={[styles.handle, { backgroundColor: c.border }]} />
-        </TouchableOpacity>
+        </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1 }}
-          keyboardVerticalOffset={0}
-        >
-          <ScrollView
+        <View style={styles.sheetBody}>
+          <KeyboardAwareScrollView
+            ref={scrollRef}
+            keyboardActive={visible}
+            basePaddingBottom={spacing.xl}
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -634,6 +661,7 @@ export function AddEntrySheet({
                 }
                 keyboardType="decimal-pad"
                 returnKeyType="done"
+                onFocus={scrollFocusedFieldIntoView}
               />
             </FieldLabel>
 
@@ -656,6 +684,7 @@ export function AddEntrySheet({
                 }
                 keyboardType="decimal-pad"
                 returnKeyType="done"
+                onFocus={scrollFocusedFieldIntoView}
               />
               <Text style={[styles.fieldHint, { color: c.textMuted }]}>
                 This is your buy price (cost basis). "Get Price" does not
@@ -683,6 +712,7 @@ export function AddEntrySheet({
                 keyboardType="numbers-and-punctuation"
                 returnKeyType="done"
                 maxLength={10}
+                onFocus={scrollFocusedFieldIntoView}
               />
               <Text style={[styles.fieldHint, { color: c.textMuted }]}>
                 Profit/Loss is computed from your buy price until now.
@@ -721,8 +751,8 @@ export function AddEntrySheet({
                 {submitting ? "Adding…" : "Add Holding"}
               </Text>
             </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -772,17 +802,19 @@ const styles = StyleSheet.create({
   },
   handleArea: {
     alignItems: "center",
-    paddingVertical: spacing.md,
+    justifyContent: "center",
+    paddingVertical: spacing.lg,
+    minHeight: 44,
   },
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
   },
+  sheetBody: { flex: 1 },
   content: {
     padding: spacing.xl,
     gap: spacing.lg,
-    paddingBottom: 48,
   },
   sheetTitle: {
     fontSize: typography.xl,

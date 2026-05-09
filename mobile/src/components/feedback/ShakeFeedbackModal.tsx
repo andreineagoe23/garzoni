@@ -1,14 +1,5 @@
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import Constants from "expo-constants";
@@ -16,6 +7,7 @@ import Toast from "react-native-toast-message";
 import { useMutation } from "@tanstack/react-query";
 import { submitFeedback } from "@garzoni/core";
 import GlassButton from "../ui/GlassButton";
+import KeyboardAwareScrollView from "../ui/KeyboardAwareScrollView";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
 
@@ -80,10 +72,7 @@ export default function ShakeFeedbackModal({
       animationType="fade"
       onRequestClose={onDismiss}
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <View style={{ flex: 1 }}>
         <Pressable
           style={[styles.backdrop, { backgroundColor: "#000a" }]}
           onPress={onDismiss}
@@ -100,49 +89,56 @@ export default function ShakeFeedbackModal({
                 { backgroundColor: c.surface, borderColor: c.border },
               ]}
             >
-              <Text style={[styles.title, { color: c.text }]}>
-                🐛 Found a bug?
-              </Text>
-              <Text style={[styles.body, { color: c.textMuted }]}>
-                Tell us what happened. Device info is attached automatically.
-              </Text>
-
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    color: c.text,
-                    borderColor: c.border,
-                    backgroundColor: c.surfaceOffset,
-                  },
-                ]}
-                placeholder="Describe the bug or idea…"
-                placeholderTextColor={c.textMuted}
-                value={message}
-                onChangeText={setMessage}
-                multiline
-                maxLength={2000}
-                autoFocus
-              />
-
-              <GlassButton
-                variant="primary"
-                onPress={() => mutation.mutate()}
-                style={{ marginTop: spacing.md }}
-                disabled={!canSubmit}
+              <KeyboardAwareScrollView
+                keyboardActive={visible}
+                basePaddingBottom={spacing.md}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
               >
-                {mutation.isPending ? "Sending…" : "Send Report"}
-              </GlassButton>
-
-              <Pressable onPress={onDismiss} style={{ marginTop: spacing.md }}>
-                <Text style={[styles.dismiss, { color: c.textMuted }]}>
-                  Cancel
+                <Text style={[styles.title, { color: c.text }]}>
+                  🐛 Found a bug?
                 </Text>
-              </Pressable>
+                <Text style={[styles.body, { color: c.textMuted }]}>
+                  Tell us what happened. Device info is attached automatically.
+                </Text>
+
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      color: c.text,
+                      borderColor: c.border,
+                      backgroundColor: c.surfaceOffset,
+                    },
+                  ]}
+                  placeholder="Describe the bug or idea…"
+                  placeholderTextColor={c.textMuted}
+                  value={message}
+                  onChangeText={setMessage}
+                  multiline
+                  maxLength={2000}
+                  autoFocus
+                />
+
+                <GlassButton
+                  variant="primary"
+                  onPress={() => mutation.mutate()}
+                  style={{ marginTop: spacing.md }}
+                  disabled={!canSubmit}
+                >
+                  {mutation.isPending ? "Sending…" : "Send Report"}
+                </GlassButton>
+
+                <Pressable onPress={onDismiss} style={{ marginTop: spacing.md }}>
+                  <Text style={[styles.dismiss, { color: c.textMuted }]}>
+                    Cancel
+                  </Text>
+                </Pressable>
+              </KeyboardAwareScrollView>
             </Animated.View>
           </Pressable>
         </Pressable>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

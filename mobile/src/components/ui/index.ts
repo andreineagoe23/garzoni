@@ -13,6 +13,8 @@ export { default as AppText } from "./AppText";
 export { default as GlassCard } from "./GlassCard";
 export { default as GlassButton } from "./GlassButton";
 export { default as ScreenScroll } from "./ScreenScroll";
+export { default as KeyboardAwareScrollView } from "./KeyboardAwareScrollView";
+export { useFormKeyboardPadding } from "../../hooks/useFormKeyboardPadding";
 export { default as SelectMenu } from "./SelectMenu";
 export { default as HapticPressable, useHapticTap } from "./HapticPressable";
 export { default as Chip } from "./Chip";

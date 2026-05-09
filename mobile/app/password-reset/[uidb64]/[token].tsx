@@ -6,20 +6,14 @@
  * the reset link in the email opens this screen instead of Safari.
  */
 import { useMemo, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import Toast from "react-native-toast-message";
 import { confirmPasswordReset } from "@garzoni/core";
 import { Button, FormInput } from "../../../src/components/ui";
+import KeyboardAwareScrollView from "../../../src/components/ui/KeyboardAwareScrollView";
 import { useAuthSession } from "../../../src/auth/AuthContext";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
@@ -150,14 +144,11 @@ export default function PasswordResetConfirmScreen() {
           headerShown: true,
         }}
       />
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
           <Text style={styles.title}>
             {t("auth.resetPassword.mobileSetTitle")}
           </Text>
@@ -202,8 +193,7 @@ export default function PasswordResetConfirmScreen() {
           <Button loading={loading} onPress={() => void onSubmit()}>
             {t("auth.resetPassword.mobileSubmit")}
           </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </>
   );
 }

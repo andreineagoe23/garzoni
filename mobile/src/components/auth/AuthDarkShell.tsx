@@ -1,10 +1,7 @@
 import { forwardRef, useState, type ReactNode } from "react";
 import {
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -22,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { brand } from "../../theme/brand";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import KeyboardAwareScrollView from "../ui/KeyboardAwareScrollView";
 
 export const DARK = {
   bg: brand.bgDark,
@@ -122,10 +120,7 @@ export default function AuthDarkShell({
   children,
 }: ShellProps) {
   return (
-    <KeyboardAvoidingView
-      style={s.flex}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <View style={s.flex}>
       <View style={s.root}>
         <View style={s.ambientTop} pointerEvents="none">
           <Glow
@@ -146,8 +141,9 @@ export default function AuthDarkShell({
           />
         </View>
 
-        <ScrollView
+        <KeyboardAwareScrollView
           style={s.flex}
+          basePaddingBottom={56}
           contentContainerStyle={s.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -165,9 +161,9 @@ export default function AuthDarkShell({
           </View>
 
           <View style={s.form}>{children}</View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -296,7 +292,6 @@ const s = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 56,
-    paddingBottom: 56,
     maxWidth: 480,
     alignSelf: "center",
     width: "100%",
