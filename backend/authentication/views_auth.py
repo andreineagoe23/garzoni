@@ -203,7 +203,7 @@ def verify_recaptcha(token):
         body = response.json()
         success = body.get("success", False)
         score = body.get("score")
-        required = getattr(settings, "RECAPTCHA_REQUIRED_SCORE", 0.5)
+        required = float(getattr(settings, "RECAPTCHA_REQUIRED_SCORE", 0.3))
 
         if not success:
             logger.warning(

@@ -549,7 +549,9 @@ if not DEBUG and not _IS_BUILD_PHASE and RECAPTCHA_DISABLED:
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
 RECAPTCHA_ENTERPRISE_PROJECT_ID = os.getenv("RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip()
 RECAPTCHA_ENTERPRISE_API_KEY = os.getenv("RECAPTCHA_ENTERPRISE_API_KEY", "").strip()
-# Score threshold (0.0-1.0). Lower = more permissive. 0.3 is often used in production.
+# Score threshold (0.0-1.0). Lower = more permissive. Default 0.3 matches Enterprise verification.
+# Operational: monitor score distribution in Google Cloud (reCAPTCHA Enterprise → Metrics) before lowering
+# the threshold — frequent blocks for real users may indicate bot-like traffic or a threshold set too high.
 RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", "0.3"))
 
 # Legacy v3 (only used if Enterprise not configured)

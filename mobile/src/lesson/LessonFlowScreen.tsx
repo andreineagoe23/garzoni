@@ -27,7 +27,9 @@ import {
 } from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { Button, ErrorState, HeartBar, ProgressBar } from "../components/ui";
+import { safeImpactAsync } from "../utils/safeHaptics";
 import { HeaderChatButton } from "../components/navigation/HeaderChatButton";
 import MascotWithMessage from "../components/common/MascotWithMessage";
 import TextSection from "../components/lesson/TextSection";
@@ -515,6 +517,7 @@ export default function LessonFlowScreen({
 
   const handleContinuePress = useCallback(async () => {
     if (!currentItem || continueBusy) return;
+    void safeImpactAsync(Haptics.ImpactFeedbackStyle.Light);
     const idx = currentIndex;
     const items = flowItems;
     const item = items[idx] ?? null;

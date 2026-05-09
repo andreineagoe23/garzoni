@@ -112,6 +112,9 @@ jobs:
       - name: Unit tests
         run: pnpm --filter @garzoni/web test
 
+      - name: Unit tests (mobile)
+        run: pnpm --filter @garzoni/mobile test
+
       - name: Build
         run: pnpm --filter @garzoni/web build
 

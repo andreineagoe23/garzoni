@@ -78,7 +78,8 @@ module.exports = ({ config }) => ({
     requireFullScreen: true,
     infoPlist: {
       ...config.ios?.infoPlist,
-      UIDeviceFamily: [1],
+      // Match supportsTablet / universal iPad target (aligned with app.json).
+      UIDeviceFamily: [1, 2],
       NSPhotoLibraryUsageDescription:
         "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
       NSUserNotificationsUsageDescription:
@@ -125,6 +126,16 @@ module.exports = ({ config }) => ({
       process.env.EXPO_PUBLIC_REVENUECAT_PAYWALL_PLACEMENT?.trim() || undefined,
   },
   plugins: [
+    [
+      "@sentry/react-native/expo",
+      {
+        url: "https://sentry.io/",
+        // Source-map upload during EAS builds. Override via env if you split iOS/Android projects later.
+        // Do not use `sentry-wizard -i ios` here — Expo uses @sentry/react-native (see sentryMobile.ts).
+        organization: process.env.SENTRY_ORG ?? "garzoni",
+        project: process.env.SENTRY_PROJECT ?? "apple-ios",
+      },
+    ],
     "expo-router",
     "expo-video",
     "expo-secure-store",

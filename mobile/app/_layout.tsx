@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Stack, usePathname } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
+import { Sentry } from "../src/bootstrap/sentryMobile";
 import Toast from "react-native-toast-message";
 import {
   SafeAreaProvider,
@@ -15,22 +16,27 @@ import {
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 import { i18n, queryClient } from "@garzoni/core";
-import { AuthProvider } from "../src/auth/AuthContext";
+import { AuthProvider, useAuthSession } from "../src/auth/AuthContext";
 import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
 import { initI18nMobile } from "../src/bootstrap/i18nMobile";
 import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
 import { RootErrorBoundary } from "../src/components/common/RootErrorBoundary";
-import { useAuthSession } from "../src/auth/AuthContext";
 import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 
+/** Keeps glass-style layouts readable on large tablets (centered column). */
+const TABLET_MAX_CONTENT_WIDTH = 560;
+
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const contentWidth = Math.min(windowWidth, TABLET_MAX_CONTENT_WIDTH);
+  const constrainTabletWidth = windowWidth > TABLET_MAX_CONTENT_WIDTH;
   const { accessToken } = useAuthSession();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
@@ -62,10 +68,21 @@ function ThemedRoot() {
 
   return (
     <NavigationThemeProvider value={navTheme}>
-      <View style={[styles.root, { backgroundColor: colors.bg }]}>
+      <View
+        style={[
+          styles.root,
+          { backgroundColor: colors.bg },
+          constrainTabletWidth ? styles.rootTabletCentered : null,
+        ]}
+      >
         <StatusBar style={resolved === "dark" ? "light" : "dark"} />
         <OfflineBanner />
-        <View style={styles.stackHost}>
+        <View
+          style={[
+            styles.stackHost,
+            constrainTabletWidth ? { width: contentWidth } : null,
+          ]}
+        >
           <Stack
             screenOptions={{
               headerShown: false,
@@ -147,7 +164,7 @@ function ThemedRoot() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [bootstrapReady, setBootstrapReady] = useState(false);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
 
@@ -196,8 +213,13 @@ export default function RootLayout() {
   );
 }
 
+export default Sentry.wrap(RootLayout);
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  rootTabletCentered: {
+    alignItems: "center",
+  },
   stackHost: { flex: 1 },
   bootstrapFallback: {
     alignItems: "center",

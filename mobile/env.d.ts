@@ -9,6 +9,8 @@ declare namespace NodeJS {
     EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME?: string;
     EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME?: string;
     EXPO_PUBLIC_REVENUECAT_IOS_KEY?: string;
+    /** Client Keys DSN from Sentry project apple-ios (not an auth token). */
+    EXPO_PUBLIC_SENTRY_DSN?: string;
     EAS_BUILD?: string;
   }
 }

@@ -7,6 +7,7 @@ import { useTheme } from "../../src/theme/ThemeContext";
 import { navIcons } from "../../src/theme/navIcons";
 import { typography } from "../../src/theme/tokens";
 import AccountTabMenuModal from "../../src/components/navigation/AccountTabMenuModal";
+import { HapticTabBarButton } from "../../src/components/navigation/HapticTabBarButton";
 
 const TAB_ICON: Record<
   string,
@@ -46,6 +47,7 @@ export default function TabsLayout() {
             paddingTop: 6,
           },
           tabBarHideOnKeyboard: true,
+          tabBarButton: (props) => <HapticTabBarButton {...props} />,
           tabBarLabelStyle: {
             fontSize: typography.xs,
             fontWeight: "600",

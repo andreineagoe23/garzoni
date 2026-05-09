@@ -29,6 +29,7 @@ import XPProgressCard from "../src/components/rewards/XPProgressCard";
 import ConfirmRedeemSheet from "../src/components/rewards/ConfirmRedeemSheet";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography } from "../src/theme/tokens";
+import { safeImpactAsync } from "../src/utils/safeHaptics";
 
 export default function RewardsScreen() {
   const c = useThemeColors();
@@ -150,7 +151,10 @@ export default function RewardsScreen() {
         {(["shop", "donate"] as const).map((tabId) => (
           <Pressable
             key={tabId}
-            onPress={() => setTab(tabId)}
+            onPress={() => {
+              void safeImpactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setTab(tabId);
+            }}
             style={{
               flex: 1,
               paddingVertical: spacing.md,
