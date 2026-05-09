@@ -74,7 +74,7 @@ class TransactionalEmailIdentifiersTests(TestCase):
         CIO_APP_API_KEY="test-app-key",
         CIO_TRANSACTIONAL_TRIGGERS_JSON='{"welcome": 8}',
     )
-    @patch("notifications.customer_io.send_transactional_email")
+    @patch("notifications.transactional.send_transactional_email")
     def test_send_includes_id_and_email_identifiers(self, mock_send):
         mock_send.return_value = (True, None)
         user = User.objects.create_user(
@@ -149,7 +149,7 @@ class WelcomeIdempotencyTests(TestCase):
         CIO_TRANSACTIONAL_TRIGGERS_JSON='{"welcome": 3}',
         CIO_TRACK_ENABLED=False,
     )
-    @patch("notifications.customer_io.send_transactional_email")
+    @patch("notifications.transactional.send_transactional_email")
     def test_idempotency_recorded_only_after_success(self, mock_send):
         mock_send.return_value = (False, "HTTP 500: err")
         user = User.objects.create_user(
