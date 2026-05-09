@@ -4,15 +4,16 @@
 
 | Variable                          | Purpose                                                                                               |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `CIO_REGION`                      | `us` or `eu` (API + track hosts).                                                                     |
+| `CIO_REGION`                      | `us` or `eu` (API + track hosts). Default **`eu`** if unset.                                          |
 | `CIO_CDP_API_KEY`                 | **CDP** write key (Pipelines “Customer.io API” source; `POST …/v1/identify`, Basic `key:`).           |
 | `CIO_CDP_ENABLED`                 | `true` to send CDP identify (default true).                                                           |
 | `CIO_SITE_ID`                     | **Classic Track** site id (optional if you only use CDP).                                             |
 | `CIO_TRACK_API_KEY`               | **Classic Track** API secret.                                                                         |
 | `CIO_APP_API_KEY`                 | App API key (transactional email/push).                                                               |
-| `CIO_TRACK_ENABLED`               | `true` to send identify/track.                                                                        |
-| `CIO_TRANSACTIONAL_ENABLED`       | `true` to send via transactional API when templates are mapped.                                       |
-| `CIO_TRANSACTIONAL_TRIGGERS_JSON` | Map template slug → id or trigger name, e.g. `{"password-reset":12,"welcome":13}`.                    |
+| `CIO_TRACK_PROFILE_UPSERT`       | `true` (default): `PUT …/customers/{id}` on identify so **email** and traits sync (CDP omits email). |
+| `CIO_TRACK_ENABLED`               | `true` to send **Track API events** (`POST …/events`); does **not** disable profile PUT when false.   |
+| `CIO_TRANSACTIONAL_ENABLED`       | Optional: defaults **on** when `CIO_APP_API_KEY` is set; set `false` to disable.                       |
+| `CIO_TRANSACTIONAL_TRIGGERS_JSON` | Optional: Garzoni prod slug→id map is baked in; override when CIO message ids change.                   |
 | `CIO_JOURNEY_EVENTS_ENABLED`      | `true` to emit journey events from Celery tasks.                                                      |
 | `CIO_REMINDERS_VIA_JOURNEYS`      | When `true` with journey events + track enabled, reminder beat jobs **track only** (no direct email). |
 
@@ -29,6 +30,26 @@ Authenticated `POST /api/notifications/client-track/` with JSON `{ "name": "chec
 ## Person identifier
 
 Customer.io `id` is `str(user.pk)` (same as JWT `user_id` on mobile).
+
+### Why People shows “(No email)” for some profiles
+
+1. **CDP identify never sends `email`** — it is stripped server-side to avoid identifier collisions (`notifications.customer_io.cdp_identify`).
+2. **Email is set via the Track API** (`PUT …/api/v1/customers/{id}`) when **`CIO_SITE_ID`** + **`CIO_TRACK_API_KEY`** are set and **`CIO_TRACK_PROFILE_UPSERT`** is `true` (default). Without Tracking credentials, CIO may only receive CDP traits → **no email column**.
+3. **Mobile SDK identify** often sends **no email trait**; backend **`sync_user`** / login flows must run so Django can upsert the profile.
+
+**Fix without wiping your workspace:** add Tracking credentials on Railway, keep `CIO_TRACK_PROFILE_UPSERT=true`, then backfill:
+
+```bash
+python manage.py sync_users_to_cio
+```
+
+Users who literally have **no email in Django** will stay “(No email)” until they add one — that is expected.
+
+### Account deletion and CIO
+
+`DELETE /api/accounts/…` calls **`NotificationProfileSync.delete_user`** → Track **`DELETE …/customers/{id}`** when Tracking credentials exist (no longer gated on `CIO_TRACK_ENABLED`). Orphans created only in CIO (no Django user) must be removed in the CIO UI or via their API — the backend cannot delete people it never owned.
+
+For **dormant / hide-my-email Apple Relay** cleanup policy (e.g. inactive 12+ months), use **Customer.io segments** and suppression/archival rules; optionally delete stale Django users with a separate ops process — not automated in this repo unless you add it deliberately.
 
 ## Test CDP / Track from production (no Railway shell)
 
@@ -131,7 +152,7 @@ Aliases Garzoni adds automatically so templates match common naming styles:
 
 After changing transactional payloads or credentials:
 
-1. **Backend env**: `CIO_REGION=eu`, `CIO_APP_API_KEY`, `CIO_TRANSACTIONAL_ENABLED=true`, `CIO_TRANSACTIONAL_TRIGGERS_JSON` maps every enabled slug to the correct transactional message id.
+1. **Backend env**: secrets (`CIO_APP_API_KEY`, CDP/Track keys as needed). Region defaults to **`eu`**; transactional sends default **on** when the App API key is set; slug→id map defaults are in `settings` unless you override `CIO_TRANSACTIONAL_TRIGGERS_JSON`.
 2. **Smoke send**: Trigger welcome or weekly digest for a test user; confirm Customer.io activity shows **Sent** (not Failed) and subject/body Liquid resolves (`trigger.*` / `customer.*`).
 3. **Idempotency**: A failed send should **not** insert an idempotency row — retry the task and confirm delivery succeeds. A successful send should dedupe duplicate scheduler runs.
 4. **Mobile**: Log out or disable push in Settings — profile `expo_push_token` clears server-side; CIO device registration matches expectations.

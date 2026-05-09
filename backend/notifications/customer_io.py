@@ -204,22 +204,28 @@ def identify_person(
     """
     Upsert profile to Customer.io:
     - CDP: POST /v1/identify when CIO_CDP_API_KEY is set (feeds Pipelines / "Test connection").
-    - Track: PUT /api/v1/customers/{id} when CIO_TRACK_ENABLED and site+tracking key set.
+      CDP intentionally omits **email** (identifier collisions).
+    - Track: PUT /api/v1/customers/{id} when CIO_SITE_ID + CIO_TRACK_API_KEY exist and
+      CIO_TRACK_PROFILE_UPSERT is True — applies **email** and traits. CIO_TRACK_ENABLED gates
+      *events*, not this PUT.
+
     person_id is the stable Garzoni identifier (stringified Django user pk).
 
-    When both CDP and Track run, outbound calls use a thread pool so total wall time is
+    When both CDP and Track PUT run, outbound calls use a thread pool so total wall time is
     roughly max(cdp, track) instead of sum — avoids Railway/proxy timeouts (~30s).
     """
     errs: list[str] = []
     any_ok = False
 
     run_cdp = customer_io_cdp_configured() and getattr(settings, "CIO_CDP_ENABLED", True)
-    run_track = getattr(settings, "CIO_TRACK_ENABLED", False)
+    run_track_put = customer_io_track_configured() and getattr(
+        settings, "CIO_TRACK_PROFILE_UPSERT", True
+    )
 
     cdp_res: tuple[bool, str | None] | None = None
     track_res: tuple[bool, str | None] | None = None
 
-    if run_cdp and run_track:
+    if run_cdp and run_track_put:
         with ThreadPoolExecutor(max_workers=2) as pool:
             fut_c = pool.submit(cdp_identify, person_id, traits, http_timeout=http_timeout)
             fut_t = pool.submit(
@@ -229,7 +235,7 @@ def identify_person(
             track_res = fut_t.result()
     elif run_cdp:
         cdp_res = cdp_identify(person_id, traits, http_timeout=http_timeout)
-    elif run_track:
+    elif run_track_put:
         track_res = _track_upsert_customer(person_id, traits, http_timeout=http_timeout)
 
     if cdp_res is not None:
@@ -245,10 +251,11 @@ def identify_person(
         elif err:
             errs.append(f"track:{err}")
 
-    if not customer_io_cdp_configured() and not (
-        getattr(settings, "CIO_TRACK_ENABLED", False) and _track_auth_header()
-    ):
-        return True, "skipped (no CIO_CDP_API_KEY and track not configured or disabled)"
+    if not run_cdp and not run_track_put:
+        return (
+            True,
+            "skipped (no CDP and no Track profile upsert — add CIO_CDP_API_KEY and/or Tracking credentials)",
+        )
 
     if any_ok:
         return True, None
@@ -283,12 +290,15 @@ def track_event(
 
 
 def delete_person(person_id: str) -> tuple[bool, str | None]:
-    """DELETE customer (GDPR-style cleanup when supported)."""
-    if not getattr(settings, "CIO_TRACK_ENABLED", False):
-        return True, "skipped"
+    """
+    DELETE customer via Track API (same credentials as profile PUT).
+
+    Does not require CIO_TRACK_ENABLED — account deletion should remove the profile whenever
+    Tracking API credentials are configured.
+    """
     auth = _track_auth_header()
     if not auth:
-        return False, "missing track credentials"
+        return True, "skipped (no Track API credentials)"
     url = f"{_track_api_base()}/api/v1/customers/{person_id}"
     try:
         r = requests.delete(url, headers={"Authorization": auth}, timeout=_http_timeout())

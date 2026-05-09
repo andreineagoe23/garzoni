@@ -466,20 +466,36 @@ BRAND_LOGO_URL = os.getenv(
 ).strip()
 
 # --- Customer.io (optional; backend-orchestrated delivery + journeys) ---
-CIO_REGION = os.getenv("CIO_REGION", "us").strip().lower()
+# Secrets must stay in env (Railway/Vercel): keys and CIO_PUBLIC_PING_SECRET — never commit those.
+# Defaults below reduce duplicate toggles when unset (override via env when needed).
+CIO_REGION = os.getenv("CIO_REGION", "eu").strip().lower()
 CIO_SITE_ID = os.getenv("CIO_SITE_ID", "").strip()
 CIO_TRACK_API_KEY = os.getenv("CIO_TRACK_API_KEY", "").strip()
 # CDP Pipelines / HTTP source (POST https://cdp(-eu).customer.io/v1/identify); Basic auth = base64("API_KEY:")
 CIO_CDP_API_KEY = os.getenv("CIO_CDP_API_KEY", "").strip()
 CIO_CDP_ENABLED = env_bool("CIO_CDP_ENABLED", True)
 CIO_APP_API_KEY = os.getenv("CIO_APP_API_KEY", "").strip()
+# Track API: PUT /api/v1/customers/{id} sets profile traits including **email** (CDP identify omits email).
+CIO_TRACK_PROFILE_UPSERT = env_bool("CIO_TRACK_PROFILE_UPSERT", True)
 CIO_TRACK_ENABLED = env_bool("CIO_TRACK_ENABLED", False)
-CIO_TRANSACTIONAL_ENABLED = env_bool("CIO_TRANSACTIONAL_ENABLED", False)
+# When CIO_TRANSACTIONAL_ENABLED is omitted: on if CIO_APP_API_KEY is set (set env to false to disable).
+if os.getenv("CIO_TRANSACTIONAL_ENABLED") is None:
+    CIO_TRANSACTIONAL_ENABLED = bool(CIO_APP_API_KEY)
+else:
+    CIO_TRANSACTIONAL_ENABLED = env_bool("CIO_TRANSACTIONAL_ENABLED", False)
 CIO_JOURNEY_EVENTS_ENABLED = env_bool("CIO_JOURNEY_EVENTS_ENABLED", False)
 CIO_REMINDERS_VIA_JOURNEYS = env_bool("CIO_REMINDERS_VIA_JOURNEYS", False)
-# JSON map: template slug -> transactional message id (int) or trigger name (str), e.g.
-# {"password-reset":12,"welcome":13}
-CIO_TRANSACTIONAL_TRIGGERS_JSON = os.getenv("CIO_TRANSACTIONAL_TRIGGERS_JSON", "").strip()
+# Loose Railway-style map; override entirely via CIO_TRANSACTIONAL_TRIGGERS_JSON when CIO ids change.
+_DEFAULT_CIO_TRANSACTIONAL_TRIGGERS_JSON = (
+    "{password-reset:3,welcome:4,subscription-cancelled:5,trial-ending:6,renewal-reminder:7,"
+    "weekly-digest:8,reminder-monthly:9,streak-broken:10,referral-referrer:11,referral-referred:12,"
+    "email-verification:13,magic-login:14,order-confirmed:15,payment-receipt:16,payment-failed:17,"
+    "password-changed:18,portfolio-update:19,ai-nudge:20}"
+)
+CIO_TRANSACTIONAL_TRIGGERS_JSON = (
+    os.getenv("CIO_TRANSACTIONAL_TRIGGERS_JSON", "").strip()
+    or _DEFAULT_CIO_TRANSACTIONAL_TRIGGERS_JSON
+)
 # Optional: GET /api/notifications/cio-ping/ with header X-Garzoni-Cio-Ping: <secret> (no Railway console needed).
 CIO_PUBLIC_PING_SECRET = os.getenv("CIO_PUBLIC_PING_SECRET", "").strip()
 
