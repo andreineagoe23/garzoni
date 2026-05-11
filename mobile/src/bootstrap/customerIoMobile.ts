@@ -5,6 +5,7 @@
  * - EXPO_PUBLIC_CIO_SITE_ID (optional; enables in-app when set)
  * - EXPO_PUBLIC_CIO_REGION=us|eu
  */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { Platform } from "react-native";
 
 const SITE_ID = process.env.EXPO_PUBLIC_CIO_SITE_ID?.trim();
@@ -41,8 +42,7 @@ export async function initCustomerIoMobile(): Promise<void> {
   if (initPromise) return initPromise;
   initPromise = (async () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const cio =
+        const cio =
         require("customerio-reactnative") as typeof import("customerio-reactnative");
       await cio.CustomerIO.initialize({
         cdpApiKey: CDP_KEY,
@@ -72,7 +72,6 @@ export async function identifyGarzoniUserFromAccessToken(
   if (!userId) return;
   await initCustomerIoMobile();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.identify({
@@ -89,7 +88,6 @@ export async function deleteCustomerIoDeviceTokenOnly(): Promise<void> {
   if (!CDP_KEY || !nativeAvailable) return;
   await initCustomerIoMobile();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.deleteDeviceToken();
@@ -101,7 +99,6 @@ export async function deleteCustomerIoDeviceTokenOnly(): Promise<void> {
 export async function clearGarzoniCustomerIo(): Promise<void> {
   if (!CDP_KEY || !nativeAvailable) return;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.deleteDeviceToken();
@@ -109,7 +106,6 @@ export async function clearGarzoniCustomerIo(): Promise<void> {
     /* noop */
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.clearIdentify();
@@ -129,7 +125,6 @@ export async function registerPushTokenWithCustomerIo(
   if (!CDP_KEY || !nativeAvailable || !t) return;
   await initCustomerIoMobile();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.registerDeviceToken(t);
@@ -148,7 +143,6 @@ export async function trackGarzoniEvent(
   if (!CDP_KEY || !nativeAvailable) return;
   await initCustomerIoMobile();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.track(name, {
@@ -165,7 +159,6 @@ export async function trackCioScreen(name: string): Promise<void> {
   if (!CDP_KEY || !nativeAvailable) return;
   await initCustomerIoMobile();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.screen(name, { platform: Platform.OS });

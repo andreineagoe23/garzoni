@@ -407,7 +407,12 @@ function ReadyScreen({
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
   ];
-  const yVals = fadeVals.map(() => useRef(new Animated.Value(12)).current);
+  const yVals = [
+    useRef(new Animated.Value(12)).current,
+    useRef(new Animated.Value(12)).current,
+    useRef(new Animated.Value(12)).current,
+    useRef(new Animated.Value(12)).current,
+  ];
 
   useEffect(() => {
     const delays = [0, 80, 160, 240];
