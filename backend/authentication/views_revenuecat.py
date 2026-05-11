@@ -104,8 +104,8 @@ class RevenueCatWebhookView(APIView):
         # Resolve the Django user.  RevenueCat app_user_id is set to the
         # Django user PK (str) in billing.tsx via Purchases.configure({ appUserID }).
         try:
-            user = User.objects.select_related("userprofile").get(pk=int(app_user_id))
-            profile: UserProfile = user.userprofile
+            user = User.objects.select_related("profile").get(pk=int(app_user_id))
+            profile: UserProfile = user.profile
         except (ValueError, User.DoesNotExist, UserProfile.DoesNotExist):
             logger.warning("[RevenueCat] User not found for app_user_id=%s", app_user_id)
             # Return 200 so RevenueCat doesn't retry indefinitely.
