@@ -1886,13 +1886,24 @@ class PersonalizedPathView(APIView):
                 user=user,
                 course_id__in=course_ids,
             ).prefetch_related("completed_sections", "completed_lessons"):
+                # Use the prefetch cache — .count() and .values_list() bypass it
+                # and hit the DB again, so iterate the cached querysets instead.
+                cached_lessons = list(progress.completed_lessons.all())
                 progress_by_course[progress.course_id] = {
-                    "completed_sections": progress.completed_sections.count(),
-                    "completed_lessons": progress.completed_lessons.count(),
-                    "completed_lesson_ids": set(
-                        progress.completed_lessons.values_list("id", flat=True)
-                    ),
+                    "completed_sections": len(list(progress.completed_sections.all())),
+                    "completed_lessons": len(cached_lessons),
+                    "completed_lesson_ids": {l.id for l in cached_lessons},
                 }
+
+            # Batch-load all lessons for all courses in one query to avoid
+            # an N+1 from calling _next_lesson_title() per course.
+            lessons_by_course: dict = {}
+            for row in (
+                Lesson.objects.filter(course_id__in=course_ids)
+                .order_by("course_id", "id")
+                .values("course_id", "id", "title")
+            ):
+                lessons_by_course.setdefault(row["course_id"], []).append(row)
 
             progress_values = []
             for idx, item in enumerate(payload_courses):
@@ -1917,9 +1928,14 @@ class PersonalizedPathView(APIView):
                 if total_lessons > 0:
                     progress_values.append(completion_percent)
                 path_key = self._path_key(str(item.get("path_title") or ""))
-                next_lesson_title = self._next_lesson_title(
-                    course_id=course_id,
-                    completed_lesson_ids=progress_meta.get("completed_lesson_ids") or set(),
+                completed_ids = progress_meta.get("completed_lesson_ids") or set()
+                next_lesson_title = next(
+                    (
+                        r["title"]
+                        for r in lessons_by_course.get(course_id, [])
+                        if r["id"] not in completed_ids
+                    ),
+                    None,
                 )
                 item["completion_percent"] = completion_percent
                 item["estimated_minutes"] = max(total_lessons * 4, 8)

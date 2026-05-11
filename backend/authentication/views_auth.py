@@ -492,7 +492,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         try:
             serializer.is_valid(raise_exception=True)
-        except TokenError as exc:
+        except (TokenError, User.DoesNotExist) as exc:
             logger.error("Token refresh error: %s", exc)
             response = Response({"detail": str(exc)}, status=401)
             clear_refresh_cookie(response)

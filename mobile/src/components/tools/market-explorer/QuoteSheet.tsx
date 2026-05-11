@@ -56,17 +56,24 @@ export function QuoteSheet({
     onClose();
   };
 
+  // Snap positions: collapsed (60%) and expanded (full-screen for buy form).
+  const snapCollapsed = SCREEN_HEIGHT - SNAP;
+  const snapExpanded = spacing.xl; // near top, leaves room for status bar
+
+  // Slide sheet to expanded when buy form is open, collapsed otherwise.
   useEffect(() => {
-    if (!buyMode || !visible) return;
-    const id = requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [buyMode, visible]);
+    if (!visible) return;
+    Animated.spring(translateY, {
+      toValue: buyMode ? snapExpanded : snapCollapsed,
+      useNativeDriver: true,
+      bounciness: 2,
+      speed: 14,
+    }).start();
+  }, [buyMode, visible, translateY, snapCollapsed, snapExpanded]);
 
   useEffect(() => {
     Animated.spring(translateY, {
-      toValue: visible ? SCREEN_HEIGHT - SNAP : SCREEN_HEIGHT,
+      toValue: visible ? snapCollapsed : SCREEN_HEIGHT,
       useNativeDriver: true,
       bounciness: 3,
     }).start();
@@ -75,7 +82,7 @@ export function QuoteSheet({
       setBuyMode(false);
       setBuyAmount("500");
     }
-  }, [visible, translateY]);
+  }, [visible, translateY, snapCollapsed]);
 
   const handleConfirmBuy = async () => {
     const amount = Number(buyAmount);
@@ -125,8 +132,8 @@ export function QuoteSheet({
 
           <KeyboardAwareScrollView
             ref={scrollRef}
-            keyboardActive={visible}
-            basePaddingBottom={spacing.xl}
+            keyboardActive={visible && buyMode}
+            basePaddingBottom={spacing.xxxxl}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"

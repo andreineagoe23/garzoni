@@ -371,7 +371,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    marginTop: 8,
+    marginTop: 4,
     shadowColor: "#000",
     shadowOpacity: 0.45,
     shadowRadius: 20,
@@ -404,7 +404,7 @@ const s = StyleSheet.create({
   },
   errorText: { color: DARK.error, fontSize: 13 },
 
-  divider: { flexDirection: "row", alignItems: "center", marginVertical: 18 },
+  divider: { flexDirection: "row", alignItems: "center", marginVertical: 10 },
   dividerLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,

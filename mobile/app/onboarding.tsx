@@ -34,7 +34,7 @@ import {
   type NextQuestionResponse,
 } from "@garzoni/core";
 import OnboardingIntroPager from "../src/components/onboarding/steps/OnboardingIntroPager";
-import OnboardingCompletionOverlay from "../src/components/onboarding/steps/OnboardingCompletionOverlay";
+import OnboardingLoadingScreen from "../src/components/onboarding/steps/OnboardingLoadingScreen";
 import QuestionnaireSingleChoice from "../src/components/onboarding/steps/QuestionnaireSingleChoice";
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
@@ -368,7 +368,7 @@ export default function OnboardingScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <Stack.Screen options={{ headerShown: false }} />
-        <OnboardingCompletionOverlay
+        <OnboardingLoadingScreen
           xp={completionRewards.xp}
           coins={completionRewards.coins}
           onContinue={handleCompletionContinue}

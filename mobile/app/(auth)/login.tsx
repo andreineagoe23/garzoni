@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
-    marginTop: 22,
+    marginTop: 10,
   },
   bottomText: { fontSize: 13, color: DARK.muted },
   bottomLink: { fontSize: 13, color: DARK.primaryBright, fontWeight: "600" },

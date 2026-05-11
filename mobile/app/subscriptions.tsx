@@ -21,6 +21,7 @@ import type {
 } from "react-native-purchases";
 import {
   fetchEntitlements,
+  fetchPersonalizedPath,
   fetchProfile,
   queryKeys,
   staleTimes,
@@ -665,6 +666,12 @@ export default function SubscriptionsScreen() {
 
         if (entitlements && planRank(entitlements.plan) >= 1) {
           setPurchaseStep("success");
+          // Warm the personalized-path cache during the success animation so
+          // the user lands on a loaded screen instead of a spinner.
+          void queryClient.prefetchQuery({
+            queryKey: queryKeys.personalizedPath(),
+            queryFn: fetchPersonalizedPath,
+          });
           setTimeout(() => {
             setPurchaseStep("idle");
             setPurchasingTier(null);
@@ -710,6 +717,10 @@ export default function SubscriptionsScreen() {
       });
       if (entitlements && planRank(entitlements.plan) >= 1) {
         setPurchaseStep("success");
+        void queryClient.prefetchQuery({
+          queryKey: queryKeys.personalizedPath(),
+          queryFn: fetchPersonalizedPath,
+        });
         setTimeout(() => {
           setPurchaseStep("idle");
           setPurchasingTier(null);
