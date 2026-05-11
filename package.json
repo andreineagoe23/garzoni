@@ -10,7 +10,9 @@
   "pnpm": {
     "overrides": {
       "react": "19.1.0",
-      "react-dom": "19.1.0"
+      "react-dom": "19.1.0",
+      "@types/react": "^18.3.21",
+      "@types/react-dom": "^18.3.7"
     },
     "onlyBuiltDependencies": [
       "sharp",
