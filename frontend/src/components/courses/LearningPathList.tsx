@@ -12,6 +12,7 @@ type LearningPathCourse = {
   total_lessons?: number;
   totalLessons?: number;
   lessons?: unknown[];
+  order?: number;
 };
 
 type LearningPath = {
@@ -61,7 +62,9 @@ function LearningPathList({
   return (
     <div className="space-y-10">
       {learningPaths.map((path) => {
-        const courses = Array.isArray(path.courses) ? path.courses : [];
+        const courses = Array.isArray(path.courses)
+          ? [...path.courses].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          : [];
         const isLocked = Boolean(path.is_locked);
         return (
           <GlassCard

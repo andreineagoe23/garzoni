@@ -43,6 +43,7 @@ type PathRow = {
     total_lessons?: number;
     lesson_count?: number;
     lessons?: unknown[];
+    order?: number;
   }[];
   is_locked?: boolean;
 };
@@ -111,18 +112,21 @@ export default function AllTopicsGrid() {
     staleTime: LEARNING_PATHS_STALE_MS,
   });
 
+  const sortByOrder = (courses: CourseInPath[]) =>
+    [...courses].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
   const expandedCoursesMerged = useMemo((): CourseInPath[] => {
     const nested = (expandedPathRow?.courses ?? []) as CourseInPath[];
     const fromQuery = pathCoursesQuery.data;
     if (pathCoursesQuery.isError) {
-      return nested.length > 0 ? nested : [];
+      return nested.length > 0 ? sortByOrder(nested) : [];
     }
     if (pathCoursesQuery.isSuccess) {
       const rows = fromQuery ?? [];
-      if (rows.length > 0) return rows;
-      return nested.length > 0 ? nested : [];
+      if (rows.length > 0) return sortByOrder(rows);
+      return nested.length > 0 ? sortByOrder(nested) : [];
     }
-    return nested.length > 0 ? nested : [];
+    return nested.length > 0 ? sortByOrder(nested) : [];
   }, [
     pathCoursesQuery.data,
     pathCoursesQuery.isSuccess,

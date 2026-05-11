@@ -47,15 +47,16 @@ const KeyboardAwareScrollView = forwardRef<
   const insets = useSafeAreaInsets();
   const keyboardInset = useKeyboardBottomInset(keyboardActive);
   const bottomPad =
-    basePaddingBottom +
-    keyboardInset +
-    Math.max(insets.bottom, spacing.sm);
+    basePaddingBottom + keyboardInset + Math.max(insets.bottom, spacing.sm);
 
   return (
     <ScrollView
       ref={ref}
       style={[styles.flex, style]}
-      contentContainerStyle={[contentContainerStyle, { paddingBottom: bottomPad }]}
+      contentContainerStyle={[
+        contentContainerStyle,
+        { paddingBottom: bottomPad },
+      ]}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       keyboardDismissMode={
         keyboardDismissMode ??

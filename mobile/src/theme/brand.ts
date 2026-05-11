@@ -1,16 +1,13 @@
 import { Platform } from "react-native";
 
 /**
- * Garzoni brand tokens — mirrors `frontend/src/styles/brand.css`.
+ * Garzoni brand tokens — mirrors `brand/kit/tokens.css` (single source of truth).
  *
- * Edit the web brand tokens first (single source of truth) and keep the hex
- * values here in sync. Other mobile theme files (`palettes.ts`, `authBrand.ts`)
- * import from here so we stop duplicating literals across the codebase.
- *
- * Typography: no custom webfont is shipped. Expo picks the native Helvetica
- * equivalent per platform — `Helvetica Neue` on iOS, Android's `sans-serif`
- * (Roboto), system default elsewhere — matching the web stack
- * `"Helvetica Neue", Helvetica, Arial, sans-serif`.
+ * Body font: native Helvetica equivalent per platform (`Helvetica Neue` on iOS,
+ * `sans-serif`/Roboto on Android) — matches web stack.
+ * Display font: `Fraunces_400Regular` — loaded via `expo-font` in `app/_layout.tsx`
+ * (see `@expo-google-fonts/fraunces`). Falls back to system serif if load fails.
+ * Mono font: `JetBrainsMono_400Regular` — same loader.
  */
 const fontPrimary = Platform.select({
   ios: "Helvetica Neue",
@@ -42,6 +39,11 @@ export const brand = {
   fontPrimary,
   fontMedium: fontPrimary,
   fontBold: fontPrimary,
+  /** Display serif — h1/h2/h3 + editorial italics. Loaded via expo-font in app/_layout.tsx. */
+  fontDisplay: "Fraunces_400Regular",
+  fontDisplayItalic: "Fraunces_400Regular_Italic",
+  /** Mono — stats, prices, percentages, code. Loaded via expo-font in app/_layout.tsx. */
+  fontMono: "JetBrainsMono_400Regular",
 
   fontWeightRegular: "400" as const,
   fontWeightMedium: "500" as const,

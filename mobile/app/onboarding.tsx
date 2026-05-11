@@ -423,102 +423,98 @@ export default function OnboardingScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-          {loading ? (
-            <View style={styles.centeredLoader}>
-              <LoadingSpinner size="sm" color={DARK.primary} />
-              <Text style={styles.inlineLoadingTitle}>
-                Curating your next question
-              </Text>
-              <Text style={styles.inlineLoadingSub}>
-                We are syncing your answers and preparing the next step.
-              </Text>
-            </View>
-          ) : question ? (
-            <Animated.View style={{ transform: [{ translateY }] }}>
-              <Text style={styles.screenEyebrow}>
-                {t("onboarding.questionnaireHeaderDefault").toUpperCase()}
-              </Text>
-              <Text style={styles.headline}>{question.text}</Text>
-              {question.description ? (
-                <Text style={styles.subhead}>{question.description}</Text>
-              ) : null}
+        {loading ? (
+          <View style={styles.centeredLoader}>
+            <LoadingSpinner size="sm" color={DARK.primary} />
+            <Text style={styles.inlineLoadingTitle}>
+              Curating your next question
+            </Text>
+            <Text style={styles.inlineLoadingSub}>
+              We are syncing your answers and preparing the next step.
+            </Text>
+          </View>
+        ) : question ? (
+          <Animated.View style={{ transform: [{ translateY }] }}>
+            <Text style={styles.screenEyebrow}>
+              {t("onboarding.questionnaireHeaderDefault").toUpperCase()}
+            </Text>
+            <Text style={styles.headline}>{question.text}</Text>
+            {question.description ? (
+              <Text style={styles.subhead}>{question.description}</Text>
+            ) : null}
 
-              {question.type === "single_choice" && (
-                <QuestionnaireSingleChoice
-                  question={question}
-                  selected={typeof answer === "string" ? answer : null}
-                  onChange={(v) => updateAnswer(v)}
-                />
-              )}
+            {question.type === "single_choice" && (
+              <QuestionnaireSingleChoice
+                question={question}
+                selected={typeof answer === "string" ? answer : null}
+                onChange={(v) => updateAnswer(v)}
+              />
+            )}
 
-              {question.type === "multiple_choice" && (
-                <QuestionnaireMultiChoice
-                  question={question}
-                  selected={Array.isArray(answer) ? answer : []}
-                  onChange={(v) => updateAnswer(v)}
-                />
-              )}
+            {question.type === "multiple_choice" && (
+              <QuestionnaireMultiChoice
+                question={question}
+                selected={Array.isArray(answer) ? answer : []}
+                onChange={(v) => updateAnswer(v)}
+              />
+            )}
 
-              {(question.type === "text" || question.type === "long_text") && (
-                <QuestionnaireTextAnswer
-                  value={typeof answer === "string" ? answer : ""}
-                  onChange={(v) => updateAnswer(v)}
-                  multiline={question.type === "long_text"}
-                />
-              )}
+            {(question.type === "text" || question.type === "long_text") && (
+              <QuestionnaireTextAnswer
+                value={typeof answer === "string" ? answer : ""}
+                onChange={(v) => updateAnswer(v)}
+                multiline={question.type === "long_text"}
+              />
+            )}
 
-              {(question.type === "number" || question.type === "integer") && (
-                <QuestionnaireNumberAnswer
-                  value={typeof answer === "string" ? answer : ""}
-                  onChange={(v) => updateAnswer(v)}
-                />
-              )}
+            {(question.type === "number" || question.type === "integer") && (
+              <QuestionnaireNumberAnswer
+                value={typeof answer === "string" ? answer : ""}
+                onChange={(v) => updateAnswer(v)}
+              />
+            )}
 
-              {errorMsg ? (
-                <Text style={styles.errorText}>{errorMsg}</Text>
-              ) : null}
+            {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-              <View style={styles.actions}>
+            <View style={styles.actions}>
+              <Pressable
+                onPress={() => void handleSubmit()}
+                disabled={submitDisabled}
+                style={[styles.cta, submitDisabled && styles.ctaDisabled]}
+                accessibilityRole="button"
+              >
+                <View style={styles.ctaHighlight} pointerEvents="none" />
+                {submitting ? (
+                  <LoadingSpinner size="sm" color="#fff" />
+                ) : (
+                  <Text style={styles.ctaLabel}>
+                    {isLast ? t("onboarding.finish") : t("onboarding.continue")}
+                  </Text>
+                )}
+              </Pressable>
+              {!question.required ? (
                 <Pressable
-                  onPress={() => void handleSubmit()}
-                  disabled={submitDisabled}
-                  style={[styles.cta, submitDisabled && styles.ctaDisabled]}
+                  onPress={() => {
+                    setAnswer(deriveDefaultAnswer(question));
+                    void handleSubmit();
+                  }}
+                  style={styles.skipBtn}
                   accessibilityRole="button"
                 >
-                  <View style={styles.ctaHighlight} pointerEvents="none" />
-                  {submitting ? (
-                    <LoadingSpinner size="sm" color="#fff" />
-                  ) : (
-                    <Text style={styles.ctaLabel}>
-                      {isLast
-                        ? t("onboarding.finish")
-                        : t("onboarding.continue")}
-                    </Text>
-                  )}
+                  <Text style={styles.skipLabel}>
+                    {t("onboarding.skipQuestion")}
+                  </Text>
                 </Pressable>
-                {!question.required ? (
-                  <Pressable
-                    onPress={() => {
-                      setAnswer(deriveDefaultAnswer(question));
-                      void handleSubmit();
-                    }}
-                    style={styles.skipBtn}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.skipLabel}>
-                      {t("onboarding.skipQuestion")}
-                    </Text>
-                  </Pressable>
-                ) : null}
-              </View>
+              ) : null}
+            </View>
 
-              <Text style={styles.footnote}>
-                {t("onboarding.changeLaterHint", {
-                  defaultValue: "You can change this anytime in Settings",
-                })}
-              </Text>
-            </Animated.View>
-          ) : null}
+            <Text style={styles.footnote}>
+              {t("onboarding.changeLaterHint", {
+                defaultValue: "You can change this anytime in Settings",
+              })}
+            </Text>
+          </Animated.View>
+        ) : null}
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );

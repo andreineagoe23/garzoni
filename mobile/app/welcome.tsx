@@ -1,15 +1,15 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   FlatList,
   Image,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   useWindowDimensions,
   View,
   type ViewToken,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, {
   Path,
   Circle,
@@ -23,24 +23,24 @@ import Svg, {
 import { Stack, router } from "expo-router";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { brand } from "../src/theme/brand";
+import { darkPalette } from "../src/theme/palettes";
 import { setWelcomeSeen } from "../src/auth/firstRunFlags";
 
-// ─── Design tokens (dark luxury — kept local, always dark) ──────────────────
 const C = {
   bg: brand.bgDark,
-  bgDeep: "#070a0e",
+  bgDeep: brand.bgDeep,
   surface: brand.bgCard,
-  surfaceRaised: "#161f2e",
+  surfaceRaised: darkPalette.surfaceElevated,
   primary: brand.green,
-  primaryBright: "#2a7347",
-  primarySoft: "rgba(29,83,48,0.18)",
+  primaryBright: brand.greenBright,
+  primarySoft: brand.greenSoft,
   gold: brand.gold,
   goldWarm: brand.goldWarm,
   border: brand.borderGlass,
-  borderSoft: "rgba(255,255,255,0.06)",
+  borderSoft: darkPalette.borderSoft,
   text: brand.text,
   muted: brand.textMuted,
-  faint: "rgba(229,231,235,0.4)",
+  faint: darkPalette.textFaint,
   ghost: "rgba(229,231,235,0.12)",
 };
 
@@ -326,13 +326,13 @@ function SlideTools() {
 
 // ─── Slide 3: plan tiers (clickable) ────────────────────────────────────────
 type TierId = "starter" | "plus" | "pro";
-const TIERS: Array<{
+const TIERS: {
   id: TierId;
   name: string;
   tag: string;
   gold: boolean;
   perks: string[];
-}> = [
+}[] = [
   {
     id: "starter",
     name: "Starter",
@@ -462,37 +462,76 @@ function SlidePlans() {
   );
 }
 
-// ─── Cloudinary wordmark (logo on slide 1 only) ─────────────────────────────
-function WelcomeLogo({ large = false }: { large?: boolean }) {
+/** Horizontal inset aligned with footer CTA so header + Skip match button margins. */
+const HEADER_PAD_H = 20;
+
+/** Target header height; width follows intrinsic aspect so `contain` doesn’t letterbox/center inside the box. */
+const WORDMARK_HEIGHT = 56;
+/** Until `Image.getSize` returns (remote bitmap). */
+const WORDMARK_ASPECT_FALLBACK = 4.75;
+
+/** PNG wordmark (CDN uses e_trim); text fallback if offline or load error. */
+function WelcomeWordmark() {
   const uri = authLogoWhiteRectangularUrl({ width: 560 });
+  const { width: screenW } = useWindowDimensions();
   const [failed, setFailed] = useState(false);
+  const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    if (!uri) return;
+    Image.getSize(
+      uri,
+      (w, h) => {
+        if (w > 0 && h > 0) setNatural({ w, h });
+      },
+      () => setFailed(true),
+    );
+  }, [uri]);
+
   if (!uri || failed) {
     return (
-      <Text
-        style={{
-          fontSize: 28,
-          color: C.text,
-          fontWeight: "600",
-          letterSpacing: -0.3,
-        }}
-      >
-        Garzoni
+      <Text style={welcomeStyles.logoFallback} accessibilityRole="header">
+        garzoni
       </Text>
     );
   }
+
+  const aspect =
+    natural && natural.h > 0 ? natural.w / natural.h : WORDMARK_ASPECT_FALLBACK;
+  const maxW = Math.max(140, screenW - HEADER_PAD_H * 2 - 76);
+  let imgW = aspect * WORDMARK_HEIGHT;
+  let imgH = WORDMARK_HEIGHT;
+  if (imgW > maxW) {
+    imgW = maxW;
+    imgH = maxW / aspect;
+  }
+
   return (
     <Image
       accessibilityLabel="Garzoni"
+      accessibilityRole="header"
       source={{ uri }}
       style={{
-        width: large ? 220 : 180,
-        height: large ? 56 : 44,
+        width: imgW,
+        height: imgH,
+        alignSelf: "flex-start",
       }}
       resizeMode="contain"
       onError={() => setFailed(true)}
     />
   );
 }
+
+const welcomeStyles = StyleSheet.create({
+  logoFallback: {
+    flexShrink: 0,
+    fontSize: 28,
+    fontWeight: "600",
+    color: C.text,
+    letterSpacing: -0.45,
+    includeFontPadding: false,
+  },
+});
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
 export default function WelcomeScreen() {
@@ -558,8 +597,12 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={s.topBar}>
-        <WelcomeLogo large />
-        <Pressable onPress={() => void markSeenAndGo("/login")} hitSlop={10}>
+        <WelcomeWordmark />
+        <Pressable
+          onPress={() => void markSeenAndGo("/login")}
+          style={s.skipBtn}
+          hitSlop={10}
+        >
           <Text style={s.skip}>Skip</Text>
         </Pressable>
       </View>
@@ -651,19 +694,26 @@ const s = StyleSheet.create({
     right: -60,
   },
   topBar: {
-    paddingTop: 8,
-    paddingHorizontal: 24,
-    paddingBottom: 6,
+    width: "100%",
+    paddingHorizontal: HEADER_PAD_H,
+    paddingTop: 10,
+    paddingBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 56,
+    minHeight: 52,
   },
   skip: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: "600",
     color: C.faint,
     letterSpacing: 0.2,
-    padding: 6,
+    lineHeight: 22,
+  },
+  skipBtn: {
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
 
   slide: { paddingTop: 8, alignItems: "center" },
@@ -763,7 +813,7 @@ const s = StyleSheet.create({
   backLessonCard: {
     width: 268,
     height: 88,
-    borderRadius: 22,
+    borderRadius: 20,
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.borderSoft,
@@ -929,7 +979,7 @@ const s = StyleSheet.create({
   },
   toolFront: {
     width: 224,
-    borderRadius: 22,
+    borderRadius: 20,
     backgroundColor: C.surfaceRaised,
     borderWidth: 1,
     borderColor: C.border,

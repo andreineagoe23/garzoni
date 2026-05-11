@@ -158,11 +158,7 @@ export function HoldingCard({ entry, onDelete }: Props) {
           />
         )}
         {heldDays != null && (
-          <MetaItem
-            label="Held"
-            value={`${heldDays}d`}
-            color={c.textMuted}
-          />
+          <MetaItem label="Held" value={`${heldDays}d`} color={c.textMuted} />
         )}
       </View>
     </Pressable>

@@ -88,44 +88,44 @@ export default function ChangePasswordScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-          {error ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-          <FormInput
-            label={t("settings.password.current")}
-            secureTextEntry
-            textContentType="password"
-            autoComplete="current-password"
-            autoCorrect={false}
-            value={current}
-            onChangeText={setCurrent}
-            autoCapitalize="none"
-          />
-          <FormInput
-            label={t("settings.password.new")}
-            secureTextEntry
-            textContentType="newPassword"
-            autoComplete="password-new"
-            autoCorrect={false}
-            value={next}
-            onChangeText={setNext}
-            autoCapitalize="none"
-          />
-          <FormInput
-            label={t("settings.password.confirm")}
-            secureTextEntry
-            textContentType="newPassword"
-            autoComplete="password-new"
-            autoCorrect={false}
-            value={confirm}
-            onChangeText={setConfirm}
-            autoCapitalize="none"
-          />
-          <Button loading={loading} onPress={() => void onSubmit()}>
-            {t("settings.password.update")}
-          </Button>
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+        <FormInput
+          label={t("settings.password.current")}
+          secureTextEntry
+          textContentType="password"
+          autoComplete="current-password"
+          autoCorrect={false}
+          value={current}
+          onChangeText={setCurrent}
+          autoCapitalize="none"
+        />
+        <FormInput
+          label={t("settings.password.new")}
+          secureTextEntry
+          textContentType="newPassword"
+          autoComplete="password-new"
+          autoCorrect={false}
+          value={next}
+          onChangeText={setNext}
+          autoCapitalize="none"
+        />
+        <FormInput
+          label={t("settings.password.confirm")}
+          secureTextEntry
+          textContentType="newPassword"
+          autoComplete="password-new"
+          autoCorrect={false}
+          value={confirm}
+          onChangeText={setConfirm}
+          autoCapitalize="none"
+        />
+        <Button loading={loading} onPress={() => void onSubmit()}>
+          {t("settings.password.update")}
+        </Button>
       </KeyboardAwareScrollView>
     </>
   );

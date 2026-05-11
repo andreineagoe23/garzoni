@@ -343,7 +343,9 @@ function useStatusConfigs() {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 /** CoinGecko ids for crypto holdings — aligns batch quotes with Market Explorer. */
-function buildPortfolioCryptoMapParam(entries: PortfolioEntry[]): string | undefined {
+function buildPortfolioCryptoMapParam(
+  entries: PortfolioEntry[],
+): string | undefined {
   const parts: string[] = [];
   for (const e of entries) {
     if (e.asset_type !== "crypto") continue;
@@ -621,7 +623,10 @@ export default function PortfolioScreen() {
 
   const totalCostBasis = useMemo(
     () =>
-      filteredEntries.reduce((s, e) => s + (e.purchase_price * e.quantity || 0), 0),
+      filteredEntries.reduce(
+        (s, e) => s + (e.purchase_price * e.quantity || 0),
+        0,
+      ),
     [filteredEntries],
   );
 

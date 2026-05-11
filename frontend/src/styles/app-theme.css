@@ -71,7 +71,7 @@
     ),
     radial-gradient(
       ellipse 55% 45% at 90% 12%,
-      rgba(192, 144, 64, 0.16) 0%,
+      rgba(150, 112, 10, 0.16) 0%,
       transparent 50%
     ),
     radial-gradient(
@@ -90,7 +90,7 @@
     0 8px 32px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 [data-theme="dark"] .app-card {
@@ -100,7 +100,7 @@
     0 8px 32px rgba(0, 0, 0, 0.5),
     0 2px 8px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 .app-card-sm {
@@ -130,7 +130,7 @@
     0 12px 40px rgba(0, 0, 0, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 [data-theme="dark"] .app-card-raised {
@@ -428,7 +428,7 @@
     var(--card-bg, #ffffff)
   );
   border: 1px solid rgba(42, 115, 71, 0.2);
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 [data-theme="dark"] .app-action-primary {

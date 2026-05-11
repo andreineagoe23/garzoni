@@ -2,11 +2,7 @@ import { useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
-import {
-  fetchUserSettings,
-  queryKeys,
-  staleTimes,
-} from "@garzoni/core";
+import { fetchUserSettings, queryKeys, staleTimes } from "@garzoni/core";
 import { registerForPushAndSubmitToken } from "../bootstrap/pushNotificationsMobile";
 
 const LAST_REGISTERED_KEY = "push_last_registered_at";
@@ -28,7 +24,10 @@ async function markRegistered(): Promise<void> {
   } catch {}
 }
 
-export async function forceReregisterPushToken(): Promise<{ ok: boolean; message: string }> {
+export async function forceReregisterPushToken(): Promise<{
+  ok: boolean;
+  message: string;
+}> {
   try {
     await AsyncStorage.removeItem(LAST_REGISTERED_KEY);
   } catch {}
@@ -53,7 +52,7 @@ export function usePushNotifications(isAuthenticated: boolean) {
     if (!isAuthenticated || !pushAllowed) return;
 
     async function tryRegister() {
-      if (!await shouldReregister()) return;
+      if (!(await shouldReregister())) return;
       const result = await registerForPushAndSubmitToken();
       if (result.ok) {
         await markRegistered();

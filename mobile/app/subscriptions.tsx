@@ -488,8 +488,7 @@ function PurchaseProgressOverlay({
   onRetry: () => void;
   onDismiss: () => void;
 }) {
-  const tierLabel =
-    tier === "pro" ? "Pro" : tier === "plus" ? "Plus" : null;
+  const tierLabel = tier === "pro" ? "Pro" : tier === "plus" ? "Plus" : null;
   const accent = tier === "pro" ? D.goldWarm : D.primaryBright;
 
   return (
@@ -1163,7 +1162,7 @@ const styles = StyleSheet.create({
 
   // Tier card
   tierCard: {
-    borderRadius: 22,
+    borderRadius: 20,
     padding: spacing.lg,
     marginBottom: 14,
     backgroundColor: D.surfaceRaised,

@@ -2,6 +2,13 @@
   "name": "@garzoni/mobile",
   "version": "1.1.0",
   "private": true,
+  "expo": {
+    "install": {
+      "exclude": [
+        "@sentry/react-native"
+      ]
+    }
+  },
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -18,12 +25,14 @@
     "test": "jest --config jest.config.js"
   },
   "dependencies": {
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/vector-icons": "^15.1.1",
     "@garzoni/core": "workspace:^",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-google-signin/google-signin": "^16.1.2",
-    "@react-navigation/bottom-tabs": "^7.15.9",
+    "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.9.14",
     "@react-navigation/native": "^7.1.8",
     "@sentry/react-native": "^8.11.0",
@@ -70,7 +79,7 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.14",
-    "@types/react": "~19.2.0",
+    "@types/react": "~19.1.17",
     "babel-preset-expo": "^54.0.10",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~10.0.0",

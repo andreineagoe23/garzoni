@@ -22,8 +22,8 @@
 
 .welcome-hero--light .welcome-point-label {
   color: #1d5330;
-  /* Same family as page `--bg-color` (#f8fafc), not warm cream */
-  background: rgba(248, 250, 252, 0.96);
+  /* Cream label bg, same family as page `--bg-color` (#f5f5f0) */
+  background: rgba(245, 245, 240, 0.96);
   border: 1px solid rgba(29, 83, 48, 0.22);
 }
 

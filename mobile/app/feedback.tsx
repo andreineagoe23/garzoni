@@ -79,113 +79,113 @@ export default function FeedbackScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-          {/* Type picker */}
-          <Text style={[styles.label, { color: c.text }]}>
-            {t("feedback.typeLabel")}
-          </Text>
-          <View style={styles.pills}>
-            {FEEDBACK_TYPES.map((ft) => (
-              <Pressable
-                key={ft.key}
-                onPress={() => {
-                  void Haptics.selectionAsync();
-                  setFeedbackType(ft.key);
+        {/* Type picker */}
+        <Text style={[styles.label, { color: c.text }]}>
+          {t("feedback.typeLabel")}
+        </Text>
+        <View style={styles.pills}>
+          {FEEDBACK_TYPES.map((ft) => (
+            <Pressable
+              key={ft.key}
+              onPress={() => {
+                void Haptics.selectionAsync();
+                setFeedbackType(ft.key);
+              }}
+              style={[
+                styles.pill,
+                {
+                  borderColor: feedbackType === ft.key ? c.primary : c.border,
+                  backgroundColor:
+                    feedbackType === ft.key
+                      ? `${c.primary}18`
+                      : c.surfaceOffset,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: feedbackType === ft.key ? c.primary : c.textMuted,
+                  fontWeight: feedbackType === ft.key ? "700" : "500",
+                  fontSize: typography.sm,
                 }}
-                style={[
-                  styles.pill,
-                  {
-                    borderColor: feedbackType === ft.key ? c.primary : c.border,
-                    backgroundColor:
-                      feedbackType === ft.key
-                        ? `${c.primary}18`
-                        : c.surfaceOffset,
-                  },
-                ]}
               >
-                <Text
-                  style={{
-                    color: feedbackType === ft.key ? c.primary : c.textMuted,
-                    fontWeight: feedbackType === ft.key ? "700" : "500",
-                    fontSize: typography.sm,
-                  }}
-                >
-                  {t(ft.labelKey)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Message */}
-          <Text style={[styles.label, { color: c.text }]}>
-            {t("feedback.messageLabel")}
-          </Text>
-          <TextInput
-            value={message}
-            onChangeText={setMessage}
-            placeholder={t("feedback.messagePlaceholder")}
-            placeholderTextColor={c.textFaint}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-            maxLength={2000}
-            style={[
-              styles.textarea,
-              {
-                color: c.text,
-                borderColor: c.border,
-                backgroundColor: c.surface,
-              },
-            ]}
-          />
-          <Text style={[styles.charCount, { color: c.textFaint }]}>
-            {message.length} / 2000
-          </Text>
-
-          {/* Email (optional) */}
-          <Text style={[styles.label, { color: c.text }]}>
-            {t("auth.register.email")}{" "}
-            <Text style={{ color: c.textMuted, fontWeight: "400" }}>
-              ({t("auth.register.optional")})
-            </Text>
-          </Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder={t("auth.register.emailPlaceholder")}
-            placeholderTextColor={c.textFaint}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={[
-              styles.input,
-              {
-                color: c.text,
-                borderColor: c.border,
-                backgroundColor: c.surface,
-              },
-            ]}
-          />
-
-          {/* Submit */}
-          <Pressable
-            onPress={onSubmit}
-            disabled={!canSubmit}
-            style={({ pressed }) => [
-              styles.submitBtn,
-              {
-                backgroundColor: c.primary,
-                opacity: !canSubmit ? 0.45 : pressed ? 0.85 : 1,
-              },
-            ]}
-          >
-            {mutation.isPending ? (
-              <LoadingSpinner size="sm" color={c.textOnPrimary} />
-            ) : (
-              <Text style={[styles.submitText, { color: c.textOnPrimary }]}>
-                {t("feedback.send")}
+                {t(ft.labelKey)}
               </Text>
-            )}
-          </Pressable>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Message */}
+        <Text style={[styles.label, { color: c.text }]}>
+          {t("feedback.messageLabel")}
+        </Text>
+        <TextInput
+          value={message}
+          onChangeText={setMessage}
+          placeholder={t("feedback.messagePlaceholder")}
+          placeholderTextColor={c.textFaint}
+          multiline
+          numberOfLines={6}
+          textAlignVertical="top"
+          maxLength={2000}
+          style={[
+            styles.textarea,
+            {
+              color: c.text,
+              borderColor: c.border,
+              backgroundColor: c.surface,
+            },
+          ]}
+        />
+        <Text style={[styles.charCount, { color: c.textFaint }]}>
+          {message.length} / 2000
+        </Text>
+
+        {/* Email (optional) */}
+        <Text style={[styles.label, { color: c.text }]}>
+          {t("auth.register.email")}{" "}
+          <Text style={{ color: c.textMuted, fontWeight: "400" }}>
+            ({t("auth.register.optional")})
+          </Text>
+        </Text>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder={t("auth.register.emailPlaceholder")}
+          placeholderTextColor={c.textFaint}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[
+            styles.input,
+            {
+              color: c.text,
+              borderColor: c.border,
+              backgroundColor: c.surface,
+            },
+          ]}
+        />
+
+        {/* Submit */}
+        <Pressable
+          onPress={onSubmit}
+          disabled={!canSubmit}
+          style={({ pressed }) => [
+            styles.submitBtn,
+            {
+              backgroundColor: c.primary,
+              opacity: !canSubmit ? 0.45 : pressed ? 0.85 : 1,
+            },
+          ]}
+        >
+          {mutation.isPending ? (
+            <LoadingSpinner size="sm" color={c.textOnPrimary} />
+          ) : (
+            <Text style={[styles.submitText, { color: c.textOnPrimary }]}>
+              {t("feedback.send")}
+            </Text>
+          )}
+        </Pressable>
       </KeyboardAwareScrollView>
     </>
   );

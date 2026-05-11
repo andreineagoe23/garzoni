@@ -131,172 +131,179 @@ export function QuoteSheet({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-          {loading ? (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator color={c.primary} />
-              <Text style={[styles.loadingText, { color: c.textMuted }]}>
-                Loading quote…
-              </Text>
-            </View>
-          ) : quote ? (
-            <>
-              {quoteWarning ? (
-                <View
-                  style={[
-                    styles.warnBanner,
-                    { backgroundColor: c.surfaceOffset, borderColor: c.border },
-                  ]}
-                >
-                  <Text style={[styles.warnText, { color: c.textMuted }]}>
-                    {quoteWarning}
-                  </Text>
-                </View>
-              ) : null}
-              {/* Header */}
-              <View style={styles.header}>
-                <View>
-                  <Text style={[styles.ticker, { color: c.text }]}>
-                    {quote.ticker.toUpperCase()}
-                  </Text>
-                  <Text style={[styles.name, { color: c.textMuted }]}>
-                    {quote.name !== quote.ticker ? quote.name : ""}
-                  </Text>
-                </View>
-                <View style={styles.priceGroup}>
-                  <Text style={[styles.price, { color: c.text }]}>
-                    {formatPrice(quote.price)}
-                  </Text>
-                  <Text style={[styles.change, { color: changeColor }]}>
-                    {formatChangePct(quote.change_pct)}
-                  </Text>
-                </View>
+            {loading ? (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator color={c.primary} />
+                <Text style={[styles.loadingText, { color: c.textMuted }]}>
+                  Loading quote…
+                </Text>
               </View>
-
-              {/* Stats grid */}
-              {(quote.open != null ||
-                quote.high != null ||
-                quote.low != null ||
-                quote.volume != null ||
-                quote.market_cap != null) && (
-                <View style={[styles.statsGrid, { borderTopColor: c.border }]}>
-                  {quote.open != null && (
-                    <QuoteStat
-                      label="Open"
-                      value={formatPrice(quote.open)}
-                      colors={c}
-                    />
-                  )}
-                  {quote.high != null && (
-                    <QuoteStat
-                      label="High"
-                      value={formatPrice(quote.high)}
-                      colors={c}
-                    />
-                  )}
-                  {quote.low != null && (
-                    <QuoteStat
-                      label="Low"
-                      value={formatPrice(quote.low)}
-                      colors={c}
-                    />
-                  )}
-                  {quote.volume != null && (
-                    <QuoteStat
-                      label="Volume"
-                      value={formatLargeNumber(quote.volume)}
-                      colors={c}
-                    />
-                  )}
-                  {quote.market_cap != null && (
-                    <QuoteStat
-                      label="Mkt Cap"
-                      value={formatLargeNumber(quote.market_cap)}
-                      colors={c}
-                    />
-                  )}
-                </View>
-              )}
-
-              {/* Buy flow — inline, no second Modal */}
-              {!buyMode ? (
-                <TouchableOpacity
-                  style={[styles.buyBtn, { backgroundColor: c.primary }]}
-                  onPress={() => setBuyMode(true)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.buyBtnText}>Buy with Virtual Cash</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={[styles.buyForm, { borderColor: c.border }]}>
-                  <Text style={[styles.buyFormTitle, { color: c.text }]}>
-                    Buy {quote.ticker.toUpperCase()} with Virtual Cash
-                  </Text>
-                  <Text style={[styles.buyFormLabel, { color: c.textMuted }]}>
-                    Dollar amount to spend
-                  </Text>
-                  <TextInput
+            ) : quote ? (
+              <>
+                {quoteWarning ? (
+                  <View
                     style={[
-                      styles.buyInput,
+                      styles.warnBanner,
                       {
-                        color: c.text,
+                        backgroundColor: c.surfaceOffset,
                         borderColor: c.border,
-                        backgroundColor: c.bg,
                       },
                     ]}
-                    value={buyAmount}
-                    onChangeText={setBuyAmount}
-                    keyboardType="numeric"
-                    placeholder="500"
-                    placeholderTextColor={c.textFaint}
-                    selectTextOnFocus
-                    autoFocus
-                  />
-                  <View style={styles.buyActions}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        Keyboard.dismiss();
-                        setBuyMode(false);
-                        setBuyAmount("500");
-                      }}
-                      style={[
-                        styles.buyActionBtn,
-                        { borderColor: c.border, borderWidth: 1 },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.buyActionText, { color: c.textMuted }]}
-                      >
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => void handleConfirmBuy()}
-                      disabled={buyLoading || !Number(buyAmount)}
-                      style={[
-                        styles.buyActionBtn,
-                        {
-                          backgroundColor: c.primary,
-                          opacity: buyLoading ? 0.7 : 1,
-                        },
-                      ]}
-                    >
-                      {buyLoading ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                      ) : (
-                        <Text style={[styles.buyActionText, { color: "#fff" }]}>
-                          Confirm Buy
-                        </Text>
-                      )}
-                    </TouchableOpacity>
+                  >
+                    <Text style={[styles.warnText, { color: c.textMuted }]}>
+                      {quoteWarning}
+                    </Text>
+                  </View>
+                ) : null}
+                {/* Header */}
+                <View style={styles.header}>
+                  <View>
+                    <Text style={[styles.ticker, { color: c.text }]}>
+                      {quote.ticker.toUpperCase()}
+                    </Text>
+                    <Text style={[styles.name, { color: c.textMuted }]}>
+                      {quote.name !== quote.ticker ? quote.name : ""}
+                    </Text>
+                  </View>
+                  <View style={styles.priceGroup}>
+                    <Text style={[styles.price, { color: c.text }]}>
+                      {formatPrice(quote.price)}
+                    </Text>
+                    <Text style={[styles.change, { color: changeColor }]}>
+                      {formatChangePct(quote.change_pct)}
+                    </Text>
                   </View>
                 </View>
-              )}
-            </>
-          ) : (
-            <Text style={[styles.loadingText, { color: c.textMuted }]}>
-              No data available.
-            </Text>
-          )}
+
+                {/* Stats grid */}
+                {(quote.open != null ||
+                  quote.high != null ||
+                  quote.low != null ||
+                  quote.volume != null ||
+                  quote.market_cap != null) && (
+                  <View
+                    style={[styles.statsGrid, { borderTopColor: c.border }]}
+                  >
+                    {quote.open != null && (
+                      <QuoteStat
+                        label="Open"
+                        value={formatPrice(quote.open)}
+                        colors={c}
+                      />
+                    )}
+                    {quote.high != null && (
+                      <QuoteStat
+                        label="High"
+                        value={formatPrice(quote.high)}
+                        colors={c}
+                      />
+                    )}
+                    {quote.low != null && (
+                      <QuoteStat
+                        label="Low"
+                        value={formatPrice(quote.low)}
+                        colors={c}
+                      />
+                    )}
+                    {quote.volume != null && (
+                      <QuoteStat
+                        label="Volume"
+                        value={formatLargeNumber(quote.volume)}
+                        colors={c}
+                      />
+                    )}
+                    {quote.market_cap != null && (
+                      <QuoteStat
+                        label="Mkt Cap"
+                        value={formatLargeNumber(quote.market_cap)}
+                        colors={c}
+                      />
+                    )}
+                  </View>
+                )}
+
+                {/* Buy flow — inline, no second Modal */}
+                {!buyMode ? (
+                  <TouchableOpacity
+                    style={[styles.buyBtn, { backgroundColor: c.primary }]}
+                    onPress={() => setBuyMode(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.buyBtnText}>Buy with Virtual Cash</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={[styles.buyForm, { borderColor: c.border }]}>
+                    <Text style={[styles.buyFormTitle, { color: c.text }]}>
+                      Buy {quote.ticker.toUpperCase()} with Virtual Cash
+                    </Text>
+                    <Text style={[styles.buyFormLabel, { color: c.textMuted }]}>
+                      Dollar amount to spend
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.buyInput,
+                        {
+                          color: c.text,
+                          borderColor: c.border,
+                          backgroundColor: c.bg,
+                        },
+                      ]}
+                      value={buyAmount}
+                      onChangeText={setBuyAmount}
+                      keyboardType="numeric"
+                      placeholder="500"
+                      placeholderTextColor={c.textFaint}
+                      selectTextOnFocus
+                      autoFocus
+                    />
+                    <View style={styles.buyActions}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          setBuyMode(false);
+                          setBuyAmount("500");
+                        }}
+                        style={[
+                          styles.buyActionBtn,
+                          { borderColor: c.border, borderWidth: 1 },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.buyActionText, { color: c.textMuted }]}
+                        >
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => void handleConfirmBuy()}
+                        disabled={buyLoading || !Number(buyAmount)}
+                        style={[
+                          styles.buyActionBtn,
+                          {
+                            backgroundColor: c.primary,
+                            opacity: buyLoading ? 0.7 : 1,
+                          },
+                        ]}
+                      >
+                        {buyLoading ? (
+                          <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                          <Text
+                            style={[styles.buyActionText, { color: "#fff" }]}
+                          >
+                            Confirm Buy
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </>
+            ) : (
+              <Text style={[styles.loadingText, { color: c.textMuted }]}>
+                No data available.
+              </Text>
+            )}
           </KeyboardAwareScrollView>
         </View>
       </Animated.View>

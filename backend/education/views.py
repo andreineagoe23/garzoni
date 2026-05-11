@@ -198,13 +198,17 @@ class PathViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.action == "list":
             user = self.request.user
-            course_qs = Course.objects.annotate(
-                lesson_count=Count("lessons"),
-                total_sections=Count(
-                    "lessons__sections",
-                    filter=Q(lessons__sections__is_published=True),
-                ),
-            ).prefetch_related("translations")
+            course_qs = (
+                Course.objects.annotate(
+                    lesson_count=Count("lessons"),
+                    total_sections=Count(
+                        "lessons__sections",
+                        filter=Q(lessons__sections__is_published=True),
+                    ),
+                )
+                .prefetch_related("translations")
+                .order_by("order")
+            )
             if getattr(user, "is_authenticated", False):
                 course_qs = course_qs.prefetch_related(
                     Prefetch(
@@ -256,7 +260,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         path_id = self.request.query_params.get("path", None)
         if path_id:
             queryset = queryset.filter(path_id=path_id)
-        return queryset
+        return queryset.order_by("order")
 
     def list(self, request, *args, **kwargs):
         path_id = request.query_params.get("path")

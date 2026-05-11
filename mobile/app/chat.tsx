@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   linkChipText: {
     fontSize: typography.xs,
     fontWeight: "700",
-    color: "#4ade80",
+    color: brand.goldWarm,
   },
   linksBlock: { gap: spacing.xs },
   linksHeading: {
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
   quickChipText: {
     fontSize: typography.sm,
     fontWeight: "600",
-    color: "#4ade80",
+    color: brand.goldWarm,
   },
 
   // Input bar

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stack, usePathname } from "expo-router";
+import { LinkPreviewContextProvider } from "expo-router/build/link/preview/LinkPreviewContext";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
 import { Sentry } from "../src/bootstrap/sentryMobile";
@@ -28,6 +29,13 @@ import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
+import {
+  useFonts as useFraunces,
+  Fraunces_400Regular,
+  Fraunces_400Regular_Italic,
+  Fraunces_600SemiBold,
+} from "@expo-google-fonts/fraunces";
+import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 
 /** Keeps glass-style layouts readable on large tablets (centered column). */
 const TABLET_MAX_CONTENT_WIDTH = 560;
@@ -83,75 +91,83 @@ function ThemedRoot() {
             constrainTabletWidth ? { width: contentWidth } : null,
           ]}
         >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              gestureEnabled: true,
-              presentation: "card",
-              // Header background matches page bg; text/back-button use readable text color.
-              // Individual screens set headerShown:true but MUST NOT set headerTintColor:primary.
-              headerStyle: { backgroundColor: colors.bg },
-              headerTitleStyle: {
-                color: colors.text,
-                fontSize: 17,
-                fontWeight: "600",
-              },
-              headerTintColor: colors.text,
-              headerShadowVisible: false,
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen
-              name="(tabs)"
-              options={{ title: "Home", gestureEnabled: false }}
-            />
-            <Stack.Screen name="lesson" options={{ headerShown: false }} />
-            <Stack.Screen name="course" options={{ headerShown: false }} />
-            <Stack.Screen name="flow" options={{ headerShown: false }} />
-            <Stack.Screen name="path" options={{ headerShown: false }} />
-            <Stack.Screen name="quiz" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="onboarding"
-              options={{ headerShown: false, gestureEnabled: false }}
-            />
-            <Stack.Screen
-              name="change-password"
-              options={{ headerShown: true, title: "Change password" }}
-            />
-            <Stack.Screen name="feedback" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="payment-success"
-              options={{ headerShown: true }}
-            />
-            <Stack.Screen
-              name="subscriptions"
-              options={{ headerShown: true }}
-            />
-            {/* Explicitly registered so gestureEnabled + presentation apply */}
-            <Stack.Screen name="chat" options={{ headerShown: false }} />
-            <Stack.Screen name="voice-chat" options={{ headerShown: false }} />
-            <Stack.Screen name="missions" options={{ headerShown: false }} />
-            <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
-            <Stack.Screen name="rewards" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-            <Stack.Screen name="support" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="personalized-path"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="welcome"
-              options={{ headerShown: false, gestureEnabled: false }}
-            />
-            <Stack.Screen name="scan" options={{ headerShown: false }} />
-            <Stack.Screen name="legal" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="password-reset/[uidb64]/[token]"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="tools" options={{ headerShown: false }} />
-          </Stack>
+          <LinkPreviewContextProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                presentation: "card",
+                // Header background matches page bg; text/back-button use readable text color.
+                // Individual screens set headerShown:true but MUST NOT set headerTintColor:primary.
+                headerStyle: { backgroundColor: colors.bg },
+                headerTitleStyle: {
+                  color: colors.text,
+                  fontSize: 17,
+                  fontWeight: "600",
+                },
+                headerTintColor: colors.text,
+                headerShadowVisible: false,
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen
+                name="(tabs)"
+                options={{ title: "Home", gestureEnabled: false }}
+              />
+              <Stack.Screen name="lesson" options={{ headerShown: false }} />
+              <Stack.Screen name="course" options={{ headerShown: false }} />
+              <Stack.Screen name="flow" options={{ headerShown: false }} />
+              <Stack.Screen name="path" options={{ headerShown: false }} />
+              <Stack.Screen name="quiz" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="onboarding"
+                options={{ headerShown: false, gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="change-password"
+                options={{ headerShown: true, title: "Change password" }}
+              />
+              <Stack.Screen name="feedback" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="payment-success"
+                options={{ headerShown: true }}
+              />
+              <Stack.Screen
+                name="subscriptions"
+                options={{ headerShown: true }}
+              />
+              {/* Explicitly registered so gestureEnabled + presentation apply */}
+              <Stack.Screen name="chat" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="voice-chat"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="missions" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="leaderboard"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="rewards" options={{ headerShown: false }} />
+              <Stack.Screen name="settings" options={{ headerShown: false }} />
+              <Stack.Screen name="support" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="personalized-path"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="welcome"
+                options={{ headerShown: false, gestureEnabled: false }}
+              />
+              <Stack.Screen name="scan" options={{ headerShown: false }} />
+              <Stack.Screen name="legal" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="password-reset/[uidb64]/[token]"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="tools" options={{ headerShown: false }} />
+            </Stack>
+          </LinkPreviewContextProvider>
         </View>
         <ShakeFeedbackModal
           visible={shakeModalVisible}
@@ -167,6 +183,12 @@ function ThemedRoot() {
 function RootLayout() {
   const [bootstrapReady, setBootstrapReady] = useState(false);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const [fontsLoaded] = useFraunces({
+    Fraunces_400Regular,
+    Fraunces_400Regular_Italic,
+    Fraunces_600SemiBold,
+    JetBrainsMono_400Regular,
+  });
 
   useEffect(() => {
     try {
@@ -190,7 +212,7 @@ function RootLayout() {
     );
   }
 
-  if (!bootstrapReady) {
+  if (!bootstrapReady || !fontsLoaded) {
     return <View style={styles.root} />;
   }
 

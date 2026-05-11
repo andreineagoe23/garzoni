@@ -53,7 +53,6 @@ import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { formatRelativeTime } from "../../src/utils/formatRelativeTime";
 import AnimatedStatValue from "../../src/components/profile/AnimatedStatValue";
 
-
 type BadgeRow = {
   badge: BadgeCatalogItem;
   earned: boolean;
@@ -678,9 +677,10 @@ function ProfileInner() {
                     ? formatRelativeTime(activity.timestamp, i18n.language)
                     : "";
                   const target = getActivityHref(activity);
-                  const meta = `${activity.action ?? ""}${ts ? ` · ${ts}` : ""}${
-                    activity.course ? ` · ${activity.course}` : ""
-                  }`.trim();
+                  const meta =
+                    `${activity.action ?? ""}${ts ? ` · ${ts}` : ""}${
+                      activity.course ? ` · ${activity.course}` : ""
+                    }`.trim();
 
                   const cardInner = (
                     <View
@@ -691,9 +691,7 @@ function ProfileInner() {
                       }}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text
-                          style={{ color: colors.text, fontWeight: "600" }}
-                        >
+                        <Text style={{ color: colors.text, fontWeight: "600" }}>
                           {title}
                         </Text>
                         {meta ? (
@@ -1133,7 +1131,6 @@ function InfoRow({
     </View>
   );
 }
-
 
 function MenuRow({
   icon,

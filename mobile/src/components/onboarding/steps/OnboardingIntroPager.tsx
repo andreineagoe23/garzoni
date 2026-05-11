@@ -299,8 +299,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   logo: {
-    width: 210,
-    height: 56,
+    width: 160,
+    height: 36,
   },
   logoFallback: {
     fontSize: typography.xl,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   pager: { flex: 1 },
-  skipBtn: { minHeight: 32, justifyContent: "center" },
+  skipBtn: { height: 44, justifyContent: "center", paddingHorizontal: 4 },
   skipText: {
     fontSize: typography.sm,
     fontWeight: "600",

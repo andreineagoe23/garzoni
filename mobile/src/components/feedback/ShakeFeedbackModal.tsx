@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import Constants from "expo-constants";
@@ -129,7 +137,10 @@ export default function ShakeFeedbackModal({
                   {mutation.isPending ? "Sending…" : "Send Report"}
                 </GlassButton>
 
-                <Pressable onPress={onDismiss} style={{ marginTop: spacing.md }}>
+                <Pressable
+                  onPress={onDismiss}
+                  style={{ marginTop: spacing.md }}
+                >
                   <Text style={[styles.dismiss, { color: c.textMuted }]}>
                     Cancel
                   </Text>

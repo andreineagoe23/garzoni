@@ -191,52 +191,55 @@ export default function MarketExplorerScreen() {
     setDebouncedSearch("");
   }, []);
 
-  const handleAssetPress = useCallback(async (asset: Asset) => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setQuoteVisible(true);
-    setQuoteLoading(true);
-    setQuoteWarning(null);
-    setSelectedAsset({ ...asset });
-    try {
-      const data = await queryClient.fetchQuery({
-        ...getMarketQuoteQueryOptions({
-          ticker: asset.ticker,
-          coingeckoId: asset.coingecko_id,
-        }),
-      });
-      const merged: QuoteDetail = {
-        ...asset,
-        ...data,
-        ticker: data.ticker ?? asset.ticker,
-        name: data.name ?? asset.name,
-        price: typeof data.price === "number" ? data.price : asset.price,
-        change_pct:
-          typeof data.change_pct === "number"
-            ? data.change_pct
-            : asset.change_pct,
-        ...(asset.coingecko_id
-          ? { coingecko_id: asset.coingecko_id }
-          : data.coingecko_id
-            ? { coingecko_id: data.coingecko_id }
-            : {}),
-      };
-      setSelectedAsset(merged);
-      const px = Number(merged.price);
-      if (!Number.isFinite(px) || px <= 0) {
-        setQuoteWarning(
-          "Live price unavailable. Pull to refresh or try again shortly.",
-        );
-      }
-    } catch (e) {
-      logDevError("tools/market-explorer/quote", e);
-      setQuoteWarning(
-        "Could not load quote. Check your connection and try again.",
-      );
+  const handleAssetPress = useCallback(
+    async (asset: Asset) => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setQuoteVisible(true);
+      setQuoteLoading(true);
+      setQuoteWarning(null);
       setSelectedAsset({ ...asset });
-    } finally {
-      setQuoteLoading(false);
-    }
-  }, [queryClient]);
+      try {
+        const data = await queryClient.fetchQuery({
+          ...getMarketQuoteQueryOptions({
+            ticker: asset.ticker,
+            coingeckoId: asset.coingecko_id,
+          }),
+        });
+        const merged: QuoteDetail = {
+          ...asset,
+          ...data,
+          ticker: data.ticker ?? asset.ticker,
+          name: data.name ?? asset.name,
+          price: typeof data.price === "number" ? data.price : asset.price,
+          change_pct:
+            typeof data.change_pct === "number"
+              ? data.change_pct
+              : asset.change_pct,
+          ...(asset.coingecko_id
+            ? { coingecko_id: asset.coingecko_id }
+            : data.coingecko_id
+              ? { coingecko_id: data.coingecko_id }
+              : {}),
+        };
+        setSelectedAsset(merged);
+        const px = Number(merged.price);
+        if (!Number.isFinite(px) || px <= 0) {
+          setQuoteWarning(
+            "Live price unavailable. Pull to refresh or try again shortly.",
+          );
+        }
+      } catch (e) {
+        logDevError("tools/market-explorer/quote", e);
+        setQuoteWarning(
+          "Could not load quote. Check your connection and try again.",
+        );
+        setSelectedAsset({ ...asset });
+      } finally {
+        setQuoteLoading(false);
+      }
+    },
+    [queryClient],
+  );
 
   const handleConfirmBuy = useCallback(
     async (amount: number) => {

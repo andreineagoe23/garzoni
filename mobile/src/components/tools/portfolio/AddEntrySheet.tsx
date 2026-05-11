@@ -624,7 +624,14 @@ export function AddEntrySheet({
                     disabled={lookupLoading || !form.symbol.trim()}
                     style={({ pressed }) => [
                       styles.freshQuoteLink,
-                      { opacity: lookupLoading || !form.symbol.trim() ? 0.4 : pressed ? 0.7 : 1 },
+                      {
+                        opacity:
+                          lookupLoading || !form.symbol.trim()
+                            ? 0.4
+                            : pressed
+                              ? 0.7
+                              : 1,
+                      },
                     ]}
                   >
                     <Text

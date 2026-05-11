@@ -2,20 +2,23 @@
 
 This folder is the **single source of truth** for the Garzoni visual identity (logo + palette + font stack). Every other place in the monorepo — web (`frontend/`), mobile (`mobile/`), email templates (`backend/core/templates/emails/`), and the Customer.io dashboard — mirrors what lives here.
 
+> **For exportable design tokens, the Canva brand kit, the full palette swatch sheet, the typography specimen, and the cleanup report**, see [`brand/kit/`](kit/). That folder also holds [`tokens.css`](kit/tokens.css) and [`tokens.json`](kit/tokens.json), the canonical machine-readable definitions.
+
 > Edit these files first. Then propagate the changes to the downstream mirrors listed below.
 
 ---
 
 ## Files
 
-| File            | Use                                                                                            | Source                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `logo.svg`      | Primary wordmark (black on transparent). Use on light backgrounds, navbar, auth pages, emails. | Copied from `backend/media/logo/garzoni-black.svg` (1024×544).                     |
-| `logo-dark.svg` | White wordmark variant for dark backgrounds (landing hero, dark-mode auth, Customer.io dark).  | Recolor of `logo.svg` (`#000000` → `#ffffff`).                                     |
-| `logo-mark.svg` | Square mark + wordmark composition, used as the app/icon mark on tight 1:1 surfaces.           | Copied from `backend/media/logo/garzoni-logo.svg` (1200×1200).                     |
-| `og-image.png`  | 1200×630 social-share card (`og:image` / `twitter:image`).                                     | Composed from `garzoni-logo-white-rectangular.png` on `#0b0f14` brand-dark canvas. |
+| File            | Use                                                                                                         | Format               |
+| --------------- | ----------------------------------------------------------------------------------------------------------- | -------------------- |
+| `logo.png`      | Primary wordmark — dark text, transparent background. Use on light/cream backgrounds, navbar, auth, emails. | PNG (transparent bg) |
+| `logo-dark.png` | White wordmark — for dark backgrounds (landing hero, dark-mode auth, Customer.io, email headers).           | PNG (transparent bg) |
+| `logo-mark.png` | Square wordmark — dark text, transparent bg. For favicons, app icons, tight 1:1 surfaces.                   | PNG (transparent bg) |
+| `logo-mark.svg` | Vector version of the square mark. Use wherever SVG is supported (web `<img>`, Canva uploads).              | SVG                  |
+| `og-image.png`  | 1200×630 social-share card (`og:image` / `twitter:image`).                                                  | PNG                  |
 
-The PNG masters (square, rectangle-no-bg, white-bg, etc.) live in `backend/media/logo/` and are the upstream sources; they are also mirrored on Cloudinary under `garzoni/logo/*` for runtime delivery (favicon, emails, PWA icons before Phase 4 of the brand consolidation).
+> SVG versions of `logo.png` and `logo-dark.png` are not yet available. Use the PNGs at 2× or higher resolution in the meantime. When SVGs are ready, add `logo.svg` and `logo-dark.svg` here and update code references.
 
 ---
 
@@ -30,7 +33,7 @@ The PNG masters (square, rectangle-no-bg, white-bg, etc.) live in `backend/media
 - ✅ Use `logo.svg` on light, `logo-dark.svg` on dark.
 - ✅ Anchor the mark to the 4-point grid (multiples of 4 px padding) in UI.
 - ✅ Use `var(--primary)` / `var(--primary-bright)` for all brand green UI elements.
-- ✅ Use `.app-card` (via `<GlassCard>`) for content surfaces — 22px radius, white on cream.
+- ✅ Use `.app-card` (via `<GlassCard>`) for content surfaces — 20px radius, white on cream.
 - ✅ Use `.app-eyebrow` for section kickers, `.app-em-gold` for editorial italic accents.
 - ✅ Use `.app-mono` / `font-mono` for stat values, prices, percentages.
 - ❌ Don't stretch or skew. Don't recolor to arbitrary hues — only the two palette golds (`#ffd700`, `#e6c87a`) or brand green (`#1d5330`) are allowed as solid recolors.
@@ -135,7 +138,7 @@ Defined in `frontend/src/styles/app-theme.css`. Key classes:
 
 | Class                                        | What it does                                                           |
 | -------------------------------------------- | ---------------------------------------------------------------------- |
-| `.app-card`                                  | White card, **22px radius**, subtle shadow — standard content surface. |
+| `.app-card`                                  | White card, **20px radius**, subtle shadow — standard content surface. |
 | `.app-card-raised`                           | Slightly elevated surface (`#fafaf8` light / `#161f2e` dark).          |
 | `.app-card-sm`                               | 14px-radius compact card for widgets.                                  |
 | `.app-display`                               | Fraunces, weight 400, tight tracking — for headings not using `h1–h3`. |
@@ -221,7 +224,7 @@ Changes applied to match the `garzoni-welcome-page` design prototype:
 - **Light mode background** — `#f8fafc` → `#f5f5f0` (cream/ivory). Fixed in `_light-mode.scss`, `_variables.scss`, `index.css`, and `app-theme.css` fallback values.
 - **Fonts** — Added JetBrains Mono to Google Fonts load alongside Fraunces. Both exposed as `--brand-font-mono` / `--brand-font-display` in `brand.css`.
 - **Global headings** — `h1, h2, h3` now use Fraunces globally via `_typography.scss` (weight 400, letter-spacing −0.5px).
-- **Card radius** — Unified to **22px** in `.app-card` / `.app-card-raised` to match prototype (was 20px).
+- **Card radius** — Unified to **20px** across web + mobile + email (`.app-card`, `.app-card-raised`, `radius.card` mobile token, email card surface). Canonical source: [`brand/kit/tokens.css`](kit/tokens.css) `--radius-card`.
 - **New tokens** — `--bg-deep`, `--primary-soft`, `--ghost-bg`, `--faint-text`, `--border-soft`, `--gold-warm`, `--error-soft` added to both light and dark theme files.
 - **New utility classes** — `.app-card-raised`, `.app-mono`, `.app-ghost`, `.app-faint`, `.app-badge`, `.app-badge-primary`, `.app-badge-error`, `.app-action-primary` added to `app-theme.css`.
 - **Chatbot** — Replaced `#4ade80` (neon lime) with `#2a7347` (`--primary-bright`) in link buttons and quick-reply pills.

@@ -89,7 +89,9 @@ export default function SettingsScreen() {
       billing_alerts: Boolean(p?.billing_alerts ?? true),
       marketing: Boolean(p?.marketing ?? false),
     });
-    setPushOn(Boolean((d as Record<string, unknown>)?.push_notifications !== false));
+    setPushOn(
+      Boolean((d as Record<string, unknown>)?.push_notifications !== false),
+    );
   }, [settingsQ.data]);
 
   useEffect(() => {
@@ -116,22 +118,27 @@ export default function SettingsScreen() {
     await AsyncStorage.setItem("garzoni:show_hearts_ui", next ? "1" : "0");
   }, []);
 
-  const onPushToggle = useCallback(async (next: boolean) => {
-    setPushBusy(true);
-    setPushOn(next);
-    patchPrefs({ push_notifications: next } as Parameters<typeof patchUserSettings>[0]);
-    if (next) {
-      await registerForPushAndSubmitToken();
-    } else {
-      try {
-        await clearExpoPushToken();
-      } catch {
-        /* offline */
+  const onPushToggle = useCallback(
+    async (next: boolean) => {
+      setPushBusy(true);
+      setPushOn(next);
+      patchPrefs({ push_notifications: next } as Parameters<
+        typeof patchUserSettings
+      >[0]);
+      if (next) {
+        await registerForPushAndSubmitToken();
+      } else {
+        try {
+          await clearExpoPushToken();
+        } catch {
+          /* offline */
+        }
+        await deleteCustomerIoDeviceTokenOnly();
       }
-      await deleteCustomerIoDeviceTokenOnly();
-    }
-    setPushBusy(false);
-  }, [patchPrefs]);
+      setPushBusy(false);
+    },
+    [patchPrefs],
+  );
 
   const persistEmailBlock = useCallback(
     (nextPrefs: EmailPrefs, cadence: ReminderCadence) => {
@@ -383,12 +390,10 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={16} color={c.textFaint} />
           </Pressable>
         </GlassCard>
-
       </ScrollView>
     </>
   );
 }
-
 
 function Row({
   label,

@@ -19,6 +19,8 @@ export const radius = {
   md: 10,
   lg: 14,
   xl: 20,
+  /** Canonical card radius across web + mobile + email (see brand/kit/tokens.css `--radius-card`). */
+  card: 20,
   full: 9999,
 } as const;
 

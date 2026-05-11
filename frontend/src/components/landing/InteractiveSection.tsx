@@ -80,7 +80,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
               <span
                 role="status"
                 aria-label={t("lessonSection.completedAria")}
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-500"
+                className="inline-flex items-center gap-2 rounded-full bg-[color:var(--primary-soft,rgba(29,83,48,0.1))] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)]"
               >
                 <GarzoniIcon name="check" size={14} />{" "}
                 {t("lessonSection.completed")}
@@ -88,7 +88,7 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
             )}
           </div>
 
-          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f8fafc)] p-4 shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]">
+          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f5f5f0)] p-4 shadow-inner shadow-[color:var(--shadow-color,rgba(0,0,0,0.05))]">
             {getExerciseComponent()}
           </div>
 

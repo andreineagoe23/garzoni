@@ -86,10 +86,11 @@ export function authLogoBlackRectangularUrl(opts?: { width?: number }): string {
 /** White rectangular wordmark for dark UI surfaces (e.g. mobile auth glass in dark mode). */
 export function authLogoWhiteRectangularUrl(opts?: { width?: number }): string {
   const w = opts?.width;
+  // e_trim removes transparent padding so the wordmark aligns to layout edges on dark headers.
   const transforms =
     w != null && Number.isFinite(w) && w > 0
-      ? `f_auto,q_auto,w_${Math.min(800, Math.round(w))}`
-      : "f_auto,q_auto,w_320";
+      ? `f_auto,q_auto,w_${Math.min(800, Math.round(w))},e_trim`
+      : "f_auto,q_auto,w_320,e_trim";
   const cdn = cloudinaryImageUrl(
     "garzoni/logo/garzoni-logo-white-rectangular",
     transforms,

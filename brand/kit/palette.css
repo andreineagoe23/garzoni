@@ -1,0 +1,162 @@
+/* Garzoni Brand Palette — visual reference
+   Open this file in a browser via a minimal HTML wrapper, or screenshot for Canva.
+   To preview: create palette.html with <link rel="stylesheet" href="palette.css">
+   and a <body> containing one <div class="swatch" style="--c:#xxx" data-name="..."> per token.
+   Or use the inline <style> example at the bottom of this file. */
+
+@import url("./tokens.css");
+
+body {
+  margin: 0;
+  padding: 32px;
+  background: #f5f5f0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #1a1a1a;
+}
+h1 {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  font-size: 32px;
+  margin: 0 0 8px;
+}
+h2 {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  font-size: 20px;
+  margin: 32px 0 12px;
+  letter-spacing: -0.25px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.swatch {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+.swatch .chip {
+  height: 96px;
+}
+.swatch .meta {
+  padding: 10px 12px 12px;
+}
+.swatch .name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.swatch .hex {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.note {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+/* ────── Core Brand ────── */
+.c-brand-green {
+  --c: #1d5330;
+}
+.c-brand-green-bright {
+  --c: #2a7347;
+}
+.c-brand-gold {
+  --c: #ffd700;
+}
+.c-brand-gold-warm {
+  --c: #e6c87a;
+}
+.c-brand-gold-muted {
+  --c: #96700a;
+}
+
+/* ────── Dark Surfaces ────── */
+.c-bg-dark {
+  --c: #0b0f14;
+}
+.c-bg-dark-deep {
+  --c: #070a0e;
+}
+.c-bg-card-dark {
+  --c: #111827;
+}
+.c-bg-elevated-dark {
+  --c: #161f2e;
+}
+.c-text-dark {
+  --c: #e5e7eb;
+}
+
+/* ────── Light Surfaces ────── */
+.c-bg-light {
+  --c: #f5f5f0;
+}
+.c-bg-light-deep {
+  --c: #eae9e4;
+}
+.c-bg-card-light {
+  --c: #ffffff;
+}
+.c-bg-elevated-light {
+  --c: #fafaf8;
+}
+.c-text-light {
+  --c: #1a1a1a;
+}
+
+/* ────── Semantic ────── */
+.c-error {
+  --c: #dc2626;
+}
+.c-success {
+  --c: #2a7347;
+}
+
+.swatch .chip {
+  background: var(--c);
+}
+
+/* ────── Inline HTML preview (copy into a .html shell) ──────
+<!doctype html>
+<html><head><link rel="stylesheet" href="palette.css"></head>
+<body>
+  <h1>Garzoni Palette</h1>
+  <h2>Core Brand</h2>
+  <div class="grid">
+    <div class="swatch c-brand-green"><div class="chip"></div><div class="meta"><div class="name">brand-green</div><div class="hex">#1d5330</div></div></div>
+    <div class="swatch c-brand-green-bright"><div class="chip"></div><div class="meta"><div class="name">brand-green-bright</div><div class="hex">#2a7347</div></div></div>
+    <div class="swatch c-brand-gold"><div class="chip"></div><div class="meta"><div class="name">brand-gold</div><div class="hex">#ffd700</div></div></div>
+    <div class="swatch c-brand-gold-warm"><div class="chip"></div><div class="meta"><div class="name">brand-gold-warm</div><div class="hex">#e6c87a</div></div></div>
+    <div class="swatch c-brand-gold-muted"><div class="chip"></div><div class="meta"><div class="name">brand-gold-muted</div><div class="hex">#96700a</div></div></div>
+  </div>
+  <h2>Dark Surfaces</h2>
+  <div class="grid">
+    <div class="swatch c-bg-dark"><div class="chip"></div><div class="meta"><div class="name">bg-dark</div><div class="hex">#0b0f14</div></div></div>
+    <div class="swatch c-bg-dark-deep"><div class="chip"></div><div class="meta"><div class="name">bg-dark-deep</div><div class="hex">#070a0e</div></div></div>
+    <div class="swatch c-bg-card-dark"><div class="chip"></div><div class="meta"><div class="name">bg-card-dark</div><div class="hex">#111827</div></div></div>
+    <div class="swatch c-bg-elevated-dark"><div class="chip"></div><div class="meta"><div class="name">bg-elevated-dark</div><div class="hex">#161f2e</div></div></div>
+    <div class="swatch c-text-dark"><div class="chip"></div><div class="meta"><div class="name">text-dark</div><div class="hex">#e5e7eb</div></div></div>
+  </div>
+  <h2>Light Surfaces</h2>
+  <div class="grid">
+    <div class="swatch c-bg-light"><div class="chip"></div><div class="meta"><div class="name">bg-light</div><div class="hex">#f5f5f0</div></div></div>
+    <div class="swatch c-bg-light-deep"><div class="chip"></div><div class="meta"><div class="name">bg-light-deep</div><div class="hex">#eae9e4</div></div></div>
+    <div class="swatch c-bg-card-light"><div class="chip"></div><div class="meta"><div class="name">bg-card-light</div><div class="hex">#ffffff</div></div></div>
+    <div class="swatch c-bg-elevated-light"><div class="chip"></div><div class="meta"><div class="name">bg-elevated-light</div><div class="hex">#fafaf8</div></div></div>
+    <div class="swatch c-text-light"><div class="chip"></div><div class="meta"><div class="name">text-light</div><div class="hex">#1a1a1a</div></div></div>
+  </div>
+  <h2>Semantic</h2>
+  <div class="grid">
+    <div class="swatch c-error"><div class="chip"></div><div class="meta"><div class="name">error</div><div class="hex">#dc2626</div></div></div>
+    <div class="swatch c-success"><div class="chip"></div><div class="meta"><div class="name">success</div><div class="hex">#2a7347</div></div></div>
+  </div>
+</body></html>
+─────────────────────────────────────────────────────────── */

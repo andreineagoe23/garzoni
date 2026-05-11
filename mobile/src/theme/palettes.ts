@@ -55,7 +55,7 @@ export const lightPalette: ThemeColors = {
   textFaint: "rgba(26, 26, 26, 0.40)", // was #9ca3af
   textOnPrimary: "#ffffff",
   error: "#dc2626",
-  errorBg: "rgba(220, 38, 38, 0.08)",
+  errorBg: "rgba(220, 38, 38, 0.10)",
   success: brand.greenBright, // was #437a22
   successBg: "rgba(42, 115, 71, 0.10)", // was wrong green rgb
   heart: "#ef4444",
@@ -87,7 +87,7 @@ export const darkPalette: ThemeColors = {
   textFaint: "rgba(229,231,235,0.40)", // was "rgba(224,224,224,0.45)"
   textOnPrimary: "#ffffff",
   error: "#dc2626",
-  errorBg: "rgba(220, 38, 38, 0.12)",
+  errorBg: "rgba(220, 38, 38, 0.15)",
   success: brand.greenBright, // was "#2e7d32"
   successBg: "rgba(42, 115, 71, 0.15)", // was wrong green
   heart: "#ef4444",

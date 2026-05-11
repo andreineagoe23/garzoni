@@ -19,9 +19,10 @@
   --primary-soft: rgba(29, 83, 48, 0.1);
 
   // ── Accent / gold — muted in light mode ─────────────────────────
-  --accent: #c09040;
-  --accent-bright: #b8860b;
-  --accent-rgb: 192, 144, 64;
+  // Aliased to brand gold-warm/muted (legacy --accent removed; see brand/kit/cleanup-report.md §4)
+  --accent: #96700a;
+  --accent-bright: #ffd700;
+  --accent-rgb: 150, 112, 10;
   --gold-warm: #96700a;
 
   // ── Text ─────────────────────────────────────────────────────────

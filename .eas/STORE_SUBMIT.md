@@ -13,7 +13,7 @@ Submission in CI/CD may require environment variables or uploaded credentials as
 
 ## Sentry (mobile native / source maps)
 
-- **Runtime:** set **`EXPO_PUBLIC_SENTRY_DSN`** to the **DSN** from Sentry → Project **apple-ios** → *Client Keys (DSN)* (not an auth token).
+- **Runtime:** set **`EXPO_PUBLIC_SENTRY_DSN`** to the **DSN** from Sentry → Project **apple-ios** → _Client Keys (DSN)_ (not an auth token).
 - **Build-time uploads:** create an **Auth Token** (Settings → Account → API → Auth Tokens) with scopes needed for releases/source maps, then add **`SENTRY_AUTH_TOKEN`** as an EAS secret for production builds.
 - **Org / project:** [`mobile/app.config.js`](../mobile/app.config.js) defaults to **`SENTRY_ORG=garzoni`** and **`SENTRY_PROJECT=apple-ios`** so you only need to override env if you rename the project. The native **Configure iOS SDK** wizard in Sentry is for pure Xcode apps; this Expo app uses **`@sentry/react-native`** instead — no Swift wizard run required.
 

@@ -1,0 +1,110 @@
+/* Garzoni Typography Specimen — open typography.html in browser */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+body {
+  margin: 0;
+  padding: 48px;
+  background: #f5f5f0;
+  color: #1a1a1a;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.section {
+  margin-bottom: 56px;
+}
+.label {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 16px;
+}
+.token {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  opacity: 0.55;
+  margin-top: 6px;
+  letter-spacing: 0.3px;
+}
+
+/* ────── Display: Fraunces ────── */
+.display {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin: 0;
+}
+.d-hero {
+  font-size: 56px;
+} /* token: typography.hero (mobile 34) / web hero */
+.d-h1 {
+  font-size: 40px;
+}
+.d-h2 {
+  font-size: 28px;
+}
+.d-h3 {
+  font-size: 22px;
+}
+.d-em {
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #96700a;
+  font-size: 28px;
+}
+.d-em-dark {
+  background: #0b0f14;
+  color: #e6c87a;
+  padding: 24px;
+  border-radius: 20px;
+  font-family: "Fraunces";
+  font-style: italic;
+  font-size: 28px;
+}
+
+/* ────── Body: Helvetica Neue ────── */
+.body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 0;
+}
+.b-18 {
+  font-size: 18px;
+  font-weight: 400;
+}
+.b-15 {
+  font-size: 15px;
+  font-weight: 400;
+}
+.b-13 {
+  font-size: 13px;
+  font-weight: 400;
+}
+.b-13-600 {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ────── Mono: JetBrains Mono ────── */
+.mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  margin: 0;
+}
+.m-22 {
+  font-size: 22px;
+  font-weight: 500;
+}
+.m-13 {
+  font-size: 13px;
+  font-weight: 400;
+}
+.m-11 {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+}

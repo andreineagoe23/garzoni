@@ -10,10 +10,10 @@
 | `CIO_SITE_ID`                     | **Classic Track** site id (optional if you only use CDP).                                             |
 | `CIO_TRACK_API_KEY`               | **Classic Track** API secret.                                                                         |
 | `CIO_APP_API_KEY`                 | App API key (transactional email/push).                                                               |
-| `CIO_TRACK_PROFILE_UPSERT`       | `true` (default): `PUT …/customers/{id}` on identify so **email** and traits sync (CDP omits email). |
+| `CIO_TRACK_PROFILE_UPSERT`        | `true` (default): `PUT …/customers/{id}` on identify so **email** and traits sync (CDP omits email).  |
 | `CIO_TRACK_ENABLED`               | `true` to send **Track API events** (`POST …/events`); does **not** disable profile PUT when false.   |
-| `CIO_TRANSACTIONAL_ENABLED`       | Optional: defaults **on** when `CIO_APP_API_KEY` is set; set `false` to disable.                       |
-| `CIO_TRANSACTIONAL_TRIGGERS_JSON` | Optional: Garzoni prod slug→id map is baked in; override when CIO message ids change.                   |
+| `CIO_TRANSACTIONAL_ENABLED`       | Optional: defaults **on** when `CIO_APP_API_KEY` is set; set `false` to disable.                      |
+| `CIO_TRANSACTIONAL_TRIGGERS_JSON` | Optional: Garzoni prod slug→id map is baked in; override when CIO message ids change.                 |
 | `CIO_JOURNEY_EVENTS_ENABLED`      | `true` to emit journey events from Celery tasks.                                                      |
 | `CIO_REMINDERS_VIA_JOURNEYS`      | When `true` with journey events + track enabled, reminder beat jobs **track only** (no direct email). |
 
@@ -145,7 +145,7 @@ Aliases Garzoni adds automatically so templates match common naming styles:
 | Template (slug)   | Primary keys in `message_data`                                                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `welcome`         | `customer_name`, `app_url`, `year`                                                                                                                      |
-| `weekly-digest`   | `week_label`, `modules_completed`, `modules_completed_plural`, `streak_days`, `xp_earned` (ISO week metrics; see `notifications.message_data`)        |
+| `weekly-digest`   | `week_label`, `modules_completed`, `modules_completed_plural`, `streak_days`, `xp_earned` (ISO week metrics; see `notifications.message_data`)          |
 | `order-confirmed` | `customer_name`, `order_id`, `plan_name`, `amount`, `period_end` (`period_end` = next billing date when Stripe `current_period_end` exists; else empty) |
 
 ## Post-deploy verification (staging / production)

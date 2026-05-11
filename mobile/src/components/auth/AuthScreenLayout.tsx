@@ -41,7 +41,7 @@ export default function AuthScreenLayout({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: isDark ? brand.bgDark : "#f8fafc",
+              backgroundColor: isDark ? brand.bgDark : "#f5f5f0",
             },
           ]}
         >

@@ -68,7 +68,11 @@ export const queryKeys = {
    */
   marketQuote: (ticker: string, coingeckoId?: string) =>
     coingeckoId
-      ? (["marketQuote", ticker.toUpperCase(), coingeckoId.toLowerCase()] as const)
+      ? ([
+          "marketQuote",
+          ticker.toUpperCase(),
+          coingeckoId.toLowerCase(),
+        ] as const)
       : (["marketQuote", ticker.toUpperCase()] as const),
 };
 

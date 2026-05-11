@@ -149,50 +149,50 @@ export default function PasswordResetConfirmScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-          <Text style={styles.title}>
-            {t("auth.resetPassword.mobileSetTitle")}
-          </Text>
-          <Text style={styles.subtitle}>
-            {t("auth.resetPassword.mobileSetSubtitle")}
-          </Text>
+        <Text style={styles.title}>
+          {t("auth.resetPassword.mobileSetTitle")}
+        </Text>
+        <Text style={styles.subtitle}>
+          {t("auth.resetPassword.mobileSetSubtitle")}
+        </Text>
 
-          {error ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
 
-          <FormInput
-            label={t("auth.resetPassword.mobileNewLabel")}
-            placeholder={t("auth.resetPassword.mobileNewPlaceholder")}
-            secureTextEntry
-            textContentType="newPassword"
-            autoComplete="password-new"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoFocus
-            returnKeyType="next"
-            value={password}
-            onChangeText={setPassword}
-          />
+        <FormInput
+          label={t("auth.resetPassword.mobileNewLabel")}
+          placeholder={t("auth.resetPassword.mobileNewPlaceholder")}
+          secureTextEntry
+          textContentType="newPassword"
+          autoComplete="password-new"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoFocus
+          returnKeyType="next"
+          value={password}
+          onChangeText={setPassword}
+        />
 
-          <FormInput
-            label={t("auth.resetPassword.mobileConfirmLabel")}
-            placeholder={t("auth.resetPassword.mobileConfirmPlaceholder")}
-            secureTextEntry
-            textContentType="newPassword"
-            autoComplete="password-new"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="done"
-            value={confirm}
-            onChangeText={setConfirm}
-            onSubmitEditing={() => void onSubmit()}
-          />
+        <FormInput
+          label={t("auth.resetPassword.mobileConfirmLabel")}
+          placeholder={t("auth.resetPassword.mobileConfirmPlaceholder")}
+          secureTextEntry
+          textContentType="newPassword"
+          autoComplete="password-new"
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="done"
+          value={confirm}
+          onChangeText={setConfirm}
+          onSubmitEditing={() => void onSubmit()}
+        />
 
-          <Button loading={loading} onPress={() => void onSubmit()}>
-            {t("auth.resetPassword.mobileSubmit")}
-          </Button>
+        <Button loading={loading} onPress={() => void onSubmit()}>
+          {t("auth.resetPassword.mobileSubmit")}
+        </Button>
       </KeyboardAwareScrollView>
     </>
   );

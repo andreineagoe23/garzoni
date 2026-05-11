@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Redirect } from "expo-router";
-import {
-  Animated,
-  Dimensions,
-  Image,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Animated, Dimensions, Image, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { useAuthSession } from "../src/auth/AuthContext";
@@ -34,7 +28,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 type OnboardingStatus = "pending" | "done" | "needs_onboarding";
 type WelcomeStatus = "pending" | "seen" | "unseen";
 type PlanStatus = "pending" | "chosen" | "not_chosen";
-
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
@@ -125,52 +118,56 @@ export default function Index() {
   ) {
     return (
       <Animated.View style={[styles.root, { opacity: fadeAnim }]}>
-      <SafeAreaView style={styles.root}>
-        {/* Ambient green glow top-center */}
-        <View style={styles.glowTop} pointerEvents="none">
-          <Svg width={SW} height={320} pointerEvents="none">
-            <Defs>
-              <RadialGradient id="gTop" cx="50%" cy="40%" rx="50%" ry="50%">
-                <Stop offset="0%" stopColor={brand.green} stopOpacity={0.35} />
-                <Stop offset="100%" stopColor={brand.green} stopOpacity={0} />
-              </RadialGradient>
-            </Defs>
-            <Circle cx={SW / 2} cy={128} r={SW * 0.55} fill="url(#gTop)" />
-          </Svg>
-        </View>
+        <SafeAreaView style={styles.root}>
+          {/* Ambient green glow top-center */}
+          <View style={styles.glowTop} pointerEvents="none">
+            <Svg width={SW} height={320} pointerEvents="none">
+              <Defs>
+                <RadialGradient id="gTop" cx="50%" cy="40%" rx="50%" ry="50%">
+                  <Stop
+                    offset="0%"
+                    stopColor={brand.green}
+                    stopOpacity={0.35}
+                  />
+                  <Stop offset="100%" stopColor={brand.green} stopOpacity={0} />
+                </RadialGradient>
+              </Defs>
+              <Circle cx={SW / 2} cy={128} r={SW * 0.55} fill="url(#gTop)" />
+            </Svg>
+          </View>
 
-        {/* Logo + spinner centered */}
-        <View style={styles.center}>
-          <Image
-            source={LOGO}
-            style={styles.logo}
-            resizeMode="contain"
-            accessibilityLabel="Garzoni"
-          />
-          <LoadingSpinner size="sm" color="rgba(229,231,235,0.45)" />
-        </View>
+          {/* Logo + spinner centered */}
+          <View style={styles.center}>
+            <Image
+              source={LOGO}
+              style={styles.logo}
+              resizeMode="contain"
+              accessibilityLabel="Garzoni"
+            />
+            <LoadingSpinner size="sm" color="rgba(229,231,235,0.45)" />
+          </View>
 
-        {/* Subtle gold glow bottom */}
-        <View style={styles.glowBottom} pointerEvents="none">
-          <Svg width={SW} height={200} pointerEvents="none">
-            <Defs>
-              <RadialGradient id="gBot" cx="50%" cy="60%" rx="50%" ry="50%">
-                <Stop
-                  offset="0%"
-                  stopColor={brand.goldWarm}
-                  stopOpacity={0.07}
-                />
-                <Stop
-                  offset="100%"
-                  stopColor={brand.goldWarm}
-                  stopOpacity={0}
-                />
-              </RadialGradient>
-            </Defs>
-            <Circle cx={SW / 2} cy={100} r={SW * 0.45} fill="url(#gBot)" />
-          </Svg>
-        </View>
-      </SafeAreaView>
+          {/* Subtle gold glow bottom */}
+          <View style={styles.glowBottom} pointerEvents="none">
+            <Svg width={SW} height={200} pointerEvents="none">
+              <Defs>
+                <RadialGradient id="gBot" cx="50%" cy="60%" rx="50%" ry="50%">
+                  <Stop
+                    offset="0%"
+                    stopColor={brand.goldWarm}
+                    stopOpacity={0.07}
+                  />
+                  <Stop
+                    offset="100%"
+                    stopColor={brand.goldWarm}
+                    stopOpacity={0}
+                  />
+                </RadialGradient>
+              </Defs>
+              <Circle cx={SW / 2} cy={100} r={SW * 0.45} fill="url(#gBot)" />
+            </Svg>
+          </View>
+        </SafeAreaView>
       </Animated.View>
     );
   }

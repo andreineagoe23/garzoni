@@ -1,6 +1,8 @@
 /**
  * Monorepo Metro config: watches the repo root and resolves `@garzoni/core` from source.
- * `expo-doctor` may warn about watchFolders vs defaults — expected for pnpm workspace + core package.
+ *
+ * We merge Expo's default `watchFolders` / `resolver.nodeModulesPaths` with monorepo tweaks
+ * so `expo-doctor` passes and we avoid duplicate React (mobile `node_modules` must resolve first).
  */
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
@@ -20,11 +22,13 @@ if (
   delete config.watcher.unstable_workerThreads;
 }
 
-config.watchFolders = [workspaceRoot];
-// Only the app package's node_modules — do not add the repo root, or Metro can pick
-// `react@19.2.4` from the web workspace while RN ships `react-native-renderer@19.1.0`
-// (invalid hook call / duplicate React).
-config.resolver.nodeModulesPaths = [path.resolve(projectRoot, "node_modules")];
+const defaultWatchFolders = [...(config.watchFolders ?? [])];
+config.watchFolders = [...new Set([...defaultWatchFolders, workspaceRoot])];
+
+const mobileNodeModules = path.resolve(projectRoot, "node_modules");
+// Single resolution root: merging Expo's default nodeModulesPaths pulled in workspace copies of
+// react/react-native and broke Fabric + Expo Router context (duplicate React instances).
+config.resolver.nodeModulesPaths = [mobileNodeModules];
 
 const mobileReact = path.resolve(projectRoot, "node_modules", "react");
 const mobileReactDom = path.resolve(projectRoot, "node_modules", "react-dom");
