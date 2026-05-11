@@ -1,5 +1,4 @@
 # finance/serializers.py
-from datetime import date
 from decimal import InvalidOperation
 from rest_framework import serializers
 
@@ -192,7 +191,7 @@ class PortfolioEntrySerializer(serializers.ModelSerializer):
     def validate_purchase_date(self, value):
         if value is None:
             raise serializers.ValidationError("Purchase date is required.")
-        if value > date.today():
+        if value > timezone.now().date():
             raise serializers.ValidationError("Purchase date cannot be in the future.")
         return value
 

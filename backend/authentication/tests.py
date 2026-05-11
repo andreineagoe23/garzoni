@@ -248,9 +248,8 @@ class EntitlementsProfileFieldsTests(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.get(reverse("entitlements"))
         self.assertEqual(response.status_code, 200)
-        # finance.EntitlementStatusView nests subscription fields under "subscription"
-        subscription = response.data.get("subscription", {})
-        self.assertEqual(subscription.get("status"), "trialing")
+        # authentication.EntitlementsView returns status/trial_end at top level
+        self.assertEqual(response.data.get("status"), "trialing")
         self.assertTrue(response.data.get("entitled"))
-        self.assertIn("trial_end", subscription)
-        self.assertIn("2031-08-01", subscription.get("trial_end") or "")
+        self.assertIn("trial_end", response.data)
+        self.assertIn("2031-08-01", response.data.get("trial_end") or "")

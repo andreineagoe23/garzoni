@@ -10,6 +10,7 @@ from authentication.entitlements import (
     get_entitlements_for_user,
     get_plan_catalog,
 )
+from authentication.models import UserProfile
 
 
 class EntitlementsView(APIView):
@@ -20,7 +21,10 @@ class EntitlementsView(APIView):
     def get(self, request):
         entitlements = get_entitlements_for_user(request.user)
         entitlements["usage"] = entitlement_usage_snapshot(request.user)
-        profile = getattr(request.user, "profile", None)
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            profile = None
         if profile is not None:
             entitlements["status"] = profile.subscription_status
             te = profile.trial_end
