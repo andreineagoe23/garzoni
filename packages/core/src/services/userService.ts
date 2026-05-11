@@ -205,7 +205,11 @@ export const postSubscriptionSync = () =>
   apiClient.post<{ ok: boolean }>("/subscriptions/sync/", {});
 
 export const postRevenueCatSync = (rcAppUserId?: string) =>
-  apiClient.post<{ ok: boolean; plan?: string }>("/revenuecat-sync/", {
+  apiClient.post<{
+    ok: boolean;
+    plan?: string;
+    subscription_status?: string;
+  }>("/revenuecat-sync/", {
     ...(rcAppUserId ? { rc_app_user_id: rcAppUserId } : {}),
   });
 

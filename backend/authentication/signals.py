@@ -13,7 +13,13 @@ from django_rest_passwordreset.signals import reset_password_token_created
 from authentication.models import UserEmailPreference, UserProfile
 from authentication.tasks import send_welcome_email
 from core.utils import normalize_text_encoding
-from notifications.tasks import send_password_reset_email_task
+from notifications.tasks import (
+    safe_enqueue_sync_user_to_customer_io,
+    send_password_reset_email_task,
+)
+
+# Fields whose change should re-push the CIO profile so email/name stay in sync.
+_CIO_SYNC_FIELDS = ("email", "first_name", "last_name", "username")
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +29,24 @@ def normalize_user_identity_fields(sender, instance, **kwargs):
     """
     Normalize User identity fields before every save so mojibake does not persist
     back to the database (e.g. RoÈ™u -> Roșu, Â£ -> £).
+
+    Also snapshot identity fields onto the instance so post_save can detect changes
+    and re-sync the profile to Customer.io when email/name shifts.
     """
     instance.username = normalize_text_encoding(instance.username) or ""
     instance.first_name = normalize_text_encoding(instance.first_name) or ""
     instance.last_name = normalize_text_encoding(instance.last_name) or ""
     instance.email = normalize_text_encoding(instance.email) or ""
+
+    if instance.pk:
+        try:
+            prev = User.objects.only(*_CIO_SYNC_FIELDS).get(pk=instance.pk)
+        except User.DoesNotExist:
+            instance._cio_prev_identity = None
+        else:
+            instance._cio_prev_identity = {f: getattr(prev, f, "") for f in _CIO_SYNC_FIELDS}
+    else:
+        instance._cio_prev_identity = None
 
 
 @receiver(post_save, sender=User)
@@ -83,6 +102,74 @@ def create_user_profile(sender, instance, created, **kwargs):
             threading.Thread(target=_dispatch, daemon=True).start()
 
         transaction.on_commit(_enqueue_welcome)
+
+        # Identify the user to Customer.io the moment the row exists so CIO has
+        # email + traits before any transactional send. Daemon thread so a slow
+        # Redis broker cannot block the HTTP worker (Google/Apple OAuth callback).
+        new_user_id = instance.pk
+
+        def _enqueue_cio_sync():
+            def _dispatch():
+                try:
+                    safe_enqueue_sync_user_to_customer_io(new_user_id)
+                except Exception:
+                    logger.warning(
+                        "safe_enqueue_sync_user_to_customer_io failed for user_id=%s on create",
+                        new_user_id,
+                        exc_info=True,
+                    )
+
+            threading.Thread(target=_dispatch, daemon=True).start()
+
+        transaction.on_commit(_enqueue_cio_sync)
+        return
+
+    # Update path: re-push identify if any tracked identity field actually changed.
+    prev = getattr(instance, "_cio_prev_identity", None)
+    if not prev:
+        return
+    changed = any((prev.get(f) or "") != (getattr(instance, f, "") or "") for f in _CIO_SYNC_FIELDS)
+    if not changed:
+        return
+    user_id = instance.pk
+
+    def _enqueue_cio_update_sync():
+        def _dispatch():
+            try:
+                safe_enqueue_sync_user_to_customer_io(user_id)
+            except Exception:
+                logger.warning(
+                    "safe_enqueue_sync_user_to_customer_io failed for user_id=%s on update",
+                    user_id,
+                    exc_info=True,
+                )
+
+        threading.Thread(target=_dispatch, daemon=True).start()
+
+    transaction.on_commit(_enqueue_cio_update_sync)
+
+
+@receiver(post_save, sender=UserEmailPreference)
+def resync_cio_on_pref_change(sender, instance, created, **kwargs):
+    """Propagate opt-in/frequency changes to Customer.io as profile traits."""
+    user_id = getattr(instance, "user_id", None)
+    if not user_id:
+        return
+
+    def _enqueue():
+        def _dispatch():
+            try:
+                safe_enqueue_sync_user_to_customer_io(user_id)
+            except Exception:
+                logger.warning(
+                    "safe_enqueue_sync_user_to_customer_io failed for user_id=%s on pref change",
+                    user_id,
+                    exc_info=True,
+                )
+
+        threading.Thread(target=_dispatch, daemon=True).start()
+
+    transaction.on_commit(_enqueue)
 
 
 @receiver(reset_password_token_created)

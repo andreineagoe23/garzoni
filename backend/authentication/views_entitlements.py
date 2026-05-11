@@ -20,6 +20,15 @@ class EntitlementsView(APIView):
     def get(self, request):
         entitlements = get_entitlements_for_user(request.user)
         entitlements["usage"] = entitlement_usage_snapshot(request.user)
+        profile = getattr(request.user, "profile", None)
+        if profile is not None:
+            entitlements["status"] = profile.subscription_status
+            te = profile.trial_end
+            trial_iso = te.isoformat() if te else None
+            entitlements["trial_end"] = trial_iso
+            entitlements["trialEnd"] = trial_iso
+            plan = entitlements.get("plan")
+            entitlements["entitled"] = plan in ("plus", "pro")
         return Response(entitlements)
 
 

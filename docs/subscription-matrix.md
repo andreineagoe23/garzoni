@@ -51,7 +51,7 @@ Currency: GBP. Channels: Stripe (web), RevenueCat → Apple/Google IAP (mobile).
 - **Backend**: `authentication.entitlements` centralises `PLAN_MATRIX` (Starter/Plus/Pro), feature flags, and per-day usage counters (Redis-cached per user per day, expires at midnight UTC). Every premium AI endpoint calls `check_and_consume_entitlement(user, "<feature_key>")` before doing work; on `False` returns 402 (`reason="upgrade"`) or 429 (`reason="quota"`).
 - **Frontend**: a shared entitlements query (`fetchEntitlements`) powers the Settings plan matrix, Chatbot gating, Rewards download guard, and the Pro-only mobile screens (voice tutor, receipt scan). Locked or exhausted features surface a lock icon, disablement, and an upsell modal.
 - **Token budget**: independent of per-feature quotas, every AI call also decrements a daily token budget (`OPENAI_DAILY_TOKEN_BUDGET_FREE` = 50k, `OPENAI_DAILY_TOKEN_BUDGET_PREMIUM` = 500k) to bound OpenAI spend even if a plan says "unlimited".
-- **Yearly trial**: 7-day trial only on yearly Plus/Pro plans. `UserProfile.trial_end` is updated from Stripe webhooks; trial-ending email fires day-5.
+- **Yearly trial**: 7-day **App Store intro (free trial)** on yearly Plus and yearly Pro only (configure in App Store Connect; mobile uses RevenueCat). `UserProfile.trial_end` is set from **Stripe** (web) and **RevenueCat** webhooks / `POST /api/auth/revenuecat-sync/` (iOS/Android) when `period_type` is a free trial. Trial-ending email (`send_trial_ending_reminder`) runs when `subscription_status=trialing` and `trial_end` is **2 days before** expiry (see `authentication.tasks`).
 
 ## Channel-specific behaviour
 

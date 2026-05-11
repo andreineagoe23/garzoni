@@ -61,22 +61,47 @@ export async function registerForPushAndSubmitToken(): Promise<{
 
     // Customer.io needs the *native* APNs (iOS) / FCM (Android) device token —
     // not the Expo push token. Expo's getDevicePushTokenAsync returns the raw token.
-    try {
-      const native = await Notifications.getDevicePushTokenAsync();
-      const raw = native?.data as unknown;
-      const nativeToken =
-        typeof raw === "string"
-          ? raw
-          : raw != null && raw !== undefined
-            ? String(raw)
-            : "";
-      if (nativeToken) {
+    // Retry once on failure: first call after permission grant can race the OS.
+    let nativeToken = "";
+    for (let attempt = 0; attempt < 2 && !nativeToken; attempt++) {
+      try {
+        if (attempt > 0) {
+          await new Promise((r) => setTimeout(r, 750));
+        }
+        const native = await Notifications.getDevicePushTokenAsync();
+        const raw = native?.data as unknown;
+        nativeToken =
+          typeof raw === "string"
+            ? raw
+            : raw != null && raw !== undefined
+              ? String(raw)
+              : "";
+      } catch (e) {
+        if (__DEV__) {
+          console.warn(
+            `[push] getDevicePushTokenAsync attempt ${attempt + 1} failed:`,
+            e,
+          );
+        }
+      }
+    }
+    if (nativeToken) {
+      try {
         await registerPushTokenWithCustomerIo(nativeToken);
+      } catch (e) {
+        try {
+          await registerPushTokenWithCustomerIo(nativeToken);
+        } catch (e2) {
+          if (__DEV__) {
+            console.warn(
+              "[push] registerPushTokenWithCustomerIo failed twice:",
+              e2 ?? e,
+            );
+          }
+        }
       }
-    } catch (e) {
-      if (__DEV__) {
-        console.warn("[push] getDevicePushTokenAsync failed:", e);
-      }
+    } else if (__DEV__) {
+      console.warn("[push] no native device token after retry");
     }
 
     return { ok: true, message: "Notifications enabled." };

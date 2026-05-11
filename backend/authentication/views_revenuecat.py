@@ -26,29 +26,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authentication.models import UserProfile
+from authentication.revenuecat_products import PRODUCT_PLAN_MAP
+from authentication.services.revenuecat_billing import (
+    subscription_status_and_trial_end_from_webhook_event,
+)
 from authentication.services.subscriptions import apply_subscription_to_profile
 
 logger = logging.getLogger(__name__)
-
-# Map RevenueCat product identifier → internal plan ID.
-# Update these to match the product IDs you create in App Store Connect.
-PRODUCT_PLAN_MAP: dict[str, str] = {
-    # v3 — current production (App Store Connect)
-    "app.garzoni.mobile.plus_monthly_v3": "plus",
-    "app.garzoni.mobile.plus_yearly_v3": "plus",
-    "app.garzoni.mobile.pro_monthly_v3": "pro",
-    "app.garzoni.mobile.pro_yearly_v3": "pro",
-    # v2 — sandbox / test store
-    "app.garzoni.mobile.plus_monthly_v2": "plus",
-    "app.garzoni.mobile.plus_yearly_v2": "plus",
-    "app.garzoni.mobile.pro_monthly_v2": "pro",
-    "app.garzoni.mobile.pro_yearly_v2": "pro",
-    # v1 — legacy, keep for existing subscribers
-    "app.garzoni.mobile.plus_monthly": "plus",
-    "app.garzoni.mobile.plus_yearly": "plus",
-    "app.garzoni.mobile.pro_monthly": "pro",
-    "app.garzoni.mobile.pro_yearly": "pro",
-}
 
 # RevenueCat event types that activate a subscription.
 ACTIVE_EVENTS = {"INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION", "SUBSCRIBER_ALIAS"}
@@ -106,10 +90,11 @@ class RevenueCatWebhookView(APIView):
         product_id: str = event.get("product_id", "")
 
         logger.info(
-            "[RevenueCat] event=%s user=%s product=%s",
+            "[RevenueCat] event=%s user=%s product=%s period_type=%s",
             event_type,
             app_user_id,
             product_id,
+            event.get("period_type"),
         )
 
         if not app_user_id:
@@ -129,14 +114,24 @@ class RevenueCatWebhookView(APIView):
         plan_id = PRODUCT_PLAN_MAP.get(product_id)
 
         if event_type in ACTIVE_EVENTS and plan_id:
+            sub_status, trial_end_dt = subscription_status_and_trial_end_from_webhook_event(event)
+            # Paid periods clear trial_end; free-trial periods store expiration for reminders.
+            trial_end_val = trial_end_dt if sub_status == "trialing" else None
+
             apply_subscription_to_profile(
                 profile,
                 has_paid=True,
                 is_premium=True,
-                subscription_status="active",
+                subscription_status=sub_status,
                 subscription_plan_id=plan_id,
+                trial_end=trial_end_val,
             )
-            logger.info("[RevenueCat] Activated plan=%s for user=%s", plan_id, user.pk)
+            logger.info(
+                "[RevenueCat] Activated plan=%s status=%s for user=%s",
+                plan_id,
+                sub_status,
+                user.pk,
+            )
 
         elif event_type in INACTIVE_EVENTS:
             apply_subscription_to_profile(
@@ -145,6 +140,7 @@ class RevenueCatWebhookView(APIView):
                 is_premium=False,
                 subscription_status="cancelled",
                 subscription_plan_id="starter",
+                trial_end=None,
             )
             logger.info("[RevenueCat] Deactivated subscription for user=%s", user.pk)
 

@@ -30,7 +30,14 @@ function decodeJwtUserId(accessToken: string): string | null {
 }
 
 export async function initCustomerIoMobile(): Promise<void> {
-  if (!CDP_KEY) return;
+  if (!CDP_KEY) {
+    if (__DEV__) {
+      console.warn(
+        "[Customer.io] EXPO_PUBLIC_CIO_CDP_API_KEY not set — SDK disabled, no push delivery via CIO",
+      );
+    }
+    return;
+  }
   if (initPromise) return initPromise;
   initPromise = (async () => {
     try {
@@ -43,6 +50,11 @@ export async function initCustomerIoMobile(): Promise<void> {
         logLevel: __DEV__ ? cio.CioLogLevel.Debug : cio.CioLogLevel.Error,
         ...(SITE_ID ? { inApp: { siteId: SITE_ID } } : {}),
       });
+      if (__DEV__) {
+        console.log(
+          `[Customer.io] init ok region=${REGION} inApp=${SITE_ID ? "on" : "off"}`,
+        );
+      }
     } catch (e) {
       nativeAvailable = false;
       console.warn("[Customer.io] initialize failed:", e);

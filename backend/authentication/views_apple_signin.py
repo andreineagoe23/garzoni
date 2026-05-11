@@ -56,14 +56,30 @@ def _get_or_create_apple_user(
     """
     from authentication.models import UserProfile
 
+    email_clean = (email or "").strip() or None
+
     profile = UserProfile.objects.select_related("user").filter(apple_sub=sub).first()
     if profile:
         user = profile.user
+        update_fields = ["last_login"]
+        # Backfill email if Apple now shares it but we stored "" on a prior login
+        # (Apple hides email on first auth when user picks "Hide My Email" without
+        # consenting to share). Private-relay addresses (*@privaterelay.appleid.com)
+        # are deliverable through Apple's forwarder — store them as real emails.
+        if email_clean and not (user.email or "").strip():
+            user.email = email_clean
+            update_fields.append("email")
+        # Backfill missing display name if Apple shared one on this login.
+        if first_name and not (user.first_name or "").strip():
+            user.first_name = first_name[:150]
+            update_fields.append("first_name")
+        if last_name and not (user.last_name or "").strip():
+            user.last_name = last_name[:150]
+            update_fields.append("last_name")
         user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
+        user.save(update_fields=update_fields)
         return user, False
 
-    email_clean = (email or "").strip() or None
     if email_clean:
         user = User.objects.filter(email__iexact=email_clean).first()
         if user:

@@ -71,7 +71,7 @@ class UserProfile(models.Model):
     trial_end = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="When the subscription trial ends (from Stripe); used for day-5 reminder.",
+        help_text="When the subscription trial ends (Stripe or RevenueCat); used for trial-ending reminder emails.",
     )
     email_reminder_preference = models.CharField(
         max_length=10, choices=REMINDER_CHOICES, default="weekly"
