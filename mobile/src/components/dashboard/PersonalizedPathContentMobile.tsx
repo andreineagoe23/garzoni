@@ -33,6 +33,24 @@ import { href } from "../../navigation/href";
 import { navigateToExercisesFromDashboardSkill } from "../../hooks/useDashboardSkillExercisesNavigation";
 import { useAuthSession } from "../../auth/AuthContext";
 import { useThemeColors } from "../../theme/ThemeContext";
+
+/** Normalize onboarding goal tags from API (string or nested arrays) for display. */
+function formatOnboardingGoalsLine(goals: unknown): string {
+  const list = Array.isArray(goals) ? goals : [];
+  const parts: string[] = [];
+  for (const item of list) {
+    if (typeof item === "string" && item.trim()) {
+      parts.push(item.trim());
+    } else if (Array.isArray(item)) {
+      const inner = item
+        .map((x) => (typeof x === "string" ? x.trim() : String(x ?? "")))
+        .filter(Boolean);
+      if (inner.length) parts.push(inner.join(", "));
+    }
+  }
+  return parts.join(" • ");
+}
+
 import GlassCard from "../ui/GlassCard";
 import GlassButton from "../ui/GlassButton";
 import CircularProgressRing from "../ui/CircularProgressRing";
@@ -278,9 +296,9 @@ export default function PersonalizedPathContentMobile({
                       {t("personalizedPath.title")}
                     </Text>
                     <Text style={[styles.heroSub, { color: c.textMuted }]}>
-                      {(
-                        personalizedQuery.data?.meta?.onboarding_goals || []
-                      ).join(" • ")}
+                      {formatOnboardingGoalsLine(
+                        personalizedQuery.data?.meta?.onboarding_goals,
+                      )}
                     </Text>
                   </View>
                   <View style={{ alignItems: "flex-end", gap: spacing.xs }}>
@@ -384,7 +402,9 @@ export default function PersonalizedPathContentMobile({
             {t("personalizedPath.title")}
           </Text>
           <Text style={[styles.heroSub, { color: c.textMuted }]}>
-            {(personalizedQuery.data?.meta?.onboarding_goals || []).join(" • ")}
+            {formatOnboardingGoalsLine(
+              personalizedQuery.data?.meta?.onboarding_goals,
+            )}
           </Text>
         </GlassCard>
       )}

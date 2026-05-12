@@ -69,6 +69,7 @@ urlpatterns = [
     path("api/", include("education.urls")),
     path("api/", include("gamification.urls")),
     path("api/", include("finance.urls")),
+    path("api/", include("budgeting.urls")),
     path("api/", include("support.urls")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
     # Mascot media: no-cache so replaced files are picked up without cache-busting URLs

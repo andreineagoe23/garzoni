@@ -1,4 +1,5 @@
 export type ToolGroup =
+  | "personal-cfo"
   | "understand-world"
   | "understand-myself"
   | "decide-next";
@@ -18,12 +19,35 @@ export type MobileToolDef = {
 };
 
 export const GROUP_LABELS: Record<ToolGroup, string> = {
+  "personal-cfo": "Personal CFO",
   "understand-world": "Understand the World",
   "understand-myself": "Understand Myself",
   "decide-next": "Decide Next",
 };
 
 export const MOBILE_TOOLS: MobileToolDef[] = [
+  {
+    id: "personal-cfo",
+    group: "personal-cfo",
+    route: "personal-cfo",
+    title: "Personal CFO",
+    subtitle: "Your guided financial command center",
+    icon: "Briefcase",
+    accentColor: "#1d5330",
+    plusOnly: true,
+    estimatedMinutes: 6,
+  },
+  {
+    id: "budget-planner",
+    group: "understand-myself",
+    route: "budget-planner",
+    title: "Budget & Spending",
+    subtitle: "Build envelopes & track cash flow",
+    icon: "Wallet",
+    accentColor: "#9a3412",
+    plusOnly: true,
+    estimatedMinutes: 12,
+  },
   {
     id: "economic-map",
     group: "understand-world",

@@ -962,15 +962,22 @@ function LearnInner() {
   );
 }
 
+function LearnScreenHeader() {
+  const { t } = useTranslation("common");
+  return (
+    <TabScreenHeader
+      title={t("nav.learn")}
+      left={<HeaderAvatarButton />}
+      right={<HeaderRightButtons />}
+    />
+  );
+}
+
 export default function LearnScreen() {
   return (
     <TabErrorBoundary>
       <View style={{ flex: 1 }}>
-        <TabScreenHeader
-          title="Learn"
-          left={<HeaderAvatarButton />}
-          right={<HeaderRightButtons />}
-        />
+        <LearnScreenHeader />
         <LearnInner />
       </View>
     </TabErrorBoundary>

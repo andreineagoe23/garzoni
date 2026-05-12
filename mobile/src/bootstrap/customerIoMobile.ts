@@ -42,12 +42,12 @@ export async function initCustomerIoMobile(): Promise<void> {
   if (initPromise) return initPromise;
   initPromise = (async () => {
     try {
-        const cio =
+      const cio =
         require("customerio-reactnative") as typeof import("customerio-reactnative");
       await cio.CustomerIO.initialize({
         cdpApiKey: CDP_KEY,
         region: REGION === "eu" ? cio.CioRegion.EU : cio.CioRegion.US,
-        logLevel: __DEV__ ? cio.CioLogLevel.Debug : cio.CioLogLevel.Error,
+        logLevel: cio.CioLogLevel.Error,
         ...(SITE_ID ? { inApp: { siteId: SITE_ID } } : {}),
       });
       if (__DEV__) {

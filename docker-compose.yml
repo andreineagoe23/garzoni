@@ -23,6 +23,8 @@ services:
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
     volumes:
+      # Host backend overrides image COPY — management commands / code changes apply without rebuild.
+      - ./backend:/app
       - backend_static:/app/staticfiles
       - backend_media:/app/media
     ports:

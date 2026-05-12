@@ -134,24 +134,46 @@
   align-items: center;
   gap: 10px;
   height: 54px;
-  padding: 0 22px;
+  padding: 0 20px;
   border-radius: 12px;
-  background: #0d1118;
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
   font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.15s;
+}
+.mkt .btn-store:hover {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+/* Light mode: invert to white pill with dark text (official Apple badge style) */
+.mkt.mkt-light .btn-store {
+  background: #000;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #fff;
+}
+.mkt.mkt-light .btn-store:hover {
+  background: #111;
 }
 .mkt .btn-store-caption {
   font-size: 10px;
-  color: var(--faint);
+  color: rgba(255, 255, 255, 0.65);
   line-height: 1;
   margin-bottom: 3px;
   letter-spacing: 0.4px;
+  text-transform: none;
 }
 .mkt .btn-store-main {
-  font-size: 17px;
-  font-family: var(--font-display);
+  font-size: 18px;
+  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+  font-weight: 600;
   line-height: 1;
+  color: #fff;
 }
 .mkt .btn-secondary {
   height: 54px;

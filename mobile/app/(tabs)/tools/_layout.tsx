@@ -24,6 +24,15 @@ export default function ToolsStackLayout() {
           title: t("nav.tools"),
         }}
       />
+      <Stack.Screen name="personal-cfo" options={{ title: "Personal CFO" }} />
+      <Stack.Screen
+        name="personal-cfo-coach"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
+      <Stack.Screen
+        name="budget-planner"
+        options={{ title: "Budget & Spending" }}
+      />
       <Stack.Screen
         name="portfolio"
         options={{ title: "Portfolio Analyzer" }}

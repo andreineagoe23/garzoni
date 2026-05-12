@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     "finance",
     "support",
     "onboarding",
+    "budgeting",
     "notifications.apps.NotificationsConfig",
     # Legacy core app (to be removed after full migration)
     "core",
@@ -512,6 +513,17 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 
 REVENUECAT_API_KEY = os.getenv("REVENUECAT_API_KEY", "")
+
+# Budgeting (Personal CFO phase 2)
+# BUDGETING_PROVIDER selects the open-banking integration ("plaid" or "disabled").
+# When "disabled", the budgeting API still works for envelopes and manual entry
+# but bank linking returns provider_unavailable. Set explicit credentials below.
+BUDGETING_PROVIDER = os.getenv("BUDGETING_PROVIDER", "disabled").lower()
+BUDGETING_REGION = os.getenv("BUDGETING_REGION", "")
+PLAID_CLIENT_ID = os.getenv("PLAID_CLIENT_ID", "")
+PLAID_SECRET = os.getenv("PLAID_SECRET", "")
+PLAID_ENV = os.getenv("PLAID_ENV", "sandbox")
+PLAID_WEBHOOK_SECRET = os.getenv("PLAID_WEBHOOK_SECRET", "")
 # Stripe Price IDs for subscription plans (create in Stripe Dashboard → Products → Prices)
 # Yearly plans first; 7-day free trial only on yearly Pro/Plus.
 STRIPE_PRICE_PLUS_YEARLY = os.getenv("STRIPE_PRICE_PLUS_YEARLY") or os.getenv(

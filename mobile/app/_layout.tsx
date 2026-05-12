@@ -193,8 +193,8 @@ function RootLayout() {
   useEffect(() => {
     try {
       initStorageMobile();
-      initHttpClientMobile();
       initI18nMobile();
+      initHttpClientMobile();
       setBootstrapReady(true);
     } catch (e) {
       setBootstrapError(

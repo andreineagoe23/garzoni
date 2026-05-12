@@ -1,6 +1,7 @@
 {
   "common": {
-    "dismiss": "Maybe later"
+    "dismiss": "Maybe later",
+    "close": "Close"
   },
   "gamification": {
     "ledger": {
@@ -31,7 +32,8 @@
     "ariaLogout": "Logout",
     "ariaGoToProfile": "Go to profile",
     "ariaToggleMenu": "Toggle navigation menu",
-    "ariaAccountMenu": "Open account menu"
+    "ariaAccountMenu": "Open account menu",
+    "menu": "Account"
   },
   "language": {
     "label": "Language",
@@ -483,6 +485,12 @@
       "selectTool": "Select a tool"
     },
     "groups": {
+      "personal-cfo": {
+        "title": "Personal CFO",
+        "label": "CFO",
+        "description": "Your guided financial command center for goals, budget, and portfolio.",
+        "imageAlt": "Personal CFO hub"
+      },
       "understand-world": {
         "title": "Understand the World",
         "label": "World",
@@ -503,6 +511,36 @@
       }
     },
     "entries": {
+      "personal-cfo": {
+        "title": "Personal CFO",
+        "promise": "Your always-on financial command center.",
+        "description": "Orchestrates goals, savings, budget, portfolio, and next steps in one place.",
+        "mostUsefulFor": "Anyone who wants a guided plan across budget, goals, and investments.",
+        "whatItDoes": "Connects your existing Garzoni tools into a single guided experience.",
+        "sampleUseCase": "Set a goal, build a budget, review your portfolio, and act in 20 minutes.",
+        "whoItsFor": "Plus and Pro members who want a single financial cockpit.",
+        "questionItAnswers": "Where do I stand financially, and what is my next best move?"
+      },
+      "budget-planner": {
+        "title": "Budget & Spending",
+        "promise": "Build envelopes, track spending, and catch overspends early.",
+        "description": "Connect an account or import transactions to track monthly cash flow.",
+        "mostUsefulFor": "Anyone who wants to know where their money goes each month.",
+        "whatItDoes": "Tracks categorized spending against monthly envelopes and surfaces alerts.",
+        "sampleUseCase": "See if groceries crept up this month and rebalance next month.",
+        "whoItsFor": "People who want budgeting that updates with real activity.",
+        "questionItAnswers": "Am I spending less than I earn and inside my plan?"
+      },
+      "savings-calculator": {
+        "title": "Savings Goal Calculator",
+        "promise": "Project compound growth toward a savings target.",
+        "description": "Run quick savings projections by initial amount, rate, and time.",
+        "mostUsefulFor": "Anyone testing how long a savings goal takes at a given rate.",
+        "whatItDoes": "Computes final savings with optional compounding frequencies.",
+        "sampleUseCase": "See what a 5% return turns $1,000 + $200/month into in 5 years.",
+        "whoItsFor": "Learners who want a quick what-if without spreadsheets.",
+        "questionItAnswers": "How big could my savings grow by my target date?"
+      },
       "portfolio": {
         "title": "Portfolio Analyzer",
         "promise": "See if your portfolio matches your goals and risk comfort.",
@@ -622,6 +660,233 @@
         "sampleUseCase": "Estimate pip value before diving deeper into FX concepts.",
         "whoItsFor": "Learners exploring forex mechanics, not live trading execution.",
         "questionItAnswers": "What is the pip value for my pair and lot size?"
+      }
+    },
+    "personalCfo": {
+      "eyebrow": "Personal CFO",
+      "title": "Get your personal CFO",
+      "greeting": "Hi {{name}} — your CFO is ready",
+      "subtitle": "Plan goals, track spending, review investments, and act on next steps — all in one place.",
+      "activityLabel": "Opened Personal CFO",
+      "progressTitle": "Plan progress",
+      "progressSubtitle": "{{done}} of {{total}} steps completed",
+      "estimatedMinutes": "~{{count}} min",
+      "markComplete": "Mark as done",
+      "markIncomplete": "Mark as not done",
+      "badges": {
+        "preview": "Preview",
+        "done": "Done",
+        "new": "New"
+      },
+      "cta": {
+        "open": "Open tool",
+        "revisit": "Revisit",
+        "preview": "Preview"
+      },
+      "jobs": {
+        "plan": "Plan",
+        "track": "Track",
+        "invest": "Invest",
+        "scout": "Scout",
+        "act": "Act"
+      },
+      "steps": {
+        "goals": {
+          "title": "Set realistic goals",
+          "description": "Stress-test a goal against your real cash flow.",
+          "because": "Because every plan needs a target you can actually hit."
+        },
+        "savings": {
+          "title": "Project your savings",
+          "description": "Estimate growth at different rates and timelines.",
+          "because": "Because compound growth changes what is realistic."
+        },
+        "budget": {
+          "title": "Track budget & spending",
+          "description": "Build envelopes and watch categorized cash flow.",
+          "because": "Because no plan survives without a real spending picture."
+        },
+        "portfolio": {
+          "title": "Review your portfolio",
+          "description": "Check concentration, allocation, and risk balance.",
+          "because": "Because drift quietly increases risk over time."
+        },
+        "market": {
+          "title": "Scout opportunities",
+          "description": "Explore markets with long-term framing, no noise.",
+          "because": "Because what you watch shapes what you do next."
+        },
+        "next-steps": {
+          "title": "Act on next steps",
+          "description": "Get 1–3 focused next actions tailored to you.",
+          "because": "Because momentum beats perfection."
+        }
+      },
+      "summary": {
+        "title": "This week with your CFO",
+        "updated": "Updated {{date}}",
+        "loading": "Generating your CFO summary…"
+      },
+      "errors": {
+        "summaryFailed": "We could not load your CFO summary. Please try again later.",
+        "upgradeRequired": "Personal CFO summary is included with Plus and Pro."
+      },
+      "disclaimer": {
+        "title": "Educational, not financial advice.",
+        "body": "Personal CFO helps you plan with your own data. It is not a regulated advisor and does not execute trades or transactions."
+      },
+      "openDashboard": "Open CFO dashboard"
+    },
+    "cfoDashboard": {
+      "eyebrow": "Your CFO Dashboard",
+      "title": "The full picture",
+      "subtitle": "Net worth, goals, portfolio risk, spending and a 10-year outlook — all in one place.",
+      "loading": "Crunching your numbers…",
+      "retry": "Try again",
+      "reviewSteps": "Review steps",
+      "askCfo": "Ask your CFO",
+      "errors": {
+        "loadFailed": "We could not load your dashboard. Please try again.",
+        "upgradeRequired": "Your CFO dashboard is included with Plus and Pro."
+      },
+      "kpis": {
+        "netWorth": "Net worth",
+        "netWorthHint_one": "{{count}} real holding",
+        "netWorthHint_other": "{{count}} real holdings",
+        "savingsRate": "Savings rate",
+        "savingsRateHint": "Banking {{saved}} this month",
+        "linkBudget": "Link an account to compute this",
+        "riskScore": "Diversification",
+        "diversification": {
+          "well_diversified": "Well spread across asset types",
+          "moderately_diversified": "Some concentration — consider another asset class",
+          "concentrated": "Highly concentrated portfolio"
+        },
+        "netWorthHint": "{{count}} real holdings",
+        "netWorthHint_few": "{{count}} real holdings"
+      },
+      "ai": {
+        "title": "AI Insights",
+        "sourceLive": "Your personalised CFO read",
+        "sourceFallback": "Coaching summary",
+        "chat": "Chat"
+      },
+      "goals": {
+        "title": "Goal progress",
+        "subtitle": "{{done}} of {{total}} goal(s) on track at your current pace.",
+        "onTrack": "On track",
+        "behind": "Off pace",
+        "projected": "Projected: {{date}}"
+      },
+      "portfolio": {
+        "title": "Portfolio breakdown",
+        "subtitle": "Total {{total}} • {{dir}} {{gain}} since cost",
+        "up": "up",
+        "down": "down",
+        "topHoldings": "Top holdings",
+        "cols": {
+          "symbol": "Symbol",
+          "value": "Value",
+          "gain": "Gain / Loss"
+        }
+      },
+      "spending": {
+        "title": "Spending this month",
+        "subtitle": "Income {{income}} • Spent {{spent}}",
+        "spent": "Spent",
+        "target": "Target"
+      },
+      "projections": {
+        "title": "Net worth — 10-year outlook",
+        "subtitle": "Starting {{start}} • adding {{monthly}}/mo",
+        "yearShort": "Y{{year}}",
+        "afterYears": "after {{years}} years",
+        "conservative": "Conservative",
+        "moderate": "Moderate",
+        "optimistic": "Optimistic"
+      }
+    },
+    "cfoCoach": {
+      "eyebrow": "AI Personal CFO",
+      "title": "Ask your CFO",
+      "greeting": "Hi! I'm your Personal CFO. Ask me anything about your goals, spending, portfolio or projections. I can run scenarios too — try 'what if I save $200 more per month?'",
+      "placeholder": "Ask about your money…",
+      "send": "Send",
+      "thinking": "Thinking…",
+      "quickPrompts": "Quick prompts",
+      "tryAsking": "Try asking me about:",
+      "prompts": {
+        "ontrack": "Am I on track for my financial goals?",
+        "invest_more": "What if I invest $200 more per month?",
+        "diversify": "How diversified is my portfolio?",
+        "cut_spending": "Where should I cut my spending?"
+      },
+      "errors": {
+        "empty": "I couldn't form an answer this time. Please try again.",
+        "generic": "Coach is offline. Please try again in a moment.",
+        "upgrade": "The AI CFO coach is included with Plus and Pro.",
+        "rateLimit": "You have hit today's coach limit. Try again tomorrow."
+      }
+    },
+    "marketExplorer": {
+      "trackReal": {
+        "cta": "Track Real Holding",
+        "subtitle": "Add to my portfolio",
+        "practiceCta": "Practice Trade",
+        "practiceSubtitle": "Virtual cash",
+        "title": "Track real {{symbol}} holding",
+        "hint": "Log a position you already own. It goes straight into your real portfolio — no virtual cash involved.",
+        "quantity": "Quantity owned",
+        "price": "Avg purchase price (per unit)",
+        "date": "Purchase date",
+        "submit": "Add to Portfolio",
+        "success": "Added to your portfolio",
+        "failed": "Could not add holding. Please check the values and try again."
+      }
+    },
+    "budgetPlanner": {
+      "eyebrow": "Budget & Spending",
+      "title": "Budget Planner",
+      "subtitle": "Connect an account or import transactions to see where money goes and stay inside your plan.",
+      "activityLabel": "Reviewed budget",
+      "linkAccount": "Connect account",
+      "relinkAccount": "Reconnect account",
+      "providerUnavailable": "Bank connections are coming soon. You can still create budgets and use CSV import.",
+      "totals": {
+        "income": "Income this month",
+        "spent": "Spent this month",
+        "netFlow": "Net cash flow",
+        "overBudgetCount_one": "{{count}} category over budget",
+        "overBudgetCount_other": "{{count}} categories over budget",
+        "overBudgetCount": "{{count}} categories over budget",
+        "overBudgetCount_few": "{{count}} categories over budget"
+      },
+      "envelopes": {
+        "title": "Budget envelopes",
+        "subtitle": "Set a monthly target per category.",
+        "empty": "No envelopes yet — add one below to start tracking.",
+        "labelPlaceholder": "Label (e.g. Groceries)",
+        "targetPlaceholder": "Monthly target",
+        "add": "Add envelope",
+        "adding": "Adding…"
+      },
+      "byCategory": {
+        "title": "Spend by category"
+      },
+      "categories": {
+        "housing": "Housing",
+        "groceries": "Groceries",
+        "transport": "Transport",
+        "utilities": "Utilities",
+        "entertainment": "Entertainment",
+        "savings": "Savings",
+        "other": "Other"
+      },
+      "errors": {
+        "loadFailed": "We could not load your budget data. Please try again.",
+        "createFailed": "We could not add this envelope. Please try again.",
+        "linkUnavailable": "Account linking is unavailable in your region right now.",
+        "notEntitled": "Budget Planner is included with Plus and Pro."
       }
     },
     "realityCheck": {

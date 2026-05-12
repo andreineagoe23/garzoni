@@ -49,6 +49,7 @@
     "couldNotUpdateOrdering": "Nu s-a putut actualiza ordonarea.",
     "savingChanges": "Se salvează modificările...",
     "couldNotSaveChanges": "Nu s-au putut salva modificările.",
+    "stepSections": "{{current}} / {{total}} secțiuni",
     "noLessonContent": "Nu există conținut pentru această lecție.",
     "lessonFallback": "Lecție",
     "noSectionContent": "Nu există conținut pentru această secțiune.",

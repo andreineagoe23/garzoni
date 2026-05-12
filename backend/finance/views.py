@@ -3347,6 +3347,20 @@ class FunnelEventIngestView(APIView):
         "questionnaire_answer_submitted",
         "questionnaire_abandoned",
         "questionnaire_completed",
+        # Personal CFO + budgeting funnel
+        "personal_cfo_open",
+        "personal_cfo_step_click",
+        "personal_cfo_completed",
+        "personal_cfo_summary_view",
+        "personal_cfo_upgrade_prompt",
+        "personal_cfo_dashboard_view",
+        "personal_cfo_dashboard_open",
+        "personal_cfo_coach_message",
+        "personal_cfo_coach_open",
+        "personal_cfo_real_asset_added",
+        "budget_envelope_created",
+        "budget_account_link_started",
+        "budget_account_link_completed",
     }
 
     def post(self, request):

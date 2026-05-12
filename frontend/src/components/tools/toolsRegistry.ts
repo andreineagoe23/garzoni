@@ -7,8 +7,14 @@ const NewsMarketContext = React.lazy(() => import("./NewsMarketContext"));
 const GoalsRealityCheck = React.lazy(() => import("./GoalsRealityCheck"));
 const MarketExplorer = React.lazy(() => import("./MarketExplorer"));
 const NextStepsEngine = React.lazy(() => import("./NextStepsEngine"));
+const PersonalCFOHub = React.lazy(() => import("./PersonalCFOHub"));
+const SavingsCalculatorTool = React.lazy(
+  () => import("./SavingsCalculatorTool")
+);
+const BudgetPlanner = React.lazy(() => import("./BudgetPlanner"));
 
 export type ToolGroupId =
+  | "personal-cfo"
   | "understand-world"
   | "understand-myself"
   | "decide-next";
@@ -37,6 +43,49 @@ export const TOOL_STORAGE_KEYS = {
 };
 
 export const toolsRegistry: ToolDefinition[] = [
+  {
+    id: "personal-cfo",
+    group: "personal-cfo",
+    route: "personal-cfo",
+    component: PersonalCFOHub,
+    learnPath: "/all-topics?topic=planning",
+    requiredPlan: "plus_or_pro",
+    cardImage: "tools/personal_cfo.png",
+    keywords: [
+      "cfo",
+      "personal cfo",
+      "plan",
+      "budget",
+      "spending",
+      "portfolio",
+      "goals",
+    ],
+    activityStorageKey: "garzoni:tools:activity:personal-cfo",
+    estimatedMinutes: 6,
+  },
+  {
+    id: "budget-planner",
+    group: "understand-myself",
+    route: "budget-planner",
+    component: BudgetPlanner,
+    learnPath: "/all-topics?topic=budgeting",
+    requiredPlan: "plus_or_pro",
+    cardImage: "tools/budget_planner.png",
+    keywords: ["budget", "spending", "cash flow", "envelopes", "transactions"],
+    activityStorageKey: "garzoni:tools:activity:budget-planner",
+    estimatedMinutes: 12,
+  },
+  {
+    id: "savings-calculator",
+    group: "understand-myself",
+    route: "savings-calculator",
+    component: SavingsCalculatorTool,
+    learnPath: "/all-topics?topic=saving",
+    cardImage: "tools/savings_calculator.png",
+    keywords: ["savings", "calculator", "compound", "interest", "growth"],
+    activityStorageKey: "garzoni:tools:activity:savings",
+    estimatedMinutes: 5,
+  },
   {
     id: "portfolio",
     group: "understand-myself",
@@ -122,6 +171,11 @@ export const toolsRegistry: ToolDefinition[] = [
 
 export const toolGroups = [
   {
+    id: "personal-cfo" as const,
+    image:
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=180&fit=crop",
+  },
+  {
     id: "understand-world" as const,
     image:
       "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=180&fit=crop",
@@ -140,6 +194,8 @@ export const toolGroups = [
   ...group,
   tools: toolsRegistry.filter((tool) => tool.group === group.id),
 }));
+
+export const PERSONAL_CFO_TOOL_ID = "personal-cfo";
 
 export const toolByRoute = new Map(
   toolsRegistry.map((tool) => [tool.route, tool])

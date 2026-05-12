@@ -35,6 +35,7 @@ ENV/
 env.bak/
 venv.bak/
 backend/.env
+backend/.env.railway
 frontend/.env
 
 # ── Django ───────────────────────────────────────────────────────────────────

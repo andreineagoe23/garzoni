@@ -4,7 +4,14 @@ from decimal import Decimal
 from celery import shared_task
 from django.db.models import F
 
-from finance.views import refresh_news_feed_cache
+from finance.views import (
+    COINGECKO_ID_MAP,
+    _coingecko_bulk_fetch_and_cache,
+    _coingecko_read_cached,
+    _yahoo_bulk_fetch_and_cache,
+    _yahoo_read_cached_quote_details,
+    refresh_news_feed_cache,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -135,3 +142,91 @@ def send_portfolio_push_notifications(self):
 
     logger.info("portfolio push done sent=%d eligible=%d", sent, eligible_users.count())
     return f"sent={sent}"
+
+
+_YAHOO_ASSET_TYPES = {"stock", "etf", "bond", "commodity", "fund"}
+_CRYPTO_ASSET_TYPES = {"crypto"}
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=120,
+    retry_kwargs={"max_retries": 2},
+    ignore_result=True,
+)
+def update_portfolio_prices_task(self):
+    """
+    Fetch live market prices for all real (non-paper-trade) portfolio holdings
+    and write them to PortfolioEntry.current_price.
+
+    Runs every 30 minutes via Celery Beat. Uses the same Yahoo Finance /
+    CoinGecko stack as the Market Explorer so results are already cached.
+    """
+    from finance.models import PortfolioEntry
+
+    entries = list(
+        PortfolioEntry.objects.filter(is_paper_trade=False, symbol__isnull=False)
+        .exclude(symbol="")
+        .select_for_update(skip_locked=True)
+    )
+
+    if not entries:
+        return "updated=0"
+
+    # Partition by price source
+    stock_symbols: list[str] = []
+    crypto_cg_ids: list[str] = []
+    symbol_to_cg: dict[str, str] = {}
+
+    for entry in entries:
+        sym = entry.symbol.strip().upper()
+        sym_low = sym.lower()
+        if entry.asset_type in _CRYPTO_ASSET_TYPES or sym_low in COINGECKO_ID_MAP:
+            cg_id = COINGECKO_ID_MAP.get(sym_low, sym_low)
+            crypto_cg_ids.append(cg_id)
+            symbol_to_cg[sym] = cg_id
+        else:
+            stock_symbols.append(sym)
+
+    # Bulk-fetch (populates cache; skips already-cached)
+    if stock_symbols:
+        try:
+            _yahoo_bulk_fetch_and_cache(list(set(stock_symbols)))
+        except Exception as exc:
+            logger.warning("update_portfolio_prices: yahoo fetch failed: %s", exc)
+
+    if crypto_cg_ids:
+        try:
+            _coingecko_bulk_fetch_and_cache(list(set(crypto_cg_ids)))
+        except Exception as exc:
+            logger.warning("update_portfolio_prices: coingecko fetch failed: %s", exc)
+
+    # Apply prices
+    to_update: list[PortfolioEntry] = []
+    for entry in entries:
+        sym = entry.symbol.strip().upper()
+        cg_id = symbol_to_cg.get(sym)
+        if cg_id:
+            data = _coingecko_read_cached(cg_id)
+            price = data.get("price") or 0.0
+        else:
+            data = _yahoo_read_cached_quote_details(sym)
+            price = data.get("price") or 0.0
+
+        if price and price > 0:
+            new_price = Decimal(str(price))
+            if entry.current_price != new_price:
+                entry.previous_price = entry.current_price
+                entry.current_price = new_price
+                to_update.append(entry)
+
+    if to_update:
+        PortfolioEntry.objects.bulk_update(to_update, ["current_price", "previous_price"])
+
+    logger.info(
+        "update_portfolio_prices done updated=%d total=%d",
+        len(to_update),
+        len(entries),
+    )
+    return f"updated={len(to_update)}"

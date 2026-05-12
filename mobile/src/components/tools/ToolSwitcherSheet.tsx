@@ -28,9 +28,12 @@ const ICON_MAP: Record<string, string> = {
   PiggyBank: "🐷",
   Map: "🗺️",
   Newspaper: "📰",
+  Briefcase: "💼",
+  Wallet: "👛",
 };
 
 const GROUPS: ToolGroup[] = [
+  "personal-cfo",
   "understand-world",
   "understand-myself",
   "decide-next",

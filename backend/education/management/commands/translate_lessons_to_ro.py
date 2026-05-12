@@ -2,6 +2,13 @@
 Translate backend education content (Paths, Courses, Lessons, LessonSections)
 to Romanian using the configured translation provider (OpenAI by default).
 
+Section types follow LessonSection.content_type: ``text``, ``exercise`` (multiple-choice
+payload in ``exercise_data``), and ``video`` (intro copy in ``text_content``, URL on the
+section). With ``--only-missing``, a section is skipped only when the existing ``ro`` row
+fully covers the current English (including exercise option counts), so rows that exist
+but were stripped (e.g. after ``push_rewrites_to_railway`` clearing ``exercise_data``) are
+re-translated.
+
 Usage examples:
     # Dry run – preview what would be translated
     python manage.py translate_lessons_to_ro --dry-run
@@ -17,6 +24,12 @@ Usage examples:
 
     # Translate only paths and courses (skip lessons)
     python manage.py translate_lessons_to_ro --skip-lessons
+
+    # Only backfill missing *text* section bodies (skip path/course/lesson strings; skip
+    # exercise/video sections). Already-complete rows (matching source_hash) are not re-sent.
+    python manage.py translate_lessons_to_ro --sections-only --section-types text --only-missing
+
+Course quizzes / checkpoints use ``QuizTranslation`` and are not handled by this command.
 """
 
 from __future__ import annotations
@@ -71,7 +84,8 @@ def _source_hash(text: str) -> str:
 class Command(BaseCommand):
     help = (
         "Generate Romanian (ro) translations for paths, courses, lessons, "
-        "and lesson sections (text + exercises) via the configured translation provider."
+        "and lesson sections (text + exercises + video intros) via the configured "
+        "translation provider. Use --sections-only and --section-types to limit scope."
     )
 
     def add_arguments(self, parser):
@@ -89,7 +103,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--only-missing",
             action="store_true",
-            help="Only create translations where none exist yet.",
+            help=(
+                "Skip work that is already done for the current English source: paths/courses/"
+                "lessons skip if any ro row exists; sections skip when the ro row matches "
+                "(source_hash + exercise option parity, etc.). Safe to re-run."
+            ),
         )
         parser.add_argument(
             "--force-refresh",
@@ -120,6 +138,24 @@ class Command(BaseCommand):
             help="Skip lesson/section translation (only translate paths & courses).",
         )
         parser.add_argument(
+            "--sections-only",
+            action="store_true",
+            help=(
+                "Skip paths, courses, and lesson-level fields; only create/update "
+                "LessonSectionTranslation rows."
+            ),
+        )
+        parser.add_argument(
+            "--section-types",
+            type=str,
+            default=None,
+            metavar="TYPES",
+            help=(
+                "Comma-separated section content_type values to translate: text, exercise, video. "
+                "Default: all three. Example: --section-types text"
+            ),
+        )
+        parser.add_argument(
             "--batch-size",
             type=int,
             default=BATCH_SIZE,
@@ -135,7 +171,14 @@ class Command(BaseCommand):
         self.course_id: Optional[int] = options["course_id"]
         self.lesson_id: Optional[int] = options["lesson_id"]
         self.skip_lessons: bool = options["skip_lessons"]
+        self.sections_only: bool = options["sections_only"]
+        self.section_types: Optional[set[str]] = self._parse_section_types(
+            options.get("section_types")
+        )
         self.batch_size: int = max(1, options["batch_size"])
+
+        if self.skip_lessons and self.sections_only:
+            raise CommandError("Cannot combine --skip-lessons with --sections-only.")
 
         self.translator: TranslationProvider = get_translator()
         self.stats: Dict[str, int] = {
@@ -151,8 +194,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE("DRY RUN – no changes will be saved.\n"))
 
         try:
-            self._translate_paths()
-            self._translate_courses()
+            if not self.sections_only:
+                self._translate_paths()
+                self._translate_courses()
 
             if not self.skip_lessons:
                 self._translate_lessons()
@@ -267,11 +311,25 @@ class Command(BaseCommand):
             done = min(batch_start + self.batch_size, total)
             self.stdout.write(f"  ... {done}/{total} lessons processed")
 
+    @staticmethod
+    def _parse_section_types(raw: Optional[str]) -> Optional[set[str]]:
+        if raw is None or not str(raw).strip():
+            return None
+        allowed = {"text", "exercise", "video"}
+        parts = {p.strip().lower() for p in str(raw).split(",") if p.strip()}
+        unknown = parts - allowed
+        if unknown:
+            raise CommandError(
+                f"Unknown --section-types values: {', '.join(sorted(unknown))}. "
+                f"Use one or more of: {', '.join(sorted(allowed))}."
+            )
+        return parts or None
+
     def _translate_one_lesson(self, lesson: Lesson):
         course_title = lesson.course.title if lesson.course else ""
         lesson_ctx = {"course": course_title, "lesson": lesson.title}
 
-        if not self._should_skip(LessonTranslation, "lesson", lesson):
+        if not self.sections_only and not self._should_skip(LessonTranslation, "lesson", lesson):
             detail_clean = (
                 _clean_html_to_text(lesson.detailed_content) if lesson.detailed_content else ""
             )
@@ -296,11 +354,18 @@ class Command(BaseCommand):
             lesson.sections.order_by("order").prefetch_related("translations")
         )
         for section in sections:
-            if self._should_skip(LessonSectionTranslation, "section", section):
+            if self.section_types is not None and section.content_type not in self.section_types:
                 continue
-
             section_hash = self._section_source_hash(section)
-            if self._is_fresh(LessonSectionTranslation, "section", section, section_hash):
+            ro_complete = self._section_translation_ro_complete(section)
+            if self.only_missing and ro_complete and not self.force_refresh:
+                self.stats["skipped"] += 1
+                continue
+            # source_hash can still match English even when exercise_data was cleared on the
+            # translation row (e.g. push_rewrites_to_railway); do not skip on hash alone then.
+            if ro_complete and self._is_fresh(
+                LessonSectionTranslation, "section", section, section_hash
+            ):
                 self.stats["skipped"] += 1
                 continue
 
@@ -389,6 +454,17 @@ class Command(BaseCommand):
             payload["text_content"] = None
             return payload
 
+        if section.content_type == "video":
+            source_text = _clean_html_to_text(section.text_content or "")
+            if source_text:
+                payload["text_content"] = self._safe_translate(
+                    source_text, {**base_ctx, "field": "section_text_content"}
+                )
+            else:
+                payload["text_content"] = None
+            payload["exercise_data"] = None
+            return payload
+
         return payload or None
 
     # ------------------------------------------------------------------
@@ -420,6 +496,52 @@ class Command(BaseCommand):
         )
         return existing == current_hash and bool(existing)
 
+    def _section_translation_ro_complete(self, section: LessonSection) -> bool:
+        """
+        True when an ro row exists and its text / exercise_data / video intro matches
+        current English structure (option counts, etc.).
+
+        Important: ``source_hash`` alone can still match English after ``exercise_data`` was
+        cleared on the row (same English JSON); callers must not treat ``_is_fresh`` as
+        sufficient without this check.
+        """
+        tr = (
+            LessonSectionTranslation.objects.filter(section=section, language=LANGUAGE_CODE)
+            .only("text_content", "exercise_data", "source_hash")
+            .first()
+        )
+        if not tr:
+            return False
+
+        if section.content_type == "text":
+            src = _clean_html_to_text(section.text_content or "")
+            if not src.strip():
+                return True
+            expected = self._section_source_hash(section)
+            if (tr.source_hash or "") != expected:
+                return False
+            return bool((tr.text_content or "").strip())
+
+        if section.content_type == "exercise":
+            src_data = section.exercise_data if isinstance(section.exercise_data, dict) else {}
+            src_opts = src_data.get("options") or []
+            if not src_opts:
+                return True
+            tr_data = tr.exercise_data if isinstance(tr.exercise_data, dict) else {}
+            tr_opts = tr_data.get("options") or []
+            return len(src_opts) == len(tr_opts) and len(tr_opts) > 0
+
+        if section.content_type == "video":
+            src = _clean_html_to_text(section.text_content or "")
+            if not src.strip():
+                return True
+            expected = self._section_source_hash(section)
+            if (tr.source_hash or "") != expected:
+                return False
+            return bool((tr.text_content or "").strip())
+
+        return True
+
     @staticmethod
     def _section_source_hash(section: LessonSection) -> str:
         parts = [section.title or ""]
@@ -427,6 +549,8 @@ class Command(BaseCommand):
             parts.append(_clean_html_to_text(section.text_content))
         elif section.content_type == "exercise" and isinstance(section.exercise_data, dict):
             parts.append(json.dumps(section.exercise_data, sort_keys=True, default=str))
+        elif section.content_type == "video":
+            parts.append(_clean_html_to_text(section.text_content or ""))
         return _source_hash("|".join(parts))
 
     def _safe_translate(self, text: str, context: Optional[Dict[str, Any]] = None) -> str:

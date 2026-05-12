@@ -62,6 +62,7 @@ import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioTool
 type PortfolioDashboardPayload = {
   entries: PortfolioEntry[];
   balance: number | null;
+  quotesUpdatedAt: number | null;
 };
 
 // ─── Allocation bar component ────────────────────────────────────────────────
@@ -480,6 +481,7 @@ export default function PortfolioScreen() {
       );
       const quoteMap = await fetchMarketQuotesMapRemote(quoteEntries, signal);
       const entries = applyQuotesToEntries(fetched, quoteMap);
+      const quotesUpdatedAt = quoteEntries.length > 0 ? Date.now() : null;
 
       let balance: number | null = null;
       try {
@@ -491,7 +493,7 @@ export default function PortfolioScreen() {
         balance = null;
       }
 
-      return { entries, balance };
+      return { entries, balance, quotesUpdatedAt };
     },
     enabled: entQuery.isFetched && hasPlus,
     staleTime: staleTimes.portfolioDashboard,
@@ -1040,6 +1042,7 @@ export default function PortfolioScreen() {
                 holdingsCount={filteredEntries.length}
                 totalCostBasis={totalCostBasis}
                 periodLabel={performanceStartLabel}
+                quotesUpdatedAt={portfolioQuery.data?.quotesUpdatedAt}
               />
             )}
 

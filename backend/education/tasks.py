@@ -285,6 +285,10 @@ def _translate_section(translator, section, ctx: Dict[str, Any]):
         data = section.exercise_data
         if isinstance(data, dict):
             source_parts.append(json.dumps(data, sort_keys=True, default=str))
+    elif section.content_type == "video":
+        text = _clean_html(section.text_content or "")
+        if text:
+            source_parts.append(text)
     current_hash = _source_hash("|".join(source_parts))
 
     existing = LessonSectionTranslation.objects.filter(
@@ -306,6 +310,15 @@ def _translate_section(translator, section, ctx: Dict[str, Any]):
     elif section.content_type == "exercise" and isinstance(section.exercise_data, dict):
         payload["exercise_data"] = translator.translate_exercise(section.exercise_data, base_ctx)
         payload["text_content"] = None
+    elif section.content_type == "video":
+        text = _clean_html(section.text_content or "")
+        if text:
+            payload["text_content"] = translator.translate_text(
+                text, {**base_ctx, "field": "section_text_content"}
+            )
+        else:
+            payload["text_content"] = None
+        payload["exercise_data"] = None
 
     with transaction.atomic():
         LessonSectionTranslation.objects.update_or_create(

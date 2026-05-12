@@ -46,7 +46,7 @@ Sentry.init({
     const msg =
       typeof err === "string"
         ? err
-        : (err as Error)?.message ?? event.message ?? "";
+        : ((err as Error)?.message ?? event.message ?? "");
     if (IGNORED_ERRORS.some((re) => re.test(msg))) return null;
     return event;
   },

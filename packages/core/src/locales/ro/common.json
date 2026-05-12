@@ -1,6 +1,7 @@
 {
   "common": {
-    "dismiss": "Poate mai târziu"
+    "dismiss": "Poate mai târziu",
+    "close": "Închide"
   },
   "gamification": {
     "ledger": {
@@ -31,7 +32,8 @@
     "ariaLogout": "Deconectare",
     "ariaGoToProfile": "Mergi la profil",
     "ariaToggleMenu": "Deschide/închide meniul de navigare",
-    "ariaAccountMenu": "Deschide meniul contului"
+    "ariaAccountMenu": "Deschide meniul contului",
+    "menu": "Cont"
   },
   "language": {
     "label": "Limbă",
@@ -483,6 +485,12 @@
       "selectTool": "Alege un instrument"
     },
     "groups": {
+      "personal-cfo": {
+        "title": "CFO personal",
+        "label": "CFO",
+        "description": "Centrul tău ghidat de comandă financiară: obiective, buget și portofoliu.",
+        "imageAlt": "Hub-ul Personal CFO"
+      },
       "understand-world": {
         "title": "Înțelege lumea",
         "label": "Lume",
@@ -503,6 +511,36 @@
       }
     },
     "entries": {
+      "personal-cfo": {
+        "title": "CFO personal",
+        "promise": "Centrul tău financiar mereu disponibil.",
+        "description": "Reunește obiective, economii, buget, portofoliu și pași următori într-un singur loc.",
+        "mostUsefulFor": "Oricine vrea un plan ghidat pentru buget, obiective și investiții.",
+        "whatItDoes": "Conectează instrumentele Garzoni într-o experiență unitară ghidată.",
+        "sampleUseCase": "Setează un obiectiv, construiește un buget și revizuiește portofoliul în 20 de minute.",
+        "whoItsFor": "Membrii Plus și Pro care vor un cockpit financiar unic.",
+        "questionItAnswers": "Cum stau financiar și care este următoarea mea mișcare?"
+      },
+      "budget-planner": {
+        "title": "Buget și cheltuieli",
+        "promise": "Construiește plicuri, urmărește cheltuielile și prinde din timp depășirile.",
+        "description": "Conectează un cont sau importă tranzacții pentru a urmări fluxul lunar.",
+        "mostUsefulFor": "Oricine vrea să știe pe ce se duc banii lunar.",
+        "whatItDoes": "Urmărește cheltuielile pe categorii față de plicuri și emite alerte.",
+        "sampleUseCase": "Vezi dacă cheltuielile la alimentare au crescut și reechilibrează luna următoare.",
+        "whoItsFor": "Persoane care vor un buget care se actualizează cu activitatea reală.",
+        "questionItAnswers": "Cheltuiesc mai puțin decât câștig și rămân în plan?"
+      },
+      "savings-calculator": {
+        "title": "Calculator obiectiv de economii",
+        "promise": "Proiectează creșterea compusă către o țintă de economii.",
+        "description": "Rulează proiecții rapide după sumă inițială, rată și perioadă.",
+        "mostUsefulFor": "Oricine testează cât durează să atingă un obiectiv la o anumită rată.",
+        "whatItDoes": "Calculează economiile finale cu frecvențe de compunere selectabile.",
+        "sampleUseCase": "Vezi cum se transformă 1.000$ + 200$/lună la 5% în 5 ani.",
+        "whoItsFor": "Învățăcei care vor un scenariu rapid fără foi de calcul.",
+        "questionItAnswers": "Cât de mult ar putea crește economiile mele până la data țintă?"
+      },
       "portfolio": {
         "title": "Analizor portofoliu",
         "promise": "Vezi dacă portofoliul ți se potrivește cu obiectivele și riscul.",
@@ -622,6 +660,233 @@
         "sampleUseCase": "Estimează valoarea pip înainte să mergi mai adânc în concepte FX.",
         "whoItsFor": "Învățăcei care explorează mecanica forex, nu execuția live.",
         "questionItAnswers": "Care este valoarea pip pentru perechea și lotul meu?"
+      }
+    },
+    "personalCfo": {
+      "eyebrow": "CFO personal",
+      "title": "Activează-ți CFO-ul personal",
+      "greeting": "Salut {{name}} — CFO-ul tău e pregătit",
+      "subtitle": "Planifică obiective, urmărește cheltuielile, revizuiește investițiile și acționează — într-un singur loc.",
+      "activityLabel": "A deschis CFO personal",
+      "progressTitle": "Progres în plan",
+      "progressSubtitle": "{{done}} din {{total}} pași finalizați",
+      "estimatedMinutes": "~{{count}} min",
+      "markComplete": "Marchează ca făcut",
+      "markIncomplete": "Marchează ca nefăcut",
+      "badges": {
+        "preview": "Previzualizare",
+        "done": "Gata",
+        "new": "Nou"
+      },
+      "cta": {
+        "open": "Deschide",
+        "revisit": "Revizitează",
+        "preview": "Previzualizează"
+      },
+      "jobs": {
+        "plan": "Planifică",
+        "track": "Urmărește",
+        "invest": "Investește",
+        "scout": "Explorează",
+        "act": "Acționează"
+      },
+      "steps": {
+        "goals": {
+          "title": "Setează obiective realiste",
+          "description": "Testează un obiectiv cu fluxul tău real de numerar.",
+          "because": "Orice plan are nevoie de o țintă realistă."
+        },
+        "savings": {
+          "title": "Proiectează economiile",
+          "description": "Estimează creșterea la diferite rate și perioade.",
+          "because": "Creșterea compusă schimbă ceea ce este realist."
+        },
+        "budget": {
+          "title": "Urmărește buget și cheltuieli",
+          "description": "Construiește plicuri și urmărește fluxul de numerar pe categorii.",
+          "because": "Nu există plan fără o imagine reală a cheltuielilor."
+        },
+        "portfolio": {
+          "title": "Revizuiește portofoliul",
+          "description": "Verifică concentrarea, alocarea și echilibrul de risc.",
+          "because": "Driftul crește riscul în timp, fără să observi."
+        },
+        "market": {
+          "title": "Explorează oportunități",
+          "description": "Privește piețele cu cadru pe termen lung, fără zgomot.",
+          "because": "Ce urmărești influențează ce faci în continuare."
+        },
+        "next-steps": {
+          "title": "Acționează pe pașii următori",
+          "description": "Primește 1–3 acțiuni clare, potrivite pentru tine.",
+          "because": "Momentumul bate perfecțiunea."
+        }
+      },
+      "summary": {
+        "title": "Săptămâna ta cu CFO-ul",
+        "updated": "Actualizat {{date}}",
+        "loading": "Generăm rezumatul tău CFO…"
+      },
+      "errors": {
+        "summaryFailed": "Nu am putut încărca rezumatul. Încearcă din nou mai târziu.",
+        "upgradeRequired": "Rezumatul Personal CFO este inclus în Plus și Pro."
+      },
+      "disclaimer": {
+        "title": "Educativ, nu sfat financiar.",
+        "body": "Personal CFO te ajută să planifici cu datele tale. Nu este consilier autorizat și nu execută tranzacții."
+      },
+      "openDashboard": "Deschide tabloul CFO"
+    },
+    "cfoDashboard": {
+      "eyebrow": "Tabloul tău CFO",
+      "title": "Imaginea completă",
+      "subtitle": "Avere netă, obiective, risc de portofoliu, cheltuieli și o proiecție pe 10 ani — totul într-un loc.",
+      "loading": "Calculăm cifrele tale…",
+      "retry": "Reîncearcă",
+      "reviewSteps": "Revedem pașii",
+      "askCfo": "Întreabă-ți CFO-ul",
+      "errors": {
+        "loadFailed": "Nu am putut încărca tabloul de bord. Încearcă din nou.",
+        "upgradeRequired": "Tabloul CFO este inclus în Plus și Pro."
+      },
+      "kpis": {
+        "netWorth": "Avere netă",
+        "netWorthHint_one": "{{count}} activ real",
+        "netWorthHint_few": "{{count}} active reale",
+        "netWorthHint_other": "{{count}} active reale",
+        "savingsRate": "Rata de economii",
+        "savingsRateHint": "Economisești {{saved}} luna asta",
+        "linkBudget": "Conectează un cont pentru a calcula",
+        "riskScore": "Diversificare",
+        "diversification": {
+          "well_diversified": "Bine distribuit pe clase de active",
+          "moderately_diversified": "Concentrare moderată — adaugă o nouă clasă",
+          "concentrated": "Portofoliu foarte concentrat"
+        },
+        "netWorthHint": "{{count}} active reale"
+      },
+      "ai": {
+        "title": "Insighturi AI",
+        "sourceLive": "Analiza ta CFO personalizată",
+        "sourceFallback": "Rezumat de coaching",
+        "chat": "Discută"
+      },
+      "goals": {
+        "title": "Progres obiective",
+        "subtitle": "{{done}} din {{total}} obiectiv(e) pe drumul cel bun.",
+        "onTrack": "În grafic",
+        "behind": "În urmă",
+        "projected": "Estimat: {{date}}"
+      },
+      "portfolio": {
+        "title": "Detaliu portofoliu",
+        "subtitle": "Total {{total}} • {{dir}} {{gain}} față de cost",
+        "up": "în creștere",
+        "down": "în scădere",
+        "topHoldings": "Cele mai mari poziții",
+        "cols": {
+          "symbol": "Simbol",
+          "value": "Valoare",
+          "gain": "Câștig / Pierdere"
+        }
+      },
+      "spending": {
+        "title": "Cheltuieli luna aceasta",
+        "subtitle": "Venit {{income}} • Cheltuit {{spent}}",
+        "spent": "Cheltuit",
+        "target": "Țintă"
+      },
+      "projections": {
+        "title": "Avere netă — perspectivă 10 ani",
+        "subtitle": "Pornind de la {{start}} • adăugând {{monthly}}/lună",
+        "yearShort": "A{{year}}",
+        "afterYears": "după {{years}} ani",
+        "conservative": "Conservator",
+        "moderate": "Moderat",
+        "optimistic": "Optimist"
+      }
+    },
+    "cfoCoach": {
+      "eyebrow": "AI Personal CFO",
+      "title": "Discută cu CFO-ul tău",
+      "greeting": "Salut! Sunt CFO-ul tău personal. Întreabă-mă despre obiective, cheltuieli, portofoliu sau proiecții. Pot rula și scenarii — încearcă „ce se întâmplă dacă economisesc 200 USD în plus pe lună?\".",
+      "placeholder": "Întreabă despre banii tăi…",
+      "send": "Trimite",
+      "thinking": "Mă gândesc…",
+      "quickPrompts": "Sugestii rapide",
+      "tryAsking": "Întreabă-mă despre:",
+      "prompts": {
+        "ontrack": "Sunt pe drumul cel bun cu obiectivele mele?",
+        "invest_more": "Ce dacă investesc 200 USD în plus pe lună?",
+        "diversify": "Cât de diversificat e portofoliul meu?",
+        "cut_spending": "Unde ar trebui să tai din cheltuieli?"
+      },
+      "errors": {
+        "empty": "Nu am reușit să formulez un răspuns. Încearcă din nou.",
+        "generic": "Coach-ul este offline. Te rugăm reîncearcă peste un moment.",
+        "upgrade": "Coach-ul AI CFO este inclus în Plus și Pro.",
+        "rateLimit": "Ai atins limita zilnică. Încearcă din nou mâine."
+      }
+    },
+    "marketExplorer": {
+      "trackReal": {
+        "cta": "Adaugă activ real",
+        "subtitle": "În portofoliul meu",
+        "practiceCta": "Trade simulat",
+        "practiceSubtitle": "Bani virtuali",
+        "title": "Adaugă deținere reală {{symbol}}",
+        "hint": "Înregistrează o poziție pe care deja o deții. Intră direct în portofoliul tău real.",
+        "quantity": "Cantitate deținută",
+        "price": "Preț mediu (per unitate)",
+        "date": "Data cumpărării",
+        "submit": "Adaugă în portofoliu",
+        "success": "Adăugat în portofoliul tău",
+        "failed": "Nu am putut adăuga. Verifică valorile și încearcă din nou."
+      }
+    },
+    "budgetPlanner": {
+      "eyebrow": "Buget și cheltuieli",
+      "title": "Planificator de buget",
+      "subtitle": "Conectează un cont sau importă tranzacții pentru a urmări cheltuielile și a rămâne în plan.",
+      "activityLabel": "Buget revizuit",
+      "linkAccount": "Conectează cont",
+      "relinkAccount": "Reconectează contul",
+      "providerUnavailable": "Conectarea conturilor bancare urmează. Poți crea bugete și importa CSV.",
+      "totals": {
+        "income": "Venituri luna aceasta",
+        "spent": "Cheltuieli luna aceasta",
+        "netFlow": "Flux net",
+        "overBudgetCount_one": "{{count}} categorie peste buget",
+        "overBudgetCount_few": "{{count}} categorii peste buget",
+        "overBudgetCount_other": "{{count}} categorii peste buget",
+        "overBudgetCount": "{{count}} categorii peste buget"
+      },
+      "envelopes": {
+        "title": "Plicuri de buget",
+        "subtitle": "Setează o țintă lunară per categorie.",
+        "empty": "Nicio țintă încă — adaugă una mai jos.",
+        "labelPlaceholder": "Etichetă (ex. Alimente)",
+        "targetPlaceholder": "Țintă lunară",
+        "add": "Adaugă plic",
+        "adding": "Se adaugă…"
+      },
+      "byCategory": {
+        "title": "Cheltuieli pe categorii"
+      },
+      "categories": {
+        "housing": "Locuință",
+        "groceries": "Alimente",
+        "transport": "Transport",
+        "utilities": "Utilități",
+        "entertainment": "Divertisment",
+        "savings": "Economii",
+        "other": "Altele"
+      },
+      "errors": {
+        "loadFailed": "Nu am putut încărca datele bugetului.",
+        "createFailed": "Nu am putut adăuga plicul. Încearcă din nou.",
+        "linkUnavailable": "Conectarea conturilor nu este disponibilă în regiunea ta.",
+        "notEntitled": "Planificatorul de buget este inclus în Plus și Pro."
       }
     },
     "realityCheck": {

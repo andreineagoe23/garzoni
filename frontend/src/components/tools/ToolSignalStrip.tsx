@@ -166,6 +166,11 @@ function ToolSwitcherDropdown({
                   <span className="flex-1 truncate">
                     {t(`tools.entries.${tool.id}.title`)}
                   </span>
+                  {tool.id === "personal-cfo" && (
+                    <span className="rounded-full bg-[color:var(--primary)]/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-[color:var(--primary)]">
+                      {t("tools.personalCfo.badges.new")}
+                    </span>
+                  )}
                   {tool.requiredPlan === "plus_or_pro" && (
                     <span className="text-[9px] font-bold uppercase text-[#e6c87a]">
                       +
@@ -281,10 +286,10 @@ const ToolSignalStrip = ({
           </Link>
         )}
 
-        {/* Chip 3: Next Steps — always present */}
+        {/* Chip 3: Personal CFO hub — always present */}
         <Link
-          to="/tools/next-steps"
-          className="flex items-center gap-2 rounded-full border border-[color:var(--primary)]/30 bg-brand-primary/[0.08] px-3 py-1.5 text-xs font-semibold text-[color:var(--primary)] transition hover:border-[color:var(--primary)]/60"
+          to="/tools/personal-cfo"
+          className="flex items-center gap-2 rounded-full border border-[color:var(--primary)]/40 bg-brand-primary/[0.12] px-3 py-1.5 text-xs font-semibold text-[color:var(--primary)] transition hover:border-[color:var(--primary)]/70"
         >
           <svg
             width="12"
@@ -292,6 +297,39 @@ const ToolSignalStrip = ({
             viewBox="0 0 16 16"
             fill="none"
             aria-hidden="true"
+          >
+            <path
+              d="M2 4h12v8H2z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M5 7l2 2 4-4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>{t("tools.entries.personal-cfo.title")}</span>
+          <span className="rounded-full bg-[color:var(--primary)]/15 px-1.5 text-[9px] font-bold uppercase tracking-wide">
+            {t("tools.personalCfo.badges.new")}
+          </span>
+        </Link>
+
+        {/* Chip 4: Next Steps secondary */}
+        <Link
+          to="/tools/next-steps"
+          className="flex items-center gap-2 rounded-full border border-[color:var(--border-color)] px-3 py-1.5 text-xs font-medium text-content-muted transition hover:border-[color:var(--primary)]/40 hover:text-content-primary"
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+            className="text-[color:var(--primary)]"
           >
             <path
               d="M3 8h10M9 4l4 4-4 4"

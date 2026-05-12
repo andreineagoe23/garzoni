@@ -26,6 +26,8 @@ FEATURE_FLAGS = {
     "ai_coach_brief": "feature.ai.coach_brief",
     "ai_voice": "feature.ai.voice",
     "ai_scan": "feature.ai.scan",
+    "personal_cfo": "feature.cfo.hub",
+    "budget_tracking": "feature.budgeting.tracking",
 }
 
 PLAN_ORDER = {
@@ -98,6 +100,16 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": 0,
                 "description": "Receipt scan (Pro only)",
             },
+            "personal_cfo": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Personal CFO hub (Plus/Pro only)",
+            },
+            "budget_tracking": {
+                "enabled": False,
+                "daily_quota": 0,
+                "description": "Budget & spending tracking (Plus/Pro only)",
+            },
         },
     },
     "plus": {
@@ -158,6 +170,16 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "daily_quota": 0,
                 "description": "Receipt scan (Pro only)",
             },
+            "personal_cfo": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Personal CFO hub orchestrating goals, budget, portfolio.",
+            },
+            "budget_tracking": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Budget envelopes and spending tracking",
+            },
         },
     },
     "pro": {
@@ -217,6 +239,16 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
                 "enabled": True,
                 "daily_quota": 5,
                 "description": "5 receipt/statement scans per day",
+            },
+            "personal_cfo": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Personal CFO hub with priority insights and bank links.",
+            },
+            "budget_tracking": {
+                "enabled": True,
+                "daily_quota": None,
+                "description": "Budget envelopes and spending tracking with bank linking",
             },
         },
     },

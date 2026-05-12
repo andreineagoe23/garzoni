@@ -26,8 +26,10 @@ import { spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
+import { trackGarzoniEvent } from "../../src/bootstrap/customerIoMobile";
 
 const ALL_GROUPS: ToolGroup[] = [
+  "personal-cfo",
   "understand-world",
   "understand-myself",
   "decide-next",
@@ -138,8 +140,18 @@ export default function ToolsHubScreen() {
                     return;
                   }
                   if (locked) {
+                    void trackGarzoniEvent("personal_cfo_upgrade_prompt", {
+                      source_tool: tool.id,
+                      surface: "mobile",
+                    });
                     setPlusSheetVisible(true);
                     return;
+                  }
+                  if (tool.id === "personal-cfo") {
+                    void trackGarzoniEvent("personal_cfo_open", {
+                      source: "tools_hub",
+                      surface: "mobile",
+                    });
                   }
                   router.push(href(`/(tabs)/tools/${tool.route}`));
                 }}

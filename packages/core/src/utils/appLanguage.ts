@@ -8,10 +8,29 @@ const normalizeLanguage = (value?: string | null) => {
   return DEFAULT_LANGUAGE;
 };
 
+/** React Native / tests: set from host after i18n init so API headers match UI language. */
+let languageResolver: (() => string) | null = null;
+
 /**
- * Current app language for API headers, without importing react-i18next (shared by web and future mobile).
+ * Register how to read the active UI language for HTTP headers (e.g. `() => i18n.language`).
+ * Pass `null` to clear. Web can omit this and rely on `localStorage` + `navigator`.
+ */
+export function setAppLanguageResolver(resolver: (() => string) | null): void {
+  languageResolver = resolver;
+}
+
+/**
+ * Current app language for API headers, without importing react-i18next in the axios layer.
+ * Order: native resolver (Expo), then browser storage + navigator, else default.
  */
 export function getCurrentAppLanguage(): string {
+  if (languageResolver) {
+    try {
+      return normalizeLanguage(languageResolver());
+    } catch {
+      /* fall through */
+    }
+  }
   if (typeof window === "undefined") return DEFAULT_LANGUAGE;
   try {
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);

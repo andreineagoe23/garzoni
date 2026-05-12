@@ -837,20 +837,23 @@ export default function SubscriptionsScreen() {
     });
 
     const plan = entitlements?.plan;
+    const navigate = () => {
+      setPurchaseStep("idle");
+      setPurchasingTier(null);
+      if (isPaywall) router.replace("/(tabs)");
+      else router.back();
+    };
+
     if (planRank(plan) >= 1 && (plan === "plus" || plan === "pro")) {
       setPurchasingTier(plan);
       setPurchaseStep("success");
-      setTimeout(() => {
-        setPurchaseStep("idle");
-        setPurchasingTier(null);
-        if (isPaywall) router.replace("/(tabs)");
-        else router.back();
-      }, 1400);
+      setTimeout(navigate, 1400);
     } else if (detectedTier) {
-      setPurchaseError(
-        "Apple shows an active subscription, but your Garzoni account hasn't updated yet. Tap Retry.",
-      );
-      setPurchaseStep("error");
+      // RC confirmed entitlement but backend webhook hasn't fired yet — navigate
+      // immediately using RC as source of truth; backend will sync via webhook.
+      setPurchasingTier(detectedTier);
+      setPurchaseStep("success");
+      setTimeout(navigate, 1400);
     } else {
       setPurchaseError(
         "If your code was accepted, wait a moment and tap Restore purchases — or try again shortly.",
@@ -981,7 +984,20 @@ export default function SubscriptionsScreen() {
               />
             )}
 
-            {/* Paywall footer: restore + redeem + skip (Apple guideline 3.1.1) */}
+            {/* Skip for now — own row so it's reachable without scrolling */}
+            {isPaywall && (
+              <View style={styles.skipWrap}>
+                <Pressable
+                  onPress={() => router.replace("/(tabs)")}
+                  accessibilityRole="button"
+                  hitSlop={12}
+                >
+                  <Text style={styles.skipText}>Skip for now</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* Paywall footer: restore + redeem (Apple guideline 3.1.1) */}
             {isPaywall && (
               <View style={styles.paywallFooter}>
                 <Pressable
@@ -1001,13 +1017,6 @@ export default function SubscriptionsScreen() {
                     </Pressable>
                   </>
                 )}
-                <Text style={styles.utilityDot}>·</Text>
-                <Pressable
-                  onPress={() => router.replace("/(tabs)")}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.skipText}>Skip for now</Text>
-                </Pressable>
               </View>
             )}
 
@@ -1422,9 +1431,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   skipText: {
-    fontSize: typography.sm,
-    color: D.faint,
+    fontSize: typography.base,
+    color: "rgba(229,231,235,0.55)",
     fontWeight: "500",
+    textDecorationLine: "underline",
   },
   legal: {
     fontSize: 11,

@@ -13,12 +13,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from education.utils import get_request_language
+
 logger = logging.getLogger(__name__)
 
-_SMART_RESUME_SYSTEM = (
+_SMART_RESUME_SYSTEM_EN = (
     "You are Garzoni. In 12 words or fewer, suggest the single most valuable thing "
     "this student should do in the app right now based on their data. "
-    "Be specific and motivating. No emojis. No punctuation at the end."
+    "Be specific and motivating. No emojis. No punctuation at the end. "
+    "Write your answer in English."
+)
+_SMART_RESUME_SYSTEM_RO = (
+    "You are Garzoni. In 12 words or fewer, suggest the single most valuable thing "
+    "this student should do in the app right now based on their data. "
+    "Be specific and motivating. No emojis. No punctuation at the end. "
+    "Write your answer in Romanian."
 )
 
 
@@ -34,14 +43,15 @@ class SmartResumeView(APIView):
 
     def get(self, request):
         user = request.user
-        cache_key = f"smart_resume:{user.id}"
+        lang = get_request_language(request)
+        cache_key = f"smart_resume:{user.id}:{lang}"
         cached = cache.get(cache_key)
         if cached:
             return Response({"action": cached, "cached": True})
 
         try:
             from support.services.tools import _get_weak_skills, _get_user_progress
-            from support.services.openai import _get_openai_client, _model_for_user
+            from support.services.openai import _get_openai_client
             import json
 
             progress = _get_user_progress(user)
@@ -56,11 +66,13 @@ class SmartResumeView(APIView):
                 default=str,
             )
 
+            system = _SMART_RESUME_SYSTEM_RO if lang == "ro" else _SMART_RESUME_SYSTEM_EN
+
             client = _get_openai_client()
             resp = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": _SMART_RESUME_SYSTEM},
+                    {"role": "system", "content": system},
                     {"role": "user", "content": context},
                 ],
                 max_tokens=30,

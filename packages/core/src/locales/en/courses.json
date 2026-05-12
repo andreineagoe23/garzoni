@@ -49,6 +49,7 @@
     "couldNotUpdateOrdering": "Could not update ordering.",
     "savingChanges": "Saving changes...",
     "couldNotSaveChanges": "Could not save changes.",
+    "stepSections": "{{current}} / {{total}} sections",
     "noLessonContent": "No lesson content available.",
     "lessonFallback": "Lesson",
     "noSectionContent": "No content available for this section.",

@@ -62,6 +62,10 @@ export type {
 } from "./services/marketData";
 
 export { initGarzoniI18n, i18n, normalizeLanguage } from "./i18n";
+export {
+  setAppLanguageResolver,
+  getCurrentAppLanguage,
+} from "./utils/appLanguage";
 
 export { useProgressStore } from "./stores/progressStore";
 

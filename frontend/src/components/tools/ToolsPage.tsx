@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import UpsellModal from "components/billing/UpsellModal";
 import ToolSignalStrip, { type ToolStripToolbar } from "./ToolSignalStrip";
 import { recordToolEvent } from "services/toolsAnalytics";
+import { recordFunnelEvent } from "services/analyticsService";
 import {
   TOOL_STORAGE_KEYS,
   toolByRoute,
@@ -35,19 +36,26 @@ import {
 const TOOL_BASE_PATH = "/tools";
 const TOOL_FEEDBACK_EMAIL = "hello@garzoni.app";
 
-/** When no valid last-tool in session, open this route (education-first). */
-const DEFAULT_TOOL_ROUTE = "next-steps";
+/**
+ * Default route when no last-tool is in session.
+ *  - Plus/Pro users land on the Personal CFO hub so the cockpit is the first thing they see.
+ *  - Starter users still see the educational Next Steps tool (free).
+ */
+const DEFAULT_TOOL_ROUTE_PAID = "personal-cfo";
+const DEFAULT_TOOL_ROUTE_FREE = "next-steps";
 
 type ToolNavSource = "sidebar" | "mobile_dropdown" | "deep_link";
 
-function getDefaultToolRoute(): string {
-  if (typeof window === "undefined") return DEFAULT_TOOL_ROUTE;
+function getDefaultToolRoute(plan?: string | null): string {
+  const hasPlus = plan === "plus" || plan === "pro";
+  const fallback = hasPlus ? DEFAULT_TOOL_ROUTE_PAID : DEFAULT_TOOL_ROUTE_FREE;
+  if (typeof window === "undefined") return fallback;
   const id = sessionStorage.getItem(TOOL_STORAGE_KEYS.lastTool);
   if (id) {
     const tool = toolsRegistry.find((t) => t.id === id);
     if (tool) return tool.route;
   }
-  return DEFAULT_TOOL_ROUTE;
+  return fallback;
 }
 
 const getSessionId = () => {
@@ -79,17 +87,27 @@ const ToolLoadingSkeleton = () => (
   </div>
 );
 
-const ToolsIndexRedirect = () => (
-  <Navigate to={`${TOOL_BASE_PATH}/${getDefaultToolRoute()}`} replace />
-);
+const ToolsIndexRedirect = () => {
+  const { entitlements } = useAuth();
+  return (
+    <Navigate
+      to={`${TOOL_BASE_PATH}/${getDefaultToolRoute(entitlements?.plan ?? null)}`}
+      replace
+    />
+  );
+};
 
 const UnknownToolRedirect = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { entitlements } = useAuth();
   useEffect(() => {
     toast.error(t("tools.errors.toolNotFound"));
-    navigate(`${TOOL_BASE_PATH}/${getDefaultToolRoute()}`, { replace: true });
-  }, [navigate, t]);
+    navigate(
+      `${TOOL_BASE_PATH}/${getDefaultToolRoute(entitlements?.plan ?? null)}`,
+      { replace: true }
+    );
+  }, [navigate, t, entitlements?.plan]);
   return null;
 };
 
@@ -289,6 +307,12 @@ const ToolsPage = () => {
         session_id: sessionIdRef.current,
       });
       recordToolEvent("tool_open", currentToolId, { source });
+      if (currentToolId === "personal-cfo") {
+        recordFunnelEvent("personal_cfo_open", {
+          session_id: sessionIdRef.current,
+          metadata: { source, surface: "web" },
+        }).catch(() => undefined);
+      }
 
       if (activeTool?.id && lastToolStored === activeTool.id) {
         const returnKey = `garzoni:tools:return:${activeTool.id}`;

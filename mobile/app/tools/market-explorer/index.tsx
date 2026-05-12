@@ -38,7 +38,10 @@ import type {
 } from "../../../src/types/market-explorer";
 import { TabBar } from "../../../src/components/tools/market-explorer/TabBar";
 import { AssetCard } from "../../../src/components/tools/market-explorer/AssetCard";
-import { QuoteSheet } from "../../../src/components/tools/market-explorer/QuoteSheet";
+import {
+  QuoteSheet,
+  type TrackRealHoldingInput,
+} from "../../../src/components/tools/market-explorer/QuoteSheet";
 import { logDevError } from "../../../src/lib/logDevError";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
 import { getMarketQuoteQueryOptions } from "../../../src/hooks/useMarketQuote";
@@ -273,6 +276,41 @@ export default function MarketExplorerScreen() {
     [invalidatePortfolioTools, marketSearchQuery, selectedAsset],
   );
 
+  const handleTrackReal = useCallback(
+    async (input: TrackRealHoldingInput) => {
+      if (!selectedAsset) return;
+      const assetType =
+        tab === "crypto" ? "crypto" : tab === "forex" ? "other" : "stock";
+      try {
+        await (apiClient as any).post("/portfolio/", {
+          asset_type: assetType,
+          symbol: selectedAsset.ticker.toUpperCase(),
+          quantity: input.quantity,
+          purchase_price: input.purchasePrice,
+          purchase_date: input.purchaseDate,
+          is_paper_trade: false,
+        });
+        Alert.alert(
+          "Added to your portfolio",
+          `${input.quantity} ${selectedAsset.ticker.toUpperCase()} tracked as a real holding.`,
+        );
+        await invalidatePortfolioTools();
+      } catch (e: unknown) {
+        logDevError("tools/market-explorer/track-real", e);
+        const err = e as {
+          response?: { data?: { error?: string; detail?: string } };
+        };
+        Alert.alert(
+          "Could not add holding",
+          err?.response?.data?.error ??
+            err?.response?.data?.detail ??
+            "Please check the values and try again.",
+        );
+      }
+    },
+    [invalidatePortfolioTools, selectedAsset, tab],
+  );
+
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: "Market Explorer" }} />
@@ -387,6 +425,7 @@ export default function MarketExplorerScreen() {
           setQuoteWarning(null);
         }}
         onConfirmBuy={handleConfirmBuy}
+        onTrackReal={handleTrackReal}
       />
     </View>
   );

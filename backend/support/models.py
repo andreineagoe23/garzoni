@@ -74,6 +74,8 @@ class Conversation(models.Model):
         ("exercise_explain", "Exercise Explain"),
         ("voice", "Voice"),
         ("coach_brief", "Coach Brief"),
+        ("cfo_coach", "CFO Coach"),
+        ("cfo_coach_archived", "CFO Coach (Archived)"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_conversations")

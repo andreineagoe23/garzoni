@@ -786,8 +786,10 @@ export default function LessonFlowScreen({
               <View />
             )}
             <Text style={styles.stepFoot}>
-              {Math.min(currentIndex + 1, Math.max(totalSteps, 1))} /{" "}
-              {Math.max(totalSteps, 1)} sections
+              {t("courses.flow.stepSections", {
+                current: Math.min(currentIndex + 1, Math.max(totalSteps, 1)),
+                total: Math.max(totalSteps, 1),
+              })}
             </Text>
           </View>
         </View>

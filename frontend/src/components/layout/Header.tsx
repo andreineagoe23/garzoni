@@ -121,7 +121,7 @@ function Header() {
                   onClick={() => navigate("/register")}
                   variant="active"
                   size="sm"
-                  className="sm:px-4 sm:py-2 sm:text-sm"
+                  className="sm:px-4 sm:py-2"
                 >
                   {t("header.getStarted")}
                 </GlassButton>

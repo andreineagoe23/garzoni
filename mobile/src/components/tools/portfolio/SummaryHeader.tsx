@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Animated, StyleSheet } from "react-native";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../../theme/tokens";
@@ -11,7 +11,26 @@ type Props = {
   holdingsCount: number;
   totalCostBasis: number;
   periodLabel?: string | null;
+  quotesUpdatedAt?: number | null;
 };
+
+function usePriceAge(updatedAt: number | null | undefined): string | null {
+  const [label, setLabel] = useState<string | null>(null);
+  useEffect(() => {
+    if (!updatedAt) {
+      setLabel(null);
+      return;
+    }
+    const update = () => {
+      const mins = Math.floor((Date.now() - updatedAt) / 60_000);
+      setLabel(mins <= 0 ? "just now" : `${mins}m ago`);
+    };
+    update();
+    const id = setInterval(update, 30_000);
+    return () => clearInterval(id);
+  }, [updatedAt]);
+  return label;
+}
 
 export function SummaryHeader({
   summary,
@@ -19,10 +38,12 @@ export function SummaryHeader({
   holdingsCount,
   totalCostBasis,
   periodLabel,
+  quotesUpdatedAt,
 }: Props) {
   const c = useThemeColors();
   const isGain = (summary.total_gain_loss ?? 0) >= 0;
   const gainColor = isGain ? c.success : c.error;
+  const priceAge = usePriceAge(quotesUpdatedAt);
 
   // Animated bar for gain/loss indicator
   const barAnim = useRef(new Animated.Value(0)).current;
@@ -46,9 +67,17 @@ export function SummaryHeader({
           shadows.md,
         ]}
       >
-        <Text style={[styles.label, { color: c.textMuted }]}>
-          Portfolio Value
-        </Text>
+        <View style={styles.labelRow}>
+          <Text style={[styles.label, { color: c.textMuted }]}>
+            Portfolio Value
+          </Text>
+          {priceAge != null && (
+            <View style={styles.livePill}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
+          )}
+        </View>
         <Text
           style={[styles.bigValue, { color: c.text }]}
           numberOfLines={1}
@@ -57,7 +86,7 @@ export function SummaryHeader({
           {formatCurrency(summary.total_value || 0)}
         </Text>
         <Text style={[styles.sub, { color: c.textFaint }]}>
-          current market value
+          {priceAge != null ? `updated ${priceAge}` : "current market value"}
         </Text>
       </View>
 
@@ -140,11 +169,37 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.xs,
   },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
   label: {
     fontSize: typography.xs,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
+  },
+  livePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "rgba(34,197,94,0.15)",
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  liveDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: "#22c55e",
+  },
+  liveText: {
+    fontSize: 8,
+    fontWeight: "800",
+    color: "#22c55e",
+    letterSpacing: 0.6,
   },
   bigValue: {
     fontSize: typography.lg,

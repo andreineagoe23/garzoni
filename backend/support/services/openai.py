@@ -18,8 +18,18 @@ from rest_framework import status
 from authentication.entitlements import get_user_plan
 from authentication.models import UserProfile
 from education.models import Path, UserProgress, Mastery
-from support.prompts.tutor import TUTOR_SYSTEM, TUTOR_SYSTEM_WITH_CONTEXT, PROMPT_VERSION
-from support.services.tools import TOOL_DEFINITIONS, dispatch_tool
+from support.prompts.tutor import (
+    TUTOR_SYSTEM,
+    TUTOR_SYSTEM_WITH_CONTEXT,
+    PROMPT_VERSION,
+    CFO_COACH_SYSTEM,
+)
+from support.services.tools import (
+    TOOL_DEFINITIONS,
+    dispatch_tool,
+    CFO_TOOL_DEFINITIONS,
+    dispatch_cfo_tool,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +52,18 @@ def _model_for_user(user) -> str:
 
 
 class OpenAIService:
-    def __init__(self, request, request_with_backoff=None, check_and_consume_entitlement=None):
+    def __init__(
+        self,
+        request,
+        request_with_backoff=None,
+        check_and_consume_entitlement=None,
+        source_override: Optional[str] = None,
+    ):
         self.request = request
         self.user = request.user
         self.check_and_consume_entitlement = check_and_consume_entitlement
         self.path_links: Optional[Dict] = None
+        self._source_override = source_override
 
     # ------------------------------------------------------------------
     # Token budget helpers
@@ -253,9 +270,10 @@ class OpenAIService:
     # ------------------------------------------------------------------
 
     def handle(self):
-        prompt = self.request.data.get("inputs", "").strip()
+        prompt = (self.request.data.get("inputs") or self.request.data.get("message") or "").strip()
         parameters = self.request.data.get("parameters", {})
-        source = str(self.request.data.get("source") or "chat")[:64]
+        source = self._source_override or str(self.request.data.get("source") or "chat")[:64]
+        is_cfo = source == "cfo_coach"
         exercise_context = self.request.data.get("exercise_context")
         request_id = getattr(self.request, "request_id", None)
 
@@ -302,25 +320,25 @@ class OpenAIService:
                     status_code,
                 )
 
-            # Quick-reply shortcuts (no LLM call)
-            if self.path_links is None:
-                self.get_available_paths()
+            # Quick-reply shortcuts (no LLM call) — skip for CFO source
+            if not is_cfo:
+                if self.path_links is None:
+                    self.get_available_paths()
 
-            if self.is_greeting(prompt):
-                return {
-                    "response": "Hi! I'm your Garzoni finance tutor. What would you like to learn today?"
-                }, 200
+                if self.is_greeting(prompt):
+                    return {
+                        "response": "Hi! I'm your Garzoni finance tutor. What would you like to learn today?"
+                    }, 200
 
-            if self.is_reset_query(prompt):
-                # Archive the old conversation
-                from support.models import Conversation
+                if self.is_reset_query(prompt):
+                    from support.models import Conversation
 
-                Conversation.objects.filter(user=self.user, source=source).update(
-                    source=f"{source}_archived"
-                )
-                return {
-                    "response": "Conversation reset. What financial topic shall we tackle?"
-                }, 200
+                    Conversation.objects.filter(user=self.user, source=source).update(
+                        source=f"{source}_archived"
+                    )
+                    return {
+                        "response": "Conversation reset. What financial topic shall we tackle?"
+                    }, 200
 
             if not self._check_token_budget():
                 return {"error": "Daily AI usage limit reached. Resets at midnight UTC."}, 429
@@ -332,23 +350,30 @@ class OpenAIService:
             client = _get_openai_client()
             model = _model_for_user(self.user)
 
-            # Build system prompt
-            education_context = self._build_education_context()
-            if education_context:
-                system_content = TUTOR_SYSTEM_WITH_CONTEXT.format(
-                    education_context=education_context
-                )
+            # Build system prompt and select tool catalog
+            if is_cfo:
+                system_content = CFO_COACH_SYSTEM
+                active_tools = CFO_TOOL_DEFINITIONS
+                active_dispatcher = dispatch_cfo_tool
             else:
-                system_content = TUTOR_SYSTEM
+                education_context = self._build_education_context()
+                if education_context:
+                    system_content = TUTOR_SYSTEM_WITH_CONTEXT.format(
+                        education_context=education_context
+                    )
+                else:
+                    system_content = TUTOR_SYSTEM
 
-            if exercise_context and isinstance(exercise_context, dict):
-                ex_q = str(exercise_context.get("question") or "").strip()
-                ex_ua = str(exercise_context.get("user_answer") or "").strip()
-                if ex_q:
-                    system_content += f"\n\nCurrent exercise: {ex_q}"
-                    if ex_ua:
-                        system_content += f"\nStudent's answer: {ex_ua}"
-                    system_content += "\nGive a helpful hint — do NOT reveal the answer."
+                if exercise_context and isinstance(exercise_context, dict):
+                    ex_q = str(exercise_context.get("question") or "").strip()
+                    ex_ua = str(exercise_context.get("user_answer") or "").strip()
+                    if ex_q:
+                        system_content += f"\n\nCurrent exercise: {ex_q}"
+                        if ex_ua:
+                            system_content += f"\nStudent's answer: {ex_ua}"
+                        system_content += "\nGive a helpful hint — do NOT reveal the answer."
+                active_tools = TOOL_DEFINITIONS
+                active_dispatcher = dispatch_tool
 
             # Persist user message
             self._save_message(conversation, "user", prompt)
@@ -364,7 +389,7 @@ class OpenAIService:
                 resp = client.chat.completions.create(
                     model=model,
                     messages=messages,
-                    tools=TOOL_DEFINITIONS,
+                    tools=active_tools,
                     tool_choice="auto",
                     max_tokens=getattr(settings, "OPENAI_MAX_TOKENS", 512),
                     temperature=float(parameters.get("temperature", 0.5)),
@@ -409,7 +434,7 @@ class OpenAIService:
                             args = json.loads(tc.function.arguments or "{}")
                         except json.JSONDecodeError:
                             args = {}
-                        tool_result = dispatch_tool(tc.function.name, args, self.user)
+                        tool_result = active_dispatcher(tc.function.name, args, self.user)
                         result_str = json.dumps(tool_result)
                         tool_msg = {
                             "role": "tool",
@@ -491,3 +516,12 @@ def get_conversation_history(user, source: str = "chat", limit: int = 50) -> Lis
         for m in reversed(list(rows))
         if m.role in ("user", "assistant")
     ]
+
+
+def reset_cfo_conversation(user) -> int:
+    """Archive the active CFO coach conversation. Returns count archived (0 or 1)."""
+    from support.models import Conversation
+
+    return Conversation.objects.filter(user=user, source="cfo_coach").update(
+        source="cfo_coach_archived"
+    )

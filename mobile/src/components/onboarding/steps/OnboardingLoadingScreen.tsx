@@ -208,7 +208,10 @@ function StepRow({
     <View
       style={[
         s.stepRow,
-        !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.borderSoft },
+        !isLast && {
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: C.borderSoft,
+        },
       ]}
     >
       <View style={s.stepTop}>
@@ -268,8 +271,17 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     // Fade in
     Animated.parallel([
-      Animated.timing(fadeUp, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(fadeUpY, { toValue: 0, duration: 500, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(fadeUp, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeUpY, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
     ]).start();
   }, [fadeUp, fadeUpY]);
 
@@ -303,23 +315,32 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
     );
 
     timers.push(
-      setTimeout(() => {
-        setStates([2, 2, 1]);
-        animateTo(80);
-      }, STEP_DURATION * 2 + STEP_DELAY),
+      setTimeout(
+        () => {
+          setStates([2, 2, 1]);
+          animateTo(80);
+        },
+        STEP_DURATION * 2 + STEP_DELAY,
+      ),
     );
 
     timers.push(
-      setTimeout(() => {
-        setStates([2, 2, 2]);
-        animateTo(100);
-      }, STEP_DURATION * 3 + STEP_DELAY * 2),
+      setTimeout(
+        () => {
+          setStates([2, 2, 2]);
+          animateTo(100);
+        },
+        STEP_DURATION * 3 + STEP_DELAY * 2,
+      ),
     );
 
     timers.push(
-      setTimeout(() => {
-        onDone();
-      }, STEP_DURATION * 3 + STEP_DELAY * 2 + 900),
+      setTimeout(
+        () => {
+          onDone();
+        },
+        STEP_DURATION * 3 + STEP_DELAY * 2 + 900,
+      ),
     );
 
     return () => timers.forEach(clearTimeout);
@@ -462,8 +483,7 @@ function ReadyScreen({
         {/* Headline */}
         <Animated.View style={[s.headlineWrap, makeAnim(1)]}>
           <Text style={s.headline}>
-            Your path is{" "}
-            <Text style={s.headlineEm}>ready</Text>
+            Your path is <Text style={s.headlineEm}>ready</Text>
           </Text>
           <Text style={s.headlineSub}>
             We built it around what you actually want to learn.
@@ -479,9 +499,7 @@ function ReadyScreen({
             <Text style={s.rewardLabel}>XP</Text>
           </View>
           <View style={[s.rewardCard, s.rewardCardGold]}>
-            <Text style={[s.rewardValue, { color: C.goldWarm }]}>
-              +{coins}
-            </Text>
+            <Text style={[s.rewardValue, { color: C.goldWarm }]}>+{coins}</Text>
             <Text style={[s.rewardLabel, { color: "rgba(230,200,122,0.5)" }]}>
               Coins
             </Text>
@@ -512,7 +530,11 @@ type Props = {
   onContinue: () => void;
 };
 
-export default function OnboardingLoadingScreen({ xp, coins, onContinue }: Props) {
+export default function OnboardingLoadingScreen({
+  xp,
+  coins,
+  onContinue,
+}: Props) {
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
 
   return (

@@ -26,6 +26,12 @@ import type { QuoteDetail } from "../../../types/market-explorer";
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SNAP = SCREEN_HEIGHT * 0.6;
 
+export type TrackRealHoldingInput = {
+  quantity: number;
+  purchasePrice: number;
+  purchaseDate: string;
+};
+
 type Props = {
   quote: QuoteDetail | null;
   visible: boolean;
@@ -34,7 +40,18 @@ type Props = {
   quoteWarning?: string | null;
   onClose: () => void;
   onConfirmBuy: (amount: number) => Promise<void>;
+  onTrackReal?: (input: TrackRealHoldingInput) => Promise<void>;
 };
+
+type SheetMode = "idle" | "virtual" | "real";
+
+function todayIso() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export function QuoteSheet({
   quote,
@@ -43,13 +60,19 @@ export function QuoteSheet({
   quoteWarning,
   onClose,
   onConfirmBuy,
+  onTrackReal,
 }: Props) {
   const c = useThemeColors();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const scrollRef = useRef<ScrollView>(null);
-  const [buyMode, setBuyMode] = useState(false);
+  const [mode, setMode] = useState<SheetMode>("idle");
   const [buyAmount, setBuyAmount] = useState("500");
   const [buyLoading, setBuyLoading] = useState(false);
+  const [realQty, setRealQty] = useState("");
+  const [realPrice, setRealPrice] = useState("");
+  const [realDate, setRealDate] = useState(todayIso());
+  const [realLoading, setRealLoading] = useState(false);
+  const buyMode = mode !== "idle";
 
   const dismissKeyboardAndClose = () => {
     Keyboard.dismiss();
@@ -79,10 +102,22 @@ export function QuoteSheet({
     }).start();
     if (!visible) {
       Keyboard.dismiss();
-      setBuyMode(false);
+      setMode("idle");
       setBuyAmount("500");
+      setRealQty("");
+      setRealPrice("");
+      setRealDate(todayIso());
     }
   }, [visible, translateY, snapCollapsed]);
+
+  useEffect(() => {
+    if (mode === "real" && quote && !realPrice) {
+      const px = Number(quote.price);
+      if (Number.isFinite(px) && px > 0) {
+        setRealPrice(String(px.toFixed(2)));
+      }
+    }
+  }, [mode, quote, realPrice]);
 
   const handleConfirmBuy = async () => {
     const amount = Number(buyAmount);
@@ -90,10 +125,31 @@ export function QuoteSheet({
     setBuyLoading(true);
     try {
       await onConfirmBuy(amount);
-      setBuyMode(false);
+      setMode("idle");
       setBuyAmount("500");
     } finally {
       setBuyLoading(false);
+    }
+  };
+
+  const handleConfirmReal = async () => {
+    if (!onTrackReal) return;
+    const qty = Number(realQty);
+    const px = Number(realPrice);
+    if (!qty || qty <= 0 || !px || px <= 0 || !realDate) return;
+    setRealLoading(true);
+    try {
+      await onTrackReal({
+        quantity: qty,
+        purchasePrice: px,
+        purchaseDate: realDate,
+      });
+      setMode("idle");
+      setRealQty("");
+      setRealPrice("");
+      setRealDate(todayIso());
+    } finally {
+      setRealLoading(false);
     }
   };
 
@@ -229,16 +285,56 @@ export function QuoteSheet({
                   </View>
                 )}
 
-                {/* Buy flow — inline, no second Modal */}
-                {!buyMode ? (
-                  <TouchableOpacity
-                    style={[styles.buyBtn, { backgroundColor: c.primary }]}
-                    onPress={() => setBuyMode(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.buyBtnText}>Buy with Virtual Cash</Text>
-                  </TouchableOpacity>
-                ) : (
+                {/* Action flow — inline, no second Modal */}
+                {mode === "idle" ? (
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.actionBtn,
+                        styles.actionBtnSecondary,
+                        { borderColor: c.border, backgroundColor: c.surface },
+                      ]}
+                      onPress={() => setMode("virtual")}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.actionBtnSecondaryText,
+                          { color: c.text },
+                        ]}
+                      >
+                        Practice Trade
+                      </Text>
+                      <Text
+                        style={[styles.actionBtnHint, { color: c.textMuted }]}
+                      >
+                        Virtual cash
+                      </Text>
+                    </TouchableOpacity>
+                    {onTrackReal ? (
+                      <TouchableOpacity
+                        style={[
+                          styles.actionBtn,
+                          { backgroundColor: c.primary },
+                        ]}
+                        onPress={() => setMode("real")}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.actionBtnPrimaryText}>
+                          Track Real Holding
+                        </Text>
+                        <Text
+                          style={[
+                            styles.actionBtnHint,
+                            { color: "rgba(255,255,255,0.85)" },
+                          ]}
+                        >
+                          Add to my portfolio
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                ) : mode === "virtual" ? (
                   <View style={[styles.buyForm, { borderColor: c.border }]}>
                     <Text style={[styles.buyFormTitle, { color: c.text }]}>
                       Buy {quote.ticker.toUpperCase()} with Virtual Cash
@@ -267,7 +363,7 @@ export function QuoteSheet({
                       <TouchableOpacity
                         onPress={() => {
                           Keyboard.dismiss();
-                          setBuyMode(false);
+                          setMode("idle");
                           setBuyAmount("500");
                         }}
                         style={[
@@ -299,6 +395,119 @@ export function QuoteSheet({
                             style={[styles.buyActionText, { color: "#fff" }]}
                           >
                             Confirm Buy
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={[styles.buyForm, { borderColor: c.border }]}>
+                    <Text style={[styles.buyFormTitle, { color: c.text }]}>
+                      Track Real {quote.ticker.toUpperCase()} Holding
+                    </Text>
+                    <Text style={[styles.buyFormHint, { color: c.textMuted }]}>
+                      Log a position you already own. It goes straight into your
+                      real portfolio — no virtual cash involved.
+                    </Text>
+                    <Text style={[styles.buyFormLabel, { color: c.textMuted }]}>
+                      Quantity owned
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.buyInput,
+                        {
+                          color: c.text,
+                          borderColor: c.border,
+                          backgroundColor: c.bg,
+                        },
+                      ]}
+                      value={realQty}
+                      onChangeText={setRealQty}
+                      keyboardType="decimal-pad"
+                      placeholder="e.g. 0.05"
+                      placeholderTextColor={c.textFaint}
+                      autoFocus
+                    />
+                    <Text style={[styles.buyFormLabel, { color: c.textMuted }]}>
+                      Avg purchase price (per unit)
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.buyInput,
+                        {
+                          color: c.text,
+                          borderColor: c.border,
+                          backgroundColor: c.bg,
+                        },
+                      ]}
+                      value={realPrice}
+                      onChangeText={setRealPrice}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                      placeholderTextColor={c.textFaint}
+                    />
+                    <Text style={[styles.buyFormLabel, { color: c.textMuted }]}>
+                      Purchase date (YYYY-MM-DD)
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.buyInput,
+                        {
+                          color: c.text,
+                          borderColor: c.border,
+                          backgroundColor: c.bg,
+                        },
+                      ]}
+                      value={realDate}
+                      onChangeText={setRealDate}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor={c.textFaint}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                    <View style={styles.buyActions}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          setMode("idle");
+                          setRealQty("");
+                          setRealPrice("");
+                          setRealDate(todayIso());
+                        }}
+                        style={[
+                          styles.buyActionBtn,
+                          { borderColor: c.border, borderWidth: 1 },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.buyActionText, { color: c.textMuted }]}
+                        >
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => void handleConfirmReal()}
+                        disabled={
+                          realLoading ||
+                          !Number(realQty) ||
+                          !Number(realPrice) ||
+                          !realDate
+                        }
+                        style={[
+                          styles.buyActionBtn,
+                          {
+                            backgroundColor: c.primary,
+                            opacity: realLoading ? 0.7 : 1,
+                          },
+                        ]}
+                      >
+                        {realLoading ? (
+                          <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                          <Text
+                            style={[styles.buyActionText, { color: "#fff" }]}
+                          >
+                            Add to Portfolio
                           </Text>
                         )}
                       </TouchableOpacity>
@@ -401,6 +610,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buyBtnText: { color: "#fff", fontSize: typography.sm, fontWeight: "700" },
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  actionBtn: {
+    flex: 1,
+    borderRadius: radius.xl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    alignItems: "center",
+    gap: 2,
+  },
+  actionBtnSecondary: {
+    borderWidth: 1,
+  },
+  actionBtnPrimaryText: {
+    color: "#fff",
+    fontSize: typography.sm,
+    fontWeight: "700",
+  },
+  actionBtnSecondaryText: { fontSize: typography.sm, fontWeight: "700" },
+  actionBtnHint: { fontSize: typography.xs },
   buyForm: {
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -408,6 +639,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   buyFormTitle: { fontSize: typography.base, fontWeight: "700" },
+  buyFormHint: { fontSize: typography.xs, lineHeight: 18 },
   buyFormLabel: {
     fontSize: typography.xs,
     fontWeight: "600",

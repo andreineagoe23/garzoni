@@ -56,6 +56,18 @@ export default function ToolsLayout() {
           }}
         />
         <Stack.Screen
+          name="personal-cfo/index"
+          options={{ title: "Personal CFO" }}
+        />
+        <Stack.Screen
+          name="personal-cfo-coach/index"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="budget-planner/index"
+          options={{ title: "Budget & Spending" }}
+        />
+        <Stack.Screen
           name="portfolio/index"
           options={{ title: "Portfolio Analyzer" }}
         />

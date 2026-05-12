@@ -75,4 +75,22 @@ app.conf.beat_schedule = {
         "task": "notifications.tasks.send_ai_nudges_batch",
         "schedule": crontab(hour=9, minute=0),
     },
+    # Portfolio live prices — refresh every 30 min during market hours
+    "update-portfolio-prices": {
+        "task": "finance.tasks.update_portfolio_prices_task",
+        "schedule": crontab(minute="*/30"),
+    },
+    # Budgeting & Personal CFO
+    "budgeting-sync-linked-accounts": {
+        "task": "budgeting.tasks.sync_linked_accounts_task",
+        "schedule": crontab(hour="*/6", minute=15),
+    },
+    "budgeting-recompute-summaries": {
+        "task": "budgeting.tasks.recompute_summaries_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "personal-cfo-weekly-report": {
+        "task": "budgeting.tasks.send_weekly_cfo_reports",
+        "schedule": crontab(hour=9, minute=0, day_of_week=1),
+    },
 }

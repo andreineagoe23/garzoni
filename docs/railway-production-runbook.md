@@ -57,6 +57,67 @@ After deploying backend code that includes `gamification/fixtures/mission_pool.j
 
 Run this whenever you add or change missions in the fixture and want production to match.
 
+## Romanian translations (local Docker, then push)
+
+Use this when you generate **Romanian (`ro`) rows** in local Docker (`education_*_translation` tables) and want Railway production to match. This is separate from **AI lesson rewrites** ([`backend/scripts/push_rewrites_to_railway.sh`](../backend/scripts/push_rewrites_to_railway.sh)), which syncs English body copy via `EducationAuditLog`.
+
+### Prerequisites
+
+- **Same English curriculum IDs** on Docker and Railway (paths, courses, lessons, sections). If primary keys diverge between environments, upserts cannot be applied safely.
+- **`OPENAI_API_KEY`** available to the backend container for translation.
+- Take a **Railway DB backup** before the first push.
+
+### 1. Translate locally
+
+From repo root with Docker up:
+
+```bash
+# Idempotent backfill (default): missing `ro` rows only
+bash backend/scripts/translate_curriculum_to_ro_docker.sh
+
+# Or pass flags through to the management command, e.g. cost trial or scoped run:
+bash backend/scripts/translate_curriculum_to_ro_docker.sh --limit 5
+bash backend/scripts/translate_curriculum_to_ro_docker.sh --course-id 12 --force-refresh
+```
+
+Equivalent without the glue script:
+
+```bash
+docker compose exec backend python manage.py translate_lessons_to_ro --only-missing
+docker compose exec backend python manage.py audit_ro_translations
+```
+
+Fix any issues reported by `audit_ro_translations`, then re-run translate with appropriate `--path-id`, `--course-id`, `--force-refresh`, etc.
+
+### 2. Push `ro` rows to Railway
+
+The push command upserts by **`(parent_id, language)`**, not by translation row primary key, so local and Railway translation `id` values do not need to match.
+
+```bash
+# Preview (no writes)
+bash backend/scripts/push_ro_translations_to_railway.sh --dry-run
+
+# Full push (paths → courses → lessons → sections)
+bash backend/scripts/push_ro_translations_to_railway.sh
+
+# Push only standalone practice catalog translations
+bash backend/scripts/push_ro_translations_to_railway.sh --target standalone_exercises
+```
+
+Requires [Railway CLI](https://docs.railway.app/develop/cli) linked like the rewrite script; the shell wrapper sets `RAILWAY_DB_URL` from `DATABASE_PUBLIC_URL`.
+
+**Standalone practice exercises** (`Exercise` / `ExerciseTranslation`, Exercises tab) are not covered by `translate_lessons_to_ro`. After curriculum translate + audit, run:
+
+```bash
+docker compose exec backend python manage.py translate_standalone_exercises_to_ro --only-missing
+```
+
+Then include them in the Railway push (`--target standalone_exercises` or full `all`). **`QuizTranslation`** (course quizzes) is still not automated here; extend similarly if needed.
+
+### 3. Smoke-check
+
+Switch the app locale to Romanian and spot-check paths, a few lessons, text sections, and in-lesson exercises.
+
 ## Backup Policy
 
 - Minimum cadence: **every 3 days**.
