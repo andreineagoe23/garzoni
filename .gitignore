@@ -144,3 +144,4 @@ backend/education/content/rewrite_output/
 # ── Secrets ───────────────────────────────────────────────────────────────────
 backend/chartwise/garzonicredentials.json
 backend/garzonicredentials.json
+ios/sentry.properties

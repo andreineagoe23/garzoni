@@ -83,8 +83,6 @@ module.exports = ({ config }) => ({
     },
     infoPlist: {
       ...config.ios?.infoPlist,
-      // Match supportsTablet / universal iPad target (aligned with app.json).
-      UIDeviceFamily: [1, 2],
       NSPhotoLibraryUsageDescription:
         "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
       NSUserNotificationsUsageDescription:
