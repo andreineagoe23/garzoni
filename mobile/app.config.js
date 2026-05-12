@@ -76,6 +76,11 @@ module.exports = ({ config }) => ({
   ios: {
     ...config.ios,
     requireFullScreen: true,
+    entitlements: {
+      ...(config.ios?.entitlements ?? {}),
+      "com.apple.developer.applesignin": ["Default"],
+      "aps-environment": "production",
+    },
     infoPlist: {
       ...config.ios?.infoPlist,
       // Match supportsTablet / universal iPad target (aligned with app.json).
