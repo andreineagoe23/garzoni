@@ -18,6 +18,7 @@ from .views import (
     mastery_summary,
 )
 from .views_ai import ExerciseExplainView, CoachBriefView
+from .views_public import public_lesson_detail
 
 router = DefaultRouter()
 router.register(r"paths", PathViewSet, basename="path")
@@ -42,6 +43,7 @@ urlpatterns = [
     ),
     path("exercises/reset/", reset_exercise, name="reset-exercise"),
     path("exercises/explain/", ExerciseExplainView.as_view(), name="exercise-explain"),
+    path("public/lessons/<slug:slug>/", public_lesson_detail, name="public-lesson-detail"),
     path("", include(router.urls)),
     path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
     path(

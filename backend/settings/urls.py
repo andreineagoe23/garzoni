@@ -21,11 +21,13 @@ from core.views import (
     apple_app_site_association,
     health_view,
 )
+from education.views_public import sitemap_xml
 
 urlpatterns = [
     path("", root_view),
     path("health/", health_view),
     path("robots.txt", robots_txt_view),
+    path("sitemap.xml", sitemap_xml, name="sitemap-xml"),
     # Universal Links: iOS fetches this to verify the app can handle garzoni.app URLs.
     # Must be served WITHOUT authentication or trailing-slash redirects.
     path(".well-known/apple-app-site-association", apple_app_site_association),

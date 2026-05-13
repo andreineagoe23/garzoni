@@ -181,7 +181,7 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
             {t("billing.unlockPremium")}
           </p>
           <button
-            className="btn-primary mt-2"
+            className="app-cta-btn mt-2 !w-auto !h-auto px-5 py-2 text-sm"
             onClick={() => setUpsellOpen(true)}
           >
             {t("billing.upgradeCta")}

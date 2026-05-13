@@ -12,6 +12,9 @@ from django.db.models import Q, Sum
 from django.utils import timezone
 
 from authentication.models import UserEmailPreference, UserProfile
+from authentication.services.subscription_reconciliation import (
+    reconcile_profile_subscription_state,
+)
 from authentication.user_display import normalize_display_string
 from education.models import LessonCompletion
 from finance.models import UserPurchase
@@ -445,3 +448,34 @@ def send_renewal_reminder(self):
         except Exception as exc:
             logger.warning("Failed renewal reminder for profile=%s: %s", profile.id, exc)
     return f"Sent {sent} renewal reminders"
+
+
+@shared_task(
+    bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 2}
+)
+def reconcile_subscription_profiles(self, batch_size: int = 200):
+    """
+    Repair profile/provider drift for recently active or paid users.
+    Keeps web/mobile entitlements aligned when webhook timing is delayed.
+    """
+    profiles = (
+        UserProfile.objects.filter(
+            Q(has_paid=True)
+            | Q(is_premium=True)
+            | Q(subscription_status__in=["active", "trialing", "past_due", "unpaid"])
+        )
+        .select_related("user")
+        .order_by("-user__last_login")[: max(1, int(batch_size))]
+    )
+    checked = 0
+    changed = 0
+    for profile in profiles:
+        before_plan = profile.subscription_plan_id or "starter"
+        before_status = profile.subscription_status or "inactive"
+        summary = reconcile_profile_subscription_state(profile)
+        checked += 1
+        after_plan = summary.get("plan_after", before_plan)
+        after_status = summary.get("status_after", before_status)
+        if after_plan != before_plan or after_status != before_status:
+            changed += 1
+    return f"Reconciled {checked} profiles, changed {changed}"

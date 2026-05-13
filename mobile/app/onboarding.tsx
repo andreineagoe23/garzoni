@@ -41,6 +41,7 @@ import QuestionnaireTextAnswer from "../src/components/onboarding/steps/Question
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
 import { href } from "../src/navigation/href";
 import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
+import { requestTrackingPermissionIfNeeded } from "../src/bootstrap/trackingPermission";
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
@@ -278,7 +279,8 @@ export default function OnboardingScreen() {
     setErrorMsg("");
   }, []);
 
-  const goToPaywall = useCallback(() => {
+  const goToPaywall = useCallback(async () => {
+    await requestTrackingPermissionIfNeeded();
     router.replace("/subscriptions?mode=paywall");
   }, []);
 
@@ -290,14 +292,16 @@ export default function OnboardingScreen() {
         {
           text: t("onboarding.pushPrompt.notNow"),
           style: "cancel",
-          onPress: goToPaywall,
+          onPress: () => {
+            void goToPaywall();
+          },
         },
         {
           text: t("onboarding.pushPrompt.enable"),
           onPress: () => {
             void (async () => {
               await registerForPushAndSubmitToken();
-              goToPaywall();
+              await goToPaywall();
             })();
           },
         },

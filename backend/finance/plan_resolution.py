@@ -32,6 +32,29 @@ def plan_id_from_stripe_price_id(price_id) -> str | None:
     return None
 
 
+def validate_stripe_price_mapping() -> list[str]:
+    """
+    Validate Stripe plan mapping configuration.
+    Returns a list of human-readable errors (empty when valid).
+    """
+    errors: list[str] = []
+    plus_monthly = (getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", "") or "").strip()
+    plus_yearly = (getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", "") or "").strip()
+    pro_monthly = (getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", "") or "").strip()
+    pro_yearly = (getattr(settings, "STRIPE_PRICE_PRO_YEARLY", "") or "").strip()
+
+    if not plus_monthly or not plus_yearly:
+        errors.append("Stripe price ids missing for Plus monthly/yearly.")
+    if not pro_monthly or not pro_yearly:
+        errors.append("Stripe price ids missing for Pro monthly/yearly.")
+
+    configured = [v for v in (plus_monthly, plus_yearly, pro_monthly, pro_yearly) if v]
+    duplicates = sorted({pid for pid in configured if configured.count(pid) > 1})
+    if duplicates:
+        errors.append("Duplicate Stripe price ids across plan slots: " + ", ".join(duplicates))
+    return errors
+
+
 def primary_price_id_from_subscription(obj: Any) -> Optional[str]:
     """First subscription line price id from a Stripe Subscription object or webhook dict."""
     if not obj:
@@ -137,5 +160,51 @@ def resolve_plan_id_from_profile_stripe(profile) -> str | None:
             e,
         )
 
+    cache.set(cache_key, out if out is not None else "__none__", 300)
+    return out
+
+
+def billing_interval_from_stripe_price_id(price_id) -> str | None:
+    if not price_id:
+        return None
+    pid = price_id if isinstance(price_id, str) else getattr(price_id, "id", None)
+    if not pid:
+        return None
+    if pid in {
+        getattr(settings, "STRIPE_PRICE_PLUS_MONTHLY", None),
+        getattr(settings, "STRIPE_PRICE_PRO_MONTHLY", None),
+    }:
+        return "monthly"
+    if pid in {
+        getattr(settings, "STRIPE_PRICE_PLUS_YEARLY", None),
+        getattr(settings, "STRIPE_PRICE_PRO_YEARLY", None),
+    }:
+        return "yearly"
+    return None
+
+
+def resolve_billing_interval_from_profile_stripe(profile) -> str | None:
+    stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+    if not stripe_key:
+        return None
+    sub_id = (getattr(profile, "stripe_subscription_id", None) or "").strip()
+    if not sub_id:
+        return None
+    cache_key = f"stripe_billing_interval_{profile.user_id}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return None if cached == "__none__" else cached
+    stripe.api_key = stripe_key
+    out: str | None = None
+    try:
+        sub = stripe.Subscription.retrieve(sub_id)
+        pid = primary_price_id_from_subscription(sub)
+        out = billing_interval_from_stripe_price_id(pid)
+    except stripe.error.StripeError as e:
+        logger.info(
+            "Stripe billing interval inference failed for user %s: %s",
+            getattr(profile, "user_id", None),
+            e,
+        )
     cache.set(cache_key, out if out is not None else "__none__", 300)
     return out

@@ -134,6 +134,9 @@ export default function QuizScreen() {
         queryKey: queryKeys.progressSummary(),
       });
       setTimeout(() => confettiRef.current?.start(), 300);
+      void import("../../src/bootstrap/reviewPrompt").then(
+        ({ maybeRequestReview }) => maybeRequestReview("quiz_pass"),
+      );
     }
   }, [phase, queryClient]);
 

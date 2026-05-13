@@ -26,8 +26,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authentication.models import UserProfile
-from authentication.revenuecat_products import PRODUCT_PLAN_MAP
 from authentication.services.revenuecat_billing import (
+    resolve_plan_from_webhook_event,
     subscription_status_and_trial_end_from_webhook_event,
 )
 from authentication.services.subscriptions import apply_subscription_to_profile
@@ -111,7 +111,7 @@ class RevenueCatWebhookView(APIView):
             # Return 200 so RevenueCat doesn't retry indefinitely.
             return Response({"ok": True})
 
-        plan_id = PRODUCT_PLAN_MAP.get(product_id)
+        plan_id = resolve_plan_from_webhook_event(event)
 
         if event_type in ACTIVE_EVENTS and plan_id:
             sub_status, trial_end_dt = subscription_status_and_trial_end_from_webhook_event(event)
@@ -144,6 +144,13 @@ class RevenueCatWebhookView(APIView):
             )
             logger.info("[RevenueCat] Deactivated subscription for user=%s", user.pk)
 
+        elif event_type in ACTIVE_EVENTS and not plan_id:
+            logger.warning(
+                "[RevenueCat] Active event ignored because no plan mapping matched product_id=%s entitlement_id=%s entitlement_ids=%s",
+                product_id,
+                event.get("entitlement_id"),
+                event.get("entitlement_ids"),
+            )
         else:
             logger.debug("[RevenueCat] Ignored event_type=%s for user=%s", event_type, user.pk)
 

@@ -76,6 +76,7 @@ module.exports = ({ config }) => ({
   ios: {
     ...config.ios,
     requireFullScreen: true,
+    associatedDomains: ["applinks:garzoni.app", "applinks:www.garzoni.app"],
     entitlements: {
       ...(config.ios?.entitlements ?? {}),
       "com.apple.developer.applesignin": ["Default"],
@@ -87,6 +88,12 @@ module.exports = ({ config }) => ({
         "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
       NSUserNotificationsUsageDescription:
         "Garzoni sends notifications to remind you of daily learning goals, streak milestones, and mission completions.",
+      NSCameraUsageDescription:
+        "Garzoni uses the camera to scan receipts and statements for AI-powered spending insights (Pro feature).",
+      NSMicrophoneUsageDescription:
+        "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature).",
+      NSUserTrackingUsageDescription:
+        "Used to measure which referrals lead to installs and improve the app experience. You can change this anytime in Settings.",
       ...(allowInsecureLocalHttp
         ? {
             NSAppTransportSecurity: {
@@ -144,6 +151,13 @@ module.exports = ({ config }) => ({
     "expo-secure-store",
     "expo-font",
     "expo-apple-authentication",
+    [
+      "expo-tracking-transparency",
+      {
+        userTrackingPermission:
+          "Used to measure which referrals lead to installs and improve the app experience. You can change this anytime in Settings.",
+      },
+    ],
     ...(googleSignInPlugin ? [googleSignInPlugin] : []),
     [
       "expo-notifications",

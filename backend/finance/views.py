@@ -59,6 +59,9 @@ from finance.serializers import (
 from authentication.models import UserProfile
 from authentication.services.profile import invalidate_profile_cache
 from authentication.services.subscriptions import apply_subscription_to_profile
+from authentication.services.subscription_reconciliation import (
+    reconcile_profile_subscription_state,
+)
 from authentication.tasks import send_subscription_cancelled_email
 from notifications.enums import CioEventName
 from notifications.service import NotificationService
@@ -2292,13 +2295,16 @@ class StripeWebhookView(APIView):
                                 },
                             )
 
-            elif event["type"] == "customer.subscription.updated":
+            elif event["type"] in {
+                "customer.subscription.updated",
+                "customer.subscription.created",
+            }:
                 sub = event["data"]["object"]
                 sub_id = sub.get("id")
                 status = sub.get("status")
                 if not sub_id:
                     pass
-                elif status == "active":
+                else:
                     with transaction.atomic():
                         profile = (
                             UserProfile.objects.select_for_update()
@@ -2308,29 +2314,41 @@ class StripeWebhookView(APIView):
                         if profile:
                             pid = primary_price_id_from_subscription(sub)
                             mapped_plan = plan_id_from_stripe_price_id(pid)
-                            kwargs = {
-                                "subscription_status": "active",
-                                "trial_end": None,
-                            }
-                            if mapped_plan:
-                                kwargs["subscription_plan_id"] = mapped_plan
-                            apply_subscription_to_profile(profile, **kwargs)
-                elif status == "canceled":
-                    with transaction.atomic():
-                        profile = (
-                            UserProfile.objects.select_for_update()
-                            .filter(stripe_subscription_id=sub_id)
-                            .first()
-                        )
-                        if profile:
-                            apply_subscription_to_profile(
-                                profile,
-                                is_premium=False,
-                                subscription_plan_id="starter",
-                                stripe_subscription_id=None,
-                                subscription_status="canceled",
-                                trial_end=None,
+                            trial_end_raw = sub.get("trial_end")
+                            trial_end_dt = (
+                                datetime.fromtimestamp(int(trial_end_raw), tz=timezone.utc)
+                                if trial_end_raw
+                                else None
                             )
+
+                            if status in {"canceled", "incomplete_expired"}:
+                                apply_subscription_to_profile(
+                                    profile,
+                                    has_paid=False,
+                                    is_premium=False,
+                                    subscription_plan_id="starter",
+                                    stripe_subscription_id=None,
+                                    subscription_status="canceled",
+                                    trial_end=None,
+                                )
+                            else:
+                                kwargs = {
+                                    "subscription_status": status or "active",
+                                    "trial_end": (trial_end_dt if status == "trialing" else None),
+                                }
+                                # Keep the user on premium for recoverable states.
+                                if status in {
+                                    "active",
+                                    "trialing",
+                                    "past_due",
+                                    "unpaid",
+                                    "incomplete",
+                                }:
+                                    kwargs["has_paid"] = True
+                                    kwargs["is_premium"] = True
+                                if mapped_plan:
+                                    kwargs["subscription_plan_id"] = mapped_plan
+                                apply_subscription_to_profile(profile, **kwargs)
 
             elif event["type"] == "customer.subscription.deleted":
                 sub = event["data"]["object"]
@@ -2350,6 +2368,7 @@ class StripeWebhookView(APIView):
                         if prof:
                             apply_subscription_to_profile(
                                 prof,
+                                has_paid=False,
                                 is_premium=False,
                                 subscription_plan_id="starter",
                                 stripe_subscription_id=None,
@@ -2729,11 +2748,21 @@ class SubscriptionCreateView(APIView):
         promotion_code_id = None
         if promotion_code_raw:
             promotion_code_raw = promotion_code_raw.strip()
-            if promotion_code_raw.startswith("promo_"):
-                promotion_code_id = promotion_code_raw
-            else:
-                try:
-                    stripe.api_key = stripe_key
+            try:
+                stripe.api_key = stripe_key
+                if promotion_code_raw.startswith("promo_"):
+                    # Validate explicit promo IDs against the current key mode.
+                    # If the ID belongs to the opposite mode (live vs test), skip it
+                    # and continue without discounts instead of hard-failing checkout.
+                    promo = stripe.PromotionCode.retrieve(promotion_code_raw)
+                    if getattr(promo, "active", False):
+                        promotion_code_id = promotion_code_raw
+                    else:
+                        logger.warning(
+                            "Stripe promotion code is inactive: %s",
+                            promotion_code_raw[:8] + "...",
+                        )
+                else:
                     promos = stripe.PromotionCode.list(
                         code=promotion_code_raw,
                         active=True,
@@ -2746,8 +2775,8 @@ class SubscriptionCreateView(APIView):
                             "Stripe promotion code not found or inactive: %s",
                             promotion_code_raw[:8] + "...",
                         )
-                except stripe.error.StripeError as e:
-                    logger.warning("Stripe error resolving promotion code: %s", e)
+            except stripe.error.StripeError as e:
+                logger.warning("Stripe error resolving promotion code: %s", e)
         # 7-day free trial only on yearly Pro/Plus; day 7 = charge full yearly amount
         trial_days = 7 if billing_interval == "yearly" and plan_id in ("plus", "pro") else 0
         create_params = {
@@ -3061,12 +3090,6 @@ class SubscriptionSyncView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        stripe_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
-        if not stripe_key:
-            return Response(
-                {"ok": False, "error": "Payment is not configured."},
-                status=503,
-            )
         try:
             profile = UserProfile.objects.get(user=request.user)
         except UserProfile.DoesNotExist:
@@ -3074,20 +3097,29 @@ class SubscriptionSyncView(APIView):
                 {"ok": False, "error": "Profile not found."},
                 status=404,
             )
-        stripe.api_key = stripe_key
-        sub_id = _get_or_resolve_stripe_subscription_id(profile, allow_email_lookup=True)
-        if sub_id:
-            _invalidate_stripe_subscription_ui_cache(profile.user_id)
-            return Response({"ok": True}, status=200)
+        summary = reconcile_profile_subscription_state(profile)
+        _invalidate_stripe_subscription_ui_cache(profile.user_id)
+        plan = normalize_plan_id(profile.subscription_plan_id or "starter")
+        if plan in ("plus", "pro"):
+            return Response(
+                {
+                    "ok": True,
+                    "plan": plan,
+                    "subscription_status": profile.subscription_status,
+                    **summary,
+                },
+                status=200,
+            )
         if getattr(profile, "is_premium", False) or getattr(profile, "has_paid", False):
             return Response(
                 {
                     "ok": False,
-                    "error": "We couldn't find your subscription in Stripe. If you subscribed with a different email, contact support.",
+                    "error": "We couldn't verify an active subscription from Stripe/RevenueCat. If you subscribed recently, try again in a moment.",
+                    **summary,
                 },
                 status=200,
             )
-        return Response({"ok": False, "error": "No active subscription."}, status=200)
+        return Response({"ok": False, "error": "No active subscription.", **summary}, status=200)
 
 
 class SubscriptionPortalView(APIView):

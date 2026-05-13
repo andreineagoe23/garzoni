@@ -60,3 +60,39 @@ Currency: GBP. Channels: Stripe (web), RevenueCat → Apple/Google IAP (mobile).
 | Web (Stripe)                      | `StripePayment`, `subscription_plan_id`, webhook events     | Stripe Customer Portal       | Stripe-issued, operator-controllable    |
 | iOS (RevenueCat → App Store)      | `react-native-purchases` entitlements + RevenueCat webhooks | iOS Settings → Subscriptions | Apple-issued, operator cannot override  |
 | Android (RevenueCat → Play Store) | `react-native-purchases` entitlements + RevenueCat webhooks | Play Store → Subscriptions   | Google-issued, operator cannot override |
+
+## Stripe + RevenueCat parity checklist
+
+Use this before each release and whenever billing identifiers change.
+
+### 1) Stripe identifiers (web)
+
+- `STRIPE_PRICE_PLUS_MONTHLY`
+- `STRIPE_PRICE_PLUS_YEARLY`
+- `STRIPE_PRICE_PRO_MONTHLY`
+- `STRIPE_PRICE_PRO_YEARLY`
+
+All four must be present and unique per environment (dev/prod). Backend startup now validates this.
+
+### 2) RevenueCat identifiers (mobile + RC web sync)
+
+- Product IDs in `PRODUCT_PLAN_MAP` must map to `plus` / `pro`.
+- Entitlement names in `ENTITLEMENT_PLAN_MAP` must include `plus` / `pro` coverage.
+- Keep aliases for dashboard naming drift (e.g. `Garzoni Plus` and `Garzoni Educational Plus`).
+
+### 3) Webhooks and secrets
+
+- Stripe webhook endpoint configured to `/api/stripe-webhook/`.
+- RevenueCat webhook endpoint configured to `/api/revenuecat-webhook/`.
+- `REVENUECAT_WEBHOOK_SECRET` must match RevenueCat Authorization Bearer value.
+
+### 4) Runtime parity checks
+
+- After a Stripe web purchase, `GET /api/entitlements/` returns `plan=plus|pro`.
+- After a mobile RevenueCat purchase, call `POST /api/revenuecat-sync/`, then verify `GET /api/entitlements/`.
+- `POST /api/subscriptions/sync/` is a reconciliation path for web/mobile drift repair.
+
+### 5) Mandatory env vars by channel
+
+- Web Stripe: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_*`.
+- RevenueCat sync: `REVENUECAT_API_KEY` (server REST sync), `REVENUECAT_WEBHOOK_SECRET` (webhook auth).

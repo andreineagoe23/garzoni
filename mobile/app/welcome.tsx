@@ -20,11 +20,12 @@ import Svg, {
   RadialGradient,
   Stop,
 } from "react-native-svg";
-import { Stack, router } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { brand } from "../src/theme/brand";
 import { darkPalette } from "../src/theme/palettes";
 import { setWelcomeSeen } from "../src/auth/firstRunFlags";
+import { savePendingReferralCode } from "../src/auth/pendingReferral";
 
 const C = {
   bg: brand.bgDark,
@@ -538,6 +539,11 @@ export default function WelcomeScreen() {
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<SlideCopy>>(null);
   const [idx, setIdx] = useState(0);
+  const { ref: refParam } = useLocalSearchParams<{ ref?: string }>();
+
+  useEffect(() => {
+    if (refParam) void savePendingReferralCode(refParam);
+  }, [refParam]);
 
   const viewabilityConfig = useMemo(
     () => ({ viewAreaCoveragePercentThreshold: 70 }),

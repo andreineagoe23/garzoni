@@ -36,6 +36,7 @@ import {
   FinancialDisclaimer,
   PricingFunnelDashboard,
   MarketingPage,
+  PublicLesson,
 } from "routes/lazyPages";
 
 const protectedWithBoundary = (element: React.ReactNode) => (
@@ -48,6 +49,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />
+      <Route path="/learn/:slug" element={<PublicLesson />} />
       <Route
         path="/privacy-policy"
         element={

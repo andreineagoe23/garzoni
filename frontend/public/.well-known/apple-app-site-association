@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["R44TJX7U3C.app.garzoni.mobile"],
+        "components": [
+          { "/": "/password-reset/*", "comment": "Password reset" },
+          { "/": "/welcome", "comment": "Referral landing" },
+          { "/": "/welcome/*", "comment": "Referral landing" },
+          { "/": "/learn/*", "comment": "Public lesson preview" }
+        ]
+      }
+    ]
+  }
+}

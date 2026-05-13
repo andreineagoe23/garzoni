@@ -551,6 +551,24 @@ if STRIPE_SECRET_KEY:
         raise ImproperlyConfigured(
             "Stripe is enabled but required price IDs are missing: " + ", ".join(missing_prices)
         )
+    # Additional parity guardrails: ensure mapping coverage and no duplicated ids.
+    from finance.plan_resolution import validate_stripe_price_mapping
+
+    stripe_mapping_errors = validate_stripe_price_mapping()
+    if stripe_mapping_errors:
+        raise ImproperlyConfigured(
+            "Stripe subscription mapping validation failed: " + " | ".join(stripe_mapping_errors)
+        )
+
+# RevenueCat mapping parity guardrail when REST/webhook integration is configured.
+if REVENUECAT_API_KEY:
+    from authentication.revenuecat_products import validate_rc_plan_mappings
+
+    rc_mapping_errors = validate_rc_plan_mappings()
+    if rc_mapping_errors:
+        raise ImproperlyConfigured(
+            "RevenueCat plan mapping validation failed: " + " | ".join(rc_mapping_errors)
+        )
 
 # reCAPTCHA Enterprise (single key from andreineagoe@garzoni.app console)
 # Local/dev: set RECAPTCHA_DISABLED=1 to allow login/register without tokens (blockers, no site key).

@@ -10,7 +10,7 @@ from authentication.entitlements import get_user_plan
 from authentication.models import UserProfile
 from authentication.revenuecat_products import ENTITLEMENT_PLAN_MAP
 from authentication.services.subscriptions import apply_subscription_to_profile
-from authentication.views_revenuecat import PRODUCT_PLAN_MAP
+from authentication.revenuecat_products import PRODUCT_PLAN_MAP
 
 
 class SubscriptionParityTests(APITestCase):
@@ -142,6 +142,22 @@ class RevenueCatWebhookTrialTests(APITestCase):
         self.assertEqual(self.profile.subscription_status, "active")
         self.assertIsNone(self.profile.trial_end)
 
+    def test_initial_purchase_uses_entitlement_fallback_when_product_unmapped(self):
+        body = {
+            "event": {
+                "type": "INITIAL_PURCHASE",
+                "app_user_id": str(self.user.pk),
+                "product_id": "unknown.product.id",
+                "entitlement_id": "Garzoni Educational Pro",
+                "period_type": "NORMAL",
+            }
+        }
+        r = self.client.post(reverse("revenuecat-webhook"), body, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.subscription_plan_id, "pro")
+        self.assertEqual(self.profile.subscription_status, "active")
+
     def test_cancellation_clears_trial_end(self):
         apply_subscription_to_profile(
             self.profile,
@@ -175,7 +191,7 @@ class RevenueCatSyncTrialTests(APITestCase):
         self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
         self.client.force_authenticate(user=self.user)
 
-    @patch("authentication.views_revenuecat_sync._fetch_rc_subscriber")
+    @patch("authentication.services.subscription_reconciliation._fetch_rc_subscriber")
     def test_sync_maps_rest_trial_to_trialing(self, mock_fetch):
         mock_fetch.return_value = {
             "subscriber": {
@@ -203,7 +219,7 @@ class RevenueCatSyncTrialTests(APITestCase):
         self.assertEqual(self.profile.subscription_status, "trialing")
         self.assertIsNotNone(self.profile.trial_end)
 
-    @patch("authentication.views_revenuecat_sync._fetch_rc_subscriber")
+    @patch("authentication.services.subscription_reconciliation._fetch_rc_subscriber")
     def test_sync_maps_normal_period_to_active(self, mock_fetch):
         mock_fetch.return_value = {
             "subscriber": {
@@ -227,6 +243,30 @@ class RevenueCatSyncTrialTests(APITestCase):
         self.profile.refresh_from_db()
         self.assertEqual(self.profile.subscription_status, "active")
         self.assertIsNone(self.profile.trial_end)
+
+    @patch("authentication.services.subscription_reconciliation._fetch_rc_subscriber")
+    def test_sync_accepts_educational_entitlement_alias(self, mock_fetch):
+        mock_fetch.return_value = {
+            "subscriber": {
+                "entitlements": {
+                    "Garzoni Educational Plus": {
+                        "expires_date": "2032-01-01T00:00:00Z",
+                        "product_identifier": "app.garzoni.mobile.plus_monthly_v3",
+                        "period_type": "normal",
+                    }
+                },
+                "subscriptions": {
+                    "app.garzoni.mobile.plus_monthly_v3": {
+                        "expires_date": "2032-01-01T00:00:00Z",
+                        "period_type": "normal",
+                        "unsubscribe_detected_at": None,
+                    }
+                },
+            }
+        }
+        r = self.client.post(reverse("revenuecat-sync"), {}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data.get("plan"), "plus")
 
 
 class EntitlementsProfileFieldsTests(APITestCase):
@@ -253,3 +293,5 @@ class EntitlementsProfileFieldsTests(APITestCase):
         self.assertTrue(response.data.get("entitled"))
         self.assertIn("trial_end", response.data)
         self.assertIn("2031-08-01", response.data.get("trial_end") or "")
+        self.assertIn("billing_interval", response.data)
+        self.assertIn("billingInterval", response.data)

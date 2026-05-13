@@ -16,11 +16,28 @@
       "destination": "https://garzoni-production.up.railway.app/api/:path*"
     },
     {
-      "source": "/((?!api(?:/|$)).*)",
+      "source": "/sitemap.xml",
+      "destination": "https://garzoni-production.up.railway.app/sitemap.xml"
+    },
+    {
+      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|sitemap\\.xml$).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
     {
       "source": "/",
       "headers": [

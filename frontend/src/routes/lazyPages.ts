@@ -1,6 +1,9 @@
 import React from "react";
 
 export const Welcome = React.lazy(() => import("components/landing/Welcome"));
+export const PublicLesson = React.lazy(
+  () => import("components/learn/PublicLesson")
+);
 export const CoursePage = React.lazy(
   () => import("components/courses/CoursePage")
 );

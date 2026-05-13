@@ -60,6 +60,7 @@ export function useLessonFlow(courseId: number) {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [courseComplete, setCourseComplete] = useState(false);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentIndexRef = useRef(0);
 
   const flowEnabled = Number.isFinite(courseId) && courseId > 0;
 
@@ -85,7 +86,7 @@ export function useLessonFlow(courseId: number) {
       fetchCourseFlowState(courseId).then(
         (r) => (r.data as { current_index?: number })?.current_index ?? 0,
       ),
-    staleTime: staleTimes.content,
+    staleTime: 0,
   });
 
   // Restore saved flow position on first load
@@ -139,22 +140,49 @@ export function useLessonFlow(courseId: number) {
   const totalSteps = flowItems.length;
   const completedSteps = flowItems.filter((i) => i.isCompleted).length;
 
-  // Autosave position
+  // Keep ref in sync so unmount handler sees latest index without stale closure.
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  const persistFlowState = useCallback(
+    (index: number) => {
+      if (!flowEnabled) return;
+      void saveCourseFlowState(courseId, index)
+        .then(() => {
+          queryClient.setQueryData(["flowState", courseId], index);
+        })
+        .catch(() => {});
+    },
+    [courseId, flowEnabled, queryClient],
+  );
+
+  // Autosave position (debounced while actively navigating).
   useEffect(() => {
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(() => {
-      if (flowEnabled) {
-        void saveCourseFlowState(courseId, currentIndex).catch(() => {});
-      }
+      persistFlowState(currentIndex);
     }, 2000);
     return () => {
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     };
-  }, [currentIndex, courseId, flowEnabled]);
+  }, [currentIndex, persistFlowState]);
+
+  // Save immediately on unmount so navigating away never drops the last index.
+  useEffect(() => {
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+      persistFlowState(currentIndexRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId, flowEnabled]);
 
   const completeSectionMutation = useMutation({
     mutationFn: completeSection,
     onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.lessonsWithProgress(courseId),
+      });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.progressSummary(),
       });
@@ -176,6 +204,12 @@ export function useLessonFlow(courseId: number) {
         ({ trackGarzoniEvent }) =>
           trackGarzoniEvent("lesson_completed", { lesson_id: lessonId }),
       );
+      void import("../bootstrap/reviewPrompt").then(({ maybeRequestReview }) =>
+        maybeRequestReview("lesson_complete"),
+      );
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.lessonsWithProgress(courseId),
+      });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.progressSummary(),
       });

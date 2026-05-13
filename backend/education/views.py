@@ -379,16 +379,21 @@ class LessonViewSet(viewsets.ModelViewSet):
                 "translations",
             )
         )
+        completed_section_ids = set(completed_sections)
         serializer = self.get_serializer(
             lessons,
             many=True,
-            context={"completed_lesson_ids": completed_lesson_ids, "request": request},
+            context={
+                "completed_lesson_ids": completed_lesson_ids,
+                "completed_section_ids": completed_section_ids,
+                "request": request,
+            },
         )
         lesson_data = serializer.data
 
         for lesson in lesson_data:
             total = len(lesson["sections"])
-            completed = sum(1 for s in lesson["sections"] if s["id"] in completed_sections)
+            completed = sum(1 for s in lesson["sections"] if s["id"] in completed_section_ids)
             lesson["total_sections"] = total
             lesson["completed_sections"] = completed
             lesson["progress"] = f"{(completed / total * 100) if total > 0 else 0}%"

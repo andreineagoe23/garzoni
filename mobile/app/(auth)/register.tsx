@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
 import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
+import { consumePendingReferralCode } from "../../src/auth/pendingReferral";
 import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
 import AuthDarkShell, {
@@ -108,6 +109,7 @@ export default function RegisterScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
+      const referralCode = await consumePendingReferralCode();
       const { data } = await registerSecure({
         username: form.username.trim(),
         email: form.email.trim(),
@@ -116,6 +118,7 @@ export default function RegisterScreen() {
         last_name: form.last_name.trim(),
         client_type: "mobile",
         platform: "mobile",
+        ...(referralCode ? { referral_code: referralCode } : {}),
       });
       const { access, refresh } = extractTokens(data as TokenResponseLike);
       if (access) {

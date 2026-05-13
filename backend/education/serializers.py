@@ -82,6 +82,7 @@ class QuizSerializer(serializers.ModelSerializer):
 class LessonSectionSerializer(serializers.ModelSerializer):
     content_type = serializers.CharField()
     updated_by = serializers.SerializerMethodField()
+    is_completed = serializers.SerializerMethodField()
 
     class Meta:
         model = LessonSection
@@ -97,12 +98,21 @@ class LessonSectionSerializer(serializers.ModelSerializer):
             "source_label",
             "source_url",
             "is_published",
+            "is_completed",
             "updated_at",
             "updated_by",
         ]
 
     def get_updated_by(self, obj):
         return normalize_display_string(obj.updated_by.username) if obj.updated_by else None
+
+    def get_is_completed(self, obj):
+        completed_ids = self.context.get("completed_section_ids")
+        if completed_ids is None:
+            return False
+        if isinstance(completed_ids, (set, frozenset)):
+            return obj.id in completed_ids
+        return obj.id in set(completed_ids)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

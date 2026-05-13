@@ -32,6 +32,8 @@ class EntitlementsView(APIView):
             trial_iso = te.isoformat() if te else None
             entitlements["trial_end"] = trial_iso
             entitlements["trialEnd"] = trial_iso
+            entitlements.setdefault("billing_interval", None)
+            entitlements.setdefault("billingInterval", None)
             # Derive plan from fresh profile — get_entitlements_for_user may have
             # read a stale cached profile via user.profile accessor.
             fresh_plan = normalize_plan_id(profile.subscription_plan_id or "")
@@ -39,6 +41,18 @@ class EntitlementsView(APIView):
                 entitlements["plan"] = fresh_plan
             plan = entitlements.get("plan")
             entitlements["entitled"] = plan in ("plus", "pro")
+            billing_interval = None
+            if getattr(profile, "stripe_subscription_id", None):
+                try:
+                    from finance.plan_resolution import (
+                        resolve_billing_interval_from_profile_stripe,
+                    )
+
+                    billing_interval = resolve_billing_interval_from_profile_stripe(profile)
+                except Exception:
+                    billing_interval = None
+            entitlements["billing_interval"] = billing_interval
+            entitlements["billingInterval"] = billing_interval
         return Response(entitlements)
 
 

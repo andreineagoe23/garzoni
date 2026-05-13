@@ -8,6 +8,7 @@ subscriber.subscription records often use lowercase — we normalize to uppercas
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone as dt_timezone
 
 from django.utils import timezone as django_timezone
@@ -15,6 +16,15 @@ from django.utils import timezone as django_timezone
 from authentication.revenuecat_products import ENTITLEMENT_PLAN_MAP, PRODUCT_PLAN_MAP, plan_rank
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_entitlement_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", (value or "").strip().lower())
+
+
+_NORMALIZED_ENTITLEMENT_PLAN_MAP = {
+    _normalize_entitlement_key(key): plan for key, plan in ENTITLEMENT_PLAN_MAP.items()
+}
 
 
 def parse_iso_datetime_utc(value: str | None) -> datetime | None:
@@ -126,7 +136,9 @@ def resolve_plan_and_trial_from_subscriber_payload(
     winning_entitlement: dict | None = None
 
     for ent_key, ent_data in entitlements.items():
-        plan = ENTITLEMENT_PLAN_MAP.get(ent_key)
+        plan = ENTITLEMENT_PLAN_MAP.get(ent_key) or _NORMALIZED_ENTITLEMENT_PLAN_MAP.get(
+            _normalize_entitlement_key(ent_key)
+        )
         if not plan:
             continue
         if ent_data.get("expires_date") is None or _is_entitlement_active(ent_data):
@@ -159,3 +171,35 @@ def resolve_plan_and_trial_from_subscriber_payload(
         return best_fb, status, trial_end
 
     return None, "active", None
+
+
+def resolve_plan_from_webhook_event(event: dict) -> str | None:
+    """
+    Resolve plus/pro from RevenueCat webhook event payload.
+    Prefers explicit product_id map, then entitlement identifiers.
+    """
+    product_id = str(event.get("product_id") or "").strip()
+    if product_id:
+        plan = PRODUCT_PLAN_MAP.get(product_id)
+        if plan:
+            return plan
+
+    entitlement_candidates: list[str] = []
+    for key in ("entitlement_id", "entitlement"):
+        val = event.get(key)
+        if isinstance(val, str) and val.strip():
+            entitlement_candidates.append(val.strip())
+    ids = event.get("entitlement_ids")
+    if isinstance(ids, list):
+        for val in ids:
+            if isinstance(val, str) and val.strip():
+                entitlement_candidates.append(val.strip())
+
+    best_plan: str | None = None
+    for ent in entitlement_candidates:
+        plan = ENTITLEMENT_PLAN_MAP.get(ent) or _NORMALIZED_ENTITLEMENT_PLAN_MAP.get(
+            _normalize_entitlement_key(ent)
+        )
+        if plan_rank(plan) > plan_rank(best_plan):
+            best_plan = plan
+    return best_plan

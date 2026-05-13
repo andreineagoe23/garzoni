@@ -76,15 +76,33 @@ class Lesson(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
     short_description = models.TextField(blank=True)
     detailed_content = CKEditor5Field(config_name="extends")
     image = models.ImageField(upload_to="lesson_images/", blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     exercise_type = models.CharField(max_length=50, choices=EXERCISE_CHOICES, blank=True, null=True)
     exercise_data = models.JSONField(blank=True, null=True)
+    # SEO: exposes this lesson at /learn/<slug> on web and via /api/public/lessons/<slug>/
+    # so Google can index it and the iOS app can deep-link into it.
+    is_public = models.BooleanField(default=False, db_index=True)
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+
+            base = slugify(self.title)[:200] or f"lesson-{self.pk or ''}".strip("-")
+            candidate = base
+            n = 2
+            Model = type(self)
+            while Model.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f"{base}-{n}"[:220]
+                n += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Lesson"

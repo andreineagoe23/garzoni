@@ -99,6 +99,11 @@ def apple_app_site_association(request):
                     "components": [
                         # Password reset deep links
                         {"/": "/password-reset/*", "comment": "Password reset"},
+                        # Referral / welcome landing — opens app directly with ?ref=CODE preserved
+                        {"/": "/welcome", "comment": "Referral landing"},
+                        {"/": "/welcome/*", "comment": "Referral landing"},
+                        # Public lesson preview — opens app on the matching lesson if installed
+                        {"/": "/learn/*", "comment": "Public lesson preview"},
                     ],
                 }
             ],

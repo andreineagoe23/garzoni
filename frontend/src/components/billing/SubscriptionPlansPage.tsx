@@ -18,6 +18,7 @@ import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
+import { postRevenueCatSync, postSubscriptionSync } from "@garzoni/core";
 import {
   isRevenueCatEnabled,
   rcIsEntitled,
@@ -92,16 +93,23 @@ const SubscriptionPlansPage = () => {
   >(undefined);
 
   const handleRCSuccess = useCallback(
-    (customerInfo: CustomerInfo) => {
+    async (customerInfo: CustomerInfo) => {
       if (rcIsEntitled(customerInfo)) {
         setSubscriptionInfo({ hasPaid: true });
-        reloadEntitlements?.();
+        const rcAppUserId = customerInfo.originalAppUserId || undefined;
+        try {
+          await postRevenueCatSync(rcAppUserId);
+        } catch {
+          // Webhook may still activate shortly; proceed with refresh.
+        }
+        await reloadEntitlements?.();
+        await loadProfile?.({ force: true });
         setShowRCPaywall(false);
         setRcPaywallOfferingId(undefined);
         navigate("/personalized-path");
       }
     },
-    [reloadEntitlements, navigate]
+    [reloadEntitlements, navigate, loadProfile]
   );
 
   const { data: questionnaireProgress } = useQuery({
@@ -146,6 +154,40 @@ const SubscriptionPlansPage = () => {
     fetchSubscriptionInfo();
   }, [fetchSubscriptionInfo]);
 
+  const upgradeComplete = useMemo(
+    () =>
+      new URLSearchParams(location.search).get("redirect") ===
+      "upgradeComplete",
+    [location.search]
+  );
+
+  useEffect(() => {
+    if (!upgradeComplete || !isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await postSubscriptionSync();
+      } catch {
+        // Non-blocking: webhooks may update profile asynchronously.
+      }
+      if (cancelled) return;
+      await reloadEntitlements?.();
+      await loadProfile?.({ force: true });
+      if (!cancelled) {
+        void fetchSubscriptionInfo();
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    upgradeComplete,
+    isAuthenticated,
+    reloadEntitlements,
+    loadProfile,
+    fetchSubscriptionInfo,
+  ]);
+
   useEffect(() => {
     apiClient
       .get("/plans/")
@@ -165,13 +207,6 @@ const SubscriptionPlansPage = () => {
     }
     navigate("/all-topics");
   }, [navigate, subscriptionInfo.hasPaid, questionnaireComplete]);
-
-  const upgradeComplete = useMemo(
-    () =>
-      new URLSearchParams(location.search).get("redirect") ===
-      "upgradeComplete",
-    [location.search]
-  );
 
   const handlePlanSelect = useCallback(
     async (plan: Plan | null) => {

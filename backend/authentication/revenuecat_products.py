@@ -29,9 +29,12 @@ PRODUCT_PLAN_MAP: dict[str, str] = {
 }
 
 # RevenueCat dashboard entitlement identifiers → plan.
+# Keep aliases for web/mobile naming drift across projects.
 ENTITLEMENT_PLAN_MAP: dict[str, str] = {
     "Garzoni Plus": "plus",
     "Garzoni Pro": "pro",
+    "Garzoni Educational Plus": "plus",
+    "Garzoni Educational Pro": "pro",
 }
 
 _PLAN_RANK = {"starter": 0, "plus": 1, "pro": 2}
@@ -41,3 +44,38 @@ def plan_rank(plan_id: str | None) -> int:
     if not plan_id:
         return 0
     return _PLAN_RANK.get(plan_id, 0)
+
+
+def validate_rc_plan_mappings() -> list[str]:
+    """
+    Validate RevenueCat identifier maps used for subscription parity.
+    Returns a list of human-readable errors (empty when valid).
+    """
+    errors: list[str] = []
+    allowed = {"plus", "pro"}
+    product_values = set(PRODUCT_PLAN_MAP.values())
+    entitlement_values = set(ENTITLEMENT_PLAN_MAP.values())
+
+    if not {"plus", "pro"}.issubset(product_values):
+        errors.append(
+            "PRODUCT_PLAN_MAP must include at least one product id for both plus and pro."
+        )
+    if not {"plus", "pro"}.issubset(entitlement_values):
+        errors.append(
+            "ENTITLEMENT_PLAN_MAP must include at least one entitlement name for both plus and pro."
+        )
+
+    unknown_product_targets = sorted(product_values - allowed)
+    if unknown_product_targets:
+        errors.append(
+            f"PRODUCT_PLAN_MAP has unsupported plan targets: {', '.join(unknown_product_targets)}."
+        )
+
+    unknown_entitlement_targets = sorted(entitlement_values - allowed)
+    if unknown_entitlement_targets:
+        errors.append(
+            "ENTITLEMENT_PLAN_MAP has unsupported plan targets: "
+            + ", ".join(unknown_entitlement_targets)
+            + "."
+        )
+    return errors
