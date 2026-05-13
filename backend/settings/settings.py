@@ -513,6 +513,7 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 
 REVENUECAT_API_KEY = os.getenv("REVENUECAT_API_KEY", "")
+REVENUECAT_WEBHOOK_SECRET = os.getenv("REVENUECAT_WEBHOOK_SECRET", "")
 
 # Budgeting (Personal CFO phase 2)
 # BUDGETING_PROVIDER selects the open-banking integration ("plaid" or "disabled").

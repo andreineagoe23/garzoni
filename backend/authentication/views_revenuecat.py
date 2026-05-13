@@ -11,7 +11,7 @@ Setup steps:
    set the same value in RevenueCat Dashboard → Project → Integrations →
    Webhooks → Authorization header).
 2. Create App Store Connect products matching PRODUCT_PLAN_MAP keys below.
-3. Add the webhook URL to RevenueCat: POST /api/auth/revenuecat-webhook/
+3. Add the webhook URL to RevenueCat: POST /api/revenuecat-webhook/
 """
 
 import hashlib
