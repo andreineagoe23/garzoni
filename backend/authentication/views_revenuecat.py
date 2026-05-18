@@ -101,6 +101,15 @@ class RevenueCatWebhookView(APIView):
             # No user to update — acknowledge so RevenueCat doesn't retry.
             return Response({"ok": True})
 
+        # Anonymous RC users ($RCAnonymousID:*) and non-integer IDs (RC dashboard
+        # test events) will never resolve to a Django user — skip silently.
+        if app_user_id.startswith("$RCAnonymousID:") or not app_user_id.isdigit():
+            logger.debug(
+                "[RevenueCat] Ignoring event for non-Django app_user_id=%s",
+                app_user_id,
+            )
+            return Response({"ok": True})
+
         # Resolve the Django user.  RevenueCat app_user_id is set to the
         # Django user PK (str) in billing.tsx via Purchases.configure({ appUserID }).
         try:
