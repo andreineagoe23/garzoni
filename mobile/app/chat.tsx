@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { isAxiosError } from "axios";
 import { Stack, router, useLocalSearchParams } from "expo-router";
@@ -31,24 +32,11 @@ import type { AiTutorLink, Entitlements } from "@garzoni/core";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { brand } from "../src/theme/brand";
 import { useThemeColors } from "../src/theme/ThemeContext";
+import type { ThemeColors } from "../src/theme/palettes";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
-// ── Always-dark design constants (matches subscriptions page) ────────────────
-const D = {
-  bg: brand.bgDark,
-  surface: "#0e1621",
-  card: "#111827",
-  border: brand.borderGlass,
-  borderSoft: "rgba(255,255,255,0.07)",
-  primary: brand.green,
-  primaryDim: "rgba(29,83,48,0.18)",
-  primaryBright: "#2a7347",
-  text: brand.text,
-  muted: brand.textMuted,
-  faint: "rgba(229,231,235,0.32)",
-  userBg: brand.green,
-  botBg: "#131e2b",
-} as const;
+const HISTORY_STORAGE_KEY = "garzoni:chat:history:v1";
+const HISTORY_LIMIT = 20;
 
 type Msg = {
   role: "user" | "assistant" | "system";
@@ -95,8 +83,9 @@ function formatMarketCap(marketCap: number): string | null {
   return fmtUsd(marketCap, 0);
 }
 
-// ── Bot avatar ────────────────────────────────────────────────────────────────
-function BotAvatar() {
+type Styles = ReturnType<typeof makeStyles>;
+
+function BotAvatar({ styles }: { styles: Styles }) {
   return (
     <View style={styles.botAvatar}>
       <Text style={styles.botAvatarText}>G</Text>
@@ -104,13 +93,16 @@ function BotAvatar() {
   );
 }
 
-// ── Message bubble ────────────────────────────────────────────────────────────
 function MessageBubble({
   msg,
   onLinkPress,
+  styles,
+  colors,
 }: {
   msg: Msg;
   onLinkPress: (link: AiTutorLink) => void;
+  styles: Styles;
+  colors: ThemeColors;
 }) {
   const isUser = msg.role === "user";
   const isSystem = msg.role === "system";
@@ -135,7 +127,7 @@ function MessageBubble({
 
   return (
     <View style={styles.rowBot}>
-      <BotAvatar />
+      <BotAvatar styles={styles} />
       <View style={styles.bubbleBot}>
         <Text style={styles.bubbleBotText}>{msg.content}</Text>
         {msg.link ? (
@@ -146,7 +138,7 @@ function MessageBubble({
             <MaterialCommunityIcons
               name="book-open-variant"
               size={12}
-              color={D.primaryBright}
+              color={colors.primaryBright}
             />
             <Text style={styles.linkChipText} numberOfLines={1}>
               {msg.link.text}
@@ -166,7 +158,7 @@ function MessageBubble({
                   <MaterialCommunityIcons
                     name="book-open-variant"
                     size={12}
-                    color={D.primaryBright}
+                    color={colors.primaryBright}
                   />
                   <Text style={styles.linkChipText} numberOfLines={1}>
                     {link.text}
@@ -181,11 +173,10 @@ function MessageBubble({
   );
 }
 
-// ── Typing indicator ──────────────────────────────────────────────────────────
-function TypingBubble() {
+function TypingBubble({ styles }: { styles: Styles }) {
   return (
     <View style={styles.rowBot}>
-      <BotAvatar />
+      <BotAvatar styles={styles} />
       <View style={[styles.bubbleBot, { paddingVertical: spacing.sm + 4 }]}>
         <View style={styles.typingDots}>
           {[0, 1, 2].map((i) => (
@@ -218,13 +209,58 @@ export default function ChatScreen() {
   const aiTutorFeature = (entitlementsQuery.data as Entitlements | undefined)
     ?.features?.ai_tutor;
 
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: t("chatbot.greeting") },
   ]);
   const [history, setHistory] = useState<HistoryMsg[]>([]);
+  const [historyHydrated, setHistoryHydrated] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  // Hydrate persisted chat history (last 20 msgs) on mount.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
+        if (!raw || cancelled) return;
+        const parsed = JSON.parse(raw) as { messages?: Msg[] } | null;
+        const saved = Array.isArray(parsed?.messages) ? parsed!.messages : null;
+        if (saved && saved.length > 0) {
+          setMessages(saved);
+          setHistory(
+            saved
+              .filter((m): m is Msg & { role: "user" | "assistant" } =>
+                m.role === "user" || m.role === "assistant",
+              )
+              .map((m) => ({ role: m.role, content: m.content })),
+          );
+        }
+      } catch {
+        /* ignore corrupted storage */
+      } finally {
+        if (!cancelled) setHistoryHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist last 20 messages after hydration.
+  useEffect(() => {
+    if (!historyHydrated) return;
+    const tail = messages.slice(-HISTORY_LIMIT);
+    void AsyncStorage.setItem(
+      HISTORY_STORAGE_KEY,
+      JSON.stringify({ messages: tail }),
+    ).catch(() => {
+      /* ignore */
+    });
+  }, [messages, historyHydrated]);
 
   const quickReplies = useMemo(
     () => [
@@ -557,7 +593,7 @@ export default function ChatScreen() {
         }
       />
       <KeyboardAvoidingView
-        style={[styles.flex, { backgroundColor: D.bg }]}
+        style={[styles.flex, { backgroundColor: colors.bg }]}
         behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={keyboardOffset}
       >
@@ -575,9 +611,11 @@ export default function ChatScreen() {
               key={`${i}-${m.role}-${m.content.slice(0, 12)}`}
               msg={m}
               onLinkPress={openCourseLink}
+              styles={styles}
+              colors={colors}
             />
           ))}
-          {busy ? <TypingBubble /> : null}
+          {busy ? <TypingBubble styles={styles} /> : null}
           {showQuickReplies ? (
             <View style={styles.quickBlock}>
               <Text style={styles.quickHeading}>{t("chatbot.tryAsking")}</Text>
@@ -611,7 +649,7 @@ export default function ChatScreen() {
             value={input}
             onChangeText={setInput}
             placeholder={t("chatbot.inputPlaceholder")}
-            placeholderTextColor={D.faint}
+            placeholderTextColor={colors.textFaint}
             style={styles.input}
             multiline
             editable={!busy}
@@ -628,7 +666,7 @@ export default function ChatScreen() {
               styles.sendBtn,
               {
                 opacity: !input.trim() || busy ? 0.4 : pressed ? 0.8 : 1,
-                backgroundColor: D.primary,
+                backgroundColor: colors.primary,
               },
             ]}
           >
@@ -642,198 +680,193 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scroll: {
-    padding: spacing.md,
-    gap: spacing.sm,
-    paddingBottom: 24,
-  },
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    flex: { flex: 1 },
+    scroll: {
+      padding: spacing.md,
+      gap: spacing.sm,
+      paddingBottom: 24,
+    },
 
-  // Message rows
-  rowUser: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginBottom: spacing.xs,
-  },
-  rowBot: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  rowSystem: {
-    alignItems: "center",
-    marginVertical: spacing.sm,
-  },
+    rowUser: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      marginBottom: spacing.xs,
+    },
+    rowBot: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm,
+      marginBottom: spacing.xs,
+    },
+    rowSystem: {
+      alignItems: "center",
+      marginVertical: spacing.sm,
+    },
 
-  // Bot avatar
-  botAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: D.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    overflow: "hidden",
-    marginTop: 2,
-  },
-  botAvatarText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "700",
-    textAlign: "center",
-    ...Platform.select({
-      android: { includeFontPadding: false },
-      ios: { lineHeight: 15 },
-    }),
-  },
+    botAvatar: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      overflow: "hidden",
+      marginTop: 2,
+    },
+    botAvatarText: {
+      color: "#fff",
+      fontSize: 13,
+      fontWeight: "700",
+      textAlign: "center",
+      ...Platform.select({
+        android: { includeFontPadding: false },
+        ios: { lineHeight: 15 },
+      }),
+    },
 
-  // Bubbles
-  bubbleUser: {
-    maxWidth: "82%",
-    backgroundColor: D.userBg,
-    borderRadius: 20,
-    borderBottomRightRadius: 4,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-  },
-  bubbleUserText: {
-    color: "#fff",
-    fontSize: typography.sm,
-    lineHeight: 20,
-  },
-  bubbleBot: {
-    flex: 1,
-    maxWidth: "82%",
-    backgroundColor: D.botBg,
-    borderRadius: 20,
-    borderBottomLeftRadius: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: D.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    gap: spacing.sm,
-  },
-  bubbleBotText: {
-    color: D.text,
-    fontSize: typography.sm,
-    lineHeight: 20,
-  },
-  systemText: {
-    color: D.muted,
-    fontSize: typography.xs,
-    textAlign: "center",
-  },
+    bubbleUser: {
+      maxWidth: "82%",
+      backgroundColor: colors.primary,
+      borderRadius: 20,
+      borderBottomRightRadius: 4,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + 2,
+    },
+    bubbleUserText: {
+      color: colors.textOnPrimary,
+      fontSize: typography.sm,
+      lineHeight: 20,
+    },
+    bubbleBot: {
+      flex: 1,
+      maxWidth: "82%",
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: 20,
+      borderBottomLeftRadius: 4,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + 2,
+      gap: spacing.sm,
+    },
+    bubbleBotText: {
+      color: colors.text,
+      fontSize: typography.sm,
+      lineHeight: 20,
+    },
+    systemText: {
+      color: colors.textMuted,
+      fontSize: typography.xs,
+      textAlign: "center",
+    },
 
-  // Course links
-  linkChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.xl,
-    backgroundColor: "rgba(29,83,48,0.2)",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(42,115,71,0.4)",
-  },
-  linkChipText: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    color: brand.goldWarm,
-  },
-  linksBlock: { gap: spacing.xs },
-  linksHeading: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    color: D.muted,
-    letterSpacing: 0.6,
-  },
-  linksRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
+    linkChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      gap: 5,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: radius.xl,
+      backgroundColor: "rgba(29,83,48,0.2)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(42,115,71,0.4)",
+    },
+    linkChipText: {
+      fontSize: typography.xs,
+      fontWeight: "700",
+      color: brand.goldWarm,
+    },
+    linksBlock: { gap: spacing.xs },
+    linksHeading: {
+      fontSize: typography.xs,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      color: colors.textMuted,
+      letterSpacing: 0.6,
+    },
+    linksRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
 
-  // Typing
-  typingDots: {
-    flexDirection: "row",
-    gap: 4,
-    alignItems: "center",
-  },
-  typingDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: D.muted,
-  },
+    typingDots: {
+      flexDirection: "row",
+      gap: 4,
+      alignItems: "center",
+    },
+    typingDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 3.5,
+      backgroundColor: colors.textMuted,
+    },
 
-  // Quick replies
-  quickBlock: {
-    gap: spacing.sm,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  quickHeading: {
-    fontSize: typography.xs,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    color: D.muted,
-    letterSpacing: 0.8,
-    marginLeft: spacing.xs,
-  },
-  quickRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  quickChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: "rgba(29,83,48,0.55)",
-    backgroundColor: "rgba(29,83,48,0.12)",
-    maxWidth: "100%",
-  },
-  quickChipText: {
-    fontSize: typography.sm,
-    fontWeight: "600",
-    color: brand.goldWarm,
-  },
+    quickBlock: {
+      gap: spacing.sm,
+      marginTop: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    quickHeading: {
+      fontSize: typography.xs,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      color: colors.textMuted,
+      letterSpacing: 0.8,
+      marginLeft: spacing.xs,
+    },
+    quickRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+    quickChip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.xl,
+      borderWidth: 1,
+      borderColor: "rgba(29,83,48,0.55)",
+      backgroundColor: "rgba(29,83,48,0.12)",
+      maxWidth: "100%",
+    },
+    quickChipText: {
+      fontSize: typography.sm,
+      fontWeight: "600",
+      color: brand.goldWarm,
+    },
 
-  // Input bar
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: D.border,
-    backgroundColor: D.surface,
-  },
-  input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    borderRadius: 22,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: D.border,
-    backgroundColor: D.card,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: typography.base,
-    color: D.text,
-  },
-  sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    overflow: "hidden",
-  },
-  sendBtnIconWrap: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+    inputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + 2,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    input: {
+      flex: 1,
+      minHeight: 44,
+      maxHeight: 120,
+      borderRadius: 22,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      backgroundColor: colors.inputBg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      fontSize: typography.base,
+      color: colors.text,
+    },
+    sendBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      overflow: "hidden",
+    },
+    sendBtnIconWrap: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });
+}
