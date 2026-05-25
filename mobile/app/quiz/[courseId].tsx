@@ -266,7 +266,7 @@ export default function QuizScreen() {
             {t("courses.quiz.introStart")}
           </Button>
           <Button
-            variant="ghost"
+            variant="secondary"
             onPress={() => safeRouterBack("/(tabs)/learn")}
           >
             {t("courses.quiz.backToCourses")}
@@ -320,7 +320,7 @@ export default function QuizScreen() {
         <View style={styles.actions}>
           <Button onPress={() => router.replace("/(tabs)")}>Dashboard</Button>
           <Button
-            variant="ghost"
+            variant="secondary"
             onPress={() => router.replace("/(tabs)/learn")}
           >
             {t("courses.quiz.backToCourses")}

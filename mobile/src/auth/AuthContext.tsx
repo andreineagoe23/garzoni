@@ -16,6 +16,7 @@ import {
 import { tokenStorage } from "./tokenStorage";
 import { markWelcomeHeaderPending } from "./firstRunFlags";
 import {
+  bumpSessionVersion,
   NATIVE_AUTH_STORAGE_CLEARED,
   resetNativeSessionStores,
 } from "./nativeSessionReset";
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyTokens = useCallback(async (access: string, refresh?: string) => {
+    bumpSessionVersion();
     await tokenStorage.setAccess(access);
     if (refresh) await tokenStorage.setRefresh(refresh);
     attachToken(access);
@@ -69,8 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearSession = useCallback(async () => {
-    await resetNativeSessionStores();
+    // Disable queries and stop authenticated requests immediately, before the
+    // async cleanup chain runs. Without this, queryClient.clear() fires while
+    // React still sees hasSession=true, causing re-fetches with no token → 401s.
     setAccessToken(null);
+    attachToken(null);
+    await resetNativeSessionStores();
   }, []);
 
   const value = useMemo(

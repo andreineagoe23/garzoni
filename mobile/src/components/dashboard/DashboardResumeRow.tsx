@@ -12,12 +12,16 @@ import type { ProgressSummary } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import GlassButton from "../ui/GlassButton";
-import { spacing, typography, radius, shadows } from "../../theme/tokens";
+import { spacing, typography, radius } from "../../theme/tokens";
+import type { DashboardWeakSkill } from "../../hooks/useDashboardSkillExercisesNavigation";
 
 type Props = {
   resume?: ProgressSummary["resume"] | null;
   startHere?: ProgressSummary["start_here"] | null;
   style?: StyleProp<ViewStyle>;
+  /** Top weak skill — surfaces a secondary "Practice/Review" CTA inline. */
+  topWeakSkill?: DashboardWeakSkill | null;
+  onTopWeakSkillAction?: (skill: DashboardWeakSkill) => void;
 };
 
 /**
@@ -28,29 +32,39 @@ export default function DashboardResumeRow({
   resume,
   startHere,
   style,
+  topWeakSkill,
+  onTopWeakSkillAction,
 }: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
 
-  const borderTint = c.primary + "66";
-  const fillResume = c.primary + "18";
-  const fillEmpty = c.primary + "12";
+  const renderWeakSkillCta = () => {
+    if (!topWeakSkill || !onTopWeakSkillAction) return null;
+    const isDue =
+      topWeakSkill.recommended_action === "review" &&
+      topWeakSkill.review_exercise_id != null;
+    const label = isDue
+      ? t("dashboard.weakSkills.action.reviewNow")
+      : t("dashboard.weakSkills.action.practice");
+    return (
+      <GlassButton
+        variant="secondary"
+        size="sm"
+        style={styles.ctaWide}
+        onPress={() => onTopWeakSkillAction(topWeakSkill)}
+      >
+        {`${label} · ${topWeakSkill.skill}`}
+      </GlassButton>
+    );
+  };
 
   if (resume) {
     return (
       <GlassCard
         padding="md"
-        fillContent
-        intensity={32}
-        style={[
-          styles.card,
-          { borderColor: borderTint },
-          shadows.md,
-          { shadowColor: c.primary + "44" },
-          style,
-        ]}
+        style={[styles.card, { borderColor: c.border }, style]}
       >
-        <View style={[styles.sheet, { backgroundColor: fillResume }]}>
+        <View style={styles.sheet}>
           <View style={styles.topRow}>
             <MaterialCommunityIcons
               name="book-open-variant"
@@ -76,6 +90,7 @@ export default function DashboardResumeRow({
           >
             {t("dashboard.resume.continueLesson")}
           </GlassButton>
+          {renderWeakSkillCta()}
         </View>
       </GlassCard>
     );
@@ -84,17 +99,9 @@ export default function DashboardResumeRow({
   return (
     <GlassCard
       padding="md"
-      fillContent
-      intensity={32}
-      style={[
-        styles.card,
-        { borderColor: borderTint },
-        shadows.md,
-        { shadowColor: c.primary + "44" },
-        style,
-      ]}
+      style={[styles.card, { borderColor: c.border }, style]}
     >
-      <View style={[styles.sheet, { backgroundColor: fillEmpty }]}>
+      <View style={styles.sheet}>
         <View style={styles.topRow}>
           <MaterialCommunityIcons
             name="book-open-variant"
@@ -124,27 +131,22 @@ export default function DashboardResumeRow({
         >
           {t("dashboard.resume.browseTopics")}
         </GlassButton>
+        {renderWeakSkillCta()}
       </View>
     </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
-  /** `flex: 1` comes from parent `resumeCardFill` when tiles are side-by-side. */
   card: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.lg,
-    minHeight: 168,
     width: "100%",
     alignSelf: "stretch",
     overflow: "hidden",
   },
   sheet: {
-    flex: 1,
-    borderRadius: radius.md,
-    padding: spacing.md,
     gap: spacing.md,
-    justifyContent: "space-between",
   },
   topRow: {
     flexDirection: "row",
@@ -157,13 +159,11 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: spacing.xs,
   },
-  /** Web: `text-sm font-semibold sm:text-base` */
   title: {
     fontSize: typography.md,
     fontWeight: "600",
     lineHeight: 22,
   },
-  /** Slightly larger than web 11px for RN readability at full width */
   body: {
     fontSize: typography.sm,
     lineHeight: 18,

@@ -13,20 +13,31 @@ describe("getExercisesSkillNavigation", () => {
       from: "dashboard",
       targetSkill: skill,
       reason: "weak_skill_click",
+      exerciseId: null,
     });
   });
 
-  it("supports weak_skill_practice and quick_card_exercises reasons", () => {
+  it("supports weak_skill_practice and weak_skill_review reasons", () => {
     const p = getExercisesSkillNavigation("Budgeting", "weak_skill_practice");
     expect(p.state.reason).toBe("weak_skill_practice");
-    const q = getExercisesSkillNavigation("Investing", "quick_card_exercises");
-    expect(q.state.reason).toBe("quick_card_exercises");
+    const r = getExercisesSkillNavigation("Investing", "weak_skill_review", {
+      exerciseId: 42,
+    });
+    expect(r.state.reason).toBe("weak_skill_review");
+    expect(r.state.exerciseId).toBe(42);
+    expect(r.search).toContain("exerciseId=42");
   });
 });
 
 describe("normalizeExercisesSkillReason", () => {
   it("maps legacy improve_weak_skill to weak_skill_practice", () => {
     expect(normalizeExercisesSkillReason("improve_weak_skill")).toBe(
+      "weak_skill_practice"
+    );
+  });
+
+  it("maps legacy quick_card_exercises to weak_skill_practice", () => {
+    expect(normalizeExercisesSkillReason("quick_card_exercises")).toBe(
       "weak_skill_practice"
     );
   });

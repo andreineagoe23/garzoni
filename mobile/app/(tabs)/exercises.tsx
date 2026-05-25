@@ -25,6 +25,7 @@ import {
   fetchExercisesList,
   fetchProfile,
   fetchReviewQueue,
+  getToolPracticeCtaForSkill,
   queryKeys,
   resolveCategoryFromSkill,
   staleTimes,
@@ -55,6 +56,7 @@ type ExerciseListItem = {
   type?: string;
   category?: string;
   difficulty?: string;
+  question?: string;
 };
 
 type ReviewDueItem = {
@@ -77,6 +79,7 @@ const EXERCISE_TYPES = [
   { value: "budget-allocation", label: "Budget" },
   { value: "fill-in-table", label: "Fill Table" },
   { value: "scenario-simulation", label: "Scenario" },
+  { value: "true-false", label: "True/False" },
 ];
 
 function firstParam(v: string | string[] | undefined): string | undefined {
@@ -96,6 +99,7 @@ function labelForExerciseType(
     "budget-allocation": "exercises.filters.budget",
     "fill-in-table": "exercises.filters.fillTable",
     "scenario-simulation": "exercises.filters.scenario",
+    "true-false": "exercises.filters.trueFalse",
   };
   if (map[key]) return t(map[key]);
   return t("exercises.practiceHub.genericDrill");
@@ -136,6 +140,7 @@ function ExercisesInner() {
   const confettiRef = useRef<ConfettiCannon>(null);
   const [confettiActive, setConfettiActive] = useState(false);
   const hadIncorrectRef = useRef(false);
+  const wrongExercisesRef = useRef<ExerciseListItem[]>([]);
   const uniqueCompletedRef = useRef<Set<number>>(new Set());
   const summaryShownRef = useRef(false);
 
@@ -162,6 +167,7 @@ function ExercisesInner() {
     null,
   );
   const [summaryVisible, setSummaryVisible] = useState(false);
+  const [readyVisible, setReadyVisible] = useState(true);
   const [sessionStats, setSessionStats] = useState({
     completed: 0,
     correctFirstTry: 0,
@@ -267,7 +273,7 @@ function ExercisesInner() {
     if (
       intentReasonParam === "weak_skill_click" ||
       intentReasonParam === "weak_skill_practice" ||
-      intentReasonParam === "quick_card_exercises"
+      intentReasonParam === "weak_skill_review"
     ) {
       return t(`exercises.skillIntent.context.${intentReasonParam}`);
     }
@@ -381,16 +387,34 @@ function ExercisesInner() {
 
   const resetSessionTracking = useCallback(() => {
     uniqueCompletedRef.current = new Set();
+    wrongExercisesRef.current = [];
     setSessionStats({
       completed: 0,
       correctFirstTry: 0,
       startTime: Date.now(),
     });
     setSummaryVisible(false);
+    setReadyVisible(true);
     summaryShownRef.current = false;
   }, []);
 
   const dismissSummary = useCallback(() => setSummaryVisible(false), []);
+
+  const openWrongAnswerCoach = useCallback(() => {
+    const wrong = wrongExercisesRef.current;
+    if (wrong.length === 0) return;
+    const first = wrong[0];
+    const prompt = `Garzoni wants to explain the exercises I missed. Start with: ${first?.question ?? "this exercise"}`;
+    router.push(
+      href(
+        `/chat?preseededMessage=${encodeURIComponent(prompt)}&exerciseId=${
+          first?.id ?? 0
+        }&exerciseQuestion=${encodeURIComponent(first?.question ?? "")}&exerciseUserAnswer=${encodeURIComponent(
+          "Session summary wrong answer",
+        )}`,
+      ),
+    );
+  }, []);
 
   const skipToNext = useCallback(() => {
     if (pickedId == null) return;
@@ -504,7 +528,15 @@ function ExercisesInner() {
     void listQuery.refetch();
     void profileQuery.refetch();
     if (accessToken) void reviewQuery.refetch();
-  }, [accessToken, listQuery, profileQuery, reviewQuery]);
+    if (pickedId != null) void detailQuery.refetch();
+  }, [
+    accessToken,
+    detailQuery,
+    listQuery,
+    pickedId,
+    profileQuery,
+    reviewQuery,
+  ]);
 
   const accuracyPct =
     sessionStats.completed > 0
@@ -516,6 +548,14 @@ function ExercisesInner() {
     0,
     Math.round((Date.now() - sessionStats.startTime) / 1000),
   );
+  const sessionToolCta = useMemo(() => {
+    const detail = detailQuery.data as Record<string, unknown> | undefined;
+    const skill =
+      category ||
+      pickedItem?.category ||
+      (typeof detail?.category === "string" ? detail.category : null);
+    return getToolPracticeCtaForSkill(skill);
+  }, [category, detailQuery.data, pickedItem?.category]);
 
   const isListPending = mode === "normal" ? listQuery.isPending : reviewLoading;
   const isListError = mode === "normal" && listQuery.isError;
@@ -846,6 +886,17 @@ function ExercisesInner() {
                     onAttempt={({ correct }) => {
                       if (!correct) {
                         hadIncorrectRef.current = true;
+                        if (
+                          pickedItem &&
+                          !wrongExercisesRef.current.some(
+                            (item) => item.id === pickedItem.id,
+                          )
+                        ) {
+                          wrongExercisesRef.current = [
+                            ...wrongExercisesRef.current,
+                            pickedItem,
+                          ];
+                        }
                         void Haptics.notificationAsync(
                           Haptics.NotificationFeedbackType.Error,
                         );
@@ -873,6 +924,47 @@ function ExercisesInner() {
                   </Text>
                 ) : null}
               </GlassCard>
+
+              {detailQuery.data ? (
+                <Pressable
+                  onPress={() => {
+                    const question =
+                      typeof detailQuery.data?.question === "string"
+                        ? detailQuery.data.question
+                        : "this exercise";
+                    router.push(
+                      href(
+                        `/chat?preseededMessage=${encodeURIComponent(
+                          `Help me understand this exercise: ${question}`,
+                        )}`,
+                      ),
+                    );
+                  }}
+                  style={[
+                    styles.hintBtn,
+                    {
+                      marginBottom: spacing.md,
+                      borderColor: c.border,
+                      backgroundColor: c.surface,
+                    },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name="robot-outline"
+                    size={16}
+                    color={c.primary}
+                  />
+                  <Text
+                    style={{
+                      color: c.text,
+                      fontWeight: "700",
+                      fontSize: typography.sm,
+                    }}
+                  >
+                    Ask Garzoni
+                  </Text>
+                </Pressable>
+              ) : null}
 
               {hints.length > 0 ? (
                 <View style={{ marginBottom: spacing.md }}>
@@ -1093,6 +1185,47 @@ function ExercisesInner() {
 
       {/* Session summary modal */}
       <Modal
+        visible={readyVisible && !isListPending && filteredList.length > 0}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setReadyVisible(false)}
+      >
+        <View style={styles.modalRoot}>
+          <Pressable
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.45)" },
+            ]}
+            onPress={() => setReadyVisible(false)}
+          />
+          <View style={styles.modalSheet}>
+            <GlassCard padding="lg">
+              <Text style={[styles.summaryTitle, { color: c.text }]}>
+                Ready?
+              </Text>
+              <Text
+                style={{
+                  color: c.textMuted,
+                  marginTop: spacing.xs,
+                  lineHeight: 20,
+                }}
+              >
+                {`Start a ${SESSION_BATCH}-question practice session on ${
+                  category || pickedItem?.category || "mixed practice"
+                }. Estimated time: 3-5 minutes.`}
+              </Text>
+              <View style={styles.summaryActions}>
+                <Button onPress={() => setReadyVisible(false)}>
+                  Start session
+                </Button>
+              </View>
+            </GlassCard>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Session summary modal */}
+      <Modal
         visible={summaryVisible}
         transparent
         animationType="slide"
@@ -1143,7 +1276,23 @@ function ExercisesInner() {
                 >
                   {t("exercises.practiceHub.moreExercises")}
                 </Button>
-                <Button variant="ghost" onPress={dismissSummary}>
+                {sessionToolCta ? (
+                  <Button
+                    variant="secondary"
+                    onPress={() => {
+                      resetSessionTracking();
+                      router.push(href(sessionToolCta.mobileToolUrl));
+                    }}
+                  >
+                    {sessionToolCta.ctaText}
+                  </Button>
+                ) : null}
+                {wrongExercisesRef.current.length > 0 ? (
+                  <Button variant="secondary" onPress={openWrongAnswerCoach}>
+                    Garzoni wants to explain
+                  </Button>
+                ) : null}
+                <Button variant="secondary" onPress={dismissSummary}>
                   {t("exercises.practiceHub.sessionSummaryDismiss")}
                 </Button>
               </View>

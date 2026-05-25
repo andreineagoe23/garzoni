@@ -1,5 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "../../theme/ThemeContext";
+import {
+  localizedToolMinutes,
+  localizedToolSubtitle,
+  localizedToolTitle,
+} from "./toolI18n";
 import GlassCard from "../ui/GlassCard";
 import { radius, spacing, typography } from "../../theme/tokens";
 import type { MobileToolDef } from "./mobileToolsRegistry";
@@ -27,7 +33,10 @@ type Props = {
 
 export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const emoji = ICON_MAP[tool.icon] ?? "🔧";
+  const title = localizedToolTitle(t, tool);
+  const subtitle = localizedToolSubtitle(t, tool);
   const dimmed = !!tool.comingSoon;
 
   return (
@@ -64,14 +73,14 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
                   ]}
                 >
                   <Text style={[styles.chipText, { color: c.accent }]}>
-                    ✦ Plus
+                    {t("tools.hub.badgePlus", { defaultValue: "✦ Plus" })}
                   </Text>
                 </View>
               )}
               {tool.estimatedMinutes != null && (
                 <View style={[styles.chip, { backgroundColor: c.border }]}>
                   <Text style={[styles.chipText, { color: c.textMuted }]}>
-                    {tool.estimatedMinutes} min
+                    {localizedToolMinutes(t, tool.estimatedMinutes)}
                   </Text>
                 </View>
               )}
@@ -80,12 +89,12 @@ export default function ToolCard({ tool, onPress, comingSoonLabel }: Props) {
 
           {/* Title */}
           <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
-            {tool.title}
+            {title}
           </Text>
 
           {/* Subtitle */}
           <Text style={[styles.sub, { color: c.textMuted }]} numberOfLines={2}>
-            {tool.subtitle}
+            {subtitle}
           </Text>
         </View>
       </GlassCard>

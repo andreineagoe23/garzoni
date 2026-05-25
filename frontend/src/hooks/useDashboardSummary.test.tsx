@@ -7,7 +7,13 @@ type SummaryViewProps = {
   progressResponse?: { data?: ProgressSummary };
   reviewQueueData?: { count?: number };
   missionsData?: MissionBuckets;
-  masteryData?: { masteries?: Array<{ proficiency?: number }> };
+  masteryData?: {
+    masteries?: Array<{
+      proficiency?: number;
+      course_title?: string | null;
+      next_step?: { type?: string };
+    }>;
+  };
 };
 
 const SummaryView = (props: SummaryViewProps) => {
@@ -18,6 +24,8 @@ const SummaryView = (props: SummaryViewProps) => {
       <span>reviews:{summary.reviewsDue}</span>
       <span>missions:{summary.activeMissions.length}</span>
       <span>weak:{summary.weakestSkills.length}</span>
+      <span>next:{summary.weakestSkills[0]?.next_step?.type ?? "none"}</span>
+      <span>course:{summary.weakestSkills[0]?.course_title ?? "none"}</span>
     </div>
   );
 };
@@ -50,5 +58,42 @@ describe("useDashboardSummary", () => {
     expect(screen.getByText("reviews:3")).toBeInTheDocument();
     expect(screen.getByText("missions:2")).toBeInTheDocument();
     expect(screen.getByText("weak:2")).toBeInTheDocument();
+  });
+
+  it("caps weakest skills at 3 even when more are meaningful", () => {
+    render(
+      <SummaryView
+        masteryData={{
+          masteries: [
+            { proficiency: 10 },
+            { proficiency: 20 },
+            { proficiency: 30 },
+            { proficiency: 40 },
+            { proficiency: 50 },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("weak:3")).toBeInTheDocument();
+  });
+
+  it("passes next_step through weakestSkills", () => {
+    render(
+      <SummaryView
+        masteryData={{
+          masteries: [
+            {
+              proficiency: 10,
+              course_title: "Emergency Fund",
+              next_step: { type: "lesson" },
+            },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("next:lesson")).toBeInTheDocument();
+    expect(screen.getByText("course:Emergency Fund")).toBeInTheDocument();
   });
 });

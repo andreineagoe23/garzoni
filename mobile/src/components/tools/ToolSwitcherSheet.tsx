@@ -8,14 +8,12 @@ import {
   View,
 } from "react-native";
 import { useRouter, usePathname } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { href } from "../../navigation/href";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../theme/tokens";
-import {
-  MOBILE_TOOLS,
-  GROUP_LABELS,
-  type ToolGroup,
-} from "./mobileToolsRegistry";
+import { MOBILE_TOOLS, type ToolGroup } from "./mobileToolsRegistry";
+import { localizedToolSubtitle, localizedToolTitle } from "./toolI18n";
 
 const ICON_MAP: Record<string, string> = {
   CalendarDays: "📅",
@@ -46,6 +44,7 @@ type Props = {
 
 export default function ToolSwitcherSheet({ visible, onClose }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -73,7 +72,9 @@ export default function ToolSwitcherSheet({ visible, onClose }: Props) {
         {/* Handle */}
         <View style={[styles.handle, { backgroundColor: c.border }]} />
 
-        <Text style={[styles.heading, { color: c.text }]}>Switch Tool</Text>
+        <Text style={[styles.heading, { color: c.text }]}>
+          {t("tools.workspace.switcherLabel")}
+        </Text>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -84,7 +85,7 @@ export default function ToolSwitcherSheet({ visible, onClose }: Props) {
             return (
               <View key={group} style={gi > 0 ? styles.groupSep : undefined}>
                 <Text style={[styles.groupLabel, { color: c.textFaint }]}>
-                  {GROUP_LABELS[group].toUpperCase()}
+                  {t(`tools.groups.${group}.label`).toUpperCase()}
                 </Text>
                 {tools.map((tool) => {
                   const isActive = pathname.includes(tool.route);
@@ -113,13 +114,13 @@ export default function ToolSwitcherSheet({ visible, onClose }: Props) {
                             { color: isActive ? c.primary : c.text },
                           ]}
                         >
-                          {tool.title}
+                          {localizedToolTitle(t, tool)}
                         </Text>
                         <Text
                           style={[styles.toolSub, { color: c.textMuted }]}
                           numberOfLines={1}
                         >
-                          {tool.subtitle}
+                          {localizedToolSubtitle(t, tool)}
                         </Text>
                       </View>
                       {tool.plusOnly && (

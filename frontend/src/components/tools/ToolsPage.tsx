@@ -32,6 +32,7 @@ import {
   toolsRegistry,
   type ToolDefinition,
 } from "./toolsRegistry";
+import WhyThisMatters from "./WhyThisMatters";
 
 const TOOL_BASE_PATH = "/tools";
 const TOOL_FEEDBACK_EMAIL = "hello@garzoni.app";
@@ -126,6 +127,8 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
 
   return (
     <div className="space-y-5 min-w-0">
+      <WhyThisMatters toolSlug={tool.id} />
+
       <details className="group">
         <summary className="flex cursor-pointer list-none items-center gap-1 select-none text-xs font-semibold uppercase tracking-wide text-content-muted transition hover:text-content-primary">
           <ChevronDown className="h-3 w-3 transition-transform duration-200 group-open:rotate-180" />
@@ -282,6 +285,19 @@ const ToolsPage = () => {
         : null;
 
     sessionStorage.setItem(TOOL_STORAGE_KEYS.lastTool, activeTool.id);
+    const source =
+      navSourceRef.current ||
+      sessionStorage.getItem(TOOL_STORAGE_KEYS.navSource) ||
+      "deep_link";
+    recordFunnelEvent("tool_open", {
+      session_id: sessionIdRef.current,
+      metadata: {
+        tool_slug: currentToolId,
+        tool_name: currentTitle,
+        source,
+        surface: "web",
+      },
+    })?.catch(() => undefined);
 
     if (typeof window.gtag === "function") {
       if (previousToolId && previousToolId !== currentToolId) {
@@ -296,10 +312,6 @@ const ToolsPage = () => {
         });
       }
 
-      const source =
-        navSourceRef.current ||
-        sessionStorage.getItem(TOOL_STORAGE_KEYS.navSource) ||
-        "deep_link";
       window.gtag("event", "tool_view", {
         tool_id: currentToolId,
         tool_title: currentTitle,
@@ -311,7 +323,7 @@ const ToolsPage = () => {
         recordFunnelEvent("personal_cfo_open", {
           session_id: sessionIdRef.current,
           metadata: { source, surface: "web" },
-        }).catch(() => undefined);
+        })?.catch(() => undefined);
       }
 
       if (activeTool?.id && lastToolStored === activeTool.id) {

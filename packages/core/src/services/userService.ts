@@ -1,6 +1,7 @@
 import apiClient from "./httpClient";
 import type {
   ProgressSummary,
+  WhatsNextAction,
   UserProfile,
   MissionBuckets,
   PersonalizedPathResponse,
@@ -35,6 +36,9 @@ export const fetchLesson = (lessonId: string | number) =>
 
 export const fetchProgressSummary = () =>
   apiClient.get<ProgressSummary>("/userprogress/progress_summary/");
+
+export const fetchWhatsNext = () =>
+  apiClient.get<WhatsNextAction>("/whats-next/");
 
 export const fetchLearningPathCourses = (pathId: string | number) =>
   apiClient.get(`/courses/`, { params: { path: pathId } });
@@ -131,9 +135,12 @@ export type LeaderboardEntry = {
   rank?: number;
 };
 
-export const fetchLeaderboardGlobal = (timeFilter = "all-time") =>
+export const fetchLeaderboardGlobal = (
+  timeFilter = "all-time",
+  skill?: string | null,
+) =>
   apiClient.get<LeaderboardEntry[]>("/leaderboard/", {
-    params: { time_filter: timeFilter },
+    params: { time_filter: timeFilter, ...(skill ? { skill } : {}) },
   });
 
 export const fetchLeaderboardFriends = () =>

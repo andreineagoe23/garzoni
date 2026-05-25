@@ -36,9 +36,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   image: {
-    height: 64,
-    width: "92%",
-    maxWidth: 340,
+    height: 40,
+    width: "60%",
+    maxWidth: 200,
   },
   fallback: {
     fontSize: typography.xxl,

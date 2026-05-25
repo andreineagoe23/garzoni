@@ -20,6 +20,12 @@ export function preferHttpsForRailway(url: string): string {
  * Must be the Django API origin; `/api` is appended by @garzoni/core if missing.
  */
 export function resolveBackendUrlFromExpo(): string | undefined {
+  // Simulator shares the Mac's localhost — use 127.0.0.1 unconditionally so it
+  // always works regardless of which Wi-Fi network the Mac is on.
+  if (!Constants.isDevice) {
+    return "http://localhost:8000/api";
+  }
+
   // Local env should win in dev so mobile can be pointed to the same Docker backend
   // as web, even when a development build was created with a different baked value.
   const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();

@@ -621,7 +621,7 @@ function LearnInner() {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         <ErrorState
-          message="Taking too long to load. Check your connection."
+          message={t("common.loadTimeout")}
           onRetry={() => {
             setLoadTimedOut(false);
             void pathsQuery.refetch();
@@ -675,7 +675,7 @@ function LearnInner() {
           {segmentRow}
         </View>
         <ErrorState
-          message="Could not load learning paths."
+          message={t("allTopics.error")}
           onRetry={() => void pathsQuery.refetch()}
         />
       </View>
@@ -750,7 +750,7 @@ function LearnInner() {
               }}
             >
               <Text style={[styles.pathTitle, { color: c.text }]}>
-                Personalized path is locked
+                {t("learn.personalizedPathLocked")}
               </Text>
               <Text
                 style={[
@@ -759,8 +759,8 @@ function LearnInner() {
                 ]}
               >
                 {questionnaireCompletedForUi
-                  ? "Upgrade to Plus to unlock your personalized learning path."
-                  : "Complete onboarding first to unlock your personalized path."}
+                  ? t("learn.upgradeToUnlockPersonalizedPath")
+                  : t("learn.completeOnboardingToUnlock")}
               </Text>
               <View style={{ marginTop: spacing.md }}>
                 <GlassButton
@@ -773,8 +773,8 @@ function LearnInner() {
                   }
                 >
                   {questionnaireCompletedForUi
-                    ? "View plans"
-                    : "Continue onboarding"}
+                    ? t("learn.viewPlansButton")
+                    : t("learn.continueOnboarding")}
                 </GlassButton>
               </View>
             </GlassCard>
@@ -805,8 +805,8 @@ function LearnInner() {
         <View style={{ paddingVertical: spacing.xxl, alignItems: "center" }}>
           <Text style={[styles.pathDesc, { textAlign: "center" }]}>
             {(pathsQuery.data?.length ?? 0) > 0
-              ? "No paths match your search or path filter."
-              : "No learning paths from the API. Check that the backend is running, EXPO_PUBLIC_BACKEND_URL points at Django, and you are signed in. Pull to refresh."}
+              ? t("allTopics.emptyNoMatch")
+              : t("allTopics.emptyNoApi")}
           </Text>
         </View>
       }
@@ -814,10 +814,10 @@ function LearnInner() {
         <View style={[styles.headerPad, styles.headerBlock]}>
           {segmentRow}
           <ContinueLearningCard resume={progressQuery.data?.resume} />
-          <Text style={styles.heading}>Learning paths</Text>
+          <Text style={styles.heading}>{t("allTopics.heading")}</Text>
           <TextInput
             style={styles.search}
-            placeholder="Search paths…"
+            placeholder={t("allTopics.searchPlaceholder")}
             placeholderTextColor={c.textFaint}
             value={query}
             onChangeText={setQuery}

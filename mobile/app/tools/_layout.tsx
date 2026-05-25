@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { apiClient } from "@garzoni/core";
 import { useTheme } from "../../src/theme/ThemeContext";
 import ToolSwitcherSheet from "../../src/components/tools/ToolSwitcherSheet";
 
@@ -29,6 +30,27 @@ export default function ToolsLayout() {
   const { colors } = useTheme();
   const { t } = useTranslation("common");
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const pathname = usePathname();
+  const activeToolSlug = useMemo(() => {
+    const parts = pathname.split("/").filter(Boolean);
+    if (parts[0] !== "tools") return null;
+    return parts[1] || null;
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!activeToolSlug) return;
+    void (apiClient as any)
+      .post("/funnel/events/", {
+        event_type: "tool_open",
+        metadata: {
+          tool_slug: activeToolSlug,
+          tool_name: activeToolSlug,
+          source: "mobile_route",
+          surface: "mobile",
+        },
+      })
+      .catch(() => undefined);
+  }, [activeToolSlug]);
 
   const headerRight = () => (
     <SwitcherButton

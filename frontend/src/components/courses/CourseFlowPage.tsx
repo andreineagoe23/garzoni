@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import DOMPurify from "dompurify";
@@ -52,6 +52,10 @@ import { COURSE_TO_TOOL_CTA } from "components/tools/lessonMapping";
 import LessonCheckpointQuizModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointQuizModal";
+import {
+  buildSkillPracticeHref,
+  getToolPracticeCtaForSkill,
+} from "@garzoni/core";
 
 type CourseFlowSection = {
   id: number | string;
@@ -178,6 +182,13 @@ function fixImagePaths(content: string) {
 function CourseFlowPage() {
   const { t } = useTranslation();
   const { courseId, pathId } = useParams();
+  const [searchParams] = useSearchParams();
+  const targetLessonId = useMemo(() => {
+    const raw = searchParams.get("lessonId");
+    if (!raw) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [searchParams]);
   const courseIdNumber = useMemo(
     () => Number.parseInt(courseId ?? "0", 10),
     [courseId]
@@ -451,6 +462,18 @@ function CourseFlowPage() {
     // If we attempted to fetch flow state (courseId is valid), wait until it completes.
     if (Number.isFinite(courseIdNumber) && !isFlowStateFetched) return;
 
+    if (targetLessonId != null) {
+      const lessonIndex = flowSections.findIndex(
+        (item) => item.lessonId === targetLessonId
+      );
+      if (lessonIndex >= 0) {
+        setCourseComplete(false);
+        setCurrentIndex(lessonIndex);
+        setDidApplyInitialIndex(true);
+        return;
+      }
+    }
+
     const saved = Number.isFinite(flowStateData?.current_index)
       ? flowStateData.current_index
       : null;
@@ -483,6 +506,7 @@ function CourseFlowPage() {
     flowSections,
     flowStateData,
     isFlowStateFetched,
+    targetLessonId,
   ]);
 
   const completeSectionMutation = useMutation({
@@ -934,6 +958,18 @@ function CourseFlowPage() {
     if (index === -1) return null;
     return list[index + 1]?.id ?? null;
   }, [courseIdNumber, pathCourses, pathIdNumber]);
+
+  const coursePracticeSkill = useMemo(() => {
+    const list = Array.isArray(pathCourses) ? pathCourses : [];
+    const currentCourse = list.find((course) => course?.id === courseIdNumber);
+    const lessonCategory = lessons
+      .map((lesson) => lesson.exercise_data?.category)
+      .find(
+        (category): category is string =>
+          typeof category === "string" && category.trim().length > 0
+      );
+    return String(currentCourse?.title || lessonCategory || "").trim();
+  }, [courseIdNumber, lessons, pathCourses]);
 
   const handleGoToCourse = useCallback(
     async (nextCourseId: number, flowIndexOverride: number | null = null) => {
@@ -1577,7 +1613,10 @@ function CourseFlowPage() {
               </p>
               {(() => {
                 const cta = COURSE_TO_TOOL_CTA[courseIdNumber];
-                if (!cta) return null;
+                const fallbackCta =
+                  getToolPracticeCtaForSkill(coursePracticeSkill);
+                const toolUrl = cta?.toolUrl || fallbackCta?.webToolUrl;
+                if (!toolUrl) return null;
                 return (
                   <div className="mt-6 rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card/50 px-5 py-4 text-center">
                     <p className="text-sm text-content-muted mb-3">
@@ -1586,14 +1625,32 @@ function CourseFlowPage() {
                     <GlassButton
                       variant="active"
                       size="lg"
-                      onClick={() => navigate(cta.toolUrl)}
+                      onClick={() => navigate(toolUrl)}
                     >
-                      {cta.ctaText}
+                      {cta?.ctaText ||
+                        fallbackCta?.ctaText ||
+                        "Put it to practice"}
                     </GlassButton>
                   </div>
                 );
               })()}
               <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {coursePracticeSkill ? (
+                  <GlassButton
+                    variant="ghost"
+                    size="xl"
+                    onClick={() =>
+                      navigate(
+                        buildSkillPracticeHref(
+                          coursePracticeSkill,
+                          "lesson_complete_practice"
+                        )
+                      )
+                    }
+                  >
+                    Test what you learned
+                  </GlassButton>
+                ) : null}
                 {nextCourseIdInPath ? (
                   <GlassButton
                     variant="active"

@@ -23,6 +23,7 @@ import {
   fetchQuestionnaireProgress,
   postPersonalizedPathRefresh,
   queryKeys,
+  masteryLevelLabel,
   shouldAutoRefreshEmptyPath,
   staleTimes,
   type PersonalizedPathCourse,
@@ -309,7 +310,7 @@ export default function PersonalizedPathContentMobile({
                       })}
                     </Text>
                     <GlassButton
-                      variant="ghost"
+                      variant="secondary"
                       size="sm"
                       loading={refreshMutation.isPending}
                       onPress={() => refreshMutation.mutate(undefined)}
@@ -464,12 +465,22 @@ export default function PersonalizedPathContentMobile({
                     ]}
                   >
                     {metrics.totalSections > 0
-                      ? `${metrics.completedSections}/${metrics.totalSections} sections • ${metrics.completedLessons}/${metrics.totalLessons} lessons`
-                      : `${metrics.completedLessons}/${metrics.totalLessons} lessons`}
+                      ? t("personalizedPath.progressSectionsLessons", {
+                          completedSections: metrics.completedSections,
+                          totalSections: metrics.totalSections,
+                          completedLessons: metrics.completedLessons,
+                          totalLessons: metrics.totalLessons,
+                        })
+                      : t("personalizedPath.progressLessonsOnly", {
+                          completedLessons: metrics.completedLessons,
+                          totalLessons: metrics.totalLessons,
+                        })}
                   </Text>
                   {course.next_lesson_title ? (
                     <Text style={[styles.nextLesson, { color: c.primary }]}>
-                      Next: {course.next_lesson_title}
+                      {t("personalizedPath.nextLesson", {
+                        title: course.next_lesson_title,
+                      })}
                     </Text>
                   ) : null}
                   {!course.next_lesson_title && starterTasks.length > 0 ? (
@@ -501,7 +512,7 @@ export default function PersonalizedPathContentMobile({
                   })}
                 </Text>
                 <GlassButton
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
                   onPress={() => openCourse(course)}
                 >
@@ -536,8 +547,8 @@ export default function PersonalizedPathContentMobile({
         >
           {reviewQueue.map((item, idx) => {
             const pct = item.proficiency ?? 0;
-            const band = item.level_band ?? "beginner";
-            const label = item.level_label ?? "Beginner";
+            const band = item.level_band ?? "not_started";
+            const label = masteryLevelLabel(t, band);
             const dueAt = item.due_at ? new Date(item.due_at) : null;
             const now = new Date();
             const daysUntil = dueAt
@@ -545,22 +556,24 @@ export default function PersonalizedPathContentMobile({
               : 0;
             const dueLabel =
               !dueAt || dueAt <= now
-                ? "Due now"
+                ? t("personalizedPath.due.now")
                 : daysUntil === 1
-                  ? "Due tomorrow"
-                  : `Due in ${daysUntil}d`;
+                  ? t("personalizedPath.due.tomorrow")
+                  : t("personalizedPath.due.inDays", { count: daysUntil });
 
             const bandColor: Record<string, string> = {
-              beginner: c.textMuted,
-              building: c.accent,
-              confident: "#3b82f6",
-              pro: c.primary,
+              not_started: c.textMuted,
+              attempted: c.accent,
+              familiar: "#3b82f6",
+              proficient: c.primary,
+              mastered: c.success,
             };
             const bandBg: Record<string, string> = {
-              beginner: "rgba(100,116,139,0.15)",
-              building: "rgba(255,215,0,0.15)",
-              confident: "rgba(59,130,246,0.15)",
-              pro: `${c.primary}22`,
+              not_started: "rgba(100,116,139,0.15)",
+              attempted: "rgba(255,215,0,0.15)",
+              familiar: "rgba(59,130,246,0.15)",
+              proficient: `${c.primary}22`,
+              mastered: c.successBg,
             };
 
             return (

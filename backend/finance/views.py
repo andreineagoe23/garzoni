@@ -3358,6 +3358,7 @@ class FunnelEventIngestView(APIView):
         "webhook_received",
         # Dashboard analytics events
         "dashboard_view",
+        "dashboard_whats_next_click",
         "cta_click",
         "weak_skill_click",
         "sort_change",
@@ -3390,6 +3391,8 @@ class FunnelEventIngestView(APIView):
         "personal_cfo_coach_message",
         "personal_cfo_coach_open",
         "personal_cfo_real_asset_added",
+        "tool_open",
+        "tool_opened",
         "budget_envelope_created",
         "budget_account_link_started",
         "budget_account_link_completed",

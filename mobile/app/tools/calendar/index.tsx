@@ -22,6 +22,7 @@ import { EventCard } from "../../../src/components/tools/calendar/EventCard";
 import { logDevError } from "../../../src/lib/logDevError";
 import { FilterChips } from "../../../src/components/tools/calendar/FilterChips";
 import { CalendarSkeleton } from "../../../src/components/tools/calendar/CalendarSkeleton";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 export default function EconomicCalendarScreen() {
   const c = useThemeColors();
@@ -81,7 +82,10 @@ export default function EconomicCalendarScreen() {
           </View>
         )}
         ListHeaderComponent={
-          <FilterChips active={filter} onChange={setFilter} />
+          <View>
+            <WhyThisMattersMobile toolSlug="calendar" />
+            <FilterChips active={filter} onChange={setFilter} />
+          </View>
         }
         ListEmptyComponent={
           <View style={styles.empty}>

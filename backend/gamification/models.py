@@ -175,6 +175,83 @@ class Mission(models.Model):
         db_table = "core_mission"
 
 
+class MultiStepMission(models.Model):
+    """Narrative mission that connects lessons, exercises, tools, and chat."""
+
+    MISSION_TYPES = [("weekly", "Weekly"), ("campaign", "Campaign")]
+
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140, unique=True)
+    description = models.TextField()
+    mission_type = models.CharField(max_length=20, choices=MISSION_TYPES, default="weekly")
+    steps = models.JSONField(default=list, blank=True)
+    points_reward = models.IntegerField(default=0)
+    badge_name = models.CharField(max_length=120, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.name = normalize_text_encoding(self.name) or ""
+        self.description = normalize_text_encoding(self.description) or ""
+        self.badge_name = normalize_text_encoding(self.badge_name) or ""
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = "core_multistepmission"
+        indexes = [
+            models.Index(fields=["is_active", "mission_type"]),
+            models.Index(fields=["starts_at", "ends_at"]),
+        ]
+
+
+class MultiStepMissionProgress(models.Model):
+    user = models.ForeignKey(
+        User, related_name="multi_step_mission_progress", on_delete=models.CASCADE
+    )
+    mission = models.ForeignKey(
+        MultiStepMission, related_name="progress_rows", on_delete=models.CASCADE
+    )
+    completed_steps = models.JSONField(default=list, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("not_started", "Not Started"),
+            ("in_progress", "In Progress"),
+            ("completed", "Completed"),
+        ],
+        default="not_started",
+    )
+    started_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def mark_step_complete(self, step_id: str):
+        steps = list(self.completed_steps or [])
+        if step_id not in steps:
+            steps.append(step_id)
+            self.completed_steps = steps
+        total_steps = len(self.mission.steps or [])
+        if total_steps and len(steps) >= total_steps:
+            self.status = "completed"
+            self.completed_at = self.completed_at or timezone.now()
+        elif steps:
+            self.status = "in_progress"
+        self.save(update_fields=["completed_steps", "status", "completed_at", "updated_at"])
+
+    class Meta:
+        db_table = "core_multistepmissionprogress"
+        unique_together = ("user", "mission")
+        indexes = [
+            models.Index(fields=["user", "status"]),
+            models.Index(fields=["mission", "status"]),
+        ]
+
+
 class MissionCompletion(models.Model):
     """
     Tracks the progress and completion status of missions assigned to users.

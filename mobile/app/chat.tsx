@@ -59,6 +59,14 @@ const TIME_RE =
 const DATE_RE =
   /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:today'?s?\s+)?date|today'?s?\s+date|what\s+day\s+is\s+(?:it|today))\b/i;
 
+function safeDecodeSearchParam(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function fmtNumber(value: number, opts: Intl.NumberFormatOptions): string {
   try {
     return new Intl.NumberFormat(undefined, opts).format(value);
@@ -194,9 +202,13 @@ export default function ChatScreen() {
   const { t } = useTranslation("common");
   const { accessToken } = useAuthSession();
   const isAuthenticated = Boolean(accessToken);
-  const { preseededMessage } = useLocalSearchParams<{
-    preseededMessage?: string;
-  }>();
+  const { preseededMessage, exerciseId, exerciseQuestion, exerciseUserAnswer } =
+    useLocalSearchParams<{
+      preseededMessage?: string;
+      exerciseId?: string;
+      exerciseQuestion?: string;
+      exerciseUserAnswer?: string;
+    }>();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
@@ -233,8 +245,9 @@ export default function ChatScreen() {
           setMessages(saved);
           setHistory(
             saved
-              .filter((m): m is Msg & { role: "user" | "assistant" } =>
-                m.role === "user" || m.role === "assistant",
+              .filter(
+                (m): m is Msg & { role: "user" | "assistant" } =>
+                  m.role === "user" || m.role === "assistant",
               )
               .map((m) => ({ role: m.role, content: m.content })),
           );
@@ -444,6 +457,15 @@ export default function ChatScreen() {
         const payload = await requestAiTutorPayload(text, {
           chatHistory: nextHistory.slice(-10),
           temperature: 0.7,
+          ...(isPreseed && exerciseQuestion
+            ? {
+                exerciseContext: {
+                  exerciseId: Number(exerciseId) || 0,
+                  question: safeDecodeSearchParam(exerciseQuestion),
+                  userAnswer: safeDecodeSearchParam(exerciseUserAnswer || ""),
+                },
+              }
+            : {}),
           source: isPreseed ? "exercise_hint" : "chat",
         });
         const reply = payload.text?.trim()
@@ -497,6 +519,9 @@ export default function ChatScreen() {
       busy,
       history,
       isAuthenticated,
+      exerciseId,
+      exerciseQuestion,
+      exerciseUserAnswer,
       preseededMessage,
       queryClient,
       resolveMarketReply,
@@ -512,7 +537,10 @@ export default function ChatScreen() {
 
   useEffect(() => {
     if (preseededMessage) {
-      void sendMessage(decodeURIComponent(preseededMessage));
+      const decoded = safeDecodeSearchParam(preseededMessage).trim();
+      if (decoded.length > 0) {
+        setInput(decoded);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

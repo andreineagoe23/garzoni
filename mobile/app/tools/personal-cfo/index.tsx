@@ -16,6 +16,9 @@ import { href } from "../../../src/navigation/href";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
 import { logDevError } from "../../../src/lib/logDevError";
 import CFODashboard from "../../../src/components/tools/cfo/CFODashboard";
+import { useCfoProfile } from "../../../src/state/cfoProfile";
+import { formatCurrency } from "../../../src/types/reality-check";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 const COMPLETION_STORAGE_KEY = "garzoni:tools:personal-cfo:completed-steps";
 const VIEW_PREF_KEY = "garzoni:tools:personal-cfo:view";
@@ -102,6 +105,7 @@ export default function PersonalCfoScreen() {
   const c = useThemeColors();
   const router = useRouter();
   const { t } = useTranslation("common");
+  const { profile } = useCfoProfile();
   const [completed, setCompleted] = useState<Set<StepId>>(() => new Set());
   const [summary, setSummary] = useState<CFOSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -294,6 +298,7 @@ export default function PersonalCfoScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
+          <WhyThisMattersMobile toolSlug="personal-cfo" />
           <CFODashboard
             onReviewSteps={() => persistViewPref("steps")}
             onOpenCoach={openCoach}
@@ -311,6 +316,7 @@ export default function PersonalCfoScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        <WhyThisMattersMobile toolSlug="personal-cfo" />
         {isFullyComplete && viewPref === "steps" && (
           <Pressable
             onPress={() => persistViewPref("auto")}
@@ -372,6 +378,65 @@ export default function PersonalCfoScreen() {
               ]}
             />
           </View>
+        </View>
+
+        <View
+          style={[
+            styles.snapshotCard,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
+          <Text style={[styles.snapshotTitle, { color: c.text }]}>
+            Your numbers
+          </Text>
+          <SnapshotRow
+            label="Required / month"
+            value={
+              profile.requiredMonthly && profile.requiredMonthly > 0
+                ? formatCurrency(profile.requiredMonthly)
+                : null
+            }
+            empty="Set your goal"
+            onPress={() => {
+              void trackGarzoniEvent("personal_cfo_snapshot_tap", {
+                row: "required_monthly",
+                surface: "mobile",
+              });
+              router.push(href("/(tabs)/tools/reality-check"));
+            }}
+          />
+          <SnapshotRow
+            label="Projected balance"
+            value={
+              profile.projectedFutureValue && profile.projectedFutureValue > 0
+                ? formatCurrency(profile.projectedFutureValue)
+                : null
+            }
+            empty="Run projection"
+            onPress={() => {
+              void trackGarzoniEvent("personal_cfo_snapshot_tap", {
+                row: "projected_balance",
+                surface: "mobile",
+              });
+              router.push(href("/(tabs)/tools/savings-goals"));
+            }}
+          />
+          <SnapshotRow
+            label="Monthly net cash flow"
+            value={
+              profile.monthlyNetCashFlow !== undefined
+                ? formatCurrency(profile.monthlyNetCashFlow)
+                : null
+            }
+            empty="Open budget"
+            onPress={() => {
+              void trackGarzoniEvent("personal_cfo_snapshot_tap", {
+                row: "monthly_net",
+                surface: "mobile",
+              });
+              router.push(href("/(tabs)/tools/budget-planner"));
+            }}
+          />
         </View>
 
         {summary &&
@@ -541,6 +606,44 @@ export default function PersonalCfoScreen() {
   );
 }
 
+function SnapshotRow({
+  label,
+  value,
+  empty,
+  onPress,
+}: {
+  label: string;
+  value: string | null;
+  empty: string;
+  onPress: () => void;
+}) {
+  const c = useThemeColors();
+  const isEmpty = value === null;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.snapshotRow,
+        { borderColor: c.border, opacity: pressed ? 0.7 : 1 },
+      ]}
+      accessibilityRole="button"
+    >
+      <Text style={[styles.snapshotRowLabel, { color: c.textMuted }]}>
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.snapshotRowValue,
+          { color: isEmpty ? c.textFaint : c.text },
+        ]}
+        numberOfLines={1}
+      >
+        {isEmpty ? empty + " →" : value + " →"}
+      </Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: {
@@ -577,6 +680,32 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   progressFill: { height: 6, borderRadius: 3 },
+  snapshotCard: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  snapshotTitle: {
+    fontSize: typography.xs,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  snapshotRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  snapshotRowLabel: { fontSize: typography.sm, fontWeight: "600" },
+  snapshotRowValue: {
+    fontSize: typography.sm,
+    fontWeight: "700",
+    maxWidth: "55%",
+    textAlign: "right",
+  },
   summaryCard: {
     borderRadius: radius.card,
     borderWidth: 1,

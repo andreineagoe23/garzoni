@@ -4,10 +4,12 @@ import type { NavigateFunction } from "react-router-dom";
 export type ExercisesSkillReason =
   | "weak_skill_click"
   | "weak_skill_practice"
-  | "quick_card_exercises";
+  | "weak_skill_review";
 
 const LEGACY_REASON_TO_CANONICAL: Record<string, ExercisesSkillReason> = {
   improve_weak_skill: "weak_skill_practice",
+  // Old quick-card CTA — now folded into the unified weak-skill practice flow.
+  quick_card_exercises: "weak_skill_practice",
 };
 
 /** Normalize legacy navigation state from older app versions. */
@@ -21,7 +23,7 @@ export function normalizeExercisesSkillReason(
   if (
     raw === "weak_skill_click" ||
     raw === "weak_skill_practice" ||
-    raw === "quick_card_exercises"
+    raw === "weak_skill_review"
   ) {
     return raw;
   }
@@ -32,14 +34,19 @@ export type ExercisesSkillNavigationState = {
   from: "dashboard";
   targetSkill: string;
   reason: ExercisesSkillReason;
+  exerciseId?: number | null;
 };
 
 /** Shared navigation target for dashboard → exercises skill recommendations. */
 export function getExercisesSkillNavigation(
   skill: string,
-  reason: ExercisesSkillReason
+  reason: ExercisesSkillReason,
+  opts?: { exerciseId?: number | null }
 ) {
-  const search = `?skill=${encodeURIComponent(skill)}`;
+  let search = `?skill=${encodeURIComponent(skill)}`;
+  if (opts?.exerciseId != null) {
+    search += `&exerciseId=${opts.exerciseId}`;
+  }
   return {
     pathname: "/exercises" as const,
     search,
@@ -47,6 +54,7 @@ export function getExercisesSkillNavigation(
       from: "dashboard",
       targetSkill: skill,
       reason,
+      exerciseId: opts?.exerciseId ?? null,
     } satisfies ExercisesSkillNavigationState,
   };
 }
@@ -55,11 +63,29 @@ export function getExercisesSkillNavigation(
 export function navigateToExercisesFromDashboardSkill(
   navigate: NavigateFunction,
   skill: string,
-  reason: ExercisesSkillReason
+  reason: ExercisesSkillReason,
+  opts?: { exerciseId?: number | null }
 ) {
   const { pathname, search, state } = getExercisesSkillNavigation(
     skill,
-    reason
+    reason,
+    opts
   );
   navigate({ pathname, search }, { state });
+}
+
+/**
+ * Open the Chatbot widget with a preseeded message. Reuses the existing
+ * `garzoni:tutor` event that the Chatbot widget already listens for in
+ * `frontend/src/components/widgets/Chatbot.tsx`.
+ */
+export function askTutorAboutSkill(
+  _skill: string,
+  _proficiency: number,
+  prompt: string
+) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("garzoni:tutor", { detail: { context: prompt } })
+  );
 }

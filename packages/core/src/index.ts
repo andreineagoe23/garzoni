@@ -124,6 +124,7 @@ export { useHearts } from "./hooks/useHearts";
 export { useProgress } from "./hooks/useProgress";
 export { useProgressSummaryQuery } from "./hooks/useProgressSummaryQuery";
 export { useDashboardSummary } from "./hooks/useDashboardSummary";
+export { useWhatsNext } from "./hooks/useWhatsNext";
 export { useRetry } from "./hooks/useRetry";
 export { useMascotMessage } from "./hooks/useMascotMessage";
 export type {
@@ -143,6 +144,8 @@ export { useOnlineSync } from "./hooks/useOnlineSync";
 export type {
   UserProfile,
   ProgressSummary,
+  WhatsNextAction,
+  WhatsNextActionType,
   Mission,
   MissionBuckets,
   Entitlements,
@@ -157,10 +160,27 @@ export {
 } from "./constants/i18n";
 
 export { MASTERY_SKILL_TO_EXERCISE_CATEGORY } from "./constants/skillToExerciseCategory";
-export { COURSE_TO_TOOL_CTA } from "./constants/courseToolCta";
+export {
+  COURSE_TO_TOOL_CTA,
+  getToolPracticeCtaForSkill,
+} from "./constants/courseToolCta";
+export type { ToolPracticeCta } from "./constants/courseToolCta";
+export {
+  TOOL_LEARNING_HOOKS,
+  getToolLearningHook,
+} from "./constants/toolLearningHooks";
+export type { ToolLearningHook } from "./constants/toolLearningHooks";
 
 export { getUserLevel } from "./utils/userLevel";
 export type { UserLevel } from "./utils/userLevel";
+export { masteryLevelLabel } from "./utils/masteryLevels";
+export type { MasteryLevelBand } from "./utils/masteryLevels";
+export { weakSkillNextStepLabels } from "./utils/weakSkillNextStep";
+export type {
+  WeakSkillNextStep,
+  WeakSkillNextStepType,
+} from "./utils/weakSkillNextStep";
+export { localizeSectionTitle } from "./utils/sectionTitles";
 
 export { resolveCategoryFromSkill } from "./utils/resolveCategoryFromSkill";
 export { invalidateOnlineDependentQueries } from "./lib/onlineSyncInvalidate";

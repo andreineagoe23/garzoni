@@ -298,7 +298,7 @@ const s = StyleSheet.create({
   },
 
   logoWrap: { alignItems: "center", marginBottom: 32 },
-  logo: { width: 260, height: 64 },
+  logo: { width: 160, height: 40 },
   logoFallback: {
     fontSize: 36,
     fontWeight: "600",

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Stack } from "expo-router";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
@@ -15,6 +15,8 @@ import {
 import { ResultSummary } from "../../../src/components/tools/savings-calculator/ResultSummary";
 import { GrowthChart } from "../../../src/components/tools/savings-calculator/GrowthChart";
 import KeyboardAwareScrollView from "../../../src/components/ui/KeyboardAwareScrollView";
+import { useCfoProfile, hasProfileInputs } from "../../../src/state/cfoProfile";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 const PRESETS: Array<{ label: string; form: Partial<SavingsForm> }> = [
   {
@@ -59,10 +61,51 @@ const DEFAULT_FORM: SavingsForm = {
 
 export default function SavingsGoalsScreen() {
   const c = useThemeColors();
+  const { profile, setProfile, hydrated } = useCfoProfile();
   const [form, setForm] = useState<SavingsForm>(DEFAULT_FORM);
+  const seededRef = useRef(false);
+
+  useEffect(() => {
+    if (!hydrated || seededRef.current) return;
+    seededRef.current = true;
+    if (!hasProfileInputs(profile)) return;
+    const goal = profile.goalAmount || "";
+    const initial = profile.currentSaved || "";
+    const months = Number(profile.months || 0);
+    const years = months > 0 ? String(Math.max(1, Math.ceil(months / 12))) : "";
+    const incomeMid =
+      (Number(profile.incomeLow || 0) + Number(profile.incomeHigh || 0)) / 2;
+    const expenseMid =
+      (Number(profile.expenseLow || 0) + Number(profile.expenseHigh || 0)) / 2;
+    const surplus = incomeMid - expenseMid;
+    const monthly =
+      profile.requiredMonthly && profile.requiredMonthly > 0
+        ? String(Math.round(profile.requiredMonthly))
+        : surplus > 0
+          ? String(Math.round(surplus))
+          : "";
+    setForm((f) => ({
+      ...f,
+      savingsGoal: goal || f.savingsGoal,
+      initialAmount: initial || f.initialAmount,
+      monthlyContribution: monthly || f.monthlyContribution,
+      years: years || f.years,
+    }));
+  }, [hydrated, profile]);
 
   const result = useMemo(() => calcSavings(form), [form]);
   const goalAmount = Number(form.savingsGoal || 0);
+
+  useEffect(() => {
+    if (!result) return;
+    if (
+      profile.projectedFutureValue !== undefined &&
+      Math.abs(profile.projectedFutureValue - result.futureValue) < 1
+    ) {
+      return;
+    }
+    setProfile({ projectedFutureValue: result.futureValue });
+  }, [result, profile.projectedFutureValue, setProfile]);
 
   const set = (k: keyof SavingsForm) => (v: string) =>
     setForm((f) => ({ ...f, [k]: v.replace(/[^0-9.]/g, "") }));
@@ -80,6 +123,7 @@ export default function SavingsGoalsScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <WhyThisMattersMobile toolSlug="savings-goals" />
           <Text style={[styles.intro, { color: c.textMuted }]}>
             Project how your savings grow with compound interest. Adjust the
             inputs or start from a preset.

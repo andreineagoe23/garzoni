@@ -14,6 +14,7 @@ import {
   derivePersonalizedPathState,
   fetchCoachBrief,
   getCourseMetrics,
+  masteryLevelLabel,
   shouldAutoRefreshEmptyPath,
 } from "@garzoni/core";
 import { queryKeys, staleTimes } from "lib/reactQuery";
@@ -474,8 +475,8 @@ function PersonalizedPathContent({
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {reviewQueue.map((item, idx) => {
               const pct = item.proficiency ?? 0;
-              const band = item.level_band ?? "beginner";
-              const label = item.level_label ?? "Beginner";
+              const band = item.level_band ?? "not_started";
+              const label = masteryLevelLabel(t, band);
               const dueAt = item.due_at ? new Date(item.due_at) : null;
               const now = new Date();
               const daysUntil = dueAt
@@ -483,22 +484,26 @@ function PersonalizedPathContent({
                 : 0;
               const dueLabel =
                 !dueAt || dueAt <= now
-                  ? "Due now"
+                  ? t("personalizedPath.due.now")
                   : daysUntil === 1
-                    ? "Due tomorrow"
-                    : `Due in ${daysUntil} days`;
+                    ? t("personalizedPath.due.tomorrow")
+                    : t("personalizedPath.due.inDaysLong", {
+                        count: daysUntil,
+                      });
 
               const bandColor: Record<string, string> = {
-                beginner: "text-content-muted",
-                building: "text-[#e6c87a]",
-                confident: "text-blue-400",
-                pro: "text-[color:var(--primary,#1d5330)]",
+                not_started: "text-content-muted",
+                attempted: "text-[#e6c87a]",
+                familiar: "text-blue-400",
+                proficient: "text-[color:var(--primary,#1d5330)]",
+                mastered: "text-emerald-500",
               };
               const bandBg: Record<string, string> = {
-                beginner: "bg-slate-500/15",
-                building: "bg-yellow-400/15",
-                confident: "bg-blue-500/15",
-                pro: "bg-[color:var(--primary,#1d5330)]/10",
+                not_started: "bg-slate-500/15",
+                attempted: "bg-yellow-400/15",
+                familiar: "bg-blue-500/15",
+                proficient: "bg-[color:var(--primary,#1d5330)]/10",
+                mastered: "bg-emerald-500/15",
               };
 
               return (

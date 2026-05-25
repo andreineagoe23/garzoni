@@ -53,6 +53,18 @@
     "noLessonContent": "No lesson content available.",
     "lessonFallback": "Lesson",
     "noSectionContent": "No content available for this section.",
+    "noVideoUrl": "No video URL.",
+    "sectionTitles": {
+      "overview": "Overview",
+      "coreConcept": "Core Concept",
+      "appliedInsight": "Applied Insight",
+      "practicalWalkthrough": "Practical Walkthrough",
+      "keyTakeaways": "Key Takeaways",
+      "nextSteps": "Next Steps",
+      "knowledgeCheck1": "Knowledge Check 1",
+      "knowledgeCheck2": "Knowledge Check 2",
+      "watchAndLearn": "Watch & Learn"
+    },
     "legacyExerciseFormat": "This lesson uses a legacy \"lesson-level\" exercise format.",
     "unsupportedExerciseType": "Exercise type {{type}} isn't supported in the new flow yet.",
     "videoNotSupported": "Your browser does not support the video tag.",

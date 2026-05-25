@@ -4,10 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
+from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Count, F, Prefetch, Q
+from django.db.models import Count, F, Prefetch, Q, Sum
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from collections import defaultdict
@@ -39,6 +40,7 @@ from education.models import (
     UserExerciseProgress,
     Question,
     Mastery,
+    MasterySnapshot,
 )
 from education.serializers import (
     PathSerializer,
@@ -650,6 +652,16 @@ class QuizViewSet(viewsets.ModelViewSet):
                         },
                         status=status.HTTP_200_OK,
                     )
+                mastery = _get_or_create_mastery(
+                    request.user,
+                    getattr(quiz.course, "title", None) or "Quiz",
+                    course=quiz.course,
+                )
+                mastery.proficiency = min(100, mastery.proficiency + 12)
+                mastery.due_at = timezone.now() + timedelta(
+                    days=_mastery_interval_days(mastery.proficiency)
+                )
+                mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
                 total_xp = XP_QUIZ_PASS + XP_QUIZ_FIRST_COMPLETION_BONUS
                 record_activity(
                     user=request.user,
@@ -687,6 +699,15 @@ class QuizViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_200_OK,
                 )
             else:
+                if quiz.course_id:
+                    mastery = _get_or_create_mastery(
+                        request.user,
+                        getattr(quiz.course, "title", None) or "Quiz",
+                        course=quiz.course,
+                    )
+                    mastery.proficiency = max(0, mastery.proficiency - 8)
+                    mastery.due_at = timezone.now()
+                    mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
                 return Response(
                     {
                         "message": "Incorrect answer. Please try again.",
@@ -986,7 +1007,87 @@ def _safe_decimal(value):
         return None
 
 
-def _get_or_create_mastery(user, skill):
+COURSE_SKILL_ALIASES = {
+    "crypto": "cryptocurrency",
+    "cryptocurrency": "cryptocurrency",
+    "financial mindset": "financial planning",
+    "financial planning": "financial planning",
+}
+
+
+def _canonical_skill_key(value: str | None) -> str:
+    key = _normalize_skill_key(value or "")
+    return COURSE_SKILL_ALIASES.get(key, key)
+
+
+def _course_skill_keys(course: Course | None) -> set[str]:
+    if not course:
+        return set()
+    keys = {_canonical_skill_key(course.title)}
+    try:
+        if course.path and course.path.title:
+            keys.add(_canonical_skill_key(course.path.title))
+    except Exception:
+        pass
+    return {key for key in keys if key}
+
+
+def _resolve_course_for_skill(skill: str | None) -> Course | None:
+    key = _canonical_skill_key(skill)
+    if not key:
+        return None
+    courses = (
+        Course.objects.select_related("path")
+        .filter(is_active=True)
+        .order_by("path__sort_order", "order", "id")
+    )
+    for course in courses:
+        if key in _course_skill_keys(course):
+            return course
+    return None
+
+
+def _section_catalog_exercise_ids(section: LessonSection) -> set[int]:
+    data = section.exercise_data if isinstance(section.exercise_data, dict) else {}
+    ids = set()
+    for key in ("catalog_exercise_id", "exercise_id", "exerciseId", "linkedExerciseId"):
+        raw = data.get(key)
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            continue
+        if value > 0:
+            ids.add(value)
+    return ids
+
+
+def _resolve_course_for_exercise(exercise: Exercise) -> Course | None:
+    for section in LessonSection.objects.select_related("lesson__course").filter(is_published=True):
+        if exercise.id in _section_catalog_exercise_ids(section):
+            return section.lesson.course
+    return _resolve_course_for_skill(getattr(exercise, "category", None))
+
+
+def _get_or_create_mastery(user, skill, course: Course | None = None):
+    if course is not None:
+        mastery = Mastery.objects.filter(user=user, course=course).first()
+        if mastery:
+            return mastery
+
+        legacy = Mastery.objects.filter(user=user, skill=course.title, course__isnull=True).first()
+        if legacy:
+            legacy.course = course
+            legacy.legacy = False
+            legacy.save(update_fields=["course", "legacy", "last_reviewed"])
+            return legacy
+
+        mastery, _ = Mastery.objects.get_or_create(
+            user=user,
+            course=course,
+            defaults={"skill": course.title},
+        )
+        return mastery
+
     mastery, _ = Mastery.objects.get_or_create(user=user, skill=skill)
     return mastery
 
@@ -1008,24 +1109,345 @@ def _compute_xp_delta(is_correct, attempts, hints_used=0, confidence=None):
 
 
 def _mastery_level_band(proficiency: int) -> str:
-    if proficiency >= 80:
-        return "pro"
-    if proficiency >= 50:
-        return "confident"
-    if proficiency >= 20:
-        return "building"
-    return "beginner"
+    if proficiency >= 95:
+        return "mastered"
+    if proficiency >= 70:
+        return "proficient"
+    if proficiency >= 30:
+        return "familiar"
+    if proficiency >= 1:
+        return "attempted"
+    return "not_started"
 
 
 def _mastery_level_label(proficiency: int) -> str:
     band = _mastery_level_band(proficiency)
-    if band == "pro":
-        return "Pro"
-    if band == "confident":
-        return "Confident"
-    if band == "building":
-        return "Building"
-    return "Beginner"
+    if band == "mastered":
+        return "Mastered"
+    if band == "proficient":
+        return "Proficient"
+    if band == "familiar":
+        return "Familiar"
+    if band == "attempted":
+        return "Attempted"
+    return "Not started"
+
+
+def _skill_exercise_stats(user):
+    """Per-skill exercise engagement for personalized weakness ranking."""
+    rows = (
+        UserExerciseProgress.objects.filter(user=user)
+        .exclude(exercise__category="")
+        .values("exercise__category")
+        .annotate(
+            total_attempts=Sum("attempts"),
+            tracked_count=Count("id"),
+            completed_count=Count("id", filter=Q(completed=True)),
+        )
+    )
+    return {
+        row["exercise__category"]: {
+            "total_attempts": row["total_attempts"] or 0,
+            "tracked_count": row["tracked_count"] or 0,
+            "completed_count": row["completed_count"] or 0,
+        }
+        for row in rows
+    }
+
+
+def _compute_weakness_score(
+    *,
+    proficiency: int,
+    is_due_now: bool,
+    overdue_days: int | None,
+    delta_7d: int | None,
+    last_reviewed,
+    skill: str,
+    exercise_stats: dict,
+    now,
+) -> float:
+    """Higher score = more urgent / personalized weak area for dashboard ranking."""
+    score = float(100 - proficiency)
+
+    if is_due_now:
+        score += 50.0
+        score += min(30.0, float(overdue_days or 0) * 5.0)
+
+    if delta_7d is not None and delta_7d < 0:
+        score += min(40.0, abs(float(delta_7d)) * 2.0)
+
+    stats = exercise_stats.get(skill, {})
+    attempts = stats.get("total_attempts", 0)
+    if attempts == 0:
+        score += 30.0
+    elif attempts <= 2:
+        score += 20.0
+    elif attempts <= 5:
+        score += 8.0
+
+    if last_reviewed:
+        days_since = max(0, (now - last_reviewed).days)
+        if days_since >= 14 and proficiency < 40:
+            score += min(15.0, days_since * 0.5)
+    elif proficiency < 50:
+        score += 10.0
+
+    return round(score, 2)
+
+
+def _normalize_skill_key(skill: str) -> str:
+    return (skill or "").strip().lower()
+
+
+def _skill_tokens(skill: str) -> set[str]:
+    return {tok for tok in _normalize_skill_key(skill).replace("-", " ").split() if tok}
+
+
+def _lesson_skill_tags(lesson: Lesson, section_categories: list[str] | None = None) -> set[str]:
+    tags: set[str] = set()
+    exercise_data = lesson.exercise_data if isinstance(lesson.exercise_data, dict) else {}
+    lesson_category = exercise_data.get("category")
+    if lesson_category:
+        tags.add(_normalize_skill_key(str(lesson_category)))
+    try:
+        path_title = lesson.course.path.title if lesson.course.path else None
+        if path_title:
+            tags.add(_normalize_skill_key(str(path_title)))
+    except Exception:
+        pass
+    for category in section_categories or []:
+        if category:
+            tags.add(_normalize_skill_key(str(category)))
+    return tags
+
+
+def _skill_matches_lesson(
+    skill: str, lesson: Lesson, section_categories: list[str] | None = None
+) -> bool:
+    key = _normalize_skill_key(skill)
+    if not key:
+        return False
+    tags = _lesson_skill_tags(lesson, section_categories)
+    if key in tags:
+        return True
+    for tag in tags:
+        if key in tag or tag in key:
+            return True
+        key_tokens = _skill_tokens(key)
+        tag_tokens = _skill_tokens(tag)
+        if key_tokens and tag_tokens and key_tokens.intersection(tag_tokens):
+            return True
+    return False
+
+
+def _quiz_skill_tags(quiz: Quiz) -> set[str]:
+    tags: set[str] = set()
+    if quiz.lesson_id and quiz.lesson:
+        tags.update(_lesson_skill_tags(quiz.lesson))
+    try:
+        path_title = quiz.course.path.title if quiz.course.path else None
+        if path_title:
+            tags.add(_normalize_skill_key(str(path_title)))
+    except Exception:
+        pass
+    return tags
+
+
+def _exercise_matches_course(exercise: Exercise, course: Course | None) -> bool:
+    if not course:
+        return False
+    return _canonical_skill_key(exercise.category) in _course_skill_keys(course)
+
+
+def _build_next_step_indexes(user, masteries: list[Mastery]):
+    """Batch content lookups for course-keyed next-step routing."""
+    course_ids = {m.course_id for m in masteries if m.course_id}
+    if not course_ids:
+        return {
+            "lessons_by_course": {},
+            "quizzes_by_course": {},
+            "exercises_by_course": {},
+        }
+
+    completed_lesson_ids: set[int] = set()
+    for progress in UserProgress.objects.filter(
+        user=user, course_id__in=course_ids
+    ).prefetch_related("completed_lessons"):
+        completed_lesson_ids.update(progress.completed_lessons.values_list("id", flat=True))
+
+    completed_quiz_ids = set(
+        QuizCompletion.objects.filter(user=user, quiz__course_id__in=course_ids).values_list(
+            "quiz_id", flat=True
+        )
+    )
+    completed_exercise_ids = set(
+        UserExerciseProgress.objects.filter(user=user, completed=True).values_list(
+            "exercise_id", flat=True
+        )
+    )
+
+    lessons_by_course: dict[int, list[dict]] = defaultdict(list)
+    lesson_qs = (
+        Lesson.objects.filter(course_id__in=course_ids)
+        .select_related("course", "course__path")
+        .order_by("course__order", "id")
+    )
+    for lesson in lesson_qs:
+        if lesson.id in completed_lesson_ids:
+            continue
+        lessons_by_course[lesson.course_id].append(
+            {
+                "lesson_id": lesson.id,
+                "course_id": lesson.course_id,
+                "title": lesson.title,
+            }
+        )
+
+    quizzes_by_course: dict[int, list[dict]] = defaultdict(list)
+    quiz_qs = Quiz.objects.filter(course_id__in=course_ids).order_by("course_id", "lesson_id", "id")
+    for quiz in quiz_qs:
+        if quiz.id in completed_quiz_ids:
+            continue
+        quizzes_by_course[quiz.course_id].append(
+            {
+                "quiz_id": quiz.id,
+                "course_id": quiz.course_id,
+                "title": quiz.title,
+            }
+        )
+
+    courses = {c.id: c for c in Course.objects.select_related("path").filter(id__in=course_ids)}
+    exercises_by_course: dict[int, list[dict]] = defaultdict(list)
+    exercise_qs = apply_learner_exercise_filters(
+        Exercise.objects.only("id", "category", "question", "difficulty"),
+        user,
+    ).order_by("category", "difficulty", "id")
+    for exercise in exercise_qs:
+        if exercise.id in completed_exercise_ids:
+            continue
+        for course_id, course in courses.items():
+            if _exercise_matches_course(exercise, course):
+                exercises_by_course[course_id].append(
+                    {
+                        "exercise_id": exercise.id,
+                        "course_id": course_id,
+                        "title": (exercise.question or exercise.category or "Practice")[:120],
+                    }
+                )
+                break
+
+    return {
+        "lessons_by_course": lessons_by_course,
+        "quizzes_by_course": quizzes_by_course,
+        "exercises_by_course": exercises_by_course,
+    }
+
+
+def _resolve_next_step_for_skill(
+    *,
+    mastery: Mastery,
+    is_due_now: bool,
+    review_exercise_id: int | None,
+    indexes: dict,
+) -> dict:
+    course_id = mastery.course_id
+    if is_due_now and review_exercise_id is not None:
+        return {
+            "type": "review",
+            "target_id": review_exercise_id,
+            "course_id": course_id,
+            "title": None,
+        }
+
+    lessons = indexes["lessons_by_course"].get(course_id, [])
+    if lessons:
+        first = lessons[0]
+        return {
+            "type": "lesson",
+            "target_id": first["lesson_id"],
+            "course_id": first["course_id"],
+            "title": first["title"],
+        }
+
+    quizzes = indexes["quizzes_by_course"].get(course_id, [])
+    if quizzes:
+        first = quizzes[0]
+        return {
+            "type": "quiz",
+            "target_id": first["quiz_id"],
+            "course_id": first["course_id"],
+            "title": first["title"],
+        }
+
+    exercises = indexes["exercises_by_course"].get(course_id, [])
+    if exercises:
+        exercise = exercises[0]
+        return {
+            "type": "practice",
+            "target_id": exercise["exercise_id"],
+            "course_id": course_id,
+            "title": exercise["title"],
+        }
+
+    return {
+        "type": "tutor",
+        "target_id": None,
+        "course_id": course_id,
+        "title": None,
+    }
+
+
+def _backfill_mastery_from_completed_sections(user):
+    """Upgrade old flat/string mastery rows into course-keyed rows from completed content."""
+    progresses = UserProgress.objects.filter(user=user).prefetch_related(
+        "completed_sections", "completed_lessons"
+    )
+    section_counts_by_course: dict[int, int] = defaultdict(int)
+    lesson_counts_by_course: dict[int, int] = defaultdict(int)
+    for progress in progresses:
+        if not progress.course_id:
+            continue
+        for section in progress.completed_sections.all():
+            section_counts_by_course[progress.course_id] += 1
+        lesson_counts_by_course[progress.course_id] += progress.completed_lessons.count()
+
+    for legacy in Mastery.objects.filter(user=user, course__isnull=True, legacy=False):
+        course = _resolve_course_for_skill(legacy.skill)
+        if not course:
+            legacy.legacy = True
+            legacy.save(update_fields=["legacy", "last_reviewed"])
+            continue
+        target = _get_or_create_mastery(user, course.title, course=course)
+        if target.id != legacy.id:
+            target.proficiency = max(target.proficiency, legacy.proficiency)
+            target.due_at = max(target.due_at, legacy.due_at)
+            target.save(update_fields=["proficiency", "due_at", "last_reviewed"])
+            legacy.legacy = True
+            legacy.save(update_fields=["legacy", "last_reviewed"])
+
+    if not section_counts_by_course:
+        return
+
+    for course_id, completed in section_counts_by_course.items():
+        if completed <= 0:
+            continue
+        course = Course.objects.filter(id=course_id).first()
+        if not course:
+            continue
+        mastery = _get_or_create_mastery(user, course.title, course=course)
+        inferred = min(
+            SECTION_MASTERY_CAP,
+            SECTION_MASTERY_BASELINE + max(0, completed - 1) * SECTION_MASTERY_BUMP,
+        )
+        if lesson_counts_by_course.get(course_id, 0) > 0:
+            inferred = max(inferred, 40)
+        if mastery.proficiency >= inferred:
+            continue
+        mastery.proficiency = inferred
+        mastery.due_at = timezone.now() + timedelta(
+            days=_mastery_interval_days(mastery.proficiency)
+        )
+        mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
 
 
 def _extract_section_skill(section: LessonSection) -> str:
@@ -1054,13 +1476,46 @@ def _extract_section_skill(section: LessonSection) -> str:
     return str(section.lesson.title).strip() or "General"
 
 
-def _grant_initial_mastery(user, skill: str, baseline: int = 12):
-    mastery = _get_or_create_mastery(user, skill)
+SECTION_MASTERY_BASELINE = 20
+SECTION_MASTERY_CAP = 60
+SECTION_MASTERY_BUMP = 6
+
+
+def _mastery_interval_days(proficiency: int) -> int:
+    band = max(0, min(4, proficiency // 20))
+    return [1, 1, 2, 4, 7][band]
+
+
+def _grant_initial_mastery(
+    user,
+    skill: str,
+    baseline: int = SECTION_MASTERY_BASELINE,
+    course: Course | None = None,
+):
+    """Credit mastery for completing a unique section in a skill.
+
+    - First section in a course bumps proficiency to baseline (20).
+    - Each additional unique section adds SECTION_MASTERY_BUMP (+6), up to a
+      section-only soft cap (SECTION_MASTERY_CAP = 60). Higher proficiency
+      requires exercises (Mastery.bump applies the larger gains).
+    - Always refreshes due_at using the existing band-based schedule so
+      actively studied skills don't drift into "overdue" while the learner is
+      still working through lessons.
+
+    Caller (`_complete_section_for_user`) only invokes this when the section
+    is genuinely new for the user, so we don't need to deduplicate here.
+    """
+    mastery = _get_or_create_mastery(user, skill, course=course)
     baseline = max(1, min(100, int(baseline)))
+
     if mastery.proficiency < baseline:
         mastery.proficiency = baseline
-        mastery.due_at = timezone.now() + timedelta(days=1)
-        mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
+    elif mastery.proficiency < SECTION_MASTERY_CAP:
+        mastery.proficiency = min(SECTION_MASTERY_CAP, mastery.proficiency + SECTION_MASTERY_BUMP)
+
+    mastery.due_at = timezone.now() + timedelta(days=_mastery_interval_days(mastery.proficiency))
+
+    mastery.save(update_fields=["proficiency", "due_at", "last_reviewed"])
     return mastery
 
 
@@ -1087,7 +1542,7 @@ def _complete_section_for_user(user, section: LessonSection):
     was_new_section = not progress.completed_sections.filter(pk=section.pk).exists()
     if was_new_section:
         progress.completed_sections.add(section)
-        _grant_initial_mastery(user, _extract_section_skill(section))
+        _grant_initial_mastery(user, section.lesson.course.title, course=section.lesson.course)
         progress.save()
         record_activity(
             user=user,
@@ -1150,8 +1605,8 @@ def _complete_lesson_for_user(user, lesson: Lesson):
             lesson_sections = list(lesson.sections.all())
             if lesson_sections:
                 user_progress.completed_sections.add(*lesson_sections)
-                for section in lesson_sections[:3]:
-                    _grant_initial_mastery(user, _extract_section_skill(section))
+                for section in lesson_sections:
+                    _grant_initial_mastery(user, course.title, course=course)
                 for section in lesson_sections:
                     record_activity(
                         user=user,
@@ -1478,7 +1933,14 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 )
                 invalidate_profile_cache(request.user)
 
-        mastery = _get_or_create_mastery(request.user, _select_skill(exercise))
+        mastery_course = getattr(
+            getattr(completion_section, "lesson", None), "course", None
+        ) or _resolve_course_for_exercise(exercise)
+        mastery = _get_or_create_mastery(
+            request.user,
+            getattr(mastery_course, "title", None) or _select_skill(exercise),
+            course=mastery_course,
+        )
         mastery_before = mastery.proficiency
         mastery.bump(is_correct, confidence, hints_used=hints_used, attempts=progress.attempts)
 
@@ -1696,32 +2158,44 @@ def reset_exercise(request):
 
 
 def _review_queue_payload(request):
-    """Build review queue list with one batched exercise query (avoids N+1 per due skill)."""
+    """Build review queue list with one batched exercise query (avoids N+1 per due course)."""
     now = timezone.now()
     due_mastery = list(
-        Mastery.objects.filter(user=request.user, due_at__lte=now).order_by("due_at")
+        Mastery.objects.filter(
+            user=request.user,
+            due_at__lte=now,
+            course__isnull=False,
+            legacy=False,
+        )
+        .select_related("course", "course__path")
+        .order_by("due_at")
     )
     if not due_mastery:
         return []
 
-    skills = [m.skill for m in due_mastery]
-    exercises_by_skill = {}
+    course_ids = {m.course_id for m in due_mastery if m.course_id}
+    courses = {c.id: c for c in Course.objects.select_related("path").filter(id__in=course_ids)}
+    exercises_by_course = {}
     exercise_qs = apply_learner_exercise_filters(
-        Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(category__in=skills),
+        Exercise.objects.only(*EXERCISE_SAFE_FIELDS),
         request.user,
     ).order_by("category", "difficulty", "id")
     for ex in exercise_qs:
-        if ex.category not in exercises_by_skill:
-            exercises_by_skill[ex.category] = ex
+        for course_id, course in courses.items():
+            if course_id not in exercises_by_course and _exercise_matches_course(ex, course):
+                exercises_by_course[course_id] = ex
+                break
 
     queue = []
     for mastery in due_mastery:
-        exercise = exercises_by_skill.get(mastery.skill)
+        exercise = exercises_by_course.get(mastery.course_id)
         if not exercise:
             continue
         queue.append(
             {
                 "skill": mastery.skill,
+                "course_id": mastery.course_id,
+                "course_title": mastery.course.title if mastery.course else mastery.skill,
                 "exercise_id": exercise.id,
                 "question": exercise.question,
                 "type": exercise.type,
@@ -1752,20 +2226,323 @@ def review_queue(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def mastery_summary(request):
-    """Return mastery data for all skills, sorted by proficiency (lowest first)."""
-    masteries = Mastery.objects.filter(user=request.user).order_by("proficiency", "skill")
-    mastery_data = [
-        {
-            "skill": mastery.skill,
-            "proficiency": mastery.proficiency,
-            "due_at": mastery.due_at,
-            "last_reviewed": mastery.last_reviewed,
-            "level_band": _mastery_level_band(mastery.proficiency),
-            "level_label": _mastery_level_label(mastery.proficiency),
+    """Return enriched mastery data for the dashboard "Areas to Improve" section.
+
+    Each item carries urgency (due / overdue), a 7-day proficiency delta sourced from
+    MasterySnapshot, and a server-decided `recommended_action` so the client can render
+    one-tap CTAs (Review now / Practice) without re-implementing routing rules.
+    """
+
+    now = timezone.now()
+    today = timezone.localdate()
+    week_ago = today - timedelta(days=7)
+
+    _backfill_mastery_from_completed_sections(request.user)
+    masteries = list(
+        Mastery.objects.filter(
+            user=request.user,
+            course__isnull=False,
+            legacy=False,
+        ).select_related("course", "course__path")
+    )
+
+    # One-shot lookup: skill -> due-now exercise (reuse the review-queue contract)
+    due_queue = _review_queue_payload(request)
+    review_exercise_by_course = {
+        row["course_id"]: row["exercise_id"] for row in due_queue if row.get("course_id")
+    }
+
+    # One-shot lookup: skill -> oldest proficiency within the 7d window (snapshot).
+    # If no snapshot exists within the window, delta_7d stays null.
+    snapshots = MasterySnapshot.objects.filter(
+        user=request.user, recorded_on__gte=week_ago, course__isnull=False
+    ).order_by("course_id", "recorded_on")
+    earliest_by_course: dict[int, int] = {}
+    for snap in snapshots:
+        if snap.course_id and snap.course_id not in earliest_by_course:
+            earliest_by_course[snap.course_id] = snap.proficiency
+
+    exercise_stats = _skill_exercise_stats(request.user)
+    next_step_indexes = _build_next_step_indexes(request.user, masteries)
+
+    items = []
+    for mastery in masteries:
+        is_due_now = bool(mastery.due_at and mastery.due_at <= now)
+        overdue_days = None
+        if is_due_now:
+            overdue_days = max(0, (now - mastery.due_at).days)
+
+        baseline = earliest_by_course.get(mastery.course_id)
+        delta_7d = mastery.proficiency - baseline if baseline is not None else None
+
+        review_exercise_id = review_exercise_by_course.get(mastery.course_id)
+        if is_due_now and review_exercise_id is not None:
+            recommended_action = "review"
+        else:
+            recommended_action = "practice"
+
+        weakness_score = _compute_weakness_score(
+            proficiency=mastery.proficiency,
+            is_due_now=is_due_now,
+            overdue_days=overdue_days,
+            delta_7d=delta_7d,
+            last_reviewed=mastery.last_reviewed,
+            skill=mastery.skill,
+            exercise_stats=exercise_stats,
+            now=now,
+        )
+
+        next_step = _resolve_next_step_for_skill(
+            mastery=mastery,
+            is_due_now=is_due_now,
+            review_exercise_id=review_exercise_id,
+            indexes=next_step_indexes,
+        )
+
+        items.append(
+            {
+                "skill": mastery.skill,
+                "course_id": mastery.course_id,
+                "course_title": mastery.course.title if mastery.course else mastery.skill,
+                "proficiency": mastery.proficiency,
+                "due_at": mastery.due_at,
+                "last_reviewed": mastery.last_reviewed,
+                "level_band": _mastery_level_band(mastery.proficiency),
+                "level_label": _mastery_level_label(mastery.proficiency),
+                "is_due_now": is_due_now,
+                "overdue_days": overdue_days,
+                "delta_7d": delta_7d,
+                "weakness_score": weakness_score,
+                "recommended_action": recommended_action,
+                "review_exercise_id": review_exercise_id,
+                "next_step": next_step,
+            }
+        )
+
+    items.sort(key=lambda item: (-item["weakness_score"], item["skill"]))
+
+    return Response({"masteries": items})
+
+
+def _route_for_next_step(next_step: dict, skill: str | None = None) -> str:
+    step_type = next_step.get("type")
+    target_id = next_step.get("target_id")
+    course_id = next_step.get("course_id")
+    if step_type in {"review", "practice"}:
+        route = "/exercises"
+        params = []
+        if skill:
+            params.append(f"skill={skill}")
+        if target_id:
+            params.append(f"exerciseId={target_id}")
+        if params:
+            route = f"{route}?{'&'.join(params)}"
+        return route
+    if step_type == "lesson" and course_id:
+        route = f"/flow/{course_id}"
+        if target_id:
+            route = f"{route}?lessonId={target_id}"
+        return route
+    if step_type == "quiz" and course_id:
+        return f"/quiz/{course_id}"
+    if step_type == "tutor":
+        prompt = f"Help me improve {skill}." if skill else "Help me choose what to practice next."
+        return f"/chat?preseededMessage={prompt}"
+    return "/exercises"
+
+
+def _latest_tool_open_event(user):
+    FunnelEvent = apps.get_model("finance", "FunnelEvent")
+    if FunnelEvent is None:
+        return None
+    return (
+        FunnelEvent.objects.filter(
+            user=user, status="success", event_type__in=["tool_open", "tool_opened"]
+        )
+        .order_by("-created_at")
+        .first()
+    )
+
+
+def _progress_summary_payload(user):
+    allowed_ids = list(_allowed_path_ids(user))
+    resume = None
+    last_flow = (
+        UserProgress.objects.filter(user=user)
+        .exclude(flow_current_index=0)
+        .select_related("course", "course__path")
+        .order_by("-flow_updated_at")
+        .first()
+    )
+    if not last_flow:
+        last_flow = (
+            UserProgress.objects.filter(user=user)
+            .select_related("course", "course__path")
+            .order_by("-flow_updated_at")
+            .first()
+        )
+    if last_flow:
+        resume = {
+            "course_id": last_flow.course_id,
+            "course_title": last_flow.course.title,
+            "flow_current_index": getattr(last_flow, "flow_current_index", 0) or 0,
+            "path_id": last_flow.course.path_id,
         }
-        for mastery in masteries
-    ]
-    return Response({"masteries": mastery_data})
+
+    start_here = None
+    if allowed_ids:
+        first_path = (
+            Path.objects.filter(id__in=allowed_ids)
+            .order_by("sort_order", "id")
+            .values_list("id", flat=True)
+            .first()
+        )
+        if first_path:
+            first_course = (
+                Course.objects.filter(path_id=first_path)
+                .order_by("order", "id")
+                .values_list("id", flat=True)
+                .first()
+            )
+            if first_course:
+                start_here = {"path_id": first_path, "course_id": first_course}
+    return {"resume": resume, "start_here": start_here}
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def whats_next(request):
+    """Return the highest-value next action for the dashboard journey card."""
+    user = request.user
+    _backfill_mastery_from_completed_sections(user)
+
+    due_queue = _review_queue_payload(request)
+    if due_queue:
+        first = due_queue[0]
+        return Response(
+            {
+                "type": "review",
+                "title": f"{len(due_queue)} review{'s' if len(due_queue) != 1 else ''} due",
+                "subtitle": f"Keep your {first.get('skill') or 'core'} mastery warm.",
+                "action_route": _route_for_next_step(
+                    {
+                        "type": "review",
+                        "target_id": first.get("exercise_id"),
+                        "course_id": first.get("course_id"),
+                    },
+                    first.get("skill"),
+                ),
+                "analytics_event": "dashboard_whats_next_click",
+                "source": "review_queue",
+            }
+        )
+
+    masteries = list(
+        Mastery.objects.filter(user=user, course__isnull=False, legacy=False)
+        .select_related("course", "course__path")
+        .order_by("proficiency", "skill")
+    )
+    if masteries:
+        indexes = _build_next_step_indexes(user, masteries)
+        now = timezone.now()
+        mastery_items = []
+        for mastery in masteries:
+            is_due_now = bool(mastery.due_at and mastery.due_at <= now)
+            next_step = _resolve_next_step_for_skill(
+                mastery=mastery,
+                is_due_now=is_due_now,
+                review_exercise_id=None,
+                indexes=indexes,
+            )
+            mastery_items.append((mastery, next_step))
+
+        mastery, next_step = mastery_items[0]
+        step_type = next_step.get("type") or "practice"
+        titles = {
+            "lesson": f"Continue {mastery.course.title}",
+            "quiz": f"Take the {mastery.course.title} quiz",
+            "practice": f"Practice {mastery.skill}",
+            "review": f"Review {mastery.skill}",
+            "tutor": f"Ask Garzoni about {mastery.skill}",
+        }
+        subtitles = {
+            "lesson": "Pick up the next lesson in your learning path.",
+            "quiz": "Check your understanding before moving on.",
+            "practice": "A short exercise session will reinforce this skill.",
+            "review": "A quick review will protect your streak.",
+            "tutor": "Get a guided explanation from your coach.",
+        }
+        return Response(
+            {
+                "type": step_type,
+                "title": titles.get(step_type, f"Keep improving {mastery.skill}"),
+                "subtitle": subtitles.get(step_type, "Continue your learning journey."),
+                "action_route": _route_for_next_step(next_step, mastery.skill),
+                "analytics_event": "dashboard_whats_next_click",
+                "source": "mastery_summary",
+                "skill": mastery.skill,
+                "course_id": mastery.course_id,
+                "next_step": next_step,
+            }
+        )
+
+    tool_event = _latest_tool_open_event(user)
+    if tool_event:
+        metadata = tool_event.metadata or {}
+        tool_name = metadata.get("tool_name") or metadata.get("tool_slug") or "that tool"
+        return Response(
+            {
+                "type": "tool_followup",
+                "title": f"Learn the idea behind {tool_name}",
+                "subtitle": "Turn your tool session into a learning step.",
+                "action_route": metadata.get("lesson_route")
+                or metadata.get("exercise_route")
+                or "/all-topics",
+                "analytics_event": "dashboard_whats_next_click",
+                "source": "tool_open",
+                "tool_slug": metadata.get("tool_slug"),
+            }
+        )
+
+    progress = _progress_summary_payload(user)
+    resume = progress.get("resume")
+    if resume:
+        return Response(
+            {
+                "type": "resume",
+                "title": f"Continue {resume.get('course_title') or 'your course'}",
+                "subtitle": "Pick up where you left off.",
+                "action_route": f"/flow/{resume['course_id']}",
+                "analytics_event": "dashboard_whats_next_click",
+                "source": "progress_summary",
+                "course_id": resume["course_id"],
+            }
+        )
+
+    start_here = progress.get("start_here")
+    if start_here:
+        return Response(
+            {
+                "type": "start",
+                "title": "Start your first lesson",
+                "subtitle": "Build momentum with a short guided course.",
+                "action_route": f"/flow/{start_here['course_id']}",
+                "analytics_event": "dashboard_whats_next_click",
+                "source": "progress_summary",
+                "course_id": start_here["course_id"],
+            }
+        )
+
+    return Response(
+        {
+            "type": "explore",
+            "title": "Choose your next topic",
+            "subtitle": "Browse the course library and start learning.",
+            "action_route": "/all-topics",
+            "analytics_event": "dashboard_whats_next_click",
+            "source": "fallback",
+        }
+    )
 
 
 @api_view(["POST"])

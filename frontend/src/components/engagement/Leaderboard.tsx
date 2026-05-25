@@ -39,6 +39,7 @@ type SentRequest = {
 };
 
 const LIST_PAGE_SIZE = 25;
+const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"];
 
 const podiumHighlight = [
   "border-[#e6c87a]/50 bg-gradient-to-b from-[#e6c87a]/15 via-[#e6c87a]/5 to-transparent shadow-lg shadow-[#e6c87a]/10",
@@ -85,6 +86,7 @@ const Leaderboards = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [activeTab, setActiveTab] = useState<"global" | "friends">("global");
+  const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState("all-time");
   const [userRank, setUserRank] = useState<LeaderboardEntry | null>(null);
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
@@ -110,10 +112,13 @@ const Leaderboards = () => {
 
   const fetchGlobalLeaderboard = useCallback(async () => {
     const res = await apiClient.get("/leaderboard/", {
-      params: { time_filter: timeFilter },
+      params: {
+        time_filter: timeFilter,
+        ...(activeSkill ? { skill: activeSkill } : {}),
+      },
     });
     return res.data as LeaderboardEntry[];
-  }, [timeFilter]);
+  }, [activeSkill, timeFilter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -219,6 +224,19 @@ const Leaderboards = () => {
     }
   };
 
+  const startDuel = async (opponentId: number) => {
+    try {
+      const response = await apiClient.post("/leaderboard/duel/", {
+        opponent_id: opponentId,
+      });
+      window.location.href = response.data.action_route || "/exercises";
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { error?: string } } })
+        ?.response?.data?.error;
+      toast.error(detail || t("leaderboard.errors.loadFailed"));
+    }
+  };
+
   const filteredLeaderboard = useMemo(() => {
     const source =
       activeTab === "global" ? globalLeaderboard : friendsLeaderboard;
@@ -231,7 +249,7 @@ const Leaderboards = () => {
 
   useEffect(() => {
     setListVisible(LIST_PAGE_SIZE);
-  }, [searchQuery, activeTab, timeFilter]);
+  }, [searchQuery, activeTab, timeFilter, activeSkill]);
 
   const podiumEntries = useMemo(
     () => filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
@@ -439,7 +457,16 @@ const Leaderboards = () => {
                 </p>
               </div>
             </div>
-            {activeTab === "global" && (
+            {activeTab === "global" && !isYou && (
+              <button
+                type="button"
+                onClick={() => startDuel(entry.user.id)}
+                className="inline-flex items-center justify-center rounded-full border border-[#2a7347]/30 px-4 py-2 text-xs font-semibold text-[#2a7347] transition hover:bg-[#2a7347]/10"
+              >
+                Duel
+              </button>
+            )}
+            {activeTab === "global" && !isYou && (
               <button
                 type="button"
                 title={
@@ -528,6 +555,38 @@ const Leaderboards = () => {
           )}
         </div>
       </div>
+
+      {activeTab === "global" && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveSkill(null)}
+            className={cx(
+              "rounded-full border px-3 py-1.5 text-xs font-semibold",
+              !activeSkill
+                ? "border-[#2a7347] bg-[#2a7347]/10 text-[#2a7347]"
+                : "border-[color:var(--border-color)] text-content-muted"
+            )}
+          >
+            XP
+          </button>
+          {SKILL_TABS.map((skill) => (
+            <button
+              key={skill}
+              type="button"
+              onClick={() => setActiveSkill(skill)}
+              className={cx(
+                "rounded-full border px-3 py-1.5 text-xs font-semibold",
+                activeSkill === skill
+                  ? "border-[#2a7347] bg-[#2a7347]/10 text-[#2a7347]"
+                  : "border-[color:var(--border-color)] text-content-muted"
+              )}
+            >
+              {skill}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-xl">

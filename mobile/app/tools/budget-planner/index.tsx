@@ -21,6 +21,8 @@ import { radius, spacing, typography } from "../../../src/theme/tokens";
 import { href } from "../../../src/navigation/href";
 import { logDevError } from "../../../src/lib/logDevError";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
+import { useCfoProfile } from "../../../src/state/cfoProfile";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 type Envelope = {
   id: number;
@@ -53,6 +55,7 @@ export default function BudgetPlannerScreen() {
   const c = useThemeColors();
   const router = useRouter();
   const { t } = useTranslation("common");
+  const { profile, setProfile } = useCfoProfile();
   const [envelopes, setEnvelopes] = useState<Envelope[]>([]);
   const [summary, setSummary] = useState<SpendingSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +64,12 @@ export default function BudgetPlannerScreen() {
   const [label, setLabel] = useState("");
   const [target, setTarget] = useState("");
   const [creating, setCreating] = useState(false);
+
+  const profileIncomeMid =
+    (Number(profile.incomeLow || 0) + Number(profile.incomeHigh || 0)) / 2;
+  const profileExpenseMid =
+    (Number(profile.expenseLow || 0) + Number(profile.expenseHigh || 0)) / 2;
+  const hasProfileRanges = profileIncomeMid > 0 || profileExpenseMid > 0;
 
   const entQuery = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -107,6 +116,18 @@ export default function BudgetPlannerScreen() {
     if (entQuery.isFetched && hasPlus) void load();
   }, [entQuery.isFetched, hasPlus, load]);
 
+  useEffect(() => {
+    if (!summary) return;
+    const net = summary.net_cash_flow;
+    if (
+      profile.monthlyNetCashFlow !== undefined &&
+      Math.abs(profile.monthlyNetCashFlow - net) < 1
+    ) {
+      return;
+    }
+    setProfile({ monthlyNetCashFlow: net });
+  }, [summary, profile.monthlyNetCashFlow, setProfile]);
+
   const handleCreate = async () => {
     if (!label || !target) return;
     setCreating(true);
@@ -145,6 +166,7 @@ export default function BudgetPlannerScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        <WhyThisMattersMobile toolSlug="budget-planner" />
         <View style={styles.header}>
           <Text style={[styles.eyebrow, { color: c.textMuted }]}>
             {t("tools.budgetPlanner.eyebrow").toUpperCase()}
@@ -156,6 +178,37 @@ export default function BudgetPlannerScreen() {
             {t("tools.budgetPlanner.subtitle")}
           </Text>
         </View>
+
+        {hasProfileRanges && (
+          <View
+            style={[
+              styles.profileCard,
+              { borderColor: c.border, backgroundColor: c.surface },
+            ]}
+          >
+            <View style={styles.profileTextBlock}>
+              <Text style={[styles.profileTitle, { color: c.textMuted }]}>
+                From your Reality Check
+              </Text>
+              <Text style={[styles.profileBody, { color: c.text }]}>
+                Income ~{Math.round(profileIncomeMid)} {currency} · Expenses ~
+                {Math.round(profileExpenseMid)} {currency}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => router.push(href("/(tabs)/tools/reality-check"))}
+              style={({ pressed }) => [
+                styles.profileLink,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.profileLinkText, { color: c.primary }]}>
+                Update your goal →
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         {error && (
           <View
@@ -381,6 +434,25 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: typography.xxl, fontWeight: "800", letterSpacing: -0.5 },
   subtitle: { fontSize: typography.sm, lineHeight: 20 },
+  profileCard: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    padding: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  profileTextBlock: { flex: 1, gap: 2 },
+  profileTitle: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  profileBody: { fontSize: typography.sm, fontWeight: "600" },
+  profileLink: { paddingHorizontal: spacing.xs, paddingVertical: spacing.xs },
+  profileLinkText: { fontSize: typography.xs, fontWeight: "700" },
   totalsRow: { flexDirection: "row", gap: spacing.md },
   totalCard: {
     flex: 1,

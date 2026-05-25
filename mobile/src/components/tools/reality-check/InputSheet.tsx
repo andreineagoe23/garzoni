@@ -3,7 +3,9 @@ import {
   Animated,
   Dimensions,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -113,10 +115,14 @@ export function InputSheet({
           <View style={[styles.handle, { backgroundColor: c.border }]} />
         </TouchableOpacity>
 
-        <View style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={0}
+        >
           <KeyboardAwareScrollView
             keyboardActive={visible}
-            basePaddingBottom={48}
+            basePaddingBottom={spacing.lg}
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -166,7 +172,14 @@ export function InputSheet({
               "e.g. 2200",
               "Maximum expected monthly spending",
             )}
+          </KeyboardAwareScrollView>
 
+          <View
+            style={[
+              styles.footer,
+              { backgroundColor: c.surface, borderTopColor: c.border },
+            ]}
+          >
             <Pressable
               onPress={onCalculate}
               style={({ pressed }) => [
@@ -179,8 +192,8 @@ export function InputSheet({
                 Calculate
               </Text>
             </Pressable>
-          </KeyboardAwareScrollView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Animated.View>
     </Modal>
   );
@@ -233,11 +246,16 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
+  footer: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   calcBtn: {
     borderRadius: radius.full,
     paddingVertical: spacing.lg,
     alignItems: "center",
-    marginTop: spacing.md,
   },
   calcBtnText: { fontSize: typography.base, fontWeight: "700" },
 });

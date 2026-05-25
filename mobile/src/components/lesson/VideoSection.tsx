@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import YoutubePlayer from "react-native-youtube-iframe";
@@ -70,6 +71,7 @@ function InlineVideoPlayer({
 
 export default function VideoSection({ url, title }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const styles = useMemo(() => createVideoStyles(c), [c]);
   const { width } = useWindowDimensions();
   const w = width - spacing.xl * 2;
@@ -89,7 +91,7 @@ export default function VideoSection({ url, title }: Props) {
   );
 
   if (!trimmed) {
-    return <Text style={styles.muted}>No video URL.</Text>;
+    return <Text style={styles.muted}>{t("courses.flow.noVideoUrl")}</Text>;
   }
 
   return (

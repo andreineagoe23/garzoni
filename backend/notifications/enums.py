@@ -38,3 +38,4 @@ class CioEventName(str, Enum):
     ORDER_CONFIRMED = "order_confirmed"
     PAYMENT_FAILED = "payment_failed"
     CHECKOUT_ABANDONED = "checkout_abandoned"
+    COACH_NUDGE = "coach_nudge"

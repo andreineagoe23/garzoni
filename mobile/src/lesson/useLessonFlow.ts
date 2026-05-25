@@ -54,7 +54,10 @@ export type FlowItem =
       detailedContent?: string;
     };
 
-export function useLessonFlow(courseId: number) {
+export function useLessonFlow(
+  courseId: number,
+  options?: { initialLessonId?: number | null },
+) {
   const queryClient = useQueryClient();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
@@ -89,12 +92,16 @@ export function useLessonFlow(courseId: number) {
     staleTime: 0,
   });
 
-  // Restore saved flow position on first load
+  const initialLessonId = options?.initialLessonId ?? null;
+  const appliedInitialLessonRef = useRef(false);
+
+  // Restore saved flow position on first load (unless a lesson deep-link target is provided).
   useEffect(() => {
+    if (initialLessonId != null) return;
     if (flowStateQuery.data != null && flowStateQuery.data > 0) {
       setCurrentIndex(flowStateQuery.data);
     }
-  }, [flowStateQuery.data]);
+  }, [flowStateQuery.data, initialLessonId]);
 
   const flowItems = useMemo<FlowItem[]>(() => {
     const lessons = lessonsQuery.data ?? [];
@@ -133,6 +140,20 @@ export function useLessonFlow(courseId: number) {
     });
     return items;
   }, [lessonsQuery.data, completedIds]);
+
+  // Deep-link: jump to the first flow item for the requested lesson.
+  useEffect(() => {
+    if (appliedInitialLessonRef.current) return;
+    if (initialLessonId == null || !Number.isFinite(initialLessonId)) return;
+    if (!flowItems.length) return;
+    const idx = flowItems.findIndex(
+      (item) => item.lessonId === initialLessonId,
+    );
+    if (idx >= 0) {
+      setCurrentIndex(idx);
+      appliedInitialLessonRef.current = true;
+    }
+  }, [flowItems, initialLessonId]);
 
   const currentItem = flowItems[currentIndex] ?? null;
   const isFirst = currentIndex === 0;

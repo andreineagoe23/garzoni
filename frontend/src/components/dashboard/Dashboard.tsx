@@ -27,7 +27,6 @@ import { UserProfile } from "types/api";
 import apiClient, { attachToken } from "services/httpClient";
 import { useAnalytics } from "hooks/useAnalytics";
 import { usePreferences } from "hooks/usePreferences";
-import DashboardHeader from "./DashboardHeader";
 import StatusSummary from "./StatusSummary";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
@@ -38,12 +37,15 @@ import { useProgressSummaryQuery } from "hooks/useProgressSummaryQuery";
 import { useDashboardSummary } from "hooks/useDashboardSummary";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import { useTranslation } from "react-i18next";
-import WeakSkillsQuickCard from "./WeakSkillsQuickCard";
 import { useDashboardSkillExercisesNavigation } from "hooks/useDashboardSkillExercisesNavigation";
+import type { DashboardWeakSkill } from "hooks/useDashboardSkillExercisesNavigation";
 
 type WeakSkill = {
   skill: string;
+  course_id?: number | null;
+  course_title?: string | null;
   proficiency: number;
+  level_band?: string;
   level_label?: string;
 };
 
@@ -63,7 +65,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const { t } = useTranslation();
   const { trackEvent } = useAnalytics();
   const { preferences } = usePreferences();
-  const { adminMode, toggleAdminMode, canAdminister } = useAdmin();
+  useAdmin();
   const locale = getLocale();
   const prefersReducedMotion = useRef(
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -72,7 +74,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
 
   const {
     getAccessToken,
-    user: authUser,
     loadProfile,
     profile: authProfile,
     reloadEntitlements,
@@ -374,13 +375,14 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     reviewsDue,
     activeMissions,
     weakestSkills,
+    strongestSkills,
     dailyGoalProgress,
     resume,
     startHere,
     completedSections,
-    totalSections,
+    totalSections: _totalSections,
     completedLessons,
-    totalLessons,
+    totalLessons: _totalLessons,
   } = useDashboardSummary({
     progressResponse,
     reviewQueueData,
@@ -398,10 +400,47 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
         )
         .map((skill) => ({
           skill: skill.skill,
+          course_id: (skill as { course_id?: number | null }).course_id,
+          course_title: (skill as { course_title?: string | null })
+            .course_title,
           proficiency: skill.proficiency ?? 0,
+          level_band: (skill as { level_band?: string }).level_band,
           level_label: (skill as { level_label?: string }).level_label,
+          last_reviewed: (skill as { last_reviewed?: string | null })
+            .last_reviewed,
+          is_due_now: (skill as { is_due_now?: boolean }).is_due_now,
+          overdue_days: (skill as { overdue_days?: number | null })
+            .overdue_days,
+          delta_7d: (skill as { delta_7d?: number | null }).delta_7d,
+          recommended_action: (
+            skill as {
+              recommended_action?: "review" | "practice" | "lesson";
+            }
+          ).recommended_action,
+          review_exercise_id: (skill as { review_exercise_id?: number | null })
+            .review_exercise_id,
+          next_step: (skill as { next_step?: DashboardWeakSkill["next_step"] })
+            .next_step,
         })),
     [weakestSkills]
+  );
+
+  const strongSkillItems = useMemo(
+    () =>
+      (strongestSkills || [])
+        .filter((skill): skill is WeakSkill =>
+          Boolean((skill as WeakSkill).skill)
+        )
+        .map((skill) => ({
+          skill: skill.skill,
+          course_id: (skill as { course_id?: number | null }).course_id,
+          course_title: (skill as { course_title?: string | null })
+            .course_title,
+          proficiency: skill.proficiency ?? 0,
+          level_band: (skill as { level_band?: string }).level_band,
+          level_label: (skill as { level_label?: string }).level_label,
+        })),
+    [strongestSkills]
   );
 
   useEffect(() => {
@@ -493,10 +532,13 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   }, []);
 
   const {
-    handleWeakSkillClick,
-    handleWeakSkillPractice,
-    handleQuickCardSkillExercises,
+    handleWeakSkillPrimaryAction: _handleWeakSkillPrimaryAction,
+    handleContinueImproving,
+    handleAskTutorAboutSkill,
+    handleResumeTopSkillAction,
   } = useDashboardSkillExercisesNavigation(navigate, trackEvent);
+
+  const topWeakSkill = weakSkillItems[0] ?? null;
 
   if (isLoading) {
     return (
@@ -518,13 +560,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       </div>
     );
   }
-
-  const displayName =
-    authUser?.first_name?.trim() ||
-    authUser?.username?.trim() ||
-    (profile as UserProfile)?.first_name?.trim() ||
-    (profile as UserProfile)?.username?.trim() ||
-    "";
 
   const navigationButtons = (
     <>
@@ -573,13 +608,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 lg:px-6">
         <div className="flex flex-col gap-6">
           <div className="app-section-glow">
-            <DashboardHeader
-              displayName={displayName}
-              canAdminister={canAdminister}
-              adminMode={adminMode}
-              toggleAdminMode={toggleAdminMode}
-            />
-
             {!isQuestionnaireCompleted && (
               <QuestionnaireReminderBanner
                 hasPaid={hasPaid}
@@ -590,7 +618,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
             {isQuestionnaireCompleted ||
             (questionnaireProgress as { status?: string } | null)?.status ===
               "completed" ? (
-              <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="mt-6">
                 {resume ? (
                   <div className="app-card min-w-0 p-3 transition-all sm:p-4">
                     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -612,19 +640,36 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           </p>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCourseClick(
-                            resume.course_id,
-                            resume.path_id ?? undefined
-                          )
-                        }
-                        className="w-full self-center rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm"
-                        aria-label={t("dashboard.resume.continueLesson")}
-                      >
-                        {t("dashboard.resume.continueLesson")}
-                      </button>
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleCourseClick(
+                              resume.course_id,
+                              resume.path_id ?? undefined
+                            )
+                          }
+                          className="w-full rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
+                          aria-label={t("dashboard.resume.continueLesson")}
+                        >
+                          {t("dashboard.resume.continueLesson")}
+                        </button>
+                        {topWeakSkill && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleResumeTopSkillAction(topWeakSkill)
+                            }
+                            className="w-full rounded-full border border-[color:var(--primary,#1d5330)]/30 px-3 py-1.5 text-center text-[11px] font-semibold text-content-primary transition hover:bg-[color:var(--primary,#1d5330)]/5 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
+                          >
+                            {topWeakSkill.recommended_action === "review" &&
+                            topWeakSkill.review_exercise_id != null
+                              ? t("dashboard.weakSkills.action.reviewNow")
+                              : t("dashboard.weakSkills.action.practice")}
+                            {` · ${topWeakSkill.skill}`}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -668,39 +713,20 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     </div>
                   </div>
                 )}
-
-                <WeakSkillsQuickCard
-                  locale={locale}
-                  topSkill={weakSkillItems[0] ?? null}
-                  onRecommendedSkillExercises={handleQuickCardSkillExercises}
-                  onOpenExercises={() => navigate("/exercises")}
-                />
               </div>
-            ) : (
-              <div className="mt-6">
-                <WeakSkillsQuickCard
-                  locale={locale}
-                  topSkill={weakSkillItems[0] ?? null}
-                  onRecommendedSkillExercises={handleQuickCardSkillExercises}
-                  onOpenExercises={() => navigate("/exercises")}
-                />
-              </div>
-            )}
+            ) : null}
 
             <WeakSkills
               show={preferences.showWeakSkills}
               masteryError={masteryError}
               weakestSkills={weakSkillItems}
+              strongestSkills={strongSkillItems}
               hasAnyMasteryData={(masteryData?.masteries?.length ?? 0) > 0}
               refetchMastery={refetchMastery}
               locale={locale}
               prefersReducedMotion={prefersReducedMotion.current}
-              completedSections={completedSections}
-              totalSections={totalSections}
-              completedLessons={completedLessons}
-              totalLessons={totalLessons}
-              onSkillClick={handleWeakSkillClick}
-              onPracticeClick={handleWeakSkillPractice}
+              onPrimaryAction={handleContinueImproving}
+              onAskTutor={handleAskTutorAboutSkill}
             />
 
             <StatusSummary

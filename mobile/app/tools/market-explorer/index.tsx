@@ -46,6 +46,7 @@ import { logDevError } from "../../../src/lib/logDevError";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
 import { getMarketQuoteQueryOptions } from "../../../src/hooks/useMarketQuote";
 import { useFormKeyboardPadding } from "../../../src/hooks/useFormKeyboardPadding";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 const PLACEHOLDER: Record<MarketTab, string> = {
   stocks: "Search stocks (e.g. AAPL)",
@@ -315,6 +316,7 @@ export default function MarketExplorerScreen() {
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: "Market Explorer" }} />
       <View style={[styles.root, { backgroundColor: c.bg }]}>
+        <WhyThisMattersMobile toolSlug="market-explorer" />
         <View style={styles.tabSection}>
           <TabBar active={tab} onChange={handleTabChange} />
         </View>

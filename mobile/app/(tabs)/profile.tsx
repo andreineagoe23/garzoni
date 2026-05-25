@@ -343,7 +343,7 @@ function ProfileInner() {
           message={t("profile.couldNotLoad")}
           onRetry={() => void profileQuery.refetch()}
         />
-        <Button variant="ghost" onPress={() => void signOut()}>
+        <Button variant="secondary" onPress={() => void signOut()}>
           {t("widgets.userProgress.logout")}
         </Button>
       </View>
@@ -863,7 +863,7 @@ function ProfileInner() {
             <Button variant="danger" onPress={() => void signOut()}>
               {t("widgets.userProgress.logout")}
             </Button>
-            <Button variant="ghost" onPress={onDeleteAccount}>
+            <Button variant="danger" onPress={onDeleteAccount}>
               {t("settings.danger.deleteAccount")}
             </Button>
           </View>
@@ -932,7 +932,7 @@ function ProfileInner() {
                 </Text>
                 <View style={{ flexDirection: "row", gap: spacing.sm }}>
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     style={{ flex: 1 }}
                     onPress={closeDeleteFlow}
                   >
@@ -986,7 +986,7 @@ function ProfileInner() {
                 />
                 <View style={{ flexDirection: "row", gap: spacing.sm }}>
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     style={{ flex: 1 }}
                     onPress={closeDeleteFlow}
                   >

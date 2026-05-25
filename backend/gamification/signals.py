@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from gamification.models import Mission
+from gamification.models import Mission, MultiStepMission, MultiStepMissionProgress
 from gamification.services.mission_cycles import get_or_create_current_mission_completion
 
 
@@ -18,3 +18,98 @@ def assign_missions_to_new_user(sender, instance, created, **kwargs):
                 mission,
                 defaults={"progress": 0, "status": "not_started"},
             )
+
+
+def _matches_topic(text: str | None, topic: str | None) -> bool:
+    if not text or not topic:
+        return False
+    return topic.lower() in text.lower()
+
+
+def _advance_multistep_missions(user, event_type: str, **context):
+    if not user:
+        return
+    for mission in MultiStepMission.objects.filter(is_active=True):
+        steps = mission.steps or []
+        for step in steps:
+            if step.get("type") != event_type:
+                continue
+            step_id = step.get("id")
+            if not step_id:
+                continue
+            if event_type == "lesson":
+                course_topic = step.get("course_topic")
+                course_title = context.get("course_title")
+                lesson_id = step.get("lesson_id")
+                if lesson_id and lesson_id != context.get("lesson_id"):
+                    continue
+                if course_topic and not _matches_topic(course_title, course_topic):
+                    continue
+            elif event_type == "exercise":
+                expected = step.get("exercise_category")
+                actual = context.get("exercise_category")
+                if expected and not _matches_topic(actual, expected):
+                    continue
+            elif event_type == "tool":
+                expected_tool = step.get("tool_slug")
+                if expected_tool and expected_tool != context.get("tool_slug"):
+                    continue
+            progress, _ = MultiStepMissionProgress.objects.get_or_create(
+                user=user,
+                mission=mission,
+            )
+            progress.mark_step_complete(step_id)
+
+
+try:
+    from education.models import ExerciseCompletion, LessonCompletion
+    from finance.models import FunnelEvent
+except Exception:  # pragma: no cover - app registry/import edge during setup
+    ExerciseCompletion = None
+    LessonCompletion = None
+    FunnelEvent = None
+
+
+if LessonCompletion is not None:
+
+    @receiver(post_save, sender=LessonCompletion)
+    def advance_multistep_lesson(sender, instance, created, **kwargs):
+        if not created:
+            return
+        lesson = instance.lesson
+        course = getattr(lesson, "course", None)
+        _advance_multistep_missions(
+            instance.user_progress.user,
+            "lesson",
+            lesson_id=lesson.id,
+            course_id=getattr(course, "id", None),
+            course_title=getattr(course, "title", None),
+        )
+
+
+if ExerciseCompletion is not None:
+
+    @receiver(post_save, sender=ExerciseCompletion)
+    def advance_multistep_exercise(sender, instance, created, **kwargs):
+        if not created:
+            return
+        _advance_multistep_missions(
+            instance.user,
+            "exercise",
+            exercise_id=instance.exercise_id,
+            exercise_category=getattr(instance.exercise, "category", None),
+        )
+
+
+if FunnelEvent is not None:
+
+    @receiver(post_save, sender=FunnelEvent)
+    def advance_multistep_tool(sender, instance, created, **kwargs):
+        if not created or instance.event_type not in {"tool_open", "tool_opened"}:
+            return
+        metadata = instance.metadata or {}
+        _advance_multistep_missions(
+            instance.user,
+            "tool",
+            tool_slug=metadata.get("tool_slug"),
+        )

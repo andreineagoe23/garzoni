@@ -92,8 +92,6 @@ module.exports = ({ config }) => ({
         "Garzoni uses the camera to scan receipts and statements for AI-powered spending insights (Pro feature).",
       NSMicrophoneUsageDescription:
         "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature).",
-      NSUserTrackingUsageDescription:
-        "Used to measure which referrals lead to installs and improve the app experience. You can change this anytime in Settings.",
       ...(allowInsecureLocalHttp
         ? {
             NSAppTransportSecurity: {
@@ -151,13 +149,6 @@ module.exports = ({ config }) => ({
     "expo-secure-store",
     "expo-font",
     "expo-apple-authentication",
-    [
-      "expo-tracking-transparency",
-      {
-        userTrackingPermission:
-          "Used to measure which referrals lead to installs and improve the app experience. You can change this anytime in Settings.",
-      },
-    ],
     ...(googleSignInPlugin ? [googleSignInPlugin] : []),
     [
       "expo-notifications",

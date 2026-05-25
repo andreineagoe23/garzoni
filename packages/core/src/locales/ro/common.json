@@ -1,7 +1,8 @@
 {
   "common": {
     "dismiss": "Poate mai târziu",
-    "close": "Închide"
+    "close": "Închide",
+    "loadTimeout": "Încărcarea durează prea mult. Verifică conexiunea."
   },
   "gamification": {
     "ledger": {
@@ -115,6 +116,16 @@
       "missionsAvailable": "Misiuni disponibile",
       "reviewsDue": "Recapitulări restante"
     },
+    "pathCard": {
+      "continue": "Continuă",
+      "resumeCourse": "Reia cursul",
+      "personalizedPath": "Traseu personalizat",
+      "startJourney": "Începe primul tău traseu de învățare personalizat",
+      "begin": "Începe",
+      "exploreTopics": "Explorează toate subiectele",
+      "pickPathHint": "Alege un traseu de învățare mai jos sau navighează în fila Învață.",
+      "browsePaths": "Vezi traseele"
+    },
     "resume": {
       "title": "Reia de unde ai rămas",
       "continueWith": "Continuă cu {{course}}",
@@ -156,22 +167,58 @@
       "reviewsTileHintCaughtUp": "Nicio recapitulare în așteptare. Vor apărea aici când e momentul.",
       "missionsTileHintIdle": "Nicio misiune activă. Deschide Misiuni oricând pentru a începe una."
     },
+    "masteryLevels": {
+      "not_started": "Neînceput",
+      "attempted": "Încercat",
+      "familiar": "Familiar",
+      "proficient": "Competent",
+      "mastered": "Stăpânit"
+    },
     "weakSkills": {
       "skillInsights": "Abilități și îmbunătățiri",
       "skillInsightsDesc": "Finalizează lecții și quiz-uri pentru a vedea punctele forte și zonele de îmbunătățit.",
-      "noWeakSkills": "Fără abilități slabe",
-      "noWeakSkillsDesc": "Bravo! Te descurci bine la toate abilitățile.",
+      "noWeakSkills": "Toate abilitățile sunt solide",
+      "noWeakSkillsDesc": "Continuă să exersezi ca să menții nivelul.",
       "areasToImprove": "Zone de îmbunătățit",
-      "quickPracticeTitle": "Recomandare de exersare",
-      "quickPracticeSubtitle": "Îți sugerăm acum cea mai bună zonă de exersat.",
-      "focusOnSkills": "Concentrează-te pe aceste abilități pentru a-ți îmbunătăți stăpânirea",
+      "focusOnSkills": "Ce să exersezi acum, ordonat după impactul cel mai mare.",
       "lowMasteryIn": "Stăpânire scăzută la {{skill}}",
       "lowMasteryLead": "Stăpânire scăzută la",
       "practice": "Exersează",
       "practiceSkillAria": "Exersează abilitatea {{skill}}",
       "practiceRecommendationAria": "Exersează {{skill}} pentru a îmbunătăți recomandarea",
       "failedLoadSkills": "Nu s-au putut încărca abilitățile",
-      "couldNotFetchSkills": "Nu am putut încărca datele de stăpânire."
+      "couldNotFetchSkills": "Nu am putut încărca datele de stăpânire.",
+      "pill": {
+        "dueNow": "De revizuit",
+        "overdue": "Întârziat {{days}}z",
+        "declining": "În scădere",
+        "improving": "+{{delta}}% săptămâna asta"
+      },
+      "context": {
+        "lastPracticed": "Ultima exersare acum {{days}}z",
+        "lastPracticedToday": "Exersat azi",
+        "lastPracticedYesterday": "Exersat ieri"
+      },
+      "action": {
+        "reviewNow": "Revizuiește acum",
+        "practice": "Exersează",
+        "askTutor": "Întreabă tutorele",
+        "continueImproving": "Continuă să exersezi",
+        "askTutorAbout": "Întreabă tutorele despre {{skill}}"
+      },
+      "nextPreview": "Următorul: {{type}} — {{title}}",
+      "nextType": {
+        "lesson": "Lecție",
+        "quiz": "Quiz",
+        "practice": "Exercițiu",
+        "review": "Revizuire",
+        "tutor": "Tutor"
+      },
+      "tutorPrompt": "Ajută-mă să îmbunătățesc {{skill}} — sunt la {{pct}}% stăpânire. Pe ce să mă concentrez?",
+      "strongest": {
+        "title": "Cele mai puternice abilități",
+        "subtitle": "Continuă să exersezi ca să menții nivelul."
+      }
     },
     "skillInsights": {
       "title": "Insights timpurii",
@@ -342,9 +389,20 @@
   },
   "learn": {
     "lockedPathNeedsPlan": "Acest traseu necesită un plan superior. Vezi planurile pentru a debloca cursurile.",
-    "viewPlans": "Vezi planurile →"
+    "viewPlans": "Vezi planurile →",
+    "personalizedPathLocked": "Traseul personalizat este blocat",
+    "upgradeToUnlockPersonalizedPath": "Fă upgrade la Plus pentru a-ți debloca traseul personalizat de învățare.",
+    "completeOnboardingToUnlock": "Finalizează onboarding-ul pentru a-ți debloca traseul personalizat.",
+    "viewPlansButton": "Vezi planurile",
+    "continueOnboarding": "Continuă onboarding-ul"
   },
   "allTopics": {
+    "heading": "Trasee de învățare",
+    "searchPlaceholder": "Caută trasee…",
+    "emptyNoMatch": "Niciun traseu nu corespunde căutării sau filtrului.",
+    "emptyNoApi": "Nu există trasee de învățare de la API. Verifică dacă backend-ul rulează, dacă EXPO_PUBLIC_BACKEND_URL indică Django și dacă ești autentificat. Trage pentru reîmprospătare.",
+    "start": "Începe",
+    "lessonCount": "{{done}}/{{total}} lecții",
     "loading": "Se încarcă traseele de învățare...",
     "error": "Nu am putut încărca traseele de învățare. Te rugăm să încerci din nou mai târziu.",
     "sortByLabel": "Sortează după:",
@@ -393,6 +451,15 @@
     "eta": "~{{minutes}} min",
     "skillsToReinforce": "Abilități de consolidat",
     "noSkillsDue": "Nu ai abilități scadente pentru consolidare acum.",
+    "nextLesson": "Următorul: {{title}}",
+    "progressSectionsLessons": "{{completedSections}}/{{totalSections}} secțiuni • {{completedLessons}}/{{totalLessons}} lecții",
+    "progressLessonsOnly": "{{completedLessons}}/{{totalLessons}} lecții",
+    "due": {
+      "now": "Scadent acum",
+      "tomorrow": "Scadent mâine",
+      "inDays": "Scadent în {{count}} zile",
+      "inDaysLong": "Scadent în {{count}} zile"
+    },
     "skillScore": "Proficiență: {{value}}%",
     "open": "Deschide",
     "unlock": "Deblochează",
@@ -430,7 +497,8 @@
       "recommendedTitle": "Recomandat pentru tine",
       "recommendedSubtitle": "Pe baza profilului tău și a vizitelor recente la instrumente.",
       "noMatches": "Niciun instrument nu se potrivește căutării. Încearcă alt cuvânt sau resetează filtrele.",
-      "badgePlus": "Plus",
+      "badgePlus": "✦ Plus",
+      "estimatedMinutes": "{{count}} min",
       "plusOnlyHint": "Doar Plus",
       "signalStrip": {
         "nextSteps": "Ce ar trebui să învăț în continuare?"
@@ -1423,6 +1491,17 @@
       "donationSuccess": "Donație reușită!",
       "donationFailed": "Donația a eșuat."
     },
+    "xpCard": {
+      "title": "XP-ul tău",
+      "level": "Nivel: {{label}}",
+      "xpToNext": "{{count}} XP până la următorul nivel",
+      "maxTier": "Nivel maxim",
+      "tiers": {
+        "beginner": "Începător",
+        "intermediate": "Intermediar",
+        "advanced": "Avansat"
+      }
+    },
     "refreshNote": "Monedele se reîmprospătează automat după fiecare achiziție sau donație.",
     "downloadLimit": "Limita de descărcări atinsă",
     "shareButton": "Partajează cardul de realizare",
@@ -2018,6 +2097,21 @@
     "agreeToTerms": "Prin abonare accepți <terms>Condițiile de utilizare</terms> și <privacy>Politica de confidențialitate</privacy>."
   },
   "onboarding": {
+    "changeLaterHint": "Poți schimba oricând din Setări",
+    "loadingSteps": {
+      "step1": {
+        "label": "Citim răspunsurile tale",
+        "detail": "Analizăm obiectivele, nivelul de experiență și profilul de risc"
+      },
+      "step2": {
+        "label": "Identificăm punctele slabe",
+        "detail": "Găsim lacune de cunoștințe în 12 domenii financiare"
+      },
+      "step3": {
+        "label": "Selectăm primele lecții",
+        "detail": "Construim un traseu personalizat din peste 200 de module"
+      }
+    },
     "loading": "Se încarcă onboardingul...",
     "loadingQuestion": "Se încarcă întrebarea...",
     "somethingWentWrong": "Ceva n-a mers bine",
@@ -2334,7 +2428,7 @@
       "context": {
         "weak_skill_click": "Din tabloul de bord: zonă de îmbunătățit (ai deschis această abilitate).",
         "weak_skill_practice": "Din tabloul de bord: zonă de îmbunătățit (exersare).",
-        "quick_card_exercises": "Din cardul rapid de exersare de pe tabloul de bord.",
+        "weak_skill_review": "Revizuire scadentă — deschidem exercițiul potrivit.",
         "default": "Recomandare din tabloul de bord."
       },
       "restoreBanner": "Afișează din nou recomandarea",

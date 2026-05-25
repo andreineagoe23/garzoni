@@ -23,6 +23,7 @@ import { SwipeCard } from "../../../src/components/tools/next-steps/SwipeCard";
 import { ProgressBar } from "../../../src/components/tools/next-steps/ProgressBar";
 import { EmptyState } from "../../../src/components/tools/next-steps/EmptyState";
 import { logDevError } from "../../../src/lib/logDevError";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 export default function NextStepsScreen() {
   const c = useThemeColors();
@@ -126,6 +127,7 @@ export default function NextStepsScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
+        <WhyThisMattersMobile toolSlug="next-steps" />
         <View style={styles.headerSection}>
           <Text style={[styles.heroTitle, { color: c.text }]}>Next Steps</Text>
           <Text style={[styles.heroSubtitle, { color: c.textMuted }]}>

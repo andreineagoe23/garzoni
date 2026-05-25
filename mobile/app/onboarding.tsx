@@ -41,7 +41,6 @@ import QuestionnaireTextAnswer from "../src/components/onboarding/steps/Question
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
 import { href } from "../src/navigation/href";
 import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
-import { requestTrackingPermissionIfNeeded } from "../src/bootstrap/trackingPermission";
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
@@ -279,8 +278,7 @@ export default function OnboardingScreen() {
     setErrorMsg("");
   }, []);
 
-  const goToPaywall = useCallback(async () => {
-    await requestTrackingPermissionIfNeeded();
+  const goToPaywall = useCallback(() => {
     router.replace("/subscriptions?mode=paywall");
   }, []);
 
@@ -513,9 +511,7 @@ export default function OnboardingScreen() {
             </View>
 
             <Text style={styles.footnote}>
-              {t("onboarding.changeLaterHint", {
-                defaultValue: "You can change this anytime in Settings",
-              })}
+              {t("onboarding.changeLaterHint")}
             </Text>
           </Animated.View>
         ) : null}

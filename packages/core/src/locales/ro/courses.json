@@ -53,6 +53,18 @@
     "noLessonContent": "Nu există conținut pentru această lecție.",
     "lessonFallback": "Lecție",
     "noSectionContent": "Nu există conținut pentru această secțiune.",
+    "noVideoUrl": "Lipsește URL-ul video.",
+    "sectionTitles": {
+      "overview": "Prezentare generală",
+      "coreConcept": "Concept de bază",
+      "appliedInsight": "Insight aplicat",
+      "practicalWalkthrough": "Ghid practic",
+      "keyTakeaways": "Puncte cheie",
+      "nextSteps": "Pași următori",
+      "knowledgeCheck1": "Verificare cunoștințe 1",
+      "knowledgeCheck2": "Verificare cunoștințe 2",
+      "watchAndLearn": "Urmărește și învață"
+    },
     "legacyExerciseFormat": "Această lecție folosește un format vechi de exercițiu la nivel de lecție.",
     "unsupportedExerciseType": "Tipul de exercițiu {{type}} nu este suportat în fluxul nou încă.",
     "videoNotSupported": "Browserul tău nu suportă redarea video.",

@@ -53,11 +53,14 @@ export function initI18nMobile() {
   });
 
   setAppLanguageResolver(() => i18n.language);
+}
 
-  void AsyncStorage.getItem(LANGUAGE_STORAGE_KEY).then((raw) => {
-    const lng = normalizeLanguage(raw ?? undefined);
-    if (lng && lng !== i18n.language) {
-      void i18n.changeLanguage(lng);
-    }
-  });
+/** Load persisted language before curriculum API calls (avoids en cache on cold start). */
+export async function hydrateI18nLanguageMobile(): Promise<void> {
+  initI18nMobile();
+  const raw = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+  const lng = normalizeLanguage(raw ?? undefined);
+  if (lng !== i18n.language) {
+    await i18n.changeLanguage(lng);
+  }
 }

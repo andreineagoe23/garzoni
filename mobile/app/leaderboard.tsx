@@ -5,6 +5,7 @@ import {
   fetchLeaderboardRank,
   fetchProfile,
   fetchSentFriendRequests,
+  apiClient,
   queryKeys,
   sendFriendRequest,
   staleTimes,
@@ -38,6 +39,7 @@ import Skeleton from "../src/components/ui/Skeleton";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
 const LIST_PAGE_SIZE = 25;
+const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"];
 
 function referralCodeFromProfile(profile: UserProfile | undefined): string {
   if (!profile) return "";
@@ -62,6 +64,7 @@ export default function LeaderboardScreen() {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<"global" | "friends">("global");
+  const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState("all-time");
   const [searchQuery, setSearchQuery] = useState("");
   const [listVisible, setListVisible] = useState(LIST_PAGE_SIZE);
@@ -74,8 +77,9 @@ export default function LeaderboardScreen() {
   });
 
   const globalQuery = useQuery({
-    queryKey: queryKeys.leaderboardGlobal(timeFilter),
-    queryFn: () => fetchLeaderboardGlobal(timeFilter).then((r) => r.data),
+    queryKey: queryKeys.leaderboardGlobal(timeFilter, activeSkill),
+    queryFn: () =>
+      fetchLeaderboardGlobal(timeFilter, activeSkill).then((r) => r.data),
     staleTime: staleTimes.progressSummary,
   });
 
@@ -128,7 +132,7 @@ export default function LeaderboardScreen() {
 
   useEffect(() => {
     setListVisible(LIST_PAGE_SIZE);
-  }, [searchQuery, activeTab, timeFilter]);
+  }, [searchQuery, activeTab, timeFilter, activeSkill]);
 
   const podiumEntries = useMemo(
     () => filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
@@ -177,7 +181,7 @@ export default function LeaderboardScreen() {
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.friendsList() });
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.leaderboardGlobal(timeFilter),
+        queryKey: queryKeys.leaderboardGlobal(timeFilter, activeSkill),
       });
     },
     onError: (err: unknown) => {
@@ -192,6 +196,29 @@ export default function LeaderboardScreen() {
       );
     },
   });
+
+  const startDuel = useCallback(
+    async (opponentId: number) => {
+      try {
+        const response = await apiClient.post("/leaderboard/duel/", {
+          opponent_id: opponentId,
+        });
+        const exerciseId = response.data?.exercise_id;
+        router.push(
+          exerciseId
+            ? `/(tabs)/exercises?duel=1&exerciseId=${exerciseId}&opponentId=${opponentId}`
+            : "/(tabs)/exercises",
+        );
+      } catch (err: unknown) {
+        const e = err as { response?: { data?: { error?: string } } };
+        Alert.alert(
+          "",
+          e?.response?.data?.error || t("leaderboard.errors.loadFailed"),
+        );
+      }
+    },
+    [t],
+  );
 
   const onRefresh = useCallback(async () => {
     setPullRefreshing(true);
@@ -218,6 +245,7 @@ export default function LeaderboardScreen() {
     sentQuery,
     friendsListQuery,
     queryClient,
+    activeSkill,
   ]);
 
   const userRank = rankQuery.data;
@@ -343,6 +371,55 @@ export default function LeaderboardScreen() {
         </View>
       ) : null}
 
+      {activeTab === "global" ? (
+        <View style={styles.timeRow}>
+          <Pressable
+            onPress={() => setActiveSkill(null)}
+            style={[
+              styles.timeChip,
+              {
+                borderColor: !activeSkill ? c.primary : c.border,
+                backgroundColor: !activeSkill ? c.primarySoft : c.surface,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                fontSize: typography.xs,
+                fontWeight: "800",
+                color: c.text,
+              }}
+            >
+              XP
+            </Text>
+          </Pressable>
+          {SKILL_TABS.map((skill) => (
+            <Pressable
+              key={skill}
+              onPress={() => setActiveSkill(skill)}
+              style={[
+                styles.timeChip,
+                {
+                  borderColor: activeSkill === skill ? c.primary : c.border,
+                  backgroundColor:
+                    activeSkill === skill ? c.primarySoft : c.surface,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: typography.xs,
+                  fontWeight: "800",
+                  color: c.text,
+                }}
+              >
+                {skill}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
       <TextInput
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -423,6 +500,12 @@ export default function LeaderboardScreen() {
           currentUserId={currentUserId}
           t={t}
           formatPoints={formatPoints}
+          isFriend={isAlreadyFriend}
+          isPending={hasPendingRequest}
+          onAddFriend={
+            activeTab === "global" ? (uid) => sendMut.mutate(uid) : undefined
+          }
+          busy={sendMut.isPending}
         />
       ) : null}
     </>
@@ -501,7 +584,14 @@ export default function LeaderboardScreen() {
                       ? () =>
                           Alert.alert(
                             item.user?.username ?? "",
-                            "Use Add friend to connect. Your own profile opens from the Profile tab.",
+                            "Start an async duel from a recommended exercise set.",
+                            [
+                              { text: "Cancel", style: "cancel" },
+                              {
+                                text: "Start duel",
+                                onPress: () => void startDuel(uid),
+                              },
+                            ],
                           )
                       : undefined
                 }

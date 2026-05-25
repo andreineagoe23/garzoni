@@ -86,7 +86,7 @@ export default function LegalPageScreen() {
               <Button variant="secondary" size="sm" onPress={retry}>
                 {t("legalMobile.retry")}
               </Button>
-              <Button variant="ghost" size="sm" onPress={openExternal}>
+              <Button variant="secondary" size="sm" onPress={openExternal}>
                 {t("legalMobile.openInBrowser")}
               </Button>
             </View>

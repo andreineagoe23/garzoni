@@ -413,6 +413,9 @@ class Exercise(models.Model):
         ("multiple-choice", "Multiple Choice"),
         ("numeric", "Numeric"),
         ("budget-allocation", "Budget Allocation"),
+        ("fill-in-table", "Fill in Table"),
+        ("scenario-simulation", "Scenario Simulation"),
+        ("true-false", "True/False"),
     ]
 
     type = models.CharField(max_length=50, choices=EXERCISE_TYPES)
@@ -486,19 +489,35 @@ class MultipleChoiceChoice(models.Model):
 
 
 class Mastery(models.Model):
-    """Tracks spaced-repetition style mastery for a user/skill pair."""
+    """Tracks spaced-repetition style mastery for a user/course pair."""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="masteries",
+    )
     skill = models.CharField(max_length=100)
     proficiency = models.PositiveIntegerField(default=0)
     due_at = models.DateTimeField(default=timezone.now)
     last_reviewed = models.DateTimeField(auto_now=True)
+    legacy = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("user", "skill")
         db_table = "core_mastery"
         indexes = [
             models.Index(fields=["user", "due_at"], name="mastery_user_due_idx"),
+            models.Index(fields=["user", "course"], name="mastery_user_course_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "course"],
+                condition=models.Q(course__isnull=False),
+                name="uniq_mastery_user_course",
+            ),
         ]
 
     def bump(
@@ -515,22 +534,13 @@ class Mastery(models.Model):
         Repeated wrong attempts drop to the bottom bucket.
         """
 
-        confidence_bonus = {
-            "low": -3,
-            "medium": 0,
-            "high": 6,
-        }.get(confidence or "medium", 0)
-        hint_penalty = min(10, max(0, hints_used) * 2)
-
         if correct:
-            gain = 12 + confidence_bonus - hint_penalty
-            self.proficiency = max(0, min(100, self.proficiency + gain))
+            clean_first_try = attempts <= 1 and hints_used <= 0
+            gain = 10 if clean_first_try else 5
+            ceiling = 90
+            self.proficiency = min(ceiling, max(0, self.proficiency + gain))
         else:
-            drop = 15 if attempts < 3 else 30
-            self.proficiency = max(0, self.proficiency - drop)
-
-        if not correct and attempts >= 3:
-            self.proficiency = 0
+            self.proficiency = max(0, self.proficiency - 10)
 
         # Map proficiency bands to a light spacing schedule
         band = max(0, min(4, self.proficiency // 20))
@@ -539,6 +549,39 @@ class Mastery(models.Model):
 
         self.due_at = timezone.now() + timedelta(days=days) if correct else timezone.now()
         self.save()
+
+
+class MasterySnapshot(models.Model):
+    """Daily proficiency snapshot per user/course, used to compute proficiency deltas."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="mastery_snapshots",
+    )
+    skill = models.CharField(max_length=100)
+    proficiency = models.PositiveIntegerField(default=0)
+    recorded_on = models.DateField()
+
+    class Meta:
+        unique_together = ("user", "skill", "recorded_on")
+        db_table = "core_masterysnapshot"
+        indexes = [
+            models.Index(fields=["user", "skill", "recorded_on"], name="snap_user_skill_date_idx"),
+            models.Index(
+                fields=["user", "course", "recorded_on"], name="snap_user_course_date_idx"
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "course", "recorded_on"],
+                condition=models.Q(course__isnull=False),
+                name="uniq_snapshot_user_course_day",
+            ),
+        ]
 
 
 class UserExerciseProgress(models.Model):

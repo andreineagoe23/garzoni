@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import type { ProgressSummary } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
@@ -13,6 +14,8 @@ type Props = {
 
 export default function PersonalizedPathCard({ resume, startHere }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
+
   if (resume) {
     return (
       <GlassCard
@@ -20,7 +23,7 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
         style={{ borderColor: c.primary, backgroundColor: c.primary + "18" }}
       >
         <Text style={[styles.kicker, { color: c.textOnPrimary }]}>
-          Continue
+          {t("dashboard.pathCard.continue")}
         </Text>
         <Text style={[styles.title, { color: c.text }]}>
           {resume.course_title}
@@ -31,7 +34,7 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
             size="md"
             onPress={() => router.push(`/flow/${resume.course_id}`)}
           >
-            Resume course
+            {t("dashboard.pathCard.resumeCourse")}
           </GlassButton>
         </View>
       </GlassCard>
@@ -41,10 +44,10 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
     return (
       <GlassCard padding="lg">
         <Text style={[styles.kicker, { color: c.textMuted }]}>
-          Personalized path
+          {t("dashboard.pathCard.personalizedPath")}
         </Text>
         <Text style={[styles.title, { color: c.text }]}>
-          Start your first tailored learning journey
+          {t("dashboard.pathCard.startJourney")}
         </Text>
         <View style={{ marginTop: spacing.md }}>
           <GlassButton
@@ -52,7 +55,7 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
             size="md"
             onPress={() => router.push(`/flow/${startHere.course_id}`)}
           >
-            Begin
+            {t("dashboard.pathCard.begin")}
           </GlassButton>
         </View>
       </GlassCard>
@@ -60,9 +63,11 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
   }
   return (
     <GlassCard padding="md">
-      <Text style={[styles.title, { color: c.text }]}>Explore all topics</Text>
+      <Text style={[styles.title, { color: c.text }]}>
+        {t("dashboard.pathCard.exploreTopics")}
+      </Text>
       <Text style={[styles.sub, { color: c.textMuted }]}>
-        Pick a learning path below or browse the Learn tab.
+        {t("dashboard.pathCard.pickPathHint")}
       </Text>
       <View style={{ marginTop: spacing.md }}>
         <GlassButton
@@ -70,7 +75,7 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
           size="md"
           onPress={() => router.push("/(tabs)/learn")}
         >
-          Browse paths
+          {t("dashboard.pathCard.browsePaths")}
         </GlassButton>
       </View>
     </GlassCard>
@@ -80,11 +85,11 @@ export default function PersonalizedPathCard({ resume, startHere }: Props) {
 const styles = StyleSheet.create({
   kicker: {
     fontSize: typography.xs,
-    fontWeight: "800",
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 0.6,
     marginBottom: spacing.xs,
   },
-  title: { fontSize: typography.lg, fontWeight: "800" },
+  title: { fontSize: typography.lg, fontWeight: "700" },
   sub: { fontSize: typography.sm, marginTop: spacing.xs, lineHeight: 20 },
 });

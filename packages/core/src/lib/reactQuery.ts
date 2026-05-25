@@ -23,14 +23,15 @@ export const queryKeys = {
     ["learningPathCourses", pathId] as const,
 
   // Dashboard widgets
+  whatsNext: () => ["whatsNext"] as const,
   reviewQueue: () => ["reviewQueue"] as const,
   masterySummary: () => ["masterySummary"] as const,
   missions: () => ["missions"] as const,
   financeFact: () => ["financeFact"] as const,
   savingsBalance: () => ["savingsBalance"] as const,
   streakItems: () => ["streakItems"] as const,
-  leaderboardGlobal: (timeFilter: string) =>
-    ["leaderboardGlobal", timeFilter] as const,
+  leaderboardGlobal: (timeFilter: string, skill?: string | null) =>
+    ["leaderboardGlobal", timeFilter, skill || "global"] as const,
   leaderboardFriends: () => ["leaderboardFriends"] as const,
   leaderboardRank: () => ["leaderboardRank"] as const,
   friendRequestsIncoming: () => ["friendRequestsIncoming"] as const,

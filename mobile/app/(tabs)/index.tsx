@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  RefreshControl,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -31,9 +25,7 @@ import {
 import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";
-import DashboardHeaderMobile from "../../src/components/dashboard/DashboardHeaderMobile";
 import DashboardResumeRow from "../../src/components/dashboard/DashboardResumeRow";
-import WeakSkillsQuickCardMobile from "../../src/components/dashboard/WeakSkillsQuickCardMobile";
 import WeakSkillsSectionMobile from "../../src/components/dashboard/WeakSkillsSectionMobile";
 import StatusSummaryGrid from "../../src/components/dashboard/StatusSummaryGrid";
 import PrimaryCTAMobile, {
@@ -45,6 +37,7 @@ import DashboardActivityHeatmap, {
 } from "../../src/components/dashboard/DashboardActivityHeatmap";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboardSkillExercisesNavigation";
+import type { DashboardWeakSkill } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
@@ -54,6 +47,8 @@ import StreakFreezeModal from "../../src/components/gamification/StreakFreezeMod
 
 type WeakSkill = {
   skill: string;
+  course_id?: number | null;
+  course_title?: string | null;
   proficiency: number;
   level_label?: string;
 };
@@ -65,7 +60,6 @@ function planRank(plan?: string | null) {
 }
 
 /** Side-by-side resume + practice only when there is enough width for readable copy. */
-const RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH = 600;
 
 type ActivityDayRow = {
   lessons?: unknown;
@@ -161,9 +155,6 @@ function summaryFromHeatmapApiRow(
 }
 
 function DashboardInner() {
-  const { width: windowWidth } = useWindowDimensions();
-  const resumeTilesSideBySide =
-    windowWidth >= RESUME_ROW_SIDE_BY_SIDE_MIN_WIDTH;
   const c = useThemeColors();
   const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<string | null>(
     null,
@@ -490,16 +481,47 @@ function DashboardInner() {
         )
         .map((s) => ({
           skill: s.skill,
+          course_id: (s as { course_id?: number | null }).course_id,
+          course_title: (s as { course_title?: string | null }).course_title,
           proficiency: s.proficiency ?? 0,
+          level_band: (s as { level_band?: string }).level_band,
           level_label: (s as { level_label?: string }).level_label,
+          last_reviewed: (s as { last_reviewed?: string | null }).last_reviewed,
+          is_due_now: (s as { is_due_now?: boolean }).is_due_now,
+          overdue_days: (s as { overdue_days?: number | null }).overdue_days,
+          delta_7d: (s as { delta_7d?: number | null }).delta_7d,
+          recommended_action: (
+            s as { recommended_action?: "review" | "practice" | "lesson" }
+          ).recommended_action,
+          review_exercise_id: (s as { review_exercise_id?: number | null })
+            .review_exercise_id,
+          next_step: (s as { next_step?: DashboardWeakSkill["next_step"] })
+            .next_step,
         })),
     [summary.weakestSkills],
   );
 
+  const strongSkillItems = useMemo(
+    () =>
+      (summary.strongestSkills || [])
+        .filter((s): s is WeakSkill & { skill: string } =>
+          Boolean((s as WeakSkill).skill),
+        )
+        .map((s) => ({
+          skill: s.skill,
+          course_id: (s as { course_id?: number | null }).course_id,
+          course_title: (s as { course_title?: string | null }).course_title,
+          proficiency: s.proficiency ?? 0,
+          level_band: (s as { level_band?: string }).level_band,
+          level_label: (s as { level_label?: string }).level_label,
+        })),
+    [summary.strongestSkills],
+  );
+
   const {
-    handleWeakSkillClick,
-    handleWeakSkillPractice,
-    handleQuickCardSkillExercises,
+    handleWeakSkillPrimaryAction,
+    handleContinueImproving,
+    handleAskTutorAboutSkill,
   } = useDashboardSkillExercisesNavigation();
 
   const primaryCTASignal = useMemo(
@@ -580,11 +602,6 @@ function DashboardInner() {
     questionnaireQuery,
   ]);
 
-  const displayName =
-    (profile?.username as string | undefined)?.trim() ||
-    (profile?.first_name as string | undefined)?.trim() ||
-    "";
-
   const headerBar = (
     <TabScreenHeader
       title="Home"
@@ -604,7 +621,7 @@ function DashboardInner() {
       setLoadTimedOut(false);
       return;
     }
-    const t = setTimeout(() => setLoadTimedOut(true), 8000);
+    const t = setTimeout(() => setLoadTimedOut(true), 15000);
     return () => clearTimeout(t);
   }, [isMainLoading]);
 
@@ -613,7 +630,7 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ErrorState
-          message="Taking too long to load. Check your connection."
+          message={t("common.loadTimeout")}
           onRetry={() => {
             setLoadTimedOut(false);
             void progressQuery.refetch();
@@ -736,8 +753,6 @@ function DashboardInner() {
         }
       >
         <View style={styles.stack}>
-          <DashboardHeaderMobile displayName={displayName || undefined} />
-
           {!questionnaireCompletedForUi ? (
             <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
               <QuestionnaireReminderBanner
@@ -748,69 +763,24 @@ function DashboardInner() {
           ) : null}
 
           {questionnaireCompletedForUi ? (
-            <View
-              style={[
-                styles.resumeRow,
-                !resumeTilesSideBySide && styles.resumeRowStacked,
-              ]}
-            >
-              <View
-                style={[
-                  styles.resumeCol,
-                  !resumeTilesSideBySide && styles.resumeColFullWidth,
-                ]}
-              >
-                <DashboardResumeRow
-                  style={
-                    !resumeTilesSideBySide
-                      ? styles.resumeCardFullWidth
-                      : styles.resumeCardFill
-                  }
-                  resume={summary.resume}
-                  startHere={summary.startHere}
-                />
-              </View>
-              <View
-                style={[
-                  styles.resumeCol,
-                  !resumeTilesSideBySide && styles.resumeColFullWidth,
-                ]}
-              >
-                <WeakSkillsQuickCardMobile
-                  style={
-                    !resumeTilesSideBySide
-                      ? styles.resumeCardFullWidth
-                      : styles.resumeCardFill
-                  }
-                  locale={i18n.language}
-                  topSkill={weakSkillItems[0] ?? null}
-                  onRecommendedSkillExercises={handleQuickCardSkillExercises}
-                  onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
-                />
-              </View>
-            </View>
-          ) : (
-            <WeakSkillsQuickCardMobile
-              locale={i18n.language}
-              topSkill={weakSkillItems[0] ?? null}
-              onRecommendedSkillExercises={handleQuickCardSkillExercises}
-              onOpenExercises={() => router.push(href("/(tabs)/exercises"))}
+            <DashboardResumeRow
+              resume={summary.resume}
+              startHere={summary.startHere}
+              topWeakSkill={weakSkillItems[0] ?? null}
+              onTopWeakSkillAction={handleContinueImproving}
             />
-          )}
+          ) : null}
 
           <WeakSkillsSectionMobile
             show
             masteryError={masteryQuery.isError ? masteryQuery.error : undefined}
             weakestSkills={weakSkillItems}
+            strongestSkills={strongSkillItems}
             hasAnyMasteryData={(masteryQuery.data?.masteries?.length ?? 0) > 0}
             refetchMastery={() => void masteryQuery.refetch()}
             locale={i18n.language}
-            completedSections={summary.completedSections}
-            totalSections={summary.totalSections}
-            completedLessons={summary.completedLessons}
-            totalLessons={summary.totalLessons}
-            onSkillClick={handleWeakSkillClick}
-            onPracticeClick={handleWeakSkillPractice}
+            onPrimaryAction={handleContinueImproving}
+            onAskTutor={handleAskTutorAboutSkill}
           />
 
           <View
@@ -933,32 +903,5 @@ const styles = StyleSheet.create({
   sectionSub: {
     fontSize: typography.xs,
     marginBottom: spacing.md,
-  },
-  resumeRow: {
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    gap: spacing.md,
-    marginTop: spacing.md,
-    alignItems: "stretch",
-  },
-  resumeRowStacked: {
-    flexDirection: "column",
-  },
-  resumeCol: {
-    flex: 1,
-    minWidth: 0,
-    alignSelf: "stretch",
-  },
-  resumeColFullWidth: {
-    alignSelf: "stretch",
-  },
-  resumeCardFill: {
-    flex: 1,
-    alignSelf: "stretch",
-  },
-  resumeCardFullWidth: {
-    width: "100%",
-    alignSelf: "stretch",
-    flexGrow: 0,
   },
 });

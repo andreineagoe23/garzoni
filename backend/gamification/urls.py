@@ -15,6 +15,7 @@ from .views import (
     StreakItemView,
     MissionGenerationView,
     MissionAnalyticsView,
+    AsyncDuelView,
 )
 
 router = DefaultRouter()
@@ -35,6 +36,7 @@ urlpatterns = [
     path("missions/analytics/", MissionAnalyticsView.as_view(), name="mission-analytics"),
     path("streak-items/", StreakItemView.as_view(), name="streak-items"),
     path("leaderboard/", LeaderboardViewSet.as_view(), name="leaderboard"),
+    path("leaderboard/duel/", AsyncDuelView.as_view(), name="leaderboard-duel"),
     path("leaderboard/rank/", UserRankView.as_view(), name="user-rank"),
     path("recent-activity/", RecentActivityView.as_view(), name="recent-activity"),
     path("reward-ledger/", RewardLedgerFeedView.as_view(), name="reward-ledger"),

@@ -94,3 +94,34 @@ def enqueue_course_embedding(sender, instance, **kwargs):
         _safe_delay(embed_course_async, instance.pk)
     except Exception:
         logger.debug("embed_course_async not available yet")
+
+
+# ---------------------------------------------------------------------------
+# Mastery snapshot — write one row per user/course/day for delta_7d on dashboard
+# ---------------------------------------------------------------------------
+
+
+@receiver(post_save, sender="education.Mastery")
+def record_mastery_snapshot(sender, instance, **kwargs):
+    from django.utils import timezone
+
+    from education.models import MasterySnapshot
+
+    today = timezone.localdate()
+    lookup = {
+        "user_id": instance.user_id,
+        "recorded_on": today,
+    }
+    if instance.course_id:
+        lookup["course_id"] = instance.course_id
+    else:
+        lookup["skill"] = instance.skill
+
+    MasterySnapshot.objects.update_or_create(
+        **lookup,
+        defaults={
+            "skill": instance.skill,
+            "course_id": instance.course_id,
+            "proficiency": instance.proficiency,
+        },
+    )

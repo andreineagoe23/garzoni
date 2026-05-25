@@ -48,6 +48,18 @@ import { spacing, typography } from "../src/theme/tokens";
 type MissionsResponse = {
   daily_missions?: Mission[];
   weekly_missions?: Mission[];
+  multi_step_missions?: Array<{
+    id: string | number;
+    name?: string;
+    description?: string;
+    status?: string;
+    steps?: Array<{
+      id?: string;
+      title?: string;
+      type?: string;
+      completed?: boolean;
+    }>;
+  }>;
   can_swap?: boolean;
 };
 
@@ -109,6 +121,7 @@ export default function MissionsScreen() {
   const profile = profileQuery.data;
   const dailyMissions = missionsQuery.data?.daily_missions ?? [];
   const weeklyMissions = missionsQuery.data?.weekly_missions ?? [];
+  const multiStepMissions = missionsQuery.data?.multi_step_missions ?? [];
   const noMissionsAvailable =
     dailyMissions.length === 0 && weeklyMissions.length === 0;
   const virtualBalance = savingsQuery.data ?? 0;
@@ -613,6 +626,62 @@ export default function MissionsScreen() {
                 </AppText>
               ))}
             </GlassCard>
+          ) : null}
+
+          {multiStepMissions.length > 0 ? (
+            <View style={{ gap: spacing.md, marginBottom: spacing.lg }}>
+              {multiStepMissions.map((mission) => {
+                const steps = mission.steps ?? [];
+                const done = steps.filter((step) => step.completed).length;
+                return (
+                  <GlassCard key={mission.id} padding="lg">
+                    <AppText variant="label" muted>
+                      Story mission
+                    </AppText>
+                    <AppText
+                      variant="heading"
+                      style={{ marginTop: spacing.xs }}
+                    >
+                      {mission.name}
+                    </AppText>
+                    {mission.description ? (
+                      <AppText muted style={{ marginTop: spacing.xs }}>
+                        {mission.description}
+                      </AppText>
+                    ) : null}
+                    <AppText
+                      style={{
+                        marginTop: spacing.sm,
+                        fontWeight: "800",
+                        color: c.primary,
+                      }}
+                    >
+                      {done}/{steps.length} steps
+                    </AppText>
+                    <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+                      {steps.map((step, index) => (
+                        <View
+                          key={step.id ?? index}
+                          style={{
+                            borderWidth: StyleSheet.hairlineWidth,
+                            borderColor: c.border,
+                            borderRadius: 16,
+                            padding: spacing.md,
+                          }}
+                        >
+                          <AppText style={{ fontWeight: "800" }}>
+                            {step.title}
+                          </AppText>
+                          <AppText muted>
+                            {step.completed ? "Done" : step.type || "Step"}
+                          </AppText>
+                        </View>
+                      ))}
+                    </View>
+                  </GlassCard>
+                );
+              })}
+            </View>
           ) : null}
 
           {missionsQuery.isPending ? (

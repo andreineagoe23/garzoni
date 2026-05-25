@@ -19,7 +19,10 @@ import {
 import { i18n, queryClient } from "@garzoni/core";
 import { AuthProvider, useAuthSession } from "../src/auth/AuthContext";
 import { initHttpClientMobile } from "../src/bootstrap/httpClientMobile";
-import { initI18nMobile } from "../src/bootstrap/i18nMobile";
+import {
+  hydrateI18nLanguageMobile,
+  initI18nMobile,
+} from "../src/bootstrap/i18nMobile";
 import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
@@ -191,16 +194,19 @@ function RootLayout() {
   });
 
   useEffect(() => {
-    try {
-      initStorageMobile();
-      initI18nMobile();
-      initHttpClientMobile();
-      setBootstrapReady(true);
-    } catch (e) {
-      setBootstrapError(
-        e instanceof Error ? e.message : "Failed to initialize app services.",
-      );
-    }
+    void (async () => {
+      try {
+        initStorageMobile();
+        initI18nMobile();
+        await hydrateI18nLanguageMobile();
+        initHttpClientMobile();
+        setBootstrapReady(true);
+      } catch (e) {
+        setBootstrapError(
+          e instanceof Error ? e.message : "Failed to initialize app services.",
+        );
+      }
+    })();
   }, []);
 
   if (bootstrapError) {

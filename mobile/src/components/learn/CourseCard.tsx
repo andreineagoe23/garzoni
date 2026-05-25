@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { Badge } from "../ui";
 import { spacing, typography, radius, shadows } from "../../theme/tokens";
@@ -26,9 +27,15 @@ function courseTitle(c: LearnCourseRow) {
 
 export default function CourseCard({ course, totalLessons, onPress }: Props) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const done = course.completed_lessons ?? 0;
   const pct = totalLessons > 0 ? done / totalLessons : 0;
-  const status = pct >= 1 ? "Completed" : pct > 0 ? "In progress" : "Start";
+  const status =
+    pct >= 1
+      ? t("allTopics.filter.completed")
+      : pct > 0
+        ? t("allTopics.filter.inProgress")
+        : t("allTopics.start");
   const statusColor = pct >= 1 ? c.success : pct > 0 ? c.accent : c.primary;
 
   return (
@@ -49,7 +56,10 @@ export default function CourseCard({ course, totalLessons, onPress }: Props) {
         </Text>
         {totalLessons > 0 ? (
           <Text style={[styles.meta, { color: c.textMuted }]}>
-            {done}/{totalLessons} lessons
+            {t("allTopics.lessonCount", {
+              done,
+              total: totalLessons,
+            })}
           </Text>
         ) : null}
       </View>

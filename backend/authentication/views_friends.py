@@ -154,12 +154,17 @@ class FriendsLeaderboardView(APIView):
 
     def get(self, request):
         """Fetch the top friends of the authenticated user sorted by points."""
+        accepted = FriendRequest.objects.filter(
+            models.Q(sender=request.user) | models.Q(receiver=request.user),
+            status="accepted",
+        )
+        friend_ids = set()
+        for fr in accepted.values_list("sender_id", "receiver_id"):
+            friend_ids.update(fr)
+        friend_ids.discard(request.user.id)
+
         friends = (
-            User.objects.filter(
-                id__in=FriendRequest.objects.filter(
-                    sender=request.user, status="accepted"
-                ).values_list("receiver", flat=True)
-            )
+            User.objects.filter(id__in=friend_ids)
             .select_related("profile")
             .order_by("-profile__points")[:10]
         )

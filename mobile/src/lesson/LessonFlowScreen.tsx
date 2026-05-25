@@ -21,9 +21,12 @@ import {
   queryKeys,
   staleTimes,
   fetchProfile,
+  buildSkillPracticeHref,
   COURSE_TO_TOOL_CTA,
+  getToolPracticeCtaForSkill,
   type MascotSituation,
   type MascotType,
+  localizeSectionTitle,
 } from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,6 +34,7 @@ import * as Haptics from "expo-haptics";
 import { Button, ErrorState, HeartBar, ProgressBar } from "../components/ui";
 import { safeImpactAsync } from "../utils/safeHaptics";
 import { HeaderChatButton } from "../components/navigation/HeaderChatButton";
+import { href } from "../navigation/href";
 import MascotWithMessage from "../components/common/MascotWithMessage";
 import TextSection from "../components/lesson/TextSection";
 import VideoSection from "../components/lesson/VideoSection";
@@ -218,14 +222,16 @@ export type LessonFlowScreenProps = {
   courseId: number;
   headerTitle: string;
   rotationKey: number;
+  initialLessonId?: number | null;
 };
 
 export default function LessonFlowScreen({
   courseId,
   headerTitle,
   rotationKey,
+  initialLessonId = null,
 }: LessonFlowScreenProps) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const queryClient = useQueryClient();
@@ -247,7 +253,7 @@ export default function LessonFlowScreen({
     handleCompleteCurrent,
     completeSectionMutation,
     completeLessonMutation,
-  } = useLessonFlow(courseId);
+  } = useLessonFlow(courseId, { initialLessonId });
 
   const {
     hearts,
@@ -402,6 +408,19 @@ export default function LessonFlowScreen({
   const displayLessonSituation =
     transientLessonSituation ?? baseLessonMascotSituation;
 
+  const coursePracticeRoute = useMemo(() => {
+    const skill = String(headerTitle || currentItem?.lessonTitle || "").trim();
+    if (!skill) return null;
+    return buildSkillPracticeHref(skill, "lesson_complete_practice").replace(
+      /^\/exercises/,
+      "/(tabs)/exercises",
+    );
+  }, [currentItem?.lessonTitle, headerTitle]);
+  const courseToolPracticeCta = useMemo(
+    () => getToolPracticeCtaForSkill(headerTitle || currentItem?.lessonTitle),
+    [currentItem?.lessonTitle, headerTitle],
+  );
+
   useEffect(() => {
     clearTransientLessonMascot();
   }, [currentIndex, clearTransientLessonMascot]);
@@ -509,8 +528,9 @@ export default function LessonFlowScreen({
       return currentItem.lessonTitle?.trim() ?? "";
     }
     const s = currentItem.section;
-    return (s.title || currentItem.lessonTitle || "").trim();
-  }, [currentItem]);
+    const raw = (s.title || currentItem.lessonTitle || "").trim();
+    return localizeSectionTitle(raw, t, i18n.language);
+  }, [currentItem, i18n.language, t]);
 
   const continueBusy =
     completeSectionMutation.isPending || completeLessonMutation.isPending;
@@ -618,17 +638,27 @@ export default function LessonFlowScreen({
         <View style={styles.completeActions}>
           {(() => {
             const cta = COURSE_TO_TOOL_CTA[courseId];
-            if (!cta) return null;
+            const toolUrl =
+              cta?.toolUrl || courseToolPracticeCta?.mobileToolUrl;
+            if (!toolUrl) return null;
             return (
-              <Button
-                onPress={() =>
-                  router.push(cta.toolUrl as Parameters<typeof router.push>[0])
-                }
-              >
-                {cta.ctaText}
+              <Button onPress={() => router.push(href(toolUrl))}>
+                {cta?.ctaText ||
+                  courseToolPracticeCta?.ctaText ||
+                  "Put it to practice"}
               </Button>
             );
           })()}
+          {coursePracticeRoute ? (
+            <Button
+              variant="secondary"
+              onPress={() => router.push(href(coursePracticeRoute))}
+            >
+              {t("courses.flow.testWhatYouLearned", {
+                defaultValue: "Test what you learned",
+              })}
+            </Button>
+          ) : null}
           <Button onPress={() => router.push(`/quiz/${courseId}`)}>
             {t("courses.flow.takeQuiz")}
           </Button>
@@ -636,7 +666,7 @@ export default function LessonFlowScreen({
             {t("courses.flow.backToDashboard")}
           </Button>
           <Button
-            variant="ghost"
+            variant="secondary"
             onPress={() => router.replace("/(tabs)/learn")}
           >
             {t("courses.flow.backToCourses")}
@@ -987,6 +1017,8 @@ function FlowItemRenderer({
   onAttempt: (p: { correct: boolean }) => void;
   onExerciseComplete: () => Promise<void>;
 }) {
+  const { t, i18n } = useTranslation("common");
+
   if (item.kind === "lesson-text") {
     return (
       <View>
@@ -996,12 +1028,13 @@ function FlowItemRenderer({
   }
 
   const section = item.section;
+  const sectionTitle = localizeSectionTitle(section.title, t, i18n.language);
 
   if (section.content_type === "video" && section.video_url) {
     const body = section.text_content?.trim();
     return (
       <View>
-        <VideoSection url={section.video_url} title={section.title} />
+        <VideoSection url={section.video_url} title={sectionTitle} />
         {body ? (
           <TextSection
             html={section.text_content}
@@ -1037,7 +1070,7 @@ function FlowItemRenderer({
   return (
     <View>
       {hasLeadingVideo ? (
-        <VideoSection url={section.video_url} title={section.title} />
+        <VideoSection url={section.video_url} title={sectionTitle} />
       ) : null}
       <TextSection
         html={section.text_content}

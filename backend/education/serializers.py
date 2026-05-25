@@ -123,7 +123,7 @@ class LessonSectionSerializer(serializers.ModelSerializer):
                 data["title"] = trans.title
             if trans.text_content is not None:
                 data["text_content"] = trans.text_content or ""
-            if trans.exercise_data is not None:
+            if trans.exercise_data:
                 data["exercise_data"] = trans.exercise_data
         return data
 
@@ -525,7 +525,7 @@ class ExerciseSerializer(serializers.ModelSerializer):
         trans = _get_translation(instance, lang)
         if trans:
             data["question"] = trans.question
-            if trans.exercise_data is not None:
+            if trans.exercise_data:
                 data["exercise_data"] = trans.exercise_data
         return data
 

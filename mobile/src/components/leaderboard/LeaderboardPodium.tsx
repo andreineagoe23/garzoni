@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
@@ -18,6 +18,10 @@ type Props = {
   currentUserId: number | null;
   t: (key: string, opts?: Record<string, unknown>) => string;
   formatPoints: (n: number) => string;
+  isFriend?: (userId: number) => boolean;
+  isPending?: (userId: number) => boolean;
+  onAddFriend?: (userId: number) => void;
+  busy?: boolean;
 };
 
 function rankForEntry(entry: LeaderboardEntry, fallbackRank: number) {
@@ -29,6 +33,10 @@ export default function LeaderboardPodium({
   currentUserId,
   t,
   formatPoints,
+  isFriend,
+  isPending,
+  onAddFriend,
+  busy,
 }: Props) {
   const c = useThemeColors();
 
@@ -92,6 +100,59 @@ export default function LeaderboardPodium({
                 points: formatPoints(entry.points ?? 0),
               })}
             </Text>
+            {!isYou && uid != null && onAddFriend
+              ? (() => {
+                  const already = isFriend?.(uid) ?? false;
+                  const pending = isPending?.(uid) ?? false;
+                  return (
+                    <Pressable
+                      onPress={() => onAddFriend(uid)}
+                      disabled={already || pending || busy}
+                      style={({ pressed }) => [
+                        styles.friendBtn,
+                        {
+                          opacity: pressed ? 0.85 : 1,
+                          backgroundColor: already
+                            ? `${c.accent}18`
+                            : pending
+                              ? c.surfaceOffset
+                              : c.primary,
+                          borderWidth:
+                            already || pending ? StyleSheet.hairlineWidth : 0,
+                          borderColor: `${c.accent}44`,
+                        },
+                      ]}
+                      accessibilityLabel={
+                        already
+                          ? t("leaderboard.friendStatus.alreadyFriends")
+                          : pending
+                            ? t("leaderboard.friendStatus.pending")
+                            : t("leaderboard.friendStatus.addFriend")
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.friendBtnText,
+                          {
+                            color: already
+                              ? c.accent
+                              : pending
+                                ? c.textMuted
+                                : c.textOnPrimary,
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {already
+                          ? t("leaderboard.friendStatus.friends")
+                          : pending
+                            ? t("leaderboard.friendStatus.pendingShort")
+                            : t("leaderboard.friendStatus.addFriendShort")}
+                      </Text>
+                    </Pressable>
+                  );
+                })()
+              : null}
           </GlassCard>
         );
       })}
@@ -134,4 +195,16 @@ const styles = StyleSheet.create({
   },
   youPillText: { fontSize: 9, fontWeight: "800", textTransform: "uppercase" },
   points: { fontSize: 10, marginTop: 4, textAlign: "center" },
+  friendBtn: {
+    marginTop: spacing.sm,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 999,
+    alignSelf: "stretch",
+  },
+  friendBtnText: {
+    fontSize: 10,
+    fontWeight: "700",
+    textAlign: "center",
+  },
 });

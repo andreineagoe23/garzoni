@@ -23,6 +23,8 @@ from gamification.models import (
     UserBadge,
     Mission,
     MissionCompletion,
+    MultiStepMission,
+    MultiStepMissionProgress,
     StreakItem,
     MissionPerformance,
     RewardLedgerEntry,
@@ -194,10 +196,36 @@ class MissionView(APIView):
                 user=user, swapped_at__date=local_today
             ).exists()
 
+            multi_step_missions = []
+            for mission in MultiStepMission.objects.filter(is_active=True).order_by("id"):
+                progress, _ = MultiStepMissionProgress.objects.get_or_create(
+                    user=user,
+                    mission=mission,
+                )
+                completed = set(progress.completed_steps or [])
+                steps = []
+                for step in mission.steps or []:
+                    step_id = step.get("id")
+                    steps.append({**step, "completed": bool(step_id and step_id in completed)})
+                multi_step_missions.append(
+                    {
+                        "id": mission.id,
+                        "slug": mission.slug,
+                        "name": mission.name,
+                        "description": mission.description,
+                        "points_reward": mission.points_reward,
+                        "badge_name": mission.badge_name,
+                        "status": progress.status,
+                        "completed_steps": progress.completed_steps or [],
+                        "steps": steps,
+                    }
+                )
+
             return Response(
                 {
                     "daily_missions": _diverse_pick(daily_missions, MISSIONS_DAILY_DISPLAY),
                     "weekly_missions": _diverse_pick(weekly_missions, MISSIONS_WEEKLY_DISPLAY),
+                    "multi_step_missions": multi_step_missions,
                     "can_swap": can_swap,
                 },
                 status=200,
@@ -317,6 +345,30 @@ class LeaderboardViewSet(APIView):
         try:
             # Get time filter parameter
             time_filter = request.query_params.get("time_filter", "all-time")
+            skill = (request.query_params.get("skill") or "").strip()
+
+            if skill:
+                rows = (
+                    Mastery.objects.filter(legacy=False, course__isnull=False)
+                    .filter(Q(skill__iexact=skill) | Q(course__title__iexact=skill))
+                    .select_related("user", "user__profile")
+                    .order_by("-proficiency", "user_id")[:10]
+                )
+                payload = []
+                for rank, mastery in enumerate(rows, start=1):
+                    profile = getattr(mastery.user, "profile", None)
+                    payload.append(
+                        {
+                            "rank": rank,
+                            "points": mastery.proficiency,
+                            "skill": mastery.skill,
+                            "user": {
+                                **user_display_dict(mastery.user, include_id=True),
+                                "profile_avatar": getattr(profile, "profile_avatar", None),
+                            },
+                        }
+                    )
+                return Response(payload)
 
             # Apply time-based filtering
             if time_filter == "week":
@@ -372,6 +424,70 @@ class UserRankView(APIView):
         except Exception as e:
             logger.error(f"User rank error: {str(e)}")
             return Response({"error": str(e)}, status=500)
+
+
+class AsyncDuelView(APIView):
+    """Lean async duel launcher/completer backed by exercises and reward ledger."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        opponent_id = request.data.get("opponent_id")
+        score = request.data.get("score")
+        try:
+            opponent_profile = UserProfile.objects.select_related("user").get(user_id=opponent_id)
+        except (TypeError, ValueError, UserProfile.DoesNotExist):
+            return Response({"error": "Opponent not found"}, status=404)
+
+        if score is not None:
+            try:
+                score_value = int(score)
+                target_score = int(request.data.get("target_score", 80))
+            except (TypeError, ValueError):
+                return Response({"error": "Invalid score"}, status=400)
+            won = score_value >= target_score
+            granted = False
+            if won:
+                event_key = (
+                    f"async_duel:{request.user.id}:{opponent_profile.user_id}:"
+                    f"{timezone.localdate().isoformat()}:{target_score}"
+                )
+                _, granted = RewardLedgerEntry.objects.get_or_create(
+                    user=request.user,
+                    event_key=event_key[:220],
+                    defaults={"points": 15, "coins": Decimal("1.00")},
+                )
+            return Response(
+                {
+                    "won": won,
+                    "granted": granted,
+                    "points_awarded": 15 if won and granted else 0,
+                    "target_score": target_score,
+                }
+            )
+
+        weak_mastery = (
+            Mastery.objects.filter(user=request.user, legacy=False)
+            .order_by("proficiency", "due_at")
+            .first()
+        )
+        exercise_qs = Exercise.objects.all()
+        if weak_mastery:
+            exercise_qs = exercise_qs.filter(category__iexact=weak_mastery.skill)
+        exercise = exercise_qs.order_by("?").first() or Exercise.objects.order_by("?").first()
+        if not exercise:
+            return Response({"error": "No exercises available"}, status=404)
+
+        return Response(
+            {
+                "opponent": user_display_dict(opponent_profile.user, include_id=True),
+                "exercise_id": exercise.id,
+                "target_score": 80,
+                "bonus_points": 15,
+                "completion_endpoint": "/api/leaderboard/duel/",
+                "action_route": f"/exercises?duel=1&exerciseId={exercise.id}&opponentId={opponent_profile.user_id}",
+            }
+        )
 
 
 class BadgeViewSet(viewsets.ReadOnlyModelViewSet):

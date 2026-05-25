@@ -6,6 +6,7 @@ import { WebView } from "react-native-webview";
 import { useTranslation } from "react-i18next";
 import { useTheme, useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
+import WhyThisMattersMobile from "../../src/components/tools/WhyThisMattersMobile";
 
 function buildHtml(theme: "light" | "dark", bg: string, locale: string) {
   const config = {
@@ -65,6 +66,9 @@ export default function NewsContextScreen() {
         }}
       />
       <View style={[styles.flex, { backgroundColor: c.bg }]}>
+        <View style={styles.learningWrap}>
+          <WhyThisMattersMobile toolSlug="news-context" />
+        </View>
         <WebView
           originWhitelist={["*"]}
           source={{ html, baseUrl: "https://s3.tradingview.com" }}
@@ -89,6 +93,7 @@ export default function NewsContextScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  learningWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   center: {
     flex: 1,
     alignItems: "center",

@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { masteryLevelLabel, weakSkillNextStepLabels } from "@garzoni/core";
 import type { DashboardWeakSkill } from "../../hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import GlassButton from "../ui/GlassButton";
 import { spacing, typography, radius } from "../../theme/tokens";
 import ErrorState from "../ui/ErrorState";
-
-const JUST_UNLOCKED_THRESHOLD = 20;
 
 function formatPct(n: number, locale?: string) {
   return new Intl.NumberFormat(locale, {
@@ -17,80 +15,55 @@ function formatPct(n: number, locale?: string) {
   }).format(Math.min(100, Math.max(0, n)) / 100);
 }
 
+function daysSince(iso?: string | null): number | null {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return null;
+  return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
+}
+
+type PillKind = "due" | "overdue" | "declining" | "improving" | null;
+
+function pillFor(skill: DashboardWeakSkill): {
+  kind: PillKind;
+  args?: Record<string, number>;
+} {
+  if (skill.is_due_now) {
+    const days = skill.overdue_days ?? 0;
+    if (days >= 1) return { kind: "overdue", args: { days } };
+    return { kind: "due" };
+  }
+  const delta = skill.delta_7d ?? 0;
+  if (delta <= -3) return { kind: "declining" };
+  if (delta >= 3) return { kind: "improving", args: { delta } };
+  return { kind: null };
+}
+
 type Props = {
   show?: boolean;
   masteryError?: unknown;
   weakestSkills?: DashboardWeakSkill[];
+  strongestSkills?: DashboardWeakSkill[];
   hasAnyMasteryData?: boolean;
   refetchMastery?: () => void;
   locale?: string;
-  onSkillClick?: (skill: DashboardWeakSkill) => void;
-  onPracticeClick?: (skill: DashboardWeakSkill) => void;
-  completedSections?: number;
-  totalSections?: number;
-  completedLessons?: number;
-  totalLessons?: number;
+  onPrimaryAction?: (skill: DashboardWeakSkill) => void;
+  onAskTutor?: (skill: DashboardWeakSkill) => void;
 };
 
 export default function WeakSkillsSectionMobile({
   show = true,
   masteryError,
   weakestSkills = [],
+  strongestSkills = [],
   hasAnyMasteryData = false,
   refetchMastery,
   locale,
-  onSkillClick,
-  onPracticeClick,
-  completedSections,
-  totalSections,
-  completedLessons,
-  totalLessons,
+  onPrimaryAction,
+  onAskTutor,
 }: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
-  const [justUnlockedSkills, setJustUnlockedSkills] = useState<Set<string>>(
-    () => new Set(),
-  );
-  const prevProficiencyMapRef = useRef<Map<string, number>>(new Map());
-  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const nextMap = new Map<string, number>(
-      weakestSkills.map((s) => [s.skill, s.proficiency]),
-    );
-    const prevMap = prevProficiencyMapRef.current;
-    const newlyUnlocked = new Set<string>();
-
-    for (const [skill, proficiency] of nextMap.entries()) {
-      if (proficiency > JUST_UNLOCKED_THRESHOLD) continue;
-      const prevProficiency = prevMap.get(skill);
-      if (
-        prevProficiency === undefined ||
-        prevProficiency > JUST_UNLOCKED_THRESHOLD
-      ) {
-        newlyUnlocked.add(skill);
-      }
-    }
-
-    if (clearTimerRef.current) {
-      clearTimeout(clearTimerRef.current);
-      clearTimerRef.current = null;
-    }
-
-    setJustUnlockedSkills(newlyUnlocked);
-    prevProficiencyMapRef.current = nextMap;
-
-    if (newlyUnlocked.size > 0) {
-      clearTimerRef.current = setTimeout(
-        () => setJustUnlockedSkills(new Set()),
-        5000,
-      );
-    }
-
-    return () => {
-      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-    };
-  }, [weakestSkills]);
 
   if (!show) return null;
 
@@ -118,22 +91,52 @@ export default function WeakSkillsSectionMobile({
         </GlassCard>
       );
     }
+    // All skills strong — invert sort and show top 3 strongest.
     return (
       <GlassCard padding="lg" style={{ marginTop: spacing.lg }}>
-        <Text style={[styles.sectionTitle, { color: c.text }]}>
-          {t("dashboard.weakSkills.noWeakSkills")}
+        <Text style={[styles.h2, { color: c.text }]}>
+          {t("dashboard.weakSkills.strongest.title")}
         </Text>
-        <Text style={[styles.desc, { color: c.textMuted }]}>
-          {t("dashboard.weakSkills.noWeakSkillsDesc")}
+        <Text style={[styles.focus, { color: c.textMuted }]}>
+          {t("dashboard.weakSkills.strongest.subtitle")}
         </Text>
+        <View style={styles.grid}>
+          {strongestSkills.slice(0, 3).map((skill) => (
+            <View
+              key={skill.skill}
+              style={[
+                styles.skillCard,
+                { borderColor: c.border, backgroundColor: c.surface },
+              ]}
+            >
+              <View style={styles.skillHeader}>
+                <Text
+                  style={[styles.skillName, { color: c.text }]}
+                  numberOfLines={2}
+                >
+                  {skill.skill}
+                </Text>
+                <Text style={[styles.pct, { color: c.textMuted }]}>
+                  {formatPct(skill.proficiency, locale)}
+                </Text>
+              </View>
+              <View style={[styles.barTrack, { backgroundColor: c.border }]}>
+                <View
+                  style={[
+                    styles.barFill,
+                    {
+                      width: `${skill.proficiency}%`,
+                      backgroundColor: c.success,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          ))}
+        </View>
       </GlassCard>
     );
   }
-
-  const safeCompletedSections = completedSections ?? 0;
-  const safeTotalSections = totalSections ?? 0;
-  const safeCompletedLessons = completedLessons ?? 0;
-  const safeTotalLessons = totalLessons ?? 0;
 
   return (
     <GlassCard
@@ -146,44 +149,72 @@ export default function WeakSkillsSectionMobile({
       <Text style={[styles.focus, { color: c.textMuted }]}>
         {t("dashboard.weakSkills.focusOnSkills")}
       </Text>
-      <Text style={[styles.lessonsMeta, { color: c.textMuted }]}>
-        {t("dashboard.skillInsights.sectionsAndLessons", {
-          sections: `${safeCompletedSections}/${Math.max(1, safeTotalSections)}`,
-          lessons: `${safeCompletedLessons}/${Math.max(1, safeTotalLessons)}`,
-        })}
-      </Text>
       <View style={styles.grid}>
-        {weakestSkills.map((skill) => (
-          <View
-            key={skill.skill}
-            style={[
-              styles.skillCard,
-              { borderColor: c.border, backgroundColor: c.surface },
-            ]}
-          >
-            <Pressable
-              onPress={() => onSkillClick?.(skill)}
-              accessibilityRole="button"
-              accessibilityLabel={t("dashboard.weakSkills.practiceSkillAria", {
-                skill: skill.skill,
-              })}
+        {weakestSkills.map((skill) => {
+          const pill = pillFor(skill);
+          const { ctaLabel, preview } = weakSkillNextStepLabels(
+            t,
+            skill.next_step,
+          );
+          const displayTitle = skill.course_title || skill.skill;
+          const isTutorOnly = skill.next_step?.type === "tutor";
+          const primaryLabel = isTutorOnly
+            ? t("dashboard.weakSkills.action.askTutorAbout", {
+                skill: displayTitle,
+              })
+            : ctaLabel;
+          const isDue = skill.next_step?.type === "review";
+          const lastPracticedDays = daysSince(skill.last_reviewed);
+          const pillBg =
+            pill.kind === "due" || pill.kind === "overdue"
+              ? c.errorBg
+              : pill.kind === "declining"
+                ? "rgba(245,158,11,0.15)"
+                : pill.kind === "improving"
+                  ? c.successBg
+                  : "transparent";
+          const pillFg =
+            pill.kind === "due" || pill.kind === "overdue"
+              ? c.error
+              : pill.kind === "declining"
+                ? "#f59e0b"
+                : pill.kind === "improving"
+                  ? c.success
+                  : c.textMuted;
+
+          return (
+            <View
+              key={skill.skill}
+              style={[
+                styles.skillCard,
+                { borderColor: c.border, backgroundColor: c.surface },
+              ]}
             >
               <View style={styles.skillHeader}>
                 <Text
                   style={[styles.skillName, { color: c.text }]}
                   numberOfLines={2}
                 >
-                  {skill.skill}
+                  {displayTitle}
                 </Text>
                 <View style={styles.skillHeaderRight}>
-                  {justUnlockedSkills.has(skill.skill) ? (
+                  {pill.kind ? (
                     <Text
                       style={[
-                        styles.badge,
-                        { color: c.success, backgroundColor: c.successBg },
+                        styles.pill,
+                        { color: pillFg, backgroundColor: pillBg },
                       ]}
                     >
-                      {t("dashboard.skillInsights.justUnlocked")}
+                      {pill.kind === "due"
+                        ? t("dashboard.weakSkills.pill.dueNow")
+                        : pill.kind === "overdue"
+                          ? t("dashboard.weakSkills.pill.overdue", pill.args)
+                          : pill.kind === "declining"
+                            ? t("dashboard.weakSkills.pill.declining")
+                            : t(
+                                "dashboard.weakSkills.pill.improving",
+                                pill.args,
+                              )}
                     </Text>
                   ) : null}
                   <Text style={[styles.pct, { color: c.textMuted }]}>
@@ -202,24 +233,50 @@ export default function WeakSkillsSectionMobile({
                   ]}
                 />
               </View>
-              <Text style={[styles.lowMastery, { color: c.textMuted }]}>
-                {t("dashboard.weakSkills.lowMasteryIn", { skill: skill.skill })}
-              </Text>
-              {skill.level_label ? (
+              {skill.level_band || skill.level_label ? (
                 <Text style={[styles.levelLabel, { color: c.textMuted }]}>
-                  {skill.level_label}
+                  {skill.level_band
+                    ? masteryLevelLabel(t, skill.level_band)
+                    : skill.level_label}
                 </Text>
               ) : null}
-            </Pressable>
-            <GlassButton
-              variant="ghost"
-              size="sm"
-              onPress={() => onPracticeClick?.(skill)}
-            >
-              {t("dashboard.weakSkills.practice")}
-            </GlassButton>
-          </View>
-        ))}
+              {preview ? (
+                <Text style={[styles.context, { color: c.textMuted }]}>
+                  {preview}
+                </Text>
+              ) : null}
+              {lastPracticedDays != null ? (
+                <Text style={[styles.context, { color: c.textMuted }]}>
+                  {lastPracticedDays === 0
+                    ? t("dashboard.weakSkills.context.lastPracticedToday")
+                    : lastPracticedDays === 1
+                      ? t("dashboard.weakSkills.context.lastPracticedYesterday")
+                      : t("dashboard.weakSkills.context.lastPracticed", {
+                          days: lastPracticedDays,
+                        })}
+                </Text>
+              ) : null}
+              <View style={styles.actions}>
+                <GlassButton
+                  variant={isDue ? "active" : "secondary"}
+                  size="sm"
+                  onPress={() => onPrimaryAction?.(skill)}
+                >
+                  {primaryLabel}
+                </GlassButton>
+                {!isTutorOnly ? (
+                  <GlassButton
+                    variant="secondary"
+                    size="sm"
+                    onPress={() => onAskTutor?.(skill)}
+                  >
+                    {t("dashboard.weakSkills.action.askTutor")}
+                  </GlassButton>
+                ) : null}
+              </View>
+            </View>
+          );
+        })}
       </View>
     </GlassCard>
   );
@@ -233,12 +290,7 @@ const styles = StyleSheet.create({
   },
   desc: { fontSize: typography.sm, lineHeight: 20 },
   h2: { fontSize: typography.md, fontWeight: "800", marginBottom: spacing.sm },
-  focus: { fontSize: typography.sm, marginBottom: spacing.xs },
-  lessonsMeta: {
-    fontSize: typography.xs,
-    marginBottom: spacing.md,
-    lineHeight: 18,
-  },
+  focus: { fontSize: typography.sm, marginBottom: spacing.md },
   grid: { gap: spacing.md },
   skillCard: {
     borderRadius: radius.md,
@@ -254,13 +306,13 @@ const styles = StyleSheet.create({
   },
   skillName: { flex: 1, fontSize: typography.sm, fontWeight: "700" },
   skillHeaderRight: { flexDirection: "row", alignItems: "center", gap: 6 },
-  badge: {
-    fontSize: 9,
+  pill: {
+    fontSize: 10,
     fontWeight: "800",
     textTransform: "uppercase",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
     overflow: "hidden",
   },
   pct: { fontSize: typography.xs, fontWeight: "600" },
@@ -268,14 +320,14 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     overflow: "hidden",
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   barFill: { height: "100%", borderRadius: 4 },
-  lowMastery: { fontSize: typography.xs, marginTop: spacing.sm },
   levelLabel: {
     fontSize: 10,
     fontWeight: "600",
     textTransform: "uppercase",
-    marginTop: 4,
   },
+  context: { fontSize: typography.xs },
+  actions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
 });

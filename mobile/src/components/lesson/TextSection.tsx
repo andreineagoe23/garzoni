@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -86,6 +87,7 @@ export default function TextSection({
   leadingVideoUrl,
 }: TextSectionProps) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const { width } = useWindowDimensions();
   const contentWidth = width - spacing.xl * 2;
   const plainStyles = useMemo(
@@ -151,7 +153,11 @@ export default function TextSection({
   );
 
   if (!prepared.trim()) {
-    return <Text style={plainStyles.empty}>No content available.</Text>;
+    return (
+      <Text style={plainStyles.empty}>
+        {t("courses.flow.noSectionContent")}
+      </Text>
+    );
   }
 
   const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(prepared);

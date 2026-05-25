@@ -13,8 +13,24 @@ type DashboardSummaryArgs = {
     masteries?: Array<{
       proficiency?: number;
       skill?: string;
+      course_id?: number | null;
+      course_title?: string | null;
       level_band?: string;
       level_label?: string;
+      due_at?: string | null;
+      last_reviewed?: string | null;
+      is_due_now?: boolean;
+      overdue_days?: number | null;
+      delta_7d?: number | null;
+      weakness_score?: number;
+      recommended_action?: "review" | "practice" | "lesson";
+      review_exercise_id?: number | null;
+      next_step?: {
+        type: "review" | "lesson" | "quiz" | "practice" | "tutor";
+        target_id: number | null;
+        course_id: number | null;
+        title: string | null;
+      } | null;
     }>;
   };
   entitlements?: { features?: Record<string, unknown> };
@@ -71,11 +87,21 @@ export const useDashboardSummary = ({
       .filter((feature) => feature.name && feature.enabled !== false);
   }, [entitlements?.features]);
 
+  // Backend ranks by personalized weakness_score; we surface up to 3 meaningful areas.
   const weakestSkills = useMemo(() => {
     const masteries = masteryData?.masteries || [];
-    return masteries
-      .filter((m) => (m.proficiency ?? 0) < 70)
-      .sort((a, b) => (a.proficiency ?? 0) - (b.proficiency ?? 0))
+    const meaningful = masteries.filter((m) => {
+      if (m.is_due_now) return true;
+      if ((m.delta_7d ?? 0) < -3) return true;
+      return (m.proficiency ?? 0) < 70;
+    });
+    return meaningful.slice(0, 3);
+  }, [masteryData]);
+
+  const strongestSkills = useMemo(() => {
+    const masteries = masteryData?.masteries || [];
+    return [...masteries]
+      .sort((a, b) => (b.proficiency ?? 0) - (a.proficiency ?? 0))
       .slice(0, 3);
   }, [masteryData]);
 
@@ -119,6 +145,7 @@ export const useDashboardSummary = ({
     activeMissions,
     entitlementUsage,
     weakestSkills,
+    strongestSkills,
     dailyGoalProgress,
     dailyGoalCurrentXP,
     dailyGoalTargetXP,

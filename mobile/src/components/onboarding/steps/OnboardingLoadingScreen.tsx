@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
   Easing,
@@ -38,20 +39,28 @@ const C = {
   ghost: "rgba(229,231,235,0.08)",
 };
 
-const STEPS = [
-  {
-    label: "Reading your answers",
-    detail: "Parsing your goals, experience level & risk profile",
-  },
-  {
-    label: "Mapping your weak spots",
-    detail: "Identifying knowledge gaps across 12 finance topics",
-  },
-  {
-    label: "Curating your first lessons",
-    detail: "Assembling a personalised path from 200+ modules",
-  },
-];
+type LoadingStep = { label: string; detail: string };
+
+function useLoadingSteps(): LoadingStep[] {
+  const { t } = useTranslation("common");
+  return useMemo(
+    () => [
+      {
+        label: t("onboarding.loadingSteps.step1.label"),
+        detail: t("onboarding.loadingSteps.step1.detail"),
+      },
+      {
+        label: t("onboarding.loadingSteps.step2.label"),
+        detail: t("onboarding.loadingSteps.step2.detail"),
+      },
+      {
+        label: t("onboarding.loadingSteps.step3.label"),
+        detail: t("onboarding.loadingSteps.step3.detail"),
+      },
+    ],
+    [t],
+  );
+}
 
 const STEP_DURATION = 1600;
 const STEP_DELAY = 300;
@@ -178,7 +187,7 @@ function StepRow({
   state,
   isLast,
 }: {
-  step: (typeof STEPS)[0];
+  step: LoadingStep;
   state: 0 | 1 | 2;
   isLast: boolean;
 }) {
@@ -261,6 +270,7 @@ function StepRow({
 // LOADING SCREEN
 // ══════════════════════════════════════════════
 function LoadingScreen({ onDone }: { onDone: () => void }) {
+  const steps = useLoadingSteps();
   const [states, setStates] = useState<(0 | 1 | 2)[]>([0, 0, 0]);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [displayPct, setDisplayPct] = useState(0);
@@ -378,12 +388,12 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
 
         {/* Steps */}
         <View style={[s.stepsContainer, { marginTop: spacing.xxxl }]}>
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <StepRow
               key={i}
               step={step}
               state={states[i]}
-              isLast={i === STEPS.length - 1}
+              isLast={i === steps.length - 1}
             />
           ))}
         </View>
@@ -422,6 +432,7 @@ function ReadyScreen({
   coins: number;
   onStart: () => void;
 }) {
+  const steps = useLoadingSteps();
   const fadeVals = [
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
@@ -472,7 +483,7 @@ function ReadyScreen({
       <View style={s.readyCenter}>
         {/* Steps summary */}
         <Animated.View style={[s.stepsSummary, makeAnim(0)]}>
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <View key={i} style={s.summaryRow}>
               <Check size={20} />
               <Text style={s.summaryLabel}>{step.label}</Text>
@@ -573,8 +584,8 @@ const s = StyleSheet.create({
 
   // Logo
   logo: {
-    width: 180,
-    height: 52,
+    width: 160,
+    height: 44,
   },
 
   // Steps — fixed width centered block, content left-aligned

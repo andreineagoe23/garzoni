@@ -10,8 +10,16 @@ import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 
 export default function CourseFlowRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, lessonId } = useLocalSearchParams<{
+    id: string;
+    lessonId?: string;
+  }>();
   const courseId = Number(id);
+  const initialLessonId = useMemo(() => {
+    if (!lessonId) return null;
+    const parsed = Number(lessonId);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [lessonId]);
   const { hydrated } = useAuthSession();
   const c = useThemeColors();
 
@@ -71,6 +79,7 @@ export default function CourseFlowRoute() {
       courseId={courseId}
       headerTitle={title}
       rotationKey={courseId}
+      initialLessonId={initialLessonId}
     />
   );
 }

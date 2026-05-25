@@ -1,7 +1,8 @@
 {
   "common": {
     "dismiss": "Maybe later",
-    "close": "Close"
+    "close": "Close",
+    "loadTimeout": "Taking too long to load. Check your connection."
   },
   "gamification": {
     "ledger": {
@@ -115,6 +116,16 @@
       "missionsAvailable": "Missions available",
       "reviewsDue": "Reviews due"
     },
+    "pathCard": {
+      "continue": "Continue",
+      "resumeCourse": "Resume course",
+      "personalizedPath": "Personalized path",
+      "startJourney": "Start your first tailored learning journey",
+      "begin": "Begin",
+      "exploreTopics": "Explore all topics",
+      "pickPathHint": "Pick a learning path below or browse the Learn tab.",
+      "browsePaths": "Browse paths"
+    },
     "resume": {
       "title": "Pick up where you left off",
       "continueWith": "Continue with {{course}}",
@@ -156,22 +167,58 @@
       "reviewsTileHintCaughtUp": "No reviews waiting. They’ll show here when spaced repetition is due.",
       "missionsTileHintIdle": "No active missions. Open Missions anytime to start one."
     },
+    "masteryLevels": {
+      "not_started": "Not started",
+      "attempted": "Attempted",
+      "familiar": "Familiar",
+      "proficient": "Proficient",
+      "mastered": "Mastered"
+    },
     "weakSkills": {
       "skillInsights": "Skill insights",
       "skillInsightsDesc": "Complete lessons and quizzes to see your skill strengths and areas to improve.",
-      "noWeakSkills": "No Weak Skills",
-      "noWeakSkillsDesc": "Great job! You're doing well across all skills.",
+      "noWeakSkills": "All skills strong",
+      "noWeakSkillsDesc": "Keep practicing to maintain mastery.",
       "areasToImprove": "Areas to Improve",
-      "quickPracticeTitle": "Practice Recommendation",
-      "quickPracticeSubtitle": "We'll suggest the best practice area for you right now.",
-      "focusOnSkills": "Focus on these skills to boost your overall mastery",
+      "focusOnSkills": "What to work on next, ranked by what'll move the needle.",
       "lowMasteryIn": "Low mastery in {{skill}}",
       "lowMasteryLead": "Low mastery in",
       "practice": "Practice",
       "practiceSkillAria": "Practice {{skill}} skill",
       "practiceRecommendationAria": "Practice {{skill}} to improve this recommendation",
       "failedLoadSkills": "Failed to load skills",
-      "couldNotFetchSkills": "We couldn't fetch your skill mastery data."
+      "couldNotFetchSkills": "We couldn't fetch your skill mastery data.",
+      "pill": {
+        "dueNow": "Due now",
+        "overdue": "Overdue {{days}}d",
+        "declining": "Declining",
+        "improving": "+{{delta}}% this week"
+      },
+      "context": {
+        "lastPracticed": "Last practiced {{days}}d ago",
+        "lastPracticedToday": "Practiced today",
+        "lastPracticedYesterday": "Practiced yesterday"
+      },
+      "action": {
+        "reviewNow": "Review now",
+        "practice": "Practice",
+        "askTutor": "Ask tutor",
+        "continueImproving": "Continue improving",
+        "askTutorAbout": "Ask tutor about {{skill}}"
+      },
+      "nextPreview": "Next: {{type}} — {{title}}",
+      "nextType": {
+        "lesson": "Lesson",
+        "quiz": "Quiz",
+        "practice": "Practice",
+        "review": "Review",
+        "tutor": "Tutor"
+      },
+      "tutorPrompt": "Help me improve {{skill}} — I'm at {{pct}}% mastery. What should I focus on next?",
+      "strongest": {
+        "title": "Your strongest skills",
+        "subtitle": "Keep practicing to maintain mastery."
+      }
     },
     "skillInsights": {
       "title": "Early skill insights",
@@ -342,9 +389,20 @@
   },
   "learn": {
     "lockedPathNeedsPlan": "This path needs a higher plan. View plans to unlock courses.",
-    "viewPlans": "View plans →"
+    "viewPlans": "View plans →",
+    "personalizedPathLocked": "Personalized path is locked",
+    "upgradeToUnlockPersonalizedPath": "Upgrade to Plus to unlock your personalized learning path.",
+    "completeOnboardingToUnlock": "Complete onboarding first to unlock your personalized path.",
+    "viewPlansButton": "View plans",
+    "continueOnboarding": "Continue onboarding"
   },
   "allTopics": {
+    "heading": "Learning paths",
+    "searchPlaceholder": "Search paths…",
+    "emptyNoMatch": "No paths match your search or path filter.",
+    "emptyNoApi": "No learning paths from the API. Check that the backend is running, EXPO_PUBLIC_BACKEND_URL points at Django, and you are signed in. Pull to refresh.",
+    "start": "Start",
+    "lessonCount": "{{done}}/{{total}} lessons",
     "loading": "Loading learning paths...",
     "error": "Failed to load learning paths. Please try again later.",
     "sortByLabel": "Sort by:",
@@ -393,6 +451,15 @@
     "eta": "~{{minutes}} min",
     "skillsToReinforce": "Skills to reinforce",
     "noSkillsDue": "No skills due for reinforcement right now.",
+    "nextLesson": "Next: {{title}}",
+    "progressSectionsLessons": "{{completedSections}}/{{totalSections}} sections • {{completedLessons}}/{{totalLessons}} lessons",
+    "progressLessonsOnly": "{{completedLessons}}/{{totalLessons}} lessons",
+    "due": {
+      "now": "Due now",
+      "tomorrow": "Due tomorrow",
+      "inDays": "Due in {{count}}d",
+      "inDaysLong": "Due in {{count}} days"
+    },
     "skillScore": "Proficiency: {{value}}%",
     "open": "Open",
     "unlock": "Unlock",
@@ -430,7 +497,8 @@
       "recommendedTitle": "Recommended for you",
       "recommendedSubtitle": "Based on your profile and recent tool visits.",
       "noMatches": "No tools match your search. Try another keyword or reset filters.",
-      "badgePlus": "Plus",
+      "badgePlus": "✦ Plus",
+      "estimatedMinutes": "{{count}} min",
       "plusOnlyHint": "Plus only",
       "signalStrip": {
         "nextSteps": "What should I learn next?"
@@ -1423,6 +1491,17 @@
       "donationSuccess": "Donation successful!",
       "donationFailed": "Failed to donate."
     },
+    "xpCard": {
+      "title": "Your XP",
+      "level": "Level: {{label}}",
+      "xpToNext": "{{count}} XP to next tier",
+      "maxTier": "Max tier",
+      "tiers": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      }
+    },
     "refreshNote": "Coins refresh automatically after each purchase or donation.",
     "downloadLimit": "Download limit reached",
     "shareButton": "Share achievement card",
@@ -2018,6 +2097,21 @@
     "agreeToTerms": "By subscribing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
   },
   "onboarding": {
+    "changeLaterHint": "You can change this anytime in Settings",
+    "loadingSteps": {
+      "step1": {
+        "label": "Reading your answers",
+        "detail": "Parsing your goals, experience level & risk profile"
+      },
+      "step2": {
+        "label": "Mapping your weak spots",
+        "detail": "Identifying knowledge gaps across 12 finance topics"
+      },
+      "step3": {
+        "label": "Curating your first lessons",
+        "detail": "Assembling a personalised path from 200+ modules"
+      }
+    },
     "loading": "Loading onboarding...",
     "loadingQuestion": "Loading question...",
     "somethingWentWrong": "Something went wrong",
@@ -2334,7 +2428,7 @@
       "context": {
         "weak_skill_click": "Based on an area to improve from your dashboard (you opened this skill).",
         "weak_skill_practice": "Based on an area to improve from your dashboard (practice).",
-        "quick_card_exercises": "From your dashboard quick practice card.",
+        "weak_skill_review": "Review due for this skill — opening the exact exercise.",
         "default": "Recommended from your dashboard."
       },
       "restoreBanner": "Show recommendation again",

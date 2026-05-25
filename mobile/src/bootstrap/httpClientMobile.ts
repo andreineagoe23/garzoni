@@ -12,6 +12,7 @@ import {
 import type { InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "../auth/tokenStorage";
 import {
+  getSessionVersion,
   notifyNativeAuthStorageCleared,
   resetNativeSessionStores,
 } from "../auth/nativeSessionReset";
@@ -35,7 +36,10 @@ function flushQueue(error: unknown, token: string | null) {
 }
 
 async function clearSessionAndRedirect() {
-  await resetNativeSessionStores();
+  const sessionAtStart = getSessionVersion();
+  await resetNativeSessionStores(sessionAtStart);
+  // A new login happened while cleanup was running — don't clobber the new session.
+  if (getSessionVersion() !== sessionAtStart) return;
   notifyNativeAuthStorageCleared();
   router.replace("/welcome");
 }

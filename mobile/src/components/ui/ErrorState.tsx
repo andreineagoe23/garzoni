@@ -60,7 +60,7 @@ export default function ErrorState({
         </Button>
       ) : null}
       {onReport ? (
-        <Button variant="ghost" size="sm" onPress={onReport}>
+        <Button variant="secondary" size="sm" onPress={onReport}>
           {t("screenErrors.reportProblem")}
         </Button>
       ) : null}

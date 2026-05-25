@@ -8,6 +8,8 @@ from gamification.models import (
     UserBadge,
     Mission,
     MissionCompletion,
+    MultiStepMission,
+    MultiStepMissionProgress,
     StreakItem,
     MissionPerformance,
 )
@@ -149,6 +151,18 @@ class MissionCompletionAdmin(admin.ModelAdmin):
     readonly_fields = ("completion_idempotency_key",)
 
 
+class MultiStepMissionAdmin(admin.ModelAdmin):
+    list_display = ("name", "mission_type", "points_reward", "is_active", "created_at")
+    list_filter = ("mission_type", "is_active")
+    search_fields = ("name", "slug", "description", "badge_name")
+
+
+class MultiStepMissionProgressAdmin(admin.ModelAdmin):
+    list_display = ("user", "mission", "status", "completed_at", "updated_at")
+    list_filter = ("status", "mission")
+    search_fields = ("user__username", "mission__name")
+
+
 class BadgeAdmin(admin.ModelAdmin):
     """Admin configuration for managing badges."""
 
@@ -205,3 +219,5 @@ admin.site.register(Badge, BadgeAdmin)
 admin.site.register(UserBadge)
 admin.site.register(Mission, MissionAdmin)
 admin.site.register(MissionCompletion, MissionCompletionAdmin)
+admin.site.register(MultiStepMission, MultiStepMissionAdmin)
+admin.site.register(MultiStepMissionProgress, MultiStepMissionProgressAdmin)

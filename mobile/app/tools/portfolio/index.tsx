@@ -58,6 +58,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { href } from "../../../src/navigation/href";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";
+import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
 type PortfolioDashboardPayload = {
   entries: PortfolioEntry[];
@@ -988,6 +989,7 @@ export default function PortfolioScreen() {
         }
         ListHeaderComponent={
           <View style={styles.header}>
+            <WhyThisMattersMobile toolSlug="portfolio" />
             {/* Error banner */}
             {error && (
               <View

@@ -112,6 +112,24 @@ export type Mission = {
 export type MissionBuckets = {
   daily_missions?: Mission[];
   weekly_missions?: Mission[];
+  multi_step_missions?: Array<{
+    id: number | string;
+    slug?: string;
+    name?: string;
+    description?: string;
+    points_reward?: number;
+    badge_name?: string;
+    status?: string;
+    completed_steps?: string[];
+    steps?: Array<{
+      id?: string;
+      type?: string;
+      title?: string;
+      route?: string;
+      completed?: boolean;
+      [key: string]: unknown;
+    }>;
+  }>;
   can_swap?: boolean;
 };
 
@@ -141,6 +159,35 @@ export type ProgressSummary = {
   } | null;
   /** First course of first accessible path (for "Browse topics" when no resume) */
   start_here?: { path_id: number; course_id: number } | null;
+};
+
+export type WhatsNextActionType =
+  | "review"
+  | "lesson"
+  | "quiz"
+  | "practice"
+  | "tutor"
+  | "tool_followup"
+  | "resume"
+  | "start"
+  | "explore";
+
+export type WhatsNextAction = {
+  type: WhatsNextActionType;
+  title: string;
+  subtitle: string;
+  action_route: string;
+  analytics_event?: string;
+  source?: string;
+  skill?: string;
+  course_id?: number | null;
+  tool_slug?: string | null;
+  next_step?: {
+    type: "review" | "lesson" | "quiz" | "practice" | "tutor";
+    target_id: number | null;
+    course_id: number | null;
+    title: string | null;
+  } | null;
 };
 
 export type PersonalizedPathCourse = {
@@ -175,7 +222,12 @@ export type PersonalizedPathResponse = {
     skill?: string;
     proficiency?: number;
     due_at?: string | null;
-    level_band?: "beginner" | "building" | "confident" | "pro";
+    level_band?:
+      | "not_started"
+      | "attempted"
+      | "familiar"
+      | "proficient"
+      | "mastered";
     level_label?: string;
   }>;
   upgrade_prompt?: string;

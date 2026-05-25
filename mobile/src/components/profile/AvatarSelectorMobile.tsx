@@ -357,7 +357,11 @@ export default function AvatarSelectorMobile({
           </ScrollView>
 
           <View style={[styles.footer, { borderTopColor: c.border }]}>
-            <Button variant="ghost" onPress={onClose} style={styles.footerBtn}>
+            <Button
+              variant="secondary"
+              onPress={onClose}
+              style={styles.footerBtn}
+            >
               {t("profile.avatarSelector.cancel")}
             </Button>
             <Button

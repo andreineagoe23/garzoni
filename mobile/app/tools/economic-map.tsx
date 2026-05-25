@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../src/theme/ThemeContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
+import WhyThisMattersMobile from "../../src/components/tools/WhyThisMattersMobile";
 
 function buildHtml(theme: "light" | "dark", bg: string) {
   return `<!doctype html>
@@ -46,6 +47,9 @@ export default function EconomicMapScreen() {
         }}
       />
       <View style={[styles.flex, { backgroundColor: c.bg }]}>
+        <View style={styles.learningWrap}>
+          <WhyThisMattersMobile toolSlug="economic-map" />
+        </View>
         <WebView
           originWhitelist={["*"]}
           source={{ html, baseUrl: "https://widgets.tradingview-widget.com" }}
@@ -70,6 +74,7 @@ export default function EconomicMapScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  learningWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   center: {
     flex: 1,
     alignItems: "center",

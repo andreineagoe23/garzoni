@@ -76,6 +76,7 @@ function Missions() {
     refetchInterval: 30_000,
     refetchIntervalInBackground: true,
   });
+  const multiStepMissions = missionsResponse?.data?.multi_step_missions || [];
 
   const fetchSavingsBalance = useCallback(async () => {
     try {
@@ -603,6 +604,59 @@ function Missions() {
               ))}
             </ul>
           </GlassCard>
+        )}
+
+        {multiStepMissions.length > 0 && (
+          <div className="grid gap-4">
+            {multiStepMissions.map((mission) => {
+              const steps = mission.steps || [];
+              const done = steps.filter((step) => step.completed).length;
+              return (
+                <GlassCard key={mission.id} padding="lg" className="">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <p className="app-eyebrow mb-1">Story mission</p>
+                      <h2 className="text-xl font-semibold text-content-primary">
+                        {mission.name}
+                      </h2>
+                      <p className="mt-1 text-sm text-content-muted">
+                        {mission.description}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-[color:var(--primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--primary)]">
+                      {done}/{steps.length} steps
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    {steps.map((step, index) => (
+                      <div
+                        key={step.id || index}
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-color)] px-4 py-3"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-content-primary">
+                            {step.title}
+                          </p>
+                          <p className="text-xs uppercase tracking-wide text-content-muted">
+                            {step.type}
+                          </p>
+                        </div>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            step.completed
+                              ? "bg-emerald-500/10 text-emerald-600"
+                              : "bg-surface-page text-content-muted"
+                          }`}
+                        >
+                          {step.completed ? "Done" : "Next"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </GlassCard>
+              );
+            })}
+          </div>
         )}
 
         {!missionsLoading && !noMissionsAvailable && (

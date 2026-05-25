@@ -6,11 +6,13 @@ import html
 import json
 import logging
 import re
+from datetime import timedelta
 from typing import Any, Dict, Optional
 
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
@@ -19,6 +21,77 @@ from django.utils.html import strip_tags
 logger = logging.getLogger(__name__)
 
 LANGUAGE_CODE = "ro"
+
+
+def _mastery_floor_for_course(user, course) -> int:
+    from education.models import UserProgress
+
+    progress = (
+        UserProgress.objects.filter(user=user, course=course)
+        .prefetch_related("completed_sections", "completed_lessons")
+        .first()
+    )
+    if not progress:
+        return 0
+    if progress.completed_lessons.exists():
+        return 40
+    if progress.completed_sections.exists():
+        return 20
+    return 0
+
+
+@shared_task
+def decay_course_mastery():
+    """Apply gentle daily forgetting decay without erasing completed-content floors."""
+    from education.models import Mastery
+    from notifications.enums import CioEventName
+    from notifications.events import NotificationEvents
+
+    now = timezone.now()
+    cutoff = now - timedelta(days=7)
+    changed = 0
+    nudges = 0
+    nudge_users: dict[int, dict[str, Any]] = {}
+    for mastery in (
+        Mastery.objects.filter(course__isnull=False, legacy=False, last_reviewed__lt=cutoff)
+        .select_related("user", "course")
+        .iterator()
+    ):
+        idle_days = max(0, (now - mastery.last_reviewed).days - 7)
+        if idle_days <= 0:
+            continue
+        floor = _mastery_floor_for_course(mastery.user, mastery.course)
+        decayed = max(floor, int(round(mastery.proficiency - idle_days * 1.5)))
+        if decayed >= mastery.proficiency:
+            continue
+        mastery.proficiency = decayed
+        mastery.due_at = now
+        mastery.save(update_fields=["proficiency", "due_at"])
+        changed += 1
+        current = nudge_users.get(mastery.user_id)
+        if current is None or decayed < current["proficiency"]:
+            nudge_users[mastery.user_id] = {
+                "user": mastery.user,
+                "skill": mastery.skill,
+                "course_id": mastery.course_id,
+                "course_title": mastery.course.title if mastery.course else "",
+                "proficiency": decayed,
+                "idle_days": idle_days,
+            }
+
+    if getattr(settings, "CIO_JOURNEY_EVENTS_ENABLED", False):
+        publisher = NotificationEvents()
+        today = timezone.localdate().isoformat()
+        for user_id, payload in nudge_users.items():
+            cache_key = f"coach_nudge:{user_id}:{today}"
+            if not cache.add(cache_key, True, timeout=90_000):
+                continue
+            user = payload.pop("user")
+            ok, _ = publisher.track(user, CioEventName.COACH_NUDGE, payload)
+            if ok:
+                nudges += 1
+
+    return {"changed": changed, "coach_nudges": nudges}
 
 
 @shared_task(

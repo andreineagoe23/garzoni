@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "lib/reactQuery";
 import { useAnalytics } from "hooks/useAnalytics";
+import { getToolPracticeCtaForSkill } from "@garzoni/core";
 import type { MascotSituation } from "hooks/useMascotMessage";
 import { useExerciseSkillIntent } from "hooks/useExerciseSkillIntent";
 import ExerciseIntentBanner from "./ExerciseIntentBanner";
@@ -77,6 +78,7 @@ const ExercisePage = () => {
   const [reviewQueue, setReviewQueue] = useState({ due: [], count: 0 });
   const [xpTotal, setXpTotal] = useState(0);
   const [sessionCompleted, setSessionCompleted] = useState(false);
+  const [readyVisible, setReadyVisible] = useState(true);
   const [mode, setMode] = useState("lesson");
   const [skillGains, setSkillGains] = useState({});
   const [skillProficiency, setSkillProficiency] = useState({});
@@ -85,6 +87,7 @@ const ExercisePage = () => {
   const [inlineHint, setInlineHint] = useState("");
   const [listRefreshing, setListRefreshing] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [hintsOpen, setHintsOpen] = useState(false);
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [recentSkillInsight, setRecentSkillInsight] = useState("");
   const inlineHintTimeoutRef = useRef(null);
@@ -121,6 +124,7 @@ const ExercisePage = () => {
     setInlineHint("");
     setSavedAnswers({});
     setSessionCompleted(false);
+    setReadyVisible(true);
   }, []);
 
   const {
@@ -184,6 +188,38 @@ const ExercisePage = () => {
     [exercises, currentExerciseIndex]
   );
 
+  const sessionDominantSkill = useMemo(() => {
+    const topSkill = Object.entries(skillGains).sort(
+      ([, a], [, b]) => Number(b) - Number(a)
+    )[0]?.[0];
+    return (
+      topSkill ||
+      filters.category ||
+      targetSkillIntent ||
+      currentExercise?.category ||
+      null
+    );
+  }, [
+    currentExercise?.category,
+    filters.category,
+    skillGains,
+    targetSkillIntent,
+  ]);
+
+  const sessionToolCta = useMemo(
+    () => getToolPracticeCtaForSkill(sessionDominantSkill),
+    [sessionDominantSkill]
+  );
+
+  const sessionWrongExercises = useMemo(
+    () =>
+      exercises.filter((exercise, index) => {
+        const item = progress[index];
+        return item && item.correct === false && exercise;
+      }),
+    [exercises, progress]
+  );
+
   // Stable shuffle per exercise — keyed on exercise id so options re-shuffle on navigation.
   // userAnswer always stores the original (pre-shuffle) index so submit/grading are unaffected.
   const shuffledMCOptions = useMemo(() => {
@@ -214,7 +250,7 @@ const ExercisePage = () => {
     const hasSkillQuery = Boolean(
       new URLSearchParams(location.search).get("skill")?.trim()
     );
-    if (intentReason === "quick_card_exercises") return "quick_card";
+    if (intentReason === "weak_skill_review") return "weak_skill_review";
     if (intentReason === "weak_skill_practice") return "weak_skill_practice";
     if (intentReason === "weak_skill_click") return "weak_skill_card";
     if (hasSkillQuery) return "skill_query_only";
@@ -306,6 +342,7 @@ const ExercisePage = () => {
           Array.isArray(exerciseData.items)) ||
         (candidate.type === "budget-allocation" &&
           Array.isArray(exerciseData.categories)) ||
+        candidate.type === "true-false" ||
         (candidate.type === "fill-in-table" &&
           (() => {
             const table = exerciseData.table as
@@ -509,6 +546,7 @@ const ExercisePage = () => {
             setExplanation("");
             setInlineHint("");
             setSessionCompleted(false);
+            setReadyVisible(true);
           }
         }
         if (gen === exercisesFetchGenerationRef.current) {
@@ -874,6 +912,8 @@ const ExercisePage = () => {
         return exercise.exercise_data.items.map((_, index) => index);
       case "numeric":
         return "";
+      case "true-false":
+        return null;
       case "budget-allocation":
         return exercise.exercise_data.categories.reduce((acc, category) => {
           acc[category] = 0;
@@ -1246,6 +1286,34 @@ const ExercisePage = () => {
       new CustomEvent("garzoni:tutor", { detail: { context } })
     );
   }, [currentExercise, explanation, submissionFeedback, userAnswer]);
+
+  const openWrongAnswerCoach = useCallback(() => {
+    if (sessionWrongExercises.length === 0) return;
+    const context = sessionWrongExercises
+      .slice(0, 3)
+      .map((exercise, index) => `${index + 1}. ${exercise.question}`)
+      .join("\n");
+    window.dispatchEvent(
+      new CustomEvent("garzoni:tutor", {
+        detail: {
+          context: `Garzoni wants to explain these missed exercises:\n${context}`,
+          exercise_context: {
+            accuracy: stats.averageAccuracy,
+            weakest_categories: Array.from(
+              new Set(
+                sessionWrongExercises
+                  .map((exercise) => exercise.category)
+                  .filter(Boolean)
+              )
+            ),
+            missed_exercise_ids: sessionWrongExercises.map(
+              (exercise) => exercise.id
+            ),
+          },
+        },
+      })
+    );
+  }, [sessionWrongExercises, stats.averageAccuracy]);
 
   const revealNextHint = () => {
     const currentExercise = exercises[currentExerciseIndex];
@@ -1689,6 +1757,41 @@ const ExercisePage = () => {
         );
       }
 
+      case "true-false":
+        return (
+          <div className="space-y-4">
+            {metaBadges}
+            <h3 className="text-lg font-semibold text-content-primary">
+              {exercise.question}
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[true, false].map((value) => {
+                const selected = userAnswer === value;
+                const correct = exercise.correct_answer === value;
+                const stateClass = hasResult
+                  ? correct
+                    ? "border-[color:var(--primary-bright,#2a7347)]/50 bg-[color:var(--primary-bright,#2a7347)]/10"
+                    : selected
+                      ? "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+                      : "border-[color:var(--border-color,#d1d5db)] bg-surface-page"
+                  : selected
+                    ? "border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10"
+                    : "border-[color:var(--border-color,#d1d5db)] bg-surface-page";
+                return (
+                  <button
+                    key={String(value)}
+                    type="button"
+                    onClick={() => setUserAnswer(value)}
+                    className={`rounded-2xl border px-5 py-4 text-base font-semibold text-content-primary transition ${stateClass}`}
+                  >
+                    {value ? "True" : "False"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
       case "budget-allocation":
         return (
           <div className="space-y-4">
@@ -1963,30 +2066,21 @@ const ExercisePage = () => {
     "";
 
   return (
-    <div className="min-h-screen bg-surface-page px-4 py-10">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        <header className="app-section-glow space-y-2 pb-2 text-center lg:text-left">
-          <p className="app-eyebrow">{t("exercises.header.subtitle")}</p>
-          <h1 className="app-display text-4xl text-content-primary">
+    <div className="min-h-screen bg-surface-page px-4 py-4">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4">
+        <header className="app-section-glow flex flex-wrap items-center justify-between gap-3">
+          <h1 className="app-display text-2xl text-content-primary">
             {t("exercises.header.title")}
           </h1>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-content-muted lg:justify-start">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-content-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--primary-bright,#2a7347)]/30 bg-[#2a7347]/10 px-3 py-1 font-semibold text-[color:var(--primary-bright,#2a7347)]">
               {t("exercises.reviewQueue.title")}
-              <span className="rounded-full  px-2 py-0.5 text-[color:var(--primary-bright,#2a7347)]">
+              <span className="rounded-full px-2 py-0.5 text-[color:var(--primary-bright,#2a7347)]">
                 {t("exercises.reviewQueue.due", {
                   count: reviewQueue.count || 0,
                 })}
               </span>
             </span>
-            {reviewQueue.due?.length > 0 && (
-              <span className="text-xs text-content-muted">
-                {t("exercises.reviewQueue.nextUp", {
-                  skill: reviewQueue.due[0].skill,
-                  question: reviewQueue.due[0].question,
-                })}
-              </span>
-            )}
             <button
               type="button"
               onClick={startReviewMode}
@@ -2031,7 +2125,7 @@ const ExercisePage = () => {
           </GlassCard>
         )}
 
-        <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex flex-col gap-4 lg:flex-row">
           <GlassCard
             padding="lg"
             className="app-card relative w-full lg:flex-1"
@@ -2134,6 +2228,7 @@ const ExercisePage = () => {
                   <option value="budget-allocation">
                     {t("exercises.filters.budget")}
                   </option>
+                  <option value="true-false">True/False</option>
                   <option value="fill-in-table">
                     {t("exercises.filters.fillTable")}
                   </option>
@@ -2292,63 +2387,83 @@ const ExercisePage = () => {
               </div>
             )}
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
-                <div className="flex items-center justify-between">
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page">
+                <button
+                  type="button"
+                  onClick={() => setHintsOpen((o) => !o)}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left"
+                  aria-expanded={hintsOpen}
+                >
                   <h4 className="text-sm font-semibold text-content-primary">
                     {t("exercises.hints.title")}
+                    {hintIndex > 0 && (
+                      <span className="ml-2 rounded-full bg-[color:var(--primary,#1d5330)]/15 px-2 py-0.5 text-[10px] font-bold text-[color:var(--primary-bright,#2a7347)]">
+                        {hintIndex}
+                      </span>
+                    )}
                   </h4>
-                  <button
-                    type="button"
-                    onClick={revealNextHint}
-                    disabled={!hintEnabled || hintDepleted}
-                    className={`text-xs font-semibold underline ${
-                      !hintEnabled || hintDepleted
-                        ? "cursor-not-allowed text-content-muted"
-                        : "text-[color:var(--primary-bright,#2a7347)]"
-                    }`}
+                  <span
+                    className={`text-content-muted transition-transform ${hintsOpen ? "rotate-180" : ""}`}
+                    aria-hidden
                   >
-                    {t("exercises.hints.showNext", {
-                      cost: hintCoinCost,
-                    })}
-                  </button>
-                </div>
-                <div className="mt-2 text-xs text-content-muted">
-                  {t("exercises.hints.credits")}{" "}
-                  {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
-                </div>
-                <div className="mt-1 text-xs text-content-muted">
-                  {t("exercises.hints.earnMore")}
-                </div>
-                {hintError && (
-                  <div className="mt-2 text-xs text-[color:var(--error,#dc2626)]">
-                    {hintError}{" "}
-                    {!hintEnabled && (
+                    ▼
+                  </span>
+                </button>
+                {hintsOpen && (
+                  <div className="border-t border-[color:var(--border-color,#d1d5db)] px-4 pb-4 pt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-content-muted">
+                        {t("exercises.hints.credits")}{" "}
+                        {hintUnlimited ? "∞" : Math.max(hintRemaining || 0, 0)}
+                      </div>
                       <button
                         type="button"
-                        onClick={() => navigate("/subscriptions")}
-                        className="font-semibold underline"
+                        onClick={revealNextHint}
+                        disabled={!hintEnabled || hintDepleted}
+                        className={`text-xs font-semibold underline ${
+                          !hintEnabled || hintDepleted
+                            ? "cursor-not-allowed text-content-muted"
+                            : "text-[color:var(--primary-bright,#2a7347)]"
+                        }`}
                       >
-                        {t("exercises.hints.upgrade")}
+                        {t("exercises.hints.showNext", { cost: hintCoinCost })}
                       </button>
+                    </div>
+                    {hintError && (
+                      <div className="mt-2 text-xs text-[color:var(--error,#dc2626)]">
+                        {hintError}{" "}
+                        {!hintEnabled && (
+                          <button
+                            type="button"
+                            onClick={() => navigate("/subscriptions")}
+                            className="font-semibold underline"
+                          >
+                            {t("exercises.hints.upgrade")}
+                          </button>
+                        )}
+                      </div>
                     )}
+                    <div className="mt-3 space-y-2 text-sm text-content-muted">
+                      {(
+                        exercises[currentExerciseIndex]?.exercise_data?.hints ||
+                        []
+                      )
+                        .slice(0, hintIndex)
+                        .map((hint, index) => (
+                          <div
+                            key={`${hint}-${index}`}
+                            className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/60 px-3 py-2"
+                          >
+                            {hint}
+                          </div>
+                        ))}
+                      {hintIndex === 0 && (
+                        <p className="italic">{t("exercises.hints.helper")}</p>
+                      )}
+                    </div>
                   </div>
                 )}
-                <div className="mt-3 space-y-2 text-sm text-content-muted">
-                  {(exercises[currentExerciseIndex]?.exercise_data?.hints || [])
-                    .slice(0, hintIndex)
-                    .map((hint, index) => (
-                      <div
-                        key={`${hint}-${index}`}
-                        className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-white/60 px-3 py-2"
-                      >
-                        {hint}
-                      </div>
-                    ))}
-                  {hintIndex === 0 && (
-                    <p className="italic">{t("exercises.hints.helper")}</p>
-                  )}
-                </div>
               </div>
 
               <div className="grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4">
@@ -2457,6 +2572,16 @@ const ExercisePage = () => {
                 </div>
               </div>
             </div>
+
+            {currentExercise && (
+              <button
+                type="button"
+                onClick={openTutor}
+                className="mt-4 inline-flex items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)]/30 px-4 py-2 text-xs font-semibold text-[color:var(--primary-bright,#2a7347)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
+              >
+                Ask Garzoni about this question
+              </button>
+            )}
 
             {(submissionFeedback || showCorrection) && (
               <div className="mt-4 grid gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-primary">
@@ -2910,6 +3035,15 @@ const ExercisePage = () => {
                     {t("exercises.summary.doReviews")}
                   </button>
                 )}
+                {sessionWrongExercises.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={openWrongAnswerCoach}
+                    className="inline-flex items-center justify-center rounded-full border border-[#2a7347]/50 bg-[#2a7347]/10 px-5 py-2 text-sm font-semibold text-[color:var(--primary-bright,#2a7347)] shadow-sm shadow-[#2a7347]/20 transition hover:bg-[#2a7347] hover:text-white"
+                  >
+                    Garzoni wants to explain
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -2920,6 +3054,23 @@ const ExercisePage = () => {
                 >
                   {t("exercises.summary.nextRecommended")}
                 </button>
+                {sessionToolCta && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStats(false);
+                      navigate(sessionToolCta.webToolUrl, {
+                        state: {
+                          from: "exercise_session",
+                          skill: sessionDominantSkill,
+                        },
+                      });
+                    }}
+                    className="inline-flex items-center justify-center rounded-full border border-[color:#2a7347]/50 bg-[color:#2a7347]/10 px-5 py-2 text-sm font-semibold text-[color:var(--primary-bright,#2a7347)] shadow-sm shadow-[color:#2a7347]/20 transition hover:bg-[color:#2a7347] hover:text-white"
+                  >
+                    {sessionToolCta.ctaText}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -2948,6 +3099,30 @@ const ExercisePage = () => {
               </div>
             </div>
           </GlassCard>
+        </div>
+      )}
+      {readyVisible && !loading && exercises.length > 0 && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+          <div className="app-card w-full max-w-lg p-6 text-center">
+            <p className="app-eyebrow mb-2">Ready?</p>
+            <h2 className="app-display text-3xl text-content-primary">
+              Start a 5-question practice session
+            </h2>
+            <p className="mt-2 text-sm text-content-muted">
+              Topic:{" "}
+              {filters.category || sessionDominantSkill || "Mixed practice"}.
+              Estimated time: 3-5 minutes.
+            </p>
+            <div className="mt-5 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setReadyVisible(false)}
+                className="rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30"
+              >
+                Start session
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

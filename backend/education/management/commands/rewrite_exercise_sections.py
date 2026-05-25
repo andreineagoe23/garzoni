@@ -218,7 +218,7 @@ def _apply_record(section_id, original_data, rewritten_data, metadata):
     section.save(update_fields=["exercise_data"])
 
     LessonSectionTranslation.objects.filter(section=section).update(
-        exercise_data={},
+        exercise_data=None,
         source_hash="",
     )
 
