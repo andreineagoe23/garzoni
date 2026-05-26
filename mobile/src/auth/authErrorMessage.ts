@@ -19,9 +19,15 @@ export function formatAuthRequestError(e: unknown, fallback: string): string {
       err.code === "ECONNABORTED" ||
       err.code === "ERR_NETWORK"
     ) {
-      return `Cannot reach the server (${api}). Set EXPO_PUBLIC_BACKEND_URL in mobile/.env to your public API URL (e.g. Railway), restart Expo with --clear, and try again.`;
+      if (__DEV__) {
+        return `Cannot reach the server (${api}). Set EXPO_PUBLIC_BACKEND_URL in mobile/.env to your public API URL (e.g. Railway), restart Expo with --clear, and try again.`;
+      }
+      return "Cannot connect to the server. Please check your internet connection and try again.";
     }
-    return `Cannot reach the server (${api}). Check your connection and API URL.`;
+    if (__DEV__) {
+      return `Cannot reach the server (${api}). Check your connection and API URL.`;
+    }
+    return "Cannot connect to the server. Please check your internet connection and try again.";
   }
 
   const detail = err.response.data?.detail;

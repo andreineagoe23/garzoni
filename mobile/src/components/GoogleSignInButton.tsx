@@ -120,7 +120,9 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
       }
       if (!idToken) {
         onError(
-          "Google did not return an ID token. Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (Android) / iOS client id.",
+          __DEV__
+            ? "Google did not return an ID token. Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (Android) / iOS client id."
+            : "Google sign-in failed. Please try again.",
         );
         return;
       }
@@ -144,7 +146,9 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
         (!msg && String(e) === "Network Error")
       ) {
         onError(
-          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL to your Railway URL and restart Expo.`,
+          __DEV__
+            ? `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL to your Railway URL and restart Expo.`
+            : "Cannot connect to the server. Please check your internet connection and try again.",
         );
         return;
       }

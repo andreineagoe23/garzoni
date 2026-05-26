@@ -77,7 +77,9 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
       const msg = err.message ?? "";
       if (/network|fetch|failed to connect|could not connect/i.test(msg)) {
         onError(
-          `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL and restart Expo.`,
+          __DEV__
+            ? `Cannot reach API (${getBackendUrl()}). Set EXPO_PUBLIC_BACKEND_URL and restart Expo.`
+            : "Cannot connect to the server. Please check your internet connection and try again.",
         );
         return;
       }

@@ -26,21 +26,29 @@ export function resolveBackendUrlFromExpo(): string | undefined {
     return "http://localhost:8000/api";
   }
 
-  // Local env should win in dev so mobile can be pointed to the same Docker backend
-  // as web, even when a development build was created with a different baked value.
-  const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
-  if (fromEnv) return preferHttpsForRailway(fromEnv);
-
   const extra = (Constants.expoConfig?.extra ??
     (Constants as { manifest2?: { extra?: Record<string, unknown> } }).manifest2
       ?.extra ??
     (Constants as { manifest?: { extra?: Record<string, unknown> } }).manifest
       ?.extra) as Record<string, unknown> | undefined;
 
-  const fromExtra = extra?.backendUrl;
-  if (typeof fromExtra === "string" && fromExtra.trim()) {
-    return preferHttpsForRailway(fromExtra.trim());
-  }
+  const fromExtra =
+    typeof extra?.backendUrl === "string" && extra.backendUrl.trim()
+      ? extra.backendUrl.trim()
+      : undefined;
+
+  const fromEnv = process.env.EXPO_PUBLIC_BACKEND_URL?.trim() || undefined;
+
+  // In development, local env wins so a physical device can point at a Docker backend.
+  const isDev =
+    extra?.appEnv === "development" ||
+    process.env.EXPO_PUBLIC_APP_ENV === "development";
+  if (isDev && fromEnv) return preferHttpsForRailway(fromEnv);
+
+  // For production/preview: binary-baked extra is authoritative (not subject to
+  // Metro env-inlining quirks); fall back to process.env if extra is missing.
+  if (fromExtra) return preferHttpsForRailway(fromExtra);
+  if (fromEnv) return preferHttpsForRailway(fromEnv);
 
   return undefined;
 }
