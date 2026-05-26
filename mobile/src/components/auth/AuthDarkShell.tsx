@@ -1,6 +1,5 @@
-import { forwardRef, useState, type ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 import {
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -8,6 +7,7 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Circle,
   Defs,
@@ -16,7 +16,6 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
-import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import { brand } from "../../theme/brand";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../ui/KeyboardAwareScrollView";
@@ -89,23 +88,6 @@ function Glow({
   );
 }
 
-function DarkLogo() {
-  const uri = authLogoWhiteRectangularUrl({ width: 560 });
-  const [failed, setFailed] = useState(false);
-  if (!uri || failed) {
-    return <Text style={s.logoFallback}>Garzoni</Text>;
-  }
-  return (
-    <Image
-      accessibilityLabel="Garzoni"
-      source={{ uri }}
-      style={s.logo}
-      resizeMode="contain"
-      onError={() => setFailed(true)}
-    />
-  );
-}
-
 type ShellProps = {
   eyebrow?: string;
   title: string;
@@ -119,6 +101,7 @@ export default function AuthDarkShell({
   subtitle,
   children,
 }: ShellProps) {
+  const { top } = useSafeAreaInsets();
   return (
     <View style={s.flex}>
       <View style={s.root}>
@@ -144,14 +127,10 @@ export default function AuthDarkShell({
         <KeyboardAwareScrollView
           style={s.flex}
           basePaddingBottom={56}
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[s.scroll, { paddingTop: top + 20 }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={s.logoWrap}>
-            <DarkLogo />
-          </View>
-
           <View style={s.header}>
             {eyebrow ? (
               <Text style={s.eyebrow}>{eyebrow.toUpperCase()}</Text>
@@ -291,19 +270,9 @@ const s = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 56,
     maxWidth: 480,
     alignSelf: "center",
     width: "100%",
-  },
-
-  logoWrap: { alignItems: "center", marginBottom: 32 },
-  logo: { width: 160, height: 40 },
-  logoFallback: {
-    fontSize: 36,
-    fontWeight: "600",
-    color: DARK.text,
-    letterSpacing: -0.4,
   },
 
   header: { marginBottom: 28 },

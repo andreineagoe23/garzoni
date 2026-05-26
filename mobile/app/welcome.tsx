@@ -467,7 +467,7 @@ function SlidePlans() {
 const HEADER_PAD_H = 20;
 
 /** Target header height; width follows intrinsic aspect so `contain` doesn’t letterbox/center inside the box. */
-const WORDMARK_HEIGHT = 56;
+const WORDMARK_HEIGHT = 36;
 /** Until `Image.getSize` returns (remote bitmap). */
 const WORDMARK_ASPECT_FALLBACK = 4.75;
 
