@@ -24,6 +24,7 @@
       "distribution": "internal",
       "autoIncrement": true,
       "env": {
+        "SENTRY_ALLOW_FAILURE": "true",
         "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_BACKEND_URL": "https://garzoni-production.up.railway.app/api",
         "EXPO_PUBLIC_WEB_APP_URL": "https://www.garzoni.app",
@@ -40,6 +41,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
+        "SENTRY_ALLOW_FAILURE": "true",
         "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_BACKEND_URL": "https://garzoni-production.up.railway.app/api",
         "EXPO_PUBLIC_WEB_APP_URL": "https://www.garzoni.app",
