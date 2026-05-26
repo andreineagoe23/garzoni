@@ -17,6 +17,7 @@ type Props = {
   busy?: boolean;
   t: (key: string, opts?: Record<string, unknown>) => string;
   formatPoints: (n: number) => string;
+  duelStatus?: "pending" | "active" | null;
 };
 
 export default function LeaderboardRow({
@@ -31,6 +32,7 @@ export default function LeaderboardRow({
   busy,
   t,
   formatPoints,
+  duelStatus,
 }: Props) {
   const c = useThemeColors();
   const uri = leaderboardAvatarUri(entry.user?.profile_avatar ?? null);
@@ -80,6 +82,30 @@ export default function LeaderboardRow({
                   </Text>
                 </View>
               ) : null}
+              {duelStatus ? (
+                <View
+                  style={[
+                    styles.duelPill,
+                    {
+                      backgroundColor:
+                        duelStatus === "active"
+                          ? `${c.primary}22`
+                          : `${c.accent}22`,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.duelPillText,
+                      {
+                        color: duelStatus === "active" ? c.primary : c.accent,
+                      },
+                    ]}
+                  >
+                    ⚔ {t(`duels.status.${duelStatus}`)}
+                  </Text>
+                </View>
+              ) : null}
             </View>
             <Text style={[styles.points, { color: c.textMuted }]}>
               {t("leaderboard.points", {
@@ -87,6 +113,9 @@ export default function LeaderboardRow({
               })}
             </Text>
           </View>
+          {onPrimaryPress && !showFriendButton ? (
+            <Text style={[styles.chevron, { color: c.textFaint }]}>›</Text>
+          ) : null}
         </Pressable>
         {showFriendButton ? (
           <Pressable
@@ -167,6 +196,8 @@ const styles = StyleSheet.create({
   name: { fontSize: typography.base, fontWeight: "700", flexShrink: 1 },
   youPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   youPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
+  duelPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  duelPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
   points: { fontSize: typography.sm, marginTop: 2 },
   friendBtn: {
     paddingVertical: spacing.sm,
@@ -179,4 +210,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  chevron: { fontSize: 20, fontWeight: "300" },
 });

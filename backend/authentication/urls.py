@@ -28,8 +28,14 @@ from .views_password import (
 from .views_friends import (
     FriendRequestView,
     FriendsLeaderboardView,
+    PublicProfileView,
     ReferralApplyView,
     ReferralCodeValidationView,
+)
+from .views_social import (
+    FriendActivityFeedView,
+    FriendSuggestionsView,
+    UserSearchView,
 )
 from .views_entitlements import (
     EntitlementsView,
@@ -97,6 +103,10 @@ urlpatterns = [
         FriendsLeaderboardView.as_view(),
         name="friends-leaderboard",
     ),
+    path("users/<int:user_id>/public-profile/", PublicProfileView.as_view(), name="public-profile"),
+    path("users/search/", UserSearchView.as_view(), name="user-search"),
+    path("friends/activity-feed/", FriendActivityFeedView.as_view(), name="friends-activity-feed"),
+    path("friends/suggestions/", FriendSuggestionsView.as_view(), name="friends-suggestions"),
     path("referrals/", ReferralApplyView.as_view(), name="apply-referral"),
     path(
         "referrals/validate/",

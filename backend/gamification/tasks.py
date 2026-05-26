@@ -124,3 +124,29 @@ def spawn_streak_rescue_missions():
             )
             touched += 1
     return touched
+
+
+@shared_task(name="gamification.tasks.finalize_due_duels")
+def finalize_due_duels():
+    """Score and award duels whose `ends_at` has passed; expire pending duels older than 24h."""
+    from datetime import timedelta
+    from gamification.models import Duel
+    from gamification.services.duels import finalize_duel
+
+    now = timezone.now()
+
+    due_active = Duel.objects.filter(status=Duel.STATUS_ACTIVE, ends_at__lte=now)
+    finalized = 0
+    for duel in due_active.iterator(chunk_size=100):
+        try:
+            finalize_duel(duel)
+            finalized += 1
+        except Exception:
+            logger.exception("finalize_due_duels: failed to finalize duel %s", duel.id)
+
+    pending_cutoff = now - timedelta(hours=24)
+    stale_pending = Duel.objects.filter(status=Duel.STATUS_PENDING, created_at__lte=pending_cutoff)
+    expired = stale_pending.update(status=Duel.STATUS_EXPIRED, finished_at=now)
+
+    logger.info("finalize_due_duels finalized=%s expired_pending=%s", finalized, expired)
+    return {"finalized": finalized, "expired_pending": expired}

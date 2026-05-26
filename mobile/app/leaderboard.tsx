@@ -1,11 +1,11 @@
 import {
+  fetchActiveDuels,
   fetchFriendsList,
   fetchLeaderboardFriends,
   fetchLeaderboardGlobal,
   fetchLeaderboardRank,
   fetchProfile,
   fetchSentFriendRequests,
-  apiClient,
   queryKeys,
   sendFriendRequest,
   staleTimes,
@@ -33,6 +33,8 @@ import LeaderboardPodium from "../src/components/leaderboard/LeaderboardPodium";
 import LeaderboardReferralCard from "../src/components/leaderboard/LeaderboardReferralCard";
 import LeaderboardRow from "../src/components/leaderboard/LeaderboardRow";
 import LeaderboardSelfBar from "../src/components/leaderboard/LeaderboardSelfBar";
+import LeaderboardSearchResults from "../src/components/leaderboard/LeaderboardSearchResults";
+import LeaderboardSuggestionsCard from "../src/components/leaderboard/LeaderboardSuggestionsCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import GlassCard from "../src/components/ui/GlassCard";
 import Skeleton from "../src/components/ui/Skeleton";
@@ -107,6 +109,13 @@ export default function LeaderboardScreen() {
     staleTime: 60_000,
   });
 
+  const activeDuelsQuery = useQuery({
+    queryKey: queryKeys.duelsActive(),
+    queryFn: () => fetchActiveDuels().then((r) => r.data),
+    staleTime: 60_000,
+    enabled: activeTab === "friends",
+  });
+
   const profile = profileQuery.data;
   const referralCode = useMemo(
     () => referralCodeFromProfile(profile),
@@ -135,14 +144,18 @@ export default function LeaderboardScreen() {
   }, [searchQuery, activeTab, timeFilter, activeSkill]);
 
   const podiumEntries = useMemo(
-    () => filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
-    [filteredLeaderboard],
+    () =>
+      activeTab === "friends"
+        ? []
+        : filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
+    [filteredLeaderboard, activeTab],
   );
 
   const listRemainder = useMemo(() => {
+    if (activeTab === "friends") return filteredLeaderboard;
     if (filteredLeaderboard.length <= 3) return [];
     return filteredLeaderboard.slice(3);
-  }, [filteredLeaderboard]);
+  }, [filteredLeaderboard, activeTab]);
 
   const visibleRemainder = useMemo(
     () => listRemainder.slice(0, listVisible),
@@ -153,6 +166,22 @@ export default function LeaderboardScreen() {
 
   const friends: FriendUserBrief[] = friendsListQuery.data ?? [];
   const sentRequests: FriendRequestSent[] = sentQuery.data ?? [];
+
+  const duelStatusByUserId = useMemo(() => {
+    const map = new Map<number, "pending" | "active">();
+    if (currentUserId == null) return map;
+    for (const d of activeDuelsQuery.data ?? []) {
+      const otherId =
+        d.challenger.id === currentUserId ? d.opponent.id : d.challenger.id;
+      const existing = map.get(otherId);
+      // active beats pending if a user has both with the same person (rare)
+      if (existing === "active") continue;
+      if (d.status === "active" || d.status === "pending") {
+        map.set(otherId, d.status);
+      }
+    }
+    return map;
+  }, [activeDuelsQuery.data, currentUserId]);
 
   const isAlreadyFriend = useCallback(
     (userId: number) => friends.some((f) => f.id === userId),
@@ -196,29 +225,6 @@ export default function LeaderboardScreen() {
       );
     },
   });
-
-  const startDuel = useCallback(
-    async (opponentId: number) => {
-      try {
-        const response = await apiClient.post("/leaderboard/duel/", {
-          opponent_id: opponentId,
-        });
-        const exerciseId = response.data?.exercise_id;
-        router.push(
-          exerciseId
-            ? `/(tabs)/exercises?duel=1&exerciseId=${exerciseId}&opponentId=${opponentId}`
-            : "/(tabs)/exercises",
-        );
-      } catch (err: unknown) {
-        const e = err as { response?: { data?: { error?: string } } };
-        Alert.alert(
-          "",
-          e?.response?.data?.error || t("leaderboard.errors.loadFailed"),
-        );
-      }
-    },
-    [t],
-  );
 
   const onRefresh = useCallback(async () => {
     setPullRefreshing(true);
@@ -423,7 +429,7 @@ export default function LeaderboardScreen() {
       <TextInput
         value={searchQuery}
         onChangeText={setSearchQuery}
-        placeholder={t("leaderboard.searchPlaceholder")}
+        placeholder={t("userSearch.placeholder")}
         placeholderTextColor={c.textFaint}
         accessibilityLabel={t("leaderboard.searchAriaLabel")}
         style={[
@@ -435,6 +441,14 @@ export default function LeaderboardScreen() {
           },
         ]}
       />
+
+      {searchQuery.trim().length > 0 ? (
+        <LeaderboardSearchResults query={searchQuery} />
+      ) : null}
+
+      {activeTab === "friends" && searchQuery.trim().length === 0 ? (
+        <LeaderboardSuggestionsCard />
+      ) : null}
 
       {loadError ? (
         <GlassCard
@@ -505,6 +519,11 @@ export default function LeaderboardScreen() {
           onAddFriend={
             activeTab === "global" ? (uid) => sendMut.mutate(uid) : undefined
           }
+          onPressEntry={(uid, isYou) =>
+            isYou
+              ? router.push("/(tabs)/profile")
+              : router.push(`/friend/${uid}`)
+          }
           busy={sendMut.isPending}
         />
       ) : null}
@@ -559,10 +578,15 @@ export default function LeaderboardScreen() {
           data={flatData}
           keyExtractor={(item, i) => String(item.user?.id ?? `row-${i}`)}
           renderItem={({ item, index }) => {
-            const position = rankForEntry(item, 3 + index + 1);
+            const positionOffset = activeTab === "friends" ? 0 : 3;
+            const position = rankForEntry(item, positionOffset + index + 1);
             const uid = item.user?.id;
             const isYou = currentUserId !== null && uid === currentUserId;
             const showFriend = activeTab === "global" && uid != null && !isYou;
+            const duelStatus =
+              activeTab === "friends" && uid != null && !isYou
+                ? duelStatusByUserId.get(uid) ?? null
+                : null;
             return (
               <LeaderboardRow
                 entry={item}
@@ -577,26 +601,14 @@ export default function LeaderboardScreen() {
                 }
                 onPrimaryPress={
                   isYou
-                    ? () => {
-                        router.push("/(tabs)/profile");
-                      }
+                    ? () => router.push("/(tabs)/profile")
                     : uid != null
-                      ? () =>
-                          Alert.alert(
-                            item.user?.username ?? "",
-                            "Start an async duel from a recommended exercise set.",
-                            [
-                              { text: "Cancel", style: "cancel" },
-                              {
-                                text: "Start duel",
-                                onPress: () => void startDuel(uid),
-                              },
-                            ],
-                          )
+                      ? () => router.push(`/friend/${uid}`)
                       : undefined
                 }
                 t={t}
                 formatPoints={formatPoints}
+                duelStatus={duelStatus}
               />
             );
           }}
@@ -690,7 +702,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   search: {
-    marginTop: spacing.lg,
+    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.lg,

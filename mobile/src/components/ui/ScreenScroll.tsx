@@ -19,10 +19,13 @@ export type ScreenScrollProps = ScrollViewProps & {
  * Vertical screen scroll with bounded height (`flex: 1`) so content scrolls inside tab/stack
  * layouts. Enables nested horizontal scroll on Android.
  *
- * iOS: defaults `contentInsetAdjustmentBehavior` to `never` so the system does not add an extra
- * top safe-area inset to scroll *content* when screens already use `TabScreenHeader` (which pads
- * `paddingTop: insets.top`). Without this, returning from stack/modal routes can leave a large
- * blank band between the header and the first card.
+ * iOS quirk fix: screens already use `TabScreenHeader` (which pads `paddingTop: insets.top`),
+ * so UIScrollView's automatic insets MUST be off. We force:
+ *   - `contentInsetAdjustmentBehavior: "never"`
+ *   - `automaticallyAdjustContentInsets: false`
+ *   - explicit zero `contentInset` + `scrollIndicatorInsets`
+ * Without these, returning from a stack/modal route can leave a large blank band between the
+ * header and the first card because iOS remembers the inset state from the previous screen.
  */
 const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
   function ScreenScroll(
@@ -59,6 +62,15 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
         keyboardDismissMode={keyboardDismissMode}
         showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         nestedScrollEnabled={nestedScrollEnabled}
+        // iOS: prevent stale contentInset from a previous nav bar / header state
+        // bleeding into a tab screen after returning from a stack route.
+        automaticallyAdjustContentInsets={
+          Platform.OS === "ios" ? false : undefined
+        }
+        contentInset={Platform.OS === "ios" ? { top: 0, bottom: 0 } : undefined}
+        scrollIndicatorInsets={
+          Platform.OS === "ios" ? { top: 0, bottom: 0 } : undefined
+        }
         {...rest}
         contentInsetAdjustmentBehavior={insetAdjustment}
       >

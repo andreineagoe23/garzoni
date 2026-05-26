@@ -1456,6 +1456,151 @@
       "addFriendShort": "Add Friend"
     }
   },
+  "friendProfile": {
+    "title": "Profile",
+    "loadFailed": "Could not load profile.",
+    "retry": "Retry",
+    "joined": "Joined {{date}}",
+    "lastActive": "Active {{date}}",
+    "stats": {
+      "xp": "XP",
+      "rank": "Rank",
+      "streak": "Streak",
+      "lessons": "Lessons",
+      "missions": "Missions",
+      "badges": "Badges",
+      "noRank": "Unranked"
+    },
+    "vsYou": {
+      "title": "Versus You",
+      "xpAhead": "{{count}} XP ahead of you",
+      "xpBehind": "{{count}} XP behind you",
+      "xpTied": "Tied with you on XP",
+      "ranksAhead": "{{count}} ranks ahead",
+      "ranksBehind": "{{count}} ranks behind",
+      "ranksTied": "Same rank",
+      "streakAhead": "{{count}}-day streak lead",
+      "streakBehind": "{{count}} days behind on streak",
+      "streakTied": "Same streak"
+    },
+    "skills": {
+      "title": "Skills",
+      "empty": "No skill data yet."
+    },
+    "badges": {
+      "title": "Recent Badges",
+      "empty": "No badges earned yet.",
+      "more": "+{{count}} more"
+    },
+    "activity": {
+      "title": "Activity (last 30 days)",
+      "empty": "No recent activity."
+    },
+    "actions": {
+      "challenge": "Challenge to duel",
+      "addFriend": "Add as friend",
+      "alreadyFriends": "Already friends",
+      "pending": "Request pending",
+      "acceptIncoming": "Accept request",
+      "openChat": "Send message"
+    },
+    "friendRequestSent": "Friend request sent.",
+    "errors": {
+      "friendRequestFailed": "Could not send friend request."
+    }
+  },
+  "duels": {
+    "title": "Duels",
+    "subtitle": "Race a friend for XP.",
+    "tabs": {
+      "active": "Active",
+      "history": "History"
+    },
+    "empty": {
+      "active": "No active duels. Challenge a friend from the leaderboard!",
+      "history": "No past duels yet."
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "won": "Won",
+      "lost": "Lost",
+      "draw": "Draw",
+      "declined": "Declined",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "challenge": {
+      "title": "Challenge {{username}}",
+      "subtitle": "Race for XP. Most XP earned in the window wins.",
+      "duration": "Duration",
+      "duration24h": "24 hours",
+      "duration3d": "3 days",
+      "duration7d": "7 days",
+      "rewardLabel": "Reward",
+      "reward": "Winner gets {{xp}} XP",
+      "send": "Send challenge",
+      "cancel": "Cancel",
+      "sent": "Challenge sent!",
+      "failed": "Could not send challenge.",
+      "cooldown": "Wait a moment before challenging again.",
+      "maxActive": "You have too many active duels."
+    },
+    "card": {
+      "incoming": "Challenge from {{username}}",
+      "outgoing": "Challenge sent to {{username}}",
+      "vs": "vs {{username}}",
+      "endsIn": "Ends in {{when}}",
+      "ended": "Ended {{when}}",
+      "leadingBy": "Leading by {{xp}} XP",
+      "behindBy": "Behind by {{xp}} XP",
+      "tied": "Tied"
+    },
+    "actions": {
+      "accept": "Accept",
+      "decline": "Decline",
+      "cancel": "Cancel challenge",
+      "view": "View duel"
+    },
+    "detail": {
+      "yourScore": "You",
+      "theirScore": "{{username}}",
+      "earnedDuringDuel": "{{xp}} XP earned",
+      "countdown": "{{time}} remaining",
+      "finishedAt": "Finished {{when}}",
+      "winnerYou": "You won!",
+      "winnerThem": "{{username}} won.",
+      "drawResult": "It's a draw — no XP awarded."
+    },
+    "errors": {
+      "loadFailed": "Could not load duels.",
+      "respondFailed": "Could not respond to challenge.",
+      "cancelFailed": "Could not cancel challenge."
+    }
+  },
+  "feed": {
+    "title": "Friend Activity",
+    "empty": "No recent activity from your friends.",
+    "loadFailed": "Could not load activity feed.",
+    "events": {
+      "lessonCompleted": "{{username}} finished a lesson",
+      "missionCompleted": "{{username}} completed a mission",
+      "badgeEarned": "{{username}} earned the {{badge}} badge",
+      "streakMilestone": "{{username}} hit a {{count}}-day streak",
+      "duelWon": "{{username}} won a duel"
+    }
+  },
+  "friendSuggestions": {
+    "title": "People you may know",
+    "empty": "No suggestions right now.",
+    "addFriend": "Add",
+    "dismiss": "Hide"
+  },
+  "userSearch": {
+    "placeholder": "Search users by username",
+    "empty": "No users match \"{{query}}\".",
+    "minChars": "Type at least 2 characters."
+  },
   "rewards": {
     "errors": {
       "downloadLimit": "You've reached today's download limit. Upgrade for unlimited downloads.",

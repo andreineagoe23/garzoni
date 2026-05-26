@@ -21,6 +21,7 @@ type Props = {
   isFriend?: (userId: number) => boolean;
   isPending?: (userId: number) => boolean;
   onAddFriend?: (userId: number) => void;
+  onPressEntry?: (userId: number, isYou: boolean) => void;
   busy?: boolean;
 };
 
@@ -36,6 +37,7 @@ export default function LeaderboardPodium({
   isFriend,
   isPending,
   onAddFriend,
+  onPressEntry,
   busy,
 }: Props) {
   const c = useThemeColors();
@@ -73,6 +75,11 @@ export default function LeaderboardPodium({
               },
             ]}
           >
+            <Pressable
+              onPress={uid != null && onPressEntry ? () => onPressEntry(uid, isYou) : undefined}
+              disabled={!onPressEntry || uid == null}
+              style={styles.cardTap}
+            >
             {uri ? (
               <Image source={{ uri }} style={styles.avatar} />
             ) : (
@@ -100,6 +107,7 @@ export default function LeaderboardPodium({
                 points: formatPoints(entry.points ?? 0),
               })}
             </Text>
+            </Pressable>
             {!isYou && uid != null && onAddFriend
               ? (() => {
                   const already = isFriend?.(uid) ?? false;
@@ -206,5 +214,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     textAlign: "center",
+  },
+  cardTap: {
+    alignItems: "center",
+    width: "100%",
   },
 });

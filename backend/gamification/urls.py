@@ -17,6 +17,14 @@ from .views import (
     MissionAnalyticsView,
     AsyncDuelView,
 )
+from .views_duels import (
+    DuelListCreateView,
+    DuelHistoryView,
+    DuelDetailView,
+    DuelRespondView,
+    DuelCancelView,
+    DuelFinalizeView,
+)
 
 router = DefaultRouter()
 router.register(r"badges", BadgeViewSet, basename="badge")
@@ -41,4 +49,11 @@ urlpatterns = [
     path("recent-activity/", RecentActivityView.as_view(), name="recent-activity"),
     path("reward-ledger/", RewardLedgerFeedView.as_view(), name="reward-ledger"),
     path("weekly-recap/", WeeklyRecapView.as_view(), name="weekly-recap"),
+    # Persistent XP-race duels (multi-day challenges)
+    path("duels/", DuelListCreateView.as_view(), name="duels-list-create"),
+    path("duels/history/", DuelHistoryView.as_view(), name="duels-history"),
+    path("duels/<int:duel_id>/", DuelDetailView.as_view(), name="duels-detail"),
+    path("duels/<int:duel_id>/respond/", DuelRespondView.as_view(), name="duels-respond"),
+    path("duels/<int:duel_id>/cancel/", DuelCancelView.as_view(), name="duels-cancel"),
+    path("duels/<int:duel_id>/finalize/", DuelFinalizeView.as_view(), name="duels-finalize"),
 ]

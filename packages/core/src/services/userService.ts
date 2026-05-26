@@ -177,6 +177,68 @@ export const fetchSentFriendRequests = () =>
 export const fetchFriendsList = () =>
   apiClient.get<FriendUserBrief[]>("/friend-requests/get_friends/");
 
+export type PublicProfileSkill = { name: string; proficiency: number };
+
+export type PublicProfileBadge = {
+  id: number;
+  name: string;
+  image: string | null;
+  level: "bronze" | "silver" | "gold" | string;
+  earned_at: string | null;
+};
+
+export type PublicProfileHeatmapDay = {
+  date: string;
+  totalActivities: number;
+  lessonsCompleted: number;
+  sectionsCompleted: number;
+  exercisesCompleted: number;
+  quizzesCompleted: number;
+};
+
+export type PublicProfileVsYou = {
+  xp_diff: number;
+  rank_diff: number | null;
+  streak_diff: number;
+} | null;
+
+export type PublicProfileFriendship = {
+  is_self: boolean;
+  is_friend: boolean;
+  request_pending_outgoing: boolean;
+  request_pending_incoming: boolean;
+};
+
+export type PublicProfileOpenDuel = {
+  id: number;
+  status: "pending" | "active";
+  ends_at: string | null;
+  viewer_is_challenger: boolean;
+};
+
+export type PublicProfile = {
+  id: number;
+  username: string;
+  profile_avatar?: string | null;
+  points: number;
+  streak: number;
+  rank: number | null;
+  lessons_completed: number;
+  missions_completed: number;
+  badges_count: number;
+  joined_at: string | null;
+  last_active_at: string | null;
+  skills: PublicProfileSkill[];
+  badges: PublicProfileBadge[];
+  activity_heatmap: PublicProfileHeatmapDay[];
+  vs_you: PublicProfileVsYou;
+  friendship: PublicProfileFriendship;
+  open_duel: PublicProfileOpenDuel | null;
+};
+
+export const fetchPublicProfile = (userId: number) =>
+  apiClient.get<PublicProfile>(`/users/${userId}/public-profile/`);
+
 export const sendFriendRequest = (receiverId: number) =>
   apiClient.post<{ message?: string }>("/friend-requests/", {
     receiver: receiverId,

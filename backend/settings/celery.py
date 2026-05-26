@@ -93,4 +93,9 @@ app.conf.beat_schedule = {
         "task": "budgeting.tasks.send_weekly_cfo_reports",
         "schedule": crontab(hour=9, minute=0, day_of_week=1),
     },
+    # Finalize expired/active duels every 5 minutes
+    "finalize-due-duels": {
+        "task": "gamification.tasks.finalize_due_duels",
+        "schedule": crontab(minute="*/5"),
+    },
 }

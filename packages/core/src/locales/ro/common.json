@@ -1456,6 +1456,151 @@
       "addFriendShort": "Adaugă prieten"
     }
   },
+  "friendProfile": {
+    "title": "Profil",
+    "loadFailed": "Nu am putut încărca profilul.",
+    "retry": "Reîncearcă",
+    "joined": "Înscris pe {{date}}",
+    "lastActive": "Activ {{date}}",
+    "stats": {
+      "xp": "XP",
+      "rank": "Rang",
+      "streak": "Serie",
+      "lessons": "Lecții",
+      "missions": "Misiuni",
+      "badges": "Insigne",
+      "noRank": "Neclasat"
+    },
+    "vsYou": {
+      "title": "Comparativ cu tine",
+      "xpAhead": "{{count}} XP înaintea ta",
+      "xpBehind": "{{count}} XP în urma ta",
+      "xpTied": "Egalitate la XP",
+      "ranksAhead": "{{count}} ranguri înaintea ta",
+      "ranksBehind": "{{count}} ranguri în urma ta",
+      "ranksTied": "Același rang",
+      "streakAhead": "Avans de {{count}} zile la serie",
+      "streakBehind": "{{count}} zile în urmă la serie",
+      "streakTied": "Aceeași serie"
+    },
+    "skills": {
+      "title": "Abilități",
+      "empty": "Nu există date despre abilități încă."
+    },
+    "badges": {
+      "title": "Insigne recente",
+      "empty": "Nicio insignă obținută încă.",
+      "more": "+{{count}} altele"
+    },
+    "activity": {
+      "title": "Activitate (ultimele 30 de zile)",
+      "empty": "Fără activitate recentă."
+    },
+    "actions": {
+      "challenge": "Provoacă la duel",
+      "addFriend": "Adaugă ca prieten",
+      "alreadyFriends": "Deja prieteni",
+      "pending": "Cerere în așteptare",
+      "acceptIncoming": "Acceptă cererea",
+      "openChat": "Trimite un mesaj"
+    },
+    "friendRequestSent": "Cererea de prietenie a fost trimisă.",
+    "errors": {
+      "friendRequestFailed": "Nu am putut trimite cererea."
+    }
+  },
+  "duels": {
+    "title": "Dueluri",
+    "subtitle": "Concurează cu un prieten pentru XP.",
+    "tabs": {
+      "active": "Active",
+      "history": "Istoric"
+    },
+    "empty": {
+      "active": "Niciun duel activ. Provoacă un prieten din clasament!",
+      "history": "Niciun duel anterior."
+    },
+    "status": {
+      "pending": "În așteptare",
+      "active": "Activ",
+      "won": "Câștigat",
+      "lost": "Pierdut",
+      "draw": "Egalitate",
+      "declined": "Refuzat",
+      "cancelled": "Anulat",
+      "expired": "Expirat"
+    },
+    "challenge": {
+      "title": "Provoacă-l pe {{username}}",
+      "subtitle": "Cel mai mult XP câștigat în interval câștigă.",
+      "duration": "Durată",
+      "duration24h": "24 de ore",
+      "duration3d": "3 zile",
+      "duration7d": "7 zile",
+      "rewardLabel": "Recompensă",
+      "reward": "Câștigătorul primește {{xp}} XP",
+      "send": "Trimite provocarea",
+      "cancel": "Anulează",
+      "sent": "Provocare trimisă!",
+      "failed": "Nu am putut trimite provocarea.",
+      "cooldown": "Așteaptă puțin înainte de a provoca din nou.",
+      "maxActive": "Ai prea multe dueluri active."
+    },
+    "card": {
+      "incoming": "Provocare de la {{username}}",
+      "outgoing": "Provocare trimisă lui {{username}}",
+      "vs": "vs {{username}}",
+      "endsIn": "Se termină în {{when}}",
+      "ended": "Terminat {{when}}",
+      "leadingBy": "Conduci cu {{xp}} XP",
+      "behindBy": "În urmă cu {{xp}} XP",
+      "tied": "Egalitate"
+    },
+    "actions": {
+      "accept": "Acceptă",
+      "decline": "Refuză",
+      "cancel": "Anulează provocarea",
+      "view": "Vezi duelul"
+    },
+    "detail": {
+      "yourScore": "Tu",
+      "theirScore": "{{username}}",
+      "earnedDuringDuel": "{{xp}} XP obținut",
+      "countdown": "{{time}} rămas",
+      "finishedAt": "Terminat {{when}}",
+      "winnerYou": "Ai câștigat!",
+      "winnerThem": "{{username}} a câștigat.",
+      "drawResult": "Egalitate — nu se acordă XP."
+    },
+    "errors": {
+      "loadFailed": "Nu am putut încărca duelurile.",
+      "respondFailed": "Nu am putut răspunde la provocare.",
+      "cancelFailed": "Nu am putut anula provocarea."
+    }
+  },
+  "feed": {
+    "title": "Activitatea prietenilor",
+    "empty": "Nicio activitate recentă de la prieteni.",
+    "loadFailed": "Nu am putut încărca activitatea.",
+    "events": {
+      "lessonCompleted": "{{username}} a terminat o lecție",
+      "missionCompleted": "{{username}} a terminat o misiune",
+      "badgeEarned": "{{username}} a obținut insigna {{badge}}",
+      "streakMilestone": "{{username}} a atins o serie de {{count}} zile",
+      "duelWon": "{{username}} a câștigat un duel"
+    }
+  },
+  "friendSuggestions": {
+    "title": "Persoane pe care le-ai putea cunoaște",
+    "empty": "Nicio sugestie momentan.",
+    "addFriend": "Adaugă",
+    "dismiss": "Ascunde"
+  },
+  "userSearch": {
+    "placeholder": "Caută utilizatori după nume",
+    "empty": "Niciun utilizator nu corespunde „{{query}}\".",
+    "minChars": "Introdu cel puțin 2 caractere."
+  },
   "rewards": {
     "errors": {
       "downloadLimit": "Ai atins limita de descărcări de azi. Upgrade pentru descărcări nelimitate.",

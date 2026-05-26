@@ -13,6 +13,7 @@ from authentication.models import UserProfile, FriendRequest, Referral
 from authentication.serializers import FriendRequestSerializer, UserSearchSerializer
 from authentication.throttles import LoginRateThrottle
 from authentication.services.referrals import apply_referral
+from authentication.services.profile import build_public_profile_payload
 
 
 class FriendRequestView(
@@ -116,6 +117,22 @@ class FriendRequestView(
         friends = User.objects.filter(id__in=user_ids)
         serializer = UserSearchSerializer(friends, many=True)
         return Response(serializer.data)
+
+
+class PublicProfileView(APIView):
+    """Return public stats for any user by ID (username, avatar, points, streak)."""
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle]
+
+    def get(self, request, user_id):
+        try:
+            target = User.objects.select_related("profile").get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        payload = build_public_profile_payload(request.user, target)
+        return Response(payload)
 
 
 class ReferralApplyView(APIView):

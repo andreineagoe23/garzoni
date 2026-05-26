@@ -7,9 +7,9 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from authentication.user_display import user_display_dict
-from authentication.models import UserProfile
-from education.models import DailyActivityLog
-from gamification.models import MissionCompletion, RewardLedgerEntry
+from authentication.models import UserProfile, FriendRequest
+from education.models import DailyActivityLog, LessonCompletion, Mastery
+from gamification.models import Duel, MissionCompletion, RewardLedgerEntry, UserBadge
 from onboarding.models import QuestionnaireProgress
 
 
@@ -350,3 +350,144 @@ def invalidate_profile_cache(user, target_date=None):
     first_day = target_date.replace(day=1)
     for suffix in ("", ":v3", ":v4"):
         cache.delete(f"user_profile_summary{suffix}:{user.id}:{first_day.isoformat()}")
+
+
+CANONICAL_SKILLS = ["Budgeting", "Saving", "Investing", "Markets"]
+
+
+def _global_rank_for(profile: UserProfile) -> int:
+    return UserProfile.objects.filter(points__gt=profile.points).count() + 1
+
+
+def _friendship_state(viewer, target) -> dict:
+    if viewer.id == target.id:
+        return {
+            "is_self": True,
+            "is_friend": False,
+            "request_pending_outgoing": False,
+            "request_pending_incoming": False,
+        }
+    accepted = (
+        FriendRequest.objects.filter(
+            status="accepted",
+        )
+        .filter(models.Q(sender=viewer, receiver=target) | models.Q(sender=target, receiver=viewer))
+        .exists()
+    )
+    outgoing = FriendRequest.objects.filter(
+        sender=viewer, receiver=target, status="pending"
+    ).exists()
+    incoming = FriendRequest.objects.filter(
+        sender=target, receiver=viewer, status="pending"
+    ).exists()
+    return {
+        "is_self": False,
+        "is_friend": accepted,
+        "request_pending_outgoing": outgoing,
+        "request_pending_incoming": incoming,
+    }
+
+
+def _skill_breakdown(user) -> list:
+    rows = Mastery.objects.filter(user=user).values("skill", "proficiency")
+    by_skill: dict[str, int] = {}
+    for r in rows:
+        name = (r.get("skill") or "").strip()
+        if not name:
+            continue
+        prev = by_skill.get(name, 0)
+        by_skill[name] = max(prev, int(r.get("proficiency") or 0))
+
+    result = [{"name": name, "proficiency": by_skill.get(name, 0)} for name in CANONICAL_SKILLS]
+    for name, prof in by_skill.items():
+        if name in CANONICAL_SKILLS:
+            continue
+        result.append({"name": name, "proficiency": prof})
+    return result
+
+
+def _recent_badges(user, limit: int = 6) -> list:
+    qs = UserBadge.objects.filter(user=user).select_related("badge").order_by("-earned_at")[:limit]
+    return [
+        {
+            "id": ub.badge_id,
+            "name": ub.badge.name,
+            "image": (ub.badge.image.url if ub.badge.image else None),
+            "level": ub.badge.badge_level,
+            "earned_at": ub.earned_at.isoformat() if ub.earned_at else None,
+        }
+        for ub in qs
+    ]
+
+
+def build_public_profile_payload(viewer, target) -> dict:
+    """Rich snapshot for the friend-profile screen. Safe to expose to any authed viewer."""
+
+    target_profile = getattr(target, "profile", None)
+    viewer_profile = getattr(viewer, "profile", None)
+
+    target_points = int(getattr(target_profile, "points", 0) or 0)
+    target_streak = int(getattr(target_profile, "streak", 0) or 0)
+    target_avatar = getattr(target_profile, "profile_avatar", None)
+
+    target_rank = _global_rank_for(target_profile) if target_profile else None
+
+    lessons_completed = LessonCompletion.objects.filter(user_progress__user=target).count()
+    missions_completed = MissionCompletion.objects.filter(user=target).count()
+    badges_count = UserBadge.objects.filter(user=target).count()
+
+    vs_you = None
+    if viewer.id != target.id and viewer_profile is not None:
+        viewer_points = int(viewer_profile.points or 0)
+        viewer_streak = int(viewer_profile.streak or 0)
+        viewer_rank = _global_rank_for(viewer_profile)
+        vs_you = {
+            "xp_diff": target_points - viewer_points,
+            "rank_diff": (viewer_rank - target_rank) if target_rank else None,
+            "streak_diff": target_streak - viewer_streak,
+        }
+
+    last_active_at = None
+    if target_profile and target_profile.last_completed_date:
+        last_active_at = target_profile.last_completed_date.isoformat()
+    elif target.last_login:
+        last_active_at = target.last_login.isoformat()
+
+    open_duel = None
+    if viewer.id != target.id:
+        open_duel_obj = (
+            Duel.objects.filter(
+                models.Q(challenger=viewer, opponent=target)
+                | models.Q(challenger=target, opponent=viewer),
+                status__in=[Duel.STATUS_PENDING, Duel.STATUS_ACTIVE],
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if open_duel_obj is not None:
+            open_duel = {
+                "id": open_duel_obj.id,
+                "status": open_duel_obj.status,
+                "ends_at": (open_duel_obj.ends_at.isoformat() if open_duel_obj.ends_at else None),
+                "viewer_is_challenger": open_duel_obj.challenger_id == viewer.id,
+            }
+
+    return {
+        "id": target.id,
+        "username": user_display_dict(target)["username"],
+        "profile_avatar": target_avatar,
+        "points": target_points,
+        "streak": target_streak,
+        "rank": target_rank,
+        "lessons_completed": lessons_completed,
+        "missions_completed": missions_completed,
+        "badges_count": badges_count,
+        "joined_at": target.date_joined.isoformat() if target.date_joined else None,
+        "last_active_at": last_active_at,
+        "skills": _skill_breakdown(target),
+        "badges": _recent_badges(target),
+        "activity_heatmap": build_activity_heatmap(target, days=30),
+        "vs_you": vs_you,
+        "friendship": _friendship_state(viewer, target),
+        "open_duel": open_duel,
+    }

@@ -489,6 +489,84 @@ class MissionPerformance(models.Model):
         db_table = "core_missionperformance"
 
 
+class Duel(models.Model):
+    """Persistent XP race between two users over a fixed window."""
+
+    DURATION_CHOICES = [
+        (24, "24 hours"),
+        (72, "3 days"),
+        (168, "7 days"),
+    ]
+
+    STATUS_PENDING = "pending"
+    STATUS_ACTIVE = "active"
+    STATUS_WON_CHALLENGER = "won_by_challenger"
+    STATUS_WON_OPPONENT = "won_by_opponent"
+    STATUS_DRAW = "draw"
+    STATUS_DECLINED = "declined"
+    STATUS_CANCELLED = "cancelled"
+    STATUS_EXPIRED = "expired"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_WON_CHALLENGER, "Won by challenger"),
+        (STATUS_WON_OPPONENT, "Won by opponent"),
+        (STATUS_DRAW, "Draw"),
+        (STATUS_DECLINED, "Declined"),
+        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_EXPIRED, "Expired"),
+    ]
+
+    FINAL_STATUSES = {
+        STATUS_WON_CHALLENGER,
+        STATUS_WON_OPPONENT,
+        STATUS_DRAW,
+        STATUS_DECLINED,
+        STATUS_CANCELLED,
+        STATUS_EXPIRED,
+    }
+
+    challenger = models.ForeignKey(User, related_name="duels_initiated", on_delete=models.CASCADE)
+    opponent = models.ForeignKey(User, related_name="duels_received", on_delete=models.CASCADE)
+    status = models.CharField(max_length=24, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    duration_hours = models.PositiveIntegerField()
+    bonus_xp = models.PositiveIntegerField(default=100)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    challenger_xp_start = models.IntegerField(default=0)
+    opponent_xp_start = models.IntegerField(default=0)
+    challenger_xp_end = models.IntegerField(null=True, blank=True)
+    opponent_xp_end = models.IntegerField(null=True, blank=True)
+
+    winner = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="duels_won",
+    )
+
+    class Meta:
+        db_table = "core_duel"
+        indexes = [
+            models.Index(fields=["challenger", "status"], name="duel_chal_status_idx"),
+            models.Index(fields=["opponent", "status"], name="duel_opp_status_idx"),
+            models.Index(fields=["status", "ends_at"], name="duel_status_ends_idx"),
+        ]
+
+    def __str__(self):
+        return f"Duel #{self.id} {self.challenger_id} vs {self.opponent_id} ({self.status})"
+
+    @property
+    def is_final(self) -> bool:
+        return self.status in self.FINAL_STATUSES
+
+
 # Celery implementations live in gamification.tasks; names are registered as
 # gamification.models.reset_* — re-export so imports match Beat / introspection.
 from gamification.tasks import reset_daily_missions, reset_weekly_missions  # noqa: E402
