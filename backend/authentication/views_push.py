@@ -28,6 +28,11 @@ class ExpoPushTokenView(APIView):
         raw = request.data.get("expo_push_token")
         if raw is None:
             raw = request.data.get("push_token")
+        logger.info(
+            "push_token.received user_id=%s has_token=%s",
+            request.user.id,
+            bool(raw),
+        )
         if raw is None:
             return Response(
                 {"detail": "expo_push_token or push_token is required."},
