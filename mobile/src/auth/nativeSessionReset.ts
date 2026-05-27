@@ -2,6 +2,7 @@ import { DeviceEventEmitter } from "react-native";
 import { attachToken, clearExpoPushToken, queryClient } from "@garzoni/core";
 import { clearRevenueCatSession } from "../billing/subscriptionRuntime";
 import { clearGarzoniCustomerIo } from "../bootstrap/customerIoMobile";
+import { clearPushRegistrationFlag } from "../hooks/usePushNotifications";
 import { tokenStorage } from "./tokenStorage";
 import {
   clearPlanChosenCache,
@@ -46,6 +47,7 @@ export async function resetNativeSessionStores(
   } catch {
     /* offline or session already invalid */
   }
+  await clearPushRegistrationFlag();
   await clearGarzoniCustomerIo();
   await clearRevenueCatSession();
   await clearPlanChosenCache();

@@ -8,8 +8,14 @@ import {
   setupNotificationResponseHandlers,
 } from "../bootstrap/pushNotificationsMobile";
 
-const LAST_REGISTERED_KEY = "push_last_registered_at";
+export const LAST_REGISTERED_KEY = "push_last_registered_at";
 const REREGISTER_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+export async function clearPushRegistrationFlag(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(LAST_REGISTERED_KEY);
+  } catch {}
+}
 
 async function shouldReregister(): Promise<boolean> {
   try {
