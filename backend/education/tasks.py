@@ -94,6 +94,47 @@ def decay_course_mastery():
     return {"changed": changed, "coach_nudges": nudges}
 
 
+@shared_task
+def emit_streak_about_to_expire():
+    """
+    Daily evening sweep: emit `streak_about_to_expire` for users whose streak
+    is at risk (last lesson was yesterday and no activity today). CIO Journey
+    picks this up and sends push-first.
+    """
+    from authentication.models import UserProfile
+    from notifications.enums import CioEventName
+    from notifications.events import NotificationEvents
+
+    if not getattr(settings, "CIO_JOURNEY_EVENTS_ENABLED", False):
+        return {"sent": 0, "reason": "journey_events_disabled"}
+
+    today = timezone.localdate()
+    yesterday = today - timedelta(days=1)
+    profiles = (
+        UserProfile.objects.filter(
+            streak__gt=0,
+            last_completed_date=yesterday,
+        )
+        .select_related("user")
+        .only("user", "streak", "last_completed_date")
+    )
+    publisher = NotificationEvents()
+    sent = 0
+    for profile in profiles.iterator():
+        cache_key = f"streak_expire_emit:{profile.user_id}:{today.isoformat()}"
+        if not cache.add(cache_key, True, timeout=90_000):
+            continue
+        ok, _ = publisher.track(
+            profile.user,
+            CioEventName.STREAK_ABOUT_TO_EXPIRE,
+            {"streak_count": int(profile.streak or 0)},
+        )
+        if ok:
+            sent += 1
+    logger.info("streak_about_to_expire_emitted count=%s", sent)
+    return {"sent": sent}
+
+
 @shared_task(
     bind=True,
     autoretry_for=(Exception,),

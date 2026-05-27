@@ -38,18 +38,10 @@ class AiNudgeTaskTests(TestCase):
         profile.expo_push_token = "ExponentPushToken[abc]"
         profile.save(update_fields=["expo_push_token"])
 
-    def test_send_ai_nudge_task_skips_when_push_policy_denied(self):
-        prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
-        prefs.push_notifications = False
-        prefs.marketing = False
-        prefs.save(update_fields=["push_notifications", "marketing"])
-        result = send_ai_nudge_task(user_pk=self.user.pk)
-        self.assertEqual(result, "skipped_policy:push_master_off")
-
     @patch("notifications.tasks.NotificationService.sync_user_profile")
     @patch("notifications.transactional.TransactionalMessages.send_push")
     @patch("education.services.ai_tutor.generate_push_nudge")
-    def test_send_ai_nudge_task_returns_sent(
+    def test_send_ai_nudge_task_routes_to_push_when_token_present(
         self, mock_generate_nudge, mock_send_push, mock_sync_profile
     ):
         prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
@@ -62,8 +54,70 @@ class AiNudgeTaskTests(TestCase):
 
         result = send_ai_nudge_task(user_pk=self.user.pk)
 
-        self.assertEqual(result, "sent")
+        self.assertEqual(result, "sent_push")
         mock_send_push.assert_called_once()
+
+    @patch("notifications.tasks.NotificationService.sync_user_profile")
+    @patch("notifications.transactional.TransactionalMessages.send_push")
+    @patch("education.services.ai_tutor.generate_push_nudge")
+    def test_send_ai_nudge_task_falls_back_to_email_when_no_token(
+        self, mock_generate_nudge, mock_send_push, mock_sync_profile
+    ):
+        # No expo token → resolver picks email path; push send never attempted.
+        UserProfile.objects.filter(user=self.user).update(expo_push_token="")
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
+        prefs.push_notifications = True
+        prefs.reminders = True
+        prefs.save(update_fields=["push_notifications", "reminders"])
+        mock_generate_nudge.return_value = "Time for a 5-minute lesson."
+        mock_sync_profile.return_value = (True, None)
+
+        result = send_ai_nudge_task(user_pk=self.user.pk)
+
+        # No CIO transactional config and no SMTP in tests → skipped_no_channel.
+        # The key invariant: push was NOT attempted when the user has no token.
+        mock_send_push.assert_not_called()
+        self.assertIn(result, {"skipped_no_channel", "sent_smtp", "sent_cio"})
+
+
+class ResolveChannelsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="route-user", email="route@example.com", password="pass12345"
+        )
+        UserProfile.objects.get_or_create(user=self.user)
+
+    def _set_token(self, value: str) -> None:
+        UserProfile.objects.filter(user=self.user).update(expo_push_token=value)
+
+    def test_marketing_with_token_routes_push_only(self):
+        from notifications.policy import NotificationCategory, resolve_channels
+
+        self._set_token("ExponentPushToken[xyz]")
+        d = resolve_channels(self.user, NotificationCategory.MARKETING)
+        self.assertTrue(d.push)
+        self.assertFalse(d.email)
+
+    def test_marketing_without_token_falls_back_to_email(self):
+        from notifications.policy import NotificationCategory, resolve_channels
+
+        self._set_token("")
+        d = resolve_channels(self.user, NotificationCategory.MARKETING)
+        self.assertFalse(d.push)
+        self.assertTrue(d.email)
+
+    def test_critical_always_email_plus_push_if_token(self):
+        from notifications.policy import NotificationCategory, resolve_channels
+
+        self._set_token("ExponentPushToken[xyz]")
+        d = resolve_channels(self.user, NotificationCategory.TRANSACTIONAL_CRITICAL)
+        self.assertTrue(d.email)
+        self.assertTrue(d.push)
+
+        self._set_token("")
+        d = resolve_channels(self.user, NotificationCategory.TRANSACTIONAL_CRITICAL)
+        self.assertTrue(d.email)
+        self.assertFalse(d.push)
 
 
 class TransactionalEmailIdentifiersTests(TestCase):

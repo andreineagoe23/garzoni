@@ -3,7 +3,10 @@ import { AppState, type AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserSettings, queryKeys, staleTimes } from "@garzoni/core";
-import { registerForPushAndSubmitToken } from "../bootstrap/pushNotificationsMobile";
+import {
+  registerForPushAndSubmitToken,
+  setupNotificationResponseHandlers,
+} from "../bootstrap/pushNotificationsMobile";
 
 const LAST_REGISTERED_KEY = "push_last_registered_at";
 const REREGISTER_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -50,6 +53,9 @@ export function usePushNotifications(isAuthenticated: boolean) {
 
   useEffect(() => {
     if (!isAuthenticated || !pushAllowed) return;
+
+    // Deep-link routing for notification taps. Idempotent; safe to call here.
+    setupNotificationResponseHandlers();
 
     async function tryRegister() {
       if (!(await shouldReregister())) return;

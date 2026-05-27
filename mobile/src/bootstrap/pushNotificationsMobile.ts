@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
+import { router } from "expo-router";
 import { submitExpoPushToken } from "@garzoni/core";
 import { tokenStorage } from "../auth/tokenStorage";
 import {
@@ -17,6 +18,78 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
+
+/**
+ * Extract deeplink target from a notification payload. Convention:
+ * - `data.deeplink`: a full URL (`garzoni://lesson/123`) or a path (`/lesson/123`).
+ * - `data.route`: bare expo-router path (`/lesson/123`).
+ */
+function extractDeeplink(
+  data: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!data || typeof data !== "object") return null;
+  const raw =
+    (typeof data.deeplink === "string" && data.deeplink) ||
+    (typeof data.route === "string" && data.route) ||
+    null;
+  if (!raw) return null;
+  return raw;
+}
+
+async function navigateToDeeplink(target: string): Promise<void> {
+  try {
+    if (target.startsWith("garzoni://") || target.includes("://")) {
+      await Linking.openURL(target);
+      return;
+    }
+    // Treat as in-app path
+    router.push(target as never);
+  } catch (e) {
+    if (__DEV__) {
+      console.warn("[push] navigate failed", target, e);
+    }
+  }
+}
+
+let responseSubscription: Notifications.Subscription | null = null;
+let coldStartHandled = false;
+
+/**
+ * Wire notification tap → deep-link navigation. Idempotent; safe to call on
+ * every app foreground via usePushNotifications.
+ */
+export function setupNotificationResponseHandlers(): void {
+  if (Platform.OS === "web") return;
+  if (!responseSubscription) {
+    responseSubscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const data = response.notification.request.content.data as
+          | Record<string, unknown>
+          | undefined;
+        const target = extractDeeplink(data ?? null);
+        if (target) void navigateToDeeplink(target);
+      },
+    );
+  }
+  if (!coldStartHandled) {
+    coldStartHandled = true;
+    void (async () => {
+      try {
+        const last = await Notifications.getLastNotificationResponseAsync();
+        if (!last) return;
+        const data = last.notification.request.content.data as
+          | Record<string, unknown>
+          | undefined;
+        const target = extractDeeplink(data ?? null);
+        if (target) await navigateToDeeplink(target);
+      } catch (e) {
+        if (__DEV__) {
+          console.warn("[push] cold-start handler failed", e);
+        }
+      }
+    })();
+  }
+}
 
 function resolveEasProjectId(): string | undefined {
   const extra = Constants.expoConfig?.extra as

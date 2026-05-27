@@ -2,6 +2,7 @@ import logging
 from decimal import Decimal
 
 from celery import shared_task
+from django.db import transaction
 from django.db.models import F
 
 from finance.views import (
@@ -166,9 +167,7 @@ def update_portfolio_prices_task(self):
     from finance.models import PortfolioEntry
 
     entries = list(
-        PortfolioEntry.objects.filter(is_paper_trade=False, symbol__isnull=False)
-        .exclude(symbol="")
-        .select_for_update(skip_locked=True)
+        PortfolioEntry.objects.filter(is_paper_trade=False, symbol__isnull=False).exclude(symbol="")
     )
 
     if not entries:
@@ -202,27 +201,38 @@ def update_portfolio_prices_task(self):
         except Exception as exc:
             logger.warning("update_portfolio_prices: coingecko fetch failed: %s", exc)
 
-    # Apply prices
-    to_update: list[PortfolioEntry] = []
-    for entry in entries:
-        sym = entry.symbol.strip().upper()
-        cg_id = symbol_to_cg.get(sym)
-        if cg_id:
-            data = _coingecko_read_cached(cg_id)
-            price = data.get("price") or 0.0
-        else:
-            data = _yahoo_read_cached_quote_details(sym)
-            price = data.get("price") or 0.0
+    # Apply prices under a short transaction. The network/cache fetches above
+    # intentionally run outside the lock window.
+    entry_ids = [entry.id for entry in entries]
+    with transaction.atomic():
+        locked_entries = list(
+            PortfolioEntry.objects.filter(id__in=entry_ids)
+            .filter(is_paper_trade=False, symbol__isnull=False)
+            .exclude(symbol="")
+            .select_for_update(skip_locked=True)
+            .order_by("id")
+        )
 
-        if price and price > 0:
-            new_price = Decimal(str(price))
-            if entry.current_price != new_price:
-                entry.previous_price = entry.current_price
-                entry.current_price = new_price
-                to_update.append(entry)
+        to_update: list[PortfolioEntry] = []
+        for entry in locked_entries:
+            sym = entry.symbol.strip().upper()
+            cg_id = symbol_to_cg.get(sym)
+            if cg_id:
+                data = _coingecko_read_cached(cg_id)
+                price = data.get("price") or 0.0
+            else:
+                data = _yahoo_read_cached_quote_details(sym)
+                price = data.get("price") or 0.0
 
-    if to_update:
-        PortfolioEntry.objects.bulk_update(to_update, ["current_price", "previous_price"])
+            if price and price > 0:
+                new_price = Decimal(str(price))
+                if entry.current_price != new_price:
+                    entry.previous_price = entry.current_price
+                    entry.current_price = new_price
+                    to_update.append(entry)
+
+        if to_update:
+            PortfolioEntry.objects.bulk_update(to_update, ["current_price", "previous_price"])
 
     logger.info(
         "update_portfolio_prices done updated=%d total=%d",

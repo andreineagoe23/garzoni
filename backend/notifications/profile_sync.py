@@ -33,7 +33,22 @@ def build_identify_traits(user: User) -> dict[str, Any]:
     if profile:
         traits["subscription_status"] = profile.subscription_status or ""
         traits["expo_push_token"] = profile.expo_push_token or ""
+        traits["has_mobile_app"] = bool((profile.expo_push_token or "").strip())
         traits["email_reminder_preference"] = profile.email_reminder_preference or "none"
+        if profile.last_login_date:
+            traits["last_login_date"] = profile.last_login_date.isoformat()
+        if profile.last_completed_date:
+            traits["last_lesson_date"] = profile.last_completed_date.isoformat()
+        traits["streak"] = int(profile.streak or 0)
+        # last_active_at = max(last_login_date, last_completed_date) as unix ts.
+        # CIO inactivity segments need a single timestamp regardless of activity type.
+        candidates = [d for d in (profile.last_login_date, profile.last_completed_date) if d]
+        if candidates:
+            from datetime import datetime, time
+
+            last_active_dt = datetime.combine(max(candidates), time.min)
+            last_active_dt = timezone.make_aware(last_active_dt, timezone.get_current_timezone())
+            traits["last_active_at"] = int(last_active_dt.timestamp())
     if prefs:
         traits["marketing_opt_in"] = bool(prefs.marketing)
         traits["reminders_opt_in"] = bool(prefs.reminders)

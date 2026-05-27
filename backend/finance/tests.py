@@ -3,8 +3,9 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TransactionTestCase, skipUnlessDBFeature
 from django.urls import reverse
 from django.utils import timezone
 from finance.serializers import PortfolioEntrySerializer
@@ -86,6 +87,39 @@ class NewsFeedViewTest(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["items"], [])
         self.assertIn("generated_at", response.data)
+
+
+@skipUnlessDBFeature("has_select_for_update")
+class UpdatePortfolioPricesTaskTest(TransactionTestCase):
+    def test_updates_prices_with_row_lock_inside_transaction(self):
+        from finance.models import PortfolioEntry
+        from finance.tasks import update_portfolio_prices_task
+
+        user = get_user_model().objects.create_user(username="portfolio-user")
+        entry = PortfolioEntry.objects.create(
+            user=user,
+            asset_type="stock",
+            symbol="AAPL",
+            quantity=1,
+            purchase_price=100,
+            purchase_date=timezone.now().date(),
+            current_price=100,
+            is_paper_trade=False,
+        )
+
+        with (
+            patch("finance.tasks._yahoo_bulk_fetch_and_cache"),
+            patch(
+                "finance.tasks._yahoo_read_cached_quote_details",
+                return_value={"price": 125.0},
+            ),
+        ):
+            result = update_portfolio_prices_task.run()
+
+        entry.refresh_from_db()
+        self.assertEqual(result, "updated=1")
+        self.assertEqual(entry.previous_price, 100)
+        self.assertEqual(entry.current_price, 125)
 
 
 class MarketQuoteParsingHelpersTest(SimpleTestCase):

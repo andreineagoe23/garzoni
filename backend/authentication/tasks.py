@@ -91,10 +91,26 @@ def send_email_reminders(self):
     for profile in weekly_users:
         try:
             if _journey_reminders_mode():
+                # CIO Journey 15 renders {{event.week_label}}, {{event.modules_completed}},
+                # {{event.streak_days}}, {{event.xp_earned}} — pre-compute them here so
+                # the journey email isn't blank.
+                monday, metrics_end, sunday = weekly_digest_week_bounds(reference=now.date())
+                digest = build_weekly_digest_message_data(
+                    user=profile.user,
+                    profile=profile,
+                    metrics_start=monday,
+                    metrics_end=metrics_end,
+                    label_start=monday,
+                    label_end=sunday,
+                )
                 svc.track_journey_eligible(
                     profile.user,
                     CioEventName.WEEKLY_DIGEST_ELIGIBLE,
-                    {"frequency": "weekly", "source": "celery_beat"},
+                    {
+                        "frequency": "weekly",
+                        "source": "celery_beat",
+                        **digest,
+                    },
                 )
             else:
                 monday, metrics_end, sunday = weekly_digest_week_bounds(reference=now.date())

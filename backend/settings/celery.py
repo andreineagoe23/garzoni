@@ -75,6 +75,11 @@ app.conf.beat_schedule = {
         "task": "notifications.tasks.send_ai_nudges_batch",
         "schedule": crontab(hour=9, minute=0),
     },
+    # Streak-at-risk evening sweep — fires CIO STREAK_ABOUT_TO_EXPIRE event for Journeys.
+    "emit-streak-about-to-expire": {
+        "task": "education.tasks.emit_streak_about_to_expire",
+        "schedule": crontab(hour=19, minute=0),
+    },
     # Portfolio live prices — refresh every 30 min during market hours
     "update-portfolio-prices": {
         "task": "finance.tasks.update_portfolio_prices_task",

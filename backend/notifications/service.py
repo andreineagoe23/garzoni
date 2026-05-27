@@ -15,7 +15,12 @@ from notifications.enums import CioEventName, CioTemplate
 from notifications.events import NotificationEvents
 from notifications.idempotency import idempotency_already_sent, record_idempotency_success
 from notifications.message_data import flatten_context_for_cio
-from notifications.policy import should_send_email
+from notifications.policy import (
+    NotificationCategory,
+    resolve_channels,
+    should_send_email,
+    should_send_push,
+)
 from notifications.profile_sync import NotificationProfileSync
 from notifications.transactional import TransactionalMessages
 
@@ -41,6 +46,13 @@ def _record_successful_idempotency(idempotency_key: str | None, purpose: str, ou
         return
     if outcome.startswith("sent_") or outcome == "journey_event_published":
         record_idempotency_success(idempotency_key, purpose)
+
+
+def _has_push_token(user: User) -> bool:
+    profile = getattr(user, "profile", None)
+    if not profile:
+        return False
+    return bool((getattr(profile, "expo_push_token", "") or "").strip())
 
 
 class NotificationService:
@@ -388,3 +400,100 @@ class NotificationService:
             smtp_subject="Action needed: payment failed",
             smtp_template="emails/payment_failed.html",
         )
+
+    def send_marketing_nudge(
+        self,
+        user: User,
+        *,
+        push_template: CioTemplate,
+        email_template: CioTemplate,
+        push_data: dict[str, Any],
+        email_data: dict[str, Any] | None = None,
+        smtp_subject: str | None = None,
+        smtp_template: str | None = None,
+        smtp_context: dict[str, Any] | None = None,
+        push_category: str = "marketing",
+        idempotency_key: str | None = None,
+        purpose: str = "marketing_nudge",
+    ) -> str:
+        """
+        Resolve channel for a marketing/reminder send. Push-first when mobile token
+        present and push preferences allow; otherwise email fallback. Honors both
+        preference gates (`should_send_push`, `should_send_email`).
+        """
+        if idempotency_key and idempotency_already_sent(idempotency_key):
+            return "skipped_duplicate"
+
+        decision = resolve_channels(user, NotificationCategory.MARKETING)
+        push_attempted = False
+        if decision.push:
+            push_policy = should_send_push(user, push_category)
+            if push_policy.allowed:
+                push_attempted = True
+                ok, err = self.transactional.send_push(push_template, user, push_data)
+                if ok:
+                    _record_successful_idempotency(idempotency_key, purpose, "sent_push")
+                    return "sent_push"
+                logger.info(
+                    "marketing_push_failed user=%s template=%s err=%s — falling back to email",
+                    user.pk,
+                    push_template.value,
+                    err,
+                )
+            else:
+                logger.info(
+                    "marketing_push_pref_denied user=%s reason=%s — trying email",
+                    user.pk,
+                    push_policy.reason,
+                )
+
+        # Email fallback (or always-email path)
+        em_pr = should_send_email(user, email_template)
+        if not em_pr.allowed:
+            outcome = (
+                "push_failed_email_denied" if push_attempted else f"policy_denied:{em_pr.reason}"
+            )
+            return outcome
+
+        data = email_data if email_data is not None else dict(push_data)
+        if _use_cio_transactional(email_template):
+            ok, err = self.transactional.send(email_template, user, data)
+            out = _outcome_from_cio(ok, err)
+            _record_successful_idempotency(idempotency_key, purpose, out)
+            return out
+        if smtp_template and smtp_subject and smtp_configured():
+            ctx = {**(smtp_context or {}), **data}
+            ctx.setdefault("year", timezone.now().year)
+            ctx["user"] = user
+            send_html_email(
+                subject=smtp_subject,
+                template_name=smtp_template,
+                context=ctx,
+                to_emails=[user.email],
+            )
+            _record_successful_idempotency(idempotency_key, purpose, "sent_smtp")
+            return "sent_smtp"
+        return "skipped_no_channel"
+
+    def send_push_companion(
+        self,
+        user: User,
+        *,
+        push_template: CioTemplate,
+        push_data: dict[str, Any],
+        push_category: str = "transactional",
+    ) -> str:
+        """
+        Best-effort companion push for an already-sent critical email
+        (billing receipt, payment failed, subscription cancelled). Silent if
+        no mobile token, no transactional mapping, or preferences block it.
+        """
+        if not _has_push_token(user):
+            return "skipped_no_token"
+        push_policy = should_send_push(user, push_category)
+        if not push_policy.allowed:
+            return f"skipped_policy:{push_policy.reason}"
+        ok, err = self.transactional.send_push(push_template, user, push_data)
+        if ok:
+            return "sent_push"
+        return f"cio_failed:{err}"

@@ -199,24 +199,14 @@ def safe_enqueue_sync_user_to_customer_io(user_id: int) -> None:
 @shared_task(bind=True, max_retries=1)
 def send_ai_nudge_task(self, user_pk: int) -> str:
     """
-    Generate a personalised AI nudge for a single user and send it via Customer.io push.
-    Intended to be called from a daily beat schedule or queued per-user.
+    Generate a personalised AI nudge and route it via the channel resolver:
+    push when the user has a mobile token, email otherwise.
     """
     User = get_user_model()
     try:
         user = User.objects.select_related("profile").get(pk=user_pk)
     except User.DoesNotExist:
         return "skipped_no_user"
-
-    # Only send to users who have a push token
-    push_token = getattr(getattr(user, "profile", None), "expo_push_token", None)
-    if not push_token:
-        return "skipped_no_token"
-    from notifications.policy import should_send_push
-
-    policy = should_send_push(user, "marketing")
-    if not policy.allowed:
-        return f"skipped_policy:{policy.reason}"
 
     try:
         from education.services.ai_tutor import generate_push_nudge
@@ -225,24 +215,25 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
         if not nudge_text:
             return "skipped_no_nudge"
 
-        from notifications.transactional import TransactionalMessages
-        from notifications.enums import CioTemplate
-
-        transactional = TransactionalMessages()
-        NotificationService().sync_user_profile(user)
-        ok, err = transactional.send_push(
-            CioTemplate.AI_NUDGE,
+        svc = NotificationService()
+        svc.sync_user_profile(user)
+        result = svc.send_marketing_nudge(
             user,
-            {"message": nudge_text, "user_id": user_pk},
+            push_template=CioTemplate.AI_NUDGE,
+            email_template=CioTemplate.REMINDER_MONTHLY,
+            push_data={"message": nudge_text, "user_id": user_pk},
+            email_data={
+                "message": nudge_text,
+                "user_id": user_pk,
+                "customer_name": user.first_name or user.username or "there",
+            },
+            smtp_subject="A quick nudge from Garzoni",
+            smtp_template="emails/reminder_monthly.html",
+            smtp_context={"nudge_text": nudge_text},
+            purpose="ai_nudge",
         )
-        if ok:
-            logger.info("ai_nudge_sent user=%s", user_pk)
-            return "sent"
-        if err and err.startswith("skipped_"):
-            logger.info("ai_nudge_skipped user=%s reason=%s", user_pk, err)
-            return err
-        logger.warning("ai_nudge_cio_failed user=%s err=%s", user_pk, err)
-        return f"cio_failed:{err}"
+        logger.info("ai_nudge_dispatched user=%s outcome=%s", user_pk, result)
+        return result
     except Exception as exc:
         logger.error("ai_nudge_task_error user=%s", user_pk, exc_info=True)
         raise self.retry(exc=exc)
@@ -251,8 +242,9 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
 @shared_task
 def send_ai_nudges_batch() -> dict:
     """
-    Dispatch AI nudges to all active users with push tokens.
-    Intended to be run daily from Celery Beat.
+    Dispatch AI nudges to all active users. The per-user task picks push or
+    email via the channel resolver — users without a push token still get
+    reached over email.
     """
     User = get_user_model()
     from django.utils import timezone
@@ -262,14 +254,9 @@ def send_ai_nudges_batch() -> dict:
     sent = 0
     skipped = 0
 
-    users = User.objects.filter(
-        profile__expo_push_token__isnull=False,
-        profile__expo_push_token__gt="",
-        is_active=True,
-    ).select_related("profile")[:500]
+    users = User.objects.filter(is_active=True).select_related("profile")[:500]
 
     for user in users:
-        # Rate-limit: max one nudge per user per day
         cache_key = f"ai_nudge_sent:{user.id}:{today}"
         if cache.get(cache_key):
             skipped += 1

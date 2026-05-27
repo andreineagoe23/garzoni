@@ -39,3 +39,5 @@ class CioEventName(str, Enum):
     PAYMENT_FAILED = "payment_failed"
     CHECKOUT_ABANDONED = "checkout_abandoned"
     COACH_NUDGE = "coach_nudge"
+    STREAK_ABOUT_TO_EXPIRE = "streak_about_to_expire"
+    INACTIVITY_NUDGE = "inactivity_nudge"
