@@ -120,14 +120,17 @@ def send_portfolio_push_notifications(self):
             )
         )
 
+        sym = best_entry.symbol.upper()
+        pct = f"{float(best_pct):.1f}"
         ok, err = transactional.send_push(
             CioTemplate.PORTFOLIO_UPDATE,
             user,
             {
-                "symbol": best_entry.symbol.upper(),
-                "change_pct": f"{float(best_pct):.1f}",
+                "symbol": sym,
+                "change_pct": pct,
                 "direction": direction,
                 "portfolio_value": f"{portfolio_value:,.2f}",
+                "body": f"{sym} moved {pct}% {direction} today",
             },
         )
         if ok:

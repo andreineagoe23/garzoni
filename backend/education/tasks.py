@@ -179,12 +179,14 @@ def reset_inactive_streaks(self):
 
                     push_policy = should_send_push(user, "transactional")
                     if push_policy.allowed:
+                        name = user.first_name or user.username or "there"
                         TransactionalMessages().send_push(
                             CioTemplate.STREAK_BROKEN,
                             user,
                             {
                                 "streak_count": previous_streak,
-                                "customer_name": user.first_name or user.username or "there",
+                                "customer_name": name,
+                                "body": f"Your {previous_streak}-day streak has ended, {name}. Start a new one today!",
                             },
                         )
 
