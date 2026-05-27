@@ -63,7 +63,7 @@ jobs:
 
       - name: Unit tests
         run: |
-          cd backend && python manage.py test
+          cd backend && python manage.py test --keepdb
 
       - name: Content sync + quality gates
         run: |
