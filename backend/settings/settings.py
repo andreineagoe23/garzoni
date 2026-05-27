@@ -1047,6 +1047,28 @@ if SENTRY_DSN and "test" not in sys.argv:
     from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
 
+    # OpenAI/HTTP-client integrations auto-capture exceptions inside the wrapped
+    # `chat.completions.create` call before re-raising. Our AI tutor wraps every
+    # call in try/except and degrades gracefully, so these auto-captured events
+    # are noise — drop them at ingest. Anything that actually escapes our handler
+    # will reach Sentry via the Celery/Django integrations with a different
+    # mechanism.type, so this filter is safe.
+    _SENTRY_DROPPED_AUTOCAPTURED_EXC_TYPES = {
+        "APITimeoutError",
+        "APIConnectionError",
+    }
+
+    def _sentry_before_send(event, hint):
+        for exc_value in (event.get("exception", {}) or {}).get("values", []) or []:
+            mechanism = exc_value.get("mechanism") or {}
+            if (
+                mechanism.get("type") == "openai"
+                and mechanism.get("handled") is False
+                and exc_value.get("type") in _SENTRY_DROPPED_AUTOCAPTURED_EXC_TYPES
+            ):
+                return None
+        return event
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         environment=DJANGO_ENV,
@@ -1055,6 +1077,7 @@ if SENTRY_DSN and "test" not in sys.argv:
         send_default_pii=False,
         sample_rate=1.0 if not DEBUG else 0.2,
         release=os.getenv("RAILWAY_GIT_COMMIT_SHA", ""),
+        before_send=_sentry_before_send,
     )
     import logging as _logging
 

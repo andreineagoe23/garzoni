@@ -24,7 +24,8 @@ from support.prompts.tutor import (
 logger = logging.getLogger(__name__)
 
 # OpenAI HTTP timeouts (seconds) — single place; no Railway env vars required.
-_SYNC_BLOCKING_TIMEOUT_SEC = 3.0  # feedback, hints, nudge
+_SYNC_BLOCKING_TIMEOUT_SEC = 3.0  # feedback, hints — request/response, must fail fast
+_SYNC_BACKGROUND_TIMEOUT_SEC = 15.0  # nudge — Celery batch, no user waiting
 _SYNC_HEAVY_TIMEOUT_SEC = 180.0  # path ranking, coach brief, checkpoints, exercise explain
 _STREAM_TIMEOUT_SEC = 90.0
 _SYNC_MAX_RETRIES = 0
@@ -429,6 +430,7 @@ def generate_push_nudge(*, user) -> Optional[str]:
             ],
             temperature=0.8,
             max_tokens=40,
+            timeout=_SYNC_BACKGROUND_TIMEOUT_SEC,
         )
     except Exception as exc:
         logger.error("[ai_tutor] nudge error: %s", exc)
