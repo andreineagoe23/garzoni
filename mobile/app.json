@@ -25,11 +25,32 @@
             "NSPrivacyAccessedAPITypeReasons": [
               "CA92.1"
             ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           }
         ]
       },
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Allow Garzoni to choose a profile photo from your library (shown on this device until you update your avatar in account settings).",
+        "NSUserNotificationsUsageDescription": "Garzoni sends notifications to remind you of daily learning goals, streak milestones, and mission completions.",
+        "NSCameraUsageDescription": "Garzoni uses the camera to scan receipts and statements for AI-powered spending insights (Pro feature).",
+        "NSMicrophoneUsageDescription": "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature)."
+      },
+      "requireFullScreen": true,
+      "associatedDomains": [
+        "applinks:garzoni.app",
+        "applinks:www.garzoni.app"
+      ],
+      "entitlements": {
+        "com.apple.developer.applesignin": [
+          "Default"
+        ],
+        "aps-environment": "production"
       }
     },
     "android": {
@@ -66,6 +87,12 @@
         "projectId": "65781f5d-673f-484b-866c-b8dc165a160b"
       }
     },
-    "owner": "andreineagoe"
+    "owner": "andreineagoe",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/65781f5d-673f-484b-866c-b8dc165a160b"
+    }
   }
 }
