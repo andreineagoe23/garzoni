@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.contrib.auth.models import User
 
 from authentication.user_display import user_display_dict
@@ -491,6 +491,18 @@ class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
     throttle_classes = [RefreshRateThrottle]
 
+    def _reject_refresh_token(self, exc):
+        logger.info("Refresh token rejected: %s", exc)
+        response = Response(
+            {
+                "detail": "Refresh token is invalid or expired.",
+                "code": "invalid_refresh_token",
+            },
+            status=401,
+        )
+        clear_refresh_cookie(response)
+        return response
+
     def post(self, request, *args, **kwargs):
         refresh_token = (request.data.get("refresh") or "").strip() or request.COOKIES.get(
             REFRESH_COOKIE_NAME
@@ -504,11 +516,8 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         try:
             serializer.is_valid(raise_exception=True)
-        except (TokenError, User.DoesNotExist) as exc:
-            logger.error("Token refresh error: %s", exc)
-            response = Response({"detail": str(exc)}, status=401)
-            clear_refresh_cookie(response)
-            return response
+        except (TokenError, InvalidToken, User.DoesNotExist) as exc:
+            return self._reject_refresh_token(exc)
         except Exception as exc:
             logger.error("Unexpected error during token refresh: %s", exc, exc_info=True)
             return Response(
@@ -539,10 +548,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             clear_refresh_cookie(response)
             return response
         except TokenError as exc:
-            logger.warning("Refresh token blacklisted during user validation: %s", exc)
-            response = Response({"detail": "Token is blacklisted."}, status=401)
-            clear_refresh_cookie(response)
-            return response
+            return self._reject_refresh_token(exc)
         except Exception as exc:
             logger.warning(
                 "Could not validate user from refresh token (non-critical): %s",

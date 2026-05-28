@@ -5,12 +5,35 @@ from django.contrib.auth.models import User
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentication.entitlements import get_user_plan
 from authentication.models import UserProfile
 from authentication.revenuecat_products import ENTITLEMENT_PLAN_MAP
 from authentication.services.subscriptions import apply_subscription_to_profile
 from authentication.revenuecat_products import PRODUCT_PLAN_MAP
+
+
+class TokenRefreshTests(APITestCase):
+    def test_blacklisted_refresh_token_returns_401_without_error_log(self):
+        user = User.objects.create_user(
+            username="refresh-user",
+            email="refresh@example.com",
+            password="pass12345",
+        )
+        refresh = RefreshToken.for_user(user)
+        refresh.blacklist()
+
+        with patch("authentication.views_auth.logger.error") as mock_error:
+            response = self.client.post(
+                reverse("token-refresh"),
+                {"refresh": str(refresh)},
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data.get("code"), "invalid_refresh_token")
+        mock_error.assert_not_called()
 
 
 class SubscriptionParityTests(APITestCase):

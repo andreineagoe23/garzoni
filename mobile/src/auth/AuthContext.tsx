@@ -17,6 +17,7 @@ import {
   clearGarzoniCustomerIo,
   identifyGarzoniUserFromAccessToken,
 } from "../bootstrap/customerIoMobile";
+import { fireAppOpenedDaily } from "../bootstrap/sessionTracking";
 import { tokenStorage } from "./tokenStorage";
 import { markWelcomeHeaderPending } from "./firstRunFlags";
 import {
@@ -46,6 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         attachToken(access);
         setAccessToken(access);
         void identifyGarzoniUserFromAccessToken(access);
+        // Daily app_opened event drives CIO inactivity segments. Debounced
+        // to once per local day inside the helper.
+        void fireAppOpenedDaily();
       }
       if (!cancelled) setHydrated(true);
     })();
@@ -64,14 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, []);
 
-  // Refresh last_active_at on every foreground when a session is active.
-  // identify() stamps the trait so CIO inactivity segments do not flag users
-  // who keep the app installed and open it daily without re-authenticating.
+  // Emit (debounced) `app_opened` on every foreground while authed. Fires an
+  // event, never a trait write — so CIO inactivity segments can use
+  // "no app_opened event in last N days" without ever resetting on a passive
+  // foreground bounce. The daily YMD gate in the helper guarantees one emit
+  // per local day max.
   useEffect(() => {
     if (!accessToken) return;
     const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
       if (next === "active") {
-        void identifyGarzoniUserFromAccessToken(accessToken);
+        void fireAppOpenedDaily();
       }
     });
     return () => sub.remove();
@@ -84,7 +90,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     attachToken(access);
     await markWelcomeHeaderPending();
     setAccessToken(access);
-    void identifyGarzoniUserFromAccessToken(access);
+    // applyTokens fires only on a real authentication event (login or signup
+    // returning fresh tokens), so it is the right place to stamp
+    // last_active_at. Hydration on cold start passes no traits, leaving the
+    // trait alone — inactivity segments must depend on real user actions, not
+    // app presence.
+    void identifyGarzoniUserFromAccessToken(access, {
+      last_active_at: Math.floor(Date.now() / 1000),
+    });
+    // A fresh login is also an app open — fire the event so today's
+    // engagement is captured even if hydration ran in a different session.
+    void fireAppOpenedDaily();
   }, []);
 
   const clearSession = useCallback(async () => {

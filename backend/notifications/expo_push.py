@@ -11,6 +11,15 @@ _EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 _TIMEOUT = 10
 
 
+def _first_ticket(response_data: Any) -> dict[str, Any] | None:
+    data = response_data.get("data") if isinstance(response_data, dict) else None
+    if isinstance(data, dict):
+        return data
+    if isinstance(data, list) and data and isinstance(data[0], dict):
+        return data[0]
+    return None
+
+
 def send_expo_push(
     token: str,
     title: str,
@@ -43,13 +52,11 @@ def send_expo_push(
         if r.status_code >= 400:
             return False, f"HTTP {r.status_code}: {r.text[:200]}"
 
-        items = r.json().get("data") or []
-        if isinstance(items, list) and items:
-            item = items[0]
-            if isinstance(item, dict) and item.get("status") == "error":
-                detail = item.get("message") or item.get("details", {}).get("error", "expo_error")
-                logger.warning("Expo push error token=%s detail=%s", t[:30], detail)
-                return False, str(detail)
+        item = _first_ticket(r.json())
+        if item and item.get("status") == "error":
+            detail = item.get("message") or item.get("details", {}).get("error", "expo_error")
+            logger.warning("Expo push error token=%s detail=%s", t[:30], detail)
+            return False, str(detail)
 
         return True, None
     except requests.RequestException as e:

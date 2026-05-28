@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -14,6 +14,39 @@ from notifications.message_data import (
 )
 from notifications.service import NotificationService
 from notifications.tasks import send_ai_nudge_task
+
+
+class ExpoPushTests(TestCase):
+    @patch("notifications.expo_push.requests.post")
+    def test_send_expo_push_accepts_single_ticket_object(self, mock_post):
+        from notifications.expo_push import send_expo_push
+
+        response = Mock(status_code=200, text="")
+        response.json.return_value = {"data": {"status": "ok", "id": "ticket-id"}}
+        mock_post.return_value = response
+
+        ok, err = send_expo_push("ExponentPushToken[abc]", "Title", "Body")
+
+        self.assertTrue(ok)
+        self.assertIsNone(err)
+
+    @patch("notifications.expo_push.requests.post")
+    def test_send_expo_push_reports_single_ticket_error(self, mock_post):
+        from notifications.expo_push import send_expo_push
+
+        response = Mock(status_code=200, text="")
+        response.json.return_value = {
+            "data": {
+                "status": "error",
+                "message": "DeviceNotRegistered",
+            }
+        }
+        mock_post.return_value = response
+
+        ok, err = send_expo_push("ExponentPushToken[abc]", "Title", "Body")
+
+        self.assertFalse(ok)
+        self.assertEqual(err, "DeviceNotRegistered")
 
 
 class NotificationConfigTests(TestCase):

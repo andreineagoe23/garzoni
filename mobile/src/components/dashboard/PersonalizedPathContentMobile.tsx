@@ -34,6 +34,7 @@ import { href } from "../../navigation/href";
 import { navigateToExercisesFromDashboardSkill } from "../../hooks/useDashboardSkillExercisesNavigation";
 import { useAuthSession } from "../../auth/AuthContext";
 import { useThemeColors } from "../../theme/ThemeContext";
+import { scheduleStreakReminder } from "../../streak/streakReminder";
 
 /** Normalize onboarding goal tags from API (string or nested arrays) for display. */
 function formatOnboardingGoalsLine(goals: unknown): string {
@@ -93,6 +94,18 @@ export default function PersonalizedPathContentMobile({
   });
 
   const profilePayload = profileQuery.data;
+
+  // Reschedule (or cancel) the local "don't break your streak" reminder every
+  // time the profile refetches — lesson completion invalidates the profile
+  // query, so this re-runs after every lesson and keeps the 8pm reminder in
+  // sync with the current streak value.
+  useEffect(() => {
+    const streak = profilePayload?.streak;
+    if (typeof streak === "number") {
+      void scheduleStreakReminder(streak);
+    }
+  }, [profilePayload?.streak]);
+
   const questionnaireQuery = useQuery({
     queryKey: queryKeys.questionnaireProgress(),
     queryFn: fetchQuestionnaireProgress,
