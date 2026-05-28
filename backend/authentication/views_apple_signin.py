@@ -25,6 +25,19 @@ logger = logging.getLogger(__name__)
 APPLE_JWKS_URL = "https://appleid.apple.com/auth/keys"
 APPLE_ISSUER = "https://appleid.apple.com"
 
+
+def _enqueue_cio_login_sync(user_id: int) -> None:
+    """Refresh last_active_at on the CIO profile after Apple login."""
+    try:
+        from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+        safe_enqueue_sync_user_to_customer_io(user_id)
+    except Exception:
+        logger.warning(
+            "CIO sync enqueue failed for user_id=%s on apple login", user_id, exc_info=True
+        )
+
+
 # Cached at module level — reuses fetched keys across requests.
 # lifespan=3600: Apple rotates JWKS rarely; default 300s causes a live network
 # round-trip every 5 minutes which can take 30s+ if Apple's endpoint is slow.
@@ -78,6 +91,7 @@ def _get_or_create_apple_user(
             update_fields.append("last_name")
         user.last_login = timezone.now()
         user.save(update_fields=update_fields)
+        _enqueue_cio_login_sync(user.pk)
         return user, False
 
     if email_clean:
@@ -91,6 +105,7 @@ def _get_or_create_apple_user(
                 prof.save(update_fields=["apple_sub"])
             user.last_login = timezone.now()
             user.save(update_fields=["last_login"])
+            _enqueue_cio_login_sync(user.pk)
             return user, False
 
     is_new_user = True

@@ -49,6 +49,11 @@ def build_identify_traits(user: User) -> dict[str, Any]:
             last_active_dt = datetime.combine(max(candidates), time.min)
             last_active_dt = timezone.make_aware(last_active_dt, timezone.get_current_timezone())
             traits["last_active_at"] = int(last_active_dt.timestamp())
+    # Fallback when profile date fields are unset (29 users in CIO had null
+    # last_active_at because profile.last_login_date was never written): use the
+    # auth-managed user.last_login datetime, which Django updates on every login.
+    if "last_active_at" not in traits and getattr(user, "last_login", None):
+        traits["last_active_at"] = int(user.last_login.timestamp())
     if prefs:
         traits["marketing_opt_in"] = bool(prefs.marketing)
         traits["reminders_opt_in"] = bool(prefs.reminders)

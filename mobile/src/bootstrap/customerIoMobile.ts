@@ -71,12 +71,20 @@ export async function identifyGarzoniUserFromAccessToken(
   const userId = decodeJwtUserId(accessToken);
   if (!userId) return;
   await initCustomerIoMobile();
+  // Always stamp last_active_at so CIO inactivity segments reset on every
+  // identify call (login, hydrate, foreground). Backend writes the same trait
+  // via /identify on session-creating endpoints; mobile covers warm starts
+  // where the user stays signed in without re-authenticating.
+  const merged: Record<string, string | number | boolean> = {
+    last_active_at: Math.floor(Date.now() / 1000),
+    ...(traits ?? {}),
+  };
   try {
     const cio =
       require("customerio-reactnative") as typeof import("customerio-reactnative");
     await cio.CustomerIO.identify({
       userId,
-      traits: traits ?? {},
+      traits: merged,
     });
   } catch {
     /* noop */

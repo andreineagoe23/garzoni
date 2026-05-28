@@ -13,6 +13,32 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+# RFC 2606 reserved domains + common test conventions. Any address matching these
+# must never reach Customer.io — test fixtures have leaked into the workspace before.
+_TEST_EMAIL_DOMAINS = (
+    "example.com",
+    "example.org",
+    "example.net",
+    "test.com",
+    "test",
+    "invalid",
+    "localhost",
+)
+_TEST_EMAIL_TLDS = (".test", ".example", ".invalid", ".localhost")
+
+
+def is_test_email(email: str | None) -> bool:
+    if not email:
+        return False
+    e = email.strip().lower()
+    if "@" not in e:
+        return False
+    domain = e.rsplit("@", 1)[1]
+    if domain in _TEST_EMAIL_DOMAINS:
+        return True
+    return any(domain.endswith(tld) for tld in _TEST_EMAIL_TLDS)
+
+
 def _parse_loose_trigger_map(raw: str) -> dict[str, str | int]:
     """
     Accept Railway-style loose map strings, e.g.
@@ -178,6 +204,8 @@ def _track_upsert_customer(
     person_id: str, traits: dict[str, Any], *, http_timeout: float | None = None
 ) -> tuple[bool, str | None]:
     """Classic Track API PUT customer. (False, err) on failure; (True, None) on success."""
+    if is_test_email((traits or {}).get("email")):
+        return True, "skipped (test email domain)"
     auth = _track_auth_header()
     if not auth:
         return False, "missing CIO_SITE_ID or CIO_TRACK_API_KEY"
@@ -323,6 +351,8 @@ def send_transactional_email(
     """
     if not getattr(settings, "CIO_TRANSACTIONAL_ENABLED", False):
         return False, "skipped_transactional_disabled"
+    if is_test_email(to_email) or is_test_email(identifiers.get("email")):
+        return True, "skipped (test email domain)"
     bearer = _app_bearer()
     if not bearer:
         return False, "missing CIO_APP_API_KEY"
@@ -369,6 +399,8 @@ def send_transactional_push(
     """POST /v1/send/push — targets last_used device when template is push."""
     if not getattr(settings, "CIO_TRANSACTIONAL_ENABLED", False):
         return False, "skipped_transactional_disabled"
+    if is_test_email(identifiers.get("email")):
+        return True, "skipped (test email domain)"
     bearer = _app_bearer()
     if not bearer:
         return False, "missing CIO_APP_API_KEY"

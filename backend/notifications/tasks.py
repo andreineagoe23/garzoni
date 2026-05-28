@@ -61,6 +61,10 @@ def sync_user_to_customer_io(self, user_id: int) -> str:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         return "skipped"
+    from notifications.customer_io import is_test_email
+
+    if is_test_email(user.email):
+        return "skipped_test_email"
     ok, err = NotificationService().sync_user_profile(user)
     return "ok" if ok else f"failed:{err}"
 

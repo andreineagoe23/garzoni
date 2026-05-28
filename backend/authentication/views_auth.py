@@ -339,6 +339,18 @@ class LoginSecureView(APIView):
             user.last_login = now()
             user.save(update_fields=["last_login"])
 
+            # Push fresh last_active_at to Customer.io so re-engage/win-back
+            # segments see this login. Fire-and-forget; broker failures fall
+            # back to inline sync inside safe_enqueue_*.
+            try:
+                from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+                safe_enqueue_sync_user_to_customer_io(user.pk)
+            except Exception:
+                logger.warning(
+                    "CIO sync enqueue failed for user_id=%s on login", user.pk, exc_info=True
+                )
+
             return response
 
         except User.DoesNotExist:

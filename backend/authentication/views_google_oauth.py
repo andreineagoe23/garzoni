@@ -381,6 +381,15 @@ def _get_or_create_google_user(email: str, given_name: str, family_name: str, pi
             if user.profile.profile_avatar != picture:
                 user.profile.profile_avatar = picture
                 user.profile.save(update_fields=["profile_avatar"])
+        # Refresh last_active_at on the CIO profile so inactivity segments reset.
+        try:
+            from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+            safe_enqueue_sync_user_to_customer_io(user.pk)
+        except Exception:
+            logger.warning(
+                "CIO sync enqueue failed for user_id=%s on google login", user.pk, exc_info=True
+            )
     else:
         is_new_user = True
         base_username = email.split("@")[0].replace(".", "_")[:25]

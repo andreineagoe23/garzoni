@@ -7,7 +7,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { DeviceEventEmitter } from "react-native";
+import {
+  AppState,
+  DeviceEventEmitter,
+  type AppStateStatus,
+} from "react-native";
 import { attachToken } from "@garzoni/core";
 import {
   clearGarzoniCustomerIo,
@@ -59,6 +63,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     return () => sub.remove();
   }, []);
+
+  // Refresh last_active_at on every foreground when a session is active.
+  // identify() stamps the trait so CIO inactivity segments do not flag users
+  // who keep the app installed and open it daily without re-authenticating.
+  useEffect(() => {
+    if (!accessToken) return;
+    const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
+      if (next === "active") {
+        void identifyGarzoniUserFromAccessToken(accessToken);
+      }
+    });
+    return () => sub.remove();
+  }, [accessToken]);
 
   const applyTokens = useCallback(async (access: string, refresh?: string) => {
     bumpSessionVersion();
