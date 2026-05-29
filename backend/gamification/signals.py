@@ -78,13 +78,24 @@ if LessonCompletion is not None:
             return
         lesson = instance.lesson
         course = getattr(lesson, "course", None)
+        user = instance.user_progress.user
         _advance_multistep_missions(
-            instance.user_progress.user,
+            user,
             "lesson",
             lesson_id=lesson.id,
             course_id=getattr(course, "id", None),
             course_title=getattr(course, "title", None),
         )
+        # Refresh the `lessons_completed` trait on first lesson — the Welcome
+        # journey's day-7 branch needs it. Subsequent lessons can wait for the
+        # next regular identify; avoid hammering CIO per lesson.
+        try:
+            if LessonCompletion.objects.filter(user_progress__user=user).count() == 1:
+                from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+                safe_enqueue_sync_user_to_customer_io(user.id)
+        except Exception:
+            pass
 
 
 if ExerciseCompletion is not None:

@@ -545,6 +545,17 @@ class QuestionnaireCompleteView(APIView):
                 },
             )
 
+        # Push onboarding_completed=true to Customer.io so the Welcome journey
+        # (campaign 1) day-3 branch routes to exit instead of the "still onboarding"
+        # push. Best-effort; never block the user response on a CIO failure.
+        try:
+            from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+            uid = request.user.id
+            transaction.on_commit(lambda: safe_enqueue_sync_user_to_customer_io(uid))
+        except Exception as exc:
+            logger.warning("CIO sync after onboarding failed for user=%s: %s", request.user.id, exc)
+
         serializer = QuestionnaireProgressSerializer(progress)
         return Response(
             {

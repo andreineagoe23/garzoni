@@ -47,20 +47,20 @@ def _journey_reminders_mode() -> bool:
 )
 def send_email_reminders(self):
     """
-    Send email reminders to users based on their preferences.
-    When CIO_REMINDERS_VIA_JOURNEYS is enabled, emit track events only; Customer.io journeys deliver mail.
+    Send the weekly digest. CIO campaign 3 "Monthly Reminder" was archived; the monthly
+    leg is gone. When CIO_REMINDERS_VIA_JOURNEYS is on, emit a track event and Customer.io
+    journey 15 delivers; otherwise send the SMTP template directly.
 
-    Queryset note: ``weekly_users`` additionally requires ``email_preferences__weekly_digest=True``
-    so weekly nudges only go to people who opted into the digest. ``monthly_users`` intentionally
-    does not mirror a ``monthly_digest`` flag — monthly cadence is driven by ``reminder_frequency``
-    and ``reminders`` alone.
+    Gating: only users with ``weekly_digest=True`` AND at least one lesson completed in
+    the last 7 days qualify (avoids sending an empty digest). Each user also gets the
+    ``weekly_digest_should_send`` profile trait set so CIO's trigger filter blocks anyone
+    the backend deemed ineligible (defence-in-depth).
     """
     if not _email_configured():
         logger.warning("Email reminders skipped: email not configured")
         return "Skipped (email not configured)"
     now = timezone.now()
     weekly_cutoff = now - timedelta(days=7)
-    monthly_cutoff = now - timedelta(days=28)
 
     weekly_users = (
         UserProfile.objects.filter(
@@ -74,35 +74,41 @@ def send_email_reminders(self):
         .select_related("user")
     )
 
-    monthly_users = (
-        UserProfile.objects.filter(
-            user__email_preferences__reminder_frequency="monthly",
-            user__email_preferences__reminders=True,
-            user__email__isnull=False,
-        )
-        .exclude(last_reminder_sent__gt=now - timedelta(days=27))
-        .filter(Q(user__last_login__isnull=True) | Q(user__last_login__lt=monthly_cutoff))
-        .select_related("user")
-    )
-
     svc = NotificationService()
-    sent_weekly, sent_monthly = 0, 0
+    sent_weekly = 0
+
+    from notifications.customer_io import identify_person
+    from notifications.identity import customer_io_person_id
 
     for profile in weekly_users:
         try:
+            monday, metrics_end, sunday = weekly_digest_week_bounds(reference=now.date())
+            digest = build_weekly_digest_message_data(
+                user=profile.user,
+                profile=profile,
+                metrics_start=monday,
+                metrics_end=metrics_end,
+                label_start=monday,
+                label_end=sunday,
+            )
+            lessons_this_week = int(digest.get("modules_completed") or 0)
+            # CIO campaign 15 trigger filter: weekly_digest_should_send == true.
+            # Push the flag first so journey resolution sees the latest value.
+            try:
+                identify_person(
+                    customer_io_person_id(profile.user),
+                    {"weekly_digest_should_send": lessons_this_week >= 1},
+                )
+            except Exception as ie:
+                logger.warning(
+                    "weekly_digest_should_send sync failed for %s: %s", profile.user.email, ie
+                )
+            if lessons_this_week < 1:
+                # Empty digest = noise; skip the send (Khan Academy / Duolingo pattern).
+                continue
             if _journey_reminders_mode():
                 # CIO Journey 15 renders {{event.week_label}}, {{event.modules_completed}},
-                # {{event.streak_days}}, {{event.xp_earned}} — pre-compute them here so
-                # the journey email isn't blank.
-                monday, metrics_end, sunday = weekly_digest_week_bounds(reference=now.date())
-                digest = build_weekly_digest_message_data(
-                    user=profile.user,
-                    profile=profile,
-                    metrics_start=monday,
-                    metrics_end=metrics_end,
-                    label_start=monday,
-                    label_end=sunday,
-                )
+                # {{event.streak_days}}, {{event.xp_earned}}.
                 svc.track_journey_eligible(
                     profile.user,
                     CioEventName.WEEKLY_DIGEST_ELIGIBLE,
@@ -113,16 +119,6 @@ def send_email_reminders(self):
                     },
                 )
             else:
-                monday, metrics_end, sunday = weekly_digest_week_bounds(reference=now.date())
-                cio_digest = build_weekly_digest_message_data(
-                    user=profile.user,
-                    profile=profile,
-                    metrics_start=monday,
-                    metrics_end=metrics_end,
-                    label_start=monday,
-                    label_end=sunday,
-                )
-                lessons_completed_this_week = int(cio_digest["modules_completed"])
                 coins_spent = (
                     UserPurchase.objects.filter(
                         user=profile.user,
@@ -135,7 +131,7 @@ def send_email_reminders(self):
                     "display_name": normalize_display_string(
                         profile.user.first_name or profile.user.username or "there"
                     ),
-                    "lessons_completed_this_week": lessons_completed_this_week,
+                    "lessons_completed_this_week": lessons_this_week,
                     "current_streak": profile.streak,
                     "coins_earned_this_week": 0,
                     "coins_spent_this_week": coins_spent,
@@ -143,7 +139,7 @@ def send_email_reminders(self):
                     "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
                     "manage_url": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/dashboard",
                     "year": now.year,
-                    **cio_digest,
+                    **digest,
                 }
                 r = svc.send_template_for_user(
                     profile.user,
@@ -162,42 +158,7 @@ def send_email_reminders(self):
         except Exception as e:
             logger.warning("Weekly reminder failed for %s: %s", profile.user.email, e)
 
-    for profile in monthly_users:
-        try:
-            if _journey_reminders_mode():
-                svc.track_journey_eligible(
-                    profile.user,
-                    CioEventName.MONTHLY_REMINDER_ELIGIBLE,
-                    {"frequency": "monthly", "source": "celery_beat"},
-                )
-            else:
-                api_base = (getattr(settings, "BACKEND_URL", "") or "").rstrip("/")
-                context = {
-                    "user": profile.user,
-                    "frequency": "monthly",
-                    "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
-                    "preferences_link": f"{getattr(settings, 'FRONTEND_URL', 'https://garzoni.app').rstrip('/')}/settings",
-                    "unsubscribe_link": f"{api_base}/email/unsubscribe/?token={profile.get_unsubscribe_token()}",
-                    "year": now.year,
-                }
-                r = svc.send_template_for_user(
-                    profile.user,
-                    CioTemplate.REMINDER_MONTHLY,
-                    subject="Monthly Reminder: Continue Your Financial Learning",
-                    django_template="emails/reminder.html",
-                    context=context,
-                    idempotency_key=f"monthly_reminder:{profile.pk}:{now.date().isoformat()}",
-                    purpose="monthly_reminder",
-                )
-                if r.startswith("policy_denied") or r.startswith("skipped"):
-                    continue
-            profile.last_reminder_sent = now
-            profile.save(update_fields=["last_reminder_sent"])
-            sent_monthly += 1
-        except Exception as e:
-            logger.warning("Monthly reminder send failed for %s: %s", profile.user.email, e)
-
-    return f"Sent {sent_weekly} weekly and {sent_monthly} monthly reminders"
+    return f"Sent {sent_weekly} weekly reminders"
 
 
 @shared_task(
