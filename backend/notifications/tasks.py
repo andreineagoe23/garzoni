@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from celery import shared_task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from django.utils import timezone
@@ -212,6 +213,17 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
     except User.DoesNotExist:
         return "skipped_no_user"
 
+    # Hard opt-out check BEFORE any AI generation. Cheap, avoids LLM cost on
+    # users who unsubscribed via CIO (mirrored back to prefs.marketing).
+    try:
+        from authentication.models import UserEmailPreference
+
+        prefs = UserEmailPreference.objects.filter(user=user).first()
+        if prefs and not prefs.marketing:
+            return "skipped_marketing_off"
+    except Exception:
+        pass
+
     try:
         from education.services.ai_tutor import generate_push_nudge
 
@@ -246,10 +258,22 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
 @shared_task
 def send_ai_nudges_batch() -> dict:
     """
-    Dispatch AI nudges to all active users. The per-user task picks push or
-    email via the channel resolver — users without a push token still get
-    reached over email.
+    DISABLED 2026-05-30. This task previously blasted every active user with an
+    "AI nudge" daily at 09:00; the email fallback re-used CioTemplate.REMINDER_MONTHLY
+    (subject "A quick check-in from garzoni"), which generated daily-email complaints
+    and reached unsubscribed users because the SMTP fallback did not consult CIO's
+    unsubscribe state. The Celery beat entry is also removed in settings/celery.py.
+
+    Kept as a no-op so DB-scheduled (django_celery_beat) entries that still reference
+    this task name do not crash. To re-enable, gate per user on:
+      - prefs.marketing == True
+      - last_ai_nudge_sent older than N days (recommend 7)
+      - resolve_channels(...) prefers push, never email
     """
+    if not getattr(settings, "AI_NUDGES_BATCH_ENABLED", False):
+        logger.info("ai_nudges_batch_disabled")
+        return {"sent": 0, "skipped": 0, "disabled": True}
+
     User = get_user_model()
     from django.utils import timezone
     from django.core.cache import cache

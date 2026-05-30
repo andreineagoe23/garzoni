@@ -142,11 +142,20 @@ def should_send_email(user: User, template: CioTemplate) -> PolicyResult:
             return PolicyResult(False, "digest_disabled")
         return PolicyResult(True, "ok")
 
+    # REMINDER_MONTHLY is the email fallback for AI nudges / generic marketing.
+    # Master marketing opt-out must hard-block it; previously only `reminders`
+    # was consulted so users who unsubscribed via CIO (which sets
+    # prefs.marketing=False through the unsub webhook) still received this mail.
     if template == CioTemplate.REMINDER_MONTHLY:
+        if not prefs.marketing:
+            return PolicyResult(False, "marketing_off")
         if not prefs.reminders:
             return PolicyResult(False, "reminders_off")
         return PolicyResult(True, "ok")
 
+    # Default for any future marketing-class template: respect the master switch.
+    if not prefs.marketing:
+        return PolicyResult(False, "marketing_off")
     return PolicyResult(True, "ok_default")
 
 

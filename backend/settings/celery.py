@@ -71,10 +71,11 @@ app.conf.beat_schedule = {
         "task": "finance.tasks.send_portfolio_push_notifications",
         "schedule": crontab(hour=17, minute=0),
     },
-    "send-ai-nudges-daily": {
-        "task": "notifications.tasks.send_ai_nudges_batch",
-        "schedule": crontab(hour=9, minute=0),
-    },
+    # send-ai-nudges-daily DISABLED 2026-05-30: the batch iterated every active
+    # user at 09:00 and used CioTemplate.REMINDER_MONTHLY ("A quick check-in from
+    # garzoni") as the email fallback — that was the source of the daily email
+    # spam users complained about. Do not re-enable without per-user rate limiting
+    # AND an honest CIO unsubscribe sync (see notifications/policy.py).
     # Streak-at-risk evening sweep — fires CIO STREAK_ABOUT_TO_EXPIRE event for Journeys.
     "emit-streak-about-to-expire": {
         "task": "education.tasks.emit_streak_about_to_expire",
