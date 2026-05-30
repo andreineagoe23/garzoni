@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -80,6 +81,19 @@ def build_identify_traits(user: User) -> dict[str, Any]:
         )
     except Exception:
         traits["lessons_completed"] = 0
+    # Per-user manage-preferences + one-click unsubscribe URLs so CIO templates
+    # can render `{{customer.preferences_url}}` / `{{customer.unsubscribe_url}}`
+    # instead of pointing recipients at /settings (which bounces them off the
+    # auth wall when they're not logged in).
+    if profile is not None:
+        api_base = (getattr(settings, "BACKEND_URL", "") or "").rstrip("/")
+        if api_base:
+            try:
+                token = profile.get_unsubscribe_token()
+                traits["preferences_url"] = f"{api_base}/auth/email/preferences/?token={token}"
+                traits["unsubscribe_url"] = f"{api_base}/auth/email/unsubscribe/?token={token}"
+            except Exception:
+                pass
     traits["last_seen_at"] = int(timezone.now().timestamp())
 
     def _keep(_k: str, v: Any) -> bool:

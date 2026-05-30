@@ -23,6 +23,7 @@ from .views_password import (
     delete_account,
     PasswordResetRequestView,
     PasswordResetConfirmView,
+    EmailPreferencesView,
     EmailUnsubscribeView,
 )
 from .views_friends import (
@@ -95,6 +96,11 @@ urlpatterns = [
         "email/unsubscribe/",
         EmailUnsubscribeView.as_view(),
         name="email_unsubscribe",
+    ),
+    path(
+        "email/preferences/",
+        EmailPreferencesView.as_view(),
+        name="email_preferences",
     ),
     path("change-password/", change_password, name="change-password"),
     path("delete-account/", delete_account, name="delete-account"),

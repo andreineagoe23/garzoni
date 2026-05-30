@@ -291,3 +291,131 @@ class EmailUnsubscribeView(APIView):
 </html>
 """
         return HttpResponse(html, status=200, content_type="text/html")
+
+
+_PREF_FIELDS = (
+    ("reminders", "Reminder emails"),
+    ("weekly_digest", "Weekly progress digest"),
+    ("streak_alerts", "Streak alerts"),
+    ("marketing", "Tips and announcements"),
+    ("billing_alerts", "Billing and subscription"),
+    ("push_notifications", "Mobile push notifications"),
+)
+
+
+class EmailPreferencesView(APIView):
+    """
+    GET  /api/auth/email/preferences/?token=<signed>
+        Render a self-contained HTML page with checkboxes for every email
+        preference. No login required — the signed token identifies the profile.
+
+    POST /api/auth/email/preferences/
+        Body must include `token` and any subset of the boolean fields. Saves
+        the new values and re-renders the page with a confirmation.
+
+    Designed for the "Manage preferences" link in transactional + marketing
+    emails so users land on a page that actually edits their preferences
+    instead of bouncing off /settings into the auth wall.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    @staticmethod
+    def _load_profile(token: str) -> UserProfile | None:
+        if not token:
+            return None
+        try:
+            payload = signing.loads(
+                token, salt="garzoni.email.unsubscribe", max_age=60 * 60 * 24 * 365
+            )
+            return UserProfile.objects.select_related("user").get(id=payload.get("profile_id"))
+        except Exception:
+            return None
+
+    def get(self, request):
+        token = request.query_params.get("token", "").strip()
+        profile = self._load_profile(token)
+        if profile is None:
+            return HttpResponse(
+                "<h2>Invalid link</h2><p>This preferences link is invalid or has expired.</p>",
+                status=400,
+                content_type="text/html",
+            )
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=profile.user)
+        return HttpResponse(
+            self._render(token, prefs, saved=False), status=200, content_type="text/html"
+        )
+
+    def post(self, request):
+        token = (request.data.get("token") or request.POST.get("token") or "").strip()
+        profile = self._load_profile(token)
+        if profile is None:
+            return HttpResponse(
+                "<h2>Invalid link</h2><p>This preferences link is invalid or has expired.</p>",
+                status=400,
+                content_type="text/html",
+            )
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=profile.user)
+        # Browser form posts checkboxes only when checked; treat absence as "off".
+        # Falls back to request.POST when DRF parsed the body as form-urlencoded.
+        source = request.data if hasattr(request, "data") else request.POST
+        changed = []
+        for field, _label in _PREF_FIELDS:
+            new_val = bool(source.get(field))
+            if getattr(prefs, field, None) != new_val:
+                setattr(prefs, field, new_val)
+                changed.append(field)
+        if changed:
+            prefs.save(update_fields=changed + ["updated_at"])
+        return HttpResponse(
+            self._render(token, prefs, saved=True), status=200, content_type="text/html"
+        )
+
+    @staticmethod
+    def _render(token: str, prefs: UserEmailPreference, *, saved: bool) -> str:
+        rows = []
+        for field, label in _PREF_FIELDS:
+            checked = "checked" if getattr(prefs, field, False) else ""
+            rows.append(
+                f"""
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(255,255,255,0.10);border-radius:12px;margin-bottom:10px;cursor:pointer;background:rgba(255,255,255,0.02);">
+          <input type="checkbox" name="{field}" value="1" {checked} style="width:18px;height:18px;accent-color:#1D5330;" />
+          <span style="font-weight:600;">{label}</span>
+        </label>"""
+            )
+        rows_html = "".join(rows)
+        banner = (
+            '<div style="margin:0 0 14px 0;padding:10px 12px;background:rgba(29,83,48,0.30);border:1px solid rgba(29,83,48,0.6);border-radius:10px;color:#A7F3D0;font-size:13px;">Preferences saved.</div>'
+            if saved
+            else ""
+        )
+        return f"""
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Email preferences</title>
+  </head>
+  <body style="margin:0;padding:0;background:#0B0F14;color:#E5E7EB;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
+    <div style="max-width:640px;margin:40px auto;padding:0 16px;">
+      <div style="border:1px solid rgba(255,255,255,0.10);border-radius:16px;overflow:hidden;background:#111827;">
+        <div style="padding:18px 20px;background:linear-gradient(135deg, rgba(29,83,48,0.60), rgba(11,15,20,0.20));border-bottom:1px solid rgba(255,255,255,0.10);">
+          <div style="font-size:14px;font-weight:800;color:#E6C87A;text-transform:uppercase;">Garzoni</div>
+          <div style="margin-top:4px;font-size:20px;font-weight:900;color:#FFFFFF;">Email preferences</div>
+        </div>
+        <div style="padding:18px 20px;font-size:15px;line-height:1.6;">
+          {banner}
+          <p style="margin:0 0 14px 0;color:rgba(229,231,235,0.78);font-size:13px;">Pick what you want to hear about. Untick anything to stop receiving it.</p>
+          <form method="post" action="">
+            <input type="hidden" name="token" value="{token}" />
+            {rows_html}
+            <button type="submit" style="margin-top:6px;display:inline-block;background:#1D5330;color:#FFFFFF;border:0;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:12px;cursor:pointer;">Save preferences</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+"""

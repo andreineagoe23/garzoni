@@ -58,25 +58,26 @@ _CIO_SUB_EVENTS = frozenset({"customer_subscribed", "email_subscribed"})
 
 def _verify_cio_signature(raw_body: bytes, signature_header: str, timestamp_header: str) -> bool:
     """
-    Verify an X-CIO-Signature header. CIO Reporting Webhooks ship in two flavours
-    depending on workspace age:
-      - new format: header = "v0=<hex>"; signed payload = "v0:<timestamp>:<body>"
-      - legacy format: header = "<hex>"; signed payload = "<body>"
-    Accept either so the same receiver works regardless of which format the
-    workspace emits. Reject if the secret is unset or no scheme matches.
+    Verify an X-CIO-Signature header. CIO Reporting Webhooks ship in several
+    flavours depending on workspace age and the docs disagree with the wire
+    format in practice; accept any of:
+      A. header = "v0=<hex>"; signed = "v0:<timestamp>:<body>"
+      B. header = "<hex>";    signed = "v0:<timestamp>:<body>"  (observed)
+      C. header = "<hex>";    signed = "<body>"                  (legacy)
+    Reject if secret is unset or none match.
     """
     secret = (getattr(settings, "CIO_WEBHOOK_SIGNING_SECRET", "") or "").strip()
     if not secret or not signature_header:
         return False
     secret_b = secret.encode("utf-8")
-    if signature_header.startswith("v0=") and timestamp_header:
-        sent_sig = signature_header[3:]
-        signed = f"v0:{timestamp_header}:".encode("utf-8") + raw_body
-        expected = hmac.new(secret_b, signed, hashlib.sha256).hexdigest()
-        if hmac.compare_digest(sent_sig, expected):
+    sent = signature_header[3:] if signature_header.startswith("v0=") else signature_header
+    if timestamp_header:
+        signed_v0 = f"v0:{timestamp_header}:".encode("utf-8") + raw_body
+        expected_v0 = hmac.new(secret_b, signed_v0, hashlib.sha256).hexdigest()
+        if hmac.compare_digest(sent, expected_v0):
             return True
-    legacy_expected = hmac.new(secret_b, raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(signature_header, legacy_expected)
+    expected_legacy = hmac.new(secret_b, raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(sent, expected_legacy)
 
 
 class CioWebhookView(APIView):
