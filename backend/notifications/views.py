@@ -58,19 +58,25 @@ _CIO_SUB_EVENTS = frozenset({"customer_subscribed", "email_subscribed"})
 
 def _verify_cio_signature(raw_body: bytes, signature_header: str, timestamp_header: str) -> bool:
     """
-    CIO reporting webhooks send X-CIO-Signature: "v0=<hex>" and X-CIO-Timestamp.
-    Signed payload = "v0:<timestamp>:<raw body>"; HMAC-SHA256 with the webhook
-    signing secret. Reject if header malformed, secret missing, or HMAC mismatches.
+    Verify an X-CIO-Signature header. CIO Reporting Webhooks ship in two flavours
+    depending on workspace age:
+      - new format: header = "v0=<hex>"; signed payload = "v0:<timestamp>:<body>"
+      - legacy format: header = "<hex>"; signed payload = "<body>"
+    Accept either so the same receiver works regardless of which format the
+    workspace emits. Reject if the secret is unset or no scheme matches.
     """
     secret = (getattr(settings, "CIO_WEBHOOK_SIGNING_SECRET", "") or "").strip()
-    if not secret or not signature_header or not timestamp_header:
+    if not secret or not signature_header:
         return False
-    if not signature_header.startswith("v0="):
-        return False
-    sent_sig = signature_header[3:]
-    signed = f"v0:{timestamp_header}:".encode("utf-8") + raw_body
-    expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(sent_sig, expected)
+    secret_b = secret.encode("utf-8")
+    if signature_header.startswith("v0=") and timestamp_header:
+        sent_sig = signature_header[3:]
+        signed = f"v0:{timestamp_header}:".encode("utf-8") + raw_body
+        expected = hmac.new(secret_b, signed, hashlib.sha256).hexdigest()
+        if hmac.compare_digest(sent_sig, expected):
+            return True
+    legacy_expected = hmac.new(secret_b, raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(signature_header, legacy_expected)
 
 
 class CioWebhookView(APIView):
