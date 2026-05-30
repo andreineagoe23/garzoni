@@ -95,10 +95,23 @@ class CioWebhookView(APIView):
     authentication_classes = []
 
     def post(self, request):
+        # IMPORTANT: read body BEFORE any access to request.data — DRF parsers
+        # consume the stream and Django's HttpRequest.body raises if accessed
+        # after the stream is drained.
         raw_body = request.body or b""
         sig = (request.headers.get("X-CIO-Signature") or "").strip()
         ts = (request.headers.get("X-CIO-Timestamp") or "").strip()
         if not _verify_cio_signature(raw_body, sig, ts):
+            secret_len = len((getattr(settings, "CIO_WEBHOOK_SIGNING_SECRET", "") or "").strip())
+            logger.warning(
+                "cio_webhook_signature_rejected sig_present=%s sig_prefix=%s ts_present=%s "
+                "body_len=%s secret_len=%s",
+                bool(sig),
+                sig[:5] if sig else "",
+                bool(ts),
+                len(raw_body),
+                secret_len,
+            )
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         try:
             payload = json.loads(raw_body.decode("utf-8") or "{}")
