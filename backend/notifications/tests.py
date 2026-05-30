@@ -101,7 +101,11 @@ class AiNudgeTaskTests(TestCase):
         prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
         prefs.push_notifications = True
         prefs.reminders = True
-        prefs.save(update_fields=["push_notifications", "reminders"])
+        # send_ai_nudge_task now early-exits on marketing opt-out (the gate that
+        # closes the daily-blast-to-unsubbed-users bug). Opt this test user in
+        # so the fallback path under test is exercised.
+        prefs.marketing = True
+        prefs.save(update_fields=["push_notifications", "reminders", "marketing"])
         mock_generate_nudge.return_value = "Time for a 5-minute lesson."
         mock_sync_profile.return_value = (True, None)
 

@@ -499,6 +499,10 @@ CIO_TRANSACTIONAL_TRIGGERS_JSON = (
 )
 # Optional: GET /api/notifications/cio-ping/ with header X-Garzoni-Cio-Ping: <secret> (no Railway console needed).
 CIO_PUBLIC_PING_SECRET = os.getenv("CIO_PUBLIC_PING_SECRET", "").strip()
+# CIO Reporting Webhook signing secret — used to verify the X-CIO-Signature on
+# POST /api/notifications/cio-webhook/ so an unsubscribe event from CIO flips
+# prefs.marketing = False locally. Set in workspace settings → reporting webhooks.
+CIO_WEBHOOK_SIGNING_SECRET = os.getenv("CIO_WEBHOOK_SIGNING_SECRET", "").strip()
 
 if DEBUG:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

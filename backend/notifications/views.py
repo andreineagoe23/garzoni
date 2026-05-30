@@ -1,7 +1,11 @@
+import hashlib
+import hmac
+import json
 import logging
 import secrets
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -46,6 +50,96 @@ class ClientTrackEventView(APIView):
             )
         NotificationService().publish_domain_event(request.user, event, properties)
         return Response({"ok": True}, status=status.HTTP_200_OK)
+
+
+_CIO_UNSUB_EVENTS = frozenset({"customer_unsubscribed", "email_unsubscribed"})
+_CIO_SUB_EVENTS = frozenset({"customer_subscribed", "email_subscribed"})
+
+
+def _verify_cio_signature(raw_body: bytes, signature_header: str, timestamp_header: str) -> bool:
+    """
+    CIO reporting webhooks send X-CIO-Signature: "v0=<hex>" and X-CIO-Timestamp.
+    Signed payload = "v0:<timestamp>:<raw body>"; HMAC-SHA256 with the webhook
+    signing secret. Reject if header malformed, secret missing, or HMAC mismatches.
+    """
+    secret = (getattr(settings, "CIO_WEBHOOK_SIGNING_SECRET", "") or "").strip()
+    if not secret or not signature_header or not timestamp_header:
+        return False
+    if not signature_header.startswith("v0="):
+        return False
+    sent_sig = signature_header[3:]
+    signed = f"v0:{timestamp_header}:".encode("utf-8") + raw_body
+    expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(sent_sig, expected)
+
+
+class CioWebhookView(APIView):
+    """
+    POST /api/notifications/cio-webhook/
+    Receiver for CIO Reporting Webhooks. Currently handles unsubscribe events
+    by flipping UserEmailPreference.marketing (+ reminders + weekly_digest) to
+    False so backend-side crons stop reaching the user, matching CIO's view.
+
+    Configure in CIO: Workspace Settings → Reporting Webhooks → add this URL,
+    subscribe to customer_unsubscribed + email_unsubscribed, copy the signing
+    secret into env var CIO_WEBHOOK_SIGNING_SECRET.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        raw_body = request.body or b""
+        sig = (request.headers.get("X-CIO-Signature") or "").strip()
+        ts = (request.headers.get("X-CIO-Timestamp") or "").strip()
+        if not _verify_cio_signature(raw_body, sig, ts):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = json.loads(raw_body.decode("utf-8") or "{}")
+        except Exception:
+            return Response({"detail": "bad json"}, status=status.HTTP_400_BAD_REQUEST)
+        event_type = (payload.get("event_type") or "").strip()
+        data = payload.get("data") or {}
+        if event_type not in _CIO_UNSUB_EVENTS and event_type not in _CIO_SUB_EVENTS:
+            # Acknowledge unknown events so CIO does not retry; nothing to do.
+            return Response({"ok": True, "ignored": event_type}, status=status.HTTP_200_OK)
+
+        user = self._resolve_user(data)
+        if user is None:
+            logger.warning("cio_webhook_user_unresolved event=%s data=%s", event_type, data)
+            return Response({"ok": True, "user": None}, status=status.HTTP_200_OK)
+
+        from authentication.models import UserEmailPreference
+
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=user)
+        if event_type in _CIO_UNSUB_EVENTS:
+            updates = {"marketing": False, "reminders": False, "weekly_digest": False}
+        else:
+            updates = {"marketing": True}
+        changed = []
+        for field, value in updates.items():
+            if getattr(prefs, field, None) != value:
+                setattr(prefs, field, value)
+                changed.append(field)
+        if changed:
+            prefs.save(update_fields=changed)
+        logger.info("cio_webhook_applied event=%s user=%s changed=%s", event_type, user.pk, changed)
+        return Response(
+            {"ok": True, "user_id": user.pk, "changed": changed}, status=status.HTTP_200_OK
+        )
+
+    @staticmethod
+    def _resolve_user(data: dict):
+        User = get_user_model()
+        cid = (data.get("customer_id") or "").strip()
+        if cid and cid.isdigit():
+            user = User.objects.filter(pk=int(cid)).first()
+            if user:
+                return user
+        email = (data.get("email_address") or "").strip().lower()
+        if email:
+            return User.objects.filter(email__iexact=email).first()
+        return None
 
 
 class CioPingView(APIView):
