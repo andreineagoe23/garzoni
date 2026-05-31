@@ -6,15 +6,15 @@ The MCP OAuth token used during development is read-only, so segments and campai
 
 ## Traits & Events Backend Emits
 
-| Trait / Event | Source | Use |
-|---|---|---|
-| `has_mobile_app` (bool) | `profile_sync.py` — derived from `UserProfile.expo_push_token` | Branch condition: push vs email |
-| `last_active_at` (unix ts) | `profile_sync.py` — `max(last_login_date, last_completed_date)` | Inactivity segment membership |
-| `streak` (int) | `profile_sync.py` | Streak-alert journey filter |
-| `marketing_opt_in`, `reminders_opt_in`, `weekly_digest_opt_in`, `streak_alerts_opt_in`, `push_opt_in` | `profile_sync.py` | Per-channel suppression filters |
-| `user_registered` (event) | `notifications/service.py` welcome path | Welcome journey trigger |
-| `coach_nudge` (event) | `education/tasks.py` `decay_course_mastery` | Coach-nudge journey trigger |
-| `streak_about_to_expire` (event) | `education/tasks.py` `emit_streak_about_to_expire` (daily 19:00) | Streak-alert journey trigger |
+| Trait / Event                                                                                         | Source                                                           | Use                             |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------- |
+| `has_mobile_app` (bool)                                                                               | `profile_sync.py` — derived from `UserProfile.expo_push_token`   | Branch condition: push vs email |
+| `last_active_at` (unix ts)                                                                            | `profile_sync.py` — `max(last_login_date, last_completed_date)`  | Inactivity segment membership   |
+| `streak` (int)                                                                                        | `profile_sync.py`                                                | Streak-alert journey filter     |
+| `marketing_opt_in`, `reminders_opt_in`, `weekly_digest_opt_in`, `streak_alerts_opt_in`, `push_opt_in` | `profile_sync.py`                                                | Per-channel suppression filters |
+| `user_registered` (event)                                                                             | `notifications/service.py` welcome path                          | Welcome journey trigger         |
+| `coach_nudge` (event)                                                                                 | `education/tasks.py` `decay_course_mastery`                      | Coach-nudge journey trigger     |
+| `streak_about_to_expire` (event)                                                                      | `education/tasks.py` `emit_streak_about_to_expire` (daily 19:00) | Streak-alert journey trigger    |
 
 ## 1. Segments
 
@@ -28,21 +28,37 @@ Create five dynamic segments. Each uses an `attribute_change` event on a trait t
     "name": "Garzoni: Inactive 3+ days",
     "description": "last_active_at older than 3 days. Drives the re-engage 3d journey.",
     "conditions": {
-      "and": [{
-        "or": [{
-          "event": {
-            "type": "attribute_change",
-            "name": "last_active_at",
-            "filters": {
-              "and": [
-                { "field": "to",   "operator": "timestamp_lt", "value": "-259200", "inverse": false },
-                { "field": "from", "operator": "timestamp_lt", "value": "-259200", "inverse": true  }
-              ]
+      "and": [
+        {
+          "or": [
+            {
+              "event": {
+                "type": "attribute_change",
+                "name": "last_active_at",
+                "filters": {
+                  "and": [
+                    {
+                      "field": "to",
+                      "operator": "timestamp_lt",
+                      "value": "-259200",
+                      "inverse": false
+                    },
+                    {
+                      "field": "from",
+                      "operator": "timestamp_lt",
+                      "value": "-259200",
+                      "inverse": true
+                    }
+                  ]
+                }
+              },
+              "times": 1,
+              "within": 0,
+              "inverse": false
             }
-          },
-          "times": 1, "within": 0, "inverse": false
-        }]
-      }]
+          ]
+        }
+      ]
     }
   }
 }
@@ -68,21 +84,37 @@ Same shape, `value: "-2592000"`.
     "name": "Garzoni: Has Mobile App",
     "description": "has_mobile_app == true (Expo push token present on backend).",
     "conditions": {
-      "and": [{
-        "or": [{
-          "event": {
-            "type": "attribute_change",
-            "name": "has_mobile_app",
-            "filters": {
-              "and": [
-                { "field": "to",   "operator": "eq", "value": "true", "inverse": false },
-                { "field": "from", "operator": "eq", "value": "true", "inverse": true  }
-              ]
+      "and": [
+        {
+          "or": [
+            {
+              "event": {
+                "type": "attribute_change",
+                "name": "has_mobile_app",
+                "filters": {
+                  "and": [
+                    {
+                      "field": "to",
+                      "operator": "eq",
+                      "value": "true",
+                      "inverse": false
+                    },
+                    {
+                      "field": "from",
+                      "operator": "eq",
+                      "value": "true",
+                      "inverse": true
+                    }
+                  ]
+                }
+              },
+              "times": 1,
+              "within": 0,
+              "inverse": false
             }
-          },
-          "times": 1, "within": 0, "inverse": false
-        }]
-      }]
+          ]
+        }
+      ]
     }
   }
 }
@@ -99,6 +131,7 @@ ENTRY → conditional_branch(has_mobile_app == true)
 ```
 
 For each Journey, set:
+
 - **Exit conditions**: include `[{ "segment": { "id": <next-tier-segment-id> } }]` (skip-if-already-in-next-segment) so a person doesn't get re-engaged multiple times in one tier.
 - **`send_to_unsubscribed`**: false
 - **`use_message_limits`**: true
@@ -106,6 +139,7 @@ For each Journey, set:
 ### 2a. Re-engage 3d (behavioral, anchor = "Garzoni: Inactive 3+ days")
 
 Push copy:
+
 - Title: `Still on the path?`
 - Body: `Your next 5-minute lesson is ready. Tap to keep your streak alive.`
 - `data.deeplink`: `garzoni:///(tabs)/learn`
@@ -131,6 +165,7 @@ Discount or streak-rescue offer. Filter to `subscription_status != active` (paid
 Trigger: event `streak_about_to_expire`. Filter: `streak > 0`. Push-priority (so even the branch's fallback email is acceptable — preserve the branching pattern).
 
 Push:
+
 - Title: `Your {{event.streak_count}}-day streak is at risk`
 - Body: `Open a 1-minute lesson before midnight to keep it.`
 - `data.deeplink`: `garzoni:///(tabs)/learn`
@@ -152,8 +187,16 @@ Trigger: event `user_registered`. No branching — welcome is always email (matc
 `conditional_branch_action` branch condition (base64-encoded JSON, double-encoded per `fly-api/campaigns.md`):
 
 Filter JSON (before encoding):
+
 ```json
-[{"field":"has_mobile_app","operator":"eq","type":"attribute","value":"true"}]
+[
+  {
+    "field": "has_mobile_app",
+    "operator": "eq",
+    "type": "attribute",
+    "value": "true"
+  }
+]
 ```
 
 Encode: URL-encode, then base64. The Customer.io UI does this automatically when you choose "Customer attribute equals true" in the branch editor.

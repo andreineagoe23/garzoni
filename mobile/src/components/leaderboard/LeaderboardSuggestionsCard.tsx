@@ -74,7 +74,10 @@ export default function LeaderboardSuggestionsCard() {
                   <Image source={{ uri }} style={styles.avatar} />
                 ) : (
                   <View
-                    style={[styles.avatar, { backgroundColor: c.surfaceOffset }]}
+                    style={[
+                      styles.avatar,
+                      { backgroundColor: c.surfaceOffset },
+                    ]}
                   />
                 )}
                 <Text

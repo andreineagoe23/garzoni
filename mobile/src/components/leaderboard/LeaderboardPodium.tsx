@@ -76,37 +76,41 @@ export default function LeaderboardPodium({
             ]}
           >
             <Pressable
-              onPress={uid != null && onPressEntry ? () => onPressEntry(uid, isYou) : undefined}
+              onPress={
+                uid != null && onPressEntry
+                  ? () => onPressEntry(uid, isYou)
+                  : undefined
+              }
               disabled={!onPressEntry || uid == null}
               style={styles.cardTap}
             >
-            {uri ? (
-              <Image source={{ uri }} style={styles.avatar} />
-            ) : (
-              <View
-                style={[styles.avatar, { backgroundColor: c.surfaceOffset }]}
-              />
-            )}
-            <Text
-              style={[styles.username, { color: c.text }]}
-              numberOfLines={1}
-            >
-              {entry.user?.username ?? "—"}
-            </Text>
-            {isYou ? (
-              <View
-                style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}
+              {uri ? (
+                <Image source={{ uri }} style={styles.avatar} />
+              ) : (
+                <View
+                  style={[styles.avatar, { backgroundColor: c.surfaceOffset }]}
+                />
+              )}
+              <Text
+                style={[styles.username, { color: c.text }]}
+                numberOfLines={1}
               >
-                <Text style={[styles.youPillText, { color: c.primary }]}>
-                  {t("leaderboard.youBadge")}
-                </Text>
-              </View>
-            ) : null}
-            <Text style={[styles.points, { color: c.textMuted }]}>
-              {t("leaderboard.points", {
-                points: formatPoints(entry.points ?? 0),
-              })}
-            </Text>
+                {entry.user?.username ?? "—"}
+              </Text>
+              {isYou ? (
+                <View
+                  style={[styles.youPill, { backgroundColor: `${c.accent}28` }]}
+                >
+                  <Text style={[styles.youPillText, { color: c.primary }]}>
+                    {t("leaderboard.youBadge")}
+                  </Text>
+                </View>
+              ) : null}
+              <Text style={[styles.points, { color: c.textMuted }]}>
+                {t("leaderboard.points", {
+                  points: formatPoints(entry.points ?? 0),
+                })}
+              </Text>
             </Pressable>
             {!isYou && uid != null && onAddFriend
               ? (() => {

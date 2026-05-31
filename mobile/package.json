@@ -19,10 +19,18 @@
     "ios": "expo run:ios",
     "ios:prebuild-clean": "expo prebuild --clean -p ios",
     "ios:rebuild-purchases": "expo prebuild --clean -p ios && expo run:ios",
+    "android:prebuild-clean": "expo prebuild --clean -p android",
     "web": "expo start --web",
     "eas:init": "eas init",
     "build:ios:dev": "eas build --platform ios --profile development",
+    "build:ios:preview": "eas build --platform ios --profile preview",
+    "build:ios:prod": "eas build --platform ios --profile production",
     "build:android:dev": "eas build --platform android --profile development",
+    "build:android:preview": "eas build --platform android --profile preview",
+    "build:android:prod": "eas build --platform android --profile production",
+    "submit:ios:prod": "eas submit --platform ios --profile production",
+    "submit:android:preview": "eas submit --platform android --profile preview",
+    "submit:android:prod": "eas submit --platform android --profile production",
     "test": "jest --config jest.config.js"
   },
   "dependencies": {

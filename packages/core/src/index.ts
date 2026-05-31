@@ -98,6 +98,8 @@ export {
   authLogoWhiteRectangularUrl,
   cloudinaryImageUrl,
   configureCloudinaryCloudName,
+  garzoniDemoPosterUrl,
+  garzoniDemoVideoUrl,
   mascotImageUrl,
 } from "./images";
 export type { MascotImageId } from "./images";

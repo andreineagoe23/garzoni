@@ -585,7 +585,7 @@ export default function LeaderboardScreen() {
             const showFriend = activeTab === "global" && uid != null && !isYou;
             const duelStatus =
               activeTab === "friends" && uid != null && !isYou
-                ? duelStatusByUserId.get(uid) ?? null
+                ? (duelStatusByUserId.get(uid) ?? null)
                 : null;
             return (
               <LeaderboardRow

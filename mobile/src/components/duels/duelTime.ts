@@ -19,10 +19,7 @@ export function formatCountdown(
   return `${minutes}m`;
 }
 
-export function formatPast(
-  iso: string | null,
-  locale: string,
-): string {
+export function formatPast(iso: string | null, locale: string): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";

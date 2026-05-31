@@ -19,6 +19,30 @@ Notifications.setNotificationHandler({
   }),
 });
 
+let androidChannelEnsured = false;
+/**
+ * Android 8+ requires a notification channel before any notification can be
+ * shown. Channel id must match the one declared for `customerio-reactnative`
+ * in app.json so CIO pushes inherit the same importance / sound.
+ */
+async function ensureAndroidNotificationChannel(): Promise<void> {
+  if (Platform.OS !== "android" || androidChannelEnsured) return;
+  try {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "Default",
+      importance: Notifications.AndroidImportance.MAX,
+      sound: "default",
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#01696f",
+    });
+    androidChannelEnsured = true;
+  } catch (e) {
+    if (__DEV__) {
+      console.warn("[push] setNotificationChannelAsync failed", e);
+    }
+  }
+}
+
 /**
  * Extract deeplink target from a notification payload. Convention:
  * - `data.deeplink`: a full URL (`garzoni://lesson/123`) or a path (`/lesson/123`).
@@ -61,15 +85,14 @@ let coldStartHandled = false;
 export function setupNotificationResponseHandlers(): void {
   if (Platform.OS === "web") return;
   if (!responseSubscription) {
-    responseSubscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
+    responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data as
           | Record<string, unknown>
           | undefined;
         const target = extractDeeplink(data ?? null);
         if (target) void navigateToDeeplink(target);
-      },
-    );
+      });
   }
   if (!coldStartHandled) {
     coldStartHandled = true;
@@ -105,6 +128,8 @@ export async function registerForPushAndSubmitToken(): Promise<{
   if (Platform.OS === "web") {
     return { ok: false, message: "Push is not available on web." };
   }
+
+  await ensureAndroidNotificationChannel();
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   let finalStatus = existing;

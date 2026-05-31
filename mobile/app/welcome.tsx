@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   FlatList,
   Image,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -9,6 +10,7 @@ import {
   View,
   type ViewToken,
 } from "react-native";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, {
   Path,
@@ -21,7 +23,10 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { authLogoWhiteRectangularUrl } from "@garzoni/core";
+import {
+  authLogoWhiteRectangularUrl,
+  garzoniDemoVideoUrl,
+} from "@garzoni/core";
 import { brand } from "../src/theme/brand";
 import { darkPalette } from "../src/theme/palettes";
 import { setWelcomeSeen } from "../src/auth/firstRunFlags";
@@ -539,7 +544,23 @@ export default function WelcomeScreen() {
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<SlideCopy>>(null);
   const [idx, setIdx] = useState(0);
+  const [demoOpen, setDemoOpen] = useState(false);
   const { ref: refParam } = useLocalSearchParams<{ ref?: string }>();
+
+  // Created on mount so the clip preloads/buffers before the user taps "Watch demo".
+  const demoPlayer = useVideoPlayer(garzoniDemoVideoUrl(), (player) => {
+    player.loop = false;
+  });
+
+  const openDemo = () => {
+    setDemoOpen(true);
+    demoPlayer.currentTime = 0;
+    demoPlayer.play();
+  };
+  const closeDemo = () => {
+    demoPlayer.pause();
+    setDemoOpen(false);
+  };
 
   useEffect(() => {
     if (refParam) void savePendingReferralCode(refParam);
@@ -604,13 +625,30 @@ export default function WelcomeScreen() {
 
       <View style={s.topBar}>
         <WelcomeWordmark />
-        <Pressable
-          onPress={() => void markSeenAndGo("/login")}
-          style={s.skipBtn}
-          hitSlop={10}
-        >
-          <Text style={s.skip}>Skip</Text>
-        </Pressable>
+        <View style={s.topBarActions}>
+          <Pressable
+            onPress={openDemo}
+            style={s.watchDemoBtn}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Watch the Garzoni demo video"
+          >
+            <Svg width={11} height={11} viewBox="0 0 16 16">
+              <Path
+                d="M4.5 3.2a.7.7 0 0 1 1.06-.6l7 4.8a.7.7 0 0 1 0 1.2l-7 4.8a.7.7 0 0 1-1.06-.6V3.2z"
+                fill={C.primaryBright}
+              />
+            </Svg>
+            <Text style={s.watchDemoLabel}>Watch demo</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => void markSeenAndGo("/login")}
+            style={s.skipBtn}
+            hitSlop={10}
+          >
+            <Text style={s.skip}>Skip</Text>
+          </Pressable>
+        </View>
       </View>
 
       <FlatList
@@ -681,6 +719,32 @@ export default function WelcomeScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <Modal
+        visible={demoOpen}
+        animationType="fade"
+        onRequestClose={closeDemo}
+        statusBarTranslucent
+      >
+        <View style={s.demoBackdrop}>
+          <VideoView
+            player={demoPlayer}
+            style={s.demoVideo}
+            contentFit="contain"
+            nativeControls
+            allowsFullscreen
+          />
+          <Pressable
+            onPress={closeDemo}
+            style={s.demoClose}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Close demo video"
+          >
+            <Text style={s.demoCloseLabel}>✕</Text>
+          </Pressable>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -720,6 +784,55 @@ const s = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 8,
     paddingHorizontal: 4,
+  },
+  topBarActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  watchDemoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.ghost,
+  },
+  watchDemoLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: C.text,
+    letterSpacing: 0.2,
+  },
+  demoBackdrop: {
+    flex: 1,
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  demoVideo: {
+    width: "100%",
+    height: "100%",
+  },
+  demoClose: {
+    position: "absolute",
+    top: 52,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.55)",
+  },
+  demoCloseLabel: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 20,
   },
 
   slide: { paddingTop: 8, alignItems: "center" },

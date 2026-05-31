@@ -40,8 +40,7 @@ export const DUEL_DURATION_BONUS: Record<DuelDuration, number> = {
   168: 500,
 };
 
-export const fetchActiveDuels = () =>
-  apiClient.get<DuelRecord[]>("/duels/");
+export const fetchActiveDuels = () => apiClient.get<DuelRecord[]>("/duels/");
 
 export const fetchDuelHistory = () =>
   apiClient.get<DuelRecord[]>("/duels/history/");

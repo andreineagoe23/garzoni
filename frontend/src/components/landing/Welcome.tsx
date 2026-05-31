@@ -8,8 +8,9 @@ import React, {
 import { createPortal } from "react-dom";
 import { Helmet } from "react-helmet-async";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { garzoniDemoPosterUrl, garzoniDemoVideoUrl } from "@garzoni/core";
 import Header from "components/layout/Header";
-import { GlassContainer } from "components/ui";
+import { GlassContainer, Modal } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
 import ParticleStage from "./ParticleStage";
 import "./marketing.css";
@@ -95,7 +96,10 @@ function Welcome() {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [pagesOpen, setPagesOpen] = useState(false);
+  const demoVideoUrl = garzoniDemoVideoUrl();
+  const demoPosterUrl = garzoniDemoPosterUrl();
   const pagesButtonRef = useRef<HTMLButtonElement>(null);
   const pagesDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -220,6 +224,24 @@ function Welcome() {
                     <span className="btn-store-main">App Store</span>
                   </div>
                 </a>
+                <button
+                  type="button"
+                  onClick={() => setIsDemoOpen(true)}
+                  className="btn-secondary"
+                  style={{ cursor: "pointer" }}
+                  aria-label="Watch the Garzoni demo video"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M4.5 3.2a.7.7 0 0 1 1.06-.6l7 4.8a.7.7 0 0 1 0 1.2l-7 4.8a.7.7 0 0 1-1.06-.6V3.2z" />
+                  </svg>
+                  Watch demo
+                </button>
               </div>
               {/* Explore pages dropdown */}
               <div style={{ marginTop: "16px" }}>
@@ -1307,6 +1329,61 @@ function Welcome() {
         {/* Spacer before footer */}
         <div style={{ height: "40px" }} />
       </div>
+
+      {/* Preload the demo so the modal opens instantly when clicked */}
+      <video
+        data-testid="welcome-demo-preload-video"
+        src={demoVideoUrl}
+        preload="auto"
+        muted
+        playsInline
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          width: 0,
+          height: 0,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <track kind="captions" srcLang="en" label="No captions available" />
+      </video>
+
+      {/* Demo video modal */}
+      <Modal
+        isOpen={isDemoOpen}
+        title="See Garzoni in action"
+        onClose={() => setIsDemoOpen(false)}
+      >
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
+          <video
+            src={demoVideoUrl}
+            poster={demoPosterUrl}
+            controls
+            autoPlay
+            playsInline
+            preload="auto"
+            className="w-full"
+            style={{ maxHeight: "70vh" }}
+            aria-label="Garzoni product demo"
+          >
+            <track kind="captions" srcLang="en" label="No captions available" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div className="mt-4 flex flex-col items-center text-center">
+          <button
+            type="button"
+            className="mt-2 rounded-full bg-[#E6C87A] px-6 py-2.5 text-sm font-semibold text-[#0B0F14] transition-colors duration-200 hover:bg-[#d4b669]"
+            onClick={() => {
+              setIsDemoOpen(false);
+              navigate("/register");
+            }}
+          >
+            Start learning free
+          </button>
+        </div>
+      </Modal>
 
       {/* Referral modal */}
       {showReferralModal && referralCode && (

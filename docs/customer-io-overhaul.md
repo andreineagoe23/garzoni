@@ -19,36 +19,37 @@ Inspired by Duolingo (push-first, emotional escalation only at 14d+) and Khan Ac
 
 ## Campaign state
 
-| ID | Name | State | Channel | Trigger | Cooldown |
-|---|---|---|---|---|---|
-| 1 | Welcome | running | email + push | event `user_registered` | — |
-| 3 | Monthly Reminder | **archived** | — | — | — |
-| 4 | Trial Ending | running | email | event `trial_ending_soon` | 1d |
-| 5 | Renewal Upcoming | running | email | event `renewal_upcoming` | 7d |
-| 6 | Subscription Cancelled | running | email | event `subscription_cancelled` | — |
-| 7 | Payment Failed | running | email + push | event `payment_failed` | — |
-| 8 | Checkout Abandoned | running | email | event `checkout_abandoned` | 3d |
-| 9 | Re-engage 3d | running | push only | segment 15 | — |
-| 10 | Re-engage 7d | running | push + email | segment 16 | — |
-| 11 | Re-engage 14d | running | email only | segment 17 | — |
-| 12 | Win-back 30d | running | push + email | segment 18 | — |
-| 13 | Streak Alert | stopped | — | (TM 21 push handles streaks) | — |
-| 14 | Coach Nudge | running | push + email | event `coach_nudge` | 7d |
-| 15 | Weekly Digest | running | email | event `weekly_digest_eligible` + attr filter | 6d |
+| ID  | Name                   | State        | Channel      | Trigger                                      | Cooldown |
+| --- | ---------------------- | ------------ | ------------ | -------------------------------------------- | -------- |
+| 1   | Welcome                | running      | email + push | event `user_registered`                      | —        |
+| 3   | Monthly Reminder       | **archived** | —            | —                                            | —        |
+| 4   | Trial Ending           | running      | email        | event `trial_ending_soon`                    | 1d       |
+| 5   | Renewal Upcoming       | running      | email        | event `renewal_upcoming`                     | 7d       |
+| 6   | Subscription Cancelled | running      | email        | event `subscription_cancelled`               | —        |
+| 7   | Payment Failed         | running      | email + push | event `payment_failed`                       | —        |
+| 8   | Checkout Abandoned     | running      | email        | event `checkout_abandoned`                   | 3d       |
+| 9   | Re-engage 3d           | running      | push only    | segment 15                                   | —        |
+| 10  | Re-engage 7d           | running      | push + email | segment 16                                   | —        |
+| 11  | Re-engage 14d          | running      | email only   | segment 17                                   | —        |
+| 12  | Win-back 30d           | running      | push + email | segment 18                                   | —        |
+| 13  | Streak Alert           | stopped      | —            | (TM 21 push handles streaks)                 | —        |
+| 14  | Coach Nudge            | running      | push + email | event `coach_nudge`                          | 7d       |
+| 15  | Weekly Digest          | running      | email        | event `weekly_digest_eligible` + attr filter | 6d       |
 
 ## Subscription topics
 
-| ID | Name | Wired to |
-|---|---|---|
-| 1 | Re-engagement | camps 9, 10, 11, 12 |
-| 2 | Weekly Digest | camp 15 |
-| 3 | Learning Nudges | camp 14 |
-| 4 | Product Updates | (future newsletters) |
-| 5 | Account & Billing | camps 4, 5, 6, 7, 8 — bypasses frequency caps |
+| ID  | Name              | Wired to                                      |
+| --- | ----------------- | --------------------------------------------- |
+| 1   | Re-engagement     | camps 9, 10, 11, 12                           |
+| 2   | Weekly Digest     | camp 15                                       |
+| 3   | Learning Nudges   | camp 14                                       |
+| 4   | Product Updates   | (future newsletters)                          |
+| 5   | Account & Billing | camps 4, 5, 6, 7, 8 — bypasses frequency caps |
 
 ## What's done
 
 ### Customer.io
+
 - Camp 3 archived.
 - Cooldowns set on all event-triggered campaigns.
 - Re-engagement camps wired to segment 5 "Unsubscribed" in global exit conditions; `exit_on_trigger_or_filter_not_matched=true`.
@@ -61,6 +62,7 @@ Inspired by Duolingo (push-first, emotional escalation only at 14d+) and Khan Ac
 - Workspace-level message cap set to 1 message / 24h with `use_message_limits=true` on all marketing campaigns.
 
 ### Backend (this repo)
+
 - `notifications/profile_sync.py` — added `onboarding_completed` and `lessons_completed` traits.
 - `authentication/tasks.py` — deleted monthly reminder loop; weekly digest now gated on lesson activity and sets `weekly_digest_should_send` on the profile.
 - `onboarding/views.py` — fires CIO identify on questionnaire completion so `onboarding_completed=true` lands before the Welcome day-3 branch evaluates.
@@ -111,6 +113,7 @@ Neither is critical.
 ## How to verify after the backend deploy
 
 In CIO, search your own profile under People → look at the Attributes tab. You should see:
+
 - `onboarding_completed: true` (after you finish the questionnaire)
 - `lessons_completed: <integer>` (after you complete at least one lesson)
 - `weekly_digest_should_send: true|false` (after Sunday noon cron runs)

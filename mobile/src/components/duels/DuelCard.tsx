@@ -119,9 +119,7 @@ export default function DuelCard({
               {statusLine}
             </Text>
           </View>
-          <View
-            style={[styles.statusPill, { backgroundColor: statusBg }]}
-          >
+          <View style={[styles.statusPill, { backgroundColor: statusBg }]}>
             <Text style={[styles.statusPillText, { color: statusFg }]}>
               {t(`duels.status.${statusKey}`)}
             </Text>

@@ -30,7 +30,12 @@ import GlassCard from "../../src/components/ui/GlassCard";
 import { spacing, typography, radius } from "../../src/theme/tokens";
 import { leaderboardAvatarUri } from "../../src/components/leaderboard/leaderboardAvatarUri";
 
-const CANONICAL_SKILLS = ["Budgeting", "Saving", "Investing", "Markets"] as const;
+const CANONICAL_SKILLS = [
+  "Budgeting",
+  "Saving",
+  "Investing",
+  "Markets",
+] as const;
 
 function resolveBadgeImage(image: string | null): string | null {
   if (!image) return null;
@@ -50,12 +55,20 @@ function formatRelative(
   const diffMs = now - d.getTime();
   const day = 24 * 60 * 60 * 1000;
   if (diffMs < day) return t("common.today", { defaultValue: "today" });
-  if (diffMs < 2 * day) return t("common.yesterday", { defaultValue: "yesterday" });
+  if (diffMs < 2 * day)
+    return t("common.yesterday", { defaultValue: "yesterday" });
   if (diffMs < 30 * day) {
     const days = Math.floor(diffMs / day);
-    return t("common.daysAgo", { count: days, defaultValue: `${days} days ago` });
+    return t("common.daysAgo", {
+      count: days,
+      defaultValue: `${days} days ago`,
+    });
   }
-  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export default function FriendProfileScreen() {
@@ -80,21 +93,25 @@ export default function FriendProfileScreen() {
 
   const incomingFromTarget = useMemo(() => {
     const list = incomingQuery.data ?? [];
-    return list.find(
-      (r) => r.status === "pending" && r.sender?.id === userId,
-    );
+    return list.find((r) => r.status === "pending" && r.sender?.id === userId);
   }, [incomingQuery.data, userId]);
 
   const sendMut = useMutation({
     mutationFn: () => sendFriendRequest(userId),
     onSuccess: () => {
       Alert.alert("", t("friendProfile.friendRequestSent"));
-      void queryClient.invalidateQueries({ queryKey: ["publicProfile", userId] });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.friendRequestsSent() });
+      void queryClient.invalidateQueries({
+        queryKey: ["publicProfile", userId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.friendRequestsSent(),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.friendsList() });
     },
     onError: (err: unknown) => {
-      const e = err as { response?: { data?: { error?: string; detail?: string } } };
+      const e = err as {
+        response?: { data?: { error?: string; detail?: string } };
+      };
       Alert.alert(
         "",
         e?.response?.data?.error ||
@@ -105,17 +122,23 @@ export default function FriendProfileScreen() {
   });
 
   const acceptMut = useMutation({
-    mutationFn: (requestId: number) => respondToFriendRequest(requestId, "accept"),
+    mutationFn: (requestId: number) =>
+      respondToFriendRequest(requestId, "accept"),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["publicProfile", userId] });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.friendRequestsIncoming() });
+      void queryClient.invalidateQueries({
+        queryKey: ["publicProfile", userId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.friendRequestsIncoming(),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.friendsList() });
     },
   });
 
   const profile = profileQuery.data;
   const username = profile?.username ?? "";
-  const avatarUri = leaderboardAvatarUri(profile?.profile_avatar ?? null) ?? null;
+  const avatarUri =
+    leaderboardAvatarUri(profile?.profile_avatar ?? null) ?? null;
 
   return (
     <>
@@ -157,7 +180,11 @@ export default function FriendProfileScreen() {
 
             <SkillBars skills={profile.skills} t={t} />
 
-            <BadgesStrip badges={profile.badges} count={profile.badges_count} t={t} />
+            <BadgesStrip
+              badges={profile.badges}
+              count={profile.badges_count}
+              t={t}
+            />
 
             <ActivityHeatmap days={profile.activity_heatmap} t={t} />
 
@@ -293,7 +320,9 @@ function StatGrid({
             { backgroundColor: c.surface, borderColor: c.border },
           ]}
         >
-          <Text style={[styles.statValue, { color: c.text }]}>{cell.value}</Text>
+          <Text style={[styles.statValue, { color: c.text }]}>
+            {cell.value}
+          </Text>
           <Text style={[styles.statLabel, { color: c.textMuted }]}>
             {cell.label}
           </Text>
@@ -407,7 +436,10 @@ function SkillBars({
                 </Text>
               </View>
               <View
-                style={[styles.skillTrack, { backgroundColor: c.surfaceOffset }]}
+                style={[
+                  styles.skillTrack,
+                  { backgroundColor: c.surfaceOffset },
+                ]}
               >
                 <View
                   style={[
@@ -488,7 +520,11 @@ function BadgesStrip({
               <View
                 style={[
                   styles.badgeImage,
-                  { backgroundColor: c.surfaceOffset, alignItems: "center", justifyContent: "center" },
+                  {
+                    backgroundColor: c.surfaceOffset,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
                 ]}
               >
                 <Text style={{ color: c.text, fontWeight: "800" }}>
@@ -541,7 +577,8 @@ function ActivityHeatmap({
         <View style={styles.heatGrid}>
           {days.map((d) => {
             const ratio = d.totalActivities / maxCount;
-            const opacity = d.totalActivities === 0 ? 0.08 : 0.25 + ratio * 0.75;
+            const opacity =
+              d.totalActivities === 0 ? 0.08 : 0.25 + ratio * 0.75;
             return (
               <View
                 key={d.date}
@@ -633,7 +670,9 @@ function ActionBar({
             style={[
               styles.primaryBtnText,
               {
-                color: f.request_pending_outgoing ? c.textMuted : c.textOnPrimary,
+                color: f.request_pending_outgoing
+                  ? c.textMuted
+                  : c.textOnPrimary,
               },
             ]}
           >
@@ -701,7 +740,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statValue: { fontSize: typography.xl, fontWeight: "800" },
-  statLabel: { fontSize: typography.xs, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 },
+  statLabel: {
+    fontSize: typography.xs,
+    marginTop: 2,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   section: {
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: spacing.lg,

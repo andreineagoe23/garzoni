@@ -55,12 +55,32 @@ export const APPLE_PRODUCT_IDS = {
   },
 } as const;
 
-/** Every ASC product ID the app should recognise for plus/pro (add new keys when ASC adds products). */
+/**
+ * Google Play subscription product IDs. Mirror the v3 naming so RevenueCat
+ * offerings can be platform-agnostic. Android launches fresh on v3 — no
+ * legacy SKUs to migrate.
+ */
+export const GOOGLE_PRODUCT_IDS = {
+  plus: {
+    monthly: "plus_monthly_v3",
+    yearly: "plus_yearly_v3",
+  },
+  pro: {
+    monthly: "pro_monthly_v3",
+    yearly: "pro_yearly_v3",
+  },
+} as const;
+
+/** Every store product ID the app should recognise for plus/pro (add new keys when stores add products). */
 export const PRODUCT_TO_PLAN: Record<string, "plus" | "pro"> = {
   [APPLE_PRODUCT_IDS.plus.monthly]: "plus",
   [APPLE_PRODUCT_IDS.plus.yearly]: "plus",
   [APPLE_PRODUCT_IDS.pro.monthly]: "pro",
   [APPLE_PRODUCT_IDS.pro.yearly]: "pro",
+  [GOOGLE_PRODUCT_IDS.plus.monthly]: "plus",
+  [GOOGLE_PRODUCT_IDS.plus.yearly]: "plus",
+  [GOOGLE_PRODUCT_IDS.pro.monthly]: "pro",
+  [GOOGLE_PRODUCT_IDS.pro.yearly]: "pro",
   // legacy v2 IDs (test store — keep for sandbox)
   "app.garzoni.mobile.plus_monthly_v2": "plus",
   "app.garzoni.mobile.plus_yearly_v2": "plus",

@@ -24,7 +24,10 @@ import GlassCard from "../../src/components/ui/GlassCard";
 import { ErrorState, Skeleton } from "../../src/components/ui";
 import { spacing, typography, radius } from "../../src/theme/tokens";
 import { leaderboardAvatarUri } from "../../src/components/leaderboard/leaderboardAvatarUri";
-import { formatCountdown, formatPast } from "../../src/components/duels/duelTime";
+import {
+  formatCountdown,
+  formatPast,
+} from "../../src/components/duels/duelTime";
 
 export default function DuelDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,16 +43,18 @@ export default function DuelDetailScreen() {
     queryFn: () => fetchDuelDetail(duelId).then((r) => r.data),
     enabled: Number.isFinite(duelId) && duelId > 0,
     staleTime: 15_000,
-    refetchInterval: (q) => (q.state.data?.status === "active" ? 20_000 : false),
+    refetchInterval: (q) =>
+      q.state.data?.status === "active" ? 20_000 : false,
   });
 
   const duel = duelQuery.data;
 
   const respondMut = useMutation({
-    mutationFn: (action: "accept" | "decline") =>
-      respondToDuel(duelId, action),
+    mutationFn: (action: "accept" | "decline") => respondToDuel(duelId, action),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.duelDetail(duelId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.duelDetail(duelId),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.duelsActive() });
     },
     onError: () => Alert.alert("", t("duels.errors.respondFailed")),
@@ -58,7 +63,9 @@ export default function DuelDetailScreen() {
   const cancelMut = useMutation({
     mutationFn: () => cancelDuel(duelId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.duelDetail(duelId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.duelDetail(duelId),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.duelsActive() });
       router.back();
     },
@@ -68,7 +75,9 @@ export default function DuelDetailScreen() {
   const finalizeMut = useMutation({
     mutationFn: () => finalizeDuel(duelId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.duelDetail(duelId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.duelDetail(duelId),
+      });
     },
   });
 
@@ -120,22 +129,37 @@ export default function DuelDetailScreen() {
           />
         ) : (
           <>
-            <ScoreboardCard duel={duel} sides={sides} t={t} locale={i18n.language} />
+            <ScoreboardCard
+              duel={duel}
+              sides={sides}
+              t={t}
+              locale={i18n.language}
+            />
 
-            <StatusCard duel={duel} sides={sides} t={t} locale={i18n.language} />
+            <StatusCard
+              duel={duel}
+              sides={sides}
+              t={t}
+              locale={i18n.language}
+            />
 
-            {duel.status === "pending" &&
-            duel.viewer_role === "opponent" ? (
+            {duel.status === "pending" && duel.viewer_role === "opponent" ? (
               <View style={styles.actionRow}>
                 <Pressable
                   onPress={() => respondMut.mutate("accept")}
                   disabled={respondMut.isPending}
                   style={[
                     styles.primaryBtn,
-                    { backgroundColor: c.primary, flex: 1, opacity: respondMut.isPending ? 0.6 : 1 },
+                    {
+                      backgroundColor: c.primary,
+                      flex: 1,
+                      opacity: respondMut.isPending ? 0.6 : 1,
+                    },
                   ]}
                 >
-                  <Text style={[styles.primaryBtnText, { color: c.textOnPrimary }]}>
+                  <Text
+                    style={[styles.primaryBtnText, { color: c.textOnPrimary }]}
+                  >
                     {t("duels.actions.accept")}
                   </Text>
                 </Pressable>
@@ -147,21 +171,26 @@ export default function DuelDetailScreen() {
                     { borderColor: c.border, flex: 1 },
                   ]}
                 >
-                  <Text style={[styles.secondaryBtnText, { color: c.textMuted }]}>
+                  <Text
+                    style={[styles.secondaryBtnText, { color: c.textMuted }]}
+                  >
                     {t("duels.actions.decline")}
                   </Text>
                 </Pressable>
               </View>
             ) : null}
 
-            {duel.status === "pending" &&
-            duel.viewer_role === "challenger" ? (
+            {duel.status === "pending" && duel.viewer_role === "challenger" ? (
               <Pressable
                 onPress={() => cancelMut.mutate()}
                 disabled={cancelMut.isPending}
                 style={[
                   styles.secondaryBtn,
-                  { borderColor: c.border, marginTop: spacing.md, opacity: cancelMut.isPending ? 0.6 : 1 },
+                  {
+                    borderColor: c.border,
+                    marginTop: spacing.md,
+                    opacity: cancelMut.isPending ? 0.6 : 1,
+                  },
                 ]}
               >
                 <Text style={[styles.secondaryBtnText, { color: c.textMuted }]}>
@@ -183,7 +212,11 @@ function ScoreboardCard({
   locale,
 }: {
   duel: DuelRecord;
-  sides: { self: DuelRecord["challenger"]; other: DuelRecord["challenger"]; youAreChallenger: boolean };
+  sides: {
+    self: DuelRecord["challenger"];
+    other: DuelRecord["challenger"];
+    youAreChallenger: boolean;
+  };
   t: (key: string, opts?: Record<string, unknown>) => string;
   locale: string;
 }) {
@@ -205,7 +238,9 @@ function ScoreboardCard({
           {selfAvatar ? (
             <Image source={{ uri: selfAvatar }} style={styles.bigAvatar} />
           ) : (
-            <View style={[styles.bigAvatar, { backgroundColor: c.surfaceOffset }]} />
+            <View
+              style={[styles.bigAvatar, { backgroundColor: c.surfaceOffset }]}
+            />
           )}
           <Text style={[styles.sideName, { color: c.text }]} numberOfLines={1}>
             {t("duels.detail.yourScore")}
@@ -219,7 +254,9 @@ function ScoreboardCard({
           {otherAvatar ? (
             <Image source={{ uri: otherAvatar }} style={styles.bigAvatar} />
           ) : (
-            <View style={[styles.bigAvatar, { backgroundColor: c.surfaceOffset }]} />
+            <View
+              style={[styles.bigAvatar, { backgroundColor: c.surfaceOffset }]}
+            />
           )}
           <Text style={[styles.sideName, { color: c.text }]} numberOfLines={1}>
             {sides.other.username}
@@ -229,7 +266,9 @@ function ScoreboardCard({
           </Text>
         </View>
       </View>
-      <View style={[styles.progressTrack, { backgroundColor: c.surfaceOffset }]}>
+      <View
+        style={[styles.progressTrack, { backgroundColor: c.surfaceOffset }]}
+      >
         <View
           style={[
             styles.progressFill,
@@ -262,8 +301,12 @@ function StatusCard({
       time: formatCountdown(duel.ends_at, t),
     });
     const diff = sides.self.xp_delta - sides.other.xp_delta;
-    if (diff > 0) body = t("duels.card.leadingBy", { xp: diff.toLocaleString(locale) });
-    else if (diff < 0) body = t("duels.card.behindBy", { xp: Math.abs(diff).toLocaleString(locale) });
+    if (diff > 0)
+      body = t("duels.card.leadingBy", { xp: diff.toLocaleString(locale) });
+    else if (diff < 0)
+      body = t("duels.card.behindBy", {
+        xp: Math.abs(diff).toLocaleString(locale),
+      });
     else body = t("duels.card.tied");
   } else if (duel.status === "pending") {
     title = t(`duels.status.pending`);
@@ -271,9 +314,13 @@ function StatusCard({
       duel.viewer_role === "challenger"
         ? t("duels.card.outgoing", { username: sides.other.username })
         : t("duels.card.incoming", { username: sides.other.username });
-  } else if (duel.status === "won_by_challenger" || duel.status === "won_by_opponent") {
+  } else if (
+    duel.status === "won_by_challenger" ||
+    duel.status === "won_by_opponent"
+  ) {
     const youWon =
-      (duel.status === "won_by_challenger" && duel.viewer_role === "challenger") ||
+      (duel.status === "won_by_challenger" &&
+        duel.viewer_role === "challenger") ||
       (duel.status === "won_by_opponent" && duel.viewer_role === "opponent");
     title = youWon
       ? t("duels.detail.winnerYou")
@@ -308,7 +355,11 @@ function StatusCard({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: spacing.xl, gap: spacing.md, paddingBottom: spacing.xxxl },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.md,
+    paddingBottom: spacing.xxxl,
+  },
   section: { borderWidth: StyleSheet.hairlineWidth },
   scoreboardRow: {
     flexDirection: "row",
@@ -318,7 +369,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sideCol: { flex: 1, alignItems: "center" },
-  bigAvatar: { width: 72, height: 72, borderRadius: 36, marginBottom: spacing.sm },
+  bigAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    marginBottom: spacing.sm,
+  },
   sideName: {
     fontSize: typography.sm,
     fontWeight: "700",

@@ -2,11 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import {
-  queryKeys,
-  searchUsers,
-  type UserSearchResult,
-} from "@garzoni/core";
+import { queryKeys, searchUsers, type UserSearchResult } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
@@ -51,10 +47,7 @@ export default function LeaderboardSearchResults({ query }: Props) {
       {data.map((u: UserSearchResult) => {
         const uri = leaderboardAvatarUri(u.profile_avatar ?? null);
         return (
-          <Pressable
-            key={u.id}
-            onPress={() => router.push(`/friend/${u.id}`)}
-          >
+          <Pressable key={u.id} onPress={() => router.push(`/friend/${u.id}`)}>
             <GlassCard
               padding="md"
               style={[

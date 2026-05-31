@@ -96,8 +96,7 @@ export default function DuelsScreen() {
                 style={[
                   styles.tabBtn,
                   {
-                    backgroundColor:
-                      tab === key ? c.primary : "transparent",
+                    backgroundColor: tab === key ? c.primary : "transparent",
                   },
                 ]}
               >
@@ -121,7 +120,11 @@ export default function DuelsScreen() {
           keyExtractor={(d) => String(d.id)}
           contentContainerStyle={styles.list}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={c.primary}
+            />
           }
           renderItem={({ item }) => (
             <DuelCard
@@ -136,7 +139,12 @@ export default function DuelsScreen() {
             loading ? (
               <View style={{ gap: spacing.md, paddingTop: spacing.lg }}>
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} width="100%" height={120} borderRadius={radius.lg} />
+                  <Skeleton
+                    key={i}
+                    width="100%"
+                    height={120}
+                    borderRadius={radius.lg}
+                  />
                 ))}
               </View>
             ) : (
@@ -170,7 +178,11 @@ export default function DuelsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerPad: { paddingHorizontal: spacing.md, paddingTop: spacing.md },
-  list: { paddingHorizontal: spacing.md, paddingBottom: spacing.xxxl, paddingTop: spacing.md },
+  list: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xxxl,
+    paddingTop: spacing.md,
+  },
   h1: { fontSize: typography.xl, fontWeight: "800" },
   subtitle: { fontSize: typography.sm, marginTop: spacing.xs },
   tabBar: {

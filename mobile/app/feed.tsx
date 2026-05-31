@@ -108,7 +108,9 @@ export default function FeedScreen() {
               />
             }
             renderItem={({ item }) => {
-              const uri = leaderboardAvatarUri(item.user.profile_avatar ?? null);
+              const uri = leaderboardAvatarUri(
+                item.user.profile_avatar ?? null,
+              );
               return (
                 <Pressable
                   onPress={() => router.push(`/friend/${item.user.id}`)}

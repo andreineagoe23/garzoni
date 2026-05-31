@@ -128,6 +128,9 @@ lib/
 !packages/core/src/lib/
 !packages/core/src/lib/**
 
+# ── Remotion video workspace (kept out of repo) ──────────────────────────────
+/video/
+
 # ── IDE / editor ─────────────────────────────────────────────────────────────
 .cursor/
 ./agents/
@@ -146,3 +149,6 @@ backend/education/content/rewrite_output/
 backend/chartwise/garzonicredentials.json
 backend/garzonicredentials.json
 ios/sentry.properties
+mobile/google-services.json
+mobile/play-store-service-account.json
+mobile/android/app/google-services.json

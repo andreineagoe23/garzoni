@@ -132,6 +132,30 @@ export function authLogoWhiteBgUrl(opts?: { width?: number }): string {
   return `${getMediaBaseUrl()}/media/logo/garzoni-logo-white-bg.png`;
 }
 
+/**
+ * Cloud that hosts Garzoni's shared marketing assets (matches backend `CLOUDINARY_URL`).
+ * Used as the default for the demo clip, which lives only on Cloudinary (no Django fallback),
+ * so the URL resolves even where the cloud-name env is unset (e.g. mobile dev).
+ */
+const GARZONI_CLOUDINARY_CLOUD = "daqvqm710";
+
+/**
+ * Marketing demo clip shown in the web hero and the mobile welcome carousel.
+ * Cloudinary public id `garzoni/welcome/garzoni-demo` (uploaded via
+ * `node scripts/upload-demo-video.mjs`). `f_auto:video,q_auto` lets Cloudinary pick
+ * the best codec/bitrate per client.
+ */
+export function garzoniDemoVideoUrl(): string {
+  const cloud = getCloudName() || GARZONI_CLOUDINARY_CLOUD;
+  return `https://res.cloudinary.com/${cloud}/video/upload/f_auto:video,q_auto/garzoni/welcome/garzoni-demo.mp4`;
+}
+
+/** Poster (first frame) for {@link garzoniDemoVideoUrl}, for use as a `<video poster>`. */
+export function garzoniDemoPosterUrl(): string {
+  const cloud = getCloudName() || GARZONI_CLOUDINARY_CLOUD;
+  return `https://res.cloudinary.com/${cloud}/video/upload/so_0,f_auto,q_auto/garzoni/welcome/garzoni-demo.jpg`;
+}
+
 export const Images = {
   get loginBg() {
     return cloudinaryImageUrl("garzoni/login-bg", "f_auto,q_auto,w_1200");

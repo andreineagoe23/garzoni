@@ -51,12 +51,15 @@ export default function NewDuelScreen() {
     },
     onError: (err: unknown) => {
       const e = err as {
-        response?: { data?: { error?: string; code?: string; detail?: string } };
+        response?: {
+          data?: { error?: string; code?: string; detail?: string };
+        };
       };
       const code = e?.response?.data?.code;
       let message = e?.response?.data?.error || e?.response?.data?.detail;
       if (code === "max_active") message = t("duels.challenge.maxActive");
-      else if (code === "pair_cooldown") message = t("duels.challenge.cooldown");
+      else if (code === "pair_cooldown")
+        message = t("duels.challenge.cooldown");
       Alert.alert("", message || t("duels.challenge.failed"));
     },
   });
@@ -166,7 +169,10 @@ export default function NewDuelScreen() {
           disabled={createMut.isPending}
           style={[
             styles.sendBtn,
-            { backgroundColor: c.primary, opacity: createMut.isPending ? 0.6 : 1 },
+            {
+              backgroundColor: c.primary,
+              opacity: createMut.isPending ? 0.6 : 1,
+            },
           ]}
         >
           <Text style={[styles.sendBtnText, { color: c.textOnPrimary }]}>
@@ -191,7 +197,11 @@ const styles = StyleSheet.create({
   content: { padding: spacing.xl },
   header: { alignItems: "center", marginBottom: spacing.xl },
   avatar: { width: 88, height: 88, borderRadius: 44 },
-  username: { fontSize: typography.xl, fontWeight: "800", marginTop: spacing.lg },
+  username: {
+    fontSize: typography.xl,
+    fontWeight: "800",
+    marginTop: spacing.lg,
+  },
   subtitle: {
     fontSize: typography.sm,
     marginTop: spacing.sm,

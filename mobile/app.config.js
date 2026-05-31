@@ -34,22 +34,42 @@ const googleIosUrlScheme =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME?.trim() ||
   googleIosReversedUrlScheme(normalizedGoogleIosClientId);
 
-/** Only register the config plugin when scheme is set (EAS cloud has no local .env unless you add EAS env). */
+/**
+ * Always register the Google Sign-In config plugin so Android manifest entries
+ * are emitted (Android matches the OAuth client by package + SHA-1, no
+ * iosUrlScheme needed). On iOS the URL scheme is still required for the
+ * REVERSED_CLIENT_ID URL type; pass it only when known.
+ */
 const googleSignInPlugin = googleIosUrlScheme
   ? [
       "@react-native-google-signin/google-signin",
-      {
-        iosUrlScheme: googleIosUrlScheme,
-      },
+      { iosUrlScheme: googleIosUrlScheme },
     ]
-  : null;
+  : ["@react-native-google-signin/google-signin"];
 
-if (!googleIosUrlScheme && process.env.EAS_BUILD === "true") {
+if (
+  !googleIosUrlScheme &&
+  process.env.EAS_BUILD === "true" &&
+  process.env.EAS_BUILD_PLATFORM === "ios"
+) {
   // eslint-disable-next-line no-console
   console.warn(
     "[app.config] Google Sign-In iOS URL scheme missing. Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID or " +
       "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME in EAS project secrets (or eas.json env) to enable native Google login on iOS.",
   );
+}
+
+/**
+ * Sentry project: iOS history lives in `apple-ios`, Android gets its own
+ * project so historical issue grouping isn't broken. Override via SENTRY_PROJECT
+ * env if you want one project for both.
+ */
+function resolveSentryProject() {
+  if (process.env.SENTRY_PROJECT) return process.env.SENTRY_PROJECT;
+  if (process.env.EAS_BUILD_PLATFORM === "android") {
+    return process.env.SENTRY_PROJECT_ANDROID ?? "garzoni-android";
+  }
+  return "apple-ios";
 }
 
 function preferHttpsForRailway(url) {
@@ -141,7 +161,7 @@ module.exports = ({ config }) => ({
         // Source-map upload during EAS builds. Override via env if you split iOS/Android projects later.
         // Do not use `sentry-wizard -i ios` here — Expo uses @sentry/react-native (see sentryMobile.ts).
         organization: process.env.SENTRY_ORG ?? "garzoni",
-        project: process.env.SENTRY_PROJECT ?? "apple-ios",
+        project: resolveSentryProject(),
       },
     ],
     "expo-router",
@@ -164,13 +184,15 @@ module.exports = ({ config }) => ({
           deploymentTarget: "15.1",
           privacyManifestAggregationEnabled: true,
         },
-        ...(allowInsecureLocalHttp
-          ? {
-              android: {
-                usesCleartextTraffic: true,
-              },
-            }
-          : {}),
+        android: {
+          // Play Store target requirement (API 35 = Android 15) as of 2025-08.
+          compileSdkVersion: 35,
+          targetSdkVersion: 35,
+          minSdkVersion: 24,
+          enableProguardInReleaseBuilds: true,
+          enableShrinkResources: true,
+          ...(allowInsecureLocalHttp ? { usesCleartextTraffic: true } : {}),
+        },
       },
     ],
   ],

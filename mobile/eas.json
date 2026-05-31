@@ -7,6 +7,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "development",
         "EXPO_PUBLIC_BACKEND_URL": "https://garzoni-production.up.railway.app/api",
@@ -16,6 +19,7 @@
         "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710",
         "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_PLACEHOLDER_REPLACE_BEFORE_ANDROID_RELEASE",
         "EXPO_PUBLIC_CIO_SITE_ID": "c32143b82d01f682a0db",
         "EXPO_PUBLIC_CIO_CDP_API_KEY": "d14f57bb2a01e6979459",
         "EXPO_PUBLIC_CIO_REGION": "eu"
@@ -24,6 +28,9 @@
     "preview": {
       "distribution": "internal",
       "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "SENTRY_ALLOW_FAILURE": "true",
         "EXPO_PUBLIC_APP_ENV": "production",
@@ -34,6 +41,7 @@
         "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710",
         "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_PLACEHOLDER_REPLACE_BEFORE_ANDROID_RELEASE",
         "EXPO_PUBLIC_CIO_SITE_ID": "c32143b82d01f682a0db",
         "EXPO_PUBLIC_CIO_CDP_API_KEY": "d14f57bb2a01e6979459",
         "EXPO_PUBLIC_CIO_REGION": "eu"
@@ -42,6 +50,9 @@
     "production": {
       "channel": "production",
       "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "SENTRY_ALLOW_FAILURE": "true",
         "EXPO_PUBLIC_APP_ENV": "production",
@@ -52,6 +63,7 @@
         "EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME": "com.googleusercontent.apps.662909168223-bgu40sm9g5ec9tva9lbdaicpn8c9pqv3",
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "daqvqm710",
         "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_oiDrOEjaWPgaXnNCZxDupThiLfu",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_PLACEHOLDER_REPLACE_BEFORE_ANDROID_RELEASE",
         "EXPO_PUBLIC_CIO_SITE_ID": "c32143b82d01f682a0db",
         "EXPO_PUBLIC_CIO_CDP_API_KEY": "d14f57bb2a01e6979459",
         "EXPO_PUBLIC_CIO_REGION": "eu"
@@ -64,6 +76,7 @@
         "ascAppId": "6761790801"
       },
       "android": {
+        "serviceAccountKeyPath": "./play-store-service-account.json",
         "track": "internal",
         "releaseStatus": "draft"
       }
@@ -73,6 +86,7 @@
         "ascAppId": "6761790801"
       },
       "android": {
+        "serviceAccountKeyPath": "./play-store-service-account.json",
         "track": "production",
         "releaseStatus": "draft"
       }
