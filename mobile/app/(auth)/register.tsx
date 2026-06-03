@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link, router } from "expo-router";
 import { obtainTokenPair, registerSecure } from "@garzoni/core";
@@ -56,6 +56,30 @@ type FieldKey =
   | "first_name"
   | "last_name";
 
+function ConsentRow({
+  checked,
+  onToggle,
+  children,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      style={styles.consentRow}
+    >
+      <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+        {checked ? <Text style={styles.checkboxMark}>✓</Text> : null}
+      </View>
+      <View style={styles.consentTextWrap}>{children}</View>
+    </Pressable>
+  );
+}
+
 export default function RegisterScreen() {
   const { t } = useTranslation("common");
   const { applyTokens } = useAuthSession();
@@ -68,6 +92,9 @@ export default function RegisterScreen() {
     last_name: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const canSubmit = acceptTerms && ageConfirmed;
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<FieldKey, string>>
   >({});
@@ -106,6 +133,10 @@ export default function RegisterScreen() {
 
   const onSubmit = async () => {
     setError("");
+    if (!canSubmit) {
+      setError(t("auth.register.acceptToContinue"));
+      return;
+    }
     if (!validate()) return;
     setLoading(true);
     try {
@@ -118,6 +149,8 @@ export default function RegisterScreen() {
         last_name: form.last_name.trim(),
         client_type: "mobile",
         platform: "mobile",
+        accept_terms: true,
+        age_confirmed: true,
         ...(referralCode ? { referral_code: referralCode } : {}),
       });
       const { access, refresh } = extractTokens(data as TokenResponseLike);
@@ -266,17 +299,50 @@ export default function RegisterScreen() {
         onSubmitEditing={() => void onSubmit()}
       />
 
+      <ConsentRow
+        checked={acceptTerms}
+        onToggle={() => setAcceptTerms((v) => !v)}
+      >
+        <Text style={styles.consentText}>
+          {t("auth.register.agreePrefix")}{" "}
+          <Text
+            style={styles.consentLink}
+            onPress={() => router.push("/legal/terms")}
+          >
+            {t("auth.register.termsLink")}
+          </Text>
+          {t("auth.register.agreeJoin")}{" "}
+          <Text
+            style={styles.consentLink}
+            onPress={() => router.push("/legal/privacy")}
+          >
+            {t("auth.register.privacyLink")}
+          </Text>
+          .
+        </Text>
+      </ConsentRow>
+
+      <ConsentRow
+        checked={ageConfirmed}
+        onToggle={() => setAgeConfirmed((v) => !v)}
+      >
+        <Text style={styles.consentText}>{t("auth.register.ageConfirm")}</Text>
+      </ConsentRow>
+
       <DarkCta
         label={
           loading ? t("auth.register.submitting") : t("auth.register.submit")
         }
         loading={loading}
+        disabled={!canSubmit}
         onPress={() => void onSubmit()}
       />
 
       <DarkDivider label={t("auth.orContinueWith")} />
 
       <AuthSocialSection
+        consent={canSubmit ? { accept_terms: true, age_confirmed: true } : null}
+        gatedMessage={t("auth.register.acceptToContinue")}
         onSuccess={async (access, refresh, meta) => {
           await applyTokens(access, refresh);
           replaceAfterSocialAuth(meta?.next);
@@ -305,4 +371,28 @@ const styles = StyleSheet.create({
   },
   bottomText: { fontSize: 13, color: DARK.muted },
   bottomLink: { fontSize: 13, color: DARK.primaryBright, fontWeight: "600" },
+  consentRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    paddingVertical: 6,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: DARK.muted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  checkboxChecked: {
+    backgroundColor: DARK.primaryBright,
+    borderColor: DARK.primaryBright,
+  },
+  checkboxMark: { color: "#04110a", fontSize: 14, fontWeight: "800" },
+  consentTextWrap: { flex: 1 },
+  consentText: { fontSize: 13, color: DARK.muted, lineHeight: 19 },
+  consentLink: { color: DARK.primaryBright, fontWeight: "600" },
 });

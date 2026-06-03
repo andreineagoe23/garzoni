@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Stack, usePathname } from "expo-router";
+import { router, Stack, usePathname, useSegments } from "expo-router";
 import { LinkPreviewContextProvider } from "expo-router/build/link/preview/LinkPreviewContext";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
@@ -43,16 +43,38 @@ import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 /** Keeps glass-style layouts readable on large tablets (centered column). */
 const TABLET_MAX_CONTENT_WIDTH = 560;
 
+/** Root route segments reachable without a session (pre-auth + legal/reset). */
+const PUBLIC_ROOT_SEGMENTS = new Set([
+  "(auth)",
+  "welcome",
+  "legal",
+  "password-reset",
+]);
+
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
   const contentWidth = Math.min(windowWidth, TABLET_MAX_CONTENT_WIDTH);
   const constrainTabletWidth = windowWidth > TABLET_MAX_CONTENT_WIDTH;
-  const { accessToken } = useAuthSession();
+  const { hydrated, accessToken } = useAuthSession();
   const pathname = usePathname();
+  const segments = useSegments();
   const insets = useSafeAreaInsets();
   const [shakeModalVisible, setShakeModalVisible] = useState(false);
   useNativeOnlineSync();
+
+  // Global auth guard. Without it the only auth check lives in `index.tsx`
+  // (the `/` route), so every other screen — tools, (tabs), chat — renders
+  // with no token after logout, session expiry, or a deep link, firing
+  // authenticated fetches that 401. Redirect any non-public route to /welcome
+  // once we know there is no session. `/` (empty segments) runs its own
+  // auth-aware redirect, so leave it alone.
+  useEffect(() => {
+    if (!hydrated || accessToken) return;
+    const root = segments[0];
+    if (root === undefined || PUBLIC_ROOT_SEGMENTS.has(root)) return;
+    router.replace("/welcome");
+  }, [hydrated, accessToken, segments]);
 
   useShakeDetection({
     onShake: () => setShakeModalVisible(true),

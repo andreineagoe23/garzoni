@@ -78,7 +78,8 @@
     "titleTerms": "Terms",
     "titleCookies": "Cookies",
     "titleDisclaimer": "Disclaimer",
-    "titleDefault": "Legal"
+    "titleDefault": "Legal",
+    "close": "Done"
   },
   "courseDetail": {
     "loading": "Loading…",
@@ -2102,7 +2103,14 @@
       "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
       "verificationFailedHint": "Security verification could not be completed. Refresh the page and try again, or use Sign in with Google.",
       "tryGoogleHint": "You can also sign in with Google below.",
-      "marketingOptIn": "Send me occasional product updates, tips and offers (optional, you can unsubscribe any time)."
+      "marketingOptIn": "Send me occasional product updates, tips and offers (optional, you can unsubscribe any time).",
+      "acceptTerms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+      "ageConfirm": "I confirm I am at least 16 years old.",
+      "acceptToContinue": "Please accept the Terms and confirm your age to continue.",
+      "agreePrefix": "I agree to the",
+      "termsLink": "Terms of Service",
+      "agreeJoin": " and",
+      "privacyLink": "Privacy Policy"
     },
     "forgotPassword": {
       "title": "Forgot Password",

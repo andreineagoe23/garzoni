@@ -301,6 +301,13 @@ EXTERNAL_REQUEST_TIMEOUT_SECONDS = int(os.getenv("EXTERNAL_REQUEST_TIMEOUT_SECON
 HTTP_POOL_CONNECTIONS = int(os.getenv("HTTP_POOL_CONNECTIONS", "20"))
 HTTP_POOL_MAXSIZE = int(os.getenv("HTTP_POOL_MAXSIZE", "20"))
 
+# Legal consent: bump when Terms of Service / Privacy Policy change so the app
+# can detect users who accepted an older revision and re-prompt them. Stored on
+# UserProfile.terms_version at signup.
+CURRENT_TERMS_VERSION = os.getenv("CURRENT_TERMS_VERSION", "2026-06-01")
+# Minimum self-attested age at signup (GDPR default age of consent is 16).
+MINIMUM_SIGNUP_AGE = int(os.getenv("MINIMUM_SIGNUP_AGE", "16"))
+
 # Rate limits (DRF throttles) for sensitive endpoints
 LOGIN_THROTTLE_RATE = os.getenv("LOGIN_THROTTLE_RATE", "10/min")
 CONTACT_THROTTLE_RATE = os.getenv("CONTACT_THROTTLE_RATE", "5/min")

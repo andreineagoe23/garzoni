@@ -78,7 +78,8 @@
     "titleTerms": "Termeni",
     "titleCookies": "Cookies",
     "titleDisclaimer": "Disclaimer",
-    "titleDefault": "Legal"
+    "titleDefault": "Legal",
+    "close": "Gata"
   },
   "courseDetail": {
     "loading": "Se încarcă…",
@@ -2102,7 +2103,14 @@
       "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
       "verificationFailedHint": "Verificarea de securitate nu a putut fi finalizată. Reîncarcă pagina și încearcă din nou, sau folosește Conectare cu Google.",
       "tryGoogleHint": "Poți folosi și Conectare cu Google mai jos.",
-      "marketingOptIn": "Vreau să primesc ocazional actualizări despre produs, sfaturi și oferte (opțional, te poți dezabona oricând)."
+      "marketingOptIn": "Vreau să primesc ocazional actualizări despre produs, sfaturi și oferte (opțional, te poți dezabona oricând).",
+      "acceptTerms": "Sunt de acord cu <terms>Termenii și condițiile</terms> și <privacy>Politica de confidențialitate</privacy>.",
+      "ageConfirm": "Confirm că am cel puțin 16 ani.",
+      "acceptToContinue": "Te rugăm să accepți Termenii și să confirmi vârsta pentru a continua.",
+      "agreePrefix": "Sunt de acord cu",
+      "termsLink": "Termenii și condițiile",
+      "agreeJoin": " și",
+      "privacyLink": "Politica de confidențialitate"
     },
     "forgotPassword": {
       "title": "Ai uitat parola",

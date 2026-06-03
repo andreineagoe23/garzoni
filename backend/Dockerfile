@@ -60,4 +60,7 @@ EXPOSE 8000
 
 # Run entrypoint via sh so it works even if exec bit is lost (e.g. volume mounts)
 ENTRYPOINT ["/bin/sh", "/app/docker/entrypoint.sh"]
-CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--worker-class", "gthread", "--workers", "2", "--threads", "4", "--timeout", "300", "--graceful-timeout", "30", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100"]
+# Worker/thread/timeout counts are injected by entrypoint.sh from env
+# (WEB_CONCURRENCY / GUNICORN_THREADS / GUNICORN_TIMEOUT) so concurrency can be
+# tuned per Railway plan without rebuilding the image.
+CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--worker-class", "gthread", "--graceful-timeout", "30", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100"]

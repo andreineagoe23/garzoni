@@ -24,6 +24,9 @@ type Props = {
     meta?: SocialAuthSuccessMeta,
   ) => void;
   onError: (message: string) => void;
+  // See AppleSignInButton: undefined = login, null = signup blocked, object = consented.
+  consent?: { accept_terms: boolean; age_confirmed: boolean } | null;
+  gatedMessage?: string;
 };
 
 let configured = false;
@@ -76,7 +79,12 @@ function GoogleMark() {
  * Current “Sign in with Google” neutral button (full width, light/dark shells) — same pattern as
  * web, while still using `GoogleSignin.signIn()` for native auth (avoids legacy `GoogleSigninButton` art).
  */
-export function GoogleSignInButton({ onSuccess, onError }: Props) {
+export function GoogleSignInButton({
+  onSuccess,
+  onError,
+  consent,
+  gatedMessage,
+}: Props) {
   const { t } = useTranslation("common");
   const { resolved, colors } = useTheme();
   const [busy, setBusy] = useState(false);
@@ -102,6 +110,11 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
 
   const handlePress = async () => {
     if (!ensureConfigured()) return;
+    // Signup consent gate: block until the required boxes are ticked.
+    if (consent === null) {
+      onError(gatedMessage || "Please accept the Terms to continue.");
+      return;
+    }
     setBusy(true);
     try {
       if (Platform.OS === "android") {
@@ -129,6 +142,7 @@ export function GoogleSignInButton({ onSuccess, onError }: Props) {
       const { data } = await googleVerifyCredential({
         credential: idToken,
         state: "all-topics",
+        ...(consent ? { accept_terms: true, age_confirmed: true } : {}),
       });
       if (data?.access) {
         onSuccess(data.access, data.refresh, { next: data.next });

@@ -17,9 +17,19 @@ type Props = {
     meta?: SocialAuthSuccessMeta,
   ) => void;
   onError: (message: string) => void;
+  // Signup consent gate, forwarded to the social buttons:
+  //  undefined = login (returning users), null = signup not yet consented,
+  //  object = consent given. See AppleSignInButton.
+  consent?: { accept_terms: boolean; age_confirmed: boolean } | null;
+  gatedMessage?: string;
 };
 
-export function AuthSocialSection({ onSuccess, onError }: Props) {
+export function AuthSocialSection({
+  onSuccess,
+  onError,
+  consent,
+  gatedMessage,
+}: Props) {
   const c = useThemeColors();
   const [appleAvailable, setAppleAvailable] = useState(false);
 
@@ -37,10 +47,20 @@ export function AuthSocialSection({ onSuccess, onError }: Props) {
   return (
     <View style={styles.stack}>
       {googleConfigured ? (
-        <GoogleSignInButton onSuccess={onSuccess} onError={onError} />
+        <GoogleSignInButton
+          onSuccess={onSuccess}
+          onError={onError}
+          consent={consent}
+          gatedMessage={gatedMessage}
+        />
       ) : null}
       {appleAvailable ? (
-        <AppleSignInButton onSuccess={onSuccess} onError={onError} />
+        <AppleSignInButton
+          onSuccess={onSuccess}
+          onError={onError}
+          consent={consent}
+          gatedMessage={gatedMessage}
+        />
       ) : null}
       {Platform.OS === "ios" && googleConfigured && !appleAvailable ? (
         <Text style={[styles.appleHint, { color: c.textMuted }]}>

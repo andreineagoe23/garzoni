@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import LoadingSpinner from "../../src/components/ui/LoadingSpinner";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { WebView } from "react-native-webview";
 import { getWebAppBaseUrl } from "../../src/bootstrap/webAppUrl";
@@ -61,9 +61,36 @@ export default function LegalPageScreen() {
     setWebKey((k) => k + 1);
   }, []);
 
+  const goBack = useCallback(() => {
+    // This screen sits at the root of the nested `legal` stack, so it has no
+    // native back chevron and the root header is hidden — without an explicit
+    // control the user is stranded here (esp. iOS). router.back() unwinds to
+    // wherever it was opened from (signup, settings, …); fall back to "/" if
+    // there's nothing to pop.
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
+  }, []);
+
   return (
     <>
-      <Stack.Screen options={{ title: titleFor(page ?? "", t) }} />
+      <Stack.Screen
+        options={{
+          title: titleFor(page ?? "", t),
+          headerLeft: () => (
+            <Pressable
+              onPress={goBack}
+              accessibilityRole="button"
+              accessibilityLabel={t("legalMobile.close")}
+              hitSlop={12}
+              style={styles.headerClose}
+            >
+              <Text style={[styles.headerCloseText, { color: c.primary }]}>
+                {t("legalMobile.close")}
+              </Text>
+            </Pressable>
+          ),
+        }}
+      />
       <View style={[styles.flex, { backgroundColor: c.bg }]}>
         {!uri ? (
           <View style={styles.center}>
@@ -126,6 +153,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   msg: { fontSize: typography.sm, textAlign: "center", lineHeight: 22 },
+  headerClose: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  headerCloseText: { fontSize: typography.md, fontWeight: "600" },
   row: {
     flexDirection: "row",
     gap: spacing.md,

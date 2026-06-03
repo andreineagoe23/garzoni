@@ -37,6 +37,13 @@ yarn-error.*
 GoogleSignIn.credentials.plist
 client_*.apps.googleusercontent.com.plist
 
+# Firebase / FCM Android config — uploaded to EAS as GOOGLE_SERVICES_JSON file secret for cloud builds
+google-services.json
+
+# Google Play & RevenueCat service-account JSONs — never commit
+play-store-service-account.json
+*.serviceaccount.json
+
 # typescript
 *.tsbuildinfo
 

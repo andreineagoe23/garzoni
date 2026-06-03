@@ -18,6 +18,7 @@ import {
   identifyGarzoniUserFromAccessToken,
 } from "../bootstrap/customerIoMobile";
 import { fireAppOpenedDaily } from "../bootstrap/sessionTracking";
+import { reregisterPushIfPermitted } from "../bootstrap/pushNotificationsMobile";
 import { tokenStorage } from "./tokenStorage";
 import { markWelcomeHeaderPending } from "./firstRunFlags";
 import {
@@ -95,20 +96,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // last_active_at. Hydration on cold start passes no traits, leaving the
     // trait alone — inactivity segments must depend on real user actions, not
     // app presence.
-    void identifyGarzoniUserFromAccessToken(access, {
-      last_active_at: Math.floor(Date.now() / 1000),
-    });
+    void (async () => {
+      await identifyGarzoniUserFromAccessToken(access, {
+        last_active_at: Math.floor(Date.now() / 1000),
+      });
+      // Re-attach the push device to this freshly-identified profile so CIO
+      // doesn't end up with "No devices synced". No-op / no prompt if push
+      // permission was never granted.
+      await reregisterPushIfPermitted();
+    })();
     // A fresh login is also an app open — fire the event so today's
     // engagement is captured even if hydration ran in a different session.
     void fireAppOpenedDaily();
   }, []);
 
   const clearSession = useCallback(async () => {
-    // Disable queries and stop authenticated requests immediately, before the
-    // async cleanup chain runs. Without this, queryClient.clear() fires while
-    // React still sees hasSession=true, causing re-fetches with no token → 401s.
+    // Disable queries immediately so no enabled:hasSession query re-fetches mid
+    // cleanup. We intentionally KEEP the access token attached here: the first
+    // thing resetNativeSessionStores does is clearExpoPushToken() — an
+    // authenticated POST that must carry the Bearer header, or the server never
+    // drops the push token and the request 401s. resetNativeSessionStores
+    // detaches the token itself once the server-side clear has run.
     setAccessToken(null);
-    attachToken(null);
     await resetNativeSessionStores();
   }, []);
 

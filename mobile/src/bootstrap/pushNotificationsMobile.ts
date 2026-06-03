@@ -121,6 +121,30 @@ function resolveEasProjectId(): string | undefined {
   return extra?.eas?.projectId;
 }
 
+/**
+ * Re-attach the push device to the current Customer.io profile *only if* push
+ * permission was already granted. Never prompts — safe to call on every login.
+ *
+ * Why this exists: device-token registration is otherwise gated behind the 24h
+ * `shouldReregister` flag in usePushNotifications, and the CIO device is cleared
+ * on logout. After a re-login the profile could be identified with no device
+ * attached ("No devices synced" in CIO even though the Expo token is stored as a
+ * profile attribute). Running this right after identify guarantees the device
+ * lands on the freshly-identified person.
+ */
+export async function reregisterPushIfPermitted(): Promise<void> {
+  if (Platform.OS === "web") return;
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== "granted") return; // never prompt during login
+    await registerForPushAndSubmitToken();
+  } catch (e) {
+    if (__DEV__) {
+      console.warn("[push] reregisterPushIfPermitted failed", e);
+    }
+  }
+}
+
 export async function registerForPushAndSubmitToken(): Promise<{
   ok: boolean;
   message: string;

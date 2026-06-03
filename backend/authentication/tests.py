@@ -318,3 +318,134 @@ class EntitlementsProfileFieldsTests(APITestCase):
         self.assertIn("2031-08-01", response.data.get("trial_end") or "")
         self.assertIn("billing_interval", response.data)
         self.assertIn("billingInterval", response.data)
+
+
+class PlanBypassTests(APITestCase):
+    """A user must not be able to grant themselves a paid plan."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="bypass-user", email="bypass@example.com", password="pass12345"
+        )
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        self.client.force_authenticate(user=self.user)
+
+    def test_patch_userprofile_cannot_set_subscription_plan(self):
+        resp = self.client.patch(
+            reverse("userprofile"), {"subscription_plan_id": "pro"}, format="json"
+        )
+        # Request may succeed (other fields) but the plan must not change.
+        self.profile.refresh_from_db()
+        self.assertNotEqual(self.profile.subscription_plan_id, "pro")
+        self.assertEqual(get_user_plan(self.user), "starter")
+
+    def test_get_user_plan_ignores_plan_without_payment_flag(self):
+        # Even if subscription_plan_id is somehow "pro", no has_paid/is_premium = starter.
+        self.profile.subscription_plan_id = "pro"
+        self.profile.has_paid = False
+        self.profile.is_premium = False
+        self.profile.save()
+        self.assertEqual(get_user_plan(self.user), "starter")
+
+
+class RegisterConsentTests(APITestCase):
+    def _payload(self, **over):
+        base = {
+            "username": "newperson",
+            "email": "newperson@example.com",
+            "password": "StrongPass123",
+            "accept_terms": True,
+            "age_confirmed": True,
+            # Bypass reCAPTCHA the way the native app does.
+            "client_type": "mobile",
+        }
+        base.update(over)
+        return base
+
+    def test_register_requires_terms_acceptance(self):
+        resp = self.client.post(
+            reverse("register-secure"), self._payload(accept_terms=False), format="json"
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(User.objects.filter(username="newperson").exists())
+
+    def test_register_requires_age_confirmation(self):
+        resp = self.client.post(
+            reverse("register-secure"),
+            self._payload(username="u2", email="u2@example.com", age_confirmed=False),
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_register_records_consent(self):
+        resp = self.client.post(reverse("register-secure"), self._payload(), format="json")
+        self.assertEqual(resp.status_code, 201)
+        profile = User.objects.get(username="newperson").profile
+        self.assertTrue(profile.age_confirmed)
+        self.assertIsNotNone(profile.terms_accepted_at)
+        self.assertTrue(profile.terms_version)
+
+    def test_register_rejects_weak_password(self):
+        resp = self.client.post(
+            reverse("register-secure"),
+            self._payload(username="u3", email="u3@example.com", password="123"),
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+
+class LoginHardeningTests(APITestCase):
+    def test_inactive_user_cannot_login(self):
+        user = User.objects.create_user(
+            username="inactive", email="inactive@example.com", password="StrongPass123"
+        )
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        resp = self.client.post(
+            reverse("login-secure"),
+            {
+                "username": "inactive",
+                "password": "StrongPass123",
+                "client_type": "mobile",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp.data.get("code"), "invalid_credentials")
+
+    def test_wrong_and_missing_user_return_same_shape(self):
+        User.objects.create_user(
+            username="real", email="real@example.com", password="StrongPass123"
+        )
+        wrong_pw = self.client.post(
+            reverse("login-secure"),
+            {"username": "real", "password": "nope", "client_type": "mobile"},
+            format="json",
+        )
+        no_user = self.client.post(
+            reverse("login-secure"),
+            {"username": "ghost", "password": "nope", "client_type": "mobile"},
+            format="json",
+        )
+        self.assertEqual(wrong_pw.status_code, 401)
+        self.assertEqual(no_user.status_code, 401)
+        self.assertEqual(wrong_pw.data.get("code"), no_user.data.get("code"))
+
+
+class PasswordResetStrengthTests(APITestCase):
+    def test_reset_rejects_weak_password(self):
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        user = User.objects.create_user(
+            username="resetme", email="resetme@example.com", password="StrongPass123"
+        )
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = PasswordResetTokenGenerator().make_token(user)
+        resp = self.client.post(
+            reverse("password_reset_confirm", args=[uid, token]),
+            {"new_password": "123", "confirm_password": "123"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)

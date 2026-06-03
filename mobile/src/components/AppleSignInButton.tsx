@@ -19,6 +19,12 @@ type Props = {
     meta?: SocialAuthSuccessMeta,
   ) => void;
   onError: (message: string) => void;
+  // Consent gate for signup screens:
+  //  - undefined: login mode (returning users), no consent needed
+  //  - null: signup, consent not yet given → button blocked
+  //  - object: consent given → flags sent to the verify endpoint for new users
+  consent?: { accept_terms: boolean; age_confirmed: boolean } | null;
+  gatedMessage?: string;
 };
 
 const BUTTON_HEIGHT = 50;
@@ -28,7 +34,12 @@ const CORNER_RADIUS = 12;
  * System Sign in with Apple — white filled control on dark UI, black on light (matches Apple HIG
  * on grey surfaces and flips with in-app theme).
  */
-export function AppleSignInButton({ onSuccess, onError }: Props) {
+export function AppleSignInButton({
+  onSuccess,
+  onError,
+  consent,
+  gatedMessage,
+}: Props) {
   const { resolved } = useTheme();
   const [busy, setBusy] = useState(false);
 
@@ -43,6 +54,11 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
 
   const handlePress = async () => {
     if (busy) return;
+    // Signup consent gate: block until the required boxes are ticked.
+    if (consent === null) {
+      onError(gatedMessage || "Please accept the Terms to continue.");
+      return;
+    }
     setBusy(true);
     try {
       const credential = await signInAsync({
@@ -63,6 +79,7 @@ export function AppleSignInButton({ onSuccess, onError }: Props) {
         state: "all-topics",
         first_name: gn.trim() || undefined,
         last_name: fn.trim() || undefined,
+        ...(consent ? { accept_terms: true, age_confirmed: true } : {}),
       });
       if (data?.access) {
         onSuccess(data.access, data.refresh, { next: data.next });

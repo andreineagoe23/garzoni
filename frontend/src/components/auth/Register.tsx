@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import axios from "axios";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -30,6 +30,9 @@ function Register() {
     referral_code: initialReferral,
   });
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const canSubmit = acceptTerms && ageConfirmed;
   const [errorMessage, setErrorMessage] = useState("");
   const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -141,6 +144,8 @@ function Register() {
       const result = await runRegister({
         ...formData,
         marketing_opt_in: marketingOptIn,
+        accept_terms: acceptTerms,
+        age_confirmed: ageConfirmed,
         recaptcha_token: token,
       });
       if (result.success) return;
@@ -380,6 +385,64 @@ function Register() {
               </div>
 
               <label
+                htmlFor="accept_terms"
+                className="app-surface-subtle flex cursor-pointer items-start gap-3 rounded-xl px-4 py-3 text-sm text-content-muted"
+              >
+                <input
+                  id="accept_terms"
+                  name="accept_terms"
+                  type="checkbox"
+                  required
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
+                />
+                <span>
+                  <Trans
+                    i18nKey="auth.register.acceptTerms"
+                    components={{
+                      terms: (
+                        <a
+                          href="/legal/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          Terms of Service
+                        </a>
+                      ),
+                      privacy: (
+                        <a
+                          href="/legal/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          Privacy Policy
+                        </a>
+                      ),
+                    }}
+                  />
+                </span>
+              </label>
+
+              <label
+                htmlFor="age_confirmed"
+                className="app-surface-subtle flex cursor-pointer items-start gap-3 rounded-xl px-4 py-3 text-sm text-content-muted"
+              >
+                <input
+                  id="age_confirmed"
+                  name="age_confirmed"
+                  type="checkbox"
+                  required
+                  checked={ageConfirmed}
+                  onChange={(e) => setAgeConfirmed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
+                />
+                <span>{t("auth.register.ageConfirm")}</span>
+              </label>
+
+              <label
                 htmlFor="marketing_opt_in"
                 className="app-surface-subtle flex cursor-pointer items-start gap-3 rounded-xl px-4 py-3 text-sm text-content-muted"
               >
@@ -397,7 +460,7 @@ function Register() {
               <div className="space-y-3">
                 <GlassButton
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !canSubmit}
                   variant="primary"
                   className="w-full"
                 >
@@ -417,7 +480,18 @@ function Register() {
                 </div>
                 <a
                   href={buildGoogleOAuthInitHref("onboarding")}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-black/[0.03] px-4 py-3 text-sm font-medium text-content-primary transition hover:bg-black/[0.06] hover:border-black/15 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] dark:hover:border-white/15"
+                  aria-disabled={!canSubmit}
+                  title={
+                    !canSubmit ? t("auth.register.acceptToContinue") : undefined
+                  }
+                  onClick={(e) => {
+                    // Consent must be given before any signup path, including OAuth.
+                    if (!canSubmit) {
+                      e.preventDefault();
+                      setErrorMessage(t("auth.register.acceptToContinue"));
+                    }
+                  }}
+                  className={`flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-black/[0.03] px-4 py-3 text-sm font-medium text-content-primary transition hover:bg-black/[0.06] hover:border-black/15 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] dark:hover:border-white/15 ${!canSubmit ? "pointer-events-none opacity-50" : ""}`}
                 >
                   <svg
                     className="h-5 w-5"

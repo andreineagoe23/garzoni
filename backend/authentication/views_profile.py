@@ -42,8 +42,11 @@ class UserProfileView(generics.GenericAPIView):
             payload = {}
             if "email_reminder_preference" in request.data:
                 payload["email_reminder_preference"] = request.data.get("email_reminder_preference")
-            if "subscription_plan_id" in request.data:
-                payload["subscription_plan_id"] = request.data.get("subscription_plan_id")
+            # NOTE: subscription_plan_id is intentionally NOT accepted from the client.
+            # It is set server-side only by verified billing webhooks
+            # (RevenueCat/Stripe via apply_subscription_to_profile). Trusting a
+            # client-supplied value here let any authenticated user PATCH
+            # {"subscription_plan_id":"pro"} and unlock paid entitlements for free.
             serializer = UserProfileSettingsSerializer(user_profile, data=payload, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()

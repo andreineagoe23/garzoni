@@ -1,6 +1,8 @@
 # authentication/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password as _dj_validate_password
+from django.core.exceptions import ValidationError as _DjangoValidationError
 
 from authentication.user_display import normalize_display_string
 from authentication.models import (
@@ -19,6 +21,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     # transactional defaults (reminders, streak, digest, billing, push) are set
     # ON by the UserEmailPreference signal handler on post_save.
     marketing_opt_in = serializers.BooleanField(write_only=True, required=False, default=False)
+    # Required legal consent (GDPR Art. 7). These must be explicitly true — the
+    # client surfaces them as required checkboxes. Older app builds that omit
+    # them will fail registration by design (see rollout note in the PR).
+    accept_terms = serializers.BooleanField(write_only=True, required=True)
+    age_confirmed = serializers.BooleanField(write_only=True, required=True)
 
     class Meta:
         model = User
@@ -30,8 +37,27 @@ class RegisterSerializer(serializers.ModelSerializer):
             "last_name",
             "referral_code",
             "marketing_opt_in",
+            "accept_terms",
+            "age_confirmed",
         ]
         extra_kwargs = {"password": {"write_only": True}}
+
+    def validate_accept_terms(self, value):
+        if value is not True:
+            raise serializers.ValidationError(
+                "You must accept the Terms of Service and Privacy Policy."
+            )
+        return value
+
+    def validate_age_confirmed(self, value):
+        from django.conf import settings
+
+        if value is not True:
+            raise serializers.ValidationError(
+                f"You must confirm you are at least {getattr(settings, 'MINIMUM_SIGNUP_AGE', 16)} "
+                "years old."
+            )
+        return value
 
     def validate_email(self, value):
         email = (value or "").strip().lower()
@@ -40,6 +66,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError("An account with this email already exists.")
         return email
+
+    def validate_password(self, value):
+        # Run Django's configured AUTH_PASSWORD_VALIDATORS (length, common, numeric,
+        # similarity). Previously registration accepted any password — even empty.
+        # A transient User gives the similarity validator something to compare to.
+        candidate = User(
+            username=(self.initial_data.get("username") or "").strip(),
+            email=(self.initial_data.get("email") or "").strip(),
+        )
+        try:
+            _dj_validate_password(value, user=candidate)
+        except _DjangoValidationError as exc:
+            raise serializers.ValidationError(list(exc.messages))
+        return value
 
     def validate_referral_code(self, value):
         cleaned_code = (value or "").strip()
@@ -53,6 +93,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         referral_code = validated_data.pop("referral_code", None)
         marketing_opt_in = bool(validated_data.pop("marketing_opt_in", False))
+        # Consumed for consent capture below; not User model fields.
+        validated_data.pop("accept_terms", None)
+        validated_data.pop("age_confirmed", None)
 
         # The post_save signal handler (authentication.signals.create_user_profile)
         # reads `_signup_marketing_opt_in` off the User instance to decide the
@@ -70,6 +113,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         # Access profile created by signal
         user_profile = user.profile
+        # Record demonstrable consent (version + timestamp + IP + age) at signup.
+        from authentication.consent import record_consent
+
+        record_consent(
+            user_profile,
+            self.context.get("request"),
+            age_confirmed=True,
+            save=False,
+        )
         user_profile.save()
 
         if referral_code:
@@ -87,19 +139,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserProfileSettingsSerializer(serializers.ModelSerializer):
     """
-    Serializer for user profile settings.
-    Includes fields for managing user preferences such as email reminders.
-    """
+    Serializer for user-editable profile settings.
 
-    subscription_plan_id = serializers.ChoiceField(
-        choices=["starter", "plus", "pro"],
-        required=False,
-        allow_null=True,
-    )
+    subscription_plan_id is deliberately excluded: a subscription tier may only
+    be set server-side by verified billing webhooks. Exposing it here as a
+    writable field was a payment bypass (any user could self-upgrade to pro).
+    """
 
     class Meta:
         model = UserProfile
-        fields = ["email_reminder_preference", "subscription_plan_id"]
+        fields = ["email_reminder_preference"]
 
 
 class UserEmailPreferenceSerializer(serializers.ModelSerializer):

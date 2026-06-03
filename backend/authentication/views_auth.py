@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 
 from authentication.user_display import user_display_dict
@@ -311,10 +312,20 @@ class LoginSecureView(APIView):
             )
 
         try:
-            user = User.objects.get(username=username)
-            if not user.check_password(password):
-                logger.warning("Invalid password for %s", username)
-                return Response({"detail": "Invalid username or password."}, status=401)
+            # Use the auth backend rather than a manual get()+check_password():
+            #  - rejects is_active=False (deactivated/banned) accounts, which the
+            #    manual path silently let through;
+            #  - equalizes timing for missing users (ModelBackend runs a dummy
+            #    hash), closing the user-enumeration side channel;
+            #  - returns one uniform error for missing user / wrong password /
+            #    inactive, so the response body can't be used to enumerate users.
+            user = authenticate(request, username=username, password=password)
+            if user is None:
+                logger.warning("Invalid credentials for username: %s", username)
+                return Response(
+                    {"detail": "Invalid username or password.", "code": "invalid_credentials"},
+                    status=401,
+                )
 
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
@@ -353,12 +364,6 @@ class LoginSecureView(APIView):
 
             return response
 
-        except User.DoesNotExist:
-            logger.warning("Login attempt for non-existent user: %s", username)
-            return Response(
-                {"detail": "Invalid username or password.", "code": "invalid_credentials"},
-                status=401,
-            )
         except Exception as exc:
             logger.exception("Login error: %s", exc)
             return Response(

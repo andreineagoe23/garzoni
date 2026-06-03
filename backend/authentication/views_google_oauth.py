@@ -337,11 +337,26 @@ class GoogleOAuthCallbackView(APIView):
             logger.warning("Google userinfo missing email")
             return redirect(f"{frontend_url}/login?error=oauth_no_email")
 
+        # Reject unverified emails — see GoogleCredentialAuthView. The v2 userinfo
+        # endpoint returns verified_email as a bool.
+        if not bool(userinfo.get("verified_email", False)):
+            logger.warning("Google OAuth rejected: email not verified (%s)", email)
+            return redirect(f"{frontend_url}/login?error=email_unverified")
+
         given_name = (userinfo.get("given_name") or "").strip()
         family_name = (userinfo.get("family_name") or "").strip()
         picture = (userinfo.get("picture") or "").strip()
 
         user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
+
+        # Record consent for new accounts created via the web redirect flow. The
+        # web Sign-up screen gates the Google button behind the required Terms +
+        # age checkboxes; the redirect can't carry a 400, so we trust that gate
+        # and stamp the consent record here.
+        if is_new_user:
+            from authentication.consent import record_consent
+
+            record_consent(user.profile, request, age_confirmed=True)
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
@@ -471,11 +486,41 @@ class GoogleCredentialAuthView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Only trust a verified email. _get_or_create_google_user links/logs into
+        # any existing account with this email, so an unverified email would allow
+        # account takeover of an email/password account. tokeninfo returns
+        # email_verified as the string "true" or a bool.
+        if str(payload.get("email_verified", "")).lower() != "true":
+            logger.warning("Google credential rejected: email not verified (%s)", email)
+            return Response(
+                {"detail": "Your Google email is not verified.", "code": "email_unverified"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         given_name = (payload.get("given_name") or "").strip()
         family_name = (payload.get("family_name") or "").strip()
         picture = (payload.get("picture") or "").strip()
 
         user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
+
+        # New accounts must carry legal consent (the app gates the Google button
+        # behind the same required checkboxes). Returning users already consented.
+        if is_new_user:
+            from authentication.consent import record_consent, truthy
+
+            if not truthy(request.data.get("accept_terms")) or not truthy(
+                request.data.get("age_confirmed")
+            ):
+                user.delete()  # roll back the just-created account
+                return Response(
+                    {
+                        "detail": "You must accept the Terms of Service and Privacy Policy "
+                        "and confirm your age.",
+                        "code": "consent_required",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            record_consent(user.profile, request, age_confirmed=True)
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)

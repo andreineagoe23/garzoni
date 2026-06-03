@@ -66,6 +66,9 @@ export const registerSecure = (userData: Record<string, unknown>) =>
 export const googleVerifyCredential = (body: {
   credential: string;
   state?: string;
+  // Legal consent for first-time accounts; backend requires these for new users.
+  accept_terms?: boolean;
+  age_confirmed?: boolean;
 }) =>
   apiClient.post<{
     access: string;
@@ -79,6 +82,9 @@ export const appleVerifyIdentity = (body: {
   state?: string;
   first_name?: string;
   last_name?: string;
+  // Legal consent for first-time accounts; backend requires these for new users.
+  accept_terms?: boolean;
+  age_confirmed?: boolean;
 }) =>
   apiClient.post<{
     access: string;

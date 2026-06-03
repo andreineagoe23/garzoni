@@ -79,7 +79,15 @@ def _get_or_create_apple_user(
         # (Apple hides email on first auth when user picks "Hide My Email" without
         # consenting to share). Private-relay addresses (*@privaterelay.appleid.com)
         # are deliverable through Apple's forwarder — store them as real emails.
-        if email_clean and not (user.email or "").strip():
+        if (
+            email_clean
+            and not (user.email or "").strip()
+            # Never claim an email another account already owns: it creates a
+            # cross-profile identifier collision in Customer.io ("Failed Attribute
+            # Change: email") and an ambiguous login target. Leave this account's
+            # email blank instead — Apple relay users can still be reached via push.
+            and not User.objects.filter(email__iexact=email_clean).exclude(pk=user.pk).exists()
+        ):
             user.email = email_clean
             update_fields.append("email")
         # Backfill missing display name if Apple shared one on this login.
@@ -213,6 +221,26 @@ class AppleIdentityAuthView(APIView):
                 {"detail": "Sign in failed. Please try again.", "code": "server_error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        # New accounts must carry legal consent (the app gates the Apple button
+        # behind the same required checkboxes as email/password signup). Existing
+        # users already consented, so don't re-block returning logins.
+        if is_new_user:
+            from authentication.consent import record_consent, truthy
+
+            if not truthy(request.data.get("accept_terms")) or not truthy(
+                request.data.get("age_confirmed")
+            ):
+                user.delete()  # roll back the just-created account
+                return Response(
+                    {
+                        "detail": "You must accept the Terms of Service and Privacy Policy "
+                        "and confirm your age.",
+                        "code": "consent_required",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            record_consent(user.profile, request, age_confirmed=True)
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)

@@ -107,6 +107,15 @@ class UserProfile(models.Model):
         db_index=True,
     )
 
+    # Legal consent capture (GDPR Art. 7 — demonstrable consent). Set at signup
+    # across every path (email/password, Google, Apple). terms_version pins which
+    # document revision the user accepted so we can re-prompt when it changes.
+    terms_version = models.CharField(max_length=32, blank=True, default="")
+    terms_accepted_at = models.DateTimeField(null=True, blank=True)
+    terms_accepted_ip = models.GenericIPAddressField(null=True, blank=True)
+    # User confirmed they meet the minimum age (16, GDPR default) at signup.
+    age_confirmed = models.BooleanField(default=False)
+
     def __str__(self):
         return self.user.username
 

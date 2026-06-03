@@ -17,16 +17,20 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "9",
+      "buildNumber": "11",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           }
         ]
       },
@@ -38,9 +42,14 @@
         "NSMicrophoneUsageDescription": "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature)."
       },
       "requireFullScreen": true,
-      "associatedDomains": ["applinks:garzoni.app", "applinks:www.garzoni.app"],
+      "associatedDomains": [
+        "applinks:garzoni.app",
+        "applinks:www.garzoni.app"
+      ],
       "entitlements": {
-        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.applesignin": [
+          "Default"
+        ],
         "aps-environment": "production"
       }
     },
@@ -50,7 +59,7 @@
         "backgroundColor": "#0b0f14"
       },
       "package": "app.garzoni.mobile",
-      "versionCode": 1,
+      "versionCode": 3,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
       "googleServicesFile": "./google-services.json",
@@ -66,10 +75,19 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "garzoni.app" },
-            { "scheme": "https", "host": "www.garzoni.app" }
+            {
+              "scheme": "https",
+              "host": "garzoni.app"
+            },
+            {
+              "scheme": "https",
+              "host": "www.garzoni.app"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

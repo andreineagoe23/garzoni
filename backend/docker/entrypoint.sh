@@ -138,4 +138,25 @@ if [ "${1:-}" = "gunicorn" ] && [ -n "${PORT:-}" ]; then
   set -- gunicorn "$@" --bind "0.0.0.0:${PORT}"
 fi
 
+# Gunicorn concurrency, tunable per Railway plan without an image rebuild.
+# This app is I/O-bound (every request hits Postgres/Redis/external APIs), so
+# threads (shared worker memory, ~0 extra RAM) are the cheap way to raise
+# concurrency; workers (each loads Django, ~200-250MB) scale with plan RAM.
+#   WEB_CONCURRENCY   gunicorn workers      (default 2; raise to ~3-4 on >=1GB)
+#   GUNICORN_THREADS  threads per worker    (default 8 → 2x prior concurrency)
+#   GUNICORN_TIMEOUT  per-request hard kill (default 90s; was 300 = thread starvation)
+# Defaults give 2x8=16 concurrent vs the old 2x4=8, at no extra memory.
+if [ "${1:-}" = "gunicorn" ]; then
+  _gunicorn_workers="${WEB_CONCURRENCY:-2}"
+  _gunicorn_threads="${GUNICORN_THREADS:-8}"
+  _gunicorn_timeout="${GUNICORN_TIMEOUT:-90}"
+  set -- "$@" \
+    --workers "${_gunicorn_workers}" \
+    --threads "${_gunicorn_threads}" \
+    --timeout "${_gunicorn_timeout}" \
+    --access-logfile - \
+    --access-logformat '%(h)s "%(r)s" %(s)s %(b)sb %(L)ss'
+  echo "[entrypoint] gunicorn workers=${_gunicorn_workers} threads=${_gunicorn_threads} timeout=${_gunicorn_timeout}s (access log on, %(L)s=request seconds)" >&2
+fi
+
 exec "$@"

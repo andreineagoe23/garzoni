@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -42,8 +44,10 @@ def change_password(request):
     if new_password != confirm_password:
         return Response({"error": "New passwords do not match."}, status=400)
 
-    if len(new_password) < 8:
-        return Response({"error": "Password must be at least 8 characters."}, status=400)
+    try:
+        validate_password(new_password, user=user)
+    except DjangoValidationError as exc:
+        return Response({"error": " ".join(exc.messages)}, status=400)
 
     user.set_password(new_password)
     user.save()
@@ -81,8 +85,9 @@ def delete_account(request):
         NotificationProfileSync().delete_user(user)
         user.delete()
         return Response({"message": "Account deleted successfully."}, status=200)
-    except Exception as exc:
-        return Response({"error": str(exc)}, status=500)
+    except Exception:
+        logger.exception("delete_account failed for user_id=%s", getattr(user, "id", None))
+        return Response({"error": "Account could not be deleted. Please try again."}, status=500)
 
 
 class PasswordResetRequestView(APIView):
@@ -200,6 +205,13 @@ class PasswordResetConfirmView(APIView):
             return Response(
                 {"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST
             )
+
+        # Enforce the configured password policy on reset (previously unvalidated,
+        # so a reset could set a 1-character password).
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as exc:
+            return Response({"error": " ".join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.save()

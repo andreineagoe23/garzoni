@@ -164,7 +164,24 @@ def safe_enqueue_sync_user_to_customer_io(user_id: int) -> None:
     """
     Queue Customer.io profile sync without failing the HTTP request if Celery/Redis is down.
     Falls back to synchronous sync so traits (e.g. expo_push_token) still reach Customer.io.
+
+    Debounced per user: a single sign-in fans out into several near-simultaneous
+    syncs (login + push-token registration + profile read), each doing a CDP +
+    Track write — the "N attributes changed / Failed Attribute Change" bursts seen
+    in the CIO activity log. Each sync re-sends the full current profile, so
+    collapsing rapid duplicates loses nothing; the next change after the window
+    syncs normally. Window is CIO_SYNC_DEBOUNCE_SECONDS (default 5; 0 disables).
     """
+    debounce = int(getattr(settings, "CIO_SYNC_DEBOUNCE_SECONDS", 5) or 0)
+    if debounce > 0:
+        from django.core.cache import cache
+
+        key = f"cio_sync_recent:{user_id}"
+        # add() is atomic and only succeeds if the key is absent — first caller in
+        # the window wins, the rest are skipped.
+        if not cache.add(key, 1, timeout=debounce):
+            return
+
     try:
         sync_user_to_customer_io.delay(user_id)
         return

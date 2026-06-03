@@ -211,7 +211,16 @@ def _track_upsert_customer(
         return False, "missing CIO_SITE_ID or CIO_TRACK_API_KEY"
     url = f"{_track_api_base()}/api/v1/customers/{person_id}"
     # Strip "id" — it's already in the URL path; sending it in body confuses CIO.
-    clean = {k: v for k, v in (traits or {}).items() if k != "id"}
+    # Also drop a blank/empty "email": email is a unique identifier in this
+    # workspace, so PUTing "" (or null) triggers a "Failed Attribute Change:
+    # email (identifier)" instead of a no-op. Real (non-empty) collisions come
+    # from duplicate accounts — prevented going forward by the Apple linking fix
+    # and cleaned up via Customer.io profile merges.
+    clean = {
+        k: v
+        for k, v in (traits or {}).items()
+        if k != "id" and not (k == "email" and not (str(v).strip() if v is not None else ""))
+    }
     try:
         r = requests.put(
             url,
