@@ -19,7 +19,7 @@ export default function TabScreenHeader({ title, left, right }: Props) {
       style={[
         styles.bar,
         {
-          paddingTop: insets.top + spacing.sm,
+          paddingTop: insets.top + spacing.md,
           backgroundColor: c.bg,
           borderBottomColor: c.border,
         },

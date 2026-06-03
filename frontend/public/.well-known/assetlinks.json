@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "app.garzoni.mobile",
-      "sha256_cert_fingerprints": ["REPLACE_WITH_PLAY_APP_SIGNING_SHA256"]
+      "sha256_cert_fingerprints": [
+        "5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B",
+        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256"
+      ]
     }
   }
 ]

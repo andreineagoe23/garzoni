@@ -177,13 +177,18 @@ Already referenced in `mobile/eas.json`:
 - [x] Save to `mobile/play-store-service-account.json` (gitignored)
   - Client email:
     `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
-- [ ] Play Console → **Setup → API access** → find the service account email
-  → **Manage Play Console permissions** → grant:
+- [x] Permissions **verified working** (2026-06-03). The Play Console
+  *Setup → API access* page is broken for this account (errors `56AE0035` /
+  `761244FD`), but the service account already has the access it needs:
+  - `eas submit` of version code 7 succeeded to the internal track.
+  - A direct Play Developer API probe (`edits().insert/delete` for
+    `app.garzoni.mobile`) returned success.
+  → No further action required unless permissions need broadening.
+  Original (now skippable) UI steps:
   - Release to production, exclude devices, and use Play App Signing
   - Release apps to testing tracks
   - Manage store presence
   - View app information and download bulk reports (read-only)
-  → Apply → Invite user
 - [ ] (Recommended) Upload the same JSON to EAS dashboard:
   Project → Credentials → Android → "Add a Google Service Account Key".
   Once uploaded, you can drop `serviceAccountKeyPath` from `eas.json`.
@@ -256,12 +261,16 @@ Required because `app.json` sets `autoVerify: true` on the App Links
 intent filter for `garzoni.app` and `www.garzoni.app`. Without this file
 Android will refuse to deep-link from clicked URLs.
 
-- [ ] Generate via the official wizard:
-  <https://developers.google.com/digital-asset-links/tools/generator>
-  - Hosting site: `garzoni.app`
-  - Package: `app.garzoni.mobile`
-  - SHA-256: paste **both** upload-key SHA-256 *and* Play App Signing
-    SHA-256 from step 2 (two array entries)
+File lives at `frontend/public/.well-known/assetlinks.json` (deployed via
+Vercel; `.well-known` is excluded from the SPA catch-all in `vercel.json`,
+and `.json` is served as `application/json` automatically).
+
+- [x] Upload-key SHA-256 added as the first fingerprint entry (2026-06-03):
+  `5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B`
+- [ ] Replace `REPLACE_WITH_PLAY_APP_SIGNING_SHA256` (second array entry) with
+  the Play App Signing SHA-256 from §2 once the AAB is processed. **Required**
+  for Play-installed builds (testers install the Play-signed app, not the
+  upload-signed one), so verification will not pass for them until this is set.
 - [ ] Host the file at:
   - `https://garzoni.app/.well-known/assetlinks.json`
   - `https://www.garzoni.app/.well-known/assetlinks.json`
@@ -278,22 +287,23 @@ Android will refuse to deep-link from clicked URLs.
 ## 10. Sentry Android project + auth token
 
 `mobile/app.config.js` already routes Android builds to project
-`garzoni-android` (org `garzoni`).
+`garzoni-android` (org `garzoni`). Runtime DSN is resolved per-platform via
+`resolveSentryDsn()` and exposed through `extra.sentryDsn`.
 
-- [ ] Sentry → Projects → **Create Project**
+- [x] Sentry → Projects → **Create Project** (2026-06-03)
   - Platform: React Native
-  - Name: `garzoni-android`
-  - Team: same as iOS
-- [ ] Sentry → Settings → Account → API → **Auth tokens** → New token
-  - Scopes: `project:releases`, `project:write`, `org:read`
-- [ ] Add as EAS secret so source-map upload works in cloud builds:
-  ```bash
-  cd mobile
-  pnpm exec eas secret:create --scope project \
-    --name SENTRY_AUTH_TOKEN --value <token>
-  ```
+  - Name / slug: `garzoni-android`
+  - Team: `garzoni`
+  - DSN: `https://37153f0864b44d2e2fa3c0119672048e@o4510864033447936.ingest.de.sentry.io/4511500969443408`
+- [x] `EXPO_PUBLIC_SENTRY_DSN_ANDROID` added as EAS env var (preview + production)
+- [x] `SENTRY_AUTH_TOKEN` already present in EAS, and verified to cover
+  `garzoni-android` (release `garzoni-mobile@1.1.2` is associated with the
+  project, so the cloud build's source-map upload authenticated successfully).
 - [ ] Confirm a test event arrives from a release build
   (deliberately throw, then check `garzoni-android` in Sentry).
+- [ ] After a clean source-map upload is confirmed in build logs, remove
+  `"SENTRY_ALLOW_FAILURE": "true"` from the `preview`/`production` env blocks
+  in `mobile/eas.json` so real Sentry failures fail the build.
 
 ---
 

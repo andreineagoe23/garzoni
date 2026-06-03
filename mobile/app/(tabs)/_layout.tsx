@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,7 @@ const TAB_ICON: Record<
 export default function TabsLayout() {
   const { colors } = useTheme();
   const { t } = useTranslation("common");
+  const insets = useSafeAreaInsets();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   return (
@@ -43,8 +45,10 @@ export default function TabsLayout() {
             borderTopColor: colors.borderSoft,
             borderTopWidth: 0.5,
             backgroundColor: colors.bg,
-            paddingBottom: 4,
+            // edge-to-edge: lift the bar above the Android gesture/nav bar.
+            paddingBottom: insets.bottom + 4,
             paddingTop: 6,
+            height: 56 + insets.bottom,
           },
           tabBarHideOnKeyboard: true,
           tabBarButton: (props) => <HapticTabBarButton {...props} />,

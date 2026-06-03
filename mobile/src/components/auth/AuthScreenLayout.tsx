@@ -61,7 +61,7 @@ export default function AuthScreenLayout({
         style={[
           styles.inner,
           {
-            paddingTop: Math.max(insets.top, 10),
+            paddingTop: Math.max(insets.top, 10) + spacing.sm,
             paddingHorizontal: spacing.xxl,
           },
         ]}
