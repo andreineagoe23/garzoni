@@ -72,6 +72,21 @@ function resolveSentryProject() {
   return "apple-ios";
 }
 
+/**
+ * Runtime crash-reporting DSN. iOS and Android use separate Sentry projects
+ * (apple-ios / garzoni-android), so each platform build must embed the DSN of
+ * its own project — otherwise events land in the wrong project and uploaded
+ * sourcemaps can't symbolicate them. Each EAS build is single-platform, so we
+ * pick by EAS_BUILD_PLATFORM. Falls back to the shared DSN for local/dev.
+ */
+function resolveSentryDsn() {
+  const shared = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
+  if (process.env.EAS_BUILD_PLATFORM === "android") {
+    return process.env.EXPO_PUBLIC_SENTRY_DSN_ANDROID?.trim() || shared;
+  }
+  return process.env.EXPO_PUBLIC_SENTRY_DSN_IOS?.trim() || shared;
+}
+
 function preferHttpsForRailway(url) {
   const t = (url || "").trim();
   try {
@@ -136,6 +151,8 @@ module.exports = ({ config }) => ({
     ...(config.extra ?? {}),
     /** `development` | `production` — used for native policy and optional runtime checks. */
     appEnv: process.env.EXPO_PUBLIC_APP_ENV?.trim() || undefined,
+    /** Platform-resolved Sentry DSN (iOS → apple-ios, Android → garzoni-android). */
+    sentryDsn: resolveSentryDsn() || undefined,
     /** Railway / Django API origin (no trailing slash). `/api` is added automatically in the client. */
     backendUrl: process.env.EXPO_PUBLIC_BACKEND_URL?.trim() || undefined,
     /** Base URL of the web app (for Tools / Legal WebViews), e.g. https://app.example.com */

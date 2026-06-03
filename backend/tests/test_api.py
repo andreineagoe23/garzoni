@@ -88,6 +88,7 @@ class ReferralTest(AuthenticatedTestCase):
         logger.info("✅ test_referral_submission passed")
 
 
+@override_settings(RECAPTCHA_DISABLED=True)
 class RegistrationReferralValidationTest(APITestCase):
     def test_register_rejects_invalid_referral_code(self):
         response = self.client.post(
@@ -99,6 +100,8 @@ class RegistrationReferralValidationTest(APITestCase):
                 "first_name": "Invalid",
                 "last_name": "Referral",
                 "referral_code": "NOT-REAL",
+                "accept_terms": True,
+                "age_confirmed": True,
             },
             format="json",
         )
@@ -115,6 +118,8 @@ class RegistrationReferralValidationTest(APITestCase):
                 "first_name": "Empty",
                 "last_name": "Referral",
                 "referral_code": "",
+                "accept_terms": True,
+                "age_confirmed": True,
             },
             format="json",
         )
@@ -135,6 +140,8 @@ class RegistrationReferralValidationTest(APITestCase):
                 "first_name": "Valid",
                 "last_name": "Referral",
                 "referral_code": referrer_code.lower(),
+                "accept_terms": True,
+                "age_confirmed": True,
             },
             format="json",
         )
@@ -256,6 +263,8 @@ class LoginRegisterRecaptchaMobileTest(APITestCase):
                 "first_name": "Mobile",
                 "last_name": "Reg",
                 "client_type": "mobile",
+                "accept_terms": True,
+                "age_confirmed": True,
             },
             format="json",
         )

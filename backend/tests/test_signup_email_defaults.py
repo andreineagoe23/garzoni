@@ -55,6 +55,8 @@ class SignupEmailDefaultsTest(TestCase):
             "password": "unit-test-password!",
             "first_name": "New",
             "last_name": "User",
+            "accept_terms": True,
+            "age_confirmed": True,
         }
         if marketing_opt_in is not None:
             payload["marketing_opt_in"] = marketing_opt_in

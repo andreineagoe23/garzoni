@@ -346,11 +346,12 @@ OPENAI_ALLOWED_MODELS_CSV = env_csv(
 # Content translation settings
 CONTENT_TRANSLATION_PROVIDER = os.getenv("CONTENT_TRANSLATION_PROVIDER", "openai")
 CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "gpt-4o-mini")
-CONTENT_TRANSLATION_ENABLED = os.getenv("CONTENT_TRANSLATION_ENABLED", "true").lower() in (
-    "1",
-    "true",
-    "yes",
-)
+# Default to enabled only when an OpenAI key is present; without a key
+# every content save fires a no-op that logs errors in tests and CI.
+_translation_default = "true" if OPENAI_API_KEY else "false"
+CONTENT_TRANSLATION_ENABLED = os.getenv(
+    "CONTENT_TRANSLATION_ENABLED", _translation_default
+).lower() in ("1", "true", "yes")
 
 # Security headers (Django 4.2 SecurityMiddleware)
 SECURE_REFERRER_POLICY = os.getenv("SECURE_REFERRER_POLICY", "strict-origin-when-cross-origin")

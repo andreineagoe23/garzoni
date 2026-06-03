@@ -59,7 +59,7 @@
         "backgroundColor": "#0b0f14"
       },
       "package": "app.garzoni.mobile",
-      "versionCode": 3,
+      "versionCode": 6,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
       "googleServicesFile": "./google-services.json",

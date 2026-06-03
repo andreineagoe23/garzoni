@@ -1,7 +1,13 @@
 import * as Sentry from "@sentry/react-native";
 import Constants from "expo-constants";
 
-const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
+// app.config.js resolves the DSN per platform (iOS → apple-ios, Android →
+// garzoni-android) and exposes it via `extra.sentryDsn`. Fall back to the
+// shared env var for safety (e.g. older builds / local dev).
+const dsn = (
+  (Constants.expoConfig?.extra?.sentryDsn as string | undefined) ??
+  process.env.EXPO_PUBLIC_SENTRY_DSN
+)?.trim();
 const version = Constants.expoConfig?.version ?? "unknown";
 const env = process.env.EXPO_PUBLIC_APP_ENV ?? "development";
 
