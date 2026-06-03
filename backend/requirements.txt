@@ -35,7 +35,7 @@ pillow==12.2.0
 prompt_toolkit==3.0.48
 psycopg2==2.9.10
 cryptography>=41.0.0
-PyJWT==2.12.1
+PyJWT==2.13.0
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8

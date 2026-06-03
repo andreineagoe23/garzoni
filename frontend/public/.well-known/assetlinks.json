@@ -5,8 +5,8 @@
       "namespace": "android_app",
       "package_name": "app.garzoni.mobile",
       "sha256_cert_fingerprints": [
-        "5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B",
-        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256"
+        "98:AB:00:47:B0:E8:A7:D0:19:14:6A:4E:54:1F:DE:6E:1B:58:91:71:43:08:D6:E8:09:C1:FA:61:52:F8:BE:47",
+        "5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B"
       ]
     }
   }

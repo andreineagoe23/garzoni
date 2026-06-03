@@ -66,10 +66,15 @@ You need three sets of SHA-1 + SHA-256 fingerprints:
 - [x] **Upload key** fingerprints (see §1 — captured 2026-06-02)
   - `pnpm exec eas credentials` → Android → "Print certificate fingerprints"
   - or EAS dashboard → Credentials → app → "Show fingerprint"
-- [ ] **Play App Signing certificate** fingerprints
-  - Play Console → Garzoni → Setup → App integrity → App signing
-  - "App signing key certificate" → copy SHA-1 and SHA-256
-  - (Available only after the first AAB is uploaded to a track.)
+- [x] **Play App Signing certificate** fingerprints (captured 2026-06-03)
+  - Location (new console): **Protected with Play → Play Store protection →
+    Manage Play App Signing**, or direct:
+    <https://play.google.com/console/developers/app/keymanagement>
+    (the old "Setup → App integrity" path was retired)
+  - App signing key SHA-1:
+    `68:92:AF:C6:6B:DC:01:D9:AF:8A:86:D1:5F:AF:6D:DB:77:71:EC:53`
+  - App signing key SHA-256:
+    `98:AB:00:47:B0:E8:A7:D0:19:14:6A:4E:54:1F:DE:6E:1B:58:91:71:43:08:D6:E8:09:C1:FA:61:52:F8:BE:47`
 - [ ] **Debug keystore** SHA-1 (for `expo run:android` / dev client)
   ```bash
   keytool -list -v -keystore ~/.android/debug.keystore \
@@ -267,10 +272,13 @@ and `.json` is served as `application/json` automatically).
 
 - [x] Upload-key SHA-256 added as the first fingerprint entry (2026-06-03):
   `5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B`
-- [ ] Replace `REPLACE_WITH_PLAY_APP_SIGNING_SHA256` (second array entry) with
-  the Play App Signing SHA-256 from §2 once the AAB is processed. **Required**
-  for Play-installed builds (testers install the Play-signed app, not the
-  upload-signed one), so verification will not pass for them until this is set.
+- [x] Play App Signing SHA-256 added (2026-06-03):
+  `98:AB:00:47:B0:E8:A7:D0:19:14:6A:4E:54:1F:DE:6E:1B:58:91:71:43:08:D6:E8:09:C1:FA:61:52:F8:BE:47`
+  (file now lists Play-signing first, upload-key second — covers both Play and
+  sideloaded installs).
+- [ ] **Deploy the frontend** so the updated file is live, then verify both
+  `https://garzoni.app/.well-known/assetlinks.json` and the `www.` host return
+  the two fingerprints.
 - [ ] Host the file at:
   - `https://garzoni.app/.well-known/assetlinks.json`
   - `https://www.garzoni.app/.well-known/assetlinks.json`
