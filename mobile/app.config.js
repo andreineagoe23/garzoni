@@ -91,6 +91,8 @@ const allowInsecureLocalHttp =
   process.env.EXPO_PUBLIC_APP_ENV?.trim().toLowerCase() === "development" ||
   process.env.EXPO_PUBLIC_ALLOW_INSECURE_LOCAL_HTTP === "1";
 
+const isProductionBuildProfile = process.env.EAS_BUILD_PROFILE === "production";
+
 module.exports = ({ config }) => ({
   ...config,
   ios: {
@@ -187,12 +189,12 @@ module.exports = ({ config }) => ({
           privacyManifestAggregationEnabled: true,
         },
         android: {
-          // Play Store target requirement (API 35 = Android 15) as of 2025-08.
-          compileSdkVersion: 35,
+          // AndroidX core 1.17 requires compiling against API 36+. Keep target SDK separate.
+          compileSdkVersion: 36,
           targetSdkVersion: 35,
           minSdkVersion: 24,
-          enableProguardInReleaseBuilds: true,
-          enableShrinkResources: true,
+          enableProguardInReleaseBuilds: isProductionBuildProfile,
+          enableShrinkResources: isProductionBuildProfile,
           ...(allowInsecureLocalHttp ? { usesCleartextTraffic: true } : {}),
         },
       },
