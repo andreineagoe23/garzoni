@@ -6,6 +6,11 @@ Keep in sync with mobile `PRODUCT_TO_PLAN` / ASC product IDs.
 
 # Map App Store / Play product identifier → internal plan ID.
 PRODUCT_PLAN_MAP: dict[str, str] = {
+    # Google Play — RevenueCat imports subscriptions as <product_id>:<base_plan_id>
+    "app.garzoni.mobile.plus:plus-monthly": "plus",
+    "app.garzoni.mobile.plus:plus-yearly": "plus",
+    "app.garzoni.mobile.pro:pro-monthly": "pro",
+    "app.garzoni.mobile.pro:pro-yearly": "pro",
     # v3 — current production (App Store Connect)
     "app.garzoni.mobile.plus_monthly_v3": "plus",
     "app.garzoni.mobile.plus_yearly_v3": "plus",

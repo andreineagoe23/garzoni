@@ -39,8 +39,8 @@ key (Google can reset it if lost), not the final signing key.
 - [x] Confirm visible at
   <https://expo.dev/accounts/andreineagoe/projects/garzoni/credentials>
   → Android → `app.garzoni.mobile`.
-- [ ] (Later, after first Play upload) Enrol in **Play App Signing**:
-  Play Console → Garzoni → Setup → App integrity → App signing.
+- [x] Enrol in **Play App Signing** (done via first Play upload; fingerprints
+  captured in §2).
 
 EAS-generated upload keystore (created 2026-06-02):
 
@@ -129,8 +129,14 @@ package + SHA-1 verification, not referenced in app code).
   - Package: `app.garzoni.mobile`
   - SHA-1:
     `1A:49:4A:8C:74:CE:3B:B6:CF:B5:AF:41:89:26:21:64:AF:D2:4C:6E`
-- [ ] Repeat with **Play App Signing** SHA-1
+- [x] Repeat with **Play App Signing** SHA-1
   - Name: `Garzoni Android (Play signing)`
+  - Client ID:
+    `662909168223-0mdm2b646ve3v8lr2v0ccvv3aqmncok9.apps.googleusercontent.com`
+  - Package: `app.garzoni.mobile`
+  - SHA-1:
+    `68:92:AF:C6:6B:DC:01:D9:AF:8A:86:D1:5F:AF:6D:DB:77:71:EC:53`
+  - Verified by successful Google Sign-In from Play-installed Android build.
 - [x] (Optional shortcut) Firebase did not auto-create this client, so it
   was created manually in Cloud Console.
 
@@ -204,39 +210,44 @@ Reference: <https://docs.expo.dev/submit/android/>
 
 ## 7. RevenueCat (Android)
 
-Replace the placeholder in `eas.json`:
-
-```json
-"EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_PLACEHOLDER_REPLACE_BEFORE_ANDROID_RELEASE"
-```
+Android app name in RevenueCat: `garzoni android`.
 
 ### 7a. RevenueCat Android public API key
-- [ ] RevenueCat dashboard → project → Apps → **+ New → Google Play Store**
-- [ ] Package name: `app.garzoni.mobile`
-- [ ] Copy the public Android key (starts with `goog_`)
-- [ ] Replace placeholder in all three profiles of `mobile/eas.json`
+- [x] RevenueCat dashboard → project → Apps → **+ New → Google Play Store**
+- [x] Package name: `app.garzoni.mobile`
+- [x] Copy the public Android key (starts with `goog_`)
+  - Key: `goog_TdJcdfPxfmYDxNblvpibknmYZhp`
+- [x] Replace placeholder in all three profiles of `mobile/eas.json`
   *or* move to an EAS secret named `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
 
-### 7b. RevenueCat billing service account JSON (separate from step 6)
-- [ ] In the same GCP project, IAM & Admin → Service Accounts → Create
-  - Name: `revenuecat-billing` (keep separate from `eas-play-submit`)
-- [ ] Service account → Keys → Add key → JSON → download
-- [ ] Play Console → Users and permissions → **Invite new users**
-  - Email: the service account email
-  - App permissions on Garzoni:
-    - View app information
-    - View financial data, orders, and cancellation survey response
-    - Manage orders and subscriptions
-- [ ] RevenueCat → Garzoni Android app → **Service Account credentials JSON**
+### 7b. RevenueCat billing service account JSON
+- [x] Reused the existing `eas-play-submit` service account JSON instead of
+  creating a separate `revenuecat-billing` account (avoids another key-creation
+  org-policy flow). Email:
+  `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
+- [x] Play Console → Users and permissions → grant financial subscription
+  permissions on Garzoni:
+  - View app information
+  - View financial data, orders, and cancellation survey response
+  - Manage orders and subscriptions
+- [x] RevenueCat → Garzoni Android app → **Service Account credentials JSON**
   → upload → Save changes
-- [ ] Wait up to 36 h for Google to propagate permissions
+- [x] Credentials show as valid in RevenueCat
 
 ### 7c. Real-Time Developer Notifications (Pub/Sub)
-- [ ] Cloud Console → Pub/Sub → Create topic, e.g. `play-rtdn-garzoni`
-- [ ] Topic permissions → grant `revenuecat-billing` the **Pub/Sub Editor** role
-- [ ] Play Console → Monetize → **Monetization setup**
-  → paste topic name `projects/<gcp-project-id>/topics/play-rtdn-garzoni`
-- [ ] RevenueCat → Garzoni Android app → paste same topic ID
+- [x] Cloud Console → Pub/Sub → Create topic: `play-rtdn-garzoni`
+- [x] Topic permissions → grant Google Play notifications principal
+  **Pub/Sub Publisher**:
+  `google-play-developer-notifications@system.gserviceaccount.com`
+- [x] Project IAM → grant RevenueCat service account **Pub/Sub Editor**:
+  `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
+- [x] Play Console → Monetize → **Monetization setup**
+  → paste topic name `projects/rare-phoenix-492615-p5/topics/play-rtdn-garzoni`
+  → send test notification successfully
+- [x] RevenueCat → Garzoni Android app → connect topic ID:
+  `projects/rare-phoenix-492615-p5/topics/play-rtdn-garzoni`
+- [ ] Confirm RevenueCat shows a `Last received` timestamp after the next test
+  notification / real purchase event.
 
 ### 7d. License testing (so purchases don’t actually charge)
 - [ ] Play Console → **Settings → License testing**
@@ -250,10 +261,26 @@ References:
 
 ## 8. Subscription products in Play Console
 
-- [ ] Play Console → Garzoni → **Monetize → Products → Subscriptions**
-- [ ] Create the same product IDs you use on App Store Connect
-- [ ] Activate at least one base plan per product
-- [ ] Confirm products show up in RevenueCat → Products tab
+- [x] Play Console → Garzoni → **Monetize → Products → Subscriptions**
+- [x] Create Google Play subscriptions:
+  - `app.garzoni.mobile.plus`
+    - `plus-monthly` (monthly, auto-renewing, active)
+    - `plus-yearly` (yearly, auto-renewing, active, 7-day free-trial offer
+      `plus-yearly-trial`)
+  - `app.garzoni.mobile.pro`
+    - `pro-monthly` (monthly, auto-renewing, active)
+    - `pro-yearly` (yearly, auto-renewing, active, 7-day free-trial offer
+      `pro-yearly-trial`)
+- [x] Confirm products show up in RevenueCat → Products tab:
+  - `app.garzoni.mobile.plus:plus-monthly`
+  - `app.garzoni.mobile.plus:plus-yearly`
+  - `app.garzoni.mobile.pro:pro-monthly`
+  - `app.garzoni.mobile.pro:pro-yearly`
+- [x] Attach products to existing RevenueCat entitlements:
+  `Garzoni Plus` / `Garzoni Pro`
+- [x] Add products to existing RevenueCat offerings/packages:
+  `plus_subscriptions` / `pro_subscriptions`
+- [x] Add Android product IDs to backend `PRODUCT_PLAN_MAP` for webhook parity
 
 > You must upload an AAB to at least the Internal testing track before
 > the Subscriptions UI is editable.
@@ -276,13 +303,25 @@ and `.json` is served as `application/json` automatically).
   `98:AB:00:47:B0:E8:A7:D0:19:14:6A:4E:54:1F:DE:6E:1B:58:91:71:43:08:D6:E8:09:C1:FA:61:52:F8:BE:47`
   (file now lists Play-signing first, upload-key second — covers both Play and
   sideloaded installs).
-- [ ] **Deploy the frontend** so the updated file is live, then verify both
-  `https://garzoni.app/.well-known/assetlinks.json` and the `www.` host return
-  the two fingerprints.
-- [ ] Host the file at:
-  - `https://garzoni.app/.well-known/assetlinks.json`
-  - `https://www.garzoni.app/.well-known/assetlinks.json`
-- [ ] Served as `application/json`, HTTPS, no redirects
+- [x] **Deploy the frontend** so the updated file is live (verified 2026-06-04).
+- [x] Host the file at:
+  - `https://www.garzoni.app/.well-known/assetlinks.json` → **HTTP 200,
+    `application/json`, no redirect, both fingerprints present.** ✅
+  - `https://garzoni.app/.well-known/assetlinks.json` → **HTTP 307 redirect to
+    the `www.` host.** ⚠️
+- [x] Served as `application/json`, HTTPS, no redirects — **true for `www.` only.**
+  > ⚠️ **Apex caveat (`garzoni.app`):** Vercel's domain-level "redirect to www"
+  > returns a `307` on the apex host, and Android App Link verification does
+  > **not follow redirects** — so the `garzoni.app` host will report `failed`,
+  > while `www.garzoni.app` verifies cleanly. Impact is low: every app- and
+  > backend-generated link is canonical `www.` (`FRONTEND_URL` / `WEB_APP_URL`
+  > = `https://www.garzoni.app`), so real deep links land on the verified host.
+  > Apex links only ever appear if a user manually types/shares one, and those
+  > bounce to `www.` in the browser. To make the apex host verify too, either
+  > serve `garzoni.app` as a non-redirecting Vercel domain, or drop
+  > `garzoni.app` from the Android `intentFilters` in `app.json` (keeping `www.`).
+  > Left as-is to stay symmetric with iOS `associatedDomains` (Apple follows the
+  > redirect, so apex App Links work on iOS).
 - [ ] Verify on a real device:
   ```bash
   adb shell pm verify-app-links --re-verify app.garzoni.mobile
