@@ -5,10 +5,10 @@
  * configured once per user session and reused across all billing components.
  *
  * Entitlements / offerings mirror the native app (RevenueCat Dashboard):
- *   - Garzoni Plus  → offering `default` (SDK: current)
- *   - Garzoni Pro   → offering `pro`
- * Entitlement names match mobile so a web purchase is active on mobile and
- * vice versa (shared RC customer keyed by the Django user PK).
+ *   - Garzoni Plus  → offering `plus_subscriptions` (currently the default)
+ *   - Garzoni Pro   → offering `pro_subscriptions`
+ * Offering + entitlement ids match mobile so a web purchase is active on
+ * mobile and vice versa (shared RC customer keyed by the Django user PK).
  * API key: VITE_REVENUECAT_API_KEY (test_* for sandbox, live key for prod)
  */
 
@@ -27,8 +27,8 @@ export const RC_ENTITLEMENT_PLUS = "Garzoni Plus";
 /** @deprecated Prefer RC_ENTITLEMENT_PRO / PLUS */
 export const RC_ENTITLEMENT = RC_ENTITLEMENT_PRO;
 
-export const RC_OFFERING_PLUS = "default";
-export const RC_OFFERING_PRO = "pro";
+export const RC_OFFERING_PLUS = "plus_subscriptions";
+export const RC_OFFERING_PRO = "pro_subscriptions";
 
 /**
  * App Store product IDs for parity with native (`mobile/.../subscriptionRuntime.ts`).
@@ -148,10 +148,9 @@ export async function rcGetPackagesForOffering(
   offeringId: string
 ): Promise<Package[]> {
   const offerings = await sdk().getOfferings();
-  const offering =
-    offeringId === RC_OFFERING_PLUS || offeringId === "default"
-      ? offerings.current
-      : offerings.all[offeringId];
+  // Prefer the explicit offering id; fall back to the project's current
+  // offering (don't assume a tier maps to "current").
+  const offering = offerings.all[offeringId] ?? offerings.current;
   return offering?.availablePackages ?? [];
 }
 

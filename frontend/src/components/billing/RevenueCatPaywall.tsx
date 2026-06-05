@@ -33,7 +33,6 @@ import {
   rcGetActivePlan,
   formatRCPackagePrice,
   rcPackagePeriodLabel,
-  RC_OFFERING_PLUS,
   RC_OFFERING_PRO,
 } from "services/revenueCatService";
 import { GlassButton, GlassCard } from "components/ui";
@@ -135,12 +134,10 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         configureRevenueCat(userId);
         const offerings = await rcGetOfferings();
 
+        // Prefer the explicit offering id; fall back to the current offering.
         const offering =
-          !offeringIdentifier ||
-          offeringIdentifier === RC_OFFERING_PLUS ||
-          offeringIdentifier === "default"
-            ? offerings.current
-            : offerings.all[offeringIdentifier];
+          (offeringIdentifier && offerings.all[offeringIdentifier]) ||
+          offerings.current;
 
         if (!offering || !offering.availablePackages.length) {
           setError("No plans available at the moment. Please try again later.");
