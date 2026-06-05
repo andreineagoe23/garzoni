@@ -7,10 +7,12 @@ Source of truth for plan gating. Code lives in [`backend/authentication/entitlem
 | Plan               | Monthly | Yearly | Trial                |
 | ------------------ | ------- | ------ | -------------------- |
 | **Starter** (free) | £0      | —      | —                    |
-| **Plus**           | £7.99   | £69    | 7 days (yearly only) |
-| **Pro**            | £11.99  | £79    | 7 days (yearly only) |
+| **Plus**           | £6.99   | £59.99 | 7 days (yearly only) |
+| **Pro**            | £7.99   | £69.99 | 7 days (yearly only) |
 
-Currency: GBP. Channels: Stripe (web), RevenueCat → Apple/Google IAP (mobile).
+Currency: GBP. Channels: RevenueCat everywhere — **Web Billing (Stripe-backed)** on web, RevenueCat → Apple/Google IAP on mobile.
+
+> **Pricing parity:** web monthly prices live in the RevenueCat Web Billing products and the store-configured prices drive mobile. Keep them in sync per plan — verify each platform's monthly/annual amounts match the table above whenever you change a price in either the RC dashboard or App Store / Play Console.
 
 ## Capability matrix
 
@@ -55,11 +57,12 @@ Currency: GBP. Channels: Stripe (web), RevenueCat → Apple/Google IAP (mobile).
 
 ## Channel-specific behaviour
 
-| Channel                           | Subscription source                                         | Cancellation                 | Refunds                                 |
-| --------------------------------- | ----------------------------------------------------------- | ---------------------------- | --------------------------------------- |
-| Web (Stripe)                      | `StripePayment`, `subscription_plan_id`, webhook events     | Stripe Customer Portal       | Stripe-issued, operator-controllable    |
-| iOS (RevenueCat → App Store)      | `react-native-purchases` entitlements + RevenueCat webhooks | iOS Settings → Subscriptions | Apple-issued, operator cannot override  |
-| Android (RevenueCat → Play Store) | `react-native-purchases` entitlements + RevenueCat webhooks | Play Store → Subscriptions   | Google-issued, operator cannot override |
+| Channel                            | Subscription source                                          | Cancellation                 | Refunds                                 |
+| ---------------------------------- | ------------------------------------------------------------ | ---------------------------- | --------------------------------------- |
+| Web (RevenueCat Web Billing)       | `@revenuecat/purchases-js` entitlements + RevenueCat webhook | RC Customer Center / Stripe portal | Stripe-issued, operator-controllable    |
+| Web (legacy direct Stripe — fallback) | `subscription_plan_id`, Stripe webhook events            | Stripe Customer Portal       | Stripe-issued, operator-controllable    |
+| iOS (RevenueCat → App Store)       | `react-native-purchases` entitlements + RevenueCat webhooks  | iOS Settings → Subscriptions | Apple-issued, operator cannot override  |
+| Android (RevenueCat → Play Store)  | `react-native-purchases` entitlements + RevenueCat webhooks  | Play Store → Subscriptions   | Google-issued, operator cannot override |
 
 ## Stripe + RevenueCat parity checklist
 

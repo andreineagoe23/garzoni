@@ -19,8 +19,6 @@ import { getRevenueCatPurchases } from "./safeRevenueCat";
 
 export const RC_ENTITLEMENT_PRO = "Garzoni Pro";
 export const RC_ENTITLEMENT_PLUS = "Garzoni Plus";
-/** @deprecated Prefer RC_ENTITLEMENT_PRO / PLUS; kept for older imports. */
-export const RC_ENTITLEMENT = RC_ENTITLEMENT_PRO;
 
 export const RC_OFFERING_PLUS = "plus_subscriptions";
 export const RC_OFFERING_PRO = "pro_subscriptions";

@@ -9,7 +9,7 @@ Garzoni delivers interactive personal finance education with gamified progressio
 - **Register and log in** (email/password, Google OAuth, Sign in with Apple on iOS), reset password, and sign out.
 - **Profile**: View username, avatar, points, streak, earned coins, activity calendar, goals (daily/weekly), badges, recent activity, and entitlement usage. Update avatar and jump to Personalized Path or Subscriptions.
 - **Settings**: Update profile (name, username, email), preferences (email reminders, lesson sounds, animations), change password, manage privacy links (cookie policy, privacy policy, financial disclaimer), and delete account.
-- **Billing**: Manage subscription (Starter / Plus £7.99–£69 / Pro £11.99–£79), 7-day trial on yearly plans, view trial end, and access payment history (Stripe on web, RevenueCat for in-app purchases on mobile).
+- **Billing**: Manage subscription (Starter / Plus / Pro), 7-day trial on yearly plans, view trial end, and access payment history. Subscriptions run through RevenueCat on every platform (Web Billing via Stripe on web, App Store / Play IAP on mobile), so an entitlement purchased on one platform is active on the others. Per-plan pricing lives in the RevenueCat dashboard and the backend `/api/plans/` response.
 
 ### Learning
 
@@ -106,7 +106,7 @@ Garzoni delivers interactive personal finance education with gamified progressio
 - **Backend**: Django 4.2 + DRF, PostgreSQL, Redis, Celery (with Celery Beat for scheduled AI nudges + path re-eval).
 - **AI / RAG**: OpenAI Python SDK (chat, embeddings, Whisper, TTS, GPT-4o vision). `pgvector` for semantic search over lesson content.
 - **Auth**: JWT via djangorestframework-simplejwt; Google OAuth; Sign in with Apple.
-- **Payments**: Stripe (web) + RevenueCat (iOS/Android IAP).
+- **Payments**: RevenueCat across all platforms — RevenueCat Web Billing (Stripe-backed) on web, App Store / Play Store IAP on mobile. The web RC SDK is enabled by `VITE_REVENUECAT_API_KEY`; if unset, web falls back to the legacy direct-Stripe checkout. See [docs/prod/billing-parity-runbook.md](docs/prod/billing-parity-runbook.md).
 - **Comms**: Customer.io (CDP + transactional email + push), Resend (email transport), Expo Push.
 - **Observability**: Sentry (web + Django), Amplitude (web analytics).
 - **Hosting**: Vercel (web), Railway (backend), Cloudinary (media).
