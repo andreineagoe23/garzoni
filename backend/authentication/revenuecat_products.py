@@ -31,6 +31,13 @@ PRODUCT_PLAN_MAP: dict[str, str] = {
     "tech.garzoni.app.plus_yearly": "plus",
     "tech.garzoni.app.pro_monthly": "pro",
     "tech.garzoni.app.pro_yearly": "pro",
+    # Web (Stripe via RevenueCat Billing) — RC is 1:1 product:price, so each
+    # period is its own Stripe product. Entitlement-based resolution also
+    # covers these, but map the store ids for the direct product_id path.
+    "prod_Tw8XTqsFe6slAo": "plus",  # Plus yearly
+    "prod_UeM1DHb2SyTnH7": "plus",  # Plus monthly
+    "prod_Tw8XX1mhiswUMR": "pro",  # Pro yearly
+    "prod_UeM2zJPn7Cblal": "pro",  # Pro monthly
 }
 
 # RevenueCat dashboard entitlement identifiers → plan.
