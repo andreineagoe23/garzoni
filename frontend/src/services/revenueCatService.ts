@@ -5,8 +5,10 @@
  * configured once per user session and reused across all billing components.
  *
  * Entitlements / offerings mirror the native app (RevenueCat Dashboard):
- *   - Garzoni Educational Plus  → offering `default` (SDK: current)
- *   - Garzoni Educational Pro   → offering `pro`
+ *   - Garzoni Plus  → offering `default` (SDK: current)
+ *   - Garzoni Pro   → offering `pro`
+ * Entitlement names match mobile so a web purchase is active on mobile and
+ * vice versa (shared RC customer keyed by the Django user PK).
  * API key: VITE_REVENUECAT_API_KEY (test_* for sandbox, live key for prod)
  */
 
@@ -20,8 +22,8 @@ import {
 
 // ─── Constants (keep aligned with mobile `subscriptionRuntime.ts`) ──────────
 
-export const RC_ENTITLEMENT_PRO = "Garzoni Educational Pro";
-export const RC_ENTITLEMENT_PLUS = "Garzoni Educational Plus";
+export const RC_ENTITLEMENT_PRO = "Garzoni Pro";
+export const RC_ENTITLEMENT_PLUS = "Garzoni Plus";
 /** @deprecated Prefer RC_ENTITLEMENT_PRO / PLUS */
 export const RC_ENTITLEMENT = RC_ENTITLEMENT_PRO;
 

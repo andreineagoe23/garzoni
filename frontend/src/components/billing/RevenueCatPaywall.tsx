@@ -16,7 +16,7 @@
  *   - VITE_REVENUECAT_API_KEY must be set in frontend/.env
  *   - Products configured in RC Dashboard with identifiers:
  *       $rc_monthly · $rc_annual · $rc_lifetime
- *   - Entitlements "Garzoni Educational Plus" / "Garzoni Educational Pro"
+ *   - Entitlements "Garzoni Plus" / "Garzoni Pro" (shared with mobile)
  *   - Plus: default offering (`offerings.current`). Pro: offering id `pro`.
  */
 
