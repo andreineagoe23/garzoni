@@ -36,6 +36,87 @@ class TokenRefreshTests(APITestCase):
         mock_error.assert_not_called()
 
 
+class ReconcileSubscriptionStateTests(APITestCase):
+    """reconcile_profile_subscription_state must not downgrade a paying user."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="reconcile-user",
+            email="reconcile@example.com",
+            password="pass12345",
+        )
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
+
+    def _state(self, provider, plan, status):
+        from authentication.services.subscription_reconciliation import ProviderState
+
+        return ProviderState(provider=provider, plan=plan, status=status)
+
+    def test_unmapped_active_provider_sub_does_not_downgrade(self):
+        """RC Web Billing mints its own Stripe price → plan unmapped. An active
+        sub we can't map must leave an existing paid plan untouched, never reset
+        it to starter."""
+        from authentication.services import subscription_reconciliation as recon
+
+        apply_subscription_to_profile(
+            self.profile,
+            has_paid=True,
+            is_premium=True,
+            subscription_status="active",
+            subscription_plan_id="pro",
+        )
+
+        with (
+            patch.object(recon, "_revenuecat_state", return_value=None),
+            patch.object(
+                recon, "_stripe_state", return_value=self._state("stripe", None, "active")
+            ),
+        ):
+            recon.reconcile_profile_subscription_state(self.profile)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.subscription_plan_id, "pro")
+        self.assertTrue(self.profile.is_premium)
+
+    def test_all_inactive_providers_normalize_to_starter(self):
+        from authentication.services import subscription_reconciliation as recon
+
+        apply_subscription_to_profile(
+            self.profile,
+            has_paid=True,
+            is_premium=True,
+            subscription_status="active",
+            subscription_plan_id="pro",
+        )
+
+        with (
+            patch.object(recon, "_revenuecat_state", return_value=None),
+            patch.object(
+                recon, "_stripe_state", return_value=self._state("stripe", "pro", "canceled")
+            ),
+        ):
+            recon.reconcile_profile_subscription_state(self.profile)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.subscription_plan_id, "starter")
+        self.assertFalse(self.profile.is_premium)
+
+    def test_active_mapped_provider_upgrades(self):
+        from authentication.services import subscription_reconciliation as recon
+
+        with (
+            patch.object(
+                recon, "_revenuecat_state", return_value=self._state("revenuecat", "pro", "active")
+            ),
+            patch.object(recon, "_stripe_state", return_value=None),
+        ):
+            recon.reconcile_profile_subscription_state(self.profile)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.subscription_plan_id, "pro")
+        self.assertTrue(self.profile.is_premium)
+
+
 class SubscriptionParityTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

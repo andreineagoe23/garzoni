@@ -151,6 +151,13 @@ def reconcile_profile_subscription_state(
         states.append(stripe_state)
 
     active_states = [s for s in states if s.plan in {"plus", "pro"} and s.status != "canceled"]
+    # An active subscription whose price/product we couldn't map to a plan
+    # (e.g. RevenueCat Web Billing mints its own Stripe price ids). Treat this
+    # as "unknown but paid" — never downgrade on it, or a plain sync would wipe
+    # a real entitlement to starter.
+    unmapped_active = [
+        s for s in states if s.plan not in {"plus", "pro"} and s.status in _ACTIVE_STRIPE_STATUSES
+    ]
     if active_states:
         winner = max(active_states, key=lambda s: plan_rank(s.plan))
         apply_subscription_to_profile(
@@ -161,8 +168,17 @@ def reconcile_profile_subscription_state(
             subscription_status=winner.status or "active",
             trial_end=winner.trial_end if winner.status == "trialing" else None,
         )
+    elif unmapped_active:
+        # Reachable provider reports an active sub we can't map — leave the
+        # profile untouched rather than risk downgrading a paying user.
+        logger.warning(
+            "[subscription_reconcile] user=%s has active provider sub with unmapped "
+            "plan (providers=%s); leaving plan unchanged",
+            profile.user_id,
+            [s.provider for s in unmapped_active],
+        )
     elif states:
-        # Providers reachable but no active entitlement; normalize to starter.
+        # Providers reachable and every subscription is inactive — normalize to starter.
         apply_subscription_to_profile(
             profile,
             has_paid=False,

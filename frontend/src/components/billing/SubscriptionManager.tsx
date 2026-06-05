@@ -7,6 +7,7 @@ import { useAuth } from "contexts/AuthContext";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 import {
   isRevenueCatEnabled,
+  isValidAppUserId,
   configureRevenueCat,
   rcRestorePurchases,
   rcIsEntitled,
@@ -32,8 +33,18 @@ type Plan = {
 
 const SubscriptionManager = () => {
   const { t } = useTranslation();
-  const { entitlements, isAuthenticated, reloadEntitlements, loadProfile } =
-    useAuth();
+  const {
+    entitlements,
+    isAuthenticated,
+    reloadEntitlements,
+    loadProfile,
+    user,
+  } = useAuth();
+  // RC appUserID must be the numeric Django user PK (see revenueCatService).
+  const rcAppUserId = useMemo(() => {
+    const id = (user as { id?: number } | null)?.id;
+    return id != null && isValidAppUserId(String(id)) ? String(id) : null;
+  }, [user]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");
@@ -55,13 +66,14 @@ const SubscriptionManager = () => {
 
   const handleRCRestore = useCallback(async () => {
     if (!isAuthenticated) return;
-    const userId = String(
-      (entitlements as unknown as { userId?: number })?.userId ?? "anonymous"
-    );
+    if (!rcAppUserId) {
+      setRcRestoreMsg("Please sign in again to restore your subscription.");
+      return;
+    }
     setRcRestoring(true);
     setRcRestoreMsg("");
     try {
-      configureRevenueCat(userId);
+      configureRevenueCat(rcAppUserId);
       const customerInfo = await rcRestorePurchases();
       if (rcIsEntitled(customerInfo)) {
         setRcRestoreMsg("Subscription restored successfully.");
@@ -74,7 +86,7 @@ const SubscriptionManager = () => {
     } finally {
       setRcRestoring(false);
     }
-  }, [isAuthenticated, entitlements, reloadEntitlements]);
+  }, [isAuthenticated, rcAppUserId, reloadEntitlements]);
   // ───────────────────────────────────────────────────────────────────────────
 
   const getErrorMessage = (error: unknown, fallback: string) => {
@@ -542,12 +554,9 @@ const SubscriptionManager = () => {
               </GlassButton>
             )}
             {/* RevenueCat Customer Center (when RC SDK is active) */}
-            {rcEnabled ? (
+            {rcEnabled && rcAppUserId ? (
               <RevenueCatCustomerCenter
-                userId={String(
-                  (entitlements as unknown as { userId?: number })?.userId ??
-                    "anonymous"
-                )}
+                userId={rcAppUserId}
                 label={t("billing.manageSubscription")}
                 variant="primary"
                 onClose={() => reloadEntitlements?.()}

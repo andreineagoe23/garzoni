@@ -66,10 +66,26 @@ export function isRevenueCatEnabled(): boolean {
 }
 
 /**
+ * The web paywall opens RC Billing → Stripe Checkout. The appUserID we pass
+ * becomes the RevenueCat customer the purchase is bound to, and the backend
+ * webhook/sync only activates the matching Django user when that id is the
+ * numeric user PK (see backend `views_revenuecat.py`, which silently ignores
+ * non-digit ids). Passing a placeholder like "anonymous" therefore charges the
+ * card but never grants the plan — guard against it everywhere.
+ */
+export function isValidAppUserId(
+  appUserID: string | null | undefined
+): boolean {
+  return typeof appUserID === "string" && /^\d+$/.test(appUserID.trim());
+}
+
+/**
  * Configure (or re-configure) the RevenueCat SDK for a given user.
  * Safe to call on every login — it is a no-op when the user ID is unchanged.
  *
- * @param appUserID  Your backend user PK (or any stable unique string).
+ * @param appUserID  Your backend user PK as a numeric string.
+ * @throws when `appUserID` is not the numeric Django user PK — binding a
+ *         purchase to a placeholder id loses the payment (see above).
  */
 export function configureRevenueCat(appUserID: string): Purchases {
   const apiKey = import.meta.env.VITE_REVENUECAT_API_KEY?.trim();
@@ -79,6 +95,15 @@ export function configureRevenueCat(appUserID: string): Purchases {
         "Add it to frontend/.env as VITE_REVENUECAT_API_KEY=<your_key>."
     );
   }
+
+  if (!isValidAppUserId(appUserID)) {
+    throw new Error(
+      `[RevenueCat] Refusing to configure with invalid appUserID "${appUserID}". ` +
+        "Expected the numeric Django user PK — a purchase bound to a placeholder " +
+        "id is charged but never activates the user's plan."
+    );
+  }
+  appUserID = appUserID.trim();
 
   // Re-use existing instance for the same user to avoid duplicate SDK inits.
   if (_instance && _configuredUserId === appUserID) {

@@ -21,6 +21,7 @@ import { formatCurrency, formatDate, getLocale } from "utils/format";
 import { postRevenueCatSync, postSubscriptionSync } from "@garzoni/core";
 import {
   isRevenueCatEnabled,
+  isValidAppUserId,
   rcIsEntitled,
   RC_OFFERING_PRO,
 } from "services/revenueCatService";
@@ -86,6 +87,15 @@ const SubscriptionPlansPage = () => {
   // RevenueCat paywall overlay — shown instead of redirecting to Stripe
   // when the RC Web SDK is configured (VITE_REVENUECAT_API_KEY is set).
   const rcEnabled = isRevenueCatEnabled();
+  // The RC appUserID must be the numeric Django user PK. Binding a purchase to
+  // a placeholder (e.g. "anonymous") charges the card but never activates the
+  // plan because the backend webhook ignores non-digit app_user_ids.
+  const rcAppUserId = useMemo(() => {
+    const id =
+      (user as { id?: number } | null)?.id ??
+      (profile as { id?: number } | null)?.id;
+    return id != null && isValidAppUserId(String(id)) ? String(id) : null;
+  }, [user, profile]);
   const [showRCPaywall, setShowRCPaywall] = useState(false);
   /** When set, loads the Pro storefront; omit for Plus (default / current offering). */
   const [rcPaywallOfferingId, setRcPaywallOfferingId] = useState<
@@ -234,6 +244,13 @@ const SubscriptionPlansPage = () => {
 
       // ── RevenueCat flow (preferred when SDK is configured) ──────────────────
       if (rcEnabled) {
+        if (!rcAppUserId) {
+          // No numeric user PK yet — opening the paywall would bind the
+          // purchase to a placeholder id and lose the payment. Force re-auth.
+          setSelectionError(t("subscriptions.completeOnboardingFirst"));
+          navigate("/login");
+          return;
+        }
         setRcPaywallOfferingId(
           plan.plan_id === "pro" ? RC_OFFERING_PRO : undefined
         );
@@ -270,6 +287,7 @@ const SubscriptionPlansPage = () => {
       questionnaireComplete,
       reloadEntitlements,
       rcEnabled,
+      rcAppUserId,
       t,
     ]
   );
@@ -644,7 +662,7 @@ const SubscriptionPlansPage = () => {
       </section>
 
       {/* ── RevenueCat Paywall overlay ──────────────────────────────────────── */}
-      {showRCPaywall && rcEnabled && (
+      {showRCPaywall && rcEnabled && rcAppUserId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm"
           role="dialog"
@@ -652,11 +670,7 @@ const SubscriptionPlansPage = () => {
           aria-label="Subscription paywall"
         >
           <RevenueCatPaywall
-            userId={String(
-              (user as { id?: number } | null)?.id ??
-                (profile as { id?: number } | null)?.id ??
-                "anonymous"
-            )}
+            userId={rcAppUserId ?? ""}
             offeringIdentifier={rcPaywallOfferingId}
             onSuccess={handleRCSuccess}
             onClose={() => {

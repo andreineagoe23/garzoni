@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { type CustomerInfo, type Package } from "@revenuecat/purchases-js";
 import {
   configureRevenueCat,
+  isValidAppUserId,
   rcGetOfferings,
   rcPurchase,
   rcRestorePurchases,
@@ -121,6 +122,15 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     const init = async () => {
       setLoading(true);
       setError("");
+      if (!isValidAppUserId(userId)) {
+        // Guard: a purchase bound to a non-numeric appUserID is charged but
+        // never activates the user's plan. Refuse to render the storefront.
+        setError(
+          "We couldn't confirm your account. Please sign in again before subscribing."
+        );
+        setLoading(false);
+        return;
+      }
       try {
         configureRevenueCat(userId);
         const offerings = await rcGetOfferings();
