@@ -56,6 +56,12 @@ RUN SECRET_KEY=build-time-collectstatic-only \
 RUN sed -i 's/\r$//' /app/docker/entrypoint.sh 2>/dev/null || true \
     && chmod +x /app/docker/entrypoint.sh
 
+RUN addgroup -S garzoni && adduser -S garzoni -G garzoni \
+    && mkdir -p /app/media \
+    && chown -R garzoni:garzoni /app/staticfiles /app/media
+
+USER garzoni
+
 EXPOSE 8000
 
 # Run entrypoint via sh so it works even if exec bit is lost (e.g. volume mounts)
@@ -63,4 +69,4 @@ ENTRYPOINT ["/bin/sh", "/app/docker/entrypoint.sh"]
 # Worker/thread/timeout counts are injected by entrypoint.sh from env
 # (WEB_CONCURRENCY / GUNICORN_THREADS / GUNICORN_TIMEOUT) so concurrency can be
 # tuned per Railway plan without rebuilding the image.
-CMD ["gunicorn", "settings.wsgi:application", "--bind", "0.0.0.0:8000", "--worker-class", "gthread", "--graceful-timeout", "30", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100"]
+CMD ["gunicorn", "settings.wsgi:application", "-c", "gunicorn.conf.py"]

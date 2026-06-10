@@ -9,7 +9,6 @@ import Register from "components/auth/Register";
 import AuthCallback from "components/auth/AuthCallback";
 import ForgotPassword from "components/auth/ForgotPassword";
 import ResetPassword from "components/auth/ResetPassword";
-import ResetPasswordDrfToken from "components/auth/ResetPasswordDrfToken";
 import SubscriptionPlans from "components/billing/SubscriptionPlansPage";
 import {
   Welcome,
@@ -159,7 +158,6 @@ const AppRoutes = () => {
       <Route path="/welcome" element={<Navigate to="/" replace />} />
       <Route path="/marketing" element={<MarketingPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/password-reset" element={<ResetPasswordDrfToken />} />
       <Route
         path="/password-reset/:uidb64/:token"
         element={<ResetPassword />}

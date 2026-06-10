@@ -39,9 +39,8 @@ class RevenueCatSyncView(APIView):
 
     def post(self, request):
         user = request.user
-        # Mobile may pass its RC appUserID (e.g. anonymous session) so the
-        # backend looks up the right subscriber even when RC user != backend user.
-        rc_user_id = request.data.get("rc_app_user_id") or str(user.pk)
+        # Always bind to the authenticated backend user — never trust client-supplied RC IDs.
+        rc_user_id = str(user.pk)
 
         try:
             profile = user.profile

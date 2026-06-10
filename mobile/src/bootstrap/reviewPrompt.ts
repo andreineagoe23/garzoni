@@ -4,7 +4,7 @@ import * as StoreReview from "expo-store-review";
 const LAST_PROMPT_KEY = "garzoni:review_prompt_last_ts";
 const POSITIVE_EVENT_COUNT_KEY = "garzoni:review_prompt_positive_events";
 const MIN_INTERVAL_MS = 120 * 24 * 60 * 60 * 1000;
-const MIN_POSITIVE_EVENTS = 2;
+const MIN_POSITIVE_EVENTS = 3;
 
 export type ReviewReason = "lesson_complete" | "quiz_pass" | "streak_milestone";
 

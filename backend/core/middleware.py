@@ -1,5 +1,7 @@
 import uuid
 
+from core.logging import clear_request_id, set_request_id
+
 
 class RequestIdMiddleware:
     """
@@ -19,9 +21,19 @@ class RequestIdMiddleware:
     def __call__(self, request):
         rid = request.META.get(self.request_header) or uuid.uuid4().hex
         request.request_id = rid
-        response = self.get_response(request)
+        set_request_id(rid)
         try:
-            response[self.response_header] = rid
+            import sentry_sdk
+
+            sentry_sdk.set_tag("request_id", rid)
         except Exception:
             pass
-        return response
+        try:
+            response = self.get_response(request)
+            try:
+                response[self.response_header] = rid
+            except Exception:
+                pass
+            return response
+        finally:
+            clear_request_id()

@@ -37,6 +37,7 @@ const PricingFunnelDashboard = () => {
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: queryKeys.pricingFunnelMetrics(),
+    enabled: canAdminister,
     queryFn: async () => {
       const response = await fetchFunnelMetrics();
       return response.data;

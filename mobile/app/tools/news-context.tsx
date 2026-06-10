@@ -70,7 +70,10 @@ export default function NewsContextScreen() {
           <WhyThisMattersMobile toolSlug="news-context" />
         </View>
         <WebView
-          originWhitelist={["*"]}
+          originWhitelist={[
+            "https://widgets.tradingview-widget.com",
+            "https://s3.tradingview.com",
+          ]}
           source={{ html, baseUrl: "https://s3.tradingview.com" }}
           javaScriptEnabled
           domStorageEnabled

@@ -26,8 +26,9 @@ export const fetchActivityHeatmap = (days = 90) =>
 
 // subscription_plan_id is server-set by billing webhooks only; the backend
 // ignores it here, so it is intentionally not part of this request body.
-export const patchUserProfile = (body: { email_reminder_preference?: string }) =>
-  apiClient.patch<{ message?: string }>("/userprofile/", body);
+export const patchUserProfile = (body: {
+  email_reminder_preference?: string;
+}) => apiClient.patch<{ message?: string }>("/userprofile/", body);
 
 export const fetchLearningPaths = () => apiClient.get("/paths/");
 

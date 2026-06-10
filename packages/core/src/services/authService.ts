@@ -9,14 +9,6 @@ export const confirmPasswordReset = (
   payload: Record<string, unknown>,
 ) => apiClient.post(`/password-reset-confirm/${uidb64}/${token}/`, payload);
 
-/** Password reset via django-rest-passwordreset (token query link from email). */
-export const confirmDrfPasswordReset = (token: string, password: string) =>
-  apiClient.post<{ status?: string }>(
-    "/auth/drf-password-reset/confirm/",
-    { token, password },
-    { skipAuthRedirect: true },
-  );
-
 export type LoginSecurePayload = {
   username: string;
   password: string;
@@ -47,11 +39,8 @@ export const loginSecure = (payload: LoginSecurePayload) => {
   }>("/login-secure/", body, { skipAuthRedirect: true });
 };
 
-export const obtainTokenPair = (payload: {
-  username: string;
-  password: string;
-}) =>
-  apiClient.post<{ access: string; refresh?: string }>("/token/", payload, {
+export const logout = (refresh?: string) =>
+  apiClient.post("/logout/", refresh ? { refresh } : {}, {
     skipAuthRedirect: true,
   });
 
@@ -105,10 +94,15 @@ export const changePassword = (body: {
   new_password: string;
   confirm_password: string;
 }) =>
-  apiClient.post<{ message?: string; error?: string }>(
-    "/change-password/",
-    body,
-  );
+  // The backend revokes all other sessions and returns a fresh token pair for
+  // this device. Native clients must store the returned tokens (web keeps its
+  // session via the refreshed httpOnly cookie).
+  apiClient.post<{
+    message?: string;
+    error?: string;
+    access?: string;
+    refresh?: string;
+  }>("/change-password/", body);
 
 /** Deletes the authenticated user. Caller should clear local session after success. */
 export const deleteAccount = () =>

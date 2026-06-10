@@ -2040,6 +2040,7 @@
   "auth": {
     "signInWithGoogle": "Conectare cu Google",
     "orContinueWith": "sau continuă cu",
+    "socialTermsPrefix": "Continuând, confirmi că ai cel puțin 16 ani și ești de acord cu",
     "validation": {
       "usernameRequired": "Introdu numele de utilizator.",
       "passwordRequired": "Introdu parola.",

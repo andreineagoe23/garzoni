@@ -16,6 +16,7 @@ import { useAuth } from "contexts/AuthContext";
 import apiClient from "services/httpClient";
 import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatNumber, getLocale } from "utils/format";
+import { safeInternalPath } from "utils/safeInternalPath";
 import { useTranslation } from "react-i18next";
 
 type LeaderboardUser = {
@@ -229,7 +230,10 @@ const Leaderboards = () => {
       const response = await apiClient.post("/leaderboard/duel/", {
         opponent_id: opponentId,
       });
-      window.location.href = response.data.action_route || "/exercises";
+      window.location.href = safeInternalPath(
+        response.data.action_route,
+        "/exercises"
+      );
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { error?: string } } })
         ?.response?.data?.error;

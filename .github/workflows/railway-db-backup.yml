@@ -9,6 +9,9 @@ jobs:
   backup:
     name: Backup Railway Postgres
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Check for DB URL
         id: check
@@ -30,10 +33,17 @@ jobs:
         if: steps.check.outputs.skipped != 'true'
         env:
           RAILWAY_DB_URL: ${{ secrets.RAILWAY_DB_URL }}
+          BACKUP_ENCRYPT_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPT_PASSPHRASE }}
         run: |
           TS="$(date +%Y-%m-%d_%H%M%S)"
           OUT="railway_backup_${TS}.dump"
           pg_dump --format=custom "$RAILWAY_DB_URL" > "$OUT"
+          if [ -n "$BACKUP_ENCRYPT_PASSPHRASE" ]; then
+            gpg --batch --yes --passphrase "$BACKUP_ENCRYPT_PASSPHRASE" \
+              --symmetric --cipher-algo AES256 -o "${OUT}.gpg" "$OUT"
+            rm -f "$OUT"
+            OUT="${OUT}.gpg"
+          fi
           echo "BACKUP_FILE=$OUT" >> "$GITHUB_ENV"
 
       - name: Upload backup artifact
@@ -42,4 +52,4 @@ jobs:
         with:
           name: railway-db-backup
           path: ${{ env.BACKUP_FILE }}
-          retention-days: 14
+          retention-days: 3

@@ -5,6 +5,7 @@ import { GlassButton, GlassCard, Modal } from "components/ui";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
+import { safeRedirectUrl } from "utils/safeRedirectUrl";
 import {
   isRevenueCatEnabled,
   isValidAppUserId,
@@ -213,7 +214,7 @@ const SubscriptionManager = () => {
         plan_id: planId,
         billing_interval: billingInterval,
       });
-      const redirectUrl = response.data?.redirect_url;
+      const redirectUrl = safeRedirectUrl(response.data?.redirect_url);
       if (redirectUrl) {
         window.location.assign(redirectUrl);
         return;
@@ -286,7 +287,7 @@ const SubscriptionManager = () => {
     setIsBusy(true);
     try {
       const response = await apiClient.post("/subscriptions/portal/", {});
-      const portalUrl = response.data?.url;
+      const portalUrl = safeRedirectUrl(response.data?.url);
       if (portalUrl) {
         window.location.assign(portalUrl);
         return;

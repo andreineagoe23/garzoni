@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import { useTranslation } from "react-i18next";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
+import { safeEmbedVideoUrl } from "utils/safeRedirectUrl";
 
 const InteractiveSection = ({ section, onComplete, isCompleted }) => {
   const { t } = useTranslation();
@@ -28,6 +29,10 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
     if (!section.content) return "";
     return DOMPurify.sanitize(section.content);
   }, [section.content]);
+  const safeVideoUrl = useMemo(
+    () => safeEmbedVideoUrl(section.video_url),
+    [section.video_url]
+  );
 
   return (
     <section
@@ -49,12 +54,12 @@ const InteractiveSection = ({ section, onComplete, isCompleted }) => {
         />
       )}
 
-      {section.content_type === "video" && (
+      {section.content_type === "video" && safeVideoUrl && (
         <div className="space-y-3">
           <div className="relative overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-black/10 shadow-inner">
             <div className="aspect-video">
               <iframe
-                src={section.video_url}
+                src={safeVideoUrl}
                 title={section.title}
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

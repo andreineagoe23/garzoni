@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 set -e
+if command -v detect-secrets >/dev/null 2>&1; then
+  detect-secrets-hook --baseline .secrets.baseline
+fi
 pnpm run precommit
 # Backend: auto-format with Black (same pin as CI via requirements-dev), then lint.
 # If Black rewrote files, re-stage: git add backend && git commit

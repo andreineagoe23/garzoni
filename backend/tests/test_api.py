@@ -30,8 +30,13 @@ class UserLoginTest(APITestCase):
 
     def test_login(self):
         User.objects.create_user(username="testuser", password="unit-test-password!")
-        url = reverse("token_obtain_pair")
-        data = {"username": "testuser", "password": "unit-test-password!"}
+        url = reverse("login-secure")
+        data = {
+            "username": "testuser",
+            "password": "unit-test-password!",
+            "client_type": "mobile",
+            "platform": "mobile",
+        }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertIn("access", response.data)

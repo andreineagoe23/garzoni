@@ -21,6 +21,7 @@ try {
   /* native module not in this dev build — feature gated at runtime */
 }
 import { router } from "expo-router";
+import { logDevError } from "../src/lib/logDevError";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
@@ -189,7 +190,7 @@ export default function VoiceChat() {
       setRecording(rec);
       setStatus("recording");
     } catch (e) {
-      console.error("startRecording error", e);
+      logDevError("voice-chat.startRecording", e);
     }
   };
 

@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "contexts/AuthContext";
+import { safeInternalPath } from "utils/safeInternalPath";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -42,8 +43,8 @@ export default function AuthCallback() {
       );
       if (cancelled) return;
       if (result.success) {
-        const path = next.startsWith("/") ? next : `/${next}`;
-        navigate(path, { replace: true });
+        window.history.replaceState(null, "", window.location.pathname);
+        navigate(safeInternalPath(next), { replace: true });
       } else {
         setError(result.error || "Login failed");
         navigate("/login", {

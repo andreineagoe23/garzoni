@@ -45,6 +45,16 @@ async function readStorage(): Promise<CfoProfile> {
   }
 }
 
+export async function clearCfoProfileStorage(): Promise<void> {
+  cached = null;
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    logDevError("state/cfoProfile/clear", e);
+  }
+  listeners.forEach((listener) => listener(EMPTY_PROFILE));
+}
+
 async function writeStorage(profile: CfoProfile): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(profile));

@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import DOMPurify from "dompurify";
 import apiClient from "services/httpClient";
 import SeoHead from "components/seo/SeoHead";
 
@@ -45,6 +46,19 @@ export default function PublicLesson() {
       cancelled = true;
     };
   }, [slug]);
+
+  const sanitizedLessonHtml = useMemo(
+    () => DOMPurify.sanitize(data?.detailed_content || ""),
+    [data?.detailed_content]
+  );
+  const sanitizedSections = useMemo(
+    () =>
+      (data?.sections ?? []).map((section) => ({
+        ...section,
+        sanitizedText: DOMPurify.sanitize(section.text_content || ""),
+      })),
+    [data?.sections]
+  );
 
   if (loading) {
     return (
@@ -106,13 +120,13 @@ export default function PublicLesson() {
         />
       ) : null}
       <article
-        dangerouslySetInnerHTML={{ __html: data.detailed_content }}
+        dangerouslySetInnerHTML={{ __html: sanitizedLessonHtml }}
         style={{ lineHeight: 1.7 }}
       />
-      {data.sections.map((s) => (
+      {sanitizedSections.map((s) => (
         <section key={s.id}>
           <h2>{s.title}</h2>
-          <div dangerouslySetInnerHTML={{ __html: s.text_content }} />
+          <div dangerouslySetInnerHTML={{ __html: s.sanitizedText }} />
         </section>
       ))}
       <aside

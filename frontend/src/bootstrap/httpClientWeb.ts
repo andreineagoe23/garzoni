@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import { reportApiError } from "sentry";
 import {
   configureHttpClient,
   HTTP_CLIENT_SESSION_EXPIRED_REASON,
@@ -17,7 +18,10 @@ export function initHttpClientWeb(): void {
         `/login?reason=${encodeURIComponent(HTTP_CLIENT_SESSION_EXPIRED_REASON)}`
       );
     },
-    onError: (message) => {
+    onError: (message, meta) => {
+      if (meta?.status != null && meta.status >= 500) {
+        reportApiError(message, meta);
+      }
       toast.error(message);
     },
   });

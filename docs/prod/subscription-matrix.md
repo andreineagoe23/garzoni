@@ -57,12 +57,12 @@ Currency: GBP. Channels: RevenueCat everywhere — **Web Billing (Stripe-backed)
 
 ## Channel-specific behaviour
 
-| Channel                            | Subscription source                                          | Cancellation                 | Refunds                                 |
-| ---------------------------------- | ------------------------------------------------------------ | ---------------------------- | --------------------------------------- |
-| Web (RevenueCat Web Billing)       | `@revenuecat/purchases-js` entitlements + RevenueCat webhook | RC Customer Center / Stripe portal | Stripe-issued, operator-controllable    |
-| Web (legacy direct Stripe — fallback) | `subscription_plan_id`, Stripe webhook events            | Stripe Customer Portal       | Stripe-issued, operator-controllable    |
-| iOS (RevenueCat → App Store)       | `react-native-purchases` entitlements + RevenueCat webhooks  | iOS Settings → Subscriptions | Apple-issued, operator cannot override  |
-| Android (RevenueCat → Play Store)  | `react-native-purchases` entitlements + RevenueCat webhooks  | Play Store → Subscriptions   | Google-issued, operator cannot override |
+| Channel                               | Subscription source                                          | Cancellation                       | Refunds                                 |
+| ------------------------------------- | ------------------------------------------------------------ | ---------------------------------- | --------------------------------------- |
+| Web (RevenueCat Web Billing)          | `@revenuecat/purchases-js` entitlements + RevenueCat webhook | RC Customer Center / Stripe portal | Stripe-issued, operator-controllable    |
+| Web (legacy direct Stripe — fallback) | `subscription_plan_id`, Stripe webhook events                | Stripe Customer Portal             | Stripe-issued, operator-controllable    |
+| iOS (RevenueCat → App Store)          | `react-native-purchases` entitlements + RevenueCat webhooks  | iOS Settings → Subscriptions       | Apple-issued, operator cannot override  |
+| Android (RevenueCat → Play Store)     | `react-native-purchases` entitlements + RevenueCat webhooks  | Play Store → Subscriptions         | Google-issued, operator cannot override |
 
 ## Stripe + RevenueCat parity checklist
 

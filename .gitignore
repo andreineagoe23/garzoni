@@ -47,6 +47,7 @@ backend/db.sqlite3
 # ── Database backups ─────────────────────────────────────────────────────────
 *.sql
 *.pgdump
+*.dump
 *_backup.sql
 backend/backups/
 /db-backups/

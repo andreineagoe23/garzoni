@@ -35,6 +35,7 @@ import hashlib
 import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 from django.conf import settings
+from authentication.throttles import FunnelEventRateThrottle
 from finance.throttles import FinanceExternalRateThrottle
 from core.http_client import request_with_backoff
 
@@ -360,7 +361,7 @@ def _yahoo_get_session(force_refresh: bool = False) -> tuple[dict[str, str], str
                 allow_redirects=True,
             )
         except Exception as exc:
-            logger.info(
+            logger.debug(
                 "yahoo_session_primer_failed",
                 extra={"url": primer_url, "error": str(exc)},
             )
@@ -378,9 +379,9 @@ def _yahoo_get_session(force_refresh: bool = False) -> tuple[dict[str, str], str
             if text and "<html" not in text.lower() and len(text) < 64:
                 crumb = text
         else:
-            logger.info("yahoo_crumb_status: %s", crumb_resp.status_code)
+            logger.debug("yahoo_crumb_status: %s", crumb_resp.status_code)
     except Exception as exc:
-        logger.info("yahoo_crumb_fetch_failed: %s", exc)
+        logger.debug("yahoo_crumb_fetch_failed: %s", exc)
 
     payload = {"cookies": cookies, "crumb": crumb}
     # Short TTL when we couldn't get a crumb — try again sooner on next request.
@@ -422,7 +423,7 @@ def _stooq_quote(ticker: str) -> dict | None:
             return None
         text = (resp.text or "").strip()
     except Exception as exc:
-        logger.info("stooq_request_failed: %s", exc)
+        logger.debug("stooq_request_failed: %s", exc)
         return None
 
     lines = [line for line in text.splitlines() if line.strip()]
@@ -487,14 +488,14 @@ def _yahoo_v8_chart_quote(ticker: str, *, cookies: dict[str, str] | None) -> dic
             timeout=6,
         )
         if resp.status_code != 200:
-            logger.info(
+            logger.debug(
                 "yahoo_v8_chart_status",
                 extra={"ticker": sym, "status": resp.status_code},
             )
             return None
         body = resp.json() or {}
     except Exception as exc:
-        logger.info("yahoo_v8_chart_failed: %s", exc)
+        logger.debug("yahoo_v8_chart_failed: %s", exc)
         return None
 
     chart = body.get("chart") or {}
@@ -581,7 +582,7 @@ def _yahoo_bulk_fetch_and_cache(
                     timeout=8,
                 )
             except Exception as exc:
-                logger.info("yahoo_v7_request_failed: %s", exc)
+                logger.debug("yahoo_v7_request_failed: %s", exc)
                 yf = None
 
             if yf is not None and yf.status_code in (401, 403):
@@ -599,11 +600,11 @@ def _yahoo_bulk_fetch_and_cache(
                             timeout=8,
                         )
                     except Exception as exc:
-                        logger.info("yahoo_v7_retry_failed: %s", exc)
+                        logger.debug("yahoo_v7_retry_failed: %s", exc)
                         yf = None
 
             if yf is None or yf.status_code != 200:
-                logger.info(
+                logger.debug(
                     "yahoo_quote_unavailable",
                     extra={
                         "status": yf.status_code if yf is not None else None,
@@ -616,7 +617,7 @@ def _yahoo_bulk_fetch_and_cache(
                 except Exception:
                     payload = {"quoteResponse": {"result": []}}
         else:
-            logger.info(
+            logger.debug(
                 "yahoo_no_crumb_skip_v7",
                 extra={"batch": uncached[:5]},
             )
@@ -632,7 +633,7 @@ def _yahoo_bulk_fetch_and_cache(
         for ticker in uncached:
             q = _yahoo_quote_row_for_ticker(sym_rows, ticker)
             if not q:
-                logger.info(
+                logger.debug(
                     "market_quote_miss",
                     extra={"phase": "yahoo_batch", "ticker": ticker, "reason": "no_row"},
                 )
@@ -640,7 +641,7 @@ def _yahoo_bulk_fetch_and_cache(
             t_sym = (q.get("symbol") or "").upper()
             price, change = _yahoo_extract_price_and_change_pct(q)
             if price <= 0:
-                logger.info(
+                logger.debug(
                     "market_quote_miss",
                     extra={
                         "phase": "yahoo_batch",
@@ -674,7 +675,7 @@ def _yahoo_bulk_fetch_and_cache(
         _fb_deadline = time.monotonic() + max(3.0, _MARKET_QUOTE_FALLBACK_BUDGET_SEC)
         for ticker in unfilled:
             if time.monotonic() > _fb_deadline:
-                logger.info(
+                logger.debug(
                     "market_quote_fallback_budget_exceeded",
                     extra={
                         "uncached_sample": uncached[:8],
@@ -781,7 +782,7 @@ def _coingecko_bulk_fetch_and_cache(
             payload = data.get(cid, {}) or {}
             px = float(payload.get("usd", 0) or 0)
             if px <= 0:
-                logger.info(
+                logger.debug(
                     "market_quote_miss",
                     extra={
                         "phase": "coingecko_batch",
@@ -849,7 +850,7 @@ def _paper_trade_resolve_price(symbol: str, coingecko_id: str | None) -> tuple[f
         price = float(q.get("price", 0) or 0)
         if price > 0:
             return price, "crypto"
-        logger.info(
+        logger.debug(
             "paper_trade_quote_miss",
             extra={"symbol": symbol_u, "coingecko_id": cid},
         )
@@ -865,7 +866,7 @@ def _paper_trade_resolve_price(symbol: str, coingecko_id: str | None) -> tuple[f
     px = float(y.get("price", 0) or 0)
     if px > 0:
         return px, "stock"
-    logger.info(
+    logger.debug(
         "paper_trade_quote_miss",
         extra={"symbol": symbol_u, "path": "yahoo"},
     )
@@ -2479,7 +2480,7 @@ class StripeWebhookView(APIView):
 class VerifySessionView(APIView):
     """Verify the payment status of a Stripe checkout session."""
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """Check the payment status of a session and update the user's profile if paid."""
@@ -2504,16 +2505,25 @@ class VerifySessionView(APIView):
 
             metadata = getattr(session, "metadata", {}) or {}
             target_user_id = session.client_reference_id or metadata.get("user_id")
-
-            if request.user and request.user.is_authenticated:
-                user_id_int = request.user.id
-            elif target_user_id:
-                try:
-                    user_id_int = int(target_user_id)
-                except (TypeError, ValueError):
-                    return Response({"error": "Invalid user context"}, status=400)
-            else:
-                return Response({"error": "Missing user context for session"}, status=400)
+            if not target_user_id:
+                return Response({"error": "Session is not linked to a user"}, status=400)
+            if str(request.user.id) != str(target_user_id):
+                logger.warning(
+                    "VerifySession rejected: session user %s != authenticated user %s",
+                    target_user_id,
+                    request.user.id,
+                )
+                return Response(
+                    {"error": "This checkout session does not belong to your account"},
+                    status=403,
+                )
+            metadata_user_id = metadata.get("user_id")
+            if metadata_user_id and str(metadata_user_id) != str(request.user.id):
+                return Response(
+                    {"error": "This checkout session does not belong to your account"},
+                    status=403,
+                )
+            user_id_int = request.user.id
 
             User = get_user_model()
             try:
@@ -3347,6 +3357,7 @@ class FunnelEventIngestView(APIView):
     """Allow clients to log funnel events such as pricing page views."""
 
     permission_classes = [AllowAny]
+    throttle_classes = [FunnelEventRateThrottle]
 
     ALLOWED_EVENT_TYPES = {
         "pricing_view",

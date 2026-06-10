@@ -1,3 +1,5 @@
+import { captureException, captureMessage } from "sentry";
+
 export const initConsoleFilters = (enableLogs: boolean) => {
   if (typeof window === "undefined") return;
 
@@ -6,15 +8,6 @@ export const initConsoleFilters = (enableLogs: boolean) => {
   const originalWarn = console.warn.bind(console);
   const originalError = console.error.bind(console);
   const originalDebug = console.debug.bind(console);
-
-  if (!enableLogs) {
-    (["log", "info", "warn", "error", "debug"] as Array<keyof Console>).forEach(
-      (method) => {
-        (console[method] as (..._args: unknown[]) => void) = () => undefined;
-      }
-    );
-    return;
-  }
 
   const suppressedPhrases = [
     "runtime.lastError",
@@ -98,6 +91,45 @@ export const initConsoleFilters = (enableLogs: boolean) => {
       .join(" ");
     return suppressedPhrases.some((phrase) => full.includes(phrase));
   };
+
+  const forwardToSentry = (level: "warning" | "error", args: unknown[]) => {
+    if (shouldSuppress(...args)) return;
+    const first = args[0];
+    const err =
+      first instanceof Error
+        ? first
+        : args.find((arg): arg is Error => arg instanceof Error);
+    if (err) {
+      captureException(err, { consoleArgs: args });
+      return;
+    }
+    const message = args
+      .map((arg) => {
+        if (typeof arg === "string") return arg;
+        try {
+          return JSON.stringify(arg);
+        } catch {
+          return String(arg);
+        }
+      })
+      .join(" ");
+    if (message) {
+      captureMessage(message, level);
+    }
+  };
+
+  if (!enableLogs) {
+    console.log = () => undefined;
+    console.info = () => undefined;
+    console.debug = () => undefined;
+    console.warn = (...args: unknown[]) => {
+      forwardToSentry("warning", args);
+    };
+    console.error = (...args: unknown[]) => {
+      forwardToSentry("error", args);
+    };
+    return;
+  }
 
   console.log = (...args: unknown[]) => {
     if (shouldSuppress(...args)) return;

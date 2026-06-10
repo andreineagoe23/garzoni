@@ -51,7 +51,10 @@ export default function EconomicMapScreen() {
           <WhyThisMattersMobile toolSlug="economic-map" />
         </View>
         <WebView
-          originWhitelist={["*"]}
+          originWhitelist={[
+            "https://widgets.tradingview-widget.com",
+            "https://s3.tradingview.com",
+          ]}
           source={{ html, baseUrl: "https://widgets.tradingview-widget.com" }}
           javaScriptEnabled
           domStorageEnabled

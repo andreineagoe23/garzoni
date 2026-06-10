@@ -1,4 +1,37 @@
+import logging
+
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+
+def revoke_all_user_tokens(user) -> int:
+    """Blacklist every outstanding refresh token for a user.
+
+    Called after a password change or reset so previously issued sessions
+    (including any an attacker may hold after an account takeover) can no
+    longer be refreshed. Access tokens are stateless and remain valid until
+    they expire (ACCESS_TOKEN_LIFETIME, 30 min), which bounds the window.
+
+    Returns the count of tokens newly blacklisted. No-op (returns 0) if the
+    simplejwt blacklist app isn't installed.
+    """
+    if user is None or not getattr(user, "pk", None):
+        return 0
+    try:
+        from rest_framework_simplejwt.token_blacklist.models import (
+            BlacklistedToken,
+            OutstandingToken,
+        )
+    except Exception:
+        return 0
+
+    count = 0
+    for token in OutstandingToken.objects.filter(user=user):
+        _, created = BlacklistedToken.objects.get_or_create(token=token)
+        if created:
+            count += 1
+    return count
 
 
 def set_jwt_cookies(response, access_token, refresh_token):

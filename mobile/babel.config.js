@@ -10,6 +10,12 @@ module.exports = function (api) {
         },
       ],
     ],
-    plugins: ["react-native-reanimated/plugin"],
+    plugins: [
+      ...(process.env.EXPO_PUBLIC_APP_ENV === "production" ||
+      process.env.EAS_BUILD_PROFILE === "production"
+        ? [["transform-remove-console", { exclude: ["error"] }]]
+        : []),
+      "react-native-reanimated/plugin",
+    ],
   };
 };

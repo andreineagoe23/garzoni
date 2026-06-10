@@ -53,6 +53,20 @@ def change_password(request):
     user.save()
     update_session_auth_hash(request, user)
 
+    # Revoke every existing refresh token (kills sessions on other devices and
+    # any session an attacker may hold), then issue a fresh session for the
+    # device that made this change so it stays logged in. Web reads the new
+    # refresh cookie; native clients read the tokens from the response body.
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    from authentication.tokens import revoke_all_user_tokens
+    from authentication.views_auth import set_refresh_cookie
+
+    revoke_all_user_tokens(user)
+    refresh = RefreshToken.for_user(user)
+    new_access = str(refresh.access_token)
+    new_refresh = str(refresh)
+
     def _enqueue_changed_notice():
         uid = user.pk
         idem = f"pwd_changed:{uid}:{timezone.now().date().isoformat()}"
@@ -71,7 +85,16 @@ def change_password(request):
 
     transaction.on_commit(_enqueue_changed_notice)
 
-    return Response({"message": "Password changed successfully."}, status=200)
+    response = Response(
+        {
+            "message": "Password changed successfully.",
+            "access": new_access,
+            "refresh": new_refresh,
+        },
+        status=200,
+    )
+    set_refresh_cookie(response, new_refresh)
+    return response
 
 
 @api_view(["DELETE"])
@@ -215,6 +238,13 @@ class PasswordResetConfirmView(APIView):
 
         user.set_password(new_password)
         user.save()
+
+        # A reset is account-recovery: kill every existing session so a prior
+        # holder of the credentials (or a stale token) can't keep access. The
+        # user re-authenticates with the new password.
+        from authentication.tokens import revoke_all_user_tokens
+
+        revoke_all_user_tokens(user)
 
         return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 

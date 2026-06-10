@@ -8,6 +8,7 @@ import {
   identifyGarzoniUserFromAccessToken,
   registerPushTokenWithCustomerIo,
 } from "./customerIoMobile";
+import { isSafePushDeeplink } from "./safeDeeplink";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -62,6 +63,12 @@ function extractDeeplink(
 
 async function navigateToDeeplink(target: string): Promise<void> {
   try {
+    if (!isSafePushDeeplink(target)) {
+      if (__DEV__) {
+        console.warn("[push] blocked unsafe deeplink", target);
+      }
+      return;
+    }
     if (target.startsWith("garzoni://") || target.includes("://")) {
       await Linking.openURL(target);
       return;

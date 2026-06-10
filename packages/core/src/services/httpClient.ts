@@ -21,7 +21,12 @@ export type HttpClientCallbacks = {
   /** Called for failed API responses when skipGlobalErrorToast / skipAuthRedirect do not apply. */
   onError: (
     message: string,
-    meta?: { status?: number; method?: string; url?: string },
+    meta?: {
+      status?: number;
+      method?: string;
+      url?: string;
+      requestId?: string;
+    },
   ) => void;
 };
 
@@ -107,10 +112,22 @@ apiClient.interceptors.response.use(
         error.response?.data?.error ||
         error.message ||
         getApiErrorFallbackMessage();
+      const responseHeaders = error.response?.headers as
+        | Record<string, string | string[] | undefined>
+        | undefined;
+      const requestIdHeader =
+        responseHeaders?.["x-request-id"] ?? responseHeaders?.["X-Request-ID"];
+      const requestId =
+        typeof requestIdHeader === "string"
+          ? requestIdHeader
+          : Array.isArray(requestIdHeader)
+            ? requestIdHeader[0]
+            : undefined;
       callbacks.onError(String(message), {
         status: error.response?.status,
         method: String(cfg?.method || "get").toUpperCase(),
         url: String(cfg?.url || ""),
+        requestId,
       });
     }
     return Promise.reject(error);

@@ -64,7 +64,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         if not email:
             raise serializers.ValidationError("Email is required.")
         if User.objects.filter(email__iexact=email).exists():
-            raise serializers.ValidationError("An account with this email already exists.")
+            raise serializers.ValidationError(
+                "Unable to create account with the provided details. "
+                "If you already have an account, try signing in or resetting your password."
+            )
         return email
 
     def validate_password(self, value):

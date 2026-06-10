@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link, router } from "expo-router";
-import { obtainTokenPair, registerSecure } from "@garzoni/core";
+import { registerSecure } from "@garzoni/core";
 import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
@@ -158,23 +158,7 @@ export default function RegisterScreen() {
         await applyTokens(access, refresh);
         router.replace("/");
       } else {
-        const fallback = await obtainTokenPair({
-          username: form.username.trim(),
-          password: form.password,
-        });
-        const fallbackAccess = fallback.data?.access;
-        if (fallbackAccess) {
-          await applyTokens(fallbackAccess, fallback.data?.refresh);
-          router.replace("/");
-        } else {
-          const keys =
-            data && typeof data === "object"
-              ? Object.keys(data as Record<string, unknown>).join(", ")
-              : typeof data;
-          setError(
-            `No access token returned from server. Response keys: ${keys || "none"}`,
-          );
-        }
+        setError(t("auth.register.registerFailed"));
       }
     } catch (e: unknown) {
       const err = e as {

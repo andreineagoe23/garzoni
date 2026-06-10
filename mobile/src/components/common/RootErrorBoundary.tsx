@@ -1,5 +1,6 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import * as Sentry from "@sentry/react-native";
 
 type Props = { children: ReactNode };
 type State = { err: Error | null };
@@ -12,11 +13,16 @@ export class RootErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error(
-      "RootErrorBoundary caught:",
-      error.message,
-      info.componentStack,
-    );
+    if (__DEV__) {
+      console.error(
+        "RootErrorBoundary caught:",
+        error.message,
+        info.componentStack,
+      );
+    }
+    Sentry.captureException(error, {
+      contexts: { react: { componentStack: info.componentStack } },
+    });
   }
 
   render() {

@@ -18,6 +18,7 @@ import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
+import { safeRedirectUrl } from "utils/safeRedirectUrl";
 import { postRevenueCatSync, postSubscriptionSync } from "@garzoni/core";
 import {
   isRevenueCatEnabled,
@@ -264,8 +265,9 @@ const SubscriptionPlansPage = () => {
           plan_id: plan.plan_id,
           billing_interval: plan.billing_interval,
         });
-        if (r.data?.redirect_url) {
-          window.location.assign(r.data.redirect_url);
+        const redirectUrl = safeRedirectUrl(r.data?.redirect_url);
+        if (redirectUrl) {
+          window.location.assign(redirectUrl);
           return;
         }
       } catch (err) {

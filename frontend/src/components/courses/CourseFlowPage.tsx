@@ -16,6 +16,7 @@ import { useAdmin } from "contexts/AdminContext";
 import { useHearts } from "hooks/useHearts";
 import { useProgress } from "hooks/useProgress";
 import { calculatePercent } from "utils/progress";
+import { safeEmbedVideoUrl } from "utils/safeRedirectUrl";
 import { queryKeys, staleTimes } from "lib/reactQuery";
 import {
   completeLesson,
@@ -1286,7 +1287,10 @@ function CourseFlowPage() {
       }
     }
     const html = body ? DOMPurify.sanitize(body) : null;
-    return { sanitizedSectionHtml: html, recommendedVideoUrl: videoUrl };
+    return {
+      sanitizedSectionHtml: html,
+      recommendedVideoUrl: safeEmbedVideoUrl(videoUrl) || "",
+    };
   }, [currentItem]);
 
   const sanitizedLessonDetailHtml = useMemo(() => {
@@ -1342,7 +1346,8 @@ function CourseFlowPage() {
         );
       }
 
-      if (section.content_type === "video" && section.video_url) {
+      const safeSectionVideoUrl = safeEmbedVideoUrl(section.video_url);
+      if (section.content_type === "video" && safeSectionVideoUrl) {
         const getYouTubeId = (url: string) => {
           const regExp =
             /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -1353,11 +1358,11 @@ function CourseFlowPage() {
         return (
           <div className="overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-black/10 shadow-inner">
             <div className="aspect-video">
-              {section.video_url.includes("youtube.com") ||
-              section.video_url.includes("youtu.be") ? (
+              {safeSectionVideoUrl.includes("youtube.com") ||
+              safeSectionVideoUrl.includes("youtu.be") ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${getYouTubeId(
-                    section.video_url
+                    safeSectionVideoUrl
                   )}`}
                   title={section.title}
                   allowFullScreen
@@ -1366,7 +1371,7 @@ function CourseFlowPage() {
                 />
               ) : (
                 <video controls className="h-full w-full">
-                  <source src={section.video_url} type="video/mp4" />
+                  <source src={safeSectionVideoUrl} type="video/mp4" />
                   <track
                     kind="captions"
                     src=""

@@ -4,6 +4,7 @@ Project-specific checklist of every credential, file, and dashboard step
 required to ship `app.garzoni.mobile` on Google Play. Tick boxes as you go.
 
 > Anchors used by other docs:
+>
 > - Package name: `app.garzoni.mobile`
 > - EAS project id: `65781f5d-673f-484b-866c-b8dc165a160b`
 > - EAS slug / owner: `garzoni` / `andreineagoe`
@@ -31,16 +32,16 @@ required to ship `app.garzoni.mobile` on Google Play. Tick boxes as you go.
 
 ## 1. Android upload keystore
 
-What it is: signs every AAB. With Play App Signing this is the *upload*
+What it is: signs every AAB. With Play App Signing this is the _upload_
 key (Google can reset it if lost), not the final signing key.
 
 - [x] Run `cd mobile && pnpm exec eas credentials`
-  → Android → production → "Set up a new keystore" (let EAS generate it).
+      → Android → production → "Set up a new keystore" (let EAS generate it).
 - [x] Confirm visible at
-  <https://expo.dev/accounts/andreineagoe/projects/garzoni/credentials>
-  → Android → `app.garzoni.mobile`.
+      <https://expo.dev/accounts/andreineagoe/projects/garzoni/credentials>
+      → Android → `app.garzoni.mobile`.
 - [x] Enrol in **Play App Signing** (done via first Play upload; fingerprints
-  captured in §2).
+      captured in §2).
 
 EAS-generated upload keystore (created 2026-06-02):
 
@@ -54,7 +55,7 @@ SHA256 Fingerprint  5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:
 ```
 
 > Fingerprints aren’t secrets (Play publishes the Play App Signing SHA-1
-> publicly). The keystore *file* and its passwords are managed by EAS;
+> publicly). The keystore _file_ and its passwords are managed by EAS;
 > never download or commit them.
 
 ---
@@ -94,11 +95,11 @@ the Android OAuth client to the file, so it was created manually in §4;
 the file is still valid for FCM and EAS builds.
 
 - [x] Firebase Console → project → ⚙️ Project Settings → "Your apps"
-  → **Add app → Android**
+      → **Add app → Android**
 - [x] Package name: `app.garzoni.mobile`
 - [x] Add SHA-1 of upload key (step 2). Add Play App Signing SHA-1 too
-  once you have it (you can come back later — Firebase lets you add more).
-  → **Re-download `google-services.json` after Play App Signing SHA-1 is added.**
+      once you have it (you can come back later — Firebase lets you add more).
+      → **Re-download `google-services.json` after Play App Signing SHA-1 is added.**
 - [x] Click **Download `google-services.json`**
 - [x] Save to `mobile/google-services.json`
 - [x] Verify `mobile/.gitignore` ignores it (added 2026-06-02)
@@ -122,7 +123,7 @@ also needs an Android-type OAuth client (it’s used for server-side
 package + SHA-1 verification, not referenced in app code).
 
 - [x] Google Cloud Console → APIs & Services → **Credentials**
-  → Create credentials → **OAuth client ID → Android**
+      → Create credentials → **OAuth client ID → Android**
   - Name: `garzoni-android`
   - Client ID:
     `662909168223-c0tok05sta4ugie3pvpgd1ich8qfgsra.apps.googleusercontent.com`
@@ -138,7 +139,7 @@ package + SHA-1 verification, not referenced in app code).
     `68:92:AF:C6:6B:DC:01:D9:AF:8A:86:D1:5F:AF:6D:DB:77:71:EC:53`
   - Verified by successful Google Sign-In from Play-installed Android build.
 - [x] (Optional shortcut) Firebase did not auto-create this client, so it
-  was created manually in Cloud Console.
+      was created manually in Cloud Console.
 
 > Code change: none. `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (already set)
 > stays the value passed to `GoogleSignin.configure`.
@@ -151,13 +152,13 @@ Lets Customer.io’s servers send pushes via FCM v1 to your Android users.
 This is **separate from `google-services.json`**.
 
 - [x] Firebase Console → ⚙️ Project Settings → **Service accounts** tab
-  → **Generate new private key** → download JSON
+      → **Generate new private key** → download JSON
   - Because org policy blocked console key creation, generated via gcloud
     after temporarily disabling `iam.disableServiceAccountKeyCreation`
     for project `rare-phoenix-492615-p5`.
 - [x] Customer.io EU dashboard → Settings → **Workspace Settings → Push**
-  → next to **Android (FCM)** click **Settings**
-  → **Choose file** → upload the JSON → Save
+      → next to **Android (FCM)** click **Settings**
+      → **Choose file** → upload the JSON → Save
 - [x] Delete local JSON after uploading to Customer.io
   - Deleted `~/Downloads/garzoni-fcm-service-account.json`
 - [ ] Send a test push from CIO to a real device (after first build)
@@ -179,8 +180,8 @@ Already referenced in `mobile/eas.json`:
 ```
 
 - [x] Cloud Console → APIs & Services → **Library**
-  → enable **Google Play Android Developer API**
-  → enable **Google Play Developer Reporting API**
+      → enable **Google Play Android Developer API**
+      → enable **Google Play Developer Reporting API**
 - [x] IAM & Admin → **Service Accounts** → Create
   - Name: `eas-play-submit`
   - Skip role assignment → Done
@@ -189,20 +190,20 @@ Already referenced in `mobile/eas.json`:
   - Client email:
     `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
 - [x] Permissions **verified working** (2026-06-03). The Play Console
-  *Setup → API access* page is broken for this account (errors `56AE0035` /
-  `761244FD`), but the service account already has the access it needs:
+      _Setup → API access_ page is broken for this account (errors `56AE0035` /
+      `761244FD`), but the service account already has the access it needs:
   - `eas submit` of version code 7 succeeded to the internal track.
   - A direct Play Developer API probe (`edits().insert/delete` for
     `app.garzoni.mobile`) returned success.
-  → No further action required unless permissions need broadening.
-  Original (now skippable) UI steps:
+    → No further action required unless permissions need broadening.
+    Original (now skippable) UI steps:
   - Release to production, exclude devices, and use Play App Signing
   - Release apps to testing tracks
   - Manage store presence
   - View app information and download bulk reports (read-only)
 - [ ] (Recommended) Upload the same JSON to EAS dashboard:
-  Project → Credentials → Android → "Add a Google Service Account Key".
-  Once uploaded, you can drop `serviceAccountKeyPath` from `eas.json`.
+      Project → Credentials → Android → "Add a Google Service Account Key".
+      Once uploaded, you can drop `serviceAccountKeyPath` from `eas.json`.
 
 Reference: <https://docs.expo.dev/submit/android/>
 
@@ -213,47 +214,51 @@ Reference: <https://docs.expo.dev/submit/android/>
 Android app name in RevenueCat: `garzoni android`.
 
 ### 7a. RevenueCat Android public API key
+
 - [x] RevenueCat dashboard → project → Apps → **+ New → Google Play Store**
 - [x] Package name: `app.garzoni.mobile`
 - [x] Copy the public Android key (starts with `goog_`)
-  - Key: `goog_TdJcdfPxfmYDxNblvpibknmYZhp`
-- [x] Replace placeholder in all three profiles of `mobile/eas.json`
-  *or* move to an EAS secret named `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
+- [x] Store as an EAS secret named `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
+      (do not commit the key value in `mobile/eas.json` or docs)
 
 ### 7b. RevenueCat billing service account JSON
+
 - [x] Reused the existing `eas-play-submit` service account JSON instead of
-  creating a separate `revenuecat-billing` account (avoids another key-creation
-  org-policy flow). Email:
-  `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
+      creating a separate `revenuecat-billing` account (avoids another key-creation
+      org-policy flow). Email:
+      `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
 - [x] Play Console → Users and permissions → grant financial subscription
-  permissions on Garzoni:
+      permissions on Garzoni:
   - View app information
   - View financial data, orders, and cancellation survey response
   - Manage orders and subscriptions
 - [x] RevenueCat → Garzoni Android app → **Service Account credentials JSON**
-  → upload → Save changes
+      → upload → Save changes
 - [x] Credentials show as valid in RevenueCat
 
 ### 7c. Real-Time Developer Notifications (Pub/Sub)
+
 - [x] Cloud Console → Pub/Sub → Create topic: `play-rtdn-garzoni`
 - [x] Topic permissions → grant Google Play notifications principal
-  **Pub/Sub Publisher**:
-  `google-play-developer-notifications@system.gserviceaccount.com`
+      **Pub/Sub Publisher**:
+      `google-play-developer-notifications@system.gserviceaccount.com`
 - [x] Project IAM → grant RevenueCat service account **Pub/Sub Editor**:
-  `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
+      `eas-play-submit@rare-phoenix-492615-p5.iam.gserviceaccount.com`
 - [x] Play Console → Monetize → **Monetization setup**
-  → paste topic name `projects/rare-phoenix-492615-p5/topics/play-rtdn-garzoni`
-  → send test notification successfully
+      → paste topic name `projects/rare-phoenix-492615-p5/topics/play-rtdn-garzoni`
+      → send test notification successfully
 - [x] RevenueCat → Garzoni Android app → connect topic ID:
-  `projects/rare-phoenix-492615-p5/topics/play-rtdn-garzoni`
+      `projects/rare-phoenix-492615-p5/topics/play-rtdn-garzoni`
 - [ ] Confirm RevenueCat shows a `Last received` timestamp after the next test
-  notification / real purchase event.
+      notification / real purchase event.
 
 ### 7d. License testing (so purchases don’t actually charge)
+
 - [ ] Play Console → **Settings → License testing**
-  → add Gmail addresses of testers (real device required, no emulators)
+      → add Gmail addresses of testers (real device required, no emulators)
 
 References:
+
 - <https://www.revenuecat.com/docs/service-credentials/creating-play-service-credentials>
 - <https://www.revenuecat.com/docs/service-credentials/creating-play-service-credentials/google-play-checklists>
 
@@ -277,9 +282,9 @@ References:
   - `app.garzoni.mobile.pro:pro-monthly`
   - `app.garzoni.mobile.pro:pro-yearly`
 - [x] Attach products to existing RevenueCat entitlements:
-  `Garzoni Plus` / `Garzoni Pro`
+      `Garzoni Plus` / `Garzoni Pro`
 - [x] Add products to existing RevenueCat offerings/packages:
-  `plus_subscriptions` / `pro_subscriptions`
+      `plus_subscriptions` / `pro_subscriptions`
 - [x] Add Android product IDs to backend `PRODUCT_PLAN_MAP` for webhook parity
 
 > You must upload an AAB to at least the Internal testing track before
@@ -298,11 +303,11 @@ Vercel; `.well-known` is excluded from the SPA catch-all in `vercel.json`,
 and `.json` is served as `application/json` automatically).
 
 - [x] Upload-key SHA-256 added as the first fingerprint entry (2026-06-03):
-  `5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B`
+      `5A:DF:05:2F:18:98:CA:97:5A:48:D1:9B:E4:8E:B9:68:63:8E:03:D3:56:B8:B3:3A:5F:07:60:11:2F:AE:0A:0B`
 - [x] Play App Signing SHA-256 added (2026-06-03):
-  `98:AB:00:47:B0:E8:A7:D0:19:14:6A:4E:54:1F:DE:6E:1B:58:91:71:43:08:D6:E8:09:C1:FA:61:52:F8:BE:47`
-  (file now lists Play-signing first, upload-key second — covers both Play and
-  sideloaded installs).
+      `98:AB:00:47:B0:E8:A7:D0:19:14:6A:4E:54:1F:DE:6E:1B:58:91:71:43:08:D6:E8:09:C1:FA:61:52:F8:BE:47`
+      (file now lists Play-signing first, upload-key second — covers both Play and
+      sideloaded installs).
 - [x] **Deploy the frontend** so the updated file is live (verified 2026-06-04).
 - [x] Host the file at:
   - `https://www.garzoni.app/.well-known/assetlinks.json` → **HTTP 200,
@@ -344,25 +349,25 @@ and `.json` is served as `application/json` automatically).
   - DSN: `https://37153f0864b44d2e2fa3c0119672048e@o4510864033447936.ingest.de.sentry.io/4511500969443408`
 - [x] `EXPO_PUBLIC_SENTRY_DSN_ANDROID` added as EAS env var (preview + production)
 - [x] `SENTRY_AUTH_TOKEN` already present in EAS, and verified to cover
-  `garzoni-android` (release `garzoni-mobile@1.1.2` is associated with the
-  project, so the cloud build's source-map upload authenticated successfully).
+      `garzoni-android` (release `garzoni-mobile@1.1.2` is associated with the
+      project, so the cloud build's source-map upload authenticated successfully).
 - [ ] Confirm a test event arrives from a release build
-  (deliberately throw, then check `garzoni-android` in Sentry).
-- [ ] After a clean source-map upload is confirmed in build logs, remove
-  `"SENTRY_ALLOW_FAILURE": "true"` from the `preview`/`production` env blocks
-  in `mobile/eas.json` so real Sentry failures fail the build.
+      (deliberately throw, then check `garzoni-android` in Sentry).
+- [x] Removed `"SENTRY_ALLOW_FAILURE": "true"` from the `preview`/`production`
+      env blocks in `mobile/eas.json` (2026-06-09). Builds now fail if Sentry
+      source-map upload fails.
 
 ---
 
 ## 11. Already covered (no Android-specific work)
 
-| Credential | Where it’s set | Action |
-| --- | --- | --- |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `mobile/eas.json` (all profiles) | None |
-| `EXPO_PUBLIC_BACKEND_URL` (Railway) | `mobile/eas.json` | None |
-| `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` | `mobile/eas.json` | None |
-| `EXPO_PUBLIC_CIO_*` (CDP key, site id, region) | `mobile/eas.json` | None — but step 5 must be done for delivery |
-| `extra.eas.projectId` | `mobile/app.json` | None |
+| Credential                                     | Where it’s set                   | Action                                      |
+| ---------------------------------------------- | -------------------------------- | ------------------------------------------- |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`             | `mobile/eas.json` (all profiles) | None                                        |
+| `EXPO_PUBLIC_BACKEND_URL` (Railway)            | `mobile/eas.json`                | None                                        |
+| `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`            | `mobile/eas.json`                | None                                        |
+| `EXPO_PUBLIC_CIO_*` (CDP key, site id, region) | `mobile/eas.json`                | None — but step 5 must be done for delivery |
+| `extra.eas.projectId`                          | `mobile/app.json`                | None                                        |
 
 ---
 
@@ -372,6 +377,19 @@ and `.json` is served as `application/json` automatically).
 - A separate Apple Sign-In credential on Android (gated to iOS in code)
 - A second EAS project id (Android reuses `65781f5d-…`)
 - Google Maps / Geocoding API key (not used)
+
+---
+
+## 13. Production rollout (Play Console)
+
+`mobile/eas.json` production submit now uses `"releaseStatus": "completed"` so
+`eas submit --profile production --platform android` publishes directly to the
+production track instead of leaving a draft.
+
+- [ ] Confirm the current production release is live (or run
+      `cd mobile && pnpm submit:android:prod` after the next production AAB build)
+- [ ] Play Console → **Release → Production** → verify rollout % / countries
+- [ ] Play Console → **Settings → License testing** → add tester Gmail accounts (§7d)
 
 ---
 

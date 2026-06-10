@@ -78,6 +78,8 @@ type Props = {
   onCourseClick?: (courseId: number, pathId?: number) => void;
 };
 
+const STREAK_REVIEW_MILESTONES = new Set([3, 7, 14, 30]);
+
 export default function PersonalizedPathContentMobile({
   onCourseClick,
 }: Props) {
@@ -94,6 +96,7 @@ export default function PersonalizedPathContentMobile({
   });
 
   const profilePayload = profileQuery.data;
+  const prevStreakRef = useRef<number | null>(null);
 
   // Reschedule (or cancel) the local "don't break your streak" reminder every
   // time the profile refetches — lesson completion invalidates the profile
@@ -101,9 +104,19 @@ export default function PersonalizedPathContentMobile({
   // sync with the current streak value.
   useEffect(() => {
     const streak = profilePayload?.streak;
-    if (typeof streak === "number") {
-      void scheduleStreakReminder(streak);
+    if (typeof streak !== "number") return;
+
+    void scheduleStreakReminder(streak);
+
+    if (
+      STREAK_REVIEW_MILESTONES.has(streak) &&
+      prevStreakRef.current !== streak
+    ) {
+      void import("../../bootstrap/reviewPrompt").then(
+        ({ maybeRequestReview }) => maybeRequestReview("streak_milestone"),
+      );
     }
+    prevStreakRef.current = streak;
   }, [profilePayload?.streak]);
 
   const questionnaireQuery = useQuery({

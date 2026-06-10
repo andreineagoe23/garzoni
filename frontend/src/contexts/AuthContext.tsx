@@ -79,9 +79,9 @@ type RefreshResult =
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Access token is kept in memory; sessionStorage is used to survive full reloads.
+// Access token stays in memory only; refresh token persists across reloads.
 let inMemoryToken: string | null = null;
-const ACCESS_TOKEN_STORAGE_KEY = "garzoni_access_token";
+const LEGACY_ACCESS_TOKEN_STORAGE_KEY = "garzoni_access_token";
 const REFRESH_TOKEN_STORAGE_KEY = "garzoni_refresh_token";
 const ENTITLEMENT_SUPPORT_URL =
   "mailto:hello@garzoni.app?subject=Billing%20support";
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearAuthState = useCallback(() => {
     inMemoryToken = null;
-    sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    sessionStorage.removeItem(LEGACY_ACCESS_TOKEN_STORAGE_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     setIsAuthenticated(false);
     setUser(null);
@@ -171,9 +171,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getAccessToken = useCallback(() => inMemoryToken, []);
 
-  const persistAccessToken = useCallback((token: string) => {
-    if (!token) return;
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+  const persistAccessToken = useCallback((_token: string) => {
+    // Access tokens are intentionally not persisted to reduce XSS exfiltration risk.
   }, []);
 
   const persistRefreshToken = useCallback((token: string) => {
@@ -188,12 +187,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const restoreAccessToken = useCallback(() => {
     if (inMemoryToken) return inMemoryToken;
-    const stored = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
-    if (stored) {
-      inMemoryToken = stored;
-      attachToken(stored);
-      return stored;
-    }
     return null;
   }, []);
 
@@ -273,7 +266,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       inMemoryToken = response.data.access;
-      persistAccessToken(inMemoryToken);
       const nextRefresh =
         typeof response.data.refresh === "string"
           ? response.data.refresh
@@ -836,6 +828,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       apiClient.interceptors.response.eject(responseId);
     };
   }, [clearAuthState, refreshToken]);
+
+  useEffect(() => {
+    sessionStorage.removeItem(LEGACY_ACCESS_TOKEN_STORAGE_KEY);
+  }, []);
 
   // Verify auth on mount
   useEffect(() => {

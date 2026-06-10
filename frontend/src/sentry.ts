@@ -81,7 +81,7 @@ export const captureMessage = (
 export function reportToolError(
   error: unknown,
   toolName: string,
-  meta?: { profile?: SafeProfileContext }
+  meta?: { profile?: SafeProfileContext } & Record<string, unknown>
 ) {
   if (!dsn) return;
   Sentry.withScope((scope) => {
@@ -102,6 +102,32 @@ export function reportWidgetLoadError(
     scope.setTag("error_type", "widget_load");
     scope.setContext("widget", { widget_name: widgetName, ...meta });
     Sentry.captureException(error);
+  });
+}
+
+/** Report a backend API failure (5xx) with optional request correlation id. */
+export function reportApiError(
+  message: string,
+  meta?: {
+    status?: number;
+    method?: string;
+    url?: string;
+    requestId?: string;
+  }
+) {
+  if (!dsn) return;
+  Sentry.withScope((scope) => {
+    scope.setTag("error_type", "api_error");
+    if (meta?.status != null) scope.setTag("http_status", String(meta.status));
+    if (meta?.requestId) scope.setTag("request_id", meta.requestId);
+    scope.setContext("api", {
+      message,
+      method: meta?.method,
+      url: meta?.url,
+      status: meta?.status,
+      request_id: meta?.requestId,
+    });
+    Sentry.captureMessage(message, "error");
   });
 }
 

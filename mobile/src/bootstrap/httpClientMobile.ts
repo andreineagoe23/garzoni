@@ -1,4 +1,5 @@
 import Toast from "react-native-toast-message";
+import * as Sentry from "@sentry/react-native";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
@@ -94,6 +95,21 @@ export function initHttpClientMobile() {
           console.warn("[Garzoni][silent-read-500]", meta?.url || "", text);
         }
         return;
+      }
+      if (!__DEV__ && status != null && status >= 500) {
+        Sentry.withScope((scope) => {
+          scope.setTag("error_type", "api_error");
+          scope.setTag("http_status", String(status));
+          if (meta?.requestId) scope.setTag("request_id", meta.requestId);
+          scope.setContext("api", {
+            message: text,
+            method,
+            url: meta?.url,
+            status,
+            request_id: meta?.requestId,
+          });
+          Sentry.captureMessage(text, "error");
+        });
       }
       Toast.show({
         type: "error",

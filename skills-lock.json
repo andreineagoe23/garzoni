@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "aso": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/aso/SKILL.md",
+      "computedHash": "f84a1fb5cb1a8a7f7171bd60ae6850f24a82fa6af94bd5f12e5b3e9227480a34"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",

@@ -38,6 +38,7 @@ Sentry.init({
   enabled: Boolean(dsn) && env !== "development",
   release: `garzoni-mobile@${version}`,
   environment: env,
+  sendDefaultPii: false,
 
   // Capture all unhandled errors; sample only 10% of perf traces.
   sampleRate: 1.0,

@@ -23,12 +23,12 @@ A purchase bound to a non-numeric id charges the card but never activates the pl
 
 These must match exactly across the RC dashboard, web (`frontend/src/services/revenueCatService.ts`), and mobile (`mobile/src/billing/subscriptionRuntime.ts`):
 
-| Concept            | Value(s)                                            |
-| ------------------ | --------------------------------------------------- |
-| Offerings          | `plus_subscriptions`, `pro_subscriptions`           |
-| Packages           | `$rc_monthly`, `$rc_annual`                          |
-| Entitlements       | `Garzoni Plus`, `Garzoni Pro`                        |
-| Web Stripe products| RC Billing is **1:1 product↔price** — one Stripe product per period (Plus/Pro × monthly/annual), each attached to its package and entitlement. |
+| Concept             | Value(s)                                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Offerings           | `plus_subscriptions`, `pro_subscriptions`                                                                                                      |
+| Packages            | `$rc_monthly`, `$rc_annual`                                                                                                                    |
+| Entitlements        | `Garzoni Plus`, `Garzoni Pro`                                                                                                                  |
+| Web Stripe products | RC Billing is **1:1 product↔price** — one Stripe product per period (Plus/Pro × monthly/annual), each attached to its package and entitlement. |
 
 Web Stripe product ids are mapped in `authentication/revenuecat_products.py::PRODUCT_PLAN_MAP`; the webhook also resolves via the `Garzoni Plus/Pro` entitlement, so entitlement attachment is what actually grants the plan.
 

@@ -133,7 +133,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "dist",
-      sourcemap: true,
+      sourcemap: mode === "development" ? true : "hidden",
       rollupOptions: {
         output: {
           manualChunks,

@@ -17,7 +17,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
-from core.utils import env_bool
+from core.utils import env_bool, mask_identifier
 from core.http_client import request_with_backoff
 import requests
 
@@ -228,6 +228,47 @@ def verify_recaptcha(token):
         return False
 
 
+def _enforce_recaptcha(request, action: str):
+    """Gate an auth request on reCAPTCHA. Returns an error Response, or None to proceed.
+
+    Web clients must send a valid token. Native clients (client_type/platform
+    'mobile') may omit it — but the 'mobile' flag is client-controlled and
+    spoofable, so if a token IS present we always verify it (defense in depth).
+    django-axes provides the real brute-force lockout regardless.
+    """
+    if not _recaptcha_required():
+        return None
+
+    token = (request.data.get("recaptcha_token") or "").strip()
+    if not token:
+        if _is_mobile_auth_client(request):
+            return None
+        logger.warning("%s rejected: recaptcha_token missing", action)
+        return Response(
+            {
+                "detail": "Security verification is required. Please refresh the page "
+                "and try again, or sign in with Google.",
+                "code": "recaptcha_missing",
+            },
+            status=400,
+        )
+
+    if getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip():
+        ok = verify_recaptcha_enterprise(token, action, request)
+    else:
+        ok = verify_recaptcha(token)
+    if not ok:
+        logger.warning("%s rejected: recaptcha verification failed", action)
+        return Response(
+            {
+                "detail": "Security verification failed. Please try again.",
+                "code": "recaptcha_failed",
+            },
+            status=400,
+        )
+    return None
+
+
 @ensure_csrf_cookie
 def get_csrf_token(request):
     """Retrieve and return a CSRF token for the client."""
@@ -270,39 +311,11 @@ class LoginSecureView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token (web only)
-        if _recaptcha_required() and not _is_mobile_auth_client(request):
-            token = (request.data.get("recaptcha_token") or "").strip()
-            if not token:
-                logger.warning("Login rejected: recaptcha_token missing")
-                return Response(
-                    {
-                        "detail": "Security verification is required. Please refresh the page and try again, or sign in with Google.",
-                        "code": "recaptcha_missing",
-                    },
-                    status=400,
-                )
-            if getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip():
-                if not verify_recaptcha_enterprise(token, "login", request):
-                    logger.warning("Login rejected: recaptcha Enterprise verification failed")
-                    return Response(
-                        {
-                            "detail": "Security verification failed. Please try again.",
-                            "code": "recaptcha_failed",
-                        },
-                        status=400,
-                    )
-            elif not verify_recaptcha(token):
-                logger.warning("Login rejected: recaptcha verification failed")
-                return Response(
-                    {
-                        "detail": "Security verification failed. Please try again.",
-                        "code": "recaptcha_failed",
-                    },
-                    status=400,
-                )
+        recaptcha_error = _enforce_recaptcha(request, "login")
+        if recaptcha_error is not None:
+            return recaptcha_error
 
-        logger.info("Login attempt for username: %s", username)
+        logger.info("Login attempt for username: %s", mask_identifier(username))
 
         if not username or not password:
             logger.warning("Login attempt with missing credentials")
@@ -321,7 +334,7 @@ class LoginSecureView(APIView):
             #    inactive, so the response body can't be used to enumerate users.
             user = authenticate(request, username=username, password=password)
             if user is None:
-                logger.warning("Invalid credentials for username: %s", username)
+                logger.warning("Invalid credentials for username: %s", mask_identifier(username))
                 return Response(
                     {"detail": "Invalid username or password.", "code": "invalid_credentials"},
                     status=401,
@@ -331,7 +344,7 @@ class LoginSecureView(APIView):
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
 
-            logger.info("Successful login for %s", username)
+            logger.info("Successful login for %s", mask_identifier(username))
 
             response = Response(
                 {
@@ -383,40 +396,14 @@ class RegisterSecureView(generics.CreateAPIView):
         email = (request.data.get("email") or "").strip()
         username = (request.data.get("username") or "").strip()
         logger.info(
-            "Register attempt email=%s username=%s", email or "(empty)", username or "(empty)"
+            "Register attempt email=%s username=%s",
+            mask_identifier(email),
+            mask_identifier(username),
         )
 
-        # reCAPTCHA: when configured (Enterprise or legacy v3), require valid token (web only)
-        if _recaptcha_required() and not _is_mobile_auth_client(request):
-            token = (request.data.get("recaptcha_token") or "").strip()
-            if not token:
-                logger.warning("Register rejected: recaptcha_token missing")
-                return Response(
-                    {
-                        "detail": "Security verification is required. Please refresh the page and try again, or sign in with Google.",
-                        "code": "recaptcha_missing",
-                    },
-                    status=400,
-                )
-            if getattr(settings, "RECAPTCHA_ENTERPRISE_PROJECT_ID", "").strip():
-                if not verify_recaptcha_enterprise(token, "register", request):
-                    logger.warning("Register rejected: recaptcha Enterprise verification failed")
-                    return Response(
-                        {
-                            "detail": "Security verification failed. Please try again.",
-                            "code": "recaptcha_failed",
-                        },
-                        status=400,
-                    )
-            elif not verify_recaptcha(token):
-                logger.warning("Register rejected: recaptcha verification failed")
-                return Response(
-                    {
-                        "detail": "Security verification failed. Please try again.",
-                        "code": "recaptcha_failed",
-                    },
-                    status=400,
-                )
+        recaptcha_error = _enforce_recaptcha(request, "register")
+        if recaptcha_error is not None:
+            return recaptcha_error
 
         serializer = self.get_serializer(data=request.data)
         try:
@@ -454,7 +441,11 @@ class RegisterSecureView(generics.CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        logger.info("Register success user_id=%s username=%s", user.id, user.username)
+        logger.info(
+            "Register success user_id=%s username=%s",
+            user.id,
+            mask_identifier(user.username),
+        )
 
         response = Response(
             {
@@ -528,36 +519,6 @@ class CustomTokenRefreshView(TokenRefreshView):
             return Response(
                 {"detail": "An error occurred during token refresh."},
                 status=500,
-            )
-
-        try:
-            import jwt
-            from rest_framework_simplejwt.settings import api_settings
-
-            decoded_token = jwt.decode(
-                refresh_token,
-                settings.SECRET_KEY,
-                algorithms=[api_settings.ALGORITHM],
-                options={"verify_signature": False},
-            )
-            user_id = decoded_token.get("user_id")
-
-            if user_id:
-                User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            logger.error("Token refresh attempted for missing user id=%s", user_id)
-            response = Response(
-                {"detail": "User not found", "code": "user_not_found"},
-                status=401,
-            )
-            clear_refresh_cookie(response)
-            return response
-        except TokenError as exc:
-            return self._reject_refresh_token(exc)
-        except Exception as exc:
-            logger.warning(
-                "Could not validate user from refresh token (non-critical): %s",
-                exc,
             )
 
         response_data = serializer.validated_data

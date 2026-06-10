@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import Header from "components/layout/Header";
 import { useAuth } from "contexts/AuthContext";
+import { safeInternalPath } from "utils/safeInternalPath";
 import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassButton } from "components/ui";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
@@ -79,11 +80,10 @@ function Login() {
         "/subscriptions",
         "/payment-required",
       ];
-      const destination = gatedPaths.includes(from) ? "/all-topics" : from;
-
-      // Default to the main dashboard when there's no safe destination
-      const targetPath = destination || "/all-topics";
-      navigate(targetPath, { replace: true });
+      const destination = gatedPaths.includes(from)
+        ? "/all-topics"
+        : safeInternalPath(from, "/all-topics");
+      navigate(destination, { replace: true });
     }
   }, [isAuthenticated, navigate, location.state]);
 

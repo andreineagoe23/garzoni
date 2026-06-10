@@ -8,15 +8,11 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from django_rest_passwordreset.signals import reset_password_token_created
 
 from authentication.models import UserEmailPreference, UserProfile
 from authentication.tasks import send_welcome_email
 from core.utils import normalize_text_encoding
-from notifications.tasks import (
-    safe_enqueue_sync_user_to_customer_io,
-    send_password_reset_email_task,
-)
+from notifications.tasks import safe_enqueue_sync_user_to_customer_io
 
 # Fields whose change should re-push the CIO profile so email/name stay in sync.
 _CIO_SYNC_FIELDS = ("email", "first_name", "last_name", "username")
@@ -164,39 +160,6 @@ def resync_cio_on_pref_change(sender, instance, created, **kwargs):
                 logger.warning(
                     "safe_enqueue_sync_user_to_customer_io failed for user_id=%s on pref change",
                     user_id,
-                    exc_info=True,
-                )
-
-        threading.Thread(target=_dispatch, daemon=True).start()
-
-    transaction.on_commit(_enqueue)
-
-
-@receiver(reset_password_token_created)
-def on_password_reset_token_created(sender, instance, reset_password_token, **kwargs):
-    """
-    django-rest-passwordreset only emits this signal; it does not send email itself.
-    Queue the same NotificationService path as the custom password-reset API.
-    Reset link targets the SPA + POST /api/auth/drf-password-reset/confirm/ (see authentication.urls).
-    """
-    user = reset_password_token.user
-    base = getattr(settings, "FRONTEND_URL", "https://garzoni.app").rstrip("/")
-    reset_link = f"{base}/password-reset?token={reset_password_token.key}"
-    idempotency_key = f"pwd_reset:{user.pk}:{uuid.uuid4().hex[:12]}"
-
-    user_pk = user.pk
-
-    def _enqueue():
-        def _dispatch():
-            try:
-                send_password_reset_email_task.delay(
-                    user_pk, reset_link, idempotency_key=idempotency_key
-                )
-            except Exception:
-                logger.warning(
-                    "send_password_reset_email_task dispatch failed for user_id=%s — "
-                    "broker may be unavailable (Redis, Celery).",
-                    user_pk,
                     exc_info=True,
                 )
 

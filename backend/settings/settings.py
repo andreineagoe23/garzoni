@@ -52,6 +52,50 @@ elif _IS_BUILD_PHASE:
 else:
     logging.getLogger(__name__).debug("[settings] Production mode (DEBUG=False)")
 
+_LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG" if DEBUG else "INFO").upper()
+_LOG_JSON = env_bool("LOG_JSON", not DEBUG and not _IS_BUILD_PHASE)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "request_id": {"()": "core.logging.RequestIdFilter"},
+    },
+    "formatters": {
+        "plain": {
+            "format": "%(levelname)s %(asctime)s [%(request_id)s] %(name)s: %(message)s",
+            "datefmt": "%Y-%m-%dT%H:%M:%S",
+        },
+        "json": {
+            "()": "core.logging.JsonFormatter",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "filters": ["request_id"],
+            "formatter": "json" if _LOG_JSON else "plain",
+            "level": _LOG_LEVEL,
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": _LOG_LEVEL,
+    },
+    "loggers": {
+        "django": {"level": _LOG_LEVEL, "propagate": True},
+        "django.request": {"level": "WARNING", "propagate": True},
+        "django.utils.autoreload": {"level": "WARNING", "propagate": True},
+        "urllib3": {"level": "WARNING", "propagate": True},
+        "axes": {"level": "WARNING", "propagate": True},
+        "gunicorn.access": {"level": "INFO", "propagate": True},
+        "gunicorn.error": {"level": "INFO", "propagate": True},
+    },
+}
+
+_settings_logger = logging.getLogger(__name__)
+
 ALLOWED_HOSTS = env_csv(
     "ALLOWED_HOSTS_CSV",
     default=env_csv(
@@ -81,6 +125,12 @@ else:
     )
     if _allow_all_hosts and "*" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS = [*ALLOWED_HOSTS, "*"]
+
+if not DEBUG and not _IS_BUILD_PHASE and "*" in ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        "ALLOWED_HOSTS must not include '*' in production. "
+        "Unset DJANGO_ALLOW_ALL_HOSTS and DJANGO_ALLOW_LAN_HOSTS."
+    )
 
 # Railway injects the service's public hostname; allow it even when ALLOWED_HOSTS_CSV is stale
 # (e.g. after renaming the deployment) so requests to *.up.railway.app are not rejected.
@@ -117,7 +167,6 @@ INSTALLED_APPS = [
     "notifications.apps.NotificationsConfig",
     # Legacy core app (to be removed after full migration)
     "core",
-    "django_rest_passwordreset",
     "django_ckeditor_5",
     "django_celery_results",
     "django_celery_beat",
@@ -125,10 +174,6 @@ INSTALLED_APPS = [
 ]
 if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
     INSTALLED_APPS += ["django_extensions"]
-
-# django-rest-passwordreset: generic success when email is unknown; mail is sent from
-# authentication.signals.on_password_reset_token_created (Celery + NotificationService).
-DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
 
 # Gamification retention layer (weekly recap API, streak-rescue Celery job, richer profile extras).
 # Production (Railway): set GAMIFICATION_RETENTION_V2=true if you want spawn_streak_rescue_missions
@@ -262,6 +307,14 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": os.getenv("THROTTLE_RATE_ANON", "50/day"),
         "user": os.getenv("THROTTLE_RATE_USER", "500/day"),
+        "login": os.getenv("LOGIN_THROTTLE_RATE", "10/min"),
+        "register": os.getenv("REGISTER_THROTTLE_RATE", "5/min"),
+        "refresh": os.getenv("REFRESH_THROTTLE_RATE", "20/min"),
+        "password_reset": os.getenv("PASSWORD_RESET_THROTTLE_RATE", "5/hour"),
+        "push_token": os.getenv("PUSH_TOKEN_THROTTLE_RATE", "10/hour"),
+        "hearts_grant": os.getenv("HEARTS_GRANT_THROTTLE_RATE", "20/day"),
+        "hearts_refill": os.getenv("HEARTS_REFILL_THROTTLE_RATE", "30/day"),
+        "funnel_events": os.getenv("FUNNEL_EVENT_THROTTLE_RATE", "120/hour"),
     },
 }
 
@@ -730,8 +783,8 @@ if not DEBUG and not _IS_BUILD_PHASE and CELERY_BROKER_URL and CELERY_TASK_ALWAY
         "Set CELERY_TASK_ALWAYS_EAGER=False and run a Celery worker + beat."
     )
 if not DEBUG and not _IS_BUILD_PHASE and not CELERY_BROKER_URL and CELERY_TASK_ALWAYS_EAGER:
-    print(
-        "[settings] Production with no broker: scheduled tasks (email reminders, trial reminder) will NOT run. "
+    _settings_logger.warning(
+        "Production with no broker: scheduled tasks (email reminders, trial reminder) will NOT run. "
         "On Railway: add Redis, set REDIS_URL, then add a Celery worker and a Celery beat service."
     )
 CELERY_BROKER_CONNECTION_RETRY = True
@@ -787,14 +840,15 @@ CELERY_TASK_IGNORE_RESULT = True
 # budget, so misrouted REDIS_URL / cross-project refs are obvious on next deploy.
 if CELERY_BROKER_URL:
     _masked_broker = re.sub(r"://([^:/@]+):([^@]+)@", r"://\1:***@", CELERY_BROKER_URL)
-    print(
-        f"[celery] broker={_masked_broker} "
-        f"role={'consumer' if _is_celery_consumer else 'publisher'} "
-        f"retries={CELERY_BROKER_CONNECTION_MAX_RETRIES} "
-        f"timeout={CELERY_BROKER_CONNECTION_TIMEOUT}s"
+    _settings_logger.info(
+        "celery broker=%s role=%s retries=%s timeout=%ss",
+        _masked_broker,
+        "consumer" if _is_celery_consumer else "publisher",
+        CELERY_BROKER_CONNECTION_MAX_RETRIES,
+        CELERY_BROKER_CONNECTION_TIMEOUT,
     )
 else:
-    print("[celery] no broker configured — CELERY_TASK_ALWAYS_EAGER auto-enabled")
+    _settings_logger.info("celery no broker configured — CELERY_TASK_ALWAYS_EAGER auto-enabled")
 
 # CKEditor 5 Configuration
 CKEDITOR_5_CONFIGS = {

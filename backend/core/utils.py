@@ -66,6 +66,26 @@ def normalize_text_encoding(text: str | None) -> str | None:
 _TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
 
 
+def mask_identifier(value: str | None) -> str:
+    """Mask emails/usernames for logs (avoid PII in production log streams)."""
+
+    if not value:
+        return "(empty)"
+    text = str(value).strip()
+    if not text:
+        return "(empty)"
+    if "@" in text:
+        local, _, domain = text.partition("@")
+        if len(local) <= 2:
+            masked_local = f"{local[0]}***" if local else "***"
+        else:
+            masked_local = f"{local[:2]}***"
+        return f"{masked_local}@{domain}"
+    if len(text) <= 3:
+        return "***"
+    return f"{text[:3]}***"
+
+
 def env_bool(name: str, default: bool = False) -> bool:
     """Return a boolean from an environment variable.
 

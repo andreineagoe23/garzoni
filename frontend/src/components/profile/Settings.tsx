@@ -8,7 +8,7 @@ import { UserProfile } from "types/api";
 import { useTranslation } from "react-i18next";
 
 function Settings() {
-  const { logoutUser, loadSettings } = useAuth();
+  const { logoutUser, loadSettings, completeOAuthLogin } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -148,11 +148,17 @@ function Settings() {
     }
 
     try {
-      await apiClient.post("/change-password/", {
+      const { data } = await apiClient.post("/change-password/", {
         current_password: currentPassword,
         new_password: newPassword,
         confirm_password: confirmPassword,
       });
+
+      // Backend revoked all prior refresh tokens (incl. this tab's). Adopt the
+      // fresh pair it returned so we don't get logged out on the next refresh.
+      if (data?.access) {
+        await completeOAuthLogin(data.access, data.refresh ?? null);
+      }
 
       setSuccessMessage(t("settings.success.passwordUpdated"));
       setTimeout(() => setSuccessMessage(""), 3000);

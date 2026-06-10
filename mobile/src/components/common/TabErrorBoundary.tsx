@@ -1,5 +1,6 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import * as Sentry from "@sentry/react-native";
 import { Button } from "../ui";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography } from "../../theme/tokens";
@@ -47,7 +48,12 @@ export class TabErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.warn("TabErrorBoundary", error.message, info.componentStack);
+    if (__DEV__) {
+      console.warn("TabErrorBoundary", error.message, info.componentStack);
+    }
+    Sentry.captureException(error, {
+      contexts: { react: { componentStack: info.componentStack } },
+    });
   }
 
   render() {

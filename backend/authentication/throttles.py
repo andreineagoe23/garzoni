@@ -1,7 +1,7 @@
 import sys
 
 from django.conf import settings
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 
 def _in_unit_tests() -> bool:
@@ -71,6 +71,48 @@ class PasswordResetRateThrottle(AnonRateThrottle):
 
     def get_rate(self):
         return getattr(settings, "PASSWORD_RESET_THROTTLE_RATE", "5/hour")
+
+
+class HeartsGrantRateThrottle(UserRateThrottle):
+    """Limit hearts grant abuse per authenticated user."""
+
+    scope = "hearts_grant"
+
+    def allow_request(self, request, view):
+        if _in_unit_tests():
+            return True
+        return super().allow_request(request, view)
+
+    def get_rate(self):
+        return getattr(settings, "HEARTS_GRANT_THROTTLE_RATE", "20/day")
+
+
+class HeartsRefillRateThrottle(UserRateThrottle):
+    """Limit hearts refill abuse per authenticated user."""
+
+    scope = "hearts_refill"
+
+    def allow_request(self, request, view):
+        if _in_unit_tests():
+            return True
+        return super().allow_request(request, view)
+
+    def get_rate(self):
+        return getattr(settings, "HEARTS_REFILL_THROTTLE_RATE", "30/day")
+
+
+class FunnelEventRateThrottle(AnonRateThrottle):
+    """Throttle anonymous funnel event ingestion."""
+
+    scope = "funnel_events"
+
+    def allow_request(self, request, view):
+        if _in_unit_tests():
+            return True
+        return super().allow_request(request, view)
+
+    def get_rate(self):
+        return getattr(settings, "FUNNEL_EVENT_THROTTLE_RATE", "120/hour")
 
 
 class PushTokenRateThrottle(AnonRateThrottle):

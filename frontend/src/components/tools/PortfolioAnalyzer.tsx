@@ -23,6 +23,7 @@ import { formatCurrency, formatNumber, getLocale } from "utils/format";
 import { PORTFOLIO_INSIGHT_LESSONS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { requestAiTutorResponse } from "services/aiTutor";
+import { reportToolError } from "sentry";
 
 const COLORS = ["#1d5330", "#2e7d32", "#ffd700", "#f59e0b"];
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:portfolio";
@@ -137,7 +138,9 @@ function PortfolioAnalyzer() {
 
       return response.data?.price ?? null;
     } catch (err) {
-      console.error("Error fetching stock price:", err);
+      reportToolError(err, "portfolio-analyzer", {
+        phase: "fetch_stock_price",
+      });
       return null;
     }
   }, []);
@@ -165,7 +168,9 @@ function PortfolioAnalyzer() {
       });
       return response.data?.price ?? null;
     } catch (err) {
-      console.error("Error fetching crypto price:", err);
+      reportToolError(err, "portfolio-analyzer", {
+        phase: "fetch_crypto_price",
+      });
       return null;
     }
   }, []);
@@ -241,7 +246,7 @@ function PortfolioAnalyzer() {
       }
     } catch (err) {
       setError(t("tools.portfolio.loadError"));
-      console.error("Error fetching portfolio:", err);
+      reportToolError(err, "portfolio-analyzer", { phase: "fetch_portfolio" });
     } finally {
       setLoading(false);
     }
@@ -543,7 +548,7 @@ function PortfolioAnalyzer() {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(apiMessage || t("tools.portfolio.addFailed"));
-      console.error(err);
+      reportToolError(err, "portfolio-analyzer", { phase: "add_holding" });
     }
   };
 
@@ -560,7 +565,7 @@ function PortfolioAnalyzer() {
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(apiMessage || t("tools.portfolio.deleteFailed"));
-      console.error(err);
+      reportToolError(err, "portfolio-analyzer", { phase: "delete_holding" });
     }
   };
 

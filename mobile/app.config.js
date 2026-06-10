@@ -103,16 +103,27 @@ function preferHttpsForRailway(url) {
 
 /** Dev / preview: allow http:// to Docker on LAN (iOS ATS + Android cleartext). Production builds should omit this. */
 const allowInsecureLocalHttp =
-  process.env.EXPO_PUBLIC_APP_ENV?.trim().toLowerCase() === "development" ||
   process.env.EXPO_PUBLIC_ALLOW_INSECURE_LOCAL_HTTP === "1";
 
 const isProductionBuildProfile = process.env.EAS_BUILD_PROFILE === "production";
 
 module.exports = ({ config }) => ({
   ...config,
+  updates: {
+    ...(config.updates ?? {}),
+    ...(process.env.EXPO_UPDATES_CODE_SIGNING_CERTIFICATE
+      ? {
+          codeSigningCertificate:
+            process.env.EXPO_UPDATES_CODE_SIGNING_CERTIFICATE,
+          codeSigningMetadata: {
+            keyid: process.env.EXPO_UPDATES_CODE_SIGNING_KEY_ID || "main",
+            alg: "rsa-v1_5-sha256",
+          },
+        }
+      : {}),
+  },
   ios: {
     ...config.ios,
-    requireFullScreen: true,
     associatedDomains: ["applinks:garzoni.app", "applinks:www.garzoni.app"],
     entitlements: {
       ...(config.ios?.entitlements ?? {}),
@@ -129,6 +140,13 @@ module.exports = ({ config }) => ({
         "Garzoni uses the camera to scan receipts and statements for AI-powered spending insights (Pro feature).",
       NSMicrophoneUsageDescription:
         "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature).",
+      UISupportedInterfaceOrientations: ["UIInterfaceOrientationPortrait"],
+      "UISupportedInterfaceOrientations~ipad": [
+        "UIInterfaceOrientationPortrait",
+        "UIInterfaceOrientationPortraitUpsideDown",
+        "UIInterfaceOrientationLandscapeLeft",
+        "UIInterfaceOrientationLandscapeRight",
+      ],
       ...(allowInsecureLocalHttp
         ? {
             NSAppTransportSecurity: {

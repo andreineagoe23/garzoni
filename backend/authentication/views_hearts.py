@@ -10,6 +10,7 @@ from authentication.services.hearts import (
     hearts_constants,
     hearts_payload,
 )
+from authentication.throttles import HeartsGrantRateThrottle, HeartsRefillRateThrottle
 
 
 class UserHeartsView(APIView):
@@ -53,6 +54,7 @@ class UserHeartsDecrementView(APIView):
 
 class UserHeartsGrantView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [HeartsGrantRateThrottle]
 
     def post(self, request):
         amount = request.data.get("amount", 1)
@@ -62,14 +64,21 @@ class UserHeartsGrantView(APIView):
             return Response({"error": "amount must be an integer"}, status=400)
         if amount <= 0:
             return Response({"error": "amount must be >= 1"}, status=400)
+        amount = min(amount, 1)
 
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             now = timezone.now()
             profile = apply_hearts_regen(profile, now=now)
             max_hearts, _ = hearts_constants(profile)
+            hearts = int(profile.hearts or 0)
+            if hearts > 0:
+                return Response(
+                    {"error": "Hearts can only be granted when you are out of hearts"},
+                    status=400,
+                )
 
-            profile.hearts = min(max_hearts, int(profile.hearts or 0) + amount)
+            profile.hearts = min(max_hearts, hearts + amount)
             if profile.hearts >= max_hearts:
                 profile.hearts_last_refill_at = now
             profile.save(update_fields=["hearts", "hearts_last_refill_at"])
@@ -78,12 +87,17 @@ class UserHeartsGrantView(APIView):
 
 class UserHeartsRefillView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [HeartsRefillRateThrottle]
 
     def post(self, request):
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             now = timezone.now()
+            profile = apply_hearts_regen(profile, now=now)
             max_hearts, _ = hearts_constants(profile)
+            hearts = int(profile.hearts or 0)
+            if hearts >= max_hearts:
+                return Response(hearts_payload(profile, now=now))
             profile.hearts = max_hearts
             profile.hearts_last_refill_at = now
             profile.save(update_fields=["hearts", "hearts_last_refill_at"])

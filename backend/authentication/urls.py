@@ -1,7 +1,6 @@
 # authentication/urls.py
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView
 from .views_google_oauth import GoogleOAuthInitView, GoogleOAuthCallbackView
 from .views_auth import (
     LoginSecureView,
@@ -57,7 +56,6 @@ router = DefaultRouter()
 router.register(r"friend-requests", FriendRequestView, basename="friend-request")
 
 urlpatterns = [
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("login-secure/", LoginSecureView.as_view(), name="login-secure"),
     path("register-secure/", RegisterSecureView.as_view(), name="register-secure"),
     path("auth/google/", GoogleOAuthInitView.as_view(), name="google-oauth-init"),
@@ -66,10 +64,6 @@ urlpatterns = [
     path("verify-auth/", VerifyAuthView.as_view(), name="verify-auth"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("auth/push-token/", ExpoPushTokenView.as_view(), name="expo-push-token"),
-    path(
-        "auth/drf-password-reset/",
-        include("django_rest_passwordreset.urls", namespace="password_reset"),
-    ),
     path("userprofile/", UserProfileView.as_view(), name="userprofile"),
     path("activity-heatmap/", ActivityHeatmapView.as_view(), name="activity-heatmap"),
     path("me/profile/", FinancialProfileView.as_view(), name="financial-profile"),

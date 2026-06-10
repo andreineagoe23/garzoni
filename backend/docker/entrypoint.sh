@@ -151,12 +151,11 @@ if [ "${1:-}" = "gunicorn" ]; then
   _gunicorn_threads="${GUNICORN_THREADS:-8}"
   _gunicorn_timeout="${GUNICORN_TIMEOUT:-90}"
   set -- "$@" \
+    -c gunicorn.conf.py \
     --workers "${_gunicorn_workers}" \
     --threads "${_gunicorn_threads}" \
-    --timeout "${_gunicorn_timeout}" \
-    --access-logfile - \
-    --access-logformat '%(h)s "%(r)s" %(s)s %(b)sb %(L)ss'
-  echo "[entrypoint] gunicorn workers=${_gunicorn_workers} threads=${_gunicorn_threads} timeout=${_gunicorn_timeout}s (access log on, %(L)s=request seconds)" >&2
+    --timeout "${_gunicorn_timeout}"
+  echo "[entrypoint] gunicorn workers=${_gunicorn_workers} threads=${_gunicorn_threads} timeout=${_gunicorn_timeout}s (access log via gunicorn.conf.py, static/media filtered)" >&2
 fi
 
 exec "$@"

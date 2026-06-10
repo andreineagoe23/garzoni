@@ -1,9 +1,18 @@
 import { DeviceEventEmitter } from "react-native";
-import { attachToken, clearExpoPushToken, queryClient } from "@garzoni/core";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  attachToken,
+  clearExpoPushToken,
+  logout,
+  queryClient,
+} from "@garzoni/core";
 import { clearRevenueCatSession } from "../billing/subscriptionRuntime";
 import { clearGarzoniCustomerIo } from "../bootstrap/customerIoMobile";
 import { clearPushRegistrationFlag } from "../hooks/usePushNotifications";
+import { clearCfoProfileStorage } from "../state/cfoProfile";
 import { tokenStorage } from "./tokenStorage";
+
+const CHAT_HISTORY_STORAGE_KEY = "garzoni:chat:history:v1";
 import {
   clearPlanChosenCache,
   clearWelcomeHeaderPending,
@@ -42,10 +51,22 @@ export function getSessionVersion(): number {
 export async function resetNativeSessionStores(
   sessionVersion?: number,
 ): Promise<void> {
+  const refresh = await tokenStorage.getRefresh();
+  try {
+    await logout(refresh ?? undefined);
+  } catch {
+    /* offline or session already invalid */
+  }
   try {
     await clearExpoPushToken();
   } catch {
     /* offline or session already invalid */
+  }
+  try {
+    await AsyncStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+    await clearCfoProfileStorage();
+  } catch {
+    /* best-effort local cleanup */
   }
   await clearPushRegistrationFlag();
   await clearGarzoniCustomerIo();

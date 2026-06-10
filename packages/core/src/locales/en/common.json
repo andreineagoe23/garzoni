@@ -2040,6 +2040,7 @@
   "auth": {
     "signInWithGoogle": "Sign in with Google",
     "orContinueWith": "or continue with",
+    "socialTermsPrefix": "By continuing, you confirm you are 16+ and agree to the",
     "validation": {
       "usernameRequired": "Please enter your username.",
       "passwordRequired": "Please enter your password.",

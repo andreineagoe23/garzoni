@@ -8,12 +8,14 @@ import { changePassword } from "@garzoni/core";
 import { Button, FormInput } from "../src/components/ui";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
 import { safeRouterBack } from "../src/navigation/safeRouterBack";
+import { useAuthSession } from "../src/auth/AuthContext";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 
 export default function ChangePasswordScreen() {
   const c = useThemeColors();
   const { t } = useTranslation("common");
+  const { applyTokens } = useAuthSession();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -52,11 +54,16 @@ export default function ChangePasswordScreen() {
     }
     setLoading(true);
     try {
-      await changePassword({
+      const { data } = await changePassword({
         current_password: current,
         new_password: next,
         confirm_password: confirm,
       });
+      // Backend revoked our old refresh token; adopt the fresh pair so this
+      // device stays logged in instead of failing on the next refresh.
+      if (data?.access) {
+        await applyTokens(data.access, data.refresh);
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show({
         type: "success",

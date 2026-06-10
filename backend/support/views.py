@@ -122,11 +122,17 @@ def vote_support(request, support_id):
 @throttle_classes([ContactRateThrottle])
 def contact_us(request):
     """Handle contact form submissions from users"""
-    email = request.data.get("email")
+    email = (request.data.get("email") or "").strip()
     topic = request.data.get("topic", "General")
     message = request.data.get("message")
     feedback_type = request.data.get("feedback_type")
     context_url = (request.data.get("context_url") or "").strip()
+
+    # In-app feedback from a signed-in user doesn't ask for an email (we already
+    # know who they are). Fall back to the account email so these submissions
+    # don't 400 just because the optional field was left blank.
+    if not email and request.user and request.user.is_authenticated:
+        email = (request.user.email or "").strip()
 
     if not email or not message:
         return Response({"error": "Email and message are required."}, status=400)

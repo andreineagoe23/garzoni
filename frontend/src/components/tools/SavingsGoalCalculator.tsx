@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
+import { reportToolError } from "sentry";
 import { formatCurrency, getLocale } from "utils/format";
 
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:savings";
@@ -93,7 +94,7 @@ const SavingsGoalCalculator = () => {
         });
       }
     } catch (err) {
-      console.error("Calculation error:", err);
+      reportToolError(err, "savings-goal-calculator");
       const apiMessage =
         err.response?.data?.message || err.response?.data?.error;
       setError(apiMessage || t("tools.savingsCalc.calculationFailed"));

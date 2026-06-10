@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link, router } from "expo-router";
-import { loginSecure, obtainTokenPair } from "@garzoni/core";
+import { loginSecure } from "@garzoni/core";
 import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { replaceAfterSocialAuth } from "../../src/auth/replaceAfterSocialAuth";
@@ -81,23 +81,7 @@ export default function LoginScreen() {
         await applyTokens(access, refresh);
         router.replace("/");
       } else {
-        const fallback = await obtainTokenPair({
-          username: username.trim(),
-          password,
-        });
-        const fallbackAccess = fallback.data?.access;
-        if (fallbackAccess) {
-          await applyTokens(fallbackAccess, fallback.data?.refresh);
-          router.replace("/");
-        } else {
-          const keys =
-            data && typeof data === "object"
-              ? Object.keys(data as Record<string, unknown>).join(", ")
-              : typeof data;
-          setError(
-            `No access token returned from server. Response keys: ${keys || "none"}`,
-          );
-        }
+        setError(t("auth.login.loginFailed"));
       }
     } catch (e: unknown) {
       setError(formatAuthRequestError(e, t("auth.login.loginFailed")));
@@ -169,7 +153,29 @@ export default function LoginScreen() {
           replaceAfterSocialAuth(meta?.next);
         }}
         onError={(m) => setError(m)}
+        // Google/Apple sign-in here also creates accounts for first-time users.
+        // The backend requires consent on new accounts, so carry it (the notice
+        // below is the legal basis) — otherwise new social sign-ups 400.
+        consent={{ accept_terms: true, age_confirmed: true }}
       />
+
+      <Text style={styles.socialTerms}>
+        {t("auth.socialTermsPrefix")}{" "}
+        <Text
+          style={styles.socialTermsLink}
+          onPress={() => router.push("/legal/terms")}
+        >
+          {t("auth.register.termsLink")}
+        </Text>
+        {t("auth.register.agreeJoin")}{" "}
+        <Text
+          style={styles.socialTermsLink}
+          onPress={() => router.push("/legal/privacy")}
+        >
+          {t("auth.register.privacyLink")}
+        </Text>
+        .
+      </Text>
 
       <View style={styles.bottomRow}>
         <Text style={styles.bottomText}>{t("auth.login.noAccount")} </Text>
@@ -194,4 +200,12 @@ const styles = StyleSheet.create({
   },
   bottomText: { fontSize: 13, color: DARK.muted },
   bottomLink: { fontSize: 13, color: DARK.primaryBright, fontWeight: "600" },
+  socialTerms: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: DARK.muted,
+    textAlign: "center",
+    marginTop: 12,
+  },
+  socialTermsLink: { color: DARK.primaryBright, fontWeight: "600" },
 });

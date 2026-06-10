@@ -5,9 +5,11 @@ services:
     environment:
       DJANGO_ENV: "production"
       DEBUG: "False"
+      DJANGO_ALLOW_ALL_HOSTS: "0"
+      DJANGO_ALLOW_LAN_HOSTS: "false"
       CELERY_TASK_ALWAYS_EAGER: "False"
-      REDIS_URL: "redis://redis:6379/0"
-      CELERY_BROKER_URL: "redis://redis:6379/0"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
     volumes:
       - backend_static:/app/staticfiles
       - backend_media:/app/media
@@ -22,11 +24,10 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-garzoni}
       POSTGRES_USER: ${POSTGRES_USER:-garzoni}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-garzoni}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in environment for production}
     volumes:
       - backend_db_data:/var/lib/postgresql/data
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # Postgres is reachable only inside the Docker network in production-like stacks.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -37,6 +38,9 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env or environment}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env or environment}
 
   celery_worker:
     env_file:
@@ -44,8 +48,8 @@ services:
     environment:
       DJANGO_ENV: "production"
       DEBUG: "False"
-      REDIS_URL: "redis://redis:6379/0"
-      CELERY_BROKER_URL: "redis://redis:6379/0"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       SKIP_COLLECTSTATIC: "1"
       SKIP_MIGRATIONS: "1"
     depends_on:
@@ -60,8 +64,8 @@ services:
     environment:
       DJANGO_ENV: "production"
       DEBUG: "False"
-      REDIS_URL: "redis://redis:6379/0"
-      CELERY_BROKER_URL: "redis://redis:6379/0"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       SKIP_COLLECTSTATIC: "1"
       SKIP_MIGRATIONS: "1"
     depends_on:

@@ -8,8 +8,8 @@ import { initChunkRecovery } from "bootstrap/chunkRecovery";
 export const initStartup = () => {
   initErrorSuppression();
   applyLegacyHashRedirect();
-  initConsoleFilters(import.meta.env.VITE_ENABLE_LOGS === "true");
   initSentry();
+  initConsoleFilters(import.meta.env.VITE_ENABLE_LOGS === "true");
   initAnalytics();
   initChunkRecovery();
 };

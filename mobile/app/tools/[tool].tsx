@@ -8,14 +8,26 @@ import { webViewDevLoggingProps } from "../../src/bootstrap/webViewDevLogging";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
 
+const ALLOWED_TOOL_SLUGS = new Set([
+  "budget-planner",
+  "personal-cfo",
+  "reality-check",
+  "savings-goals",
+  "economic-map",
+  "news-context",
+  "market-explorer",
+  "economic-calendar",
+]);
+
 export default function ToolWebScreen() {
   const { tool } = useLocalSearchParams<{ tool: string }>();
   const c = useThemeColors();
   const base = getWebAppBaseUrl();
+  const toolSlug = typeof tool === "string" ? tool.trim() : "";
   const uri = useMemo(() => {
-    if (!base || !tool) return "";
-    return `${base}/tools/${encodeURIComponent(tool)}`;
-  }, [base, tool]);
+    if (!base || !toolSlug || !ALLOWED_TOOL_SLUGS.has(toolSlug)) return "";
+    return `${base}/tools/${encodeURIComponent(toolSlug)}`;
+  }, [base, toolSlug]);
 
   return (
     <>
