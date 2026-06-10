@@ -2,6 +2,7 @@ import Constants from "expo-constants";
 import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
+  Linking,
   Pressable,
   Share,
   StyleSheet,
@@ -9,7 +10,9 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { fetchReferralSummary } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
@@ -23,6 +26,12 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
   const c = useThemeColors();
   const [copied, setCopied] = useState(false);
 
+  const { data: summary } = useQuery({
+    queryKey: ["referral-summary"],
+    queryFn: async () => (await fetchReferralSummary()).data,
+    staleTime: 60_000,
+  });
+
   const baseUrl = useMemo(() => {
     const raw = Constants.expoConfig?.extra?.webAppUrl as string | undefined;
     const trimmed = raw?.replace(/\/$/, "").trim();
@@ -33,6 +42,9 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
     if (!referralCode.trim()) return "";
     return `${baseUrl}/welcome?ref=${encodeURIComponent(referralCode.trim())}`;
   }, [baseUrl, referralCode]);
+
+  const earnedCode = summary?.earned_discount_code;
+  const invitesCount = summary?.referrals_made?.length ?? 0;
 
   const shareReferralLink = useCallback(async () => {
     if (!referralLink) {
@@ -53,6 +65,10 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
     }
   }, [referralLink, t]);
 
+  const openWebCheckout = useCallback(() => {
+    void Linking.openURL(`${baseUrl}/subscriptions`);
+  }, [baseUrl]);
+
   return (
     <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
       <Text style={[styles.title, { color: c.text }]}>
@@ -61,6 +77,31 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
       <Text style={[styles.sub, { color: c.textMuted }]}>
         {t("profile.referral.subtitle")}
       </Text>
+      {invitesCount > 0 ? (
+        <Text style={[styles.meta, { color: c.textMuted }]}>
+          {t("profile.referral.invitesSent", { count: invitesCount })}
+        </Text>
+      ) : null}
+      {earnedCode ? (
+        <View
+          style={[
+            styles.codeBox,
+            { borderColor: c.border, backgroundColor: c.inputBg },
+          ]}
+        >
+          <Text style={[styles.codeLabel, { color: c.text }]}>
+            {t("profile.referral.earnedCode")}
+          </Text>
+          <Text style={[styles.codeValue, { color: c.accent }]}>
+            {earnedCode}
+          </Text>
+          <Pressable onPress={openWebCheckout}>
+            <Text style={[styles.redeemLink, { color: c.primary }]}>
+              {t("profile.referral.redeemAtCheckout")}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
       <Text style={[styles.label, { color: c.textMuted }]}>
         {t("profile.referral.linkLabel")}
       </Text>
@@ -108,6 +149,25 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
 const styles = StyleSheet.create({
   title: { fontSize: typography.md, fontWeight: "800" },
   sub: { fontSize: typography.sm, marginTop: spacing.sm, lineHeight: 20 },
+  meta: { fontSize: typography.xs, marginTop: spacing.sm },
+  codeBox: {
+    marginTop: spacing.md,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  codeLabel: { fontSize: typography.sm, fontWeight: "700" },
+  codeValue: {
+    fontSize: typography.md,
+    fontWeight: "800",
+    fontFamily: "monospace",
+  },
+  redeemLink: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    marginTop: spacing.xs,
+  },
   label: {
     marginTop: spacing.lg,
     fontSize: typography.xs,

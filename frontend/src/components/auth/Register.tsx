@@ -11,6 +11,7 @@ import { GlassButton } from "components/ui";
 import apiClient from "services/httpClient";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
+import { peekPendingReferralCode } from "utils/pendingReferral";
 
 type ReferralValidationState = "idle" | "checking" | "valid" | "invalid";
 
@@ -19,7 +20,8 @@ function Register() {
   const location = useLocation();
   const initialReferral = useMemo(() => {
     const params = new URLSearchParams(location.search);
-    return params.get("ref") || "";
+    const fromQuery = params.get("ref") || "";
+    return fromQuery || peekPendingReferralCode();
   }, [location.search]);
   const [formData, setFormData] = useState({
     username: "",

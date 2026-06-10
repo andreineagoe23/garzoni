@@ -19,7 +19,11 @@ import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
 import { formatCurrency, formatDate, getLocale } from "utils/format";
 import { safeRedirectUrl } from "utils/safeRedirectUrl";
-import { postRevenueCatSync, postSubscriptionSync } from "@garzoni/core";
+import {
+  fetchReferralSummary,
+  postRevenueCatSync,
+  postSubscriptionSync,
+} from "@garzoni/core";
 import {
   isRevenueCatEnabled,
   isValidAppUserId,
@@ -122,6 +126,13 @@ const SubscriptionPlansPage = () => {
     },
     [reloadEntitlements, navigate, loadProfile]
   );
+
+  const { data: referralSummary } = useQuery({
+    queryKey: ["referral-summary"],
+    queryFn: async () => (await fetchReferralSummary()).data,
+    enabled: isAuthenticated,
+    staleTime: 60_000,
+  });
 
   const { data: questionnaireProgress } = useQuery({
     queryKey: ["questionnaire-progress"],
@@ -533,6 +544,14 @@ const SubscriptionPlansPage = () => {
               }}
             />
           </p>
+
+          {referralSummary?.earned_discount_code && !rcEnabled ? (
+            <p className="rounded-xl border border-[color:var(--primary,#1d5330)]/30 bg-[color:var(--primary-soft,rgba(29,83,48,0.08))] px-4 py-3 text-sm text-content-primary">
+              {t("subscriptions.referralDiscountBanner", {
+                code: referralSummary.earned_discount_code,
+              })}
+            </p>
+          ) : null}
 
           {selectionError && (
             <p className="text-sm text-[color:var(--error,#dc2626)]">

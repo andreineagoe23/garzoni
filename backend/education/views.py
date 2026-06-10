@@ -1581,6 +1581,16 @@ def _complete_section_for_user(user, section: LessonSection):
                     object_id=lesson.id,
                     course=lesson.course,
                 )
+                try:
+                    from authentication.services.referral_rewards import maybe_earn_referral_reward
+
+                    maybe_earn_referral_reward(user)
+                except Exception:
+                    logger.warning(
+                        "referral earn check failed user_id=%s",
+                        user.id,
+                        exc_info=True,
+                    )
     return progress, was_new_section
 
 
@@ -1623,6 +1633,16 @@ def _complete_lesson_for_user(user, lesson: Lesson):
                 bump_streak="user_progress",
                 user_progress=user_progress,
             )
+            try:
+                from authentication.services.referral_rewards import maybe_earn_referral_reward
+
+                maybe_earn_referral_reward(user)
+            except Exception:
+                logger.warning(
+                    "referral earn check failed user_id=%s",
+                    user.id,
+                    exc_info=True,
+                )
 
             # Per-section economy is normally granted from `complete_section`. When a lesson
             # is completed first (bulk section M2M), those calls never happened — backfill

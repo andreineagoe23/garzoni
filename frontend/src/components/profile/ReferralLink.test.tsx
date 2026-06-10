@@ -1,9 +1,36 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReferralLink from "./ReferralLink";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../../test-utils/i18n-for-tests";
+
+vi.mock("@garzoni/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@garzoni/core")>();
+  return {
+    ...actual,
+    fetchReferralSummary: vi.fn().mockResolvedValue({
+      data: {
+        referral_code: "TEST-CODE",
+        referrals_made: [],
+        referral_received: null,
+        earned_discount_code: null,
+      },
+    }),
+  };
+});
+
+const renderWithProviders = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <I18nextProvider i18n={i18n}>{ui}</I18nextProvider>
+    </QueryClientProvider>
+  );
+};
 
 describe("ReferralLink", () => {
   const originalLocation = window.location;
@@ -23,11 +50,7 @@ describe("ReferralLink", () => {
   });
 
   it("builds a welcome referral link with the referral code", () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <ReferralLink referralCode="TEST-CODE" />
-      </I18nextProvider>
-    );
+    renderWithProviders(<ReferralLink referralCode="TEST-CODE" />);
 
     const input = screen.getByLabelText(/Referral link/i) as HTMLInputElement;
     expect(input.value).toBe("https://app.garzoni.app/welcome?ref=TEST-CODE");
@@ -41,11 +64,7 @@ describe("ReferralLink", () => {
       writable: true,
     });
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <ReferralLink referralCode="FRIEND-123" />
-      </I18nextProvider>
-    );
+    renderWithProviders(<ReferralLink referralCode="FRIEND-123" />);
 
     const button = screen.getByRole("button", { name: /copy link/i });
     fireEvent.click(button);

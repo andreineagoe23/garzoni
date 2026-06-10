@@ -546,6 +546,25 @@ export const fetchUserSettings = () =>
     profile?: Record<string, unknown>;
   }>("/user/settings/");
 
+export type ReferralSummary = {
+  referral_code: string;
+  referrals_made: Array<{
+    id: number;
+    referred_user: { id: number; username: string };
+    created_at: string;
+    reward_status: string;
+    earned_at: string | null;
+    my_promo_code: string | null;
+    my_promo_redeemed: boolean | null;
+  }>;
+  referral_received: ReferralSummary["referrals_made"][number] | null;
+  earned_discount_code: string | null;
+  earned_discount_redeemed: boolean;
+};
+
+export const fetchReferralSummary = () =>
+  apiClient.get<ReferralSummary>("/referrals/");
+
 export const patchUserSettings = (data: UserSettingsPayload) =>
   apiClient.patch<{
     message?: string;

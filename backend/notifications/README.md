@@ -148,6 +148,14 @@ Aliases Garzoni adds automatically so templates match common naming styles:
 | `weekly-digest`   | `week_label`, `modules_completed`, `modules_completed_plural`, `streak_days`, `xp_earned` (ISO week metrics; see `notifications.message_data`)          |
 | `order-confirmed` | `customer_name`, `order_id`, `plan_name`, `amount`, `period_end` (`period_end` = next billing date when Stripe `current_period_end` exists; else empty) |
 
+## Customer.io segments (Paying Customers)
+
+Profile sync sends `subscription_status`, `is_premium`, `is_paying_customer`, and `subscription_plan_id`
+via `notifications/profile_sync.py`. If the **Paying Customers** segment shows 0 people despite
+active subscribers, update the segment filter in the CIO UI to use **`is_paying_customer = true`**
+(or `subscription_status` in `active,trialing`) instead of legacy attribute names. After deploy,
+run `python manage.py sync_users_to_cio` to backfill traits.
+
 ## Post-deploy verification (staging / production)
 
 After changing transactional payloads or credentials:

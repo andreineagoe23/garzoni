@@ -273,7 +273,7 @@
   "welcome": {
     "referral": {
       "title": "Ai fost invitat(ă) la Garzoni",
-      "body": "După ce finalizezi primul tău traseu de învățare, tu și prietenul tău veți primi fiecare 40% reducere la Plus prin email.",
+      "body": "După ce îți verifici emailul și finalizezi prima lecție, tu și prietenul tău veți primi fiecare 50% reducere la orice plan (prima lună sau anual) — valorifică pe web la checkout.",
       "cta": "Începe cu invitația ta",
       "dismiss": "Poate mai târziu"
     }
@@ -1795,7 +1795,13 @@
     },
     "referral": {
       "title": "Invită prieteni",
-      "subtitle": "Partajează linkul tău — când un prieten finalizează primul traseu de învățare, primiți amândoi 40% reducere la Plus prin email.",
+      "subtitle": "Partajează linkul tău — când un prieten își verifică emailul și finalizează prima lecție, primiți amândoi 50% reducere la orice plan la checkout.",
+      "earnedCode": "Codul tău de 50% reducere",
+      "redeemAtCheckout": "Valorifică la checkout pe web",
+      "pendingReward": "În așteptare — prietenul tău trebuie să finalizeze prima lecție",
+      "earnedReward": "Câștigat — verifică emailul pentru codul de reducere",
+      "invitesSent": "{{count}} invitație trimisă",
+      "invitesSent_other": "{{count}} invitații trimise",
       "linkLabel": "Linkul tău unic de recomandare",
       "copied": "Copiat!",
       "shared": "Link partajat",
@@ -2187,6 +2193,7 @@
     "completeOnboardingFirst": "Te rugăm să finalizezi onboardingul înainte de a alege un plan.",
     "paymentNotConfigured": "Plata nu este configurată încă. Te rugăm să încerci mai târziu sau contactează suportul.",
     "checkoutFailed": "Nu s-a putut porni plata. Te rugăm să încerci din nou.",
+    "referralDiscountBanner": "Reducerea ta de 50% din recomandare ({{code}}) se va aplica automat la checkout Stripe.",
     "checkoutSyncFailed": "Nu am putut actualiza încă statusul abonamentului. Te rugăm să mai încerci peste câteva secunde.",
     "checkoutPendingTitle": "Checkout deschis în browser",
     "checkoutPendingBody": "După ce finalizezi în browser, revino aici și îți actualizăm abonamentul.",

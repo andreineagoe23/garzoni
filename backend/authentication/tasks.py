@@ -158,7 +158,45 @@ def send_email_reminders(self):
         except Exception as e:
             logger.warning("Weekly reminder failed for %s: %s", profile.user.email, e)
 
-    return f"Sent {sent_weekly} weekly reminders"
+    monthly_cutoff = now - timedelta(days=28)
+    monthly_users = (
+        UserProfile.objects.filter(
+            user__email_preferences__reminder_frequency="monthly",
+            user__email_preferences__reminders=True,
+            user__email__isnull=False,
+        )
+        .exclude(user__email="")
+        .exclude(last_reminder_sent__gt=monthly_cutoff)
+        .select_related("user")
+    )
+    sent_monthly = 0
+    for profile in monthly_users:
+        try:
+            context = {
+                "display_name": normalize_display_string(
+                    profile.user.first_name or profile.user.username or "there"
+                ),
+                "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
+                "year": now.year,
+            }
+            r = svc.send_template_for_user(
+                profile.user,
+                CioTemplate.REMINDER_MONTHLY,
+                subject="A quick check-in from Garzoni",
+                django_template="emails/reminder.html",
+                context=context,
+                idempotency_key=f"monthly_reminder:{profile.pk}:{now.date().isoformat()[:7]}",
+                purpose="monthly_reminder",
+            )
+            if r.startswith("policy_denied") or r.startswith("skipped"):
+                continue
+            profile.last_reminder_sent = now
+            profile.save(update_fields=["last_reminder_sent"])
+            sent_monthly += 1
+        except Exception as e:
+            logger.warning("Monthly reminder failed for %s: %s", profile.user.email, e)
+
+    return f"Sent {sent_weekly} weekly and {sent_monthly} monthly reminders"
 
 
 @shared_task(
@@ -270,13 +308,21 @@ def send_welcome_email(self, user_id: int):
 @shared_task(
     bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_kwargs={"max_retries": 3}
 )
-def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
+def send_referral_discount_emails(self, referral_id: int):
+    from authentication.models import Referral
+
     User = get_user_model()
     try:
-        referrer = User.objects.get(id=referrer_id)
-        referred = User.objects.get(id=referred_id)
-    except User.DoesNotExist:
-        return "Skipped (user not found)"
+        referral = Referral.objects.select_related("referrer", "referred_user").get(id=referral_id)
+    except Referral.DoesNotExist:
+        return "Skipped (referral not found)"
+
+    if referral.reward_status != Referral.REWARD_STATUS_EARNED:
+        return "Skipped (not earned)"
+
+    referrer = referral.referrer
+    referred = referral.referred_user
+    frontend_url = getattr(settings, "FRONTEND_URL", "https://garzoni.app").rstrip("/")
 
     referrer_context = {
         "display_name": normalize_display_string(
@@ -285,8 +331,10 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
         "friend_name": normalize_display_string(
             referred.first_name or referred.username or "your friend"
         ),
-        "bonus_coins": 10,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
+        "promo_code": referral.referrer_promo_code,
+        "discount_label": "50% off your first month or yearly plan",
+        "checkout_url": f"{frontend_url}/subscriptions",
+        "app_url": frontend_url,
         "year": timezone.now().year,
     }
     referred_context = {
@@ -296,8 +344,10 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
         "friend_name": normalize_display_string(
             referrer.first_name or referrer.username or "your friend"
         ),
-        "bonus_coins": 5,
-        "app_url": getattr(settings, "FRONTEND_URL", "https://garzoni.app"),
+        "promo_code": referral.referee_promo_code,
+        "discount_label": "50% off your first month or yearly plan",
+        "checkout_url": f"{frontend_url}/subscriptions",
+        "app_url": frontend_url,
         "year": timezone.now().year,
     }
 
@@ -305,19 +355,19 @@ def send_referral_reward_emails(self, referrer_id: int, referred_id: int):
     svc.send_template_for_user(
         referrer,
         CioTemplate.REFERRAL_REFERRER,
-        subject="Your friend joined Garzoni! You earned bonus coins",
+        subject="Your referral reward: 50% off any plan",
         django_template="emails/referral_reward_referrer.html",
         context=referrer_context,
-        idempotency_key=f"referral_referrer:{referrer_id}:{referred_id}",
+        idempotency_key=f"referral_discount_referrer:{referral_id}",
         purpose="referral_referrer",
     )
     svc.send_template_for_user(
         referred,
         CioTemplate.REFERRAL_REFERRED,
-        subject="Welcome! You received a referral bonus",
+        subject="Your welcome reward: 50% off any plan",
         django_template="emails/referral_reward_referred.html",
         context=referred_context,
-        idempotency_key=f"referral_referred:{referrer_id}:{referred_id}",
+        idempotency_key=f"referral_discount_referred:{referral_id}",
         purpose="referral_referred",
     )
     return "Sent"

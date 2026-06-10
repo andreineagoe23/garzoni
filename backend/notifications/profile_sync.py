@@ -33,6 +33,9 @@ def build_identify_traits(user: User) -> dict[str, Any]:
     }
     if profile:
         traits["subscription_status"] = profile.subscription_status or ""
+        traits["is_premium"] = bool(profile.is_premium)
+        traits["is_paying_customer"] = bool(profile.is_premium and profile.has_paid)
+        traits["subscription_plan_id"] = profile.subscription_plan_id or ""
         traits["expo_push_token"] = profile.expo_push_token or ""
         traits["has_mobile_app"] = bool((profile.expo_push_token or "").strip())
         traits["email_reminder_preference"] = profile.email_reminder_preference or "none"

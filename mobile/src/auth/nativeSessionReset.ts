@@ -69,6 +69,12 @@ export async function resetNativeSessionStores(
     /* best-effort local cleanup */
   }
   await clearPushRegistrationFlag();
+  try {
+    const { cancelStreakReminder } = await import("../streak/streakReminder");
+    await cancelStreakReminder();
+  } catch {
+    /* best-effort */
+  }
   await clearGarzoniCustomerIo();
   await clearRevenueCatSession();
   await clearPlanChosenCache();

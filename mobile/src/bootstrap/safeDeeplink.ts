@@ -1,6 +1,7 @@
 const ALLOWED_EXTERNAL_HOSTS = new Set(["garzoni.app", "www.garzoni.app"]);
 
-const INTERNAL_PATH_RE = /^\/[a-zA-Z0-9/_-]+$/;
+// Expo Router group segments use parentheses, e.g. /(tabs)/learn
+const INTERNAL_PATH_RE = /^\/[a-zA-Z0-9/_.()\-]+$/;
 
 export function isSafePushDeeplink(target: string): boolean {
   const trimmed = target.trim();

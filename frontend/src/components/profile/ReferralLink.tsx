@@ -1,10 +1,18 @@
 import React, { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { fetchReferralSummary } from "@garzoni/core";
 import { GlassCard } from "components/ui";
 
-const ReferralLink = ({ referralCode }) => {
+const ReferralLink = ({ referralCode }: { referralCode: string }) => {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+
+  const { data: summary } = useQuery({
+    queryKey: ["referral-summary"],
+    queryFn: async () => (await fetchReferralSummary()).data,
+    staleTime: 60_000,
+  });
 
   const referralLink = useMemo(
     () =>
@@ -22,6 +30,9 @@ const ReferralLink = ({ referralCode }) => {
       .catch((error) => console.error("Copy failed:", error));
   };
 
+  const invitesCount = summary?.referrals_made?.length ?? 0;
+  const earnedCode = summary?.earned_discount_code;
+
   return (
     <GlassCard padding="md" className="transition-colors">
       <div className="flex flex-col gap-2">
@@ -31,6 +42,22 @@ const ReferralLink = ({ referralCode }) => {
         <p className="text-sm text-content-muted">
           {t("profile.referral.subtitle")}
         </p>
+        {invitesCount > 0 ? (
+          <p className="text-xs text-content-muted">
+            {t("profile.referral.invitesSent", { count: invitesCount })}
+          </p>
+        ) : null}
+        {earnedCode ? (
+          <div className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f3f4f6)] px-3 py-2 text-sm">
+            <p className="font-medium text-content-primary">
+              {t("profile.referral.earnedCode")}
+            </p>
+            <p className="mt-1 font-mono font-semibold">{earnedCode}</p>
+            <p className="mt-1 text-xs text-content-muted">
+              {t("profile.referral.redeemAtCheckout")}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-5 space-y-3">

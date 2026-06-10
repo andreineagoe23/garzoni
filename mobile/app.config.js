@@ -193,6 +193,7 @@ module.exports = ({ config }) => ({
       process.env.EXPO_PUBLIC_REVENUECAT_PAYWALL_PLACEMENT?.trim() || undefined,
   },
   plugins: [
+    ...(Array.isArray(config.plugins) ? config.plugins : []),
     [
       "@sentry/react-native/expo",
       {

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 
@@ -482,7 +483,14 @@ class VerifyAuthView(APIView):
 
 
 class CustomTokenRefreshView(TokenRefreshView):
-    """Refresh access tokens using refresh JWT from JSON body or httpOnly cookie."""
+    """Refresh access tokens using refresh JWT from JSON body or httpOnly cookie.
+
+    SimpleJWT's refresh serializer (>=5.3) re-checks the user behind the token,
+    so a still-valid refresh token stops working once the account is deleted
+    (``User.DoesNotExist``) or deactivated (``AuthenticationFailed``). Both are
+    mapped to 401 in ``post`` so the client can clear the session and log out
+    instead of silently looping on a dead account.
+    """
 
     permission_classes = [AllowAny]
     throttle_classes = [RefreshRateThrottle]
@@ -512,7 +520,17 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         try:
             serializer.is_valid(raise_exception=True)
-        except (TokenError, InvalidToken, User.DoesNotExist) as exc:
+        except (
+            TokenError,
+            InvalidToken,
+            AuthenticationFailed,
+            User.DoesNotExist,
+        ) as exc:
+            # AuthenticationFailed / DoesNotExist cover the account being
+            # deleted or deactivated server-side: SimpleJWT's refresh serializer
+            # re-checks the user, so a still-valid refresh token must stop
+            # working once the account is gone. Returning 401 (not 500) lets the
+            # client clear the session and log the user out instead of looping.
             return self._reject_refresh_token(exc)
         except Exception as exc:
             logger.error("Unexpected error during token refresh: %s", exc, exc_info=True)

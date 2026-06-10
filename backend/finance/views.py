@@ -2219,6 +2219,15 @@ class StripeWebhookView(APIView):
                                     "currency": (session.get("currency") or "usd").upper(),
                                 },
                             )
+                            referral_promo_id = (
+                                metadata.get("referral_promo_stripe_id") or ""
+                            ).strip()
+                            if referral_promo_id:
+                                from authentication.services.referral_rewards import (
+                                    mark_referral_promo_redeemed,
+                                )
+
+                                mark_referral_promo_redeemed(user, referral_promo_id)
 
             elif event["type"] in {
                 "checkout.session.expired",
@@ -2752,9 +2761,17 @@ class SubscriptionCreateView(APIView):
                 status=503,
             )
         frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
-        promotion_code_raw = request.data.get("promotion_code") or getattr(
-            settings, "STRIPE_DEFAULT_PROMOTION_CODE", None
-        )
+        promotion_code_raw = request.data.get("promotion_code")
+        referral_promo_stripe_id = ""
+        if not promotion_code_raw:
+            from authentication.services.referral_rewards import get_unredeemed_promo_for_user
+
+            promo = get_unredeemed_promo_for_user(request.user)
+            if promo:
+                promotion_code_raw = promo[0]
+                referral_promo_stripe_id = promo[1]
+        if not promotion_code_raw:
+            promotion_code_raw = getattr(settings, "STRIPE_DEFAULT_PROMOTION_CODE", None)
         promotion_code_id = None
         if promotion_code_raw:
             promotion_code_raw = promotion_code_raw.strip()
@@ -2785,6 +2802,17 @@ class SubscriptionCreateView(APIView):
                             "Stripe promotion code not found or inactive: %s",
                             promotion_code_raw[:8] + "...",
                         )
+                        if referral_promo_stripe_id:
+                            # The auto-applied referral code was already consumed
+                            # in Stripe (e.g. typed manually at a prior checkout)
+                            # but never marked locally. Reconcile so the UI stops
+                            # advertising a dead code.
+                            from authentication.services.referral_rewards import (
+                                mark_referral_promo_redeemed,
+                            )
+
+                            mark_referral_promo_redeemed(request.user, referral_promo_stripe_id)
+                            referral_promo_stripe_id = ""
             except stripe.error.StripeError as e:
                 logger.warning("Stripe error resolving promotion code: %s", e)
         # 7-day free trial only on yearly Pro/Plus; day 7 = charge full yearly amount
@@ -2797,7 +2825,11 @@ class SubscriptionCreateView(APIView):
                 f"{frontend_url}/personalized-path?" "session_id={CHECKOUT_SESSION_ID}"
             ),
             "cancel_url": f"{frontend_url}/subscriptions",
-            "metadata": {"user_id": str(request.user.id), "plan_id": plan_id},
+            "metadata": {
+                "user_id": str(request.user.id),
+                "plan_id": plan_id,
+                "referral_promo_stripe_id": referral_promo_stripe_id or "",
+            },
             "client_reference_id": str(request.user.id),
         }
         if getattr(request.user, "email", None):

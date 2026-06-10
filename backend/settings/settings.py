@@ -608,6 +608,8 @@ STRIPE_DEFAULT_PRICE_ID = os.getenv(
 )  # fallback if plan-specific not set
 # Optional: pre-apply a promotion code at checkout (e.g. for testing in prod)
 STRIPE_DEFAULT_PROMOTION_CODE = os.getenv("STRIPE_DEFAULT_PROMOTION_CODE", "")
+# 50% off once — used for per-user referral promotion codes (create in Stripe dashboard or leave empty to auto-create)
+STRIPE_REFERRAL_COUPON_ID = os.getenv("STRIPE_REFERRAL_COUPON_ID", "")
 if STRIPE_SECRET_KEY:
     required_prices = {
         "STRIPE_PRICE_PLUS_YEARLY": STRIPE_PRICE_PLUS_YEARLY,

@@ -10,9 +10,14 @@ from django.contrib.auth.models import User
 
 from authentication.user_display import user_display_dict
 from authentication.models import UserProfile, FriendRequest, Referral
-from authentication.serializers import FriendRequestSerializer, UserSearchSerializer
+from authentication.serializers import (
+    FriendRequestSerializer,
+    ReferralSerializer,
+    UserSearchSerializer,
+)
 from authentication.throttles import LoginRateThrottle
-from authentication.services.referrals import apply_referral
+from authentication.services.referral_rewards import get_unredeemed_promo_for_user
+from authentication.services.referrals import ReferralError, try_apply_referral_code
 from authentication.services.profile import build_public_profile_payload
 
 
@@ -136,10 +141,43 @@ class PublicProfileView(APIView):
 
 
 class ReferralApplyView(APIView):
-    """Allow authenticated users to apply a referral code."""
+    """List referral status (GET) or apply a referral code (POST)."""
 
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottle]
+
+    def get(self, request):
+        profile = request.user.profile
+        referrals_made = Referral.objects.filter(referrer=request.user).select_related(
+            "referred_user"
+        )
+        referral_received = (
+            Referral.objects.filter(referred_user=request.user)
+            .select_related("referred_user", "referrer")
+            .first()
+        )
+        promo = get_unredeemed_promo_for_user(request.user)
+        earned_code = promo[0] if promo else None
+        has_earned = Referral.objects.filter(
+            models.Q(referrer=request.user) | models.Q(referred_user=request.user),
+            reward_status=Referral.REWARD_STATUS_EARNED,
+        ).exists()
+        earned_redeemed = has_earned and not promo
+
+        payload = {
+            "referral_code": profile.referral_code,
+            "referrals_made": ReferralSerializer(
+                referrals_made, many=True, context={"request": request}
+            ).data,
+            "referral_received": (
+                ReferralSerializer(referral_received, context={"request": request}).data
+                if referral_received
+                else None
+            ),
+            "earned_discount_code": earned_code,
+            "earned_discount_redeemed": earned_redeemed,
+        }
+        return Response(payload)
 
     def post(self, request):
         referral_code = request.data.get("referral_code")
@@ -148,17 +186,12 @@ class ReferralApplyView(APIView):
             return Response({"message": "Referral code is required."}, status=400)
 
         try:
-            referrer_profile = UserProfile.objects.get(referral_code=referral_code)
-        except UserProfile.DoesNotExist:
-            return Response({"message": "Invalid referral code."}, status=404)
-
-        if referrer_profile.user_id == request.user.id:
-            return Response({"message": "You cannot refer yourself."}, status=400)
-
-        if Referral.objects.filter(referred_user=request.user).exists():
-            return Response({"message": "Referral already applied."}, status=400)
-
-        apply_referral(referrer_profile, request.user)
+            try_apply_referral_code(request.user, referral_code)
+        except ReferralError as exc:
+            status_code = 400
+            if exc.code == "invalid_code":
+                status_code = 404
+            return Response({"message": exc.message}, status=status_code)
 
         return Response({"message": "Referral applied successfully"}, status=200)
 

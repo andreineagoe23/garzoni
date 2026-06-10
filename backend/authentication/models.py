@@ -290,14 +290,37 @@ class Referral(models.Model):
     Ensures that each referred user is linked to only one referrer.
     """
 
+    REWARD_STATUS_PENDING = "pending"
+    REWARD_STATUS_EARNED = "earned"
+    REWARD_STATUS_CHOICES = [
+        (REWARD_STATUS_PENDING, "Pending"),
+        (REWARD_STATUS_EARNED, "Earned"),
+    ]
+
     referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="referrals_made")
     referred_user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="referral_received"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
-    referral_code = models.CharField(max_length=20, unique=True, blank=True)
+    # Snapshot of referrer's public code at attribution time (not globally unique).
+    referral_code = models.CharField(max_length=20, blank=True)
     referral_points = models.PositiveIntegerField(default=0)
+
+    reward_status = models.CharField(
+        max_length=16,
+        choices=REWARD_STATUS_CHOICES,
+        default=REWARD_STATUS_PENDING,
+        db_index=True,
+    )
+    earned_at = models.DateTimeField(null=True, blank=True)
+
+    referrer_promo_code = models.CharField(max_length=64, blank=True, default="")
+    referrer_promo_stripe_id = models.CharField(max_length=64, blank=True, default="")
+    referee_promo_code = models.CharField(max_length=64, blank=True, default="")
+    referee_promo_stripe_id = models.CharField(max_length=64, blank=True, default="")
+    referrer_redeemed_at = models.DateTimeField(null=True, blank=True)
+    referee_redeemed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.referrer.username} -> {self.referred_user.username}"

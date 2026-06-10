@@ -102,6 +102,49 @@ class RecaptchaMobileBypassTest(APITestCase):
 
 
 @_LOCMEM_CACHE
+class RefreshRejectsDeletedOrInactiveUserTest(APITestCase):
+    """A still-valid refresh token must stop working once the account is gone.
+
+    Regression: deleting/deactivating an account server-side used to leave the
+    mobile app stuck — every request 401s but the silent refresh kept issuing
+    fresh access tokens, so the client never logged out.
+    """
+
+    def test_refresh_rejected_after_account_deleted(self):
+        user = User.objects.create_user(
+            username="gone-user", email="gone@example.com", password="Old-pass-123!"
+        )
+        UserProfile.objects.get_or_create(user=user)
+        refresh = RefreshToken.for_user(user)
+
+        user.delete()
+
+        rejected = self.client.post(
+            "/api/token/refresh/",
+            {"refresh": str(refresh)},
+            format="json",
+        )
+        self.assertEqual(rejected.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_refresh_rejected_when_account_deactivated(self):
+        user = User.objects.create_user(
+            username="banned-user", email="banned@example.com", password="Old-pass-123!"
+        )
+        UserProfile.objects.get_or_create(user=user)
+        refresh = RefreshToken.for_user(user)
+
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+
+        rejected = self.client.post(
+            "/api/token/refresh/",
+            {"refresh": str(refresh)},
+            format="json",
+        )
+        self.assertEqual(rejected.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+@_LOCMEM_CACHE
 class PasswordResetRevokesSessionsTest(APITestCase):
     def test_reset_confirm_revokes_existing_sessions(self):
         user = User.objects.create_user(

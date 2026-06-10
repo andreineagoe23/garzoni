@@ -74,12 +74,16 @@ export function AppleSignInButton({
       }
       const gn = credential.fullName?.givenName ?? "";
       const fn = credential.fullName?.familyName ?? "";
+      const { consumePendingReferralCode } =
+        await import("../auth/pendingReferral");
+      const referralCode = await consumePendingReferralCode();
       const { data } = await appleVerifyIdentity({
         identity_token: identityToken,
         state: "all-topics",
         first_name: gn.trim() || undefined,
         last_name: fn.trim() || undefined,
         ...(consent ? { accept_terms: true, age_confirmed: true } : {}),
+        ...(referralCode ? { referral_code: referralCode } : {}),
       });
       if (data?.access) {
         onSuccess(data.access, data.refresh, { next: data.next });

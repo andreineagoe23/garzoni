@@ -70,6 +70,14 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
           isFetched: true,
         };
       }
+      if (opts?.queryKey?.[0] === "referral-summary") {
+        return {
+          data: undefined,
+          isLoading: false,
+          isFetching: false,
+          isFetched: true,
+        };
+      }
       return actual.useQuery(opts);
     },
   };

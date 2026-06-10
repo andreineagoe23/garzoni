@@ -242,6 +242,14 @@ class AppleIdentityAuthView(APIView):
                 )
             record_consent(user.profile, request, age_confirmed=True)
 
+        from authentication.services.referrals import apply_referral_for_new_user
+
+        apply_referral_for_new_user(
+            user,
+            is_new_user,
+            request.data.get("referral_code"),
+        )
+
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
         if is_new_user:

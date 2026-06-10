@@ -139,10 +139,14 @@ export function GoogleSignInButton({
         );
         return;
       }
+      const { consumePendingReferralCode } =
+        await import("../auth/pendingReferral");
+      const referralCode = await consumePendingReferralCode();
       const { data } = await googleVerifyCredential({
         credential: idToken,
         state: "all-topics",
         ...(consent ? { accept_terms: true, age_confirmed: true } : {}),
+        ...(referralCode ? { referral_code: referralCode } : {}),
       });
       if (data?.access) {
         onSuccess(data.access, data.refresh, { next: data.next });

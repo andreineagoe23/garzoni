@@ -357,6 +357,9 @@ class GoogleOAuthCallbackView(APIView):
             from authentication.consent import record_consent
 
             record_consent(user.profile, request, age_confirmed=True)
+            from authentication.services.referrals import apply_referral_for_new_user
+
+            apply_referral_for_new_user(user, True, request.GET.get("ref"))
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
@@ -521,6 +524,14 @@ class GoogleCredentialAuthView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             record_consent(user.profile, request, age_confirmed=True)
+
+        from authentication.services.referrals import apply_referral_for_new_user
+
+        apply_referral_for_new_user(
+            user,
+            is_new_user,
+            request.data.get("referral_code"),
+        )
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)

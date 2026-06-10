@@ -1,4 +1,6 @@
 # authentication/serializers.py
+import logging
+
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password as _dj_validate_password
@@ -11,6 +13,8 @@ from authentication.models import (
     FriendRequest,
     UserEmailPreference,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # Serializer for user registration, including optional referral code handling.
@@ -88,9 +92,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         cleaned_code = (value or "").strip()
         if not cleaned_code:
             return ""
-        exists = UserProfile.objects.filter(referral_code__iexact=cleaned_code).exists()
-        if not exists:
+        referrer_profile = UserProfile.objects.filter(referral_code__iexact=cleaned_code).first()
+        if not referrer_profile:
             raise serializers.ValidationError("Invalid referral code.")
+        request = self.context.get("request")
+        if request and getattr(request, "user", None) and request.user.is_authenticated:
+            if referrer_profile.user_id == request.user.id:
+                raise serializers.ValidationError("You cannot refer yourself.")
         return cleaned_code
 
     def create(self, validated_data):
@@ -128,14 +136,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         user_profile.save()
 
         if referral_code:
-            referrer_profile = UserProfile.objects.get(referral_code__iexact=referral_code)
-            Referral.objects.create(
-                referrer=referrer_profile.user,
-                referred_user=user,
-                referral_code=referrer_profile.referral_code,
-            )
-            referrer_profile.add_points(100)
-            user_profile.add_points(50)
+            from authentication.services.referrals import ReferralError, try_apply_referral_code
+
+            # Best-effort: the account is already created, so a failed referral
+            # attribution (self-referral by email, code raced away) must never
+            # turn a successful signup into a 500.
+            try:
+                try_apply_referral_code(user, referral_code)
+            except ReferralError as exc:
+                logger.info("referral skipped at signup user_id=%s: %s", user.id, exc.message)
 
         return user
 
@@ -349,16 +358,56 @@ class ReferralSerializer(serializers.ModelSerializer):
 
     referred_user = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    my_promo_code = serializers.SerializerMethodField()
+    my_promo_redeemed = serializers.SerializerMethodField()
 
     class Meta:
         model = Referral
-        fields = ["referred_user", "created_at"]
+        fields = [
+            "id",
+            "referred_user",
+            "created_at",
+            "reward_status",
+            "earned_at",
+            "my_promo_code",
+            "my_promo_redeemed",
+        ]
 
     def get_referred_user(self, obj):
         from authentication.user_display import user_display_dict
 
         d = user_display_dict(obj.referred_user, include_id=True)
         return {"id": d["id"], "username": d["username"]}
+
+    def _viewer_id(self) -> int | None:
+        request = self.context.get("request")
+        if request and getattr(request, "user", None) and request.user.is_authenticated:
+            return request.user.id
+        return None
+
+    def get_my_promo_code(self, obj):
+        viewer_id = self._viewer_id()
+        if viewer_id == obj.referrer_id:
+            return obj.referrer_promo_code or None
+        if viewer_id == obj.referred_user_id:
+            return obj.referee_promo_code or None
+        return None
+
+    def get_my_promo_redeemed(self, obj):
+        viewer_id = self._viewer_id()
+        if viewer_id == obj.referrer_id:
+            return bool(obj.referrer_redeemed_at)
+        if viewer_id == obj.referred_user_id:
+            return bool(obj.referee_redeemed_at)
+        return None
+
+
+class ReferralSummarySerializer(serializers.Serializer):
+    referral_code = serializers.CharField()
+    referrals_made = ReferralSerializer(many=True)
+    referral_received = ReferralSerializer(allow_null=True)
+    earned_discount_code = serializers.CharField(allow_null=True)
+    earned_discount_redeemed = serializers.BooleanField()
 
 
 class UserSearchSerializer(serializers.ModelSerializer):

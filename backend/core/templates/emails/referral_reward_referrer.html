@@ -1,13 +1,17 @@
 {% extends "emails/_base.html" %} {% block title %}Referral reward unlocked{%
-endblock %} {% block header %}Your friend joined Garzoni{% endblock %} {% block
-preheader %}You earned bonus coins for your referral.{% endblock %} {% block
-content %}
+endblock %} {% block header %}Your referral reward is ready{% endblock %} {%
+block preheader %}50% off your first month or yearly plan — use your code at
+checkout.{% endblock %} {% block content %}
 <p style="margin: 0 0 14px 0">Hi {{ display_name }},</p>
 <p style="margin: 0 0 14px 0">
-  Great news! {{ friend_name }} joined Garzoni using your referral.
+  Great news! {{ friend_name }} joined Garzoni and completed their first lesson.
 </p>
 <p style="margin: 0 0 14px 0; font-weight: 700">
-  You have earned {{ bonus_coins }} bonus coins.
+  Your reward: {{ discount_label }}
+</p>
+<p style="margin: 0 0 14px 0">
+  Use this code at checkout on the web:
+  <strong>{{ promo_code }}</strong>
 </p>
 <table
   role="presentation"
@@ -18,7 +22,7 @@ content %}
   <tr>
     <td>
       <a
-        href="{{ app_url }}"
+        href="{{ checkout_url }}"
         style="
           display: inline-block;
           background: #1d5330;
@@ -29,7 +33,7 @@ content %}
           border-radius: 12px;
         "
       >
-        View rewards
+        Redeem at checkout
       </a>
     </td>
   </tr>

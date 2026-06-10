@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { garzoniDemoPosterUrl, garzoniDemoVideoUrl } from "@garzoni/core";
 import Header from "components/layout/Header";
@@ -92,6 +93,7 @@ const GoldCheckIcon = () => (
 );
 
 function Welcome() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { darkMode } = useTheme();
@@ -159,6 +161,14 @@ function Welcome() {
   const [showReferralModal, setShowReferralModal] = useState(
     Boolean(referralCode)
   );
+
+  useEffect(() => {
+    if (referralCode) {
+      import("utils/pendingReferral").then(({ savePendingReferralCode }) => {
+        savePendingReferralCode(referralCode);
+      });
+    }
+  }, [referralCode]);
 
   return (
     <>
@@ -1390,14 +1400,13 @@ function Welcome() {
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 px-4">
           <div className="max-w-md rounded-2xl bg-[#111827] border border-white/10 px-6 py-5 text-[#e5e7eb] shadow-2xl">
             <h2 className="text-lg font-semibold">
-              You were invited to Garzoni
+              {t("welcome.referral.title")}
             </h2>
             <p
               className="mt-2 text-sm"
               style={{ color: "rgba(229,231,235,0.72)" }}
             >
-              After you complete your first learning path, you and your friend
-              will both receive 40% off the Plus plan by email.
+              {t("welcome.referral.body")}
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <button

@@ -83,7 +83,7 @@ class TransactionalMessages:
             deeplink = data.get("deeplink", "garzoni:///(tabs)/learn")
             extra = {k: v for k, v in data.items() if k not in ("title", "message", "body")}
             push_data = {"deeplink": deeplink, **extra}
-            ok, err = send_expo_push(expo_token, title, body, push_data)
+            ok, err = send_expo_push(expo_token, title, body, push_data, user_id=user.pk)
             if ok:
                 return True, None
             logger.warning(

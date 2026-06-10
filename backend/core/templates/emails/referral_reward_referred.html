@@ -1,13 +1,18 @@
-{% extends "emails/_base.html" %} {% block title %}You received a referral
-bonus{% endblock %} {% block header %}Welcome bonus unlocked{% endblock %} {%
-block preheader %}You joined via referral and received bonus coins.{% endblock
-%} {% block content %}
+{% extends "emails/_base.html" %} {% block title %}Welcome reward unlocked{%
+endblock %} {% block header %}Your welcome reward is ready{% endblock %} {%
+block preheader %}50% off your first month or yearly plan — use your code at
+checkout.{% endblock %} {% block content %}
 <p style="margin: 0 0 14px 0">Hi {{ display_name }},</p>
 <p style="margin: 0 0 14px 0">
-  You joined Garzoni via {{ friend_name }}'s referral.
+  Thanks for joining Garzoni{% if friend_name %} — {{ friend_name }} invited
+  you{% endif %}.
 </p>
 <p style="margin: 0 0 14px 0; font-weight: 700">
-  Your account received {{ bonus_coins }} bonus coins.
+  Your reward: {{ discount_label }}
+</p>
+<p style="margin: 0 0 14px 0">
+  Use this code at checkout on the web:
+  <strong>{{ promo_code }}</strong>
 </p>
 <table
   role="presentation"
@@ -18,7 +23,7 @@ block preheader %}You joined via referral and received bonus coins.{% endblock
   <tr>
     <td>
       <a
-        href="{{ app_url }}"
+        href="{{ checkout_url }}"
         style="
           display: inline-block;
           background: #1d5330;
@@ -29,7 +34,7 @@ block preheader %}You joined via referral and received bonus coins.{% endblock
           border-radius: 12px;
         "
       >
-        Start learning
+        Redeem at checkout
       </a>
     </td>
   </tr>

@@ -135,13 +135,21 @@ export function initHttpClientMobile() {
     };
     const originalRequest = axiosError.config;
 
-    // Only intercept 401s we haven't already retried and that didn't opt out.
+    // Not a 401, or an opted-out request: leave it to the caller.
     if (
       axiosError.response?.status !== 401 ||
       !originalRequest ||
-      originalRequest._retry ||
       originalRequest.skipAuthRedirect
     ) {
+      return Promise.reject(error);
+    }
+
+    // A request we already refreshed-and-retried is still 401ing. The refresh
+    // "succeeded" but the access token is useless — the account was deleted or
+    // deactivated server-side. Without this the app loops silently and the user
+    // is stuck logged in but unusable. Force a logout.
+    if (originalRequest._retry) {
+      await clearSessionAndRedirect();
       return Promise.reject(error);
     }
 

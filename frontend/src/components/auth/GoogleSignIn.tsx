@@ -105,12 +105,19 @@ export default function GoogleSignIn({
       if (handlingRef.current) return;
       handlingRef.current = true;
       try {
+        const { consumePendingReferralCode } =
+          await import("utils/pendingReferral");
+        const referralCode = consumePendingReferralCode();
         const { data } = await apiClient.post<{
           access: string;
           refresh?: string;
           user: unknown;
           next: string;
-        }>("/auth/google/verify-credential/", { credential, state });
+        }>("/auth/google/verify-credential/", {
+          credential,
+          state,
+          ...(referralCode ? { referral_code: referralCode } : {}),
+        });
         if (data?.access && data?.next != null) {
           onSuccess(data.access, data.next, data.refresh);
         } else {

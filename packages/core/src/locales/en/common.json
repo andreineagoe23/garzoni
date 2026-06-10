@@ -273,7 +273,7 @@
   "welcome": {
     "referral": {
       "title": "You were invited to Garzoni",
-      "body": "After you complete your first learning path, you and your friend will both receive 40% off the Plus plan by email.",
+      "body": "After you verify your email and complete your first lesson, you and your friend will both receive 50% off any plan (first month or yearly) — redeem on the web at checkout.",
       "cta": "Start with your invite",
       "dismiss": "Maybe later"
     }
@@ -1795,7 +1795,13 @@
     },
     "referral": {
       "title": "Invite Friends",
-      "subtitle": "Share your link—when a friend completes their first learning path, you’ll both get 40% off Plus by email.",
+      "subtitle": "Share your link — when a friend verifies email and completes their first lesson, you’ll both get 50% off any plan at checkout.",
+      "earnedCode": "Your 50% off code",
+      "redeemAtCheckout": "Redeem on web checkout",
+      "pendingReward": "Pending — waiting for your friend to complete their first lesson",
+      "earnedReward": "Earned — check your email for your discount code",
+      "invitesSent": "{{count}} invite sent",
+      "invitesSent_other": "{{count}} invites sent",
       "linkLabel": "Your unique referral link",
       "copied": "Copied!",
       "shared": "Link shared",
@@ -2187,6 +2193,7 @@
     "completeOnboardingFirst": "Please complete onboarding before choosing a plan.",
     "paymentNotConfigured": "Payment is not configured yet. Please try again later or contact support.",
     "checkoutFailed": "Could not start checkout. Please try again.",
+    "referralDiscountBanner": "Your 50% referral discount ({{code}}) will be applied automatically at Stripe checkout.",
     "checkoutSyncFailed": "Could not refresh your subscription status yet. Please try again in a few seconds.",
     "checkoutPendingTitle": "Checkout opened in browser",
     "checkoutPendingBody": "When you're done in the browser, come back here and we'll refresh your subscription.",

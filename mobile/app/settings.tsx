@@ -121,19 +121,30 @@ export default function SettingsScreen() {
   const onPushToggle = useCallback(
     async (next: boolean) => {
       setPushBusy(true);
-      setPushOn(next);
-      patchPrefs({ push_notifications: next } as Parameters<
-        typeof patchUserSettings
-      >[0]);
       if (next) {
-        await registerForPushAndSubmitToken();
+        const result = await registerForPushAndSubmitToken();
+        if (result.ok) {
+          setPushOn(true);
+          patchPrefs({ push_notifications: true } as Parameters<
+            typeof patchUserSettings
+          >[0]);
+        } else {
+          setPushOn(false);
+        }
       } else {
+        setPushOn(false);
+        patchPrefs({ push_notifications: false } as Parameters<
+          typeof patchUserSettings
+        >[0]);
         try {
           await clearExpoPushToken();
         } catch {
           /* offline */
         }
         await deleteCustomerIoDeviceTokenOnly();
+        const { cancelStreakReminder } =
+          await import("../src/streak/streakReminder");
+        await cancelStreakReminder();
       }
       setPushBusy(false);
     },

@@ -20,11 +20,25 @@ def _first_ticket(response_data: Any) -> dict[str, Any] | None:
     return None
 
 
+def _clear_stale_expo_token(token: str, user_id: int | None = None) -> None:
+    try:
+        from authentication.models import UserProfile
+
+        qs = UserProfile.objects.filter(expo_push_token=token)
+        if user_id is not None:
+            qs = qs.filter(user_id=user_id)
+        qs.update(expo_push_token=None)
+    except Exception:
+        logger.warning("Failed to clear stale expo token", exc_info=True)
+
+
 def send_expo_push(
     token: str,
     title: str,
     body: str,
     data: dict[str, Any] | None = None,
+    *,
+    user_id: int | None = None,
 ) -> tuple[bool, str | None]:
     """POST to Expo push API. Returns (ok, error_message).
 
@@ -55,8 +69,11 @@ def send_expo_push(
         item = _first_ticket(r.json())
         if item and item.get("status") == "error":
             detail = item.get("message") or item.get("details", {}).get("error", "expo_error")
+            detail_str = str(detail)
+            if "DeviceNotRegistered" in detail_str:
+                _clear_stale_expo_token(t, user_id=user_id)
             logger.warning("Expo push error token=%s detail=%s", t[:30], detail)
-            return False, str(detail)
+            return False, detail_str
 
         return True, None
     except requests.RequestException as e:
