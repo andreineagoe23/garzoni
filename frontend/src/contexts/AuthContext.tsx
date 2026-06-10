@@ -297,12 +297,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authWarn("[auth] refresh failed", status);
       return { ok: false, reason: "refresh-failed" };
     }
-  }, [
-    clearAuthState,
-    persistAccessToken,
-    persistRefreshToken,
-    getStoredRefreshToken,
-  ]);
+  }, [clearAuthState, persistRefreshToken, getStoredRefreshToken]);
 
   const verifyAuth = useCallback(async () => {
     if (isVerifying.current) return;
