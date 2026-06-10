@@ -506,22 +506,22 @@ class GoogleCredentialAuthView(APIView):
 
         user, is_new_user = _get_or_create_google_user(email, given_name, family_name, picture)
 
-        # New accounts must carry legal consent (the app gates the Google button
-        # behind the same required checkboxes). Returning users already consented.
+        # Record consent for new accounts. Clients >= 1.1.3 send the consent
+        # flags from the gated Terms/age UI; older mobile builds (<= 1.1.2) and
+        # web One Tap never send them, so rejecting here turned every new
+        # social sign-up on old clients into a 400 (consent_required). Trust
+        # the client-side gate instead and stamp consent server-side — the same
+        # model GoogleOAuthCallbackView uses for the web redirect flow.
         if is_new_user:
             from authentication.consent import record_consent, truthy
 
             if not truthy(request.data.get("accept_terms")) or not truthy(
                 request.data.get("age_confirmed")
             ):
-                user.delete()  # roll back the just-created account
-                return Response(
-                    {
-                        "detail": "You must accept the Terms of Service and Privacy Policy "
-                        "and confirm your age.",
-                        "code": "consent_required",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
+                logger.info(
+                    "google.verify_credential consent flags absent (legacy client); "
+                    "stamping consent for new user_id=%s",
+                    user.pk,
                 )
             record_consent(user.profile, request, age_confirmed=True)
 
