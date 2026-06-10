@@ -86,7 +86,10 @@ LOGGING = {
     "loggers": {
         "django": {"level": _LOG_LEVEL, "propagate": True},
         "django.request": {"level": "WARNING", "propagate": True},
+        "django.db.backends": {"level": "WARNING", "propagate": True},
+        "django.db.backends.schema": {"level": "WARNING", "propagate": True},
         "django.utils.autoreload": {"level": "WARNING", "propagate": True},
+        "celery.utils.functional": {"level": "WARNING", "propagate": True},
         "urllib3": {"level": "WARNING", "propagate": True},
         "axes": {"level": "WARNING", "propagate": True},
         "gunicorn.access": {"level": "INFO", "propagate": True},

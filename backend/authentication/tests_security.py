@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import User
+from django.urls import reverse
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.test import override_settings
 from django.utils.encoding import force_bytes
@@ -171,7 +172,7 @@ class RevenueCatSyncSecurityTest(APITestCase):
         mock_reconcile.return_value = {"provider": "revenuecat"}
         self.client.force_authenticate(user=user)
         self.client.post(
-            "/api/auth/revenuecat-sync/",
+            reverse("revenuecat-sync"),
             {"rc_app_user_id": "999999"},
             format="json",
         )
