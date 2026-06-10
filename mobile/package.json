@@ -18,7 +18,6 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "ios:mac": "bash scripts/run-ios-mac.sh",
-    "ios:vision": "expo run:ios -d",
     "ios:prebuild-clean": "expo prebuild --clean -p ios",
     "ios:rebuild-purchases": "expo prebuild --clean -p ios && expo run:ios",
     "android:prebuild-clean": "expo prebuild --clean -p android",

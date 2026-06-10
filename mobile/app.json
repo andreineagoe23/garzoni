@@ -2,7 +2,7 @@
   "expo": {
     "name": "Garzoni",
     "slug": "garzoni",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "garzoni",
@@ -17,16 +17,20 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "12",
+      "buildNumber": "2",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           }
         ]
       },
@@ -36,7 +40,9 @@
         "NSUserNotificationsUsageDescription": "Garzoni sends notifications to remind you of daily learning goals, streak milestones, and mission completions.",
         "NSCameraUsageDescription": "Garzoni uses the camera to scan receipts and statements for AI-powered spending insights (Pro feature).",
         "NSMicrophoneUsageDescription": "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature).",
-        "UISupportedInterfaceOrientations": ["UIInterfaceOrientationPortrait"],
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait"
+        ],
         "UISupportedInterfaceOrientations~ipad": [
           "UIInterfaceOrientationPortrait",
           "UIInterfaceOrientationPortraitUpsideDown",
@@ -44,9 +50,14 @@
           "UIInterfaceOrientationLandscapeRight"
         ]
       },
-      "associatedDomains": ["applinks:garzoni.app", "applinks:www.garzoni.app"],
+      "associatedDomains": [
+        "applinks:garzoni.app",
+        "applinks:www.garzoni.app"
+      ],
       "entitlements": {
-        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.applesignin": [
+          "Default"
+        ],
         "aps-environment": "production"
       }
     },
@@ -60,8 +71,14 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
       "googleServicesFile": "./google-services.json",
-      "permissions": ["NOTIFICATIONS", "CAMERA", "RECORD_AUDIO"],
-      "blockedPermissions": ["android.permission.ACTIVITY_RECOGNITION"],
+      "permissions": [
+        "NOTIFICATIONS",
+        "CAMERA",
+        "RECORD_AUDIO"
+      ],
+      "blockedPermissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -76,34 +93,17 @@
               "host": "www.garzoni.app"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
     "experiments": {
       "typedRoutes": true
     },
-    "plugins": [
-      [
-        "customerio-reactnative",
-        {
-          "ios": {
-            "pushNotification": {
-              "useRichPush": false
-            }
-          },
-          "android": {
-            "pushNotification": {
-              "channel": {
-                "id": "default",
-                "name": "Default",
-                "importance": 5
-              }
-            }
-          }
-        }
-      ]
-    ],
+    "plugins": [],
     "extra": {
       "router": {},
       "eas": {

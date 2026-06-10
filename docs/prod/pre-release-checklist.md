@@ -60,15 +60,15 @@
 - [ ] **Token-budget guard**: confirm Redis counter increments on each AI call
 - [ ] **Sentry** has no `openai_unexpected_error` spike in the last hour
 
-## 🔹 Apple platform expansion (Mac + Vision Pro)
+## 🔹 Apple platform expansion (iPad + Mac)
 
 See [ios-platforms-expansion-runbook.md](./ios-platforms-expansion-runbook.md) for full steps.
 
-- [ ] App Store Connect → **Pricing and Availability** → Mac + Vision Pro availability enabled
+- [ ] App Store Connect → **Pricing and Availability** → Apple Silicon Mac availability enabled
+- [ ] App Store Connect → **Pricing and Availability** → Apple Vision Pro availability **disabled** (out of scope)
 - [ ] TestFlight Mac testing enabled for tester group
 - [ ] Mac smoke test (login, paywall, webviews, deep links) on Apple Silicon Mac
 - [ ] **Verify Compatibility** clicked for Apple Silicon Macs (after build upload)
-- [ ] visionOS simulator smoke test (or physical Vision Pro) — login + lesson flow
 - [ ] iPad landscape / resizable window looks correct (`UIRequiresFullScreen` = false)
 
 ## 🔹 Pro mobile features (iOS + Android)

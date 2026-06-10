@@ -1,6 +1,8 @@
-# iOS platform expansion runbook (Mac + Vision Pro)
+# iOS platform expansion runbook (iPad + Mac)
 
-Ship the existing universal iPhone/iPad binary to **Apple Silicon Macs** and **Apple Vision Pro** without a separate native target. The app already builds as `TARGETED_DEVICE_FAMILY = "1,2"` (iPhone + iPad).
+Ship the existing universal iPhone/iPad binary to **Apple Silicon Macs** without a separate native target. The app already builds as `TARGETED_DEVICE_FAMILY = "1,2"` (iPhone + iPad).
+
+> **Apple Vision Pro is intentionally out of scope.** Disable it in App Store Connect (see Phase 2) so the iPad binary is not auto-listed on visionOS.
 
 > Anchors:
 >
@@ -69,38 +71,17 @@ After a build is uploaded and smoke tests pass:
 
 ---
 
-## Phase 2 — Apple Vision Pro ("Designed for iPad")
+## Phase 2 — Disable Apple Vision Pro (out of scope)
 
-### 2a. Enable Vision Pro availability (App Store Connect)
+Vision Pro would otherwise auto-list the iPad binary in "Designed for iPad" mode. We are not supporting it, so opt out:
 
 - [ ] App Store Connect → Garzoni → **Pricing and Availability**
 - [ ] Scroll to **Apple Vision Pro Availability**
-- [ ] Confirm **"Make this app available on Apple Vision Pro"** is checked (default unless opted out)
+- [ ] **Uncheck** "Make this app available on Apple Vision Pro"
 
 Direct help: [Manage availability on Apple Vision Pro](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/manage-availability-of-iphone-and-ipad-apps-on-apple-vision-pro)
 
-> Do **not** add a separate visionOS platform / universal purchase unless you plan a native visionOS target. The iPad compatibility listing is sufficient.
-
-### 2b. Vision Pro simulator testing
-
-Install a visionOS simulator in Xcode (**Settings → Platforms → visionOS**), then:
-
-```bash
-cd mobile
-pnpm ios:vision
-# Select an Apple Vision Pro simulator when prompted
-```
-
-Or in Xcode: open `mobile/ios/Garzoni.xcworkspace` → run on **Apple Vision Pro** simulator (runs the iOS build in "Designed for iPad" mode).
-
-| Flow           | Pass? | Notes                       |
-| -------------- | ----- | --------------------------- |
-| Launch + login | [ ]   |                             |
-| Lesson flow    | [ ]   | Portrait window is expected |
-| Paywall        | [ ]   |                             |
-| WebView tools  | [ ]   |                             |
-
-Icon note: compatible iPad/iPhone apps show as rounded-square icons on visionOS — no asset change required.
+> Revisit only if a native visionOS target is planned later.
 
 ---
 
@@ -108,12 +89,12 @@ Icon note: compatible iPad/iPhone apps show as rounded-square icons on visionOS 
 
 These ship with the next iOS build:
 
-| Change                             | File                                      | Purpose                                        |
-| ---------------------------------- | ----------------------------------------- | ---------------------------------------------- |
-| Removed `requireFullScreen`        | `mobile/app.json`, `mobile/app.config.js` | iPad Split View + resizable Mac/Vision windows |
-| iPad landscape orientations        | `mobile/app.json`, `mobile/app.config.js` | Better wide layouts on Mac / Vision Pro        |
-| `isIOSAppOnMac()` helper           | `mobile/src/utils/platform.ts`            | Optional feature gating                        |
-| `pnpm ios:mac` / `pnpm ios:vision` | `mobile/package.json`                     | Local platform testing                         |
+| Change                       | File                                      | Purpose                              |
+| ---------------------------- | ----------------------------------------- | ------------------------------------ |
+| Removed `requireFullScreen`  | `mobile/app.json`, `mobile/app.config.js` | iPad Split View + resizable Mac window |
+| iPad landscape orientations  | `mobile/app.json`, `mobile/app.config.js` | Better wide layouts on iPad / Mac    |
+| `isIOSAppOnMac()` helper     | `mobile/src/utils/platform.ts`            | Optional feature gating              |
+| `pnpm ios:mac`               | `mobile/package.json`                     | Local Mac testing                    |
 
 After merging, bump `ios.buildNumber` (and `version` if needed), then:
 
@@ -143,6 +124,7 @@ See [android-credentials-checklist.md](./android-credentials-checklist.md). Rema
 
 | Platform                                       | Why                                                                     |
 | ---------------------------------------------- | ----------------------------------------------------------------------- |
+| Apple Vision Pro                               | Out of scope — availability disabled in App Store Connect (Phase 2)     |
 | Native macOS (`react-native-macos` / Catalyst) | Not supported by Expo; Apple Silicon iPad route covers Mac              |
 | tvOS                                           | Requires `react-native-tvos` fork; WebView/IAP/camera deps incompatible |
 | watchOS                                        | No React Native path                                                    |
@@ -152,5 +134,4 @@ See [android-credentials-checklist.md](./android-credentials-checklist.md). Rema
 ## Useful links
 
 - [Test iPad apps on Apple silicon Macs (TestFlight)](https://developer.apple.com/help/app-store-connect/test-a-beta-version/test-iphone-and-ipad-apps-on-macs-with-apple-silicon)
-- [Submit apps for Apple Vision Pro](https://developer.apple.com/visionos/submit/)
 - [Expo additional platform support](https://docs.expo.dev/modules/additional-platform-support/)
