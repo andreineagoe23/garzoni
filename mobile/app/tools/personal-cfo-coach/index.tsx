@@ -23,6 +23,7 @@ import {
 import { brand } from "../../../src/theme/brand";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
 import { href } from "../../../src/navigation/href";
 import { logDevError } from "../../../src/lib/logDevError";
@@ -115,6 +116,7 @@ function TypingBubble() {
 
 export default function PersonalCfoCoachScreen() {
   const colors = useThemeColors();
+  const gutter = useScreenGutter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation("common");
   const router = useRouter();
@@ -222,7 +224,10 @@ export default function PersonalCfoCoachScreen() {
       <ScrollView
         ref={scrollRef}
         style={styles.flex}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingHorizontal: spacing.md + gutter },
+        ]}
         onContentSizeChange={() =>
           scrollRef.current?.scrollToEnd({ animated: true })
         }

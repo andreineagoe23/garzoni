@@ -23,6 +23,7 @@ import { useThemeColors } from "../../src/theme/ThemeContext";
 import GlassCard from "../../src/components/ui/GlassCard";
 import { ErrorState, Skeleton } from "../../src/components/ui";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import { useScreenGutter } from "../../src/utils/platform";
 import { leaderboardAvatarUri } from "../../src/components/leaderboard/leaderboardAvatarUri";
 import {
   formatCountdown,
@@ -30,6 +31,7 @@ import {
 } from "../../src/components/duels/duelTime";
 
 export default function DuelDetailScreen() {
+  const gutter = useScreenGutter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const duelId = Number(id);
   const c = useThemeColors();
@@ -115,7 +117,10 @@ export default function DuelDetailScreen() {
       <Stack.Screen options={{ title: t("duels.title"), headerShown: true }} />
       <ScrollView
         style={{ flex: 1, backgroundColor: c.bg }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
       >
         {duelQuery.isPending ? (
           <View style={{ gap: spacing.md }}>

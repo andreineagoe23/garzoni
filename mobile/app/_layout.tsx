@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { router, Stack, usePathname, useSegments } from "expo-router";
 import { LinkPreviewContextProvider } from "expo-router/build/link/preview/LinkPreviewContext";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { View, StyleSheet, Text, useWindowDimensions } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { Sentry } from "../src/bootstrap/sentryMobile";
 import Toast from "react-native-toast-message";
 import {
@@ -40,9 +40,6 @@ import {
 } from "@expo-google-fonts/fraunces";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 
-/** Keeps glass-style layouts readable on large tablets (centered column). */
-const TABLET_MAX_CONTENT_WIDTH = 560;
-
 /** Root route segments reachable without a session (pre-auth + legal/reset). */
 const PUBLIC_ROOT_SEGMENTS = new Set([
   "(auth)",
@@ -53,9 +50,6 @@ const PUBLIC_ROOT_SEGMENTS = new Set([
 
 function ThemedRoot() {
   const { resolved, colors } = useTheme();
-  const { width: windowWidth } = useWindowDimensions();
-  const contentWidth = Math.min(windowWidth, TABLET_MAX_CONTENT_WIDTH);
-  const constrainTabletWidth = windowWidth > TABLET_MAX_CONTENT_WIDTH;
   const { hydrated, accessToken } = useAuthSession();
   const pathname = usePathname();
   const segments = useSegments();
@@ -101,21 +95,12 @@ function ThemedRoot() {
 
   return (
     <NavigationThemeProvider value={navTheme}>
-      <View
-        style={[
-          styles.root,
-          { backgroundColor: colors.bg },
-          constrainTabletWidth ? styles.rootTabletCentered : null,
-        ]}
-      >
+      <View style={[styles.root, { backgroundColor: colors.bg }]}>
         <StatusBar style={resolved === "dark" ? "light" : "dark"} />
         <OfflineBanner />
-        <View
-          style={[
-            styles.stackHost,
-            constrainTabletWidth ? { width: contentWidth } : null,
-          ]}
-        >
+        {/* Full-width host — screens handle their own responsive padding/grids
+            (fluid layout). No global width cap, so the app fills the iPad. */}
+        <View style={styles.stackHost}>
           <LinkPreviewContextProvider>
             <Stack
               screenOptions={{
@@ -267,9 +252,6 @@ export default Sentry.wrap(RootLayout);
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  rootTabletCentered: {
-    alignItems: "center",
-  },
   stackHost: { flex: 1 },
   bootstrapFallback: {
     alignItems: "center",

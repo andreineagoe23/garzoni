@@ -47,6 +47,7 @@ import { href } from "../../src/navigation/href";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import { useResponsive } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
@@ -134,6 +135,8 @@ function ExercisesInner() {
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { isTablet, gutter } = useResponsive();
+  const horizontalPad = spacing.xl + (isTablet ? gutter : 0);
   const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const { hydrated, accessToken } = useAuthSession();
@@ -598,6 +601,7 @@ function ExercisesInner() {
           style={{ flex: 1, backgroundColor: c.bg }}
           contentContainerStyle={[
             styles.container,
+            { paddingHorizontal: horizontalPad },
             { paddingBottom: 88 + Math.max(insets.bottom, spacing.md) },
           ]}
           keyboardShouldPersistTaps="handled"
@@ -1337,7 +1341,7 @@ export default function ExercisesTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.xl },
+  container: { paddingTop: spacing.xl },
   filtersRow: {
     flexDirection: "row",
     gap: spacing.sm,

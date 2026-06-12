@@ -10,6 +10,7 @@ import { Stack } from "expo-router";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import {
   groupEventsByDate,
   formatEventDate,
@@ -26,6 +27,7 @@ import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMo
 
 export default function EconomicCalendarScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [filter, setFilter] = useState<FilterOption>("all");
   const [loading, setLoading] = useState(true);
@@ -120,7 +122,10 @@ export default function EconomicCalendarScreen() {
             tintColor={c.primary}
           />
         }
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingHorizontal: gutter },
+        ]}
         stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
       />

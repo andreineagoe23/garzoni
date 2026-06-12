@@ -30,6 +30,7 @@ import {
 import type { ThemeColors } from "../../src/theme/palettes";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import { useScreenGutter } from "../../src/utils/platform";
 
 type LessonRow = {
   id?: number;
@@ -73,6 +74,7 @@ function lessonsLoadErrorMessage(
 }
 
 export default function CourseDetailScreen() {
+  const gutter = useScreenGutter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const courseId = Number(id);
   const { hydrated } = useAuthSession();
@@ -196,7 +198,10 @@ export default function CourseDetailScreen() {
       <FlatList
         data={lessons}
         keyExtractor={(item, i) => String(item.id ?? i)}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={lessonsQuery.isFetching}

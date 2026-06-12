@@ -52,6 +52,7 @@ import {
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import { useResponsive } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
@@ -199,6 +200,12 @@ function createLearnStyles(c: ThemeColors) {
 function LearnInner() {
   const c = useThemeColors();
   const styles = useMemo(() => createLearnStyles(c), [c]);
+  const { isTablet, gutter } = useResponsive();
+  const screenPad = spacing.xl + (isTablet ? gutter : 0);
+  const listContentStyle = useMemo(
+    () => [styles.listContent, { paddingHorizontal: screenPad }],
+    [styles.listContent, screenPad],
+  );
   const queryClient = useQueryClient();
   const { hydrated, accessToken } = useAuthSession();
   const { t } = useTranslation("common");
@@ -662,7 +669,7 @@ function LearnInner() {
         <View
           style={[
             styles.headerPad,
-            { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+            { paddingHorizontal: screenPad, paddingBottom: spacing.sm },
           ]}
         >
           {segmentRow}
@@ -687,7 +694,7 @@ function LearnInner() {
         <View
           style={[
             styles.headerPad,
-            { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+            { paddingHorizontal: screenPad, paddingBottom: spacing.sm },
           ]}
         >
           {segmentRow}
@@ -718,7 +725,7 @@ function LearnInner() {
           <View
             style={[
               styles.headerPad,
-              { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+              { paddingHorizontal: screenPad, paddingBottom: spacing.sm },
             ]}
           >
             {segmentRow}
@@ -775,7 +782,7 @@ function LearnInner() {
                 <ScrollView
                   style={{ flex: 1 }}
                   contentContainerStyle={{
-                    paddingHorizontal: spacing.xl,
+                    paddingHorizontal: screenPad,
                     paddingBottom: spacing.xxxl,
                   }}
                   refreshControl={
@@ -846,7 +853,7 @@ function LearnInner() {
       data={displayPaths}
       keyExtractor={(item, i) => String(item.id ?? i)}
       nestedScrollEnabled={Platform.OS === "android"}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={listContentStyle}
       refreshControl={
         <RefreshControl
           refreshing={pullRefreshing}
@@ -906,7 +913,10 @@ function LearnInner() {
         const desc = item.description ?? "";
         const pct = pathProgressPercent(item);
         return (
-          <GlassCard padding="none" style={{ marginBottom: spacing.lg }}>
+          <GlassCard
+            padding="none"
+            style={{ marginBottom: spacing.lg }}
+          >
             <Pressable
               onPress={() => {
                 if (item.is_locked) {

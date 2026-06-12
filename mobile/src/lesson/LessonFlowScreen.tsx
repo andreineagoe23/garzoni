@@ -51,6 +51,7 @@ import {
   fetchQuizzesForCourse,
 } from "@garzoni/core";
 import { spacing, typography, radius, shadows } from "../theme/tokens";
+import { useScreenGutter } from "../utils/platform";
 import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
 import type { ThemeColors } from "../theme/palettes";
@@ -678,6 +679,7 @@ export default function LessonFlowScreen({
   ]);
 
   const themeColors = useThemeColors();
+  const gutter = useScreenGutter();
   const styles = useMemo(
     () => createLessonFlowStyles(themeColors),
     [themeColors],
@@ -873,7 +875,10 @@ export default function LessonFlowScreen({
         style={{ flex: 1 }}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: spacing.xl + 56 },
+          {
+            paddingBottom: spacing.xl + 56,
+            paddingHorizontal: spacing.xl + gutter,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled

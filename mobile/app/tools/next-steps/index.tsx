@@ -14,6 +14,7 @@ import ConfettiCannon from "react-native-confetti-cannon";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import { DEMO_STEPS } from "../../../src/types/next-steps";
 import type {
   NextStep,
@@ -27,6 +28,7 @@ import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMo
 
 export default function NextStepsScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { width } = useWindowDimensions();
   const [steps, setSteps] = useState<NextStep[]>([]);
   const [completedToday, setCompletedToday] = useState(0);
@@ -117,7 +119,10 @@ export default function NextStepsScreen() {
       <Stack.Screen options={{ title: "Next Steps" }} />
       <ScrollView
         style={[styles.root, { backgroundColor: c.bg }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

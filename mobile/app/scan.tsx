@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import type { ThemeColors } from "../src/theme/palettes";
 
@@ -133,6 +134,7 @@ function createStyles(c: ThemeColors) {
 
 export default function Scan() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const styles = createStyles(c);
   const { t } = useTranslation("common");
 
@@ -219,7 +221,10 @@ export default function Scan() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: spacing.xl }}
+        contentContainerStyle={{
+          paddingBottom: spacing.xl,
+          paddingHorizontal: gutter,
+        }}
       >
         <Pressable
           style={styles.pickBtn}

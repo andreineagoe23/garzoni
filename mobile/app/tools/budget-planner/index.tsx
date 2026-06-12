@@ -18,6 +18,7 @@ import {
 } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import { href } from "../../../src/navigation/href";
 import { logDevError } from "../../../src/lib/logDevError";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
@@ -53,6 +54,7 @@ const CATEGORIES = [
 
 export default function BudgetPlannerScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const router = useRouter();
   const { t } = useTranslation("common");
   const { profile, setProfile } = useCfoProfile();
@@ -163,7 +165,10 @@ export default function BudgetPlannerScreen() {
       <Stack.Screen options={{ title: "Budget & Spending" }} />
       <ScrollView
         style={[styles.root, { backgroundColor: c.bg }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <WhyThisMattersMobile toolSlug="budget-planner" />

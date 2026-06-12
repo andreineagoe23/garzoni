@@ -8,6 +8,7 @@ import {
   spacing,
   typography,
 } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import {
   calcSavings,
   type SavingsForm,
@@ -61,6 +62,7 @@ const DEFAULT_FORM: SavingsForm = {
 
 export default function SavingsGoalsScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { profile, setProfile, hydrated } = useCfoProfile();
   const [form, setForm] = useState<SavingsForm>(DEFAULT_FORM);
   const seededRef = useRef(false);
@@ -119,7 +121,10 @@ export default function SavingsGoalsScreen() {
       <View style={[styles.root, { backgroundColor: c.bg }]}>
         <KeyboardAwareScrollView
           basePaddingBottom={spacing.xxxxl}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingHorizontal: spacing.xl + gutter },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

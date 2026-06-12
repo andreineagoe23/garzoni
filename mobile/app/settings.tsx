@@ -25,6 +25,7 @@ import {
 } from "@garzoni/core";
 import { useTheme, useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 import { useTranslation } from "react-i18next";
 import GlassCard from "../src/components/ui/GlassCard";
 import GlassButton from "../src/components/ui/GlassButton";
@@ -57,6 +58,7 @@ function normalizeReminderFromApi(raw: string | undefined): ReminderCadence {
 
 export default function SettingsScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { resolved, setMode } = useTheme();
   const router = useRouter();
   const qc = useQueryClient();
@@ -199,7 +201,10 @@ export default function SettingsScreen() {
         }}
       />
       <ScrollView
-        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: c.bg, paddingHorizontal: spacing.xl + gutter },
+        ]}
       >
         <Text style={[styles.section, { color: c.textFaint }]}>
           {t("settings.preferences.title")}

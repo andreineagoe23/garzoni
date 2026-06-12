@@ -23,12 +23,14 @@ import { useThemeColors } from "../../src/theme/ThemeContext";
 import GlassCard from "../../src/components/ui/GlassCard";
 import { Skeleton } from "../../src/components/ui";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import { useScreenGutter } from "../../src/utils/platform";
 import DuelCard from "../../src/components/duels/DuelCard";
 
 type Tab = "active" | "history";
 
 export default function DuelsScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t, i18n } = useTranslation("common");
   const [tab, setTab] = useState<Tab>("active");
 
@@ -77,7 +79,9 @@ export default function DuelsScreen() {
     <>
       <Stack.Screen options={{ title: t("duels.title"), headerShown: true }} />
       <View style={[styles.screen, { backgroundColor: c.bg }]}>
-        <View style={styles.headerPad}>
+        <View
+          style={[styles.headerPad, { paddingHorizontal: spacing.md + gutter }]}
+        >
           <Text style={[styles.h1, { color: c.text }]}>{t("duels.title")}</Text>
           <Text style={[styles.subtitle, { color: c.textMuted }]}>
             {t("duels.subtitle")}
@@ -118,7 +122,10 @@ export default function DuelsScreen() {
         <FlatList
           data={data}
           keyExtractor={(d) => String(d.id)}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[
+            styles.list,
+            { paddingHorizontal: spacing.md + gutter },
+          ]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

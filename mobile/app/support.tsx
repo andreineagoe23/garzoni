@@ -23,10 +23,12 @@ import { Skeleton } from "../src/components/ui";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 import { useFormKeyboardPadding } from "../src/hooks/useFormKeyboardPadding";
+import { useScreenGutter } from "../src/utils/platform";
 
 export default function SupportScreen() {
   const keyboardPad = useFormKeyboardPadding();
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t } = useTranslation("common");
   const [openId, setOpenId] = useState<number | null>(null);
   const [email, setEmail] = useState("");
@@ -211,6 +213,7 @@ export default function SupportScreen() {
         }
         contentContainerStyle={{
           padding: spacing.lg,
+          paddingHorizontal: spacing.lg + gutter,
           paddingBottom: spacing.lg + keyboardPad,
           backgroundColor: c.bg,
         }}

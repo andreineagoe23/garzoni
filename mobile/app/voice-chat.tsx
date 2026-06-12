@@ -29,6 +29,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 import type { ThemeColors } from "../src/theme/palettes";
 
 type Message = {
@@ -126,6 +127,7 @@ function createStyles(c: ThemeColors) {
 
 export default function VoiceChat() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const styles = createStyles(c);
   const { t } = useTranslation("common");
   const insets = useSafeAreaInsets();
@@ -275,7 +277,10 @@ export default function VoiceChat() {
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: spacing.xl }}
+        contentContainerStyle={{
+          paddingBottom: spacing.xl,
+          paddingHorizontal: gutter,
+        }}
         onContentSizeChange={() =>
           scrollRef.current?.scrollToEnd({ animated: true })
         }

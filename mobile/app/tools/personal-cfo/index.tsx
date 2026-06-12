@@ -12,6 +12,7 @@ import {
 } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { radius, spacing, typography } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import { href } from "../../../src/navigation/href";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
 import { logDevError } from "../../../src/lib/logDevError";
@@ -103,6 +104,7 @@ type CFOSummary = {
 
 export default function PersonalCfoScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const router = useRouter();
   const { t } = useTranslation("common");
   const { profile } = useCfoProfile();
@@ -295,7 +297,10 @@ export default function PersonalCfoScreen() {
         <Stack.Screen options={{ title: "Personal CFO" }} />
         <ScrollView
           style={[styles.root, { backgroundColor: c.bg }]}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingHorizontal: spacing.xl + gutter },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <WhyThisMattersMobile toolSlug="personal-cfo" />
@@ -313,7 +318,10 @@ export default function PersonalCfoScreen() {
       <Stack.Screen options={{ title: "Personal CFO" }} />
       <ScrollView
         style={[styles.root, { backgroundColor: c.bg }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <WhyThisMattersMobile toolSlug="personal-cfo" />

@@ -30,9 +30,11 @@ import ConfirmRedeemSheet from "../src/components/rewards/ConfirmRedeemSheet";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography } from "../src/theme/tokens";
 import { safeImpactAsync } from "../src/utils/safeHaptics";
+import { useScreenGutter } from "../src/utils/platform";
 
 export default function RewardsScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"shop" | "donate">("shop");
   const [confirmItem, setConfirmItem] = useState<RewardItem | null>(null);
@@ -207,6 +209,7 @@ export default function RewardsScreen() {
           }
           contentContainerStyle={{
             padding: spacing.lg,
+            paddingHorizontal: spacing.lg + gutter,
             gap: spacing.md,
             paddingBottom: spacing.xxxl,
           }}

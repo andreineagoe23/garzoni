@@ -34,6 +34,7 @@ import {
   radius,
   shadows,
 } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import {
   formatCurrency,
   formatPercent,
@@ -451,6 +452,7 @@ function formatPortfolioStartDate(entries: PortfolioEntry[]): string | null {
 
 export default function PortfolioScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const router = useRouter();
   const invalidatePortfolioTools = useInvalidatePortfolioTools();
   const { risk: RISK_CONFIG, alignment: ALIGNMENT_CONFIG } = useStatusConfigs();
@@ -977,7 +979,10 @@ export default function PortfolioScreen() {
         keyExtractor={(item) =>
           String(item.id ?? `${item.symbol}-${item.quantity}`)
         }
-        contentContainerStyle={[styles.list, { backgroundColor: c.bg }]}
+        contentContainerStyle={[
+          styles.list,
+          { backgroundColor: c.bg, paddingHorizontal: spacing.lg + gutter },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

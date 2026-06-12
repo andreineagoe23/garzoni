@@ -31,6 +31,7 @@ import {
   radius,
   shadows,
 } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import type {
   Asset,
   MarketTab,
@@ -70,6 +71,7 @@ function buildCryptoMapParam(rows: Asset[]): string | undefined {
 
 export default function MarketExplorerScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const keyboardPad = useFormKeyboardPadding();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -385,7 +387,10 @@ export default function MarketExplorerScreen() {
           onRefresh={() => void marketSearchQuery.refetch()}
           contentContainerStyle={[
             styles.listContent,
-            { paddingBottom: spacing.xxxxl + keyboardPad },
+            {
+              paddingHorizontal: spacing.xl + gutter,
+              paddingBottom: spacing.xxxxl + keyboardPad,
+            },
           ]}
           ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
           ListEmptyComponent={

@@ -35,6 +35,7 @@ import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import { useScreenGutter } from "../../src/utils/platform";
 import { NotificationFeedbackType } from "expo-haptics";
 import { safeNotificationAsync } from "../../src/utils/safeHaptics";
 
@@ -51,6 +52,7 @@ type Phase = "intro" | "attempt" | "recap";
 
 export default function QuizScreen() {
   const { t } = useTranslation("common");
+  const gutter = useScreenGutter();
   const { courseId: courseIdParam } = useLocalSearchParams<{
     courseId: string;
   }>();
@@ -376,7 +378,12 @@ export default function QuizScreen() {
         <HeartBar hearts={hearts} maxHearts={maxHearts} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
+      >
         <Animated.View entering={FadeIn.duration(280)}>
           <Text style={styles.question}>{activeQuiz.question}</Text>
           {(activeQuiz.choices ?? []).map((c, i) => {

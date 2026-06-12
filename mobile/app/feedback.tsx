@@ -9,6 +9,7 @@ import { submitFeedback, type FeedbackPayload } from "@garzoni/core";
 import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
 
@@ -23,6 +24,7 @@ type FeedbackType = (typeof FEEDBACK_TYPES)[number]["key"];
 
 export default function FeedbackScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t } = useTranslation("common");
   const [feedbackType, setFeedbackType] = useState<FeedbackType>("general");
   const [message, setMessage] = useState("");
@@ -76,7 +78,10 @@ export default function FeedbackScreen() {
       <KeyboardAwareScrollView
         style={{ flex: 1, backgroundColor: c.bg }}
         basePaddingBottom={spacing.xxxxl}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          { paddingHorizontal: spacing.lg + gutter },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Type picker */}

@@ -9,6 +9,7 @@ import {
 import { useThemeColors } from "../../theme/ThemeContext";
 import HapticPressable from "../ui/HapticPressable";
 import { spacing, typography, radius } from "../../theme/tokens";
+import { gridFlexBasis, useResponsive } from "../../utils/platform";
 
 const CARD_WIDTH = 158;
 
@@ -33,13 +34,18 @@ export function KPITile({
   layout = "strip",
 }: TileProps) {
   const c = useThemeColors();
+  const { isTablet, gridColumns } = useResponsive();
   const border = urgent ? `${c.error}66` : c.border;
   const bg = urgent ? `${c.error}14` : c.surface;
+
+  // Phone keeps the exact original 2-up "47%" basis (unchanged). Tablet: 3-up.
+  // Large tablet (landscape / 12.9"): 4-up.
+  const gridBasis = isTablet ? gridFlexBasis(gridColumns(3, 3, 4)) : "47%";
 
   const sizing: ViewStyle =
     layout === "grid"
       ? {
-          flexBasis: "47%",
+          flexBasis: gridBasis,
           flexGrow: 1,
           minWidth: 0,
           maxWidth: "100%",

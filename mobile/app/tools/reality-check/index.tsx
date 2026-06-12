@@ -12,6 +12,7 @@ import { Stack, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import { calcRealityCheck } from "../../../src/types/reality-check";
 import type {
   RealityCheckForm,
@@ -48,6 +49,7 @@ const DEMO_FORM: RealityCheckForm = {
 
 export default function RealityCheckScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const router = useRouter();
   const { profile, setProfile, hydrated } = useCfoProfile();
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -156,7 +158,10 @@ export default function RealityCheckScreen() {
       <Stack.Screen options={{ title: "Goals Reality Check" }} />
       <ScrollView
         style={[styles.root, { backgroundColor: c.bg }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

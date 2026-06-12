@@ -7,12 +7,19 @@ import {
   type ScrollViewProps,
   StyleSheet,
 } from "react-native";
+import { useResponsive } from "../../utils/platform";
 
 export type ScreenScrollProps = ScrollViewProps & {
   children: ReactNode;
   /** Extra bottom padding for tab bar (default 72). Omit by passing 0. */
   contentPaddingBottom?: number;
   refreshControl?: ReactElement<RefreshControlProps>;
+  /**
+   * Apply the responsive tablet gutter (extra horizontal padding) on iPad.
+   * Fluid — content still fills the width, it just isn't edge-to-edge. No-op on
+   * phone, so the iPhone layout is unchanged. Default: true.
+   */
+  tabletGutter?: boolean;
 };
 
 /**
@@ -39,10 +46,19 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
       keyboardDismissMode = "on-drag",
       showsVerticalScrollIndicator = true,
       nestedScrollEnabled = true,
+      tabletGutter = true,
       ...rest
     },
     ref,
   ) {
+    const { isTablet, gutter } = useResponsive();
+    // Fluid tablet gutter: extra horizontal padding on iPad only. 0 on phone,
+    // so the iPhone layout is byte-for-byte unchanged.
+    const gutterStyle =
+      tabletGutter && isTablet && gutter > 0
+        ? { paddingHorizontal: gutter }
+        : null;
+
     const bottomPad =
       typeof contentPaddingBottom === "number" && contentPaddingBottom > 0
         ? { paddingBottom: contentPaddingBottom }
@@ -57,7 +73,7 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
       <ScrollView
         ref={ref}
         style={[styles.flex, style]}
-        contentContainerStyle={[contentContainerStyle, bottomPad]}
+        contentContainerStyle={[contentContainerStyle, gutterStyle, bottomPad]}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         keyboardDismissMode={keyboardDismissMode}
         showsVerticalScrollIndicator={showsVerticalScrollIndicator}

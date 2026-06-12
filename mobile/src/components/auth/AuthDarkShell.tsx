@@ -270,7 +270,7 @@ const s = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    maxWidth: 480,
+    maxWidth: 560,
     alignSelf: "center",
     width: "100%",
   },

@@ -11,9 +11,11 @@ import { safeRouterBack } from "../src/navigation/safeRouterBack";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 
 export default function ChangePasswordScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t } = useTranslation("common");
   const { applyTokens } = useAuthSession();
   const [current, setCurrent] = useState("");
@@ -26,7 +28,11 @@ export default function ChangePasswordScreen() {
     () =>
       StyleSheet.create({
         flex: { flex: 1, backgroundColor: c.bg },
-        container: { padding: spacing.xxl, paddingTop: spacing.lg },
+        container: {
+          padding: spacing.xxl,
+          paddingHorizontal: spacing.xxl + gutter,
+          paddingTop: spacing.lg,
+        },
         errorBanner: {
           backgroundColor: c.errorBg,
           borderRadius: radius.md,
@@ -35,7 +41,7 @@ export default function ChangePasswordScreen() {
         },
         errorText: { color: c.error, fontSize: typography.sm },
       }),
-    [c],
+    [c, gutter],
   );
 
   const onSubmit = async () => {

@@ -34,6 +34,7 @@ import { brand } from "../src/theme/brand";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import type { ThemeColors } from "../src/theme/palettes";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 
 const HISTORY_STORAGE_KEY = "garzoni:chat:history:v1";
 const HISTORY_LIMIT = 20;
@@ -199,6 +200,7 @@ function TypingBubble({ styles }: { styles: Styles }) {
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ChatScreen() {
   const colors = useThemeColors();
+  const gutter = useScreenGutter();
   const { t } = useTranslation("common");
   const { accessToken } = useAuthSession();
   const isAuthenticated = Boolean(accessToken);
@@ -628,7 +630,10 @@ export default function ChatScreen() {
         <ScrollView
           ref={scrollRef}
           style={styles.flex}
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingHorizontal: spacing.md + gutter },
+          ]}
           onContentSizeChange={() =>
             scrollRef.current?.scrollToEnd({ animated: true })
           }

@@ -23,11 +23,13 @@ import { useThemeColors } from "../../../src/theme/ThemeContext";
 import GlassCard from "../../../src/components/ui/GlassCard";
 import { Skeleton } from "../../../src/components/ui";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { useScreenGutter } from "../../../src/utils/platform";
 import { leaderboardAvatarUri } from "../../../src/components/leaderboard/leaderboardAvatarUri";
 
 const DURATIONS: DuelDuration[] = [24, 72, 168];
 
 export default function NewDuelScreen() {
+  const gutter = useScreenGutter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const opponentId = Number(id);
   const c = useThemeColors();
@@ -85,7 +87,10 @@ export default function NewDuelScreen() {
       />
       <ScrollView
         style={{ flex: 1, backgroundColor: c.bg }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
       >
         {profileQuery.isPending ? (
           <View style={{ alignItems: "center" }}>

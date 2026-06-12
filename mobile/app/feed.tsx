@@ -19,6 +19,7 @@ import { useThemeColors } from "../src/theme/ThemeContext";
 import GlassCard from "../src/components/ui/GlassCard";
 import { ErrorState, Skeleton } from "../src/components/ui";
 import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
 import { leaderboardAvatarUri } from "../src/components/leaderboard/leaderboardAvatarUri";
 
 function eventLine(
@@ -61,6 +62,7 @@ function timeAgo(iso: string | null): string {
 
 export default function FeedScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t } = useTranslation("common");
 
   const feedQuery = useQuery({
@@ -97,6 +99,7 @@ export default function FeedScreen() {
             keyExtractor={(_, idx) => String(idx)}
             contentContainerStyle={{
               padding: spacing.xl,
+              paddingHorizontal: spacing.xl + gutter,
               gap: spacing.md,
               paddingBottom: spacing.xxxl,
             }}

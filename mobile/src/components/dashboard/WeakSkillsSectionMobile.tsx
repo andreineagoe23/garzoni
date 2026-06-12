@@ -6,6 +6,7 @@ import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import GlassButton from "../ui/GlassButton";
 import { spacing, typography, radius } from "../../theme/tokens";
+import { gridFlexBasis, useResponsive } from "../../utils/platform";
 import ErrorState from "../ui/ErrorState";
 
 function formatPct(n: number, locale?: string) {
@@ -64,6 +65,18 @@ export default function WeakSkillsSectionMobile({
 }: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
+  const { gridColumns } = useResponsive();
+
+  // Phone: stacked single column. Tablet: 2-up. Large tablet: 3-up.
+  const cols = gridColumns(1, 2, 3);
+  const gridStyle =
+    cols > 1
+      ? [styles.grid, styles.gridRow]
+      : styles.grid;
+  const cardWidthStyle =
+    cols > 1
+      ? { flexBasis: gridFlexBasis(cols), flexGrow: 1, minWidth: 0 }
+      : null;
 
   if (!show) return null;
 
@@ -100,12 +113,13 @@ export default function WeakSkillsSectionMobile({
         <Text style={[styles.focus, { color: c.textMuted }]}>
           {t("dashboard.weakSkills.strongest.subtitle")}
         </Text>
-        <View style={styles.grid}>
+        <View style={gridStyle}>
           {strongestSkills.slice(0, 3).map((skill) => (
             <View
               key={skill.skill}
               style={[
                 styles.skillCard,
+                cardWidthStyle,
                 { borderColor: c.border, backgroundColor: c.surface },
               ]}
             >
@@ -149,7 +163,7 @@ export default function WeakSkillsSectionMobile({
       <Text style={[styles.focus, { color: c.textMuted }]}>
         {t("dashboard.weakSkills.focusOnSkills")}
       </Text>
-      <View style={styles.grid}>
+      <View style={gridStyle}>
         {weakestSkills.map((skill) => {
           const pill = pillFor(skill);
           const { ctaLabel, preview } = weakSkillNextStepLabels(
@@ -187,6 +201,7 @@ export default function WeakSkillsSectionMobile({
               key={skill.skill}
               style={[
                 styles.skillCard,
+                cardWidthStyle,
                 { borderColor: c.border, backgroundColor: c.surface },
               ]}
             >
@@ -292,6 +307,7 @@ const styles = StyleSheet.create({
   h2: { fontSize: typography.md, fontWeight: "800", marginBottom: spacing.sm },
   focus: { fontSize: typography.sm, marginBottom: spacing.md },
   grid: { gap: spacing.md },
+  gridRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" },
   skillCard: {
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,

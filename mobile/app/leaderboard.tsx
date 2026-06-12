@@ -36,6 +36,7 @@ import LeaderboardSelfBar from "../src/components/leaderboard/LeaderboardSelfBar
 import LeaderboardSearchResults from "../src/components/leaderboard/LeaderboardSearchResults";
 import LeaderboardSuggestionsCard from "../src/components/leaderboard/LeaderboardSuggestionsCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
+import { useScreenGutter } from "../src/utils/platform";
 import GlassCard from "../src/components/ui/GlassCard";
 import Skeleton from "../src/components/ui/Skeleton";
 import { spacing, typography, radius } from "../src/theme/tokens";
@@ -62,6 +63,7 @@ function currentUserIdFromProfile(
 
 export default function LeaderboardScreen() {
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t, i18n } = useTranslation("common");
   const queryClient = useQueryClient();
 
@@ -639,6 +641,7 @@ export default function LeaderboardScreen() {
             styles.content,
             {
               flexGrow: 1,
+              paddingHorizontal: spacing.md + gutter,
               paddingBottom: pinnedSelf ? 100 : spacing.xxxl,
             },
           ]}

@@ -28,6 +28,7 @@ import { useThemeColors } from "../../src/theme/ThemeContext";
 import { ErrorState, Skeleton } from "../../src/components/ui";
 import GlassCard from "../../src/components/ui/GlassCard";
 import { spacing, typography, radius } from "../../src/theme/tokens";
+import { useScreenGutter } from "../../src/utils/platform";
 import { leaderboardAvatarUri } from "../../src/components/leaderboard/leaderboardAvatarUri";
 
 const CANONICAL_SKILLS = [
@@ -75,6 +76,7 @@ export default function FriendProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const userId = Number(id);
   const c = useThemeColors();
+  const gutter = useScreenGutter();
   const { t, i18n } = useTranslation("common");
   const queryClient = useQueryClient();
 
@@ -150,7 +152,10 @@ export default function FriendProfileScreen() {
       />
       <ScrollView
         style={{ flex: 1, backgroundColor: c.bg }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: spacing.xl + gutter },
+        ]}
       >
         {profileQuery.isPending ? (
           <LoadingSkeleton />

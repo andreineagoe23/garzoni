@@ -6,7 +6,6 @@ import {
   SectionList,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { Chip } from "../../src/components/ui";
@@ -23,6 +22,7 @@ import {
 } from "../../src/components/tools/mobileToolsRegistry";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
+import { gridItemWidth, useResponsive } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
@@ -37,18 +37,23 @@ const ALL_GROUPS: ToolGroup[] = [
 
 type FilterOption = ToolGroup | "all";
 
-type ToolPair = [MobileToolDef, MobileToolDef | null];
+type ToolRow = (MobileToolDef | null)[];
 
 type Section = {
   group: ToolGroup;
-  data: ToolPair[];
+  data: ToolRow[];
 };
 
 export default function ToolsHubScreen() {
   const c = useThemeColors();
   const { t } = useTranslation("common");
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, isTablet, gutter, gridColumns } = useResponsive();
+  const horizontalPad = spacing.xl + (isTablet ? gutter : 0);
+  const availableWidth = width - horizontalPad * 2;
+  // Phone: 2-up. Tablet: 3-up. Large tablet: 4-up.
+  const columns = gridColumns(2, 3, 4);
+  const cardWidth = gridItemWidth(availableWidth, columns, spacing.md);
   const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
 
@@ -67,14 +72,16 @@ export default function ToolsHubScreen() {
     )
       .map((g) => {
         const tools = MOBILE_TOOLS.filter((t) => t.group === g);
-        const pairs: ToolPair[] = [];
-        for (let i = 0; i < tools.length; i += 2) {
-          pairs.push([tools[i], tools[i + 1] ?? null]);
+        const rows: ToolRow[] = [];
+        for (let i = 0; i < tools.length; i += columns) {
+          const row: ToolRow = tools.slice(i, i + columns);
+          while (row.length < columns) row.push(null);
+          rows.push(row);
         }
-        return { group: g, data: pairs };
+        return { group: g, data: rows };
       })
       .filter((s) => s.data.length > 0);
-  }, [activeFilter]);
+  }, [activeFilter, columns]);
 
   const filters: FilterOption[] = ["all", ...ALL_GROUPS];
 
@@ -90,7 +97,10 @@ export default function ToolsHubScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
+        contentContainerStyle={[
+          styles.filterRow,
+          { paddingHorizontal: horizontalPad },
+        ]}
       >
         {filters.map((f) => {
           const label =
@@ -108,20 +118,21 @@ export default function ToolsHubScreen() {
         })}
       </ScrollView>
 
-      {/* Grouped tool grid */}
+      {/* Grouped tool grid — fluid width, reflows columns on iPad */}
       <SectionList
         sections={sections}
-        keyExtractor={([a, b]) => `${a.id}-${b?.id ?? "empty"}`}
-        contentContainerStyle={styles.list}
+        keyExtractor={(row) => row.map((tl) => tl?.id ?? "empty").join("-")}
+        contentContainerStyle={[
+          styles.list,
+          { paddingHorizontal: horizontalPad },
+        ]}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) => (
           <Text style={[styles.sectionHeader, { color: c.textFaint }]}>
             {t(`tools.groups.${section.group}.title`).toUpperCase()}
           </Text>
         )}
-        renderItem={({ item: [left, right] }) => {
-          const cardWidth = (width - spacing.xl * 2 - spacing.md) / 2;
-
+        renderItem={({ item: row }) => {
           const renderCard = (tool: MobileToolDef) => {
             const locked = !!tool.plusOnly && !hasPlus;
             return (
@@ -161,12 +172,14 @@ export default function ToolsHubScreen() {
 
           return (
             <View style={[styles.row, { marginBottom: spacing.md }]}>
-              <View style={{ width: cardWidth, minHeight: 140 }}>
-                {renderCard(left)}
-              </View>
-              <View style={{ width: cardWidth, minHeight: 140 }}>
-                {right ? renderCard(right) : null}
-              </View>
+              {row.map((tool, i) => (
+                <View
+                  key={tool?.id ?? `empty-${i}`}
+                  style={{ width: cardWidth, minHeight: 140 }}
+                >
+                  {tool ? renderCard(tool) : null}
+                </View>
+              ))}
             </View>
           );
         }}
@@ -185,13 +198,11 @@ export default function ToolsHubScreen() {
 
 const styles = StyleSheet.create({
   filterRow: {
-    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     gap: spacing.sm,
     alignItems: "center",
   },
   list: {
-    paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxxxl,
   },
   sectionHeader: {
