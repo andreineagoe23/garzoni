@@ -150,7 +150,7 @@ export default function PersonalizedPathContentMobile({
       fetchProgressSummary().then((r) => r.data as ProgressSummary),
     enabled: isAuthenticated && questionnaireCompleted,
     staleTime: staleTimes.progressSummary,
-    refetchInterval: 20_000,
+    // No polling — invalidation after completion + focus refetch keep this fresh.
   });
 
   const refreshMutation = useMutation({

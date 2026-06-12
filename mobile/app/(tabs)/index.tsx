@@ -36,6 +36,7 @@ import DashboardActivityHeatmap, {
   type ActivityDaySummary,
 } from "../../src/components/dashboard/DashboardActivityHeatmap";
 import { useAuthSession } from "../../src/auth/AuthContext";
+import { userIdFromAccessToken } from "../../src/auth/jwtClaims";
 import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import type { DashboardWeakSkill } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../src/theme/ThemeContext";
@@ -242,14 +243,18 @@ function DashboardInner() {
   const launchSyncRanRef = useRef(false);
   useEffect(() => {
     if (launchSyncRanRef.current) return;
-    if (!authReady || !accessToken || !profilePayload?.user) return;
+    if (!authReady || !accessToken) return;
+    // PK from profile payload, else from the JWT user_id claim — RC must be
+    // logged in as the numeric PK or the backend reconcile can't find the
+    // subscriber (it only queries str(user.pk)).
+    const userId =
+      profilePayload?.user?.id?.toString() ??
+      userIdFromAccessToken(accessToken);
+    if (!userId) return;
     launchSyncRanRef.current = true;
     void import("../../src/billing/subscriptionRuntime").then(
       ({ syncEntitlementOnLaunch }) => {
-        void syncEntitlementOnLaunch(
-          queryClient,
-          profilePayload.user?.toString(),
-        );
+        void syncEntitlementOnLaunch(queryClient, userId);
       },
     );
   }, [authReady, accessToken, profilePayload?.user, queryClient]);
@@ -573,24 +578,26 @@ function DashboardInner() {
     }
   }, [primaryCTASignal, t]);
 
-  const refreshing =
-    progressQuery.isFetching ||
-    profileQuery.isFetching ||
-    activityHeatmapQuery.isFetching ||
-    missionsQuery.isFetching ||
-    reviewQuery.isFetching ||
-    masteryQuery.isFetching ||
-    entitlementsQuery.isFetching;
+  // Spinner shows only during an explicit pull. Binding it to query.isFetching
+  // made the spinner drop down on its own whenever a background refetch ran.
+  const [pullRefreshing, setPullRefreshing] = useState(false);
 
-  const onRefresh = useCallback(() => {
-    void progressQuery.refetch();
-    void profileQuery.refetch();
-    void activityHeatmapQuery.refetch();
-    void missionsQuery.refetch();
-    void reviewQuery.refetch();
-    void masteryQuery.refetch();
-    void entitlementsQuery.refetch();
-    void questionnaireQuery.refetch();
+  const onRefresh = useCallback(async () => {
+    setPullRefreshing(true);
+    try {
+      await Promise.all([
+        progressQuery.refetch(),
+        profileQuery.refetch(),
+        activityHeatmapQuery.refetch(),
+        missionsQuery.refetch(),
+        reviewQuery.refetch(),
+        masteryQuery.refetch(),
+        entitlementsQuery.refetch(),
+        questionnaireQuery.refetch(),
+      ]);
+    } finally {
+      setPullRefreshing(false);
+    }
   }, [
     progressQuery,
     profileQuery,
@@ -746,8 +753,8 @@ function DashboardInner() {
         contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
+            refreshing={pullRefreshing}
+            onRefresh={() => void onRefresh()}
             tintColor={c.primary}
           />
         }

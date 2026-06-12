@@ -1,3 +1,5 @@
+import { computeCourseProgress } from "@garzoni/core";
+
 type NumericLike = number | string | null | undefined;
 
 export type CourseProgressLike = {
@@ -29,12 +31,9 @@ function clampPercent(value: NumericLike) {
   return Math.min(100, Math.max(0, n));
 }
 
-function calculatePercent(completed: NumericLike, total: NumericLike) {
-  const c = Number(completed);
-  const t = Number(total);
-  if (!Number.isFinite(t) || t <= 0) return 0;
-  if (!Number.isFinite(c) || c <= 0) return 0;
-  return clampPercent((c / t) * 100);
+function toNum(value: NumericLike): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 export function getCourseLessonCount(
@@ -55,29 +54,18 @@ export function getCourseLessonCount(
 
 function courseProgressPercent(course: CourseProgressLike | undefined): number {
   if (!course) return 0;
-
-  const sectionPct = calculatePercent(
-    course.completed_sections ?? course.completedSections ?? null,
-    course.total_sections ?? course.totalSections ?? null,
-  );
-  if (
-    sectionPct > 0 ||
-    Number(course.total_sections ?? course.totalSections) > 0
-  ) {
-    return sectionPct;
-  }
-
-  const totalLessons =
-    course.total_lessons ??
-    course.totalLessons ??
-    course.lesson_count ??
-    course.lessonCount ??
-    (Array.isArray(course.lessons) ? course.lessons.length : null);
-
-  return calculatePercent(
-    course.completed_lessons ?? course.completedLessons ?? null,
-    totalLessons,
-  );
+  // Single source of truth (@garzoni/core): section-based, lessons as fallback.
+  const lessonTotal = getCourseLessonCount(course);
+  return computeCourseProgress({
+    completed_sections: toNum(
+      course.completed_sections ?? course.completedSections,
+    ),
+    total_sections: toNum(course.total_sections ?? course.totalSections),
+    completed_lessons: toNum(
+      course.completed_lessons ?? course.completedLessons,
+    ),
+    total_lessons: lessonTotal > 0 ? lessonTotal : null,
+  }).percent;
 }
 
 /** 0–100, rounded — average progress across courses in the path. */

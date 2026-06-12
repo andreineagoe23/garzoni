@@ -45,6 +45,7 @@ import {
   waitForActiveSubscription,
 } from "../src/billing/subscriptionRuntime";
 import { useAuthSession } from "../src/auth/AuthContext";
+import { userIdFromAccessToken } from "../src/auth/jwtClaims";
 
 // ─── Design constants (brand-specific, always dark) ──────────────────────────
 
@@ -609,9 +610,15 @@ export default function SubscriptionsScreen() {
   const currentPlan = planFromEntitlements(entQ.data);
   const currentInterval = intervalFromEntitlements(entQ.data);
 
+  // RevenueCat appUserID must be the numeric Django PK (backend silently
+  // skips non-digit ids). Prefer profile.user.id; fall back to the JWT
+  // user_id claim so an authenticated user is never left anonymous in RC.
+  const backendUserId =
+    profileQ.data?.user?.id?.toString() ?? userIdFromAccessToken(accessToken);
+
   const loadOfferings = useCallback(async () => {
     if (!rcNative) return;
-    const userId = profileQ.data?.user?.toString();
+    const userId = backendUserId;
     if (!configureRevenueCatForUser(userId)) {
       setLoading(false);
       return;
@@ -634,7 +641,7 @@ export default function SubscriptionsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [profileQ.data?.user, rcNative]);
+  }, [backendUserId, rcNative]);
 
   useEffect(() => {
     if (!rcNative) return;
@@ -642,13 +649,7 @@ export default function SubscriptionsScreen() {
     // When authenticated, wait for profile so RC is configured with the correct user ID.
     if (accessToken && !profileQ.isFetched) return;
     void loadOfferings();
-  }, [
-    loadOfferings,
-    accessToken,
-    profileQ.isFetched,
-    profileQ.data?.user,
-    rcNative,
-  ]);
+  }, [loadOfferings, accessToken, profileQ.isFetched, rcNative]);
 
   const onPurchase = useCallback(
     async (tier: Tier, pkg: PurchasesPackage) => {
@@ -657,6 +658,29 @@ export default function SubscriptionsScreen() {
       setPurchasingTier(tier);
       setPurchaseError(null);
       try {
+        // 0. Identity MUST be the numeric Django PK before purchasing, so the
+        //    receipt + webhook are attributed to the user the backend grants by
+        //    (str(user.pk)). Never purchase under an anonymous RC session.
+        const userId = backendUserId;
+        if (accessToken && !userId) {
+          // Authenticated but no resolvable PK — an anonymous purchase here
+          // would be unrecoverable by the backend. Refuse instead.
+          setPurchaseError(
+            "We couldn't link your account for this purchase. Please restart the app and try again.",
+          );
+          setPurchaseStep("error");
+          return;
+        }
+        if (configureRevenueCatForUser(userId) && userId) {
+          await identifyRevenueCatUser(userId);
+        }
+        if (__DEV__) {
+          const appUserId = await rc.Purchases.getAppUserID().catch(() => "?");
+          console.log(
+            `[Garzoni] pre-purchase identity → profile.user.id=${userId ?? "MISSING"} rcAppUserID=${appUserId}`,
+          );
+        }
+
         // 1. Apple's native purchase flow (RC SDK shows the system overlay)
         await rc.Purchases.purchasePackage(pkg);
 
@@ -704,7 +728,7 @@ export default function SubscriptionsScreen() {
         setPurchaseStep("error");
       }
     },
-    [isPaywall, queryClient],
+    [isPaywall, queryClient, backendUserId, accessToken],
   );
 
   const onRetrySync = useCallback(async () => {
@@ -750,6 +774,14 @@ export default function SubscriptionsScreen() {
     if (!rc) return;
     setRestoring(true);
     try {
+      // Ensure RC is logged in as the numeric PK BEFORE restoring, so the
+      // restored entitlement lands on the subscriber the backend reconcile
+      // queries (str(user.pk)). Otherwise restore attaches to an anonymous
+      // session and the grant never reaches the account.
+      const userId = backendUserId;
+      if (configureRevenueCatForUser(userId) && userId) {
+        await identifyRevenueCatUser(userId);
+      }
       await rc.Purchases.restorePurchases();
       const entitlements = await waitForActiveSubscription(queryClient, {
         maxAttempts: 3,
@@ -774,7 +806,7 @@ export default function SubscriptionsScreen() {
     } finally {
       setRestoring(false);
     }
-  }, [queryClient]);
+  }, [queryClient, backendUserId]);
 
   const onManageStore = useCallback(async () => {
     const url =
@@ -787,7 +819,7 @@ export default function SubscriptionsScreen() {
   const onRedeemCode = useCallback(async () => {
     const rc = getRevenueCatPurchases();
     if (!rc) return;
-    const userId = profileQ.data?.user?.toString();
+    const userId = backendUserId;
     if (!configureRevenueCatForUser(userId)) return;
     if (userId) {
       await identifyRevenueCatUser(userId);
@@ -860,7 +892,7 @@ export default function SubscriptionsScreen() {
       );
       setPurchaseStep("error");
     }
-  }, [isPaywall, profileQ.data?.user, queryClient]);
+  }, [isPaywall, backendUserId, queryClient]);
 
   const plusPkg = pickPackage(plusPkgs ?? undefined, cycle);
   const proPkg = pickPackage(proPkgs ?? undefined, cycle);

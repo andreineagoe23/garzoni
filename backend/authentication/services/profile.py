@@ -201,7 +201,7 @@ def build_profile_payload(user, profile: UserProfile):
 
     cache_ttl = int(getattr(settings, "USER_PROFILE_CACHE_TTL_SECONDS", 300))
     # Bump when profile shape changes so stale Redis entries cannot omit calendar breakdown.
-    cache_key = f"user_profile_summary:v4:{user.id}:{first_day.isoformat()}"
+    cache_key = f"user_profile_summary:v5:{user.id}:{first_day.isoformat()}"
     cached = cache.get(cache_key)
     if cached:
         return cached
@@ -216,6 +216,16 @@ def build_profile_payload(user, profile: UserProfile):
 
     display = user_display_dict(user)
     payload = {
+        "id": user.id,
+        # Mobile/web read the numeric PK at user.id — it is the RevenueCat
+        # appUserID (backend grant path only resolves str(user.pk)).
+        "user": {
+            "id": user.id,
+            "username": display["username"],
+            "email": user.email,
+            "first_name": display["first_name"],
+            "last_name": display["last_name"],
+        },
         "username": display["username"],
         "email": user.email,
         "first_name": display["first_name"],

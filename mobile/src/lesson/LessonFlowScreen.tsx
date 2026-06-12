@@ -21,6 +21,9 @@ import {
   queryKeys,
   staleTimes,
   fetchProfile,
+  fetchPersonalizedPath,
+  getNextPersonalizedPathCourse,
+  completeCourse,
   buildSkillPracticeHref,
   COURSE_TO_TOOL_CTA,
   getToolPracticeCtaForSkill,
@@ -43,7 +46,10 @@ import { useLessonFlow, type FlowItem } from "./useLessonFlow";
 import LessonCheckpointModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointModal";
-import { fetchLessonCheckpointQuizzes } from "@garzoni/core";
+import {
+  fetchLessonCheckpointQuizzes,
+  fetchQuizzesForCourse,
+} from "@garzoni/core";
 import { spacing, typography, radius, shadows } from "../theme/tokens";
 import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
@@ -245,7 +251,6 @@ export default function LessonFlowScreen({
     isFirst,
     isLast,
     totalSteps,
-    completedSteps,
     completedIds,
     courseComplete,
     goNext,
@@ -265,12 +270,100 @@ export default function LessonFlowScreen({
   } = useHearts({ enabled: true, refetchIntervalMs: 30_000 });
   const showHeartsUi = useShowHeartsMobile();
 
+  const personalizedPathQuery = useQuery({
+    queryKey: queryKeys.personalizedPath(),
+    queryFn: () => fetchPersonalizedPath().then((r) => r.data),
+    staleTime: 60_000,
+  });
+
+  const nextPathCourse = useMemo(
+    () =>
+      getNextPersonalizedPathCourse(
+        personalizedPathQuery.data?.courses ?? [],
+        courseId,
+      ),
+    [personalizedPathQuery.data?.courses, courseId],
+  );
+
+  // Fires once per mount. Finishing a course marks EVERY published section
+  // complete server-side (closes the resume-gap), then refreshes the views that
+  // drive the journey tile. MUST run before navigating to the next course —
+  // otherwise advancing away skips it and the tile never flips to done.
+  const courseCompleteFiredRef = useRef(false);
+  const finishCourse = useCallback(async () => {
+    if (!courseCompleteFiredRef.current && Number.isFinite(courseId)) {
+      courseCompleteFiredRef.current = true;
+      try {
+        await completeCourse(courseId);
+      } catch {
+        // Non-fatal: per-section saves already happened; tile may lag a refresh.
+      }
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.personalizedPath() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.learningPaths() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() }),
+    ]);
+  }, [courseId, queryClient]);
+
+  const goToNextPathCourse = useCallback(async () => {
+    const nextId = nextPathCourse?.id;
+    if (!nextId) return false;
+    router.replace(`/flow/${nextId}`);
+    return true;
+  }, [nextPathCourse?.id]);
+
+  // Per-section saves only mark progress queries stale (no refetch) to avoid a
+  // request burst on every Continue tap. Flush ONE active refresh when the user
+  // leaves the flow mid-course, so dashboard/journey are fresh on return.
+  // Skipped when finishCourse already ran — that flush covers completion.
+  useEffect(() => {
+    return () => {
+      if (courseCompleteFiredRef.current) return;
+      void queryClient.invalidateQueries({ queryKey: queryKeys.personalizedPath() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.learningPaths() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.activityHeatmap() });
+      void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const advanceAfterStep = useCallback(async () => {
+    if (isLast) {
+      // Complete the current course FIRST so the tile is done before we leave.
+      await finishCourse();
+      if (await goToNextPathCourse()) return;
+      goNext();
+      return;
+    }
+    goNext();
+  }, [goNext, goToNextPathCourse, isLast, finishCourse]);
+
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(),
     queryFn: () => fetchProfile().then((r) => r.data),
     enabled: courseComplete,
     staleTime: staleTimes.profile,
   });
+
+  // Some courses only have section-checkpoint quizzes (source_lesson_section
+  // set); /quizzes/?course= excludes those, so the quiz screen would show
+  // "No quiz data available." Hide the CTA instead.
+  const courseQuizQuery = useQuery({
+    queryKey: queryKeys.courseQuiz(courseId),
+    queryFn: () =>
+      fetchQuizzesForCourse(courseId).then((r) =>
+        Array.isArray(r.data) ? r.data : [],
+      ),
+    enabled: courseComplete && Number.isFinite(courseId),
+    staleTime: staleTimes.content,
+  });
+  const hasCourseQuiz = (courseQuizQuery.data?.length ?? 0) > 0;
 
   const [outOfHeartsVisible, setOutOfHeartsVisible] = useState(false);
   const [fontScale, setFontScale] = useState(1);
@@ -450,21 +543,13 @@ export default function LessonFlowScreen({
   }, [outOfHeartsUntilTs]);
 
   useEffect(() => {
-    if (courseComplete) {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.progressSummary(),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.recentActivity(),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.learningPaths(),
-      });
-      void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
-      setTimeout(() => confettiRef.current?.start(), 400);
-    }
-  }, [courseComplete, queryClient]);
+    if (!courseComplete) return;
+    // Completion + invalidation already ran in finishCourse (before any
+    // navigation). The terminal "no next course" path lands here — also ensure
+    // the course is marked done, then celebrate.
+    void finishCourse();
+    setTimeout(() => confettiRef.current?.start(), 400);
+  }, [courseComplete, finishCourse]);
 
   const heartCountdown = useMemo(() => {
     if (
@@ -511,11 +596,11 @@ export default function LessonFlowScreen({
     }
     const cid = resolveCheckpointLessonId(items, idx, item);
     await waitLessonCheckpoint(cid);
-    goNext();
+    await advanceAfterStep();
   }, [
+    advanceAfterStep,
     currentIndex,
     flowItems,
-    goNext,
     handleCompleteCurrent,
     resolveCheckpointLessonId,
     t,
@@ -549,11 +634,22 @@ export default function LessonFlowScreen({
         Number.isFinite(sidNum) &&
         (currentItem.isCompleted || completedIds.has(`s-${sid}`));
       if (!done) {
-        goNext();
-        return;
+        // Continue past an unanswered exercise is a deliberate skip — still
+        // mark the section complete so reaching the end means all sections
+        // are done and the journey tile can reach 100%. (Previously only the
+        // final step saved on skip, so mid-course skips left progress stuck
+        // below 100% even at 45/45.)
+        const ok = await handleCompleteCurrent();
+        if (!ok) {
+          Alert.alert(
+            t("courses.flow.saveProgressAlertTitle"),
+            t("courses.flow.saveProgressFailed"),
+          );
+          return;
+        }
       }
       await waitLessonCheckpoint(resolveCheckpointLessonId(items, idx, item));
-      goNext();
+      await advanceAfterStep();
       return;
     }
     if (!currentItem.isCompleted) {
@@ -567,14 +663,14 @@ export default function LessonFlowScreen({
       }
     }
     await waitLessonCheckpoint(resolveCheckpointLessonId(items, idx, item));
-    goNext();
+    await advanceAfterStep();
   }, [
+    advanceAfterStep,
     completedIds,
     continueBusy,
     currentIndex,
     currentItem,
     flowItems,
-    goNext,
     handleCompleteCurrent,
     resolveCheckpointLessonId,
     t,
@@ -636,6 +732,19 @@ export default function LessonFlowScreen({
             : t("courses.flow.courseCompleteSubtitle")}
         </Text>
         <View style={styles.completeActions}>
+          {nextPathCourse?.id ? (
+            <Button onPress={() => void goToNextPathCourse()}>
+              {t("courses.flow.nextCourse")}
+            </Button>
+          ) : (
+            <Button
+              onPress={() =>
+                router.replace(href("/(tabs)/learn?view=personalized"))
+              }
+            >
+              {t("courses.flow.continueJourney")}
+            </Button>
+          )}
           {(() => {
             const cta = COURSE_TO_TOOL_CTA[courseId];
             const toolUrl =
@@ -659,9 +768,11 @@ export default function LessonFlowScreen({
               })}
             </Button>
           ) : null}
-          <Button onPress={() => router.push(`/quiz/${courseId}`)}>
-            {t("courses.flow.takeQuiz")}
-          </Button>
+          {hasCourseQuiz ? (
+            <Button onPress={() => router.push(`/quiz/${courseId}`)}>
+              {t("courses.flow.takeQuiz")}
+            </Button>
+          ) : null}
           <Button variant="secondary" onPress={() => router.replace("/(tabs)")}>
             {t("courses.flow.backToDashboard")}
           </Button>
@@ -676,8 +787,10 @@ export default function LessonFlowScreen({
     );
   }
 
-  const progress = totalSteps > 0 ? completedSteps / totalSteps : 0;
-  const stepPosition = totalSteps > 0 ? (currentIndex + 1) / totalSteps : 0;
+  // Bar tracks position through the flow (matches the "x / y sections"
+  // counter). Completion-based progress confused users: skipped exercises
+  // pinned the bar below 100% even on the last step.
+  const progress = totalSteps > 0 ? (currentIndex + 1) / totalSteps : 0;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>

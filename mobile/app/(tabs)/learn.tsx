@@ -8,7 +8,6 @@ import {
 } from "react";
 import {
   FlatList,
-  Image,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -28,8 +27,6 @@ import {
   fetchProfile,
   fetchProgressSummary,
   fetchQuestionnaireProgress,
-  getMediaBaseUrl,
-  Images,
   pathService,
   queryKeys,
   staleTimes,
@@ -40,8 +37,10 @@ import { ErrorState, SelectMenu, Skeleton } from "../../src/components/ui";
 import GlassCard from "../../src/components/ui/GlassCard";
 import GlassButton from "../../src/components/ui/GlassButton";
 import CourseCard from "../../src/components/learn/CourseCard";
+import PathSceneHeader from "../../src/components/learn/PathSceneHeader";
 import ContinueLearningCard from "../../src/components/learn/ContinueLearningCard";
 import PersonalizedPathContentMobile from "../../src/components/dashboard/PersonalizedPathContentMobile";
+import JourneyMapContent from "../../src/components/journey/JourneyMapContent";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { href } from "../../src/navigation/href";
@@ -87,22 +86,6 @@ type PathRow = {
   /** Included on GET /paths/ — use when /courses/?path= is slow or fails */
   courses?: CourseRow[];
 };
-
-function coverForPath(p: PathRow): string {
-  if (p.image) {
-    return p.image.startsWith("http")
-      ? p.image
-      : `${getMediaBaseUrl()}/media/${String(p.image).replace(/^\/+/, "")}`;
-  }
-  const title = (p.title ?? p.name ?? "").toLowerCase();
-  if (title.includes("crypto")) return Images.crypto;
-  if (title.includes("forex") || title.includes("fx")) return Images.forex;
-  if (title.includes("mindset")) return Images.mindset;
-  if (title.includes("real estate") || title.includes("property"))
-    return Images.realEstate;
-  if (title.includes("personal")) return Images.personalFinance;
-  return Images.basicFinance;
-}
 
 function courseTotalLessons(c: CourseRow): number {
   return c.total_lessons ?? c.lesson_count ?? 0;
@@ -169,12 +152,6 @@ function createLearnStyles(c: ThemeColors) {
       fontWeight: "600",
       marginTop: spacing.md,
     },
-    pathCover: {
-      width: "100%",
-      height: 96,
-      borderTopLeftRadius: radius.xl,
-      borderTopRightRadius: radius.xl,
-    },
     progressMeta: {
       fontSize: typography.xs,
       fontWeight: "600",
@@ -190,10 +167,10 @@ function createLearnStyles(c: ThemeColors) {
       flexDirection: "row",
       gap: spacing.sm,
       marginBottom: spacing.md,
-      flexWrap: "wrap",
       alignItems: "flex-start",
     },
-    segmentPersonalized: { flex: 1, minWidth: 140, gap: spacing.xs },
+    segmentItem: { flex: 1, minWidth: 0, gap: spacing.xs },
+    segmentBtn: { width: "100%" },
     onboardingBadge: {
       alignSelf: "flex-start",
       paddingHorizontal: spacing.sm,
@@ -207,8 +184,14 @@ function createLearnStyles(c: ThemeColors) {
     },
     personalizedLoading: {
       flex: 1,
-      paddingHorizontal: spacing.md,
+      paddingHorizontal: spacing.xl,
       paddingTop: spacing.md,
+    },
+    modeRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.xl,
+      paddingBottom: spacing.sm,
     },
   });
 }
@@ -221,6 +204,9 @@ function LearnInner() {
   const { t } = useTranslation("common");
 
   const [activeView, setActiveView] = useState<LearnActiveView>("all-topics");
+  const [personalizedMode, setPersonalizedMode] = useState<"journey" | "list">(
+    "journey",
+  );
   const { expandPath, view, session_id } = useLocalSearchParams<{
     expandPath?: string;
     view?: string;
@@ -263,6 +249,7 @@ function LearnInner() {
   const [pathSortBy, setPathSortBy] = useState("default");
   const [pathListFilter, setPathListFilter] = useState("all");
   const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const lastExpandParamHandledRef = useRef<string | null>(null);
 
   const pathsQuery = useQuery<PathRow[]>({
@@ -535,26 +522,45 @@ function LearnInner() {
     [t],
   );
 
-  const onRefreshPersonalized = useCallback(() => {
-    void profileQuery.refetch();
-    void questionnaireQuery.refetch();
-    void progressQuery.refetch();
-    void queryClient.invalidateQueries({
-      queryKey: queryKeys.personalizedPath(),
-    });
+  const onRefreshPersonalized = useCallback(async () => {
+    setPullRefreshing(true);
+    try {
+      await Promise.all([
+        profileQuery.refetch(),
+        questionnaireQuery.refetch(),
+        progressQuery.refetch(),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.personalizedPath(),
+        }),
+      ]);
+    } finally {
+      setPullRefreshing(false);
+    }
   }, [profileQuery, questionnaireQuery, progressQuery, queryClient]);
+
+  const onRefreshAllTopics = useCallback(async () => {
+    setPullRefreshing(true);
+    try {
+      await Promise.all([pathsQuery.refetch(), progressQuery.refetch()]);
+    } finally {
+      setPullRefreshing(false);
+    }
+  }, [pathsQuery, progressQuery]);
 
   const segmentRow = useMemo(
     () => (
       <View style={styles.segmentRow}>
-        <GlassButton
-          variant={activeView === "all-topics" ? "active" : "ghost"}
-          size="sm"
-          onPress={() => setActiveView("all-topics")}
-        >
-          {t("dashboard.nav.allTopics")}
-        </GlassButton>
-        <View style={styles.segmentPersonalized}>
+        <View style={styles.segmentItem}>
+          <GlassButton
+            variant={activeView === "all-topics" ? "active" : "ghost"}
+            size="sm"
+            onPress={() => setActiveView("all-topics")}
+            style={styles.segmentBtn}
+          >
+            {t("dashboard.nav.allTopics")}
+          </GlassButton>
+        </View>
+        <View style={styles.segmentItem}>
           <GlassButton
             variant={activeView === "personalized-path" ? "active" : "ghost"}
             size="sm"
@@ -563,6 +569,7 @@ function LearnInner() {
               Boolean(accessToken) &&
               (profileQuery.isPending || profileQuery.isFetching)
             }
+            style={styles.segmentBtn}
           >
             {t("dashboard.nav.personalizedPath")}
           </GlassButton>
@@ -594,7 +601,8 @@ function LearnInner() {
       questionnaireCompletedForUi,
       styles.onboardingBadge,
       styles.onboardingBadgeText,
-      styles.segmentPersonalized,
+      styles.segmentBtn,
+      styles.segmentItem,
       styles.segmentRow,
       t,
     ],
@@ -651,7 +659,12 @@ function LearnInner() {
   if (activeView === "all-topics" && pathsQuery.isPending) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.headerPad, { paddingBottom: spacing.sm }]}>
+        <View
+          style={[
+            styles.headerPad,
+            { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+          ]}
+        >
           {segmentRow}
         </View>
         <View style={styles.loadingWrap}>
@@ -671,7 +684,12 @@ function LearnInner() {
   if (activeView === "all-topics" && pathsQuery.isError) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.headerPad, { paddingBottom: spacing.sm }]}>
+        <View
+          style={[
+            styles.headerPad,
+            { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+          ]}
+        >
           {segmentRow}
         </View>
         <ErrorState
@@ -689,11 +707,23 @@ function LearnInner() {
         entitlementsQuery.isPending ||
         questionnaireQuery.isPending);
 
+    // Full-bleed journey: the map's own header carries the view switchers,
+    // so the segment + mode rows are hidden to give the climb the screen.
+    const journeyFullBleed =
+      hasPlusAccess && !personalizedGatingWait && personalizedMode === "journey";
+
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={[styles.headerPad, { paddingBottom: spacing.sm }]}>
-          {segmentRow}
-        </View>
+        {journeyFullBleed ? null : (
+          <View
+            style={[
+              styles.headerPad,
+              { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
+            ]}
+          >
+            {segmentRow}
+          </View>
+        )}
         {personalizedGatingWait ? (
           <View style={styles.personalizedLoading}>
             {/* Hero card */}
@@ -715,30 +745,56 @@ function LearnInner() {
             ))}
           </View>
         ) : hasPlusAccess ? (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              paddingHorizontal: spacing.md,
-              paddingBottom: spacing.xxxl,
-            }}
-            refreshControl={
-              <RefreshControl
-                refreshing={
-                  profileQuery.isFetching ||
-                  questionnaireQuery.isFetching ||
-                  progressQuery.isFetching
-                }
-                onRefresh={onRefreshPersonalized}
-                tintColor={c.primary}
+          <View style={{ flex: 1 }}>
+            {personalizedMode === "journey" ? (
+              <JourneyMapContent
+                onCourseClick={(courseId) => {
+                  router.push(`/flow/${courseId}`);
+                }}
+                onSwitchToList={() => setPersonalizedMode("list")}
+                onShowAllTopics={() => setActiveView("all-topics")}
               />
-            }
-          >
-            <PersonalizedPathContentMobile
-              onCourseClick={(courseId) => {
-                router.push(`/flow/${courseId}`);
-              }}
-            />
-          </ScrollView>
+            ) : (
+              <>
+                <View style={styles.modeRow}>
+                  <GlassButton
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => setPersonalizedMode("journey")}
+                  >
+                    {t("journey.modeJourney", { defaultValue: "Journey" })}
+                  </GlassButton>
+                  <GlassButton
+                    variant="active"
+                    size="sm"
+                    onPress={() => setPersonalizedMode("list")}
+                  >
+                    {t("journey.modeList", { defaultValue: "List" })}
+                  </GlassButton>
+                </View>
+                <ScrollView
+                  style={{ flex: 1 }}
+                  contentContainerStyle={{
+                    paddingHorizontal: spacing.xl,
+                    paddingBottom: spacing.xxxl,
+                  }}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={pullRefreshing}
+                      onRefresh={() => void onRefreshPersonalized()}
+                      tintColor={c.primary}
+                    />
+                  }
+                >
+                  <PersonalizedPathContentMobile
+                    onCourseClick={(courseId) => {
+                      router.push(`/flow/${courseId}`);
+                    }}
+                  />
+                </ScrollView>
+              </>
+            )}
+          </View>
         ) : (
           <View style={styles.personalizedLoading}>
             <GlassCard
@@ -793,11 +849,8 @@ function LearnInner() {
       contentContainerStyle={styles.listContent}
       refreshControl={
         <RefreshControl
-          refreshing={pathsQuery.isFetching || progressQuery.isFetching}
-          onRefresh={() => {
-            void pathsQuery.refetch();
-            void progressQuery.refetch();
-          }}
+          refreshing={pullRefreshing}
+          onRefresh={() => void onRefreshAllTopics()}
           tintColor={c.primary}
         />
       }
@@ -851,7 +904,6 @@ function LearnInner() {
           item.id != null && Number(item.id) === Number(expandedPathId);
         const title = item.title ?? item.name ?? `Path ${item.id}`;
         const desc = item.description ?? "";
-        const coverUri = coverForPath(item);
         const pct = pathProgressPercent(item);
         return (
           <GlassCard padding="none" style={{ marginBottom: spacing.lg }}>
@@ -864,10 +916,10 @@ function LearnInner() {
                 item.id != null && togglePath(Number(item.id));
               }}
             >
-              <Image
-                source={{ uri: coverUri }}
-                style={styles.pathCover}
-                resizeMode="cover"
+              <PathSceneHeader
+                title={title}
+                pathId={item.id != null ? Number(item.id) : undefined}
+                progressPct={pct}
               />
               <View style={{ padding: spacing.md }}>
                 <Text

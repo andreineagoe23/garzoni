@@ -212,10 +212,14 @@ export function configureRevenueCatForUser(userId?: string) {
  */
 export async function identifyRevenueCatUser(userId: string): Promise<void> {
   const rc = getRevenueCatPurchases();
-  if (!rc || !revenueCatSdkReady) return;
+  if (!rc || !revenueCatSdkReady || !userId) return;
   try {
-    const anonymous = await rc.Purchases.isAnonymous();
-    if (anonymous) {
+    // logIn whenever the live RC appUserID isn't already this user — not only
+    // when anonymous. Covers the case where the SDK was configured directly as
+    // a different id; logIn transfers/aliases anonymous purchases to the PK so
+    // the backend reconcile (keyed on str(user.pk)) can find them.
+    const current = await rc.Purchases.getAppUserID();
+    if (current !== userId) {
       await rc.Purchases.logIn(userId);
     }
   } catch {
@@ -403,6 +407,11 @@ export async function syncEntitlementOnLaunch(
   const rc = getRevenueCatPurchases();
   if (!rc) return;
   if (!configureRevenueCatForUser(userId)) return;
+  // Log in as the numeric PK so RC's live appUserID is the user (not an
+  // anonymous session). logIn transfers any anonymous-session purchases onto
+  // the PK customer, which is the only id the backend reconcile queries.
+  // Without this, a purchase made while anonymous never reaches the account.
+  if (userId) await identifyRevenueCatUser(userId);
 
   try {
     const customerInfo = await rc.Purchases.getCustomerInfo();

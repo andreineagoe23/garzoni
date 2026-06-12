@@ -67,10 +67,42 @@ export function useLessonFlow(
 
   const flowEnabled = Number.isFinite(courseId) && courseId > 0;
 
-  const invalidatePathProgress = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: queryKeys.learningPaths() });
-    void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
-  }, [queryClient]);
+  // Mark progress queries stale WITHOUT refetching. Tab screens stay mounted
+  // in expo-router, so an active invalidation here would refetch ~7 endpoints
+  // on EVERY Continue tap (45 sections → hundreds of requests per course).
+  // The flow screen flushes one active invalidation burst on exit/finish.
+  const markProgressStale = useCallback(() => {
+    const opts = { refetchType: "none" as const };
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.lessonsWithProgress(courseId),
+      ...opts,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.progressSummary(),
+      ...opts,
+    });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.profile(), ...opts });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.activityHeatmap(),
+      ...opts,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.recentActivity(),
+      ...opts,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.personalizedPath(),
+      ...opts,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.learningPaths(),
+      ...opts,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["learningPathCourses"],
+      ...opts,
+    });
+  }, [queryClient, courseId]);
 
   const lessonsQuery = useQuery<FlowLesson[]>({
     queryKey: queryKeys.lessonsWithProgress(courseId),
@@ -95,10 +127,29 @@ export function useLessonFlow(
   const initialLessonId = options?.initialLessonId ?? null;
   const appliedInitialLessonRef = useRef(false);
 
-  // Restore saved flow position on first load (unless a lesson deep-link target is provided).
+  // Belt-and-braces alongside the `key={courseId}` remount in /flow/[id]:
+  // if this hook instance ever survives a course change, drop stale state so
+  // currentIndex/courseComplete from the previous course can't leak through.
+  const prevCourseIdRef = useRef(courseId);
+  useEffect(() => {
+    if (prevCourseIdRef.current === courseId) return;
+    prevCourseIdRef.current = courseId;
+    setCurrentIndex(0);
+    currentIndexRef.current = 0;
+    setCompletedIds(new Set());
+    setCourseComplete(false);
+    appliedInitialLessonRef.current = false;
+  }, [courseId]);
+
+  // Restore saved flow position on first load (unless a lesson deep-link target
+  // is provided). Restore only ONCE: a slow in-flight refetch resolving after
+  // the user has advanced must not yank them back to the older saved index.
+  const restoredRef = useRef(false);
   useEffect(() => {
     if (initialLessonId != null) return;
+    if (restoredRef.current) return;
     if (flowStateQuery.data != null && flowStateQuery.data > 0) {
+      restoredRef.current = true;
       setCurrentIndex(flowStateQuery.data);
     }
   }, [flowStateQuery.data, initialLessonId]);
@@ -200,22 +251,9 @@ export function useLessonFlow(
 
   const completeSectionMutation = useMutation({
     mutationFn: completeSection,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.lessonsWithProgress(courseId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.progressSummary(),
-      });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.activityHeatmap(),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.recentActivity(),
-      });
-      invalidatePathProgress();
-    },
+    // The flow UI tracks completion locally via completedIds; remote queries
+    // are only marked stale and refetch in one burst when the flow exits.
+    onSuccess: markProgressStale,
   });
 
   const completeLessonMutation = useMutation({
@@ -228,20 +266,7 @@ export function useLessonFlow(
       void import("../bootstrap/reviewPrompt").then(({ maybeRequestReview }) =>
         maybeRequestReview("lesson_complete"),
       );
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.lessonsWithProgress(courseId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.progressSummary(),
-      });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.activityHeatmap(),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.recentActivity(),
-      });
-      invalidatePathProgress();
+      markProgressStale();
     },
   });
 

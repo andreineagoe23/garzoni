@@ -21,6 +21,7 @@ from authentication.services.profile import invalidate_profile_cache
 
 from education.services.checkpoint_quizzes import ensure_checkpoint_quizzes_for_lesson
 from education.services.activity import record_activity
+from education import progress as progress_calc
 from education.services.ai_tutor import (
     generate_feedback as ai_generate_feedback,
     generate_hint as ai_generate_hint,
@@ -780,12 +781,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 .order_by("path__sort_order", "path_id", "order", "id")
             )
             course_ids = list(courses.values_list("id", flat=True))
-            section_counts = dict(
-                LessonSection.objects.filter(lesson__course_id__in=course_ids)
-                .values("lesson__course_id")
-                .annotate(c=Count("id"))
-                .values_list("lesson__course_id", "c")
-            )
+            section_counts = progress_calc.published_section_totals(course_ids)
             lesson_counts = dict(
                 Lesson.objects.filter(course_id__in=course_ids)
                 .values("course_id")
@@ -808,12 +804,12 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 total_sections = section_counts.get(course.id, 0)
                 total_lessons = lesson_counts.get(course.id, 0)
                 progress = progress_by_course.get(course.id)
-                # Use len() not .count() — prefetch_related already loaded these; .count() re-hits DB
-                completed_sections = len(progress.completed_sections.all()) if progress else 0
+                # Iterate the prefetched M2M (not .filter().count()) so this stays
+                # one query for all courses. Section-based, published-only — the
+                # single source of truth shared with PersonalizedPathView.
+                completed_sections = progress_calc.completed_published_section_count(progress)
                 completed_lessons = len(progress.completed_lessons.all()) if progress else 0
-                percent_complete = (
-                    (completed_sections / total_sections) * 100 if total_sections > 0 else 0
-                )
+                percent_complete = progress_calc.course_percent(completed_sections, total_sections)
                 total_completed_sections += completed_sections
                 total_sections_all += total_sections
                 total_completed_lessons += completed_lessons
@@ -833,7 +829,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 )
 
         # Global totals across ALL published content (not gated by plan).
-        global_total_sections = LessonSection.objects.filter(lesson__course__isnull=False).count()
+        global_total_sections = LessonSection.objects.filter(
+            lesson__course__isnull=False, is_published=True
+        ).count()
         global_total_lessons = Lesson.objects.filter(course__isnull=False).count()
 
         # Resume: last place in the flow (most recently updated flow position)
@@ -915,6 +913,27 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             return Response({"status": "Section completed"})
         except LessonSection.DoesNotExist:
             return Response({"error": "Invalid section"}, status=400)
+
+    @action(detail=False, methods=["post"], url_path="complete_course")
+    def complete_course(self, request):
+        """Mark every published section of a course complete (flow Finish).
+
+        Idempotent. Closes the resume-gap: finishing the flow lands the learner
+        at 100% even if earlier steps were skipped before the saved index.
+        """
+        course_id = request.data.get("course_id") or request.data.get("course")
+        if not course_id:
+            return Response({"error": "course_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            course = Course.objects.select_related("path").get(id=course_id)
+        except Course.DoesNotExist:
+            return Response({"error": "Course not found."}, status=404)
+        if course.path and not _user_can_access_path(request.user, course.path):
+            return _path_access_denied_response(course.path)
+        _complete_course_for_user(request.user, course)
+        invalidate_profile_cache(request.user)
+        cache.delete(f"progress_summary_{request.user.id}")
+        return Response({"status": "Course completed"})
 
     @action(detail=False, methods=["get", "post"], url_path="flow_state")
     def flow_state(self, request):
@@ -1536,6 +1555,62 @@ def _section_exercise_object_id(section: LessonSection) -> int:
     return int(section.id)
 
 
+def _maybe_mark_course_complete(user, user_progress, course) -> bool:
+    """Set ``is_course_complete`` (section-based) and grant one-time rewards.
+
+    Completion is defined in ``education.progress``: done once every published
+    section is complete. Idempotent — returns ``True`` only on the transition
+    from incomplete to complete. Shared by the section, lesson, and
+    complete-course write paths so the flag never depends on which one ran.
+    """
+    if user_progress.is_course_complete:
+        return False
+    total = progress_calc.published_section_totals([course.id]).get(course.id, 0)
+    completed = progress_calc.completed_published_section_count(user_progress)
+    if not progress_calc.course_is_complete(completed, total):
+        return False
+
+    user_progress.is_course_complete = True
+    user_progress.course_completed_at = timezone.now()
+    user_progress.save(update_fields=["is_course_complete", "course_completed_at"])
+
+    grant_reward(
+        user,
+        f"course_first_complete:{user.id}:{course.id}",
+        points=XP_COURSE_COMPLETE,
+        coins=COINS_COURSE_COMPLETE,
+        bump_streak="none",
+    )
+
+    path_missions = MissionCompletion.objects.filter(
+        user=user,
+        mission__goal_type="complete_path",
+        status__in=["not_started", "in_progress"],
+    )
+    for mission_completion in path_missions:
+        mission_completion.update_progress()
+
+    path = course.path
+    if path:
+        courses_in_path = Course.objects.filter(path=path)
+        n_courses = courses_in_path.count()
+        if n_courses > 0:
+            completed_path_courses = UserProgress.objects.filter(
+                user=user,
+                course__in=courses_in_path,
+                is_course_complete=True,
+            ).count()
+            if completed_path_courses == n_courses:
+                grant_reward(
+                    user,
+                    f"path_first_complete:{user.id}:{path.id}",
+                    points=XP_PATH_COMPLETE,
+                    coins=COINS_PATH_COMPLETE,
+                    bump_streak="none",
+                )
+    return True
+
+
 def _complete_section_for_user(user, section: LessonSection):
     """Shared section completion flow used by both userprogress and lessons endpoints."""
     progress, _ = UserProgress.objects.get_or_create(user=user, course=section.lesson.course)
@@ -1591,6 +1666,9 @@ def _complete_section_for_user(user, section: LessonSection):
                         user.id,
                         exc_info=True,
                     )
+        # Completing the last published section finishes the course — no longer
+        # gated on a separate lesson-completion call.
+        _maybe_mark_course_complete(user, progress, section.lesson.course)
     return progress, was_new_section
 
 
@@ -1601,7 +1679,6 @@ def _complete_lesson_for_user(user, lesson: Lesson):
         user_progress, _ = UserProgress.objects.select_for_update().get_or_create(
             user=user, course=course
         )
-        was_already_course_complete = user_progress.is_course_complete
         was_lesson_new = not user_progress.completed_lessons.filter(pk=lesson.pk).exists()
 
         if was_lesson_new:
@@ -1666,56 +1743,31 @@ def _complete_lesson_for_user(user, lesson: Lesson):
             for mission_completion in lesson_missions:
                 mission_completion.update_progress()
 
-        total_lessons = course.lessons.count()
-        completed_lessons = user_progress.completed_lessons.count()
-        just_finished_course = (
-            was_lesson_new
-            and not was_already_course_complete
-            and total_lessons > 0
-            and completed_lessons == total_lessons
-        )
-
-        if just_finished_course:
-            grant_reward(
-                user,
-                f"course_first_complete:{user.id}:{course.id}",
-                points=XP_COURSE_COMPLETE,
-                coins=COINS_COURSE_COMPLETE,
-                bump_streak="none",
-            )
-            user_progress.is_course_complete = True
-            user_progress.course_completed_at = timezone.now()
-            user_progress.save(update_fields=["is_course_complete", "course_completed_at"])
-
-            path_missions = MissionCompletion.objects.filter(
-                user=user,
-                mission__goal_type="complete_path",
-                status__in=["not_started", "in_progress"],
-            )
-            for mission_completion in path_missions:
-                mission_completion.update_progress()
-
-            path = course.path
-            if path:
-                courses_in_path = Course.objects.filter(path=path)
-                n_courses = courses_in_path.count()
-                if n_courses > 0:
-                    completed_path_courses = UserProgress.objects.filter(
-                        user=user,
-                        course__in=courses_in_path,
-                        is_course_complete=True,
-                    ).count()
-                    if completed_path_courses == n_courses:
-                        grant_reward(
-                            user,
-                            f"path_first_complete:{user.id}:{path.id}",
-                            points=XP_PATH_COMPLETE,
-                            coins=COINS_PATH_COMPLETE,
-                            bump_streak="none",
-                        )
+        # Bulk-adding the lesson's sections above may have completed the course;
+        # completion is section-based (education.progress), shared with the
+        # section and complete-course paths.
+        _maybe_mark_course_complete(user, user_progress, course)
 
     user_progress.refresh_from_db()
     return user_progress
+
+
+def _complete_course_for_user(user, course: Course):
+    """Mark every published section (and its lessons) of a course complete.
+
+    Idempotent — already-completed sections are skipped by
+    ``_complete_section_for_user``. Used by the flow's Finish action so reaching
+    the end always lands the learner at 100%, even if earlier steps were skipped
+    before the saved resume index.
+    """
+    progress, _ = UserProgress.objects.get_or_create(user=user, course=course)
+    sections = LessonSection.objects.filter(
+        lesson__course=course, is_published=True
+    ).select_related("lesson", "lesson__course")
+    for section in sections:
+        _complete_section_for_user(user, section)
+    progress.refresh_from_db()
+    return progress
 
 
 def _evaluate_numeric(exercise, user_answer):
@@ -2674,25 +2726,18 @@ class PersonalizedPathView(APIView):
                     path_plan_reasons[pp.course_id] = pp.reason
             except Exception:
                 pass
-            sections_total_map = {
-                row["lesson__course_id"]: int(row["total"])
-                for row in LessonSection.objects.filter(
-                    lesson__course_id__in=course_ids,
-                    is_published=True,
-                )
-                .values("lesson__course_id")
-                .annotate(total=Count("id"))
-            }
+            sections_total_map = progress_calc.published_section_totals(course_ids)
             progress_by_course = {}
             for progress in UserProgress.objects.filter(
                 user=user,
                 course_id__in=course_ids,
             ).prefetch_related("completed_sections", "completed_lessons"):
-                # Use the prefetch cache — .count() and .values_list() bypass it
-                # and hit the DB again, so iterate the cached querysets instead.
+                # Section-based, published-only — same source of truth as
+                # progress_summary (education.progress).
                 cached_lessons = list(progress.completed_lessons.all())
+                completed_sections = progress_calc.completed_published_section_count(progress)
                 progress_by_course[progress.course_id] = {
-                    "completed_sections": len(list(progress.completed_sections.all())),
+                    "completed_sections": completed_sections,
                     "completed_lessons": len(cached_lessons),
                     "completed_lesson_ids": {l.id for l in cached_lessons},
                 }
@@ -2722,12 +2767,12 @@ class PersonalizedPathView(APIView):
                 completed_lessons = int(progress_meta.get("completed_lessons") or 0)
                 total_sections = int(sections_total_map.get(course_id, 0))
                 completed_sections = int(progress_meta.get("completed_sections") or 0)
-                completion_percent = (
-                    round((completed_lessons / max(total_lessons, 1)) * 100, 1)
-                    if total_lessons > 0
-                    else 0.0
+                # Section-based percent — matches progress_summary and the in-flow
+                # "x / y sections" counter, so the journey ring can't disagree.
+                completion_percent = progress_calc.course_percent(
+                    completed_sections, total_sections
                 )
-                if total_lessons > 0:
+                if total_sections > 0:
                     progress_values.append(completion_percent)
                 path_key = self._path_key(str(item.get("path_title") or ""))
                 completed_ids = progress_meta.get("completed_lesson_ids") or set()

@@ -117,7 +117,17 @@ export {
   derivePersonalizedPathState,
   shouldAutoRefreshEmptyPath,
   buildSkillPracticeHref,
+  getNextPersonalizedPathCourse,
 } from "./lib/personalizedPath";
+export type {
+  PersonalizedPathMetrics,
+  PersonalizedPathCourseProgress,
+} from "./lib/personalizedPath";
+export { computeCourseProgress } from "./lib/courseProgress";
+export type {
+  CourseProgress,
+  CourseProgressInput,
+} from "./lib/courseProgress";
 export { createMutationOptions } from "./lib/createMutation";
 export {
   selectPrimaryCTA,

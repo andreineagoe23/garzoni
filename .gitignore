@@ -153,3 +153,6 @@ ios/sentry.properties
 mobile/google-services.json
 mobile/play-store-service-account.json
 mobile/android/app/google-services.json
+
+# Meshy 3D source exports (large GLBs) — bake to PNG, do not commit
+journey-3d-exports/

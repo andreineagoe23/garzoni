@@ -75,7 +75,11 @@ export default function CourseFlowRoute() {
     `Course ${id}`;
 
   return (
+    // key forces a clean remount when advancing to the next path course via
+    // router.replace('/flow/<id>') — expo-router reuses the route component,
+    // which otherwise carries stale flow state (currentIndex, courseComplete).
     <LessonFlowScreen
+      key={courseId}
       courseId={courseId}
       headerTitle={title}
       rotationKey={courseId}

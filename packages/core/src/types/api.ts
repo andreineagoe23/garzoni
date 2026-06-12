@@ -65,8 +65,12 @@ export type UserProfile = {
     year?: number | string;
   };
   user?: {
+    /** Numeric Django user PK — RevenueCat appUserID must be this exact value. */
+    id?: number;
     username?: string;
     email?: string;
+    first_name?: string;
+    last_name?: string;
     avatar?: string;
     avatar_url?: string;
     profile_avatar?: string;

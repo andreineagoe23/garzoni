@@ -4,6 +4,7 @@ import type {
   MissionBuckets,
   ProgressSummary,
 } from "types/api";
+import { computeCourseProgress } from "../lib/courseProgress";
 
 type DashboardSummaryArgs = {
   progressResponse?: { data?: ProgressSummary };
@@ -55,9 +56,8 @@ export const useDashboardSummary = ({
   const progressData = progressResponse?.data || {};
 
   const coursesCompleted =
-    progressData.paths?.filter(
-      (p) => (p.percent_complete ?? 0) >= 99.5 || p.percent_complete === 100,
-    ).length || 0;
+    progressData.paths?.filter((p) => computeCourseProgress(p).isComplete)
+      .length || 0;
   const overallProgress = progressData.overall_progress ?? 0;
   const reviewsDue = reviewQueueData?.count ?? 0;
 

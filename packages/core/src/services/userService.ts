@@ -346,6 +346,13 @@ export const completeSection = (sectionId: string | number) =>
 export const completeLesson = (lessonId: string | number) =>
   apiClient.post(`/userprogress/complete/`, { lesson_id: lessonId });
 
+/**
+ * Mark every published section of a course complete (flow Finish). Idempotent;
+ * closes the resume-gap so finishing the flow always lands the learner at 100%.
+ */
+export const completeCourse = (courseId: string | number) =>
+  apiClient.post(`/userprogress/complete_course/`, { course_id: courseId });
+
 /** Lesson checkpoint quizzes (materialized from in-flow multiple-choice sections). */
 export const fetchLessonCheckpointQuizzes = (lessonId: string | number) =>
   apiClient.get<unknown[]>(`/quizzes/checkpoint/`, {

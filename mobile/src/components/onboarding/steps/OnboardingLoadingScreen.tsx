@@ -481,18 +481,8 @@ function ReadyScreen({
 
       {/* Centre content */}
       <View style={s.readyCenter}>
-        {/* Steps summary */}
-        <Animated.View style={[s.stepsSummary, makeAnim(0)]}>
-          {steps.map((step, i) => (
-            <View key={i} style={s.summaryRow}>
-              <Check size={20} />
-              <Text style={s.summaryLabel}>{step.label}</Text>
-            </View>
-          ))}
-        </Animated.View>
-
         {/* Headline */}
-        <Animated.View style={[s.headlineWrap, makeAnim(1)]}>
+        <Animated.View style={[s.headlineWrap, makeAnim(0)]}>
           <Text style={s.headline}>
             Your path is <Text style={s.headlineEm}>ready</Text>
           </Text>
@@ -502,7 +492,7 @@ function ReadyScreen({
         </Animated.View>
 
         {/* Reward cards */}
-        <Animated.View style={[s.cardsRow, makeAnim(2)]}>
+        <Animated.View style={[s.cardsRow, makeAnim(1)]}>
           <View style={s.rewardCard}>
             <Text style={[s.rewardValue, { color: C.primaryBright }]}>
               +{xp}
@@ -515,6 +505,17 @@ function ReadyScreen({
               Coins
             </Text>
           </View>
+        </Animated.View>
+
+        {/* Steps summary — what we prepared */}
+        <Animated.View style={[s.stepsSummary, makeAnim(2)]}>
+          <Text style={s.summaryCaption}>What we prepared</Text>
+          {steps.map((step, i) => (
+            <View key={i} style={s.summaryRow}>
+              <Check size={18} />
+              <Text style={s.summaryLabel}>{step.label}</Text>
+            </View>
+          ))}
         </Animated.View>
       </View>
 
@@ -667,25 +668,37 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.xl + spacing.md,
     paddingBottom: spacing.xxxxl,
   },
+  // Steps summary — content-width block centered on the page,
+  // rows left-aligned so all labels start on the same line
   stepsSummary: {
-    width: "100%",
-    gap: spacing.md - 2,
-    marginBottom: spacing.xxxl + spacing.sm,
+    alignSelf: "center",
+    marginTop: spacing.xxxl,
+    gap: spacing.sm + 2,
+  },
+  summaryCaption: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1.6,
+    textTransform: "uppercase",
+    color: C.faint,
+    textAlign: "center",
+    marginBottom: spacing.xs,
   },
   summaryRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.md - 2,
+    justifyContent: "flex-start",
+    gap: spacing.sm + 2,
   },
   summaryLabel: {
     fontSize: 14,
     color: C.muted,
+    letterSpacing: -0.1,
   },
 
   headlineWrap: {
     alignItems: "center",
-    marginBottom: spacing.xxxl + spacing.sm,
+    marginBottom: spacing.xxl,
   },
   headline: {
     fontFamily: brand.fontDisplay,

@@ -3,6 +3,7 @@ import type {
   PersonalizedPathResponse,
   ProgressSummary,
 } from "types/api";
+import { computeCourseProgress } from "./courseProgress";
 
 export type PersonalizedPathCourseProgress = {
   percent: number;
@@ -19,6 +20,8 @@ export type PersonalizedPathMetrics = {
   completedSections: number;
   totalSections: number;
   estimatedMinutes: number;
+  /** Section-based completion (every published section done). */
+  isComplete: boolean;
 };
 
 export type PersonalizedPathDerivedState = {
@@ -38,15 +41,11 @@ export function buildProgressByCourse(
 
   entries.forEach((entry) => {
     if (!entry.course_id) return;
-    const totalSections = Number(entry.total_sections || 0);
-    const completedSections = Number(entry.completed_sections || 0);
-    const sectionPercent =
-      totalSections > 0
-        ? Math.round((completedSections / totalSections) * 100)
-        : Number(entry.percent_complete || 0);
+    const { percent, completedSections, totalSections } =
+      computeCourseProgress(entry);
 
     map.set(entry.course_id, {
-      percent: sectionPercent,
+      percent,
       completedSections,
       totalSections,
       completedLessons: Number(entry.completed_lessons || 0),
@@ -62,20 +61,30 @@ export function getCourseMetrics(
   progressByCourse: Map<number, PersonalizedPathCourseProgress>,
 ): PersonalizedPathMetrics {
   const progress = progressByCourse.get(course.id);
-  const fallbackCompletedLessons = Number(course.completed_lessons || 0);
-  const fallbackTotalLessons = Number(course.total_lessons || 0);
   const completedLessons =
-    progress?.completedLessons ?? fallbackCompletedLessons;
-  const totalLessons = progress?.totalLessons ?? fallbackTotalLessons;
-  const completedSections =
-    progress?.completedSections ?? Number(course.completed_sections || 0);
-  const totalSections =
-    progress?.totalSections ?? Number(course.total_sections || 0);
-  const percent =
-    progress?.percent ??
-    (totalLessons > 0
-      ? Math.round((completedLessons / Math.max(totalLessons, 1)) * 100)
-      : Number(course.completion_percent || 0));
+    progress?.completedLessons ?? Number(course.completed_lessons || 0);
+  const totalLessons = progress?.totalLessons ?? Number(course.total_lessons || 0);
+  // Both progress_summary and personalized-path now publish section-based,
+  // published-only counts. They can briefly lag each other (progress_summary is
+  // cached ~60s), so merge by taking the higher completedSections against a
+  // consistent total, then derive everything from the single shared util.
+  const pathTotalSections = Number(course.total_sections || 0);
+  const totalSections = pathTotalSections > 0
+    ? pathTotalSections
+    : (progress?.totalSections ?? 0);
+  const completedSectionsMerged = Math.max(
+    Number(course.completed_sections || 0),
+    progress?.completedSections ?? 0,
+  );
+  const sectionProgress = computeCourseProgress({
+    completed_sections: completedSectionsMerged,
+    total_sections: totalSections,
+    completed_lessons: completedLessons,
+    total_lessons: totalLessons,
+    completion_percent: course.completion_percent,
+  });
+  const completedSections = sectionProgress.completedSections;
+  const percent = sectionProgress.percent;
   const estimatedMinutes =
     Number(course.estimated_minutes || 0) > 0
       ? Number(course.estimated_minutes || 0)
@@ -88,7 +97,22 @@ export function getCourseMetrics(
     completedSections,
     totalSections,
     estimatedMinutes,
+    isComplete: sectionProgress.isComplete,
   };
+}
+
+/** Next unlocked course in the personalized path after `currentCourseId`. */
+export function getNextPersonalizedPathCourse(
+  courses: PersonalizedPathCourse[],
+  currentCourseId: number,
+): PersonalizedPathCourse | null {
+  const index = courses.findIndex((c) => c.id === currentCourseId);
+  if (index === -1) return null;
+  for (let i = index + 1; i < courses.length; i++) {
+    const course = courses[i];
+    if (!course.locked) return course;
+  }
+  return null;
 }
 
 export function derivePersonalizedPathState(
