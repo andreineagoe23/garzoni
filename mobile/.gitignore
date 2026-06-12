@@ -32,6 +32,7 @@ yarn-error.*
 # local env files
 .env
 .env*.local
+.env.development
 
 # Google Sign-In: plist downloads from Cloud Console (optional); use EXPO_PUBLIC_* in .env instead
 GoogleSignIn.credentials.plist

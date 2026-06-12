@@ -156,3 +156,6 @@ mobile/android/app/google-services.json
 
 # Meshy 3D source exports (large GLBs) — bake to PNG, do not commit
 journey-3d-exports/
+
+# Journey map sprites — hosted on Cloudinary (garzoni/journey/*), not committed
+mobile/assets/journey/

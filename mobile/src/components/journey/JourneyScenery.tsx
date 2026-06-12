@@ -1,68 +1,73 @@
-import { Image, View, type ImageSourcePropType, type ImageStyle } from "react-native";
+import { Image, View, type ImageStyle } from "react-native";
 import Svg, { Ellipse, Path } from "react-native-svg";
-import type { MascotType } from "@garzoni/core";
+import { cloudinaryImageUrl, type MascotType } from "@garzoni/core";
 
 /**
  * Journey map scenery — baked 3D sprites (Meshy → Blender), transparent PNGs.
+ * Assets hosted on Cloudinary under garzoni/journey/<slug>.
  */
 
+function cdn(slug: string): { uri: string } {
+  return { uri: cloudinaryImageUrl(`garzoni/journey/${slug}`, "f_auto,q_auto") };
+}
+
 type SpriteDef = {
-  src: ImageSourcePropType;
+  src: { uri: string };
   w: number;
   h: number;
 };
 
 const TREES_GREEN: SpriteDef[] = [
-  { src: require("../../../assets/journey/tree-pine.png"), w: 278, h: 512 },
-  { src: require("../../../assets/journey/tree-round.png"), w: 512, h: 444 },
-  { src: require("../../../assets/journey/tree-pine-crooked.png"), w: 278, h: 512 },
-  { src: require("../../../assets/journey/tree-round-tall.png"), w: 512, h: 444 },
+  { src: cdn("tree-pine"), w: 278, h: 512 },
+  { src: cdn("tree-round"), w: 512, h: 444 },
+  { src: cdn("tree-pine-crooked"), w: 278, h: 512 },
+  { src: cdn("tree-round-tall"), w: 512, h: 444 },
 ];
 
 const TREES_SNOW: SpriteDef[] = [
-  { src: require("../../../assets/journey/tree-pine-snow.png"), w: 372, h: 512 },
-  { src: require("../../../assets/journey/tree-pine-snow-2.png"), w: 372, h: 512 },
-  { src: require("../../../assets/journey/tree-round-snow.png"), w: 372, h: 512 },
+  { src: cdn("tree-pine-snow"), w: 372, h: 512 },
+  { src: cdn("tree-pine-snow-2"), w: 372, h: 512 },
+  { src: cdn("tree-round-snow"), w: 372, h: 512 },
 ];
 
 const PEAKS: SpriteDef[] = [
-  { src: require("../../../assets/journey/peak.png"), w: 512, h: 365 },
-  { src: require("../../../assets/journey/peak-2.png"), w: 512, h: 365 },
+  { src: cdn("peak"), w: 512, h: 365 },
+  { src: cdn("peak-2"), w: 512, h: 365 },
 ];
 
 const CLOUDS: SpriteDef[] = [
-  { src: require("../../../assets/journey/cloud.png"), w: 512, h: 462 },
-  { src: require("../../../assets/journey/cloud-2.png"), w: 512, h: 462 },
+  { src: cdn("cloud"), w: 512, h: 462 },
+  { src: cdn("cloud-2"), w: 512, h: 462 },
 ];
 
 const GRASS: SpriteDef = {
-  src: require("../../../assets/journey/grass.png"),
+  src: cdn("grass"),
   w: 26,
   h: 29,
 };
 
 const SUMMIT: SpriteDef = {
-  src: require("../../../assets/journey/summit-mountain.png"),
+  src: cdn("summit-mountain"),
   w: 512,
   h: 478,
 };
 
 const CAMPSITE: SpriteDef = {
-  src: require("../../../assets/journey/campsite.png"),
+  src: cdn("campsite"),
   w: 512,
   h: 334,
 };
 
 const CHEST: SpriteDef = {
-  src: require("../../../assets/journey/treasure-chest.png"),
+  src: cdn("treasure-chest"),
   w: 459,
   h: 512,
 };
 
 const MASCOTS: Record<MascotType, SpriteDef> = {
-  owl: { src: require("../../../assets/journey/mascot-owl.png"), w: 512, h: 413 },
-  bull: { src: require("../../../assets/journey/mascot-bull.png"), w: 323, h: 512 },
-  bear: { src: require("../../../assets/journey/mascot-bear.png"), w: 329, h: 512 },
+  owl: { src: cdn("mascot-owl"), w: 512, h: 413 },
+  bull: { src: cdn("mascot-bull"), w: 323, h: 512 },
+  bear: { src: cdn("mascot-bear"), w: 329, h: 512 },
 };
 
 function Sprite({
