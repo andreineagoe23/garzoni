@@ -31,7 +31,10 @@ import { brand } from "../src/theme/brand";
 import { darkPalette } from "../src/theme/palettes";
 import { setWelcomeSeen } from "../src/auth/firstRunFlags";
 import { savePendingReferralCode } from "../src/auth/pendingReferral";
-import { useResponsive } from "../src/utils/platform";
+import {
+  useResponsive,
+  FOCUSED_CONTENT_MAX_WIDTH,
+} from "../src/utils/platform";
 
 const C = {
   bg: brand.bgDark,
@@ -545,6 +548,11 @@ export default function WelcomeScreen() {
   const { width } = useWindowDimensions();
   const { isTablet, gutter } = useResponsive();
   const horizontalPad = HEADER_PAD_H + (isTablet ? gutter : 0);
+  // On tablet, center the interactive column so the CTA/copy don't stretch
+  // edge-to-edge. On phone this is undefined → full-width (unchanged).
+  const colCap = isTablet
+    ? ({ maxWidth: FOCUSED_CONTENT_MAX_WIDTH, alignSelf: "center" } as const)
+    : null;
   const listRef = useRef<FlatList<SlideCopy>>(null);
   const [idx, setIdx] = useState(0);
   const [demoOpen, setDemoOpen] = useState(false);
@@ -626,7 +634,13 @@ export default function WelcomeScreen() {
         />
       </View>
 
-      <View style={[s.topBar, { width: "100%", paddingHorizontal: horizontalPad }]}>
+      <View
+        style={[
+          s.topBar,
+          { width: "100%", paddingHorizontal: horizontalPad },
+          colCap,
+        ]}
+      >
         <WelcomeWordmark />
         <View style={s.topBarActions}>
           <Pressable
@@ -666,7 +680,13 @@ export default function WelcomeScreen() {
         onViewableItemsChanged={onViewableItemsChanged}
         renderItem={({ item }) => (
           <View style={[s.slide, { width }]}>
-            <View style={[s.contentCol, { width: "100%", paddingHorizontal: horizontalPad }]}>
+            <View
+              style={[
+                s.contentCol,
+                { width: "100%", paddingHorizontal: horizontalPad },
+                colCap,
+              ]}
+            >
               <View style={s.heroSlot}>{renderHero(item.id)}</View>
               <View style={s.copyBlock}>
                 <Text style={s.eyebrow}>{item.eyebrow.toUpperCase()}</Text>
@@ -697,7 +717,13 @@ export default function WelcomeScreen() {
         })}
       </View>
 
-      <View style={[s.footer, { width: "100%", paddingHorizontal: horizontalPad }]}>
+      <View
+        style={[
+          s.footer,
+          { width: "100%", paddingHorizontal: horizontalPad },
+          colCap,
+        ]}
+      >
         <Pressable
           onPress={onContinue}
           style={s.cta}

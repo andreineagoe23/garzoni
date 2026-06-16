@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { reportApiError } from "sentry";
 import {
   configureHttpClient,
+  setClientPlatform,
   HTTP_CLIENT_SESSION_EXPIRED_REASON,
 } from "services/httpClient";
 
@@ -9,6 +10,7 @@ import {
  * Browser-specific httpClient behavior (toast + hard navigation on auth expiry).
  */
 export function initHttpClientWeb(): void {
+  setClientPlatform("web");
   configureHttpClient({
     onAuthFailure: () => {
       if (typeof window === "undefined") return;

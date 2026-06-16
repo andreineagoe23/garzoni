@@ -53,7 +53,8 @@ export const queryKeys = {
 
   // Other
   courses: (pathId: string | number) => ["courses", pathId] as const,
-  pricingFunnelMetrics: () => ["pricingFunnelMetrics"] as const,
+  pricingFunnelMetrics: (platform = "all", days = 30) =>
+    ["pricingFunnelMetrics", platform, days] as const,
 
   learningPaths: () => ["learningPaths"] as const,
   recentActivity: () => ["recentActivity"] as const,

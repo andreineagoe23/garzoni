@@ -717,7 +717,9 @@ function LearnInner() {
     // Full-bleed journey: the map's own header carries the view switchers,
     // so the segment + mode rows are hidden to give the climb the screen.
     const journeyFullBleed =
-      hasPlusAccess && !personalizedGatingWait && personalizedMode === "journey";
+      hasPlusAccess &&
+      !personalizedGatingWait &&
+      personalizedMode === "journey";
 
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -913,10 +915,7 @@ function LearnInner() {
         const desc = item.description ?? "";
         const pct = pathProgressPercent(item);
         return (
-          <GlassCard
-            padding="none"
-            style={{ marginBottom: spacing.lg }}
-          >
+          <GlassCard padding="none" style={{ marginBottom: spacing.lg }}>
             <Pressable
               onPress={() => {
                 if (item.is_locked) {

@@ -64,7 +64,7 @@ function Navbar() {
     isAuthenticated,
     isInitialized,
   } = useAuth();
-  const { adminMode, canAdminister } = useAdmin();
+  const { adminMode, canAdminister, toggleAdminMode } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const mediaBase = getMediaBaseUrl();
@@ -404,6 +404,29 @@ function Navbar() {
                           />
                           {t("nav.settings")}
                         </button>
+                        {canAdminister ? (
+                          <button
+                            type="button"
+                            role="menuitemcheckbox"
+                            aria-checked={adminMode}
+                            aria-label={t("nav.ariaToggleAdminMode")}
+                            className={`${menuRowClass} ${
+                              adminMode
+                                ? "text-[color:var(--color-brand-primary,var(--primary,#1d5330))]"
+                                : ""
+                            }`}
+                            onClick={() => toggleAdminMode()}
+                          >
+                            <GarzoniIcon
+                              name="📈"
+                              size={18}
+                              className="shrink-0 text-inherit"
+                            />
+                            {adminMode
+                              ? t("dashboard.header.adminMode")
+                              : t("dashboard.header.enableAdmin")}
+                          </button>
+                        ) : null}
                         <div
                           className="my-2 h-px bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.08)))]"
                           aria-hidden

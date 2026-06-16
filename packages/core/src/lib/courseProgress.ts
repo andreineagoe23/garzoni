@@ -71,7 +71,9 @@ export function computeCourseProgress(
   }
 
   const serverPercent = clampPercent(
-    Math.round(Number(input?.percent_complete ?? input?.completion_percent ?? 0)),
+    Math.round(
+      Number(input?.percent_complete ?? input?.completion_percent ?? 0),
+    ),
   );
   return {
     completedSections,

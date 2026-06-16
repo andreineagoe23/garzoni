@@ -257,3 +257,113 @@ class WelcomeIdempotencyTests(TestCase):
         out2 = svc.send_welcome(user, idempotency_key="welcome:idempotency-ok")
         self.assertEqual(out2, "sent_cio")
         self.assertTrue(idempotency_already_sent("welcome:idempotency-ok"))
+
+
+_WEBHOOK_SECRET = "test-signing-secret"
+
+
+@override_settings(
+    CIO_WEBHOOK_SIGNING_SECRET=_WEBHOOK_SECRET,
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}},
+)
+class CioWebhookBounceTests(TestCase):
+    """Reporting-webhook bounce/spam → permanent suppression (Apple relay safety net)."""
+
+    def _post(self, payload: dict):
+        import hashlib
+        import hmac
+        import json
+
+        from django.urls import reverse
+
+        body = json.dumps(payload).encode("utf-8")
+        sig = hmac.new(_WEBHOOK_SECRET.encode("utf-8"), body, hashlib.sha256).hexdigest()
+        return self.client.post(
+            reverse("notifications_cio_webhook"),
+            data=body,
+            content_type="application/json",
+            HTTP_X_CIO_SIGNATURE=sig,
+        )
+
+    @patch("notifications.tasks.safe_enqueue_suppress_customer_in_cio")
+    def test_email_bounced_suppresses_cio_and_local_prefs(self, mock_suppress):
+        user = User.objects.create_user(username="b1", email="bounce@example.com")
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=user)
+        prefs.marketing, prefs.reminders, prefs.weekly_digest = True, True, True
+        prefs.save()
+
+        resp = self._post(
+            {
+                "event_type": "email_bounced",
+                "data": {"customer_id": str(user.pk), "email_address": "bounce@example.com"},
+            }
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json().get("suppressed"))
+        mock_suppress.assert_called_once_with(str(user.pk), "bounce@example.com")
+        prefs.refresh_from_db()
+        self.assertFalse(prefs.marketing)
+        self.assertFalse(prefs.reminders)
+        self.assertFalse(prefs.weekly_digest)
+
+    @patch("notifications.tasks.safe_enqueue_suppress_customer_in_cio")
+    def test_spam_complaint_suppresses(self, mock_suppress):
+        user = User.objects.create_user(username="b2", email="spam@example.com")
+        resp = self._post(
+            {
+                "event_type": "email_spammed",
+                "data": {"customer_id": str(user.pk), "email_address": "spam@example.com"},
+            }
+        )
+        self.assertEqual(resp.status_code, 200)
+        mock_suppress.assert_called_once()
+
+    @patch("notifications.tasks.safe_enqueue_suppress_customer_in_cio")
+    def test_bounce_without_local_user_still_suppresses_cio(self, mock_suppress):
+        # Apple relay profiles often have no Django account — CIO must still be suppressed.
+        resp = self._post(
+            {
+                "object_type": "email",
+                "metric": "bounced",
+                "data": {
+                    "customer_id": "99999",
+                    "email_address": "ghost@privaterelay.appleid.com",
+                },
+            }
+        )
+        self.assertEqual(resp.status_code, 200)
+        mock_suppress.assert_called_once_with("99999", "ghost@privaterelay.appleid.com")
+
+    @patch("notifications.tasks.safe_enqueue_suppress_customer_in_cio")
+    def test_bounce_payload_with_recipient_and_identifiers(self, mock_suppress):
+        # Email-metric webhooks may omit email_address and nest ids under identifiers
+        # / use recipient for the address — must still suppress by id.
+        resp = self._post(
+            {
+                "object_type": "email",
+                "metric": "bounced",
+                "data": {
+                    "identifiers": {"id": "424242", "cio_id": "ac900dXYZ"},
+                    "recipient": "relay@privaterelay.appleid.com",
+                },
+            }
+        )
+        self.assertEqual(resp.status_code, 200)
+        mock_suppress.assert_called_once_with("424242", "relay@privaterelay.appleid.com")
+
+    @patch("notifications.tasks.safe_enqueue_suppress_customer_in_cio")
+    def test_bad_signature_rejected(self, mock_suppress):
+        import json
+
+        from django.urls import reverse
+
+        body = json.dumps({"event_type": "email_bounced", "data": {"customer_id": "1"}}).encode()
+        resp = self.client.post(
+            reverse("notifications_cio_webhook"),
+            data=body,
+            content_type="application/json",
+            HTTP_X_CIO_SIGNATURE="deadbeef",
+        )
+        self.assertEqual(resp.status_code, 401)
+        mock_suppress.assert_not_called()

@@ -24,7 +24,12 @@ const GROUND_H = 24;
  * Filled region covering everything below a wavy boundary at `yBase` —
  * the card's ground band, with the same organic edge as JourneyBackdrop.
  */
-function wavyGround(yBase: number, width: number, height: number, seed: number): string {
+function wavyGround(
+  yBase: number,
+  width: number,
+  height: number,
+  seed: number,
+): string {
   const segs = 4;
   const segW = width / segs;
   const y0 = yBase + (hash01(seed) - 0.5) * 8;
@@ -78,7 +83,12 @@ type Props = {
  * Composed mini-scene card header — per-topic gradient sky, wavy ground
  * band, and journey sprites. Replaces the old AI-generated cover images.
  */
-function PathSceneHeader({ title, pathId, progressPct = 0, height = HEADER_H }: Props) {
+function PathSceneHeader({
+  title,
+  pathId,
+  progressPct = 0,
+  height = HEADER_H,
+}: Props) {
   const { resolved } = useTheme();
   const dark = resolved === "dark";
   const [w, setW] = useState(0);
@@ -116,9 +126,18 @@ function PathSceneHeader({ title, pathId, progressPct = 0, height = HEADER_H }: 
             <Stop offset="1" stopColor={sky[1]} />
           </LinearGradient>
         </Defs>
-        <Rect x={0} y={0} width="100%" height={height} fill={`url(#${gradientId})`} />
+        <Rect
+          x={0}
+          y={0}
+          width="100%"
+          height={height}
+          fill={`url(#${gradientId})`}
+        />
         {w > 0 ? (
-          <Path d={wavyGround(height - GROUND_H, w, height, seed)} fill={ground} />
+          <Path
+            d={wavyGround(height - GROUND_H, w, height, seed)}
+            fill={ground}
+          />
         ) : null}
       </Svg>
 

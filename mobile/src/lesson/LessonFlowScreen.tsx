@@ -323,12 +323,22 @@ export default function LessonFlowScreen({
   useEffect(() => {
     return () => {
       if (courseCompleteFiredRef.current) return;
-      void queryClient.invalidateQueries({ queryKey: queryKeys.personalizedPath() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.personalizedPath(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.progressSummary(),
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.learningPaths() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.recentActivity() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.activityHeatmap() });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.learningPaths(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.recentActivity(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.activityHeatmap(),
+      });
       void queryClient.invalidateQueries({ queryKey: ["learningPathCourses"] });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -133,6 +133,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             age_confirmed=True,
             save=False,
         )
+        # Tag the originating client so the admin dashboard can split new signups
+        # by web vs mobile.
+        from core.request_platform import resolve_request_platform
+
+        request = self.context.get("request")
+        if request is not None:
+            user_profile.signup_platform = resolve_request_platform(request)
         user_profile.save()
 
         if referral_code:

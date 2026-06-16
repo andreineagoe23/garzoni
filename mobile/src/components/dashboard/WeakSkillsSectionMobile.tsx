@@ -69,10 +69,7 @@ export default function WeakSkillsSectionMobile({
 
   // Phone: stacked single column. Tablet: 2-up. Large tablet: 3-up.
   const cols = gridColumns(1, 2, 3);
-  const gridStyle =
-    cols > 1
-      ? [styles.grid, styles.gridRow]
-      : styles.grid;
+  const gridStyle = cols > 1 ? [styles.grid, styles.gridRow] : styles.grid;
   const cardWidthStyle =
     cols > 1
       ? { flexBasis: gridFlexBasis(cols), flexGrow: 1, minWidth: 0 }

@@ -8,7 +8,9 @@ import { cloudinaryImageUrl, type MascotType } from "@garzoni/core";
  */
 
 function cdn(slug: string): { uri: string } {
-  return { uri: cloudinaryImageUrl(`garzoni/journey/${slug}`, "f_auto,q_auto") };
+  return {
+    uri: cloudinaryImageUrl(`garzoni/journey/${slug}`, "f_auto,q_auto"),
+  };
 }
 
 type SpriteDef = {
@@ -204,7 +206,14 @@ export function RockSprite({
             fill={ROCK_BODY}
           />
           <Path d="M14 58 Q12 46 20 38 Q30 50 28 58 Z" fill={ROCK_SHADE} />
-          <Ellipse cx={42} cy={24} rx={14} ry={6} fill={ROCK_LIGHT} opacity={0.7} />
+          <Ellipse
+            cx={42}
+            cy={24}
+            rx={14}
+            ry={6}
+            fill={ROCK_LIGHT}
+            opacity={0.7}
+          />
           <Ellipse cx={86} cy={54} rx={11} ry={7} fill={ROCK_SHADE} />
           <Ellipse cx={84} cy={51} rx={9} ry={5} fill={ROCK_BODY} />
         </>
@@ -219,16 +228,37 @@ export function RockSprite({
             d="M36 58 Q34 30 56 22 Q80 16 88 38 Q94 50 88 58 Z"
             fill={ROCK_BODY}
           />
-          <Ellipse cx={62} cy={28} rx={13} ry={5} fill={ROCK_LIGHT} opacity={0.7} />
+          <Ellipse
+            cx={62}
+            cy={28}
+            rx={13}
+            ry={5}
+            fill={ROCK_LIGHT}
+            opacity={0.7}
+          />
         </>
       ) : (
         // Scatter of three pebbles.
         <>
           <Ellipse cx={20} cy={52} rx={14} ry={9} fill={ROCK_BODY} />
-          <Ellipse cx={18} cy={49} rx={11} ry={6} fill={ROCK_LIGHT} opacity={0.5} />
+          <Ellipse
+            cx={18}
+            cy={49}
+            rx={11}
+            ry={6}
+            fill={ROCK_LIGHT}
+            opacity={0.5}
+          />
           <Ellipse cx={52} cy={55} rx={10} ry={6} fill={ROCK_SHADE} />
           <Ellipse cx={80} cy={51} rx={13} ry={8} fill={ROCK_BODY} />
-          <Ellipse cx={78} cy={48} rx={9} ry={5} fill={ROCK_LIGHT} opacity={0.5} />
+          <Ellipse
+            cx={78}
+            cy={48}
+            rx={9}
+            ry={5}
+            fill={ROCK_LIGHT}
+            opacity={0.5}
+          />
         </>
       )}
     </Svg>

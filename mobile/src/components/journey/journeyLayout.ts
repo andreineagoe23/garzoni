@@ -148,7 +148,11 @@ function buildTrail(
   summit: Pt,
   currentIndex: number,
 ): JourneyTrailModel {
-  const pts: Pt[] = [basecamp, ...nodes.map((nd) => ({ x: nd.x, y: nd.y })), summit];
+  const pts: Pt[] = [
+    basecamp,
+    ...nodes.map((nd) => ({ x: nd.x, y: nd.y })),
+    summit,
+  ];
   if (pts.length < 2) {
     return { d: "", totalLength: 0, progressLength: 0, progressTip: null };
   }
@@ -214,7 +218,8 @@ function buildTrail(
   let progressTip: Pt | null = null;
   if (progressLength > 0) {
     const idx = samples.findIndex((s) => s.len >= progressLength);
-    progressTip = (samples[idx === -1 ? samples.length - 1 : idx] ?? samples[0]).pt;
+    progressTip = (samples[idx === -1 ? samples.length - 1 : idx] ?? samples[0])
+      .pt;
   }
 
   return { d, totalLength: total, progressLength, progressTip };
@@ -538,7 +543,13 @@ function buildDecorations(
   // instead of leaving an inset strip that reads as padding. fx values are
   // evenly spaced 0→1 so the peaks don't bunch on one side.
   const clampX = (x: number) => Math.min(Math.max(x, 8), width - 8);
-  const rangePeaks: { fx: number; e: number; size: number; v: number; o: number }[] = [
+  const rangePeaks: {
+    fx: number;
+    e: number;
+    size: number;
+    v: number;
+    o: number;
+  }[] = [
     { fx: 0.0, e: 0.86, size: 190, v: 1, o: 0.88 },
     { fx: 0.17, e: 0.85, size: 150, v: 0, o: 0.9 },
     { fx: 0.34, e: 0.84, size: 140, v: 1, o: 0.95 },
@@ -712,7 +723,10 @@ const ICON_KEYWORDS: [string[], string][] = [
   [["insurance", "safety", "protection", "risk"], "shield-check-outline"],
   [["retirement", "pension"], "beach"],
   [["goal", "clarity", "planning"], "target"],
-  [["mindset", "psychology", "discipline", "resilience"], "head-lightbulb-outline"],
+  [
+    ["mindset", "psychology", "discipline", "resilience"],
+    "head-lightbulb-outline",
+  ],
   [["bank", "account"], "bank-outline"],
 ];
 
@@ -737,5 +751,7 @@ export function journeyNodeIcon(course: PersonalizedPathCourse): string {
   for (const [words, icon] of ICON_KEYWORDS) {
     if (words.some((w) => hay.includes(w))) return icon;
   }
-  return ICON_FALLBACKS[Math.abs(Number(course.id) || 0) % ICON_FALLBACKS.length];
+  return ICON_FALLBACKS[
+    Math.abs(Number(course.id) || 0) % ICON_FALLBACKS.length
+  ];
 }

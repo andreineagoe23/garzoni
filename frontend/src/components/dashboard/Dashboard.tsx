@@ -10,7 +10,6 @@ import PropTypes from "prop-types";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "contexts/AuthContext";
-import { useAdmin } from "contexts/AdminContext";
 import toast from "react-hot-toast";
 import AllTopics from "./AllTopics";
 import PersonalizedPath from "./PersonalizedPathContent";
@@ -65,7 +64,6 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
   const { t } = useTranslation();
   const { trackEvent } = useAnalytics();
   const { preferences } = usePreferences();
-  useAdmin();
   const locale = getLocale();
   const prefersReducedMotion = useRef(
     window.matchMedia("(prefers-reduced-motion: reduce)").matches

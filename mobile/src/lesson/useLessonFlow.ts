@@ -81,7 +81,10 @@ export function useLessonFlow(
       queryKey: queryKeys.progressSummary(),
       ...opts,
     });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.profile(), ...opts });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.profile(),
+      ...opts,
+    });
     void queryClient.invalidateQueries({
       queryKey: queryKeys.activityHeatmap(),
       ...opts,

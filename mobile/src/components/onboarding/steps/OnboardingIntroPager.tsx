@@ -29,6 +29,10 @@ import LottieHero from "../../motion/LottieHero";
 import { Button } from "../../ui";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../../theme/tokens";
+import {
+  useResponsive,
+  FOCUSED_CONTENT_MAX_WIDTH,
+} from "../../../utils/platform";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
@@ -94,6 +98,14 @@ function buildDefaultSlides(t: (k: string) => string): IntroSlide[] {
 export default function OnboardingIntroPager({ onDone, slides }: Props) {
   const { t } = useTranslation("common");
   const c = useThemeColors();
+  const { isTablet } = useResponsive();
+  const footerCap = isTablet
+    ? ({
+        maxWidth: FOCUSED_CONTENT_MAX_WIDTH,
+        alignSelf: "center" as const,
+        width: "100%" as const,
+      } as const)
+    : null;
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -264,7 +276,7 @@ export default function OnboardingIntroPager({ onDone, slides }: Props) {
         ))}
       </View>
 
-      <View style={[styles.footer, { backgroundColor: c.bg }]}>
+      <View style={[styles.footer, { backgroundColor: c.bg }, footerCap]}>
         {page > 0 ? (
           <Pressable
             onPress={goBack}

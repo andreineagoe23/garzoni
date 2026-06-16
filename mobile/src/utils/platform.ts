@@ -80,6 +80,13 @@ export function useResponsive() {
 }
 
 /**
+ * Max width for focused single-column funnel screens (welcome, onboarding,
+ * auth). On tablet these are centered to this width so CTAs and copy don't
+ * stretch edge-to-edge; on phone the column is full width (no cap).
+ */
+export const FOCUSED_CONTENT_MAX_WIDTH = 560;
+
+/**
  * Extra horizontal screen padding (the tablet "gutter") to ADD to a screen's
  * existing base padding. Returns 0 on phone, so callers can safely write
  * `paddingHorizontal: BASE + useScreenGutter()` and the iPhone layout stays

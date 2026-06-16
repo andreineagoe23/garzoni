@@ -20,6 +20,7 @@ from django.db.models import (
     Q,
 )
 from django.db.models.functions import TruncDate
+from django.db.models.fields.json import KeyTextTransform
 from django.core.cache import cache
 from django.http import HttpResponse
 from decimal import Decimal, InvalidOperation
@@ -3453,6 +3454,7 @@ class FunnelEventIngestView(APIView):
         event_status = request.data.get("status", "success")
         session_id = request.data.get("session_id", "")
         metadata = request.data.get("metadata", {}) or {}
+        platform = self._resolve_platform(request)
 
         if event_type not in self.ALLOWED_EVENT_TYPES:
             return Response(
@@ -3471,20 +3473,71 @@ class FunnelEventIngestView(APIView):
             user=request.user if request.user.is_authenticated else None,
             session_id=session_id,
             metadata=metadata,
+            platform=platform,
         )
 
         logger.info(
             "Funnel event recorded",
-            extra={"event_type": event_type, "status": event_status},
+            extra={"event_type": event_type, "status": event_status, "platform": platform},
         )
 
         return Response({"ok": True})
 
+    @staticmethod
+    def _resolve_platform(request) -> str:
+        """Originating client for funnel splitting (shared with signup views)."""
+        from core.request_platform import resolve_request_platform
+
+        return resolve_request_platform(request)
+
 
 class FunnelMetricsView(APIView):
-    """Summarise funnel performance for administrators."""
+    """Product analytics for administrators: active users, engagement, the
+    pricing→checkout funnel, revenue, and time series — filterable by platform.
+
+    Query params:
+      ``days``     reporting window (1-365, default 30).
+      ``platform`` "all" (default), "web", or "mobile" (= ios + android). Scopes
+                   every funnel/engagement metric. Revenue is account-wide
+                   (Stripe payments carry no client platform).
+    """
 
     permission_classes = [IsAuthenticated]
+
+    # Mobile = native clients; the analytics dashboard groups ios+android under it.
+    _MOBILE_PLATFORMS = ["ios", "android"]
+
+    @staticmethod
+    def _rate(numerator, denominator):
+        return round((numerator / denominator) * 100, 2) if denominator else 0.0
+
+    @classmethod
+    def _summarise(cls, queryset):
+        """Pricing→checkout→entitlement funnel for a queryset."""
+
+        def count(event_type, status=None):
+            qs = queryset.filter(event_type=event_type)
+            if status:
+                qs = qs.filter(status=status)
+            return qs.count()
+
+        pricing_views = count("pricing_view")
+        checkouts_created = count("checkout_created")
+        checkouts_completed = count("checkout_completed")
+        entitlement_success = count("entitlement_lookup", status="success")
+        entitlement_failures = count("entitlement_lookup", status="error")
+        return {
+            "pricing_views": pricing_views,
+            "checkouts_created": checkouts_created,
+            "checkouts_completed": checkouts_completed,
+            "entitlement_success": entitlement_success,
+            "entitlement_failures": entitlement_failures,
+            "pricing_to_checkout_rate": cls._rate(checkouts_created, pricing_views),
+            "checkout_to_paid_rate": cls._rate(checkouts_completed, checkouts_created),
+            "entitlement_success_rate": cls._rate(
+                entitlement_success, entitlement_success + entitlement_failures
+            ),
+        }
 
     def get(self, request):
         if not (request.user.is_staff or request.user.is_superuser):
@@ -3497,48 +3550,205 @@ class FunnelMetricsView(APIView):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        days = int(request.query_params.get("days", 30))
-        since = timezone.now() - timedelta(days=days)
+        # Clamp days so a bad/huge param can't trigger a 500 or an unbounded scan.
+        try:
+            days = int(request.query_params.get("days", 30))
+        except (TypeError, ValueError):
+            days = 30
+        days = max(1, min(days, 365))
 
-        events = FunnelEvent.objects.filter(created_at__gte=since)
+        platform = (request.query_params.get("platform") or "all").strip().lower()
+        if platform not in ("all", "web", "mobile"):
+            platform = "all"
 
-        def count(event_type, status=None):
-            queryset = events.filter(event_type=event_type)
-            if status:
-                queryset = queryset.filter(status=status)
-            return queryset.count()
+        def scope(qs):
+            """Apply the selected platform filter to a FunnelEvent queryset."""
+            if platform == "web":
+                return qs.filter(platform="web")
+            if platform == "mobile":
+                return qs.filter(platform__in=self._MOBILE_PLATFORMS)
+            return qs
 
-        pricing_views = count("pricing_view")
-        checkouts_created = count("checkout_created")
-        checkouts_completed = count("checkout_completed")
-        entitlement_success = count("entitlement_lookup", status="success")
-        entitlement_failures = count("entitlement_lookup", status="error")
+        now = timezone.now()
+        since = now - timedelta(days=days)
+        events = scope(FunnelEvent.objects.filter(created_at__gte=since))
+        all_events = FunnelEvent.objects.filter(created_at__gte=since)
 
-        daily = (
-            events.annotate(day=TruncDate("created_at"))
-            .values("event_type", "day")
-            .annotate(total=Count("id"))
+        # --- Active (signed-in) users over fixed rolling windows + the range ---
+        def active_users(within_days):
+            window = now - timedelta(days=within_days)
+            return (
+                scope(FunnelEvent.objects.filter(created_at__gte=window, user__isnull=False))
+                .values("user")
+                .distinct()
+                .count()
+            )
+
+        active = {
+            "last_1d": active_users(1),
+            "last_7d": active_users(7),
+            "last_30d": active_users(30),
+            "in_range": events.filter(user__isnull=False).values("user").distinct().count(),
+        }
+
+        totals = {
+            "events": events.count(),
+            "sessions": events.exclude(session_id="").values("session_id").distinct().count(),
+            "signed_in_users": active["in_range"],
+        }
+
+        # --- Real accounts (ground truth from the User table, not event-derived) ---
+        # date_joined is the authoritative "new account" signal; signup_platform
+        # (captured at registration) lets us split signups by web/mobile.
+        User = get_user_model()
+
+        def signup_scope(qs):
+            if platform == "web":
+                return qs.filter(profile__signup_platform="web")
+            if platform == "mobile":
+                return qs.filter(profile__signup_platform__in=self._MOBILE_PLATFORMS)
+            return qs
+
+        def new_users(within_days):
+            window = now - timedelta(days=within_days)
+            return signup_scope(User.objects.filter(date_joined__gte=window)).count()
+
+        new_by_platform_rows = (
+            User.objects.filter(date_joined__gte=since)
+            .values("profile__signup_platform")
+            .annotate(count=Count("id"))
+        )
+        new_by_platform = {
+            (r["profile__signup_platform"] or "unknown"): r["count"] for r in new_by_platform_rows
+        }
+        signups_timeseries = [
+            {"day": str(r["day"]), "signups": r["count"]}
+            for r in signup_scope(User.objects.filter(date_joined__gte=since))
+            .annotate(day=TruncDate("date_joined"))
+            .values("day")
+            .annotate(count=Count("id"))
             .order_by("day")
+        ]
+        users_block = {
+            "total": User.objects.count(),
+            "new_last_1d": new_users(1),
+            "new_last_7d": new_users(7),
+            "new_last_30d": new_users(30),
+            "new_in_range": signup_scope(User.objects.filter(date_joined__gte=since)).count(),
+            "new_by_platform": new_by_platform,
+        }
+
+        # --- Engagement: what they use / click ---
+        feature_q = (
+            Q(event_type__endswith="_view")
+            | Q(event_type__endswith="_open")
+            | Q(event_type__endswith="_opened")
+            | Q(event_type__contains="tool")
+        )
+        top_features = list(
+            events.filter(feature_q)
+            .values("event_type")
+            .annotate(count=Count("id"), users=Count("user", distinct=True))
+            .order_by("-count")[:10]
+        )
+        top_clicks = list(
+            events.filter(event_type__endswith="_click")
+            .values("event_type")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:10]
         )
 
-        def rate(numerator, denominator):
-            return round((numerator / denominator) * 100, 2) if denominator else 0.0
+        # --- What they're spending on: checkout intent by plan ---
+        plan_rows = (
+            events.filter(event_type="checkout_created")
+            .annotate(plan=KeyTextTransform("plan_id", "metadata"))
+            .values("plan")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:8]
+        )
+        top_plans = [{"plan": r["plan"] or "unknown", "count": r["count"]} for r in plan_rows]
+
+        # --- Revenue (account-wide; Stripe payments have no client platform) ---
+        StripePayment = apps.get_model("finance", "StripePayment")
+        revenue = {"by_currency": [], "payments": 0, "platform_scope": "all"}
+        revenue_timeseries = []
+        if StripePayment is not None:
+            rev_qs = StripePayment.objects.filter(created_at__gte=since)
+            revenue["payments"] = rev_qs.count()
+            revenue["by_currency"] = [
+                {
+                    "currency": r["currency"],
+                    "total": float(r["total"] or 0),
+                    "payments": r["payments"],
+                }
+                for r in rev_qs.values("currency")
+                .annotate(total=Sum("amount"), payments=Count("id"))
+                .order_by("-total")
+            ]
+            revenue_timeseries = [
+                {
+                    "day": str(r["day"]),
+                    "total": float(r["total"] or 0),
+                    "payments": r["payments"],
+                }
+                for r in rev_qs.annotate(day=TruncDate("created_at"))
+                .values("day")
+                .annotate(total=Sum("amount"), payments=Count("id"))
+                .order_by("day")
+            ]
+
+        # --- Time series for graphs (daily, platform-scoped) ---
+        ts = (
+            events.annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(
+                events=Count("id"),
+                active_users=Count("user", distinct=True),
+                pricing_views=Count("id", filter=Q(event_type="pricing_view")),
+                checkouts_completed=Count("id", filter=Q(event_type="checkout_completed")),
+            )
+            .order_by("day")
+        )
+        timeseries = [
+            {
+                "day": str(r["day"]),
+                "events": r["events"],
+                "active_users": r["active_users"],
+                "pricing_views": r["pricing_views"],
+                "checkouts_completed": r["checkouts_completed"],
+            }
+            for r in ts
+        ]
+
+        # --- Platform comparison (always over all platforms, for the "all" view) ---
+        present = all_events.values_list("platform", flat=True).distinct().order_by("platform")
+        by_platform = {}
+        for p in present:
+            key = p or "unknown"
+            qs = all_events.filter(platform=p)
+            by_platform[key] = {
+                **self._summarise(qs),
+                "events": qs.count(),
+                "active_users": qs.filter(user__isnull=False).values("user").distinct().count(),
+            }
 
         return Response(
             {
-                "summary": {
-                    "pricing_views": pricing_views,
-                    "checkouts_created": checkouts_created,
-                    "checkouts_completed": checkouts_completed,
-                    "entitlement_success": entitlement_success,
-                    "entitlement_failures": entitlement_failures,
-                    "pricing_to_checkout_rate": rate(checkouts_created, pricing_views),
-                    "checkout_to_paid_rate": rate(checkouts_completed, checkouts_created),
-                    "entitlement_success_rate": rate(
-                        entitlement_success, entitlement_success + entitlement_failures
-                    ),
-                },
-                "daily_breakdown": list(daily),
+                "platform": platform,
+                "days": days,
+                "generated_at": now.isoformat(),
+                "active_users": active,
+                "users": users_block,
+                "signups_timeseries": signups_timeseries,
+                "totals": totals,
+                "summary": self._summarise(events),
+                "top_features": top_features,
+                "top_clicks": top_clicks,
+                "top_plans": top_plans,
+                "revenue": revenue,
+                "revenue_timeseries": revenue_timeseries,
+                "timeseries": timeseries,
+                "by_platform": by_platform,
             }
         )
 

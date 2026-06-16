@@ -54,6 +54,44 @@ class ClientTrackEventView(APIView):
 
 _CIO_UNSUB_EVENTS = frozenset({"customer_unsubscribed", "email_unsubscribed"})
 _CIO_SUB_EVENTS = frozenset({"customer_subscribed", "email_subscribed"})
+# Hard bounce + spam complaint → permanently stop emailing this address. Apple Private
+# Relay "unauthorized sender" rejections surface as email_bounced but never reach CIO's
+# ESP suppression list (Mailgun marks them block/policy, not hard bounce), so the same
+# inboxes get retried forever unless we suppress them ourselves.
+_CIO_BOUNCE_EVENTS = frozenset({"email_bounced", "email_spammed"})
+
+
+def _cio_event_type(payload: dict) -> str:
+    """Reporting-webhook event identifier. Newer CIO payloads carry a flat
+    ``event_type`` (e.g. "email_bounced"); older/alternate ones split it into
+    ``object_type`` ("email") + ``metric`` ("bounced"). Normalise both to
+    "<object>_<metric>" so routing is format-agnostic."""
+    et = (payload.get("event_type") or "").strip()
+    if et:
+        return et
+    obj = (payload.get("object_type") or "").strip()
+    data = payload.get("data") or {}
+    metric = (
+        payload.get("metric") or (data.get("metric") if isinstance(data, dict) else "") or ""
+    ).strip()
+    return f"{obj}_{metric}" if obj and metric else ""
+
+
+def _extract_identity(data: dict) -> tuple[str, str]:
+    """Pull (customer_id, email) from a reporting-webhook ``data`` block, tolerating the
+    shapes CIO uses across event types: top-level ``customer_id``/``email_address``, a
+    ``recipient`` email (email-metric events like bounced/spammed), or a nested
+    ``identifiers`` object. Without this, bounce payloads that omit ``email_address``
+    would slip through unsuppressed."""
+    data = data or {}
+    idents = data.get("identifiers")
+    if not isinstance(idents, dict):
+        idents = {}
+    cid = (data.get("customer_id") or idents.get("id") or idents.get("cio_id") or "").strip()
+    email = (
+        data.get("email_address") or data.get("recipient") or idents.get("email") or ""
+    ).strip()
+    return cid, email
 
 
 def _verify_cio_signature(raw_body: bytes, signature_header: str, timestamp_header: str) -> bool:
@@ -83,13 +121,16 @@ def _verify_cio_signature(raw_body: bytes, signature_header: str, timestamp_head
 class CioWebhookView(APIView):
     """
     POST /api/notifications/cio-webhook/
-    Receiver for CIO Reporting Webhooks. Currently handles unsubscribe events
-    by flipping UserEmailPreference.marketing (+ reminders + weekly_digest) to
-    False so backend-side crons stop reaching the user, matching CIO's view.
+    Receiver for CIO Reporting Webhooks. Handles:
+      - unsubscribe/subscribe → flip UserEmailPreference (marketing/reminders/
+        weekly_digest) so backend-side crons match CIO's view.
+      - hard bounce / spam complaint → permanently suppress the address by setting
+        unsubscribed=true on the CIO profile (the only durable fix for Apple Private
+        Relay bounces, which never auto-suppress) AND clearing local prefs.
 
     Configure in CIO: Workspace Settings → Reporting Webhooks → add this URL,
-    subscribe to customer_unsubscribed + email_unsubscribed, copy the signing
-    secret into env var CIO_WEBHOOK_SIGNING_SECRET.
+    subscribe to customer_unsubscribed + email_unsubscribed + email_bounced +
+    email_spammed, copy the signing secret into env var CIO_WEBHOOK_SIGNING_SECRET.
     """
 
     permission_classes = [AllowAny]
@@ -118,8 +159,41 @@ class CioWebhookView(APIView):
             payload = json.loads(raw_body.decode("utf-8") or "{}")
         except Exception:
             return Response({"detail": "bad json"}, status=status.HTTP_400_BAD_REQUEST)
-        event_type = (payload.get("event_type") or "").strip()
+        event_type = _cio_event_type(payload)
         data = payload.get("data") or {}
+
+        # Hard bounce / spam complaint → permanently suppress the address. Runs even
+        # when no Django user matches (Apple relay profiles frequently have no local
+        # account): the CIO profile is still suppressed by id/email so journeys,
+        # newsletters, and transactional sends all stop.
+        if event_type in _CIO_BOUNCE_EVENTS:
+            cid, email = _extract_identity(data)
+            if cid or email:
+                from notifications.tasks import safe_enqueue_suppress_customer_in_cio
+
+                safe_enqueue_suppress_customer_in_cio(cid or email, email or None)
+            user = self._resolve_user(data)
+            changed = []
+            if user is not None:
+                from authentication.models import UserEmailPreference
+
+                prefs, _ = UserEmailPreference.objects.get_or_create(user=user)
+                for field in ("marketing", "reminders", "weekly_digest"):
+                    if getattr(prefs, field, None) is not False:
+                        setattr(prefs, field, False)
+                        changed.append(field)
+                if changed:
+                    prefs.save(update_fields=changed)
+            logger.info(
+                "cio_webhook_bounce_suppressed event=%s cid=%s email=%s user=%s changed=%s",
+                event_type,
+                cid,
+                email,
+                getattr(user, "pk", None),
+                changed,
+            )
+            return Response({"ok": True, "suppressed": True}, status=status.HTTP_200_OK)
+
         if event_type not in _CIO_UNSUB_EVENTS and event_type not in _CIO_SUB_EVENTS:
             # Acknowledge unknown events so CIO does not retry; nothing to do.
             return Response({"ok": True, "ignored": event_type}, status=status.HTTP_200_OK)
@@ -151,14 +225,13 @@ class CioWebhookView(APIView):
     @staticmethod
     def _resolve_user(data: dict):
         User = get_user_model()
-        cid = (data.get("customer_id") or "").strip()
+        cid, email = _extract_identity(data)
         if cid and cid.isdigit():
             user = User.objects.filter(pk=int(cid)).first()
             if user:
                 return user
-        email = (data.get("email_address") or "").strip().lower()
         if email:
-            return User.objects.filter(email__iexact=email).first()
+            return User.objects.filter(email__iexact=email.lower()).first()
         return None
 
 

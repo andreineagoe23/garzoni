@@ -63,15 +63,15 @@ export function getCourseMetrics(
   const progress = progressByCourse.get(course.id);
   const completedLessons =
     progress?.completedLessons ?? Number(course.completed_lessons || 0);
-  const totalLessons = progress?.totalLessons ?? Number(course.total_lessons || 0);
+  const totalLessons =
+    progress?.totalLessons ?? Number(course.total_lessons || 0);
   // Both progress_summary and personalized-path now publish section-based,
   // published-only counts. They can briefly lag each other (progress_summary is
   // cached ~60s), so merge by taking the higher completedSections against a
   // consistent total, then derive everything from the single shared util.
   const pathTotalSections = Number(course.total_sections || 0);
-  const totalSections = pathTotalSections > 0
-    ? pathTotalSections
-    : (progress?.totalSections ?? 0);
+  const totalSections =
+    pathTotalSections > 0 ? pathTotalSections : (progress?.totalSections ?? 0);
   const completedSectionsMerged = Math.max(
     Number(course.completed_sections || 0),
     progress?.completedSections ?? 0,

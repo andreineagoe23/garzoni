@@ -75,7 +75,6 @@ type Props = {
   onShowAllTopics?: () => void;
 };
 
-
 /**
  * Onboarding goals sometimes arrive as Python reprs ("['Debt']").
  * Flatten to clean labels.
@@ -368,8 +367,7 @@ export default function JourneyMapContent({
       return Number(personalizedQuery.data?.meta?.overall_completion ?? 0);
     }
     return Math.round(
-      unlocked.reduce((sum, n) => sum + n.metrics.percent, 0) /
-        unlocked.length,
+      unlocked.reduce((sum, n) => sum + n.metrics.percent, 0) / unlocked.length,
     );
   }, [layout.nodes, personalizedQuery.data?.meta?.overall_completion]);
 
@@ -510,79 +508,80 @@ export default function JourneyMapContent({
             { backgroundColor: c.primary, borderColor: c.primaryDark },
           ]}
         >
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={styles.headerKicker} numberOfLines={1}>
-            {t("journey.headerKicker", { defaultValue: "THE CLIMB" })}
-            {goalsLine ? ` · ${goalsLine.toUpperCase()}` : ""}
-          </Text>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {currentNode?.course.title ??
-              t("journey.summit", { defaultValue: "Summit" })}
-          </Text>
-          <Text style={styles.headerMeta} numberOfLines={1}>
-            {t("journey.summitMeta", {
-              defaultValue: "{{percent}}% climbed · ~{{minutes}} min to the top",
-              percent: overall,
-              minutes: minutesLeft,
-            })}
-          </Text>
-        </View>
-        <View style={styles.headerActions}>
-          {onShowAllTopics ? (
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={styles.headerKicker} numberOfLines={1}>
+              {t("journey.headerKicker", { defaultValue: "THE CLIMB" })}
+              {goalsLine ? ` · ${goalsLine.toUpperCase()}` : ""}
+            </Text>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {currentNode?.course.title ??
+                t("journey.summit", { defaultValue: "Summit" })}
+            </Text>
+            <Text style={styles.headerMeta} numberOfLines={1}>
+              {t("journey.summitMeta", {
+                defaultValue:
+                  "{{percent}}% climbed · ~{{minutes}} min to the top",
+                percent: overall,
+                minutes: minutesLeft,
+              })}
+            </Text>
+          </View>
+          <View style={styles.headerActions}>
+            {onShowAllTopics ? (
+              <Pressable
+                onPress={onShowAllTopics}
+                hitSlop={6}
+                style={({ pressed }) => [
+                  styles.headerBtn,
+                  { opacity: pressed ? 0.6 : 1 },
+                ]}
+                accessibilityLabel={t("dashboard.nav.allTopics")}
+              >
+                <MaterialCommunityIcons
+                  name="view-grid-outline"
+                  size={18}
+                  color="#ffffff"
+                />
+              </Pressable>
+            ) : null}
+            {onSwitchToList ? (
+              <Pressable
+                onPress={onSwitchToList}
+                hitSlop={6}
+                style={({ pressed }) => [
+                  styles.headerBtn,
+                  { opacity: pressed ? 0.6 : 1 },
+                ]}
+                accessibilityLabel={t("journey.modeList", {
+                  defaultValue: "List",
+                })}
+              >
+                <MaterialCommunityIcons
+                  name="format-list-bulleted"
+                  size={18}
+                  color="#ffffff"
+                />
+              </Pressable>
+            ) : null}
             <Pressable
-              onPress={onShowAllTopics}
+              onPress={() => refreshMutation.mutate()}
+              disabled={refreshMutation.isPending}
               hitSlop={6}
               style={({ pressed }) => [
                 styles.headerBtn,
-                { opacity: pressed ? 0.6 : 1 },
+                { opacity: pressed || refreshMutation.isPending ? 0.6 : 1 },
               ]}
-              accessibilityLabel={t("dashboard.nav.allTopics")}
-            >
-              <MaterialCommunityIcons
-                name="view-grid-outline"
-                size={18}
-                color="#ffffff"
-              />
-            </Pressable>
-          ) : null}
-          {onSwitchToList ? (
-            <Pressable
-              onPress={onSwitchToList}
-              hitSlop={6}
-              style={({ pressed }) => [
-                styles.headerBtn,
-                { opacity: pressed ? 0.6 : 1 },
-              ]}
-              accessibilityLabel={t("journey.modeList", {
-                defaultValue: "List",
+              accessibilityLabel={t("journey.rechart", {
+                defaultValue: "Re-chart route",
               })}
             >
               <MaterialCommunityIcons
-                name="format-list-bulleted"
+                name="map-marker-path"
                 size={18}
                 color="#ffffff"
               />
             </Pressable>
-          ) : null}
-          <Pressable
-            onPress={() => refreshMutation.mutate()}
-            disabled={refreshMutation.isPending}
-            hitSlop={6}
-            style={({ pressed }) => [
-              styles.headerBtn,
-              { opacity: pressed || refreshMutation.isPending ? 0.6 : 1 },
-            ]}
-            accessibilityLabel={t("journey.rechart", {
-              defaultValue: "Re-chart route",
-            })}
-          >
-            <MaterialCommunityIcons
-              name="map-marker-path"
-              size={18}
-              color="#ffffff"
-            />
-          </Pressable>
-        </View>
+          </View>
         </View>
       </View>
 
@@ -1022,7 +1021,6 @@ export default function JourneyMapContent({
             </Animated.View>
           ) : null}
         </View>
-
       </ScrollView>
 
       {/* Floating "back to current node" button */}

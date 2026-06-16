@@ -19,8 +19,14 @@ def record_funnel_event(
     user: Optional[AbstractBaseUser] = None,
     session_id: str = "",
     metadata: Optional[Dict[str, Any]] = None,
+    platform: str = "",
 ) -> None:
-    """Persist a funnel event without breaking the caller on failure."""
+    """Persist a funnel event without breaking the caller on failure.
+
+    ``platform`` ("web"/"ios"/"android"/"") tags the originating client so the
+    analytics dashboard can split the funnel. Server-side callers (e.g. Stripe
+    webhooks) leave it empty.
+    """
 
     FunnelEvent = apps.get_model("finance", "FunnelEvent")
     if FunnelEvent is None:
@@ -34,6 +40,7 @@ def record_funnel_event(
             status=status,
             session_id=session_id or "",
             metadata=metadata or {},
+            platform=(platform or "")[:16],
         )
     except Exception as exc:  # pragma: no cover - defensive logging only
         logger.warning("Unable to record funnel event %s: %s", event_type, exc)

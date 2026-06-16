@@ -213,6 +213,58 @@ def safe_enqueue_sync_user_to_customer_io(user_id: int) -> None:
         )
 
 
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=30,
+    retry_kwargs={"max_retries": 3},
+)
+def suppress_customer_in_cio(self, customer_id: str, email: str | None = None) -> str:
+    """
+    Set ``unsubscribed = true`` on a Customer.io profile after a hard bounce or spam
+    complaint, so no further CIO email (journey, newsletter, or transactional) is ever
+    attempted for that address.
+
+    This is the only durable suppression path for Apple Private Relay "unauthorized
+    sender" bounces: Mailgun classifies them as policy/block rejections, not permanent
+    hard bounces, so CIO's ESP suppression list never catches them and the same relay
+    inboxes get retried forever. Flipping ``unsubscribed`` stops all CIO sends regardless
+    of campaign. ``email`` is accepted only for log traceability — the profile is
+    addressed by its stable id (Django pk).
+    """
+    pid = (customer_id or "").strip()
+    if not pid:
+        return "skipped_no_id"
+    from notifications.customer_io import identify_person
+
+    ok, err = identify_person(pid, {"unsubscribed": True})
+    logger.info("cio_suppress id=%s email=%s ok=%s err=%s", pid, email or "", ok, err)
+    return "ok" if ok else f"failed:{err}"
+
+
+def safe_enqueue_suppress_customer_in_cio(customer_id: str, email: str | None = None) -> None:
+    """Queue CIO suppression without failing the caller (e.g. a webhook) if Celery/Redis
+    is down — falls back to an inline identify so the bounce is still suppressed."""
+    cid = (str(customer_id) if customer_id is not None else "").strip()
+    if not cid:
+        return
+    try:
+        suppress_customer_in_cio.delay(cid, email)
+        return
+    except Exception:
+        logger.warning(
+            "suppress_customer_in_cio.delay failed id=%s — broker may be down, running inline",
+            cid,
+            exc_info=True,
+        )
+    try:
+        from notifications.customer_io import identify_person
+
+        identify_person(cid, {"unsubscribed": True})
+    except Exception:
+        logger.warning("inline CIO suppress raised id=%s", cid, exc_info=True)
+
+
 # ---------------------------------------------------------------------------
 # AI-generated push nudges
 # ---------------------------------------------------------------------------

@@ -115,6 +115,10 @@ class UserProfile(models.Model):
     terms_accepted_ip = models.GenericIPAddressField(null=True, blank=True)
     # User confirmed they meet the minimum age (16, GDPR default) at signup.
     age_confirmed = models.BooleanField(default=False)
+    # Client the account was created from: "web" | "ios" | "android" | "" (unknown,
+    # e.g. accounts created before this was tracked). Powers the new-signups-by-
+    # platform split in the admin analytics dashboard. Reporting-only.
+    signup_platform = models.CharField(max_length=16, blank=True, default="")
 
     def __str__(self):
         return self.user.username

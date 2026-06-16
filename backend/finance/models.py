@@ -228,6 +228,11 @@ class FunnelEvent(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     event_type = models.CharField(max_length=64)
     status = models.CharField(max_length=32, default="success")
+    # Originating client: "web", "ios", "android", or "" for server-side/unknown
+    # (e.g. Stripe-webhook-recorded events). Lets the analytics dashboard split the
+    # funnel by platform. Not security-sensitive — derived from a client header on an
+    # AllowAny ingest endpoint, so treat purely as a reporting dimension.
+    platform = models.CharField(max_length=16, blank=True, default="")
     session_id = models.CharField(max_length=255, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -237,6 +242,7 @@ class FunnelEvent(models.Model):
         indexes = [
             models.Index(fields=["event_type", "created_at"]),
             models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["platform", "created_at"], name="finance_fun_platfor_idx"),
         ]
 
     def __str__(self):

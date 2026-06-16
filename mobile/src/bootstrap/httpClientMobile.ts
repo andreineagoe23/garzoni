@@ -1,6 +1,7 @@
 import Toast from "react-native-toast-message";
 import * as Sentry from "@sentry/react-native";
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 import { router } from "expo-router";
 import {
   attachToken,
@@ -9,6 +10,7 @@ import {
   configureCloudinaryCloudName,
   configureHttpClient,
   refreshAccessToken,
+  setClientPlatform,
 } from "@garzoni/core";
 import type { InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "../auth/tokenStorage";
@@ -48,6 +50,10 @@ async function clearSessionAndRedirect() {
 export function initHttpClientMobile() {
   if (initialized) return;
   initialized = true;
+
+  // Tag funnel events with the native platform so the web analytics dashboard can
+  // split web vs ios vs android. Platform.OS is "ios" | "android" here.
+  setClientPlatform(Platform.OS);
 
   const resolved = resolveBackendUrlFromExpo();
   if (resolved) {

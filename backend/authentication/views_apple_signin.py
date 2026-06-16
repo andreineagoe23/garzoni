@@ -240,6 +240,12 @@ class AppleIdentityAuthView(APIView):
                     user.pk,
                 )
             record_consent(user.profile, request, age_confirmed=True)
+            from core.request_platform import resolve_request_platform
+
+            profile = user.profile
+            # Apple Sign In is iOS-only; default there if the header/UA is absent.
+            profile.signup_platform = resolve_request_platform(request) or "ios"
+            profile.save(update_fields=["signup_platform"])
 
         from authentication.services.referrals import apply_referral_for_new_user
 

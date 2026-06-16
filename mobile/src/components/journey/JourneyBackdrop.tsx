@@ -39,9 +39,27 @@ function BirdFlock({
       viewBox="0 0 30 10"
       style={{ position: "absolute", left: x, top: y }}
     >
-      <Path d="M1 7 Q 6 1 11 7" stroke={color} strokeWidth={1.7} fill="none" strokeLinecap="round" />
-      <Path d="M11 7 Q 16 1 21 7" stroke={color} strokeWidth={1.7} fill="none" strokeLinecap="round" />
-      <Path d="M18 5 Q 22 1 26 5" stroke={color} strokeWidth={1.4} fill="none" strokeLinecap="round" />
+      <Path
+        d="M1 7 Q 6 1 11 7"
+        stroke={color}
+        strokeWidth={1.7}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M11 7 Q 16 1 21 7"
+        stroke={color}
+        strokeWidth={1.7}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M18 5 Q 22 1 26 5"
+        stroke={color}
+        strokeWidth={1.4}
+        fill="none"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -72,7 +90,12 @@ function wavyRegion(yBase: number, width: number, seed: number): string {
  * plus a sun glow behind the peak, speckles, and gliding birds.
  * This is the scene's ground; scenery sprites stand ON it, not on app bg.
  */
-export default function JourneyBackdrop({ nodes, width, height, summit }: Props) {
+export default function JourneyBackdrop({
+  nodes,
+  width,
+  height,
+  summit,
+}: Props) {
   const { colors: c, resolved } = useTheme();
   const dark = resolved === "dark";
   if (nodes.length < 2) return null;
@@ -128,10 +151,18 @@ export default function JourneyBackdrop({ nodes, width, height, summit }: Props)
           {/* Soft shading so each band darkens toward its lower edge. */}
           <LinearGradient id="bandShade" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor="#000000" stopOpacity={0} />
-            <Stop offset="1" stopColor="#000000" stopOpacity={dark ? 0.22 : 0.1} />
+            <Stop
+              offset="1"
+              stopColor="#000000"
+              stopOpacity={dark ? 0.22 : 0.1}
+            />
           </LinearGradient>
           <RadialGradient id="summitGlow" cx="50%" cy="50%" rx="50%" ry="50%">
-            <Stop offset="0" stopColor={c.accent} stopOpacity={dark ? 0.22 : 0.3} />
+            <Stop
+              offset="0"
+              stopColor={c.accent}
+              stopOpacity={dark ? 0.22 : 0.3}
+            />
             <Stop offset="1" stopColor={c.accent} stopOpacity={0} />
           </RadialGradient>
         </Defs>
@@ -175,13 +206,32 @@ export default function JourneyBackdrop({ nodes, width, height, summit }: Props)
         />
 
         {/* Sun glow cresting behind the peak */}
-        <Circle cx={summit.x} cy={summit.y - 24} r={130} fill="url(#summitGlow)" />
+        <Circle
+          cx={summit.x}
+          cy={summit.y - 24}
+          r={130}
+          fill="url(#summitGlow)"
+        />
 
         {snowDots.map((d, i) => (
-          <Circle key={`s${i}`} cx={d.x} cy={d.y} r={d.r} fill={speckSnow} opacity={d.o} />
+          <Circle
+            key={`s${i}`}
+            cx={d.x}
+            cy={d.y}
+            r={d.r}
+            fill={speckSnow}
+            opacity={d.o}
+          />
         ))}
         {grassDots.map((d, i) => (
-          <Circle key={`g${i}`} cx={d.x} cy={d.y} r={d.r} fill={speckGrass} opacity={d.o} />
+          <Circle
+            key={`g${i}`}
+            cx={d.x}
+            cy={d.y}
+            r={d.r}
+            fill={speckGrass}
+            opacity={d.o}
+          />
         ))}
       </Svg>
 

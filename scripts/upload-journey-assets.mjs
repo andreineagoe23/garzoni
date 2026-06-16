@@ -50,7 +50,9 @@ async function uploadFile(file, apiKey, apiSecret, cloudName) {
   const res = await fetch(endpoint, { method: "POST", body: form });
   const data = await res.json();
   if (!res.ok || !data.secure_url) {
-    throw new Error(`upload failed for ${slug} (${res.status}): ${JSON.stringify(data)}`);
+    throw new Error(
+      `upload failed for ${slug} (${res.status}): ${JSON.stringify(data)}`,
+    );
   }
   process.stderr.write(` OK\n`);
   return { slug, url: data.secure_url };
@@ -65,7 +67,9 @@ async function main() {
     .filter((f) => f.endsWith(".png"))
     .map((f) => join(ASSETS_DIR, f));
 
-  process.stderr.write(`Uploading ${files.length} journey PNGs to ${cloudName}/${FOLDER}/\n`);
+  process.stderr.write(
+    `Uploading ${files.length} journey PNGs to ${cloudName}/${FOLDER}/\n`,
+  );
 
   const results = {};
   for (const file of files) {

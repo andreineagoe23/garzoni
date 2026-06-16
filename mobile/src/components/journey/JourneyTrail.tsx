@@ -61,9 +61,14 @@ function ProgressTip({
     opacity: 0.5 * (1 - t.value),
   }));
   return (
-    <View pointerEvents="none" style={[styles.tipWrap, { left: x - 11, top: y - 11 }]}>
+    <View
+      pointerEvents="none"
+      style={[styles.tipWrap, { left: x - 11, top: y - 11 }]}
+    >
       {motionSimplify ? null : (
-        <Animated.View style={[styles.tipHalo, { backgroundColor: color }, halo]} />
+        <Animated.View
+          style={[styles.tipHalo, { backgroundColor: color }, halo]}
+        />
       )}
       <View style={[styles.tipDot, { backgroundColor: color }]} />
     </View>
@@ -95,7 +100,10 @@ export default function JourneyTrail({
     clipTop.value = height;
     clipTop.value = withDelay(
       250,
-      withTiming(tipY, { duration: REVEAL_MS, easing: Easing.out(Easing.cubic) }),
+      withTiming(tipY, {
+        duration: REVEAL_MS,
+        easing: Easing.out(Easing.cubic),
+      }),
     );
   }, [clipTop, tipY, height, motionSimplify]);
 

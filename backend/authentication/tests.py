@@ -474,6 +474,17 @@ class RegisterConsentTests(APITestCase):
         )
         self.assertEqual(resp.status_code, 400)
 
+    def test_register_tags_signup_platform_from_header(self):
+        resp = self.client.post(
+            reverse("register-secure"),
+            self._payload(username="plat", email="plat@example.com"),
+            format="json",
+            HTTP_X_GARZONI_PLATFORM="android",
+        )
+        self.assertEqual(resp.status_code, 201)
+        profile = User.objects.get(username="plat").profile
+        self.assertEqual(profile.signup_platform, "android")
+
 
 class LoginHardeningTests(APITestCase):
     def test_inactive_user_cannot_login(self):

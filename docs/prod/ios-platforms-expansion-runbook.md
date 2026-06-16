@@ -89,12 +89,12 @@ Direct help: [Manage availability on Apple Vision Pro](https://developer.apple.c
 
 These ship with the next iOS build:
 
-| Change                       | File                                      | Purpose                              |
-| ---------------------------- | ----------------------------------------- | ------------------------------------ |
-| Removed `requireFullScreen`  | `mobile/app.json`, `mobile/app.config.js` | iPad Split View + resizable Mac window |
-| iPad landscape orientations  | `mobile/app.json`, `mobile/app.config.js` | Better wide layouts on iPad / Mac    |
-| `isIOSAppOnMac()` helper     | `mobile/src/utils/platform.ts`            | Optional feature gating              |
-| `pnpm ios:mac`               | `mobile/package.json`                     | Local Mac testing                    |
+| Change                      | File                                      | Purpose                                |
+| --------------------------- | ----------------------------------------- | -------------------------------------- |
+| Removed `requireFullScreen` | `mobile/app.json`, `mobile/app.config.js` | iPad Split View + resizable Mac window |
+| iPad landscape orientations | `mobile/app.json`, `mobile/app.config.js` | Better wide layouts on iPad / Mac      |
+| `isIOSAppOnMac()` helper    | `mobile/src/utils/platform.ts`            | Optional feature gating                |
+| `pnpm ios:mac`              | `mobile/package.json`                     | Local Mac testing                      |
 
 After merging, bump `ios.buildNumber` (and `version` if needed), then:
 

@@ -12,6 +12,7 @@ import {
 
 export {
   configureHttpClient,
+  setClientPlatform,
   attachToken,
   HTTP_CLIENT_SESSION_EXPIRED_REASON,
 } from "./services/httpClient";
@@ -124,10 +125,7 @@ export type {
   PersonalizedPathCourseProgress,
 } from "./lib/personalizedPath";
 export { computeCourseProgress } from "./lib/courseProgress";
-export type {
-  CourseProgress,
-  CourseProgressInput,
-} from "./lib/courseProgress";
+export type { CourseProgress, CourseProgressInput } from "./lib/courseProgress";
 export { createMutationOptions } from "./lib/createMutation";
 export {
   selectPrimaryCTA,

@@ -1,5 +1,20 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as StoreReview from "expo-store-review";
+
+/**
+ * Lazily resolve expo-store-review. The native module ("ExpoStoreReview") is
+ * only present in dev/release builds that were compiled after the package was
+ * added — it's missing in Expo Go and stale dev clients. Importing it eagerly
+ * at module scope throws there ("Cannot find native module"), which would take
+ * down anything importing this file. Requiring it inside a guard lets the
+ * review prompt simply no-op when the module isn't available.
+ */
+function getStoreReview(): typeof import("expo-store-review") | null {
+  try {
+    return require("expo-store-review") as typeof import("expo-store-review");
+  } catch {
+    return null;
+  }
+}
 
 const LAST_PROMPT_KEY = "garzoni:review_prompt_last_ts";
 const POSITIVE_EVENT_COUNT_KEY = "garzoni:review_prompt_positive_events";
@@ -24,6 +39,8 @@ async function readNumber(key: string): Promise<number> {
  */
 export async function maybeRequestReview(reason: ReviewReason): Promise<void> {
   try {
+    const StoreReview = getStoreReview();
+    if (!StoreReview) return;
     if (!(await StoreReview.isAvailableAsync())) return;
     if (!(await StoreReview.hasAction())) return;
 

@@ -355,8 +355,12 @@ class GoogleOAuthCallbackView(APIView):
         # and stamp the consent record here.
         if is_new_user:
             from authentication.consent import record_consent
+            from core.request_platform import resolve_request_platform
 
             record_consent(user.profile, request, age_confirmed=True)
+            profile = user.profile
+            profile.signup_platform = resolve_request_platform(request)
+            profile.save(update_fields=["signup_platform"])
             from authentication.services.referrals import apply_referral_for_new_user
 
             apply_referral_for_new_user(user, True, request.GET.get("ref"))
@@ -524,6 +528,11 @@ class GoogleCredentialAuthView(APIView):
                     user.pk,
                 )
             record_consent(user.profile, request, age_confirmed=True)
+            from core.request_platform import resolve_request_platform
+
+            profile = user.profile
+            profile.signup_platform = resolve_request_platform(request)
+            profile.save(update_fields=["signup_platform"])
 
         from authentication.services.referrals import apply_referral_for_new_user
 

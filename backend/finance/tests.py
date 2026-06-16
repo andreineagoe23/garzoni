@@ -3,9 +3,15 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.test import SimpleTestCase, TransactionTestCase, skipUnlessDBFeature
+from django.test import (
+    SimpleTestCase,
+    TransactionTestCase,
+    override_settings,
+    skipUnlessDBFeature,
+)
 from django.urls import reverse
 from django.utils import timezone
 from finance.serializers import PortfolioEntrySerializer
@@ -261,3 +267,226 @@ class PortfolioEntrySerializerValidationTest(SimpleTestCase):
         )
         self.assertFalse(ser.is_valid())
         self.assertIn("purchase_price", ser.errors)
+
+
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
+)
+class FunnelAnalyticsTest(APITestCase):
+    """Funnel ingest platform tagging + staff-gated metrics split by platform.
+
+    Uses a local-memory cache so DRF throttling works without a live Redis (keeps
+    the suite runnable in CI/dev without the broker).
+    """
+
+    def setUp(self):
+        self.FunnelEvent = apps.get_model("finance", "FunnelEvent")
+        self.FunnelEvent.objects.all().delete()
+        User = get_user_model()
+        self.staff = User.objects.create_user(
+            username="staff_funnel",
+            email="staff_funnel@example.com",
+            password="pw12345!",
+            is_staff=True,
+        )
+        self.member = User.objects.create_user(
+            username="member_funnel",
+            email="member_funnel@example.com",
+            password="pw12345!",
+        )
+
+    # --- ingest: platform attribution -------------------------------------
+
+    def test_ingest_tags_platform_from_header(self):
+        url = reverse("funnel-events")
+        resp = self.client.post(
+            url,
+            {"event_type": "pricing_view"},
+            format="json",
+            HTTP_X_GARZONI_PLATFORM="ios",
+        )
+        self.assertEqual(resp.status_code, 200)
+        event = self.FunnelEvent.objects.get(event_type="pricing_view")
+        self.assertEqual(event.platform, "ios")
+
+    def test_ingest_falls_back_to_user_agent_when_header_absent(self):
+        url = reverse("funnel-events")
+        resp = self.client.post(
+            url,
+            {"event_type": "pricing_view"},
+            format="json",
+            HTTP_USER_AGENT="Mozilla/5.0 (Macintosh) Chrome/120 Safari/537",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(self.FunnelEvent.objects.latest("created_at").platform, "web")
+
+    def test_ingest_unknown_platform_left_empty(self):
+        url = reverse("funnel-events")
+        resp = self.client.post(
+            url,
+            {"event_type": "pricing_view"},
+            format="json",
+            HTTP_X_GARZONI_PLATFORM="windows-phone",
+            HTTP_USER_AGENT="curl/8.0",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(self.FunnelEvent.objects.latest("created_at").platform, "")
+
+    # --- metrics: gate + split --------------------------------------------
+
+    def test_metrics_forbidden_for_non_staff(self):
+        self.client.force_authenticate(user=self.member)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.status_code, 403)
+
+    def test_metrics_requires_authentication(self):
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_metrics_splits_by_platform(self):
+        # 2 web pricing views + 1 checkout; 1 ios pricing view.
+        self.FunnelEvent.objects.create(event_type="pricing_view", platform="web")
+        self.FunnelEvent.objects.create(event_type="pricing_view", platform="web")
+        self.FunnelEvent.objects.create(event_type="checkout_created", platform="web")
+        self.FunnelEvent.objects.create(event_type="pricing_view", platform="ios")
+
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.status_code, 200)
+
+        self.assertEqual(resp.data["summary"]["pricing_views"], 3)
+        by_platform = resp.data["by_platform"]
+        self.assertEqual(by_platform["web"]["pricing_views"], 2)
+        self.assertEqual(by_platform["web"]["checkouts_created"], 1)
+        self.assertEqual(by_platform["ios"]["pricing_views"], 1)
+        self.assertNotIn("android", by_platform)
+
+    def test_metrics_buckets_empty_platform_as_unknown(self):
+        self.FunnelEvent.objects.create(event_type="checkout_completed", platform="")
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("unknown", resp.data["by_platform"])
+
+    def test_metrics_handles_bad_days_param(self):
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"), {"days": "not-a-number"})
+        self.assertEqual(resp.status_code, 200)
+
+    # --- platform filter + engagement + revenue (rich analytics) ----------
+
+    def test_metrics_platform_filter_mobile_combines_ios_android(self):
+        FE = self.FunnelEvent
+        FE.objects.create(event_type="pricing_view", platform="ios")
+        FE.objects.create(event_type="pricing_view", platform="android")
+        FE.objects.create(event_type="pricing_view", platform="web")
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"), {"platform": "mobile"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["platform"], "mobile")
+        # ios + android counted, web excluded
+        self.assertEqual(resp.data["summary"]["pricing_views"], 2)
+
+    def test_metrics_platform_filter_web_only(self):
+        FE = self.FunnelEvent
+        FE.objects.create(event_type="pricing_view", platform="ios")
+        FE.objects.create(event_type="pricing_view", platform="web")
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"), {"platform": "web"})
+        self.assertEqual(resp.data["summary"]["pricing_views"], 1)
+
+    def test_metrics_active_users_counts_distinct_signed_in(self):
+        FE = self.FunnelEvent
+        # member fires two events (still 1 active user), staff fires one, plus an
+        # anonymous (user=None) event that must NOT count.
+        FE.objects.create(event_type="dashboard_view", platform="web", user=self.member)
+        FE.objects.create(event_type="cta_click", platform="web", user=self.member)
+        FE.objects.create(event_type="dashboard_view", platform="web", user=self.staff)
+        FE.objects.create(event_type="dashboard_view", platform="web", user=None)
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.data["active_users"]["last_7d"], 2)
+        self.assertEqual(resp.data["totals"]["signed_in_users"], 2)
+
+    def test_metrics_top_clicks_and_features(self):
+        FE = self.FunnelEvent
+        FE.objects.create(event_type="cta_click", platform="web", user=self.member)
+        FE.objects.create(event_type="cta_click", platform="web", user=self.member)
+        FE.objects.create(event_type="tool_open", platform="web", user=self.member)
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        clicks = {r["event_type"]: r["count"] for r in resp.data["top_clicks"]}
+        features = {r["event_type"]: r["count"] for r in resp.data["top_features"]}
+        self.assertEqual(clicks.get("cta_click"), 2)
+        self.assertEqual(features.get("tool_open"), 1)
+
+    def test_metrics_revenue_from_stripe_payments(self):
+        StripePayment = apps.get_model("finance", "StripePayment")
+        StripePayment.objects.create(
+            user=self.member,
+            stripe_payment_id="pi_test_1",
+            amount="9.99",
+            currency="GBP",
+        )
+        StripePayment.objects.create(
+            user=self.staff,
+            stripe_payment_id="pi_test_2",
+            amount="5.00",
+            currency="GBP",
+        )
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.data["revenue"]["payments"], 2)
+        gbp = next(r for r in resp.data["revenue"]["by_currency"] if r["currency"] == "GBP")
+        self.assertAlmostEqual(gbp["total"], 14.99, places=2)
+
+    # --- real user-table metrics (signups ground truth) -------------------
+
+    def test_metrics_includes_real_user_counts(self):
+        # setUp already created 2 users (staff + member); both joined "now".
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.status_code, 200)
+        users = resp.data["users"]
+        self.assertGreaterEqual(users["total"], 2)
+        self.assertGreaterEqual(users["new_last_7d"], 2)
+        self.assertIn("new_by_platform", users)
+
+    def test_metrics_new_signups_split_by_platform(self):
+        self.member.profile.signup_platform = "web"
+        self.member.profile.save(update_fields=["signup_platform"])
+        self.staff.profile.signup_platform = "ios"
+        self.staff.profile.save(update_fields=["signup_platform"])
+        self.client.force_authenticate(user=self.staff)
+
+        web = self.client.get(reverse("funnel-metrics"), {"platform": "web"})
+        self.assertEqual(web.data["users"]["new_in_range"], 1)
+        mobile = self.client.get(reverse("funnel-metrics"), {"platform": "mobile"})
+        self.assertEqual(mobile.data["users"]["new_in_range"], 1)
+
+    def test_resolve_request_platform_helper(self):
+        from core.request_platform import resolve_request_platform
+
+        class _Req:
+            def __init__(self, meta):
+                self.META = meta
+
+        self.assertEqual(
+            resolve_request_platform(_Req({"HTTP_X_GARZONI_PLATFORM": "android"})),
+            "android",
+        )
+        self.assertEqual(
+            resolve_request_platform(
+                _Req({"HTTP_USER_AGENT": "Mozilla/5.0 Chrome/120 Safari/537"})
+            ),
+            "web",
+        )
+        self.assertEqual(
+            resolve_request_platform(_Req({"HTTP_USER_AGENT": "Garzoni/1 CFNetwork"})),
+            "ios",
+        )
+        self.assertEqual(resolve_request_platform(_Req({})), "")

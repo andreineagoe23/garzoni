@@ -169,7 +169,9 @@ export default function JourneyNode({
         return (
           <MaterialCommunityIcons
             name={
-              journeyNodeIcon(node.course) as keyof typeof MaterialCommunityIcons.glyphMap
+              journeyNodeIcon(
+                node.course,
+              ) as keyof typeof MaterialCommunityIcons.glyphMap
             }
             size={24}
             color="rgba(255,255,255,0.65)"

@@ -58,12 +58,25 @@ const apiClient = axios.create({
   withCredentials: false,
 });
 
+// Originating client, stamped on every request so the backend can attribute funnel
+// analytics by platform. Set once at startup via {@link setClientPlatform} ("web" from
+// the web bundle, "ios"/"android" from mobile). Reporting-only, not an auth signal.
+let clientPlatform = "";
+
+/** Declare which client this bundle is. Call once at app startup. */
+export function setClientPlatform(platform: string): void {
+  clientPlatform = (platform || "").trim().toLowerCase();
+}
+
 // Keep base URL in sync with configureBackendUrl (Expo) and env-driven web defaults.
 apiClient.interceptors.request.use((config) => {
   config.baseURL = getBackendUrl();
   const lang = getCurrentAppLanguage();
   config.headers.set("Accept-Language", lang);
   config.headers.set("X-App-Language", lang);
+  if (clientPlatform) {
+    config.headers.set("X-Garzoni-Platform", clientPlatform);
+  }
   return config;
 });
 

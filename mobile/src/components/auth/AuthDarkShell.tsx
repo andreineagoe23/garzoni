@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { brand } from "../../theme/brand";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../ui/KeyboardAwareScrollView";
+import { FOCUSED_CONTENT_MAX_WIDTH } from "../../utils/platform";
 
 export const DARK = {
   bg: brand.bgDark,
@@ -270,7 +271,7 @@ const s = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    maxWidth: 560,
+    maxWidth: FOCUSED_CONTENT_MAX_WIDTH,
     alignSelf: "center",
     width: "100%",
   },

@@ -44,6 +44,10 @@ import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotification
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
+import {
+  useResponsive,
+  FOCUSED_CONTENT_MAX_WIDTH,
+} from "../src/utils/platform";
 
 const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
@@ -129,6 +133,16 @@ type AnswerValue = string | string[] | null;
 
 export default function OnboardingScreen() {
   const { t } = useTranslation("common");
+  const { isTablet } = useResponsive();
+  // Center the question column on tablet so copy/CTAs stay a comfortable
+  // width instead of stretching edge-to-edge. Phone is unchanged (null).
+  const colCap = isTablet
+    ? ({
+        maxWidth: FOCUSED_CONTENT_MAX_WIDTH,
+        alignSelf: "center" as const,
+        width: "100%" as const,
+      } as const)
+    : null;
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ reason?: string | string[] }>();
   const reasonParam = Array.isArray(params.reason)
@@ -406,7 +420,7 @@ export default function OnboardingScreen() {
         />
       </View>
 
-      <View style={styles.header}>
+      <View style={[styles.header, colCap]}>
         <View style={styles.progressCol}>
           <View style={styles.progressTrack}>
             <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
@@ -421,7 +435,7 @@ export default function OnboardingScreen() {
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
         basePaddingBottom={80}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, colCap]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
