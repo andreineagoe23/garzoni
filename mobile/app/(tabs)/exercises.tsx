@@ -131,6 +131,9 @@ function difficultyColor(
   return colors.success;
 }
 
+/** Bottom tab bar height — keep in sync with AccountTabMenuModal. */
+const TAB_BAR_HEIGHT = 54;
+
 function ExercisesInner() {
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
@@ -1202,7 +1205,12 @@ function ExercisesInner() {
             ]}
             onPress={() => setReadyVisible(false)}
           />
-          <View style={styles.modalSheet}>
+          <View
+            style={[
+              styles.readySheet,
+              { paddingBottom: insets.bottom + TAB_BAR_HEIGHT + spacing.xs },
+            ]}
+          >
             <GlassCard padding="lg">
               <Text style={[styles.summaryTitle, { color: c.text }]}>
                 Ready?
@@ -1426,6 +1434,8 @@ const styles = StyleSheet.create({
   },
   modalRoot: { flex: 1, justifyContent: "flex-end" },
   modalSheet: { padding: spacing.md, paddingBottom: spacing.xxl },
+  // Matches AccountTabMenuModal placement: sits just above the tab bar.
+  readySheet: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   pickerSheet: {
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,

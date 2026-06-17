@@ -306,6 +306,61 @@ export const rcIsPlusEntitled = (ci: CustomerInfo) =>
 export const rcIsEntitled = (ci: CustomerInfo) =>
   rcIsProEntitled(ci) || rcIsPlusEntitled(ci);
 
+/**
+ * The store backing the active entitlement (e.g. "APP_STORE", "PLAY_STORE",
+ * "STRIPE", "RC_BILLING"). Normalised to a plain string so it can be compared
+ * to literals. Returns null when not entitled.
+ */
+export function rcGetEntitlementStore(ci: CustomerInfo): string | null {
+  const active = ci.entitlements.active;
+  const ent = active[RC_ENTITLEMENT_PRO] ?? active[RC_ENTITLEMENT_PLUS];
+  return ent ? String(ent.store) : null;
+}
+
+/** This device's native store — the only store a purchase here can use. */
+export function currentPlatformStore(): "APP_STORE" | "PLAY_STORE" | null {
+  if (Platform.OS === "ios") return "APP_STORE";
+  if (Platform.OS === "android") return "PLAY_STORE";
+  return null;
+}
+
+/** Human label for a RevenueCat store code. */
+export function rcStoreLabel(store: string | null): string {
+  switch (store) {
+    case "APP_STORE":
+    case "MAC_APP_STORE":
+      return "the App Store";
+    case "PLAY_STORE":
+      return "Google Play";
+    case "STRIPE":
+    case "RC_BILLING":
+      return "the web (garzoni.app)";
+    case "AMAZON":
+      return "Amazon";
+    default:
+      return "another platform";
+  }
+}
+
+/**
+ * Clash guard. When the user is already subscribed via a store **other** than
+ * this device's native store, buying here double-charges them — the native
+ * store (Apple/Google) can't see the other subscription and won't proration or
+ * block it. Same-store upgrades (Plus→Pro, cycle switch) are handled natively,
+ * so those are allowed.
+ *
+ * Returns the managing store's label to block on, or null when safe to buy.
+ */
+export function crossPlatformBlockStore(ci: CustomerInfo): string | null {
+  if (!rcIsEntitled(ci)) return null;
+  const store = rcGetEntitlementStore(ci);
+  const native = currentPlatformStore();
+  if (!store || !native) return null;
+  if (store === native) return null;
+  if (native === "APP_STORE" && store === "MAC_APP_STORE") return null;
+  return rcStoreLabel(store);
+}
+
 export function rcGetActivePlan(ci: CustomerInfo): "pro" | "plus" | "starter" {
   if (rcIsProEntitled(ci)) return "pro";
   if (rcIsPlusEntitled(ci)) return "plus";

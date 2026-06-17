@@ -15,7 +15,6 @@ class FeatureState:
 
 
 FEATURE_FLAGS = {
-    "daily_limits": "feature.limit.daily",
     "hints": "feature.education.hints",
     "streak_repair": "feature.gamification.streak_repair",
     "downloads": "feature.resources.downloads",
@@ -46,11 +45,6 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
     "starter": {
         "label": "Starter",
         "features": {
-            "daily_limits": {
-                "enabled": True,
-                "daily_quota": 3,
-                "description": "3 core learning actions per day",
-            },
             "hints": {
                 "enabled": True,
                 "daily_quota": 2,
@@ -115,11 +109,6 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
     "plus": {
         "label": "Plus",
         "features": {
-            "daily_limits": {
-                "enabled": True,
-                "daily_quota": None,
-                "description": "Unlimited learning actions per day",
-            },
             "hints": {
                 "enabled": True,
                 "daily_quota": None,
@@ -185,11 +174,6 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
     "pro": {
         "label": "Pro",
         "features": {
-            "daily_limits": {
-                "enabled": True,
-                "daily_quota": None,
-                "description": "Unlimited learning actions per day",
-            },
             "hints": {
                 "enabled": True,
                 "daily_quota": None,
@@ -255,13 +239,13 @@ PLAN_MATRIX: Dict[str, Dict[str, Dict]] = {
 }
 
 # Year plans first (sort_order 0–1), then Starter, then monthly. 7-day trial only on yearly Pro/Plus.
-# Prices must match Stripe (Plus: £69/year, £7.99/month; Pro: £79/year, £11.99/month).
+# Prices must match Stripe/RevenueCat (Plus: £59.99/year, £6.99/month; Pro: £69.99/year, £7.99/month).
 PLAN_CATALOG = [
     {
         "plan_id": "plus",
         "name": "Plus",
         "billing_interval": "yearly",
-        "price_amount": 69,
+        "price_amount": 59.99,
         "currency": "GBP",
         "trial_days": 7,
         "sort_order": 0,
@@ -273,7 +257,7 @@ PLAN_CATALOG = [
         "plan_id": "pro",
         "name": "Pro",
         "billing_interval": "yearly",
-        "price_amount": 79,
+        "price_amount": 69.99,
         "currency": "GBP",
         "trial_days": 7,
         "sort_order": 1,
@@ -299,7 +283,7 @@ PLAN_CATALOG = [
         "plan_id": "plus",
         "name": "Plus",
         "billing_interval": "monthly",
-        "price_amount": 7.99,
+        "price_amount": 6.99,
         "currency": "GBP",
         "trial_days": 0,
         "sort_order": 3,
@@ -311,7 +295,7 @@ PLAN_CATALOG = [
         "plan_id": "pro",
         "name": "Pro",
         "billing_interval": "monthly",
-        "price_amount": 11.99,
+        "price_amount": 7.99,
         "currency": "GBP",
         "trial_days": 0,
         "sort_order": 4,

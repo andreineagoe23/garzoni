@@ -27,10 +27,15 @@ import {
   configureRevenueCat,
   isValidAppUserId,
   rcGetOfferings,
+  rcGetCustomerInfo,
   rcPurchase,
   rcRestorePurchases,
   rcIsEntitled,
   rcGetActivePlan,
+  rcGetEntitlementStore,
+  rcIsManagedElsewhere,
+  rcStoreLabel,
+  rcShowCustomerCenter,
   formatRCPackagePrice,
   rcPackagePeriodLabel,
   RC_OFFERING_PRO,
@@ -132,6 +137,23 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
       }
       try {
         configureRevenueCat(userId);
+
+        // Clash guard: if this account is already subscribed (commonly via the
+        // App Store / Play Store), never show a buy button — a second purchase
+        // here would double-charge the user. Show their status instead.
+        try {
+          const info = await rcGetCustomerInfo();
+          if (rcIsEntitled(info) && !cancelled) {
+            setEntitledInfo(info);
+            setAlreadyEntitled(true);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // Soft-fail: if the status check errors, fall through to the
+          // storefront rather than blocking a legitimate first purchase.
+        }
+
         const offerings = await rcGetOfferings();
 
         // Prefer the explicit offering id; fall back to the current offering.
@@ -224,6 +246,12 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
 
   if (alreadyEntitled) {
     const activePlan = entitledInfo ? rcGetActivePlan(entitledInfo) : "plus";
+    const managedElsewhere = entitledInfo
+      ? rcIsManagedElsewhere(entitledInfo)
+      : false;
+    const storeLabel = entitledInfo
+      ? rcStoreLabel(rcGetEntitlementStore(entitledInfo))
+      : "another platform";
     return (
       <GlassCard padding="lg" className="space-y-4 text-center">
         <p className="text-3xl">✅</p>
@@ -231,8 +259,18 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           Garzoni {activePlan === "pro" ? "Pro" : "Plus"} active
         </h2>
         <p className="text-sm text-content-muted">
-          Your subscription has been restored successfully.
+          {managedElsewhere
+            ? `You're already subscribed. This plan is billed through ${storeLabel}, so manage or change it there to avoid being charged twice.`
+            : "Your subscription is active."}
         </p>
+        {managedElsewhere && (
+          <GlassButton
+            variant="ghost"
+            onClick={() => void rcShowCustomerCenter()}
+          >
+            Manage subscription
+          </GlassButton>
+        )}
         {onClose && (
           <GlassButton variant="primary" onClick={onClose}>
             Continue

@@ -336,6 +336,11 @@ function LearnInner() {
   const questionnaireCompletedForUi =
     isQuestionnaireCompleted || questionnaireProgress?.status === "completed";
 
+  // Who may see the personalized-path view: paid users get the full path; free
+  // users who finished onboarding get the preview (first tile free, rest locked
+  // by the backend). Only the not-onboarded see the locked/onboarding card.
+  const canEnterPersonalized = hasPlusAccess || questionnaireCompletedForUi;
+
   const handlePersonalizedPathClick = useCallback(() => {
     if (!accessToken) {
       router.push(href("/login"));
@@ -349,7 +354,9 @@ function LearnInner() {
       router.push(href("/onboarding?reason=personalized_path"));
       return;
     }
-    router.push(href("/subscriptions?reason=personalized_path"));
+    // Free + onboarded: open the preview (first tile playable, rest locked →
+    // tapping a locked tile opens the paywall). No redirect away from here.
+    setActiveView("personalized-path");
   }, [accessToken, hasPlusAccess, questionnaireCompletedForUi]);
 
   useEffect(() => {
@@ -371,7 +378,8 @@ function LearnInner() {
       router.replace(href("/onboarding?reason=personalized_path"));
       return;
     }
-    router.replace(href("/subscriptions?reason=personalized_path"));
+    // Free + onboarded: stay on the view to show the preview (the journey map
+    // renders the unlocked first tile + locked/fogged tiles + upgrade prompt).
   }, [
     activeView,
     hydrated,
@@ -717,7 +725,7 @@ function LearnInner() {
     // Full-bleed journey: the map's own header carries the view switchers,
     // so the segment + mode rows are hidden to give the climb the screen.
     const journeyFullBleed =
-      hasPlusAccess &&
+      canEnterPersonalized &&
       !personalizedGatingWait &&
       personalizedMode === "journey";
 
@@ -753,7 +761,7 @@ function LearnInner() {
               />
             ))}
           </View>
-        ) : hasPlusAccess ? (
+        ) : canEnterPersonalized ? (
           <View style={{ flex: 1 }}>
             {personalizedMode === "journey" ? (
               <JourneyMapContent

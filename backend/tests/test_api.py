@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from django.urls import reverse
 from django.test import override_settings
 from rest_framework import status
@@ -386,6 +387,46 @@ class SubscriptionCreateTest(AuthenticatedTestCase):
         call_kwargs = mock_stripe_create.call_args[1]
         self.assertEqual(call_kwargs.get("mode"), "subscription")
         self.assertEqual(call_kwargs["line_items"][0]["price"], "price_plus_123")
+
+    @patch("finance.views.timezone.now")
+    @patch("finance.views.stripe.checkout.Session.create")
+    @override_settings(
+        STRIPE_SECRET_KEY="sk_test_fake",  # pragma: allowlist secret
+        STRIPE_PRICE_PLUS_MONTHLY="price_plus_123",
+    )
+    def test_monthly_launch_offer_grants_free_month_for_new_subscriber(
+        self, mock_stripe_create, mock_now
+    ):
+        # Inside the 2026-06-19 → 2026-08-31 launch window.
+        mock_now.return_value = datetime(2026, 7, 1, 12, 0, 0)
+        mock_stripe_create.return_value = Mock(id="cs_x", url="https://x")
+        response = self.client.post(
+            "/api/subscriptions/create/",
+            {"plan_id": "plus", "billing_interval": "monthly"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        call_kwargs = mock_stripe_create.call_args[1]
+        self.assertEqual(call_kwargs.get("subscription_data", {}).get("trial_period_days"), 30)
+
+    @patch("finance.views.timezone.now")
+    @patch("finance.views.stripe.checkout.Session.create")
+    @override_settings(
+        STRIPE_SECRET_KEY="sk_test_fake",  # pragma: allowlist secret
+        STRIPE_PRICE_PLUS_MONTHLY="price_plus_123",
+    )
+    def test_monthly_launch_offer_absent_outside_window(self, mock_stripe_create, mock_now):
+        # After the launch window closes — no free month.
+        mock_now.return_value = datetime(2026, 9, 1, 12, 0, 0)
+        mock_stripe_create.return_value = Mock(id="cs_x", url="https://x")
+        response = self.client.post(
+            "/api/subscriptions/create/",
+            {"plan_id": "plus", "billing_interval": "monthly"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        call_kwargs = mock_stripe_create.call_args[1]
+        self.assertNotIn("subscription_data", call_kwargs)
 
 
 class FinancialProfileTest(AuthenticatedTestCase):

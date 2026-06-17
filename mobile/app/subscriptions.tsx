@@ -42,6 +42,7 @@ import {
   RC_OFFERING_PRO,
   rcGetActivePlan,
   rcIsEntitled,
+  crossPlatformBlockStore,
   waitForActiveSubscription,
 } from "../src/billing/subscriptionRuntime";
 import { useAuthSession } from "../src/auth/AuthContext";
@@ -681,6 +682,27 @@ export default function SubscriptionsScreen() {
           );
         }
 
+        // 0b. Clash guard — if this account is already subscribed through a
+        //     different store (commonly the web/Stripe), block: a purchase here
+        //     would double-charge because Apple/Google can't see that sub.
+        //     Same-store upgrades (Plus→Pro, cycle switch) fall through and are
+        //     handled natively. Soft-fail on lookup error → allow the purchase.
+        try {
+          const existing = await rc.Purchases.getCustomerInfo();
+          const otherStore = crossPlatformBlockStore(existing);
+          if (otherStore) {
+            setPurchaseError(
+              `You already have an active subscription billed through ${otherStore}. ` +
+                `Manage or change it there — buying here would charge you twice.`,
+            );
+            setPurchasingTier(null);
+            setPurchaseStep("error");
+            return;
+          }
+        } catch {
+          /* lookup failed — don't block a legitimate first purchase */
+        }
+
         // 1. Apple's native purchase flow (RC SDK shows the system overlay)
         await rc.Purchases.purchasePackage(pkg);
 
@@ -915,7 +937,10 @@ export default function SubscriptionsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: isPaywall ? "Choose your plan" : "Manage Plan",
+          title:
+            isPaywall || currentPlan === "starter"
+              ? "Choose your plan"
+              : "Manage Plan",
           headerShown: !isPaywall,
           headerStyle: { backgroundColor: D.bg },
           gestureEnabled: !isPaywall,

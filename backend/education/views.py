@@ -2827,16 +2827,22 @@ class PersonalizedPathView(APIView):
             }
 
             if not personalized_path_enabled:
-                preview_courses = response_payload["courses"][:2]
-                for item in preview_courses:
-                    item["locked"] = True
+                # Free "founding taste": the first tile is fully playable so a
+                # starter can actually experience the personalized path; every
+                # tile after it is locked, so advancing to tile 2 hits the
+                # upgrade paywall (locked tap → /subscriptions on web & mobile).
+                preview_courses = response_payload["courses"][:5]
+                for idx, item in enumerate(preview_courses):
+                    item["locked"] = idx != 0
                 response_payload["courses"] = preview_courses
                 response_payload["meta"]["preview"] = True
+                response_payload["meta"]["free_unlocked_count"] = 1 if preview_courses else 0
                 response_payload["upgrade_prompt"] = (
-                    "Unlock your full personalized path with Plus or Pro."
+                    "Finish your first climb free — unlock the full personalized "
+                    "path with Plus or Pro."
                 )
                 response_payload["message"] = (
-                    "Preview your personalized path and upgrade to unlock all recommendations."
+                    "Your first tile is unlocked. Upgrade to continue the climb."
                 )
 
             response = Response(response_payload, status=200)

@@ -950,7 +950,7 @@ function MarketingPage() {
               </h2>
               <p>
                 Start free and stay free — or upgrade when you're ready for
-                deeper tools. Annual plans save 20%.
+                deeper tools. Annual plans save up to 28%.
               </p>
             </div>
             <div className="pricing">
@@ -968,7 +968,7 @@ function MarketingPage() {
                 </div>
                 <div className="price-tagline">Begin the habit</div>
                 <div className="price-main">
-                  <span className="val">$0</span>
+                  <span className="val">£0</span>
                   <span className="unit">forever</span>
                 </div>
                 <div className="price-sub">No card needed</div>
@@ -1014,10 +1014,12 @@ function MarketingPage() {
                 </div>
                 <div className="price-tagline">A personalised path</div>
                 <div className="price-main">
-                  <span className="val">$6.40</span>
+                  <span className="val">£5.00</span>
                   <span className="unit">/ month</span>
                 </div>
-                <div className="price-sub">Billed $76.80 annually</div>
+                <div className="price-sub">
+                  Billed £59.99 annually · save 28%
+                </div>
                 <ul className="price-perks">
                   <li>
                     <GreenCheckIcon />
@@ -1061,11 +1063,11 @@ function MarketingPage() {
                 </div>
                 <div className="price-tagline">The full toolkit</div>
                 <div className="price-main">
-                  <span className="val">$11.99</span>
+                  <span className="val">£5.83</span>
                   <span className="unit">/ month</span>
                 </div>
                 <div className="price-sub">
-                  Billed $143.90 annually · save 20%
+                  Billed £69.99 annually · save 27%
                 </div>
                 <ul className="price-perks">
                   <li>

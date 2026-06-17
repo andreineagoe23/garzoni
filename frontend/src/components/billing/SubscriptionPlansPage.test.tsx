@@ -94,11 +94,11 @@ const plansResponse = {
       currency: "USD",
       trial_days: 0,
       features: {
-        daily_limits: {
-          name: "Daily lessons",
+        ai_tutor: {
+          name: "AI tutor",
           enabled: true,
-          daily_quota: 3,
-          description: "3 core learning actions per day",
+          daily_quota: 5,
+          description: "5 AI tutor prompts per day",
         },
       },
     },

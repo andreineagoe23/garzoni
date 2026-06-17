@@ -21,10 +21,20 @@ import {
   rcIsProEntitled,
   rcIsPlusEntitled,
   rcGetActivePlan,
+  crossPlatformBlockStore,
+  rcGetEntitlementStore,
   RC_ENTITLEMENT_PRO,
   RC_ENTITLEMENT_PLUS,
   PRODUCT_TO_PLAN,
 } from "../../billing/subscriptionRuntime";
+
+/** CustomerInfo with a `store` on the active entitlement (Platform.OS = ios). */
+function makeCIWithStore(entitlement: string, store: string) {
+  return {
+    entitlements: { active: { [entitlement]: { isActive: true, store } } },
+    activeSubscriptions: [],
+  } as never;
+}
 
 function makeCustomerInfo(
   activeEntitlements: string[] = [],
@@ -111,5 +121,39 @@ describe("PRODUCT_TO_PLAN mapping", () => {
     expect(Object.keys(PRODUCT_TO_PLAN).some((k) => k.includes("v3"))).toBe(
       true,
     );
+  });
+});
+
+// Platform.OS is mocked as "ios" → native store is APP_STORE.
+describe("crossPlatformBlockStore (clash guard, iOS)", () => {
+  it("returns null when not entitled (first purchase is safe)", () => {
+    expect(crossPlatformBlockStore(makeCustomerInfo())).toBeNull();
+  });
+
+  it("allows same-store purchase (already on App Store → upgrade/cross-grade)", () => {
+    const ci = makeCIWithStore(RC_ENTITLEMENT_PLUS, "APP_STORE");
+    expect(crossPlatformBlockStore(ci)).toBeNull();
+  });
+
+  it("blocks when subscribed via the web (Stripe)", () => {
+    const ci = makeCIWithStore(RC_ENTITLEMENT_PLUS, "STRIPE");
+    expect(crossPlatformBlockStore(ci)).toBe("the web (garzoni.app)");
+  });
+
+  it("blocks when subscribed via Google Play", () => {
+    const ci = makeCIWithStore(RC_ENTITLEMENT_PRO, "PLAY_STORE");
+    expect(crossPlatformBlockStore(ci)).toBe("Google Play");
+  });
+
+  it("blocks RC_BILLING (web) too", () => {
+    const ci = makeCIWithStore(RC_ENTITLEMENT_PLUS, "RC_BILLING");
+    expect(crossPlatformBlockStore(ci)).toBe("the web (garzoni.app)");
+  });
+
+  it("reads the entitlement store, null when unentitled", () => {
+    expect(
+      rcGetEntitlementStore(makeCIWithStore(RC_ENTITLEMENT_PRO, "STRIPE")),
+    ).toBe("STRIPE");
+    expect(rcGetEntitlementStore(makeCustomerInfo())).toBeNull();
   });
 });

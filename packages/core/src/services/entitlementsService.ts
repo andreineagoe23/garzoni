@@ -8,7 +8,6 @@ export const consumeEntitlement = (feature: string) =>
   apiClient.post("/entitlements/consume/", { feature });
 
 export const FEATURE_COPY = {
-  daily_limits: "Daily learning limit",
   hints: "Lesson & quiz hints",
   streak_repair: "Streak repair",
   downloads: "Downloads",

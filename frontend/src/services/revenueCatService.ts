@@ -195,6 +195,40 @@ export function rcGetActivePlan(
 }
 
 /**
+ * The store backing the active entitlement (e.g. "APP_STORE", "PLAY_STORE",
+ * "STRIPE", "RC_BILLING"). Used to stop a user who already subscribed on one
+ * platform from double-purchasing on another. Returns null when not entitled.
+ */
+export function rcGetEntitlementStore(
+  customerInfo: CustomerInfo
+): string | null {
+  const active = customerInfo.entitlements.active;
+  const ent = active[RC_ENTITLEMENT_PRO] ?? active[RC_ENTITLEMENT_PLUS];
+  return (ent as { store?: string } | undefined)?.store ?? null;
+}
+
+/** True when the active subscription is managed outside this web storefront. */
+export function rcIsManagedElsewhere(customerInfo: CustomerInfo): boolean {
+  const store = rcGetEntitlementStore(customerInfo);
+  return store === "APP_STORE" || store === "PLAY_STORE";
+}
+
+/** Human label for a RevenueCat store code. */
+export function rcStoreLabel(store: string | null): string {
+  switch (store) {
+    case "APP_STORE":
+      return "the App Store (iOS)";
+    case "PLAY_STORE":
+      return "Google Play (Android)";
+    case "STRIPE":
+    case "RC_BILLING":
+      return "the web";
+    default:
+      return "another platform";
+  }
+}
+
+/**
  * Open subscription management (Web SDK v1: use CustomerInfo.managementURL in a new tab).
  */
 export const rcShowCustomerCenter = async (): Promise<void> => {

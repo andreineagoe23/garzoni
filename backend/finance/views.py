@@ -2816,8 +2816,37 @@ class SubscriptionCreateView(APIView):
                             referral_promo_stripe_id = ""
             except stripe.error.StripeError as e:
                 logger.warning("Stripe error resolving promotion code: %s", e)
-        # 7-day free trial only on yearly Pro/Plus; day 7 = charge full yearly amount
-        trial_days = 7 if billing_interval == "yearly" and plan_id in ("plus", "pro") else 0
+        # Trial / launch-offer policy:
+        #  • Yearly Pro/Plus: existing 7-day free trial (day 7 = full yearly charge).
+        #  • Monthly Pro/Plus: "free first month" launch offer (parity with the
+        #    App Store intro offer running 2026-06-19 → 2026-08-31). Self-expires
+        #    after the window — trial_days falls back to 0, no teardown needed.
+        #
+        # Apple enforces "new subscribers only" natively; Stripe does NOT, so we
+        # guard on prior subscription state to stop churned users farming repeat
+        # free months by re-checking out.
+        today = timezone.now().date()
+        monthly_offer_active = datetime(2026, 6, 19).date() <= today <= datetime(2026, 8, 31).date()
+        profile = getattr(request.user, "profile", None)
+        is_returning_subscriber = bool(
+            profile
+            and (
+                getattr(profile, "has_paid", False)
+                or getattr(profile, "is_premium", False)
+                or (getattr(profile, "stripe_subscription_id", "") or "").strip()
+            )
+        )
+        if billing_interval == "yearly" and plan_id in ("plus", "pro"):
+            trial_days = 7
+        elif (
+            billing_interval == "monthly"
+            and plan_id in ("plus", "pro")
+            and monthly_offer_active
+            and not is_returning_subscriber
+        ):
+            trial_days = 30
+        else:
+            trial_days = 0
         create_params = {
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],

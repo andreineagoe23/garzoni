@@ -6,7 +6,6 @@ import { FEATURE_COPY } from "services/entitlementsService";
 
 const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
   starter: {
-    daily_limits: "subscriptions.perDay",
     hints: "subscriptions.perDay",
     streak_repair: "billing.notAvailable",
     downloads: "subscriptions.perDay",
@@ -15,7 +14,6 @@ const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
     personalized_path: "subscriptions.notIncluded",
   },
   plus: {
-    daily_limits: "subscriptions.unlimited",
     hints: "subscriptions.unlimited",
     streak_repair: "subscriptions.perDay",
     downloads: "subscriptions.unlimited",
@@ -24,7 +22,6 @@ const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
     personalized_path: "subscriptions.included",
   },
   pro: {
-    daily_limits: "subscriptions.unlimited",
     hints: "subscriptions.unlimited",
     streak_repair: "subscriptions.perDay",
     downloads: "subscriptions.unlimited",
@@ -34,7 +31,7 @@ const PLAN_DETAILS_KEYS: Record<string, Record<string, string>> = {
   },
 };
 const PLAN_COUNTS: Record<string, Record<string, number>> = {
-  starter: { daily_limits: 3, hints: 2, downloads: 1, ai_tutor: 5 },
+  starter: { hints: 2, downloads: 1, ai_tutor: 5 },
   plus: { streak_repair: 1, ai_tutor: 50 },
   pro: { streak_repair: 1, ai_tutor: 200 },
 };

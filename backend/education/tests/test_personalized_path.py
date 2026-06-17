@@ -41,6 +41,12 @@ class PersonalizedPathEntitlementTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["meta"]["preview"])
         self.assertIn("upgrade_prompt", response.data)
+        # Free taste: first tile playable, every later tile locked.
+        courses = response.data["courses"]
+        if courses:
+            self.assertFalse(courses[0]["locked"])
+            self.assertTrue(all(c["locked"] for c in courses[1:]))
+            self.assertEqual(response.data["meta"]["free_unlocked_count"], 1)
 
     @patch("education.views.PersonalizedPathView._should_regenerate", return_value=False)
     def test_personalized_path_full_for_enabled_feature(self, _mock_regen):
