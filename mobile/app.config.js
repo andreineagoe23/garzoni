@@ -223,6 +223,13 @@ module.exports = ({ config }) => ({
         ios: {
           deploymentTarget: "15.1",
           privacyManifestAggregationEnabled: true,
+          // GoogleSignIn 9 pulls AppCheckCore (a Swift pod) which can't link as
+          // a static library while its deps GoogleUtilities / RecaptchaInterop
+          // emit no module maps. Flag those modular so CocoaPods generates them.
+          extraPods: [
+            { name: "GoogleUtilities", modular_headers: true },
+            { name: "RecaptchaInterop", modular_headers: true },
+          ],
         },
         android: {
           // AndroidX core 1.17 requires compiling against API 36+. Keep target SDK separate.
