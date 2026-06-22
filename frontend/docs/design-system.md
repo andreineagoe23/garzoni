@@ -51,6 +51,10 @@ Canonical CSS classes live in `src/styles/app-theme.css`; React primitives in
 - **Badges**: `.app-badge-warning` / `.app-badge-success` added (color-mix on `--color-state-*`);
   `dashboard/WeakSkills.tsx` pills moved off raw `bg-red-500/15` chips onto `.app-badge-*`.
 - **Secondary-CTA pills**: resolved by the var migration — now token-based and consistently shaped.
+- **Landing**: marketing/welcome unified on the shared `.mkt` design; `marketing.css` + the
+  `welcome-hero` light theme now source their palette from `brand.css` tokens (value-identical).
+- **Cards**: `GlassCard` already renders `.app-card`, so they are one idiom. All four auth pages
+  unified on `.app-card` (Login/Register moved off an ad-hoc `rounded-2xl … bg-[#111827]` div).
 
 ## Backlog (remaining — larger / needs human review)
 
@@ -58,14 +62,12 @@ Canonical CSS classes live in `src/styles/app-theme.css`; React primitives in
    ad-hoc `role="dialog"` modals (esp. `courses/CourseFlowPage.tsx`) → `GlassButton`/`TextInput`/
    `Modal`. Per-instance judgment (not every raw button maps to a primitive) — do incrementally,
    page by page, with visual QA. Not a mechanical sweep.
-2. **Remaining badge spots**: `dashboard/StatusSummary.tsx` milestone badge → `.app-badge-error`.
-3. **Landing CSS** (`components/landing/welcome.css`, `marketing.css`, `index.css`) — self-contained
-   `.landing-theme` micro-system with its own var namespace and two `.landing-theme` definitions
-   (index.css:80 + marketing.css:1). Deferred: it overlaps active in-flight landing work; de-dupe
-   its hardcoded hex against its own local vars and reconcile the duplicate definitions there.
-4. **Card idiom collapse**: GlassCard vs `.app-card` vs ad-hoc divs → one idiom (visual, large).
-5. **Retire the legacy `--primary`/`--card-bg`/`--primary-soft` layer** once components stop
-   referencing it (after items 1–4 and the CSS internals in `app-theme.css` are migrated).
+2. **Ad-hoc card divs → `GlassCard`/`.app-card`**: ~150 `rounded-* border bg-* p-*` divs across
+   dashboard/billing/tools/courses. Same shape as #1 — per-page, visual-QA'd, not a blind sweep.
+   (Auth cards already done; the canonical card is `GlassCard`.)
+3. **Remaining badge spots**: `dashboard/StatusSummary.tsx` milestone badge → `.app-badge-error`.
+4. **Retire the legacy `--primary`/`--card-bg`/`--primary-soft` layer** once components stop
+   referencing it (after the above and the CSS internals in `app-theme.css` are migrated).
 
 ## Notes
 
