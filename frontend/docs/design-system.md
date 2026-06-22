@@ -38,26 +38,34 @@ tokens bridge to it — components should target the `--color-*` layer only.
 Canonical CSS classes live in `src/styles/app-theme.css`; React primitives in
 `src/components/ui` and `src/components/common`.
 
-## Backlog (consistency follow-ups — not yet done, need visual QA)
+## Done (consistency waves)
 
-Adoption is partial. Tracked work, each a small wave with light/dark visual QA:
+- **Token foundation**: brand hex de-duplicated in `app-theme.css`; token-bridge drift fixed;
+  dead Fraunces fallback removed.
+- **Legacy-var → `--color-*` migration**: 1144 refs across 81 component files moved off
+  `var(--primary)`/`var(--card-bg)`/`var(--border-color)`/`var(--error)`/etc. onto the token
+  layer (value-identical). Remaining holdouts: `--primary-soft` / `--primary-rgb` / `--primary-dark`
+  (no `--color-*` equivalent yet) and `layout/Footer.tsx` (skipped — had unrelated local WIP).
+- **Form alerts**: shared `FormNotice` across the 4 auth forms (also fixed the `/opacity`-on-var
+  tint that never rendered → now `color-mix`).
+- **Badges**: `.app-badge-warning` / `.app-badge-success` added (color-mix on `--color-state-*`);
+  `dashboard/WeakSkills.tsx` pills moved off raw `bg-red-500/15` chips onto `.app-badge-*`.
+- **Secondary-CTA pills**: resolved by the var migration — now token-based and consistently shaped.
 
-1. **Badges** → replace inline color chips with `.app-badge*`; add `.app-badge-warning` /
-   `.app-badge-success` (mirroring `.app-badge-error`, using `--color-state-*`). First targets:
-   `dashboard/WeakSkills.tsx` (`PILL_CLASS`), `dashboard/StatusSummary.tsx`.
-2. **Secondary-CTA pills** → one canonical pill (`.app-pill` or `GlassButton size="sm"`).
-   Divergent today: `dashboard/StatusSummary.tsx` ("Start Reviews"), `tools/WhyThisMatters.tsx`.
-3. **Raw → primitive**: ~190 raw `<button>`, the remaining raw `<input>`/`<select>`, and 8 ad-hoc
-   `role="dialog"` modals (esp. `courses/CourseFlowPage.tsx`) → `GlassButton`/`TextInput`/`Modal`.
-4. **Legacy-var usage in components** (~15-20 files: `tools/ToolSignalStrip`, `layout/Navbar`+
-   `Header`, `billing/*`, `dashboard/*`) reaching into `var(--card-bg)`/`var(--primary-soft)` →
-   `--color-*` tokens / Tailwind classes.
-5. **Landing CSS** (`components/landing/welcome.css`, `marketing.css`) — self-contained
-   `.landing-theme` micro-system with its own var namespace and two `.landing-theme`
-   definitions (index.css:80 + marketing.css:1); de-dupe its hardcoded hex against its own
-   local vars, and reconcile the duplicate definitions. Deferred from the first pass (regression risk).
-6. **Card idiom collapse**: GlassCard vs `.app-card` vs ad-hoc divs → one idiom.
-7. **Retire the legacy `--primary`/`--card-bg` layer** once components stop referencing it.
+## Backlog (remaining — larger / needs human review)
+
+1. **Raw → primitive** (largest): ~190 raw `<button>`, remaining raw `<input>`/`<select>`, and 8
+   ad-hoc `role="dialog"` modals (esp. `courses/CourseFlowPage.tsx`) → `GlassButton`/`TextInput`/
+   `Modal`. Per-instance judgment (not every raw button maps to a primitive) — do incrementally,
+   page by page, with visual QA. Not a mechanical sweep.
+2. **Remaining badge spots**: `dashboard/StatusSummary.tsx` milestone badge → `.app-badge-error`.
+3. **Landing CSS** (`components/landing/welcome.css`, `marketing.css`, `index.css`) — self-contained
+   `.landing-theme` micro-system with its own var namespace and two `.landing-theme` definitions
+   (index.css:80 + marketing.css:1). Deferred: it overlaps active in-flight landing work; de-dupe
+   its hardcoded hex against its own local vars and reconcile the duplicate definitions there.
+4. **Card idiom collapse**: GlassCard vs `.app-card` vs ad-hoc divs → one idiom (visual, large).
+5. **Retire the legacy `--primary`/`--card-bg`/`--primary-soft` layer** once components stop
+   referencing it (after items 1–4 and the CSS internals in `app-theme.css` are migrated).
 
 ## Notes
 
