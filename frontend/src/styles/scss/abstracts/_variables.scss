@@ -48,7 +48,15 @@ $spacers: (
 );
 
 // Typography — mirrors --brand-font-primary in frontend/src/styles/brand.css.
-$font-family-base: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-family-base:
+  "Inter",
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Roboto,
+  "Helvetica Neue",
+  Arial,
+  sans-serif;
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
@@ -151,11 +159,13 @@ $container-max-widths: (
 
   --color-text-primary: var(--text-color);
   --color-text-muted: var(--muted-text);
+  --color-text-faint: var(--faint-text);
   --color-text-inverse: #ffffff;
   --color-text-on-primary: #ffffff;
 
   --color-brand-primary: var(--primary);
-  --color-brand-primary-hover: var(--primary-dark);
+  // Both themes resolve hover to --primary-bright; keep the base honest.
+  --color-brand-primary-hover: var(--primary-bright);
   --color-accent: var(--accent);
 
   --color-state-success: var(--success);
@@ -168,7 +178,8 @@ $container-max-widths: (
   --color-icon-on-brand: var(--accent);
 
   --color-border-default: var(--border-color);
-  --color-ring-focus: var(--primary);
+  // Both themes resolve focus rings to --primary-bright; keep the base honest.
+  --color-ring-focus: var(--primary-bright);
 
   --nav-pill-active-fg: var(--color-text-on-primary);
 }

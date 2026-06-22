@@ -8,6 +8,24 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // Map Tailwind font utilities to the brand stack (styles/brand.css).
+        sans: [
+          "var(--brand-font-primary)",
+          "Helvetica Neue",
+          "Helvetica",
+          "Arial",
+          "sans-serif",
+        ],
+        display: ["var(--brand-font-display)", "Helvetica Neue", "serif"],
+        serif: ["var(--brand-font-display)", "Helvetica Neue", "serif"],
+        mono: [
+          "var(--brand-font-mono)",
+          "JetBrains Mono",
+          "ui-monospace",
+          "monospace",
+        ],
+      },
       colors: {
         surface: {
           page: "var(--color-surface-page)",

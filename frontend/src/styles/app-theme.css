@@ -12,20 +12,20 @@
   font-weight: 500;
 }
 
-/* Gold italic accent — Fraunces italic, achievement/editorial moments only */
+/* Gold italic accent — achievement/editorial moments only */
 .app-em-gold {
-  font-family: var(--brand-font-display, "Fraunces", "Helvetica Neue", serif);
+  font-family: var(--brand-font-display, "Inter", sans-serif);
   font-style: italic;
-  color: #e6c87a;
-  font-weight: 400;
+  color: var(--brand-gold-warm);
+  font-weight: 600;
 }
 
-/* Fraunces CSS var + optical sizing — can't express var() in Tailwind class */
+/* Display headings — brand font, semibold (Inter needs weight to read as a heading) */
 .app-display {
-  font-family: var(--brand-font-display, "Fraunces", "Helvetica Neue", serif);
-  font-weight: 400;
-  letter-spacing: -0.5px;
-  line-height: 1.1;
+  font-family: var(--brand-font-display, "Inter", sans-serif);
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
 }
 
 /* ── Auth Page Background ────────────────────────────────────── */
@@ -40,7 +40,7 @@
   background:
     radial-gradient(
       ellipse 80% 60% at 15% 10%,
-      rgba(29, 83, 48, 0.22) 0%,
+      rgba(var(--primary-rgb), 0.22) 0%,
       transparent 55%
     ),
     radial-gradient(
@@ -50,7 +50,7 @@
     ),
     radial-gradient(
       ellipse 60% 50% at 50% 100%,
-      rgba(29, 83, 48, 0.1) 0%,
+      rgba(var(--primary-rgb), 0.1) 0%,
       transparent 60%
     );
 }
@@ -66,7 +66,7 @@
   background:
     radial-gradient(
       ellipse 75% 55% at 8% 8%,
-      rgba(29, 83, 48, 0.18) 0%,
+      rgba(var(--primary-rgb), 0.18) 0%,
       transparent 55%
     ),
     radial-gradient(
@@ -76,7 +76,7 @@
     ),
     radial-gradient(
       ellipse 60% 40% at 50% 95%,
-      rgba(29, 83, 48, 0.09) 0%,
+      rgba(var(--primary-rgb), 0.09) 0%,
       transparent 55%
     );
 }
@@ -164,7 +164,7 @@
 .app-callout {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-left: 3px solid #2a7347;
+  border-left: 3px solid var(--primary-bright);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -178,7 +178,7 @@
 [data-theme="dark"] .app-callout {
   background: #111827;
   border-color: rgba(255, 255, 255, 0.08);
-  border-left-color: #2a7347;
+  border-left-color: var(--primary-bright);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -210,7 +210,7 @@
   z-index: -1;
   background: radial-gradient(
     ellipse 80% 100% at 50% 0%,
-    rgba(29, 83, 48, 0.07) 0%,
+    rgba(var(--primary-rgb), 0.07) 0%,
     transparent 70%
   );
 }
@@ -218,7 +218,7 @@
 [data-theme="dark"] .app-section-glow::before {
   background: radial-gradient(
     ellipse 80% 100% at 50% 0%,
-    rgba(29, 83, 48, 0.13) 0%,
+    rgba(var(--primary-rgb), 0.13) 0%,
     transparent 70%
   );
 }
@@ -231,11 +231,11 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(29, 83, 48, 0.1);
+  background: rgba(var(--primary-rgb), 0.1);
 }
 
 [data-theme="dark"] .app-icon-tile {
-  background: rgba(29, 83, 48, 0.15);
+  background: rgba(var(--primary-rgb), 0.15);
 }
 
 /* ── Green Check ────────────────────────────────────────────── */
@@ -246,7 +246,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(29, 83, 48, 0.15);
+  background: rgba(var(--primary-rgb), 0.15);
   flex-shrink: 0;
 }
 
@@ -258,9 +258,13 @@
   width: 100%;
   height: 54px;
   border-radius: 27px;
-  background: linear-gradient(135deg, #2a7347 0%, #1d5330 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-bright) 0%,
+    var(--primary) 100%
+  );
   box-shadow:
-    0 4px 20px rgba(29, 83, 48, 0.4),
+    0 4px 20px rgba(var(--primary-rgb), 0.4),
     0 1px 4px rgba(0, 0, 0, 0.2);
   color: #fff;
   font-weight: 600;
@@ -276,7 +280,7 @@
 
 .app-cta-btn:hover:not(:disabled) {
   box-shadow:
-    0 6px 28px rgba(29, 83, 48, 0.55),
+    0 6px 28px rgba(var(--primary-rgb), 0.55),
     0 2px 6px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
@@ -302,7 +306,11 @@
 /* box-shadow glow on fill — arbitrary Tailwind shadow value is verbose */
 .app-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2a7347 0%, #1d5330 100%);
+  background: linear-gradient(
+    90deg,
+    var(--primary-bright) 0%,
+    var(--primary) 100%
+  );
   border-radius: 9999px;
   box-shadow: 0 0 8px rgba(42, 115, 71, 0.5);
   transition: width 0.4s ease;
@@ -398,14 +406,14 @@
 }
 
 .app-badge-primary {
-  background: var(--primary-soft, rgba(29, 83, 48, 0.1));
-  color: #2a7347;
+  background: var(--primary-soft, rgba(var(--primary-rgb), 0.1));
+  color: var(--primary-bright);
   border: 1px solid rgba(42, 115, 71, 0.35);
 }
 
 [data-theme="dark"] .app-badge-primary {
-  background: rgba(29, 83, 48, 0.18);
-  color: #2a7347;
+  background: rgba(var(--primary-rgb), 0.18);
+  color: var(--primary-bright);
   border-color: rgba(42, 115, 71, 0.35);
 }
 
@@ -424,7 +432,7 @@
 .app-action-primary {
   background: linear-gradient(
     135deg,
-    var(--primary-soft, rgba(29, 83, 48, 0.08)),
+    var(--primary-soft, rgba(var(--primary-rgb), 0.08)),
     var(--card-bg, #ffffff)
   );
   border: 1px solid rgba(42, 115, 71, 0.2);
@@ -432,7 +440,7 @@
 }
 
 [data-theme="dark"] .app-action-primary {
-  background: linear-gradient(135deg, rgba(29, 83, 48, 0.18), #111827);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.18), #111827);
   border-color: rgba(42, 115, 71, 0.3);
 }
 
