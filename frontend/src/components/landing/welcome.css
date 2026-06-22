@@ -3,7 +3,8 @@
    All colors reference CSS variables defined in .landing-theme (always present on landing page).
 */
 
-/* Fonts are self-hosted via @fontsource imports in Welcome.jsx.
+/* Fonts (Inter + JetBrains Mono) load via the Google Fonts <link>
+   in index.html / Welcome.tsx <Helmet>. Brand tokens live in styles/brand.css.
    Avoid @import from external CDNs here to prevent CSS chunk load failures
    (some browsers treat failed @import as stylesheet load error). */
 
@@ -17,14 +18,14 @@
 }
 
 .welcome-hero--light .welcome-svg-line.active {
-  stroke: rgba(29, 83, 48, 0.42);
+  stroke: rgba(var(--brand-green-rgb), 0.42);
 }
 
 .welcome-hero--light .welcome-point-label {
-  color: #1d5330;
+  color: var(--brand-green);
   /* Cream label bg, same family as page `--bg-color` (#f5f5f0) */
   background: rgba(245, 245, 240, 0.96);
-  border: 1px solid rgba(29, 83, 48, 0.22);
+  border: 1px solid rgba(var(--brand-green-rgb), 0.22);
 }
 
 .welcome-hero--light .welcome-point-corner {
@@ -225,13 +226,7 @@
 
 /* Small helpers */
 .welcome-font-display {
-  font-family: var(
-    --brand-font-primary,
-    "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif
-  );
+  font-family: var(--brand-font-display, "Inter", sans-serif);
 }
 
 .welcome-font-mono {

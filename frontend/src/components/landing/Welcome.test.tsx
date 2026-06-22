@@ -9,10 +9,6 @@ import Welcome from "./Welcome";
 vi.mock("components/layout/Header", () => ({
   default: () => <div>Header</div>,
 }));
-vi.mock("./HeroSection", () => ({ default: () => <div>Hero</div> }));
-vi.mock("./FeatureSection", () => ({ default: () => <div>Features</div> }));
-vi.mock("./ReviewsSection", () => ({ default: () => <div>Reviews</div> }));
-vi.mock("./CTASection", () => ({ default: () => <div>CTA</div> }));
 
 const renderWelcome = (initialPath: string) =>
   render(

@@ -1,23 +1,31 @@
 /* ————————————— Marketing Page ————————————— */
 .mkt {
-  --bg: #0b0f14;
+  /* Palette sourced from brand.css (single source of truth). Only the few
+     marketing-only shades with no brand token stay as literals. */
+  --bg: var(--brand-bg-dark);
   --bg-deep: #070a0e;
-  --surface: #111827;
+  --surface: var(--brand-bg-card);
   --surface-raised: #161f2e;
-  --primary: #1d5330;
+  --primary: var(--brand-green);
   --primary-bright: #2a7347;
-  --primary-soft: rgba(29, 83, 48, 0.18);
-  --gold: #ffd700;
-  --gold-warm: #e6c87a;
-  --border: rgba(255, 255, 255, 0.12);
+  --primary-soft: rgba(var(--brand-green-rgb), 0.18);
+  --gold: var(--brand-gold);
+  --gold-warm: var(--brand-gold-warm);
+  --border: var(--brand-border-glass);
   --border-soft: rgba(255, 255, 255, 0.06);
-  --text: #e5e7eb;
-  --muted: rgba(229, 231, 235, 0.72);
+  --text: var(--brand-text);
+  --muted: var(--brand-text-muted);
   --faint: rgba(229, 231, 235, 0.4);
   --ghost: rgba(229, 231, 235, 0.08);
-  --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: "Fraunces", "Helvetica Neue", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* Inherit the global brand font stack (styles/brand.css) — keep in sync. */
+  --font-body: var(--brand-font-primary, "Inter", sans-serif);
+  --font-display: var(--brand-font-display, "Inter", sans-serif);
+  --font-mono: var(
+    --brand-font-mono,
+    "JetBrains Mono",
+    ui-monospace,
+    monospace
+  );
 
   background: var(--bg-deep);
   color: var(--text);
@@ -83,12 +91,12 @@
   background:
     radial-gradient(
       circle at 20% 20%,
-      rgba(29, 83, 48, 0.25) 0%,
+      rgba(var(--brand-green-rgb), 0.25) 0%,
       transparent 40%
     ),
     radial-gradient(
       circle at 80% 70%,
-      rgba(230, 200, 122, 0.08) 0%,
+      rgba(var(--brand-gold-warm-rgb), 0.08) 0%,
       transparent 45%
     );
   animation: mkt-drift 30s ease-in-out infinite alternate;
@@ -170,7 +178,7 @@
 }
 .mkt .btn-store-main {
   font-size: 18px;
-  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   line-height: 1;
   color: #fff;
@@ -590,7 +598,7 @@
 .mkt .onb-card.sel {
   background: linear-gradient(145deg, var(--primary-soft), var(--surface));
   border-color: var(--primary-bright);
-  box-shadow: 0 8px 20px rgba(29, 83, 48, 0.3);
+  box-shadow: 0 8px 20px rgba(var(--brand-green-rgb), 0.3);
 }
 .mkt .onb-card-icon {
   width: 24px;
@@ -635,10 +643,10 @@
 .mkt .price-card.pro {
   background: linear-gradient(
     155deg,
-    rgba(230, 200, 122, 0.07),
+    rgba(var(--brand-gold-warm-rgb), 0.07),
     var(--surface) 60%
   );
-  border-color: rgba(230, 200, 122, 0.55);
+  border-color: rgba(var(--brand-gold-warm-rgb), 0.55);
   box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(255, 215, 0, 0.08);
@@ -650,12 +658,12 @@
   padding: 4px 10px;
   border-radius: 100px;
   background: var(--gold);
-  color: #0b0f14;
+  color: var(--brand-bg-dark);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  box-shadow: 0 6px 14px rgba(230, 200, 122, 0.35);
+  box-shadow: 0 6px 14px rgba(var(--brand-gold-warm-rgb), 0.35);
 }
 .mkt .price-tier-row {
   display: flex;
@@ -735,12 +743,12 @@
 .mkt .price-cta.green {
   background: linear-gradient(180deg, var(--primary-bright), var(--primary));
   color: #fff;
-  box-shadow: 0 12px 24px rgba(29, 83, 48, 0.4);
+  box-shadow: 0 12px 24px rgba(var(--brand-green-rgb), 0.4);
 }
 .mkt .price-cta.gold {
   background: linear-gradient(180deg, var(--gold), var(--gold-warm));
-  color: #0b0f14;
-  box-shadow: 0 12px 24px rgba(230, 200, 122, 0.35);
+  color: var(--brand-bg-dark);
+  box-shadow: 0 12px 24px rgba(var(--brand-gold-warm-rgb), 0.35);
 }
 
 /* ————————————— Quote ————————————— */
@@ -906,7 +914,7 @@
   background:
     radial-gradient(
       circle at 20% 20%,
-      rgba(29, 83, 48, 0.1) 0%,
+      rgba(var(--brand-green-rgb), 0.1) 0%,
       transparent 40%
     ),
     radial-gradient(
@@ -927,7 +935,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 .mkt.mkt-light .price-card.featured {
-  box-shadow: 0 8px 32px rgba(29, 83, 48, 0.18);
+  box-shadow: 0 8px 32px rgba(var(--brand-green-rgb), 0.18);
 }
 .mkt.mkt-light .reviewer {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
@@ -940,7 +948,7 @@
   color: var(--primary);
 }
 .mkt.mkt-light .quote-mark {
-  color: rgba(29, 83, 48, 0.2);
+  color: rgba(var(--brand-green-rgb), 0.2);
 }
 
 .mkt.mkt-light .rail {
