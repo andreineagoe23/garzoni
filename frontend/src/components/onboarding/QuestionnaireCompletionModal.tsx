@@ -86,7 +86,7 @@ const QuestionnaireCompletionModal: React.FC<
         aria-label={t("onboarding.completionModal.close")}
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--card-bg,#ffffff)] via-[color:var(--card-bg,#ffffff)] to-[color:var(--primary,#1d5330)]/10 p-8 text-center shadow-2xl">
+      <div className="relative z-10 w-full max-w-lg rounded-3xl bg-gradient-to-br from-[color:var(--color-surface-card)] via-[color:var(--color-surface-card)] to-[color:var(--color-brand-primary)]/10 p-8 text-center shadow-2xl">
         {/* Mascot */}
         <div className="mx-auto mb-4 flex flex-col items-center gap-2">
           <MascotWithMessage
@@ -114,16 +114,16 @@ const QuestionnaireCompletionModal: React.FC<
 
         {/* Rewards */}
         <div className="mb-8 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5 p-4">
-            <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#1d5330)]">
+          <div className="rounded-2xl border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 p-4">
+            <div className="mb-2 text-2xl font-bold text-[color:var(--color-brand-primary)]">
               +{rewards.xp}
             </div>
             <div className="text-xs font-semibold text-content-muted">
               {t("onboarding.completionModal.xpPoints")}
             </div>
           </div>
-          <div className="rounded-2xl border border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5 p-4">
-            <div className="mb-2 text-2xl font-bold text-[color:var(--primary,#1d5330)]">
+          <div className="rounded-2xl border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 p-4">
+            <div className="mb-2 text-2xl font-bold text-[color:var(--color-brand-primary)]">
               +{rewards.coins}
             </div>
             <div className="text-xs font-semibold text-content-muted">

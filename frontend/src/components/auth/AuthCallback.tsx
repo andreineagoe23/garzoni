@@ -61,10 +61,10 @@ export default function AuthCallback() {
   if (error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-page px-4">
-        <p className="text-center text-[color:var(--error)]">{error}</p>
+        <p className="text-center text-[color:var(--color-state-error)]">{error}</p>
         <Link
           to="/login"
-          className="rounded-lg bg-[color:var(--primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          className="rounded-lg bg-[color:var(--color-brand-primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
         >
           Back to login
         </Link>

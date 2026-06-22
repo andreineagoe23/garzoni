@@ -69,20 +69,20 @@ const EarlySkillInsights = ({
   }, [hasStarted]);
 
   return (
-    <div className="mt-6 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
+    <div className="mt-6 rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-4 backdrop-blur-sm">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm font-semibold text-content-primary">
           {t("dashboard.skillInsights.title")}
         </p>
         {showJustUnlocked && (
-          <span className="rounded-full bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)]">
+          <span className="rounded-full bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary-hover)]">
             {t("dashboard.skillInsights.justUnlocked")}
           </span>
         )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3">
+        <div className="rounded-lg border border-[color:var(--color-border-default)] bg-surface-card p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.foundation")}
           </p>
@@ -96,7 +96,7 @@ const EarlySkillInsights = ({
           </p>
         </div>
 
-        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3">
+        <div className="rounded-lg border border-[color:var(--color-border-default)] bg-surface-card p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.currentFocus")}
           </p>
@@ -110,7 +110,7 @@ const EarlySkillInsights = ({
           </p>
         </div>
 
-        <div className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3">
+        <div className="rounded-lg border border-[color:var(--color-border-default)] bg-surface-card p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-content-muted">
             {t("dashboard.skillInsights.momentum")}
           </p>
@@ -135,7 +135,7 @@ const EarlySkillInsights = ({
         <button
           type="button"
           onClick={onNextStepClick}
-          className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/25 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/35 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+          className="rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/25 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/35 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
         >
           {nextStepLabel}
         </button>

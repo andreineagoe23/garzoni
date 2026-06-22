@@ -54,7 +54,7 @@ function CourseList({ courses }: { courses?: CourseListItem[] }) {
               <h3 className="app-display text-xl text-content-primary">
                 {course.title}
               </h3>
-              <span className="app-eyebrow group-hover:text-[color:var(--primary-bright,#2a7347)]">
+              <span className="app-eyebrow group-hover:text-[color:var(--color-brand-primary-hover)]">
                 {t("courses.list.viewLesson")}
               </span>
             </div>

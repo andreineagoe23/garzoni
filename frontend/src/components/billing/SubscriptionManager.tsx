@@ -311,7 +311,7 @@ const SubscriptionManager = () => {
             {t("billing.manageSubtitle")}
           </p>
         </div>
-        <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-surface-card px-4 py-4 text-sm text-content-primary">
+        <div className="space-y-3 rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card px-4 py-4 text-sm text-content-primary">
           <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
             <div className="font-semibold">
               {t("billing.currentPlan")}:{" "}
@@ -389,7 +389,7 @@ const SubscriptionManager = () => {
       </Modal>
 
       <GlassCard padding="lg" className="space-y-6">
-        <div className="space-y-1 border-b border-[color:var(--border-color,#e5e7eb)] pb-4">
+        <div className="space-y-1 border-b border-[color:var(--color-border-default)] pb-4">
           <h2 className="text-xl font-semibold text-content-primary">
             {t("billing.availablePlans")}
           </h2>
@@ -405,7 +405,7 @@ const SubscriptionManager = () => {
 
         <div className="flex flex-col items-center gap-4">
           <div
-            className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-1"
+            className="inline-flex rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-1"
             role="group"
             aria-label={t("subscriptions.choosePlan")}
           >
@@ -414,7 +414,7 @@ const SubscriptionManager = () => {
               onClick={() => setBillingInterval("yearly")}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "yearly"
-                  ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+                  ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
                   : "text-content-muted hover:text-content-primary"
               }`}
             >
@@ -425,7 +425,7 @@ const SubscriptionManager = () => {
               onClick={() => setBillingInterval("monthly")}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 billingInterval === "monthly"
-                  ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+                  ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
                   : "text-content-muted hover:text-content-primary"
               }`}
             >
@@ -467,9 +467,9 @@ const SubscriptionManager = () => {
               return (
                 <div
                   key={`${plan.plan_id}-${billingLabel}`}
-                  className={`flex h-full min-h-[280px] flex-col gap-4 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-5 text-left shadow-sm ${
+                  className={`flex h-full min-h-[280px] flex-col gap-4 rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card p-5 text-left shadow-sm ${
                     isHighlight
-                      ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--accent,#ffd700)]/20"
+                      ? "border-[color:var(--color-brand-primary)] shadow-lg shadow-[color:var(--accent,#ffd700)]/20"
                       : ""
                   }`}
                 >
@@ -479,17 +479,17 @@ const SubscriptionManager = () => {
                         {name}
                       </div>
                       {isCurrent && (
-                        <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
+                        <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
                           {t("billing.active")}
                         </span>
                       )}
                       {isStarter && !isCurrent && (
-                        <span className="rounded-full bg-[color:var(--success,#16a34a)]/15 px-2 py-1 text-xs font-semibold text-[color:var(--success,#16a34a)]">
+                        <span className="rounded-full bg-[color:var(--color-state-success)]/15 px-2 py-1 text-xs font-semibold text-[color:var(--color-state-success)]">
                           {t("subscriptions.free")}
                         </span>
                       )}
                       {trialLabel && paidPlan && !isCurrent && (
-                        <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
+                        <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
                           {trialLabel}
                         </span>
                       )}
@@ -537,12 +537,12 @@ const SubscriptionManager = () => {
           </div>
         )}
         {planUpdatedMessage && (
-          <p className="text-sm text-[color:var(--success,#16a34a)]">
+          <p className="text-sm text-[color:var(--color-state-success)]">
             {planUpdatedMessage}
           </p>
         )}
         {portalEligible && (
-          <div className="flex flex-col gap-3 border-t border-[color:var(--border-color,#e5e7eb)] pt-6 sm:flex-row sm:flex-wrap">
+          <div className="flex flex-col gap-3 border-t border-[color:var(--color-border-default)] pt-6 sm:flex-row sm:flex-wrap">
             {!cancelScheduled && (
               <GlassButton
                 variant="ghost"
@@ -598,15 +598,15 @@ const SubscriptionManager = () => {
           <p
             className={`text-sm ${
               rcRestoreMsg.includes("successfully")
-                ? "text-[color:var(--success,#16a34a)]"
-                : "text-[color:var(--error,#dc2626)]"
+                ? "text-[color:var(--color-state-success)]"
+                : "text-[color:var(--color-state-error)]"
             }`}
           >
             {rcRestoreMsg}
           </p>
         )}
         {actionError && (
-          <p className="text-sm text-[color:var(--error,#dc2626)]">
+          <p className="text-sm text-[color:var(--color-state-error)]">
             {actionError}
           </p>
         )}

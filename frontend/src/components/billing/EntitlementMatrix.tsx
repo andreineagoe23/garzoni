@@ -77,9 +77,9 @@ const FeatureRow = ({
     <div className="grid grid-cols-4 items-center gap-4 rounded-2xl px-4 py-3 hover:">
       <div className="flex items-center gap-2 text-sm font-semibold text-content-primary">
         <span
-          className={`flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--border-color,#e5e7eb)] ${
+          className={`flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--color-border-default)] ${
             userFeature?.enabled
-              ? "bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] text-[color:var(--primary-bright,#2a7347)]"
+              ? "bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] text-[color:var(--color-brand-primary-hover)]"
               : "bg-amber-50 text-amber-600"
           }`}
         >
@@ -146,7 +146,7 @@ const EntitlementMatrix = ({
           <h3 className="text-xl font-bold text-content-primary">
             {t("billing.planComparison")}
           </h3>
-          <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
+          <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
             {t("billing.current")}: {planLabel}
           </span>
         </div>

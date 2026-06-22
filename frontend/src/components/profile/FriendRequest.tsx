@@ -60,7 +60,7 @@ const FriendRequests = () => {
             {t("profile.friendRequests.subtitle")}
           </p>
         </div>
-        <span className="inline-flex min-w-[2rem] items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-sm font-semibold text-[color:var(--accent,#ffd700)]">
+        <span className="inline-flex min-w-[2rem] items-center justify-center rounded-full bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-sm font-semibold text-[color:var(--accent,#ffd700)]">
           {requests.length}
         </span>
       </div>
@@ -77,7 +77,7 @@ const FriendRequests = () => {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--accent,#ffd700)] border-t-transparent" />
           </div>
         ) : requests.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-10 text-center text-content-muted">
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-10 text-center text-content-muted">
             <GarzoniIcon name="inbox" size={40} />
             <p className="text-sm">{t("profile.friendRequests.empty")}</p>
           </div>
@@ -85,10 +85,10 @@ const FriendRequests = () => {
           requests.map((request) => (
             <div
               key={request.id}
-              className="flex flex-col gap-4 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-4 shadow-sm shadow-black/5 transition hover:shadow-md md:flex-row md:items-center md:justify-between"
+              className="flex flex-col gap-4 rounded-xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-4 shadow-sm shadow-black/5 transition hover:shadow-md md:flex-row md:items-center md:justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)]/10 text-xl">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-brand-primary)]/10 text-xl">
                   <GarzoniIcon name="user" size={20} />
                 </div>
                 <div>
@@ -104,14 +104,14 @@ const FriendRequests = () => {
                 <button
                   type="button"
                   onClick={() => respondToRequest(request.id, "accept")}
-                  className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-md hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--primary,#1d5330)]"
+                  className="inline-flex items-center justify-center rounded-lg bg-[color:var(--color-brand-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-md hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--color-brand-primary)]"
                 >
                   {t("profile.friendRequests.accept")}
                 </button>
                 <button
                   type="button"
                   onClick={() => respondToRequest(request.id, "reject")}
-                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-sm font-semibold text-content-muted transition hover:border-[color:var(--error,#dc2626)]/60 hover:text-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--color-border-default)] px-4 py-2 text-sm font-semibold text-content-muted transition hover:border-[color:var(--color-state-error)]/60 hover:text-[color:var(--color-state-error)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-state-error)]/40"
                 >
                   {t("profile.friendRequests.decline")}
                 </button>

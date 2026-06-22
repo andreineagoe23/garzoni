@@ -18,7 +18,7 @@ const EntitlementUsage = ({
   if (!entitlementUsage.length) return null;
 
   return (
-    <div className="mt-6 rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
+    <div className="mt-6 rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card p-4 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-content-primary">
           {t("dashboard.entitlementUsage.dailyUsage")}
@@ -37,13 +37,13 @@ const EntitlementUsage = ({
           return (
             <div
               key={feature.key}
-              className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.08))] bg-surface-card px-3 py-3 text-sm"
+              className="rounded-xl border border-[color:var(--color-border-default)] bg-surface-card px-3 py-3 text-sm"
             >
               <div className="font-semibold text-content-primary">
                 {feature.name}
               </div>
               {feature.enabled === false ? (
-                <div className="mt-1 text-xs text-[color:var(--error,#dc2626)]">
+                <div className="mt-1 text-xs text-[color:var(--color-state-error)]">
                   {t("dashboard.entitlementUsage.lockedUpgrade")}
                 </div>
               ) : (

@@ -280,7 +280,7 @@ const DragAndDropExercise = ({
               type="button"
               onClick={handleSubmit}
               disabled={disabled}
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#2563eb)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/40"
             >
               Submit Answers
             </button>
@@ -292,7 +292,7 @@ const DragAndDropExercise = ({
             className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
               feedbackType === "success"
                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                : "border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
             }`}
             aria-live="polite"
           >
@@ -356,10 +356,10 @@ const DraggableItem = ({ item, isDisabled, isSelected, onKeyboardSelect }) => {
       } ${
         isSelected
           ? "border-[color:var(--accent,#2563eb)] bg-[color:var(--accent,#2563eb)]/10 text-[color:var(--accent,#2563eb)]"
-          : "border-[color:var(--border-color,#d1d5db)] text-content-primary"
+          : "border-[color:var(--color-border-default)] text-content-primary"
       }`}
       style={{
-        backgroundColor: item.color || "var(--card-bg,#ffffff)",
+        backgroundColor: item.color || "var(--color-surface-card)",
       }}
     >
       {item.text}
@@ -394,7 +394,7 @@ const DroppableTarget = ({
     status === "correct"
       ? "border-emerald-500/60 bg-emerald-500/10"
       : status === "incorrect"
-        ? "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10"
+        ? "border-[color:var(--color-state-error)]/60 bg-[color:var(--color-state-error)]/10"
         : "border-dashed";
 
   return (
@@ -422,7 +422,7 @@ const DroppableTarget = ({
         {target.text}
       </p>
       {userAnswer && (
-        <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-content-muted shadow-inner">
+        <div className="mt-3 rounded-xl border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] backdrop-blur-sm px-3 py-2 text-xs font-medium text-content-muted shadow-inner">
           {t("exercises.drag.answerLabel")}{" "}
           {itemsById[userAnswer]?.text || userAnswer}
         </div>

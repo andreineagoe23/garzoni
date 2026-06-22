@@ -68,7 +68,7 @@ export default function PaymentSuccessPage() {
         <div
           className="w-14 h-14 rounded-2xl flex items-center justify-center mb-10 border"
           style={{
-            backgroundColor: "var(--primary, #1d5330)",
+            backgroundColor: "var(--color-brand-primary)",
             borderColor: "rgba(42,115,71,0.45)",
           }}
         >
@@ -96,10 +96,10 @@ export default function PaymentSuccessPage() {
                 className="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200"
                 style={{
                   borderColor: stepDone[i]
-                    ? "var(--primary-bright, #2a7347)"
-                    : "var(--border-color, rgba(0,0,0,0.12))",
+                    ? "var(--color-brand-primary-hover)"
+                    : "var(--color-border-default)",
                   backgroundColor: stepDone[i]
-                    ? "var(--primary-bright, #2a7347)"
+                    ? "var(--color-brand-primary-hover)"
                     : "transparent",
                   transform: stepDone[i] ? "scale(1)" : "scale(0.85)",
                 }}
@@ -142,7 +142,7 @@ export default function PaymentSuccessPage() {
         >
           <div
             className="w-10 h-px mb-8"
-            style={{ backgroundColor: "var(--border-color, rgba(0,0,0,0.1))" }}
+            style={{ backgroundColor: "var(--color-border-default)" }}
           />
           <h1
             className="text-2xl font-extrabold text-center mb-2 tracking-tight"
@@ -165,7 +165,7 @@ export default function PaymentSuccessPage() {
             <div
               className="h-full rounded-full"
               style={{
-                backgroundColor: "var(--primary-bright, #2a7347)",
+                backgroundColor: "var(--color-brand-primary-hover)",
                 transition: `width ${TIMING.redirect - TIMING.reveal}ms linear`,
                 width: revealed ? "100%" : "0%",
               }}

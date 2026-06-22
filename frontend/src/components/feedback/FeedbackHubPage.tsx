@@ -80,13 +80,13 @@ function FeedbackHubPage() {
 
       <GlassCard padding="lg">
         {submitMessage && (
-          <div className="mb-4 rounded-2xl border border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)] shadow-inner shadow-[color:var(--primary-bright,#2a7347)]/15">
+          <div className="mb-4 rounded-2xl border border-[color:var(--color-brand-primary-hover)]/40 bg-[color:var(--color-brand-primary-hover)]/10 px-4 py-3 text-sm text-[color:var(--color-brand-primary-hover)] shadow-inner shadow-[color:var(--color-brand-primary-hover)]/15">
             {submitMessage}
           </div>
         )}
 
         {errorMessage && (
-          <div className="mb-4 rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
+          <div className="mb-4 rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/20">
             {errorMessage}
           </div>
         )}
@@ -138,14 +138,14 @@ function FeedbackHubPage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link
               to="/support"
-              className="text-sm font-medium text-content-muted hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30 rounded"
+              className="text-sm font-medium text-content-muted hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/30 rounded"
             >
               {t("feedback.backToSupport")}
             </Link>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 disabled:opacity-60 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 disabled:opacity-60 disabled:pointer-events-none"
             >
               {submitting ? "…" : t("feedback.send")}
             </button>

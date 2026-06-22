@@ -1325,11 +1325,11 @@ function CourseFlowPage() {
               }}
             />
             {recommendedVideoUrl && (
-              <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card p-4 shadow-sm">
+              <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                   {t("courses.flow.recommendedVideo")}
                 </p>
-                <div className="mt-2 overflow-hidden rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-black/10 shadow-inner">
+                <div className="mt-2 overflow-hidden rounded-xl border border-[color:var(--color-border-default)] bg-black/10 shadow-inner">
                   <div className="aspect-video">
                     <iframe
                       src={recommendedVideoUrl.replace(/watch\\?v=/, "embed/")}
@@ -1356,7 +1356,7 @@ function CourseFlowPage() {
         };
 
         return (
-          <div className="overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-black/10 shadow-inner">
+          <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border-default)] bg-black/10 shadow-inner">
             <div className="aspect-video">
               {safeSectionVideoUrl.includes("youtube.com") ||
               safeSectionVideoUrl.includes("youtu.be") ? (
@@ -1452,7 +1452,7 @@ function CourseFlowPage() {
       }
 
       return (
-        <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-5 py-5 text-sm text-content-muted">
+        <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-surface-page px-5 py-5 text-sm text-content-muted">
           {t("courses.flow.noSectionContent")}
         </div>
       );
@@ -1462,10 +1462,10 @@ function CourseFlowPage() {
     if (currentItem.kind === "lesson-exercise") {
       return (
         <div className="space-y-4">
-          <div className="app-callout text-[color:var(--primary-bright,#2a7347)]">
+          <div className="app-callout text-[color:var(--color-brand-primary-hover)]">
             {t("courses.flow.legacyExerciseFormat")}
           </div>
-          <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-5 py-5 text-sm text-content-muted">
+          <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-surface-page px-5 py-5 text-sm text-content-muted">
             {t("courses.flow.unsupportedExerciseType", {
               type: currentItem.lessonExerciseType,
             })}
@@ -1503,13 +1503,13 @@ function CourseFlowPage() {
     return (
       <div className="min-h-screen bg-surface-page px-6 py-16">
         <div className="mx-auto w-full max-w-3xl">
-          <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-5 py-6 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/10">
+          <div className="rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-5 py-6 text-sm text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/10">
             {error?.message || t("courses.flow.loadError")}
           </div>
           <button
             type="button"
             onClick={() => navigate("/all-topics")}
-            className="mt-6 rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-muted hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)]"
+            className="mt-6 rounded-full border border-[color:var(--color-border-default)] px-5 py-2 text-sm font-semibold text-content-muted hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)]"
           >
             {t("courses.flow.backToDashboard")}
           </button>
@@ -1528,7 +1528,7 @@ function CourseFlowPage() {
             type="button"
             onClick={handleExit}
             aria-label={t("courses.flow.exitCourse")}
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-content-muted shadow-sm transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/30"
+            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-content-muted shadow-sm transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/30"
           >
             ✕
           </button>
@@ -1698,7 +1698,7 @@ function CourseFlowPage() {
             adminMode &&
             !currentItem.section?.is_published && (
               <div className="mb-6 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--primary-bright,#2a7347)]/30 bg-[color:var(--primary-bright,#2a7347)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)]">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-brand-primary-hover)]/30 bg-[color:var(--color-brand-primary-hover)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary-hover)]">
                   {t("courses.flow.draftHidden")}
                 </span>
               </div>
@@ -1903,7 +1903,7 @@ function CourseFlowPage() {
       {/* Mobile: bottom navbar (Back, Paths, Courses, Continue) – same size, sticky to bottom */}
       {!courseComplete && currentItem && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between gap-2 border-t border-[color:var(--border-color,#d1d5db)] bg-surface-card px-3 py-3 backdrop-blur-sm lg:hidden"
+          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between gap-2 border-t border-[color:var(--color-border-default)] bg-surface-card px-3 py-3 backdrop-blur-sm lg:hidden"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
           <GlassButton
@@ -2080,14 +2080,14 @@ function CourseFlowPage() {
               <button
                 type="button"
                 onClick={() => setOutOfHeartsModalOpen(false)}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold text-content-muted hover:border-[color:#2a7347]/40"
+                className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs font-semibold text-content-muted hover:border-[color:#2a7347]/40"
                 aria-label={t("courses.flow.closeOutOfHearts")}
               >
                 ✕
               </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-3 text-sm text-content-muted">
+            <div className="mt-5 rounded-2xl border border-[color:var(--color-border-default)] bg-surface-page px-4 py-3 text-sm text-content-muted">
               {t("courses.flow.nextHeartIn")}{" "}
               <span className="font-semibold text-content-primary">
                 {formatCountdown(heartCountdownMs)}
@@ -2106,7 +2106,7 @@ function CourseFlowPage() {
                   }
                 }}
                 disabled={isHeartsMutating}
-                className="inline-flex items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)] bg-surface-card px-5 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
+                className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-brand-primary)] bg-surface-card px-5 py-2 text-sm font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white"
               >
                 {t("courses.flow.practiseHeart")}
               </button>
@@ -2121,14 +2121,14 @@ function CourseFlowPage() {
                   }
                 }}
                 disabled={isHeartsMutating}
-                className="inline-flex items-center justify-center rounded-full bg-[color:#2a7347] px-5 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:#2a7347]/25"
+                className="inline-flex items-center justify-center rounded-full bg-[color:#2a7347] px-5 py-2 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-lg shadow-[color:#2a7347]/25"
               >
                 {t("courses.flow.refillHearts")}
               </button>
               <button
                 type="button"
                 onClick={handleExit}
-                className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-5 py-2 text-sm font-semibold text-content-muted hover:border-[color:#2a7347]/40 hover:text-[color:#2a7347]"
+                className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-border-default)] px-5 py-2 text-sm font-semibold text-content-muted hover:border-[color:#2a7347]/40 hover:text-[color:#2a7347]"
               >
                 {t("courses.flow.backToDashboard")}
               </button>

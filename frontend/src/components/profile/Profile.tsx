@@ -390,7 +390,7 @@ function Profile() {
             <button
               type="button"
               onClick={() => navigate("/personalized-path")}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary)] to-[color:var(--accent)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/30"
             >
               <span aria-hidden>🧭</span>
               {t("profile.actions.personalizedPath")}
@@ -404,7 +404,7 @@ function Profile() {
                     : "/subscriptions"
                 )
               }
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--primary)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary)] to-[color:var(--color-brand-primary)]/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--accent)]/30 transition hover:scale-[1.01] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/30"
             >
               <span aria-hidden>💳</span>
               {["active", "trialing"].includes(entitlements?.status ?? "")
@@ -568,7 +568,7 @@ function Profile() {
                   setBadgeFilter(e.target.value);
                   setShowAllBadges(false);
                 }}
-                className="rounded-lg border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
+                className="rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/30"
               >
                 <option value="all">
                   {t("profile.achievements.filterAll")}
@@ -585,7 +585,7 @@ function Profile() {
                 <button
                   type="button"
                   onClick={() => setShowAllBadges((prev) => !prev)}
-                  className="rounded-full border border-[color:var(--border-color)]  px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
+                  className="rounded-full border border-[color:var(--color-border-default)]  px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--color-brand-primary-hover)]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/30"
                 >
                   {showAllBadges
                     ? t("profile.achievements.showLess")
@@ -696,7 +696,7 @@ function Profile() {
               <button
                 type="button"
                 onClick={() => setShowAllActivity((prev) => !prev)}
-                className="rounded-full border border-[color:var(--border-color)]  px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/30"
+                className="rounded-full border border-[color:var(--color-border-default)]  px-4 py-2 text-xs font-semibold text-content-muted transition hover:border-[color:var(--color-brand-primary-hover)]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/30"
               >
                 {showAllActivity
                   ? t("profile.achievements.showLess")

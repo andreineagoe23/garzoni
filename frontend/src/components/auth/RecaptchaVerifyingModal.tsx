@@ -21,9 +21,9 @@ export default function RecaptchaVerifyingModal({ open }: Props) {
       aria-modal="true"
       aria-label={t("auth.recaptcha.verifying")}
     >
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-8 py-8 shadow-xl">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-8 py-8 shadow-xl">
         <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--border-color)] border-t-[color:var(--primary)]"
+          className="h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-border-default)] border-t-[color:var(--color-brand-primary)]"
           aria-hidden="true"
         />
         <p className="text-center text-sm font-medium text-content-primary">

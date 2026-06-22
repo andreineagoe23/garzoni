@@ -46,7 +46,7 @@ function ProgressRing({ value }: { value: number }) {
         cy="20"
         r={r}
         stroke="currentColor"
-        className="text-[color:var(--primary,#1d5330)]"
+        className="text-[color:var(--color-brand-primary)]"
         strokeWidth="4"
         fill="none"
         strokeDasharray={c}
@@ -211,7 +211,7 @@ function PersonalizedPathContent({
     return (
       <GlassCard
         padding="md"
-        className="text-center text-sm text-[color:var(--error,#dc2626)]"
+        className="text-center text-sm text-[color:var(--color-state-error)]"
       >
         {t("personalizedPath.errors.recommendationsFailed")}
       </GlassCard>
@@ -240,7 +240,7 @@ function PersonalizedPathContent({
             const metrics = getCourseMetrics(heroCourse, progressByCourse);
             return (
               <>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--border-color,#d1d5db)]/70 pb-3">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--color-border-default)]/70 pb-3">
                   <div>
                     <p className="text-sm font-semibold text-content-primary">
                       {t("personalizedPath.title")}
@@ -262,7 +262,7 @@ function PersonalizedPathContent({
                       type="button"
                       onClick={() => refreshMutation.mutate(undefined)}
                       disabled={refreshMutation.isPending}
-                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1 text-xs font-semibold"
+                      className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs font-semibold"
                     >
                       {refreshMutation.isPending
                         ? t("personalizedPath.refreshing")
@@ -282,7 +282,7 @@ function PersonalizedPathContent({
                       {heroCourse.reason}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-content-muted">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-0.5">
                         <GarzoniIcon
                           name={courseIcon(heroCourse.path_title)}
                           size={12}
@@ -328,7 +328,7 @@ function PersonalizedPathContent({
           })()}
           {heroCourse.locked && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
-              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-[color:var(--primary,#1d5330)]">
+              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
                 {t("personalizedPath.locked")}
               </span>
             </div>
@@ -371,13 +371,13 @@ function PersonalizedPathContent({
               >
                 <div className="relative flex w-10 shrink-0 justify-center">
                   {index < restCourses.length - 1 && (
-                    <span className="absolute top-9 bottom-0 w-[2px] bg-gradient-to-b from-[color:var(--primary,#1d5330)]/50 to-[color:var(--border-color,#d1d5db)]" />
+                    <span className="absolute top-9 bottom-0 w-[2px] bg-gradient-to-b from-[color:var(--color-brand-primary)]/50 to-[color:var(--color-border-default)]" />
                   )}
-                  <div className="relative z-10 mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)]/30 bg-[color:var(--card-bg,#ffffff)]">
+                  <div className="relative z-10 mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-surface-card)]">
                     <GarzoniIcon
                       name={courseIcon(course.path_title)}
                       size={14}
-                      className="text-[color:var(--primary,#1d5330)]"
+                      className="text-[color:var(--color-brand-primary)]"
                     />
                   </div>
                 </div>
@@ -414,7 +414,7 @@ function PersonalizedPathContent({
                         )}
                       </div>
                       {course.next_lesson_title && (
-                        <div className="mt-1 text-xs text-[color:var(--primary,#1d5330)]">
+                        <div className="mt-1 text-xs text-[color:var(--color-brand-primary)]">
                           Next: {course.next_lesson_title}
                         </div>
                       )}
@@ -425,7 +425,7 @@ function PersonalizedPathContent({
                               key={`${course.id}-task-${taskIdx}`}
                               className="flex items-start gap-1"
                             >
-                              <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-[color:var(--primary,#1d5330)]/70" />
+                              <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-[color:var(--color-brand-primary)]/70" />
                               <span>{task}</span>
                             </li>
                           ))}
@@ -495,14 +495,14 @@ function PersonalizedPathContent({
                 not_started: "text-content-muted",
                 attempted: "text-[#e6c87a]",
                 familiar: "text-blue-400",
-                proficient: "text-[color:var(--primary,#1d5330)]",
+                proficient: "text-[color:var(--color-brand-primary)]",
                 mastered: "text-emerald-500",
               };
               const bandBg: Record<string, string> = {
                 not_started: "bg-slate-500/15",
                 attempted: "bg-yellow-400/15",
                 familiar: "bg-blue-500/15",
-                proficient: "bg-[color:var(--primary,#1d5330)]/10",
+                proficient: "bg-[color:var(--color-brand-primary)]/10",
                 mastered: "bg-emerald-500/15",
               };
 
@@ -537,7 +537,7 @@ function PersonalizedPathContent({
                     </span>
                     <a
                       href={buildSkillPracticeHref(item.skill || "")}
-                      className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5 text-[10px] font-bold text-[color:var(--primary,#1d5330)] hover:bg-[color:var(--primary,#1d5330)]/20 transition"
+                      className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-0.5 text-[10px] font-bold text-[color:var(--color-brand-primary)] hover:bg-[color:var(--color-brand-primary)]/20 transition"
                     >
                       Practice →
                     </a>
@@ -570,7 +570,7 @@ function PersonalizedPathContent({
           <button
             type="button"
             onClick={() => navigate("/onboarding")}
-            className="font-semibold text-[color:var(--primary,#1d5330)] underline decoration-[color:var(--primary,#1d5330)]/40 underline-offset-2 transition hover:text-[color:var(--primary,#1d5330)]/85 hover:decoration-[color:var(--primary,#1d5330)]/60"
+            className="font-semibold text-[color:var(--color-brand-primary)] underline decoration-[color:var(--color-brand-primary)]/40 underline-offset-2 transition hover:text-[color:var(--color-brand-primary)]/85 hover:decoration-[color:var(--color-brand-primary)]/60"
           >
             {t("personalizedPath.updatePreferences")}
           </button>

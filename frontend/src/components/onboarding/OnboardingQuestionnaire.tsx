@@ -346,7 +346,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                   disabled={isSaving}
                   className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
-                      ? "border-[#2a7347] bg-[#1d5330]/15 text-[color:var(--primary-bright,#2a7347)]"
+                      ? "border-[#2a7347] bg-[#1d5330]/15 text-[color:var(--color-brand-primary-hover)]"
                       : "border-white/12 bg-white/5 text-content-primary hover:border-[#2a7347]/40"
                   }`}
                   aria-pressed={isSelected}
@@ -380,7 +380,7 @@ const OnboardingQuestionnaire: React.FC = () => {
                   disabled={isSaving}
                   className={`cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40 touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 ${
                     isSelected
-                      ? "border-[#2a7347] bg-[#1d5330]/15 text-[color:var(--primary-bright,#2a7347)]"
+                      ? "border-[#2a7347] bg-[#1d5330]/15 text-[color:var(--color-brand-primary-hover)]"
                       : "border-white/12 bg-white/5 text-content-primary hover:border-[#2a7347]/40"
                   }`}
                   aria-pressed={isSelected}
@@ -596,7 +596,7 @@ const OnboardingQuestionnaire: React.FC = () => {
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-[width] duration-500 ease-out"
+                className="h-full rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary)] to-[color:var(--color-brand-primary)]/80 transition-[width] duration-500 ease-out"
                 style={{ width: `${computedProgressPercentage}%` }}
                 role="progressbar"
                 aria-valuenow={computedProgressPercentage}
@@ -610,7 +610,7 @@ const OnboardingQuestionnaire: React.FC = () => {
           {sectionSummary && (
             <GlassCard
               padding="md"
-              className="border-[color:var(--primary,#1d5330)]/20 bg-[color:var(--primary,#1d5330)]/5"
+              className="border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5"
             >
               <h3 className="mb-3 text-sm font-semibold text-content-primary">
                 {sectionSummary.section_title} {t("onboarding.summary")}

@@ -48,7 +48,7 @@ const ReferralLink = ({ referralCode }: { referralCode: string }) => {
           </p>
         ) : null}
         {earnedCode ? (
-          <div className="rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f3f4f6)] px-3 py-2 text-sm">
+          <div className="rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f3f4f6)] px-3 py-2 text-sm">
             <p className="font-medium text-content-primary">
               {t("profile.referral.earnedCode")}
             </p>
@@ -67,7 +67,7 @@ const ReferralLink = ({ referralCode }: { referralCode: string }) => {
         >
           {t("profile.referral.linkLabel")}
         </label>
-        <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f3f4f6)] p-4 shadow-inner shadow-black/5 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f3f4f6)] p-4 shadow-inner shadow-black/5 sm:flex-row sm:items-center">
           <input
             id="referralLink"
             type="text"
@@ -82,7 +82,7 @@ const ReferralLink = ({ referralCode }: { referralCode: string }) => {
             className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 ${
               copied
                 ? "bg-[color:var(--primary-soft,rgba(29,83,48,0.1))] text-[color:var(--accent,#ffd700)] shadow-inner shadow-[color:var(--accent,#ffd700)]/20"
-                : "bg-[color:var(--primary,#1d5330)] text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40"
+                : "bg-[color:var(--color-brand-primary)] text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40"
             }`}
           >
             {copied

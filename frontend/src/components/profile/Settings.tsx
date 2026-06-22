@@ -223,7 +223,7 @@ function Settings() {
       {errorMessage && (
         <GlassCard
           padding="md"
-          className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+          className="border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)] shadow-[color:var(--color-state-error)]/10"
         >
           {errorMessage}
         </GlassCard>
@@ -256,7 +256,7 @@ function Settings() {
                     name="first_name"
                     value={profileData.first_name}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -268,7 +268,7 @@ function Settings() {
                     name="last_name"
                     value={profileData.last_name}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
               </div>
@@ -283,7 +283,7 @@ function Settings() {
                     name="username"
                     value={profileData.username}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -295,7 +295,7 @@ function Settings() {
                     name="email"
                     value={profileData.email}
                     onChange={handleInputChange}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
               </div>
@@ -321,7 +321,7 @@ function Settings() {
                     onChange={(event) =>
                       setEmailReminderPreference(event.target.value)
                     }
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   >
                     <option value="none">
                       {t("settings.preferences.reminders.none")}
@@ -345,7 +345,7 @@ function Settings() {
                           reminders: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     {t("settings.preferences.emailTypes.reminders")}
                   </label>
@@ -359,7 +359,7 @@ function Settings() {
                           weekly_digest: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     {t("settings.preferences.emailTypes.weeklyDigest")}
                   </label>
@@ -373,7 +373,7 @@ function Settings() {
                           streak_alerts: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     {t("settings.preferences.emailTypes.streakAlerts")}
                   </label>
@@ -387,7 +387,7 @@ function Settings() {
                           billing_alerts: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     {t("settings.preferences.emailTypes.billingAlerts")}
                   </label>
@@ -401,7 +401,7 @@ function Settings() {
                           marketing: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     {t("settings.preferences.emailTypes.marketing")}
                   </label>
@@ -417,7 +417,7 @@ function Settings() {
                       onChange={(event) =>
                         setSoundEnabled(event.target.checked)
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     <span className="text-sm text-content-muted">
                       {t("settings.preferences.soundsHint")}
@@ -435,7 +435,7 @@ function Settings() {
                       onChange={(event) =>
                         setAnimationsEnabled(event.target.checked)
                       }
-                      className="h-4 w-4 rounded border border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--accent,#ffd700)]"
+                      className="h-4 w-4 rounded border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--accent,#ffd700)]"
                     />
                     <span className="text-sm text-content-muted">
                       {t("settings.preferences.animationsHint")}
@@ -464,7 +464,7 @@ function Settings() {
                     type="password"
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -475,7 +475,7 @@ function Settings() {
                     type="password"
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -486,7 +486,7 @@ function Settings() {
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                 </div>
               </div>
@@ -494,7 +494,7 @@ function Settings() {
               <button
                 type="button"
                 onClick={handleChangePassword}
-                className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-sm font-semibold text-content-muted shadow-sm transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="inline-flex items-center justify-center rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-2.5 text-sm font-semibold text-content-muted shadow-sm transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 {t("settings.password.update")}
               </button>
@@ -533,7 +533,7 @@ function Settings() {
 
             <section className="space-y-6">
               <header>
-                <h4 className="text-lg font-semibold text-[color:var(--error,#dc2626)]">
+                <h4 className="text-lg font-semibold text-[color:var(--color-state-error)]">
                   {t("settings.danger.title")}
                 </h4>
                 <p className="text-sm text-content-muted">
@@ -545,13 +545,13 @@ function Settings() {
                 <button
                   type="button"
                   onClick={handleDeleteAccount}
-                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--error,#dc2626)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--error,#dc2626)] shadow-sm transition hover:bg-[color:var(--error,#dc2626)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
+                  className="inline-flex items-center justify-center rounded-lg border border-[color:var(--color-state-error)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--color-state-error)] shadow-sm transition hover:bg-[color:var(--color-state-error)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-state-error)]/30"
                 >
                   {t("settings.danger.deleteAccount")}
                 </button>
               ) : (
-                <div className="space-y-4 rounded-xl border border-[color:var(--error,#dc2626)]/30 bg-[color:var(--error,#dc2626)]/5 p-4 shadow-inner shadow-[color:var(--error,#dc2626)]/10">
-                  <p className="text-sm text-[color:var(--error,#dc2626)]">
+                <div className="space-y-4 rounded-xl border border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error)]/5 p-4 shadow-inner shadow-[color:var(--color-state-error)]/10">
+                  <p className="text-sm text-[color:var(--color-state-error)]">
                     {t("settings.danger.confirmNote")}
                   </p>
                   <input
@@ -559,13 +559,13 @@ function Settings() {
                     value={deletePassword}
                     onChange={(event) => setDeletePassword(event.target.value)}
                     placeholder={t("settings.danger.passwordPlaceholder")}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2.5 text-content-primary shadow-sm focus:border-[color:var(--error,#dc2626)] focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-2.5 text-content-primary shadow-sm focus:border-[color:var(--color-state-error)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-state-error)]/30"
                   />
                   <div className="flex flex-wrap gap-3">
                     <button
                       type="button"
                       onClick={handleDeleteAccount}
-                      className="inline-flex flex-1 items-center justify-center rounded-lg bg-[color:var(--error,#dc2626)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--error,#dc2626)]/30 transition hover:shadow-lg hover:shadow-[color:var(--error,#dc2626)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                      className="inline-flex flex-1 items-center justify-center rounded-lg bg-[color:var(--color-state-error)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--color-state-error)]/30 transition hover:shadow-lg hover:shadow-[color:var(--color-state-error)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-state-error)]/40"
                     >
                       {t("settings.danger.confirmDeletion")}
                     </button>
@@ -576,7 +576,7 @@ function Settings() {
                         setDeletePassword("");
                         setErrorMessage("");
                       }}
-                      className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-4 py-2.5 text-sm font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                      className="inline-flex flex-1 items-center justify-center rounded-lg border border-[color:var(--color-border-default)] px-4 py-2.5 text-sm font-semibold text-content-muted transition hover:border-[color:var(--accent,#ffd700)] hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
                     >
                       {t("settings.actions.cancel")}
                     </button>
@@ -585,11 +585,11 @@ function Settings() {
               )}
             </section>
 
-            <div className="flex justify-end border-t border-[color:var(--border-color,#d1d5db)] pt-6">
+            <div className="flex justify-end border-t border-[color:var(--color-border-default)] pt-6">
               <button
                 type="button"
                 onClick={handleSaveSettings}
-                className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#1d5330)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+                className="inline-flex items-center justify-center rounded-lg bg-[color:var(--color-brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
               >
                 {t("settings.actions.save")}
               </button>

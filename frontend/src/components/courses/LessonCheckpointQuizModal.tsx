@@ -135,12 +135,12 @@ export default function LessonCheckpointQuizModal({
       aria-modal="true"
       aria-labelledby="checkpoint-quiz-title"
     >
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-6 pt-12 shadow-2xl dark:bg-[color:var(--card-bg,#0f172a)]">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] p-6 pt-12 shadow-2xl dark:bg-[color:var(--color-surface-card)]">
         <button
           type="button"
           onClick={() => !submitting && onFinished()}
           disabled={submitting}
-          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] text-xl font-light leading-none text-content-muted transition hover:border-[color:#2a7347]/50 hover:bg-[color:#2a7347]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 disabled:pointer-events-none disabled:opacity-40"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border-default)] text-xl font-light leading-none text-content-muted transition hover:border-[color:#2a7347]/50 hover:bg-[color:#2a7347]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 disabled:pointer-events-none disabled:opacity-40"
           aria-label={t("courses.flow.checkpointDismissAria")}
         >
           ×
@@ -178,7 +178,7 @@ export default function LessonCheckpointQuizModal({
                   } ${
                     selected === choice.text
                       ? "border-[color:#2a7347] bg-[color:#2a7347]/10"
-                      : "border-[color:var(--border-color,#d1d5db)] bg-surface-page/80"
+                      : "border-[color:var(--color-border-default)] bg-surface-page/80"
                   }`}
                 >
                   <input
@@ -213,7 +213,7 @@ export default function LessonCheckpointQuizModal({
                     ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
                     : correct === false
                       ? "border-amber-400/50 bg-amber-500/10 text-amber-800 dark:text-amber-200"
-                      : "border-[color:var(--error,#dc2626)]/40 bg-red-500/10 text-red-700"
+                      : "border-[color:var(--color-state-error)]/40 bg-red-500/10 text-red-700"
                 }`}
               >
                 <MascotWithMessage

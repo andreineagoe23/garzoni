@@ -39,20 +39,20 @@ export default function ExerciseIntentLessonEmpty(props: Props) {
           <button
             type="button"
             onClick={props.onViewAllExercises}
-            className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
+            className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--color-brand-primary)]/30"
           >
             {t("exercises.emptyUnmapped.viewAll")}
           </button>
           <button
             type="button"
             onClick={props.onOpenFilters}
-            className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+            className="rounded-full border border-[color:var(--color-border-default)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--color-brand-primary)]/40"
           >
             {t("exercises.emptyUnmapped.pickCategory")}
           </button>
           <Link
             to="/all-topics"
-            className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+            className="rounded-full border border-[color:var(--color-border-default)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--color-brand-primary)]/40"
           >
             {t("exercises.emptyUnmapped.browseLessons")}
           </Link>
@@ -74,20 +74,20 @@ export default function ExerciseIntentLessonEmpty(props: Props) {
           <button
             type="button"
             onClick={props.onClearFilter}
-            className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
+            className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--color-brand-primary)]/30"
           >
             {t("exercises.emptyMappedZero.clearFilter")}
           </button>
           <button
             type="button"
             onClick={props.onOpenFilters}
-            className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+            className="rounded-full border border-[color:var(--color-border-default)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--color-brand-primary)]/40"
           >
             {t("exercises.emptyMappedZero.pickAnother")}
           </button>
           <Link
             to="/all-topics"
-            className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+            className="rounded-full border border-[color:var(--color-border-default)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--color-brand-primary)]/40"
           >
             {t("exercises.emptyMappedZero.goToLessons")}
           </Link>
@@ -109,14 +109,14 @@ export default function ExerciseIntentLessonEmpty(props: Props) {
           <button
             type="button"
             onClick={props.onClearFilter}
-            className="rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--primary,#1d5330)]/30"
+            className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-[color:var(--color-brand-primary)]/30"
           >
             {t("exercises.skillIntent.clearFilter")}
           </button>
         ) : null}
         <Link
           to="/all-topics"
-          className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+          className="rounded-full border border-[color:var(--color-border-default)] px-4 py-2 text-xs font-semibold text-content-muted hover:border-[color:var(--color-brand-primary)]/40"
         >
           {t("exercises.emptyFiltered.browseTopics")}
         </Link>

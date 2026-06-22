@@ -47,7 +47,7 @@ function ForgotPassword() {
         <title>Reset Password | Garzoni</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#0f172a)] transition-colors">
+      <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--color-surface-page)] transition-colors">
         <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/20 via-transparent to-transparent" />
         <div className="relative w-full max-w-lg px-6 py-12 sm:px-10">
           <div

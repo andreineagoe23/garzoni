@@ -82,7 +82,7 @@ const RevenueCatCustomerCenter: React.FC<RevenueCatCustomerCenterProps> = ({
         {loading ? "Opening…" : label}
       </GlassButton>
       {error && (
-        <p className="mt-2 text-xs text-[color:var(--error,#dc2626)]">
+        <p className="mt-2 text-xs text-[color:var(--color-state-error)]">
           {error}
         </p>
       )}

@@ -395,7 +395,7 @@ function Register() {
                   required
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
                 />
                 <span>
                   <Trans
@@ -437,7 +437,7 @@ function Register() {
                   required
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
                 />
                 <span>{t("auth.register.ageConfirm")}</span>
               </label>
@@ -452,7 +452,7 @@ function Register() {
                   type="checkbox"
                   checked={marketingOptIn}
                   onChange={(e) => setMarketingOptIn(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
                 />
                 <span>{t("auth.register.marketingOptIn")}</span>
               </label>

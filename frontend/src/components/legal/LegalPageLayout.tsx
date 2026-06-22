@@ -25,10 +25,10 @@ export default function LegalPageLayout({
     <section className="legal-page-section min-h-[60vh] bg-surface-page px-4 py-8 sm:px-6 sm:py-10">
       <GlassCard
         padding="xl"
-        className="mx-auto w-full max-w-4xl border-[color:var(--border-color,rgba(0,0,0,0.1))]"
+        className="mx-auto w-full max-w-4xl border-[color:var(--color-border-default)]"
         hover={false}
       >
-        <header className="space-y-4 border-b border-[color:var(--border-color,rgba(0,0,0,0.08))] pb-8">
+        <header className="space-y-4 border-b border-[color:var(--color-border-default)] pb-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-content-muted">
             {lastUpdated}
           </p>
@@ -50,7 +50,7 @@ export default function LegalPageLayout({
             "prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-lg",
             "prose-p:mb-4 prose-p:leading-relaxed",
             "prose-ul:my-4 prose-li:my-1 prose-li:leading-relaxed",
-            "prose-a:text-[color:var(--primary,#2563eb)] prose-a:no-underline hover:prose-a:underline",
+            "prose-a:text-[color:var(--color-brand-primary)] prose-a:no-underline hover:prose-a:underline",
           ].join(" ")}
         >
           {children}

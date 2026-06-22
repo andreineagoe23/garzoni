@@ -78,7 +78,7 @@ const ActivityCalendar = React.memo(
           {Array.from({ length: firstDayOfWeek }).map((_, index) => (
             <div
               key={`empty-${index}`}
-              className="h-16 rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)]"
+              className="h-16 rounded-xl border border-dashed border-[color:var(--color-border-default)]"
               aria-hidden="true"
             />
           ))}
@@ -103,7 +103,7 @@ const ActivityCalendar = React.memo(
               <button
                 key={day}
                 type="button"
-                className="relative flex h-16 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-[color:var(--border-color,#d1d5db)] text-content-primary transition hover:border-[color:var(--accent,#3b82f6)]/50"
+                className="relative flex h-16 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-[color:var(--color-border-default)] text-content-primary transition hover:border-[color:var(--accent,#3b82f6)]/50"
                 style={{
                   backgroundColor: hasActivity
                     ? "rgba(var(--accent-rgb,59,130,246),0.12)"
@@ -122,7 +122,7 @@ const ActivityCalendar = React.memo(
               >
                 <span className="text-sm font-semibold">{day}</span>
                 {hasActivity && (
-                  <span className="mt-1 rounded-full bg-[color:var(--primary,#1d5330)]/15 px-2 text-xs font-semibold text-[color:var(--accent,#ffd700)]">
+                  <span className="mt-1 rounded-full bg-[color:var(--color-brand-primary)]/15 px-2 text-xs font-semibold text-[color:var(--accent,#ffd700)]">
                     {activityCount}
                   </span>
                 )}
@@ -131,7 +131,7 @@ const ActivityCalendar = React.memo(
           })}
         </div>
         {selectedDate ? (
-          <div className="rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,rgba(15,23,42,0.04))] p-3">
+          <div className="rounded-xl border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,rgba(15,23,42,0.04))] p-3">
             <p className="text-sm font-semibold text-content-primary">
               {selectedDate}
             </p>

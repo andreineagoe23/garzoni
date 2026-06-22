@@ -89,7 +89,7 @@ function LearningPathList({
               )}
               <div className={hidePathHeader ? "space-y-4" : "mt-4 space-y-4"}>
                 {courses.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-surface-card px-4 py-3 text-sm text-content-muted">
+                  <div className="rounded-xl border border-dashed border-[color:var(--color-border-default)] bg-surface-card px-4 py-3 text-sm text-content-muted">
                     {t("courses.learningPath.noCoursesInPath")}
                   </div>
                 )}
@@ -144,7 +144,7 @@ function LearningPathList({
                               count: lessonCount,
                             })}
                           </span>
-                          <span className="text-[color:var(--primary,#1d5330)]">
+                          <span className="text-[color:var(--color-brand-primary)]">
                             {t("courses.learningPath.viewDetails")}
                           </span>
                         </div>

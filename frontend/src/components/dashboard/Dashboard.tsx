@@ -582,7 +582,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
       >
         {t("dashboard.nav.personalizedPath")}
         {!isQuestionnaireCompleted && (
-          <span className="ml-1 rounded-full bg-[color:var(--error,#dc2626)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--error,#dc2626)]">
+          <span className="ml-1 rounded-full bg-[color:var(--color-state-error)]/20 px-2 py-0.5 text-xs font-semibold uppercase text-[color:var(--color-state-error)]">
             {t("dashboard.nav.completeOnboarding")}
           </span>
         )}
@@ -599,7 +599,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
           e.preventDefault();
           handleSkipToContent();
         }}
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[color:var(--primary,#1d5330)] focus:text-white focus:rounded-lg focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[color:var(--color-brand-primary)] focus:text-white focus:rounded-lg focus:shadow-lg"
       >
         {t("dashboard.skipToContent")}
       </a>
@@ -647,7 +647,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                               resume.path_id ?? undefined
                             )
                           }
-                          className="w-full rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
+                          className="w-full rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
                           aria-label={t("dashboard.resume.continueLesson")}
                         >
                           {t("dashboard.resume.continueLesson")}
@@ -658,7 +658,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                             onClick={() =>
                               handleResumeTopSkillAction(topWeakSkill)
                             }
-                            className="w-full rounded-full border border-[color:var(--primary,#1d5330)]/30 px-3 py-1.5 text-center text-[11px] font-semibold text-content-primary transition hover:bg-[color:var(--primary,#1d5330)]/5 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
+                            className="w-full rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1.5 text-center text-[11px] font-semibold text-content-primary transition hover:bg-[color:var(--color-brand-primary)]/5 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
                           >
                             {topWeakSkill.recommended_action === "review" &&
                             topWeakSkill.review_exercise_id != null
@@ -703,7 +703,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                             navigate("/all-topics");
                           }
                         }}
-                        className="w-full self-center rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm"
+                        className="w-full self-center rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm"
                         aria-label={t("dashboard.resume.browseTopics")}
                       >
                         {t("dashboard.resume.browseTopics")}

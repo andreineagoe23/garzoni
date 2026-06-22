@@ -368,7 +368,7 @@ const SubscriptionPlansPage = () => {
         <GlassCard padding="xl" className="w-full max-w-4xl space-y-8">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="space-y-3">
-              <div className="mx-auto h-px w-12 bg-gradient-to-r from-transparent via-[color:var(--primary,#1d5330)]/40 to-transparent" />
+              <div className="mx-auto h-px w-12 bg-gradient-to-r from-transparent via-[color:var(--color-brand-primary)]/40 to-transparent" />
               <h2 className="text-2xl font-bold tracking-tight text-[color:var(--accent,#111827)]">
                 {t("subscriptions.choosePlan")}
               </h2>
@@ -376,7 +376,7 @@ const SubscriptionPlansPage = () => {
                 {t("subscriptions.intro")}
               </p>
               {upgradeComplete && (
-                <p className="rounded-lg bg-[color:var(--success,#16a34a)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--success,#16a34a)]">
+                <p className="rounded-lg bg-[color:var(--color-state-success)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--color-state-success)]">
                   {t("subscriptions.paymentConfirmed")}
                 </p>
               )}
@@ -386,7 +386,7 @@ const SubscriptionPlansPage = () => {
                 </p>
               )}
               {entitlementError && (
-                <p className="text-sm text-[color:var(--error,#dc2626)]">
+                <p className="text-sm text-[color:var(--color-state-error)]">
                   {entitlementError}
                 </p>
               )}
@@ -395,7 +395,7 @@ const SubscriptionPlansPage = () => {
 
           <div className="flex flex-col items-center gap-4">
             <div
-              className="inline-flex rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-1"
+              className="inline-flex rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-1"
               role="group"
               aria-label={t("subscriptions.choosePlan")}
             >
@@ -404,7 +404,7 @@ const SubscriptionPlansPage = () => {
                 onClick={() => setBillingInterval("yearly")}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   billingInterval === "yearly"
-                    ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+                    ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
                     : "text-content-muted hover:text-[color:var(--accent,#111827)]"
                 }`}
               >
@@ -415,7 +415,7 @@ const SubscriptionPlansPage = () => {
                 onClick={() => setBillingInterval("monthly")}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   billingInterval === "monthly"
-                    ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+                    ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
                     : "text-content-muted hover:text-[color:var(--accent,#111827)]"
                 }`}
               >
@@ -452,7 +452,7 @@ const SubscriptionPlansPage = () => {
                     className={`relative flex flex-col gap-4 rounded-2xl border bg-surface-card p-5 text-left transition-shadow duration-200 ${
                       isHighlight
                         ? "border-[color:var(--gold,#E6C87A)]/50 shadow-lg shadow-[color:var(--gold,#E6C87A)]/10 ring-1 ring-[color:var(--gold,#E6C87A)]/20"
-                        : "border-[color:var(--border-color,rgba(0,0,0,0.1))] shadow-sm hover:shadow-md"
+                        : "border-[color:var(--color-border-default)] shadow-sm hover:shadow-md"
                     }`}
                   >
                     {isHighlight && (
@@ -466,12 +466,12 @@ const SubscriptionPlansPage = () => {
                           {name}
                         </div>
                         {isStarter && (
-                          <span className="rounded-full bg-[color:var(--success,#16a34a)]/15 px-2 py-1 text-xs font-semibold text-[color:var(--success,#16a34a)]">
+                          <span className="rounded-full bg-[color:var(--color-state-success)]/15 px-2 py-1 text-xs font-semibold text-[color:var(--color-state-success)]">
                             {t("subscriptions.free")}
                           </span>
                         )}
                         {trialLabel && paidPlan && (
-                          <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--primary,#1d5330)]">
+                          <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
                             {trialLabel}
                           </span>
                         )}
@@ -503,7 +503,7 @@ const SubscriptionPlansPage = () => {
                           <GarzoniIcon
                             name="check"
                             size={14}
-                            className="mt-0.5 shrink-0 text-[color:var(--primary,#1d5330)]"
+                            className="mt-0.5 shrink-0 text-[color:var(--color-brand-primary)]"
                           />
                           <span>{fe}</span>
                         </li>
@@ -531,14 +531,14 @@ const SubscriptionPlansPage = () => {
                   <Link
                     key="terms"
                     to="/terms-of-service"
-                    className="text-[color:var(--primary,#1d5330)] hover:underline"
+                    className="text-[color:var(--color-brand-primary)] hover:underline"
                   />
                 ),
                 privacy: (
                   <Link
                     key="privacy"
                     to="/privacy-policy"
-                    className="text-[color:var(--primary,#1d5330)] hover:underline"
+                    className="text-[color:var(--color-brand-primary)] hover:underline"
                   />
                 ),
               }}
@@ -546,7 +546,7 @@ const SubscriptionPlansPage = () => {
           </p>
 
           {referralSummary?.earned_discount_code && !rcEnabled ? (
-            <p className="rounded-xl border border-[color:var(--primary,#1d5330)]/30 bg-[color:var(--primary-soft,rgba(29,83,48,0.08))] px-4 py-3 text-sm text-content-primary">
+            <p className="rounded-xl border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--primary-soft,rgba(29,83,48,0.08))] px-4 py-3 text-sm text-content-primary">
               {t("subscriptions.referralDiscountBanner", {
                 code: referralSummary.earned_discount_code,
               })}
@@ -554,13 +554,13 @@ const SubscriptionPlansPage = () => {
           ) : null}
 
           {selectionError && (
-            <p className="text-sm text-[color:var(--error,#dc2626)]">
+            <p className="text-sm text-[color:var(--color-state-error)]">
               {selectionError}
             </p>
           )}
 
           <div
-            className="relative overflow-hidden rounded-3xl border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            className="relative overflow-hidden rounded-3xl border-[color:var(--color-border-default)] bg-surface-card shadow-xl p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
             style={{
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)",
@@ -644,13 +644,13 @@ const SubscriptionPlansPage = () => {
                     {comparisonRows.map((row) => (
                       <tr
                         key={row.feature}
-                        className="border-t border-[color:var(--border-color,#e5e7eb)]"
+                        className="border-t border-[color:var(--color-border-default)]"
                       >
                         <td className="px-4 py-3 text-content-primary">
                           {row.feature}
                         </td>
                         <td className="px-4 py-3">{row.starter}</td>
-                        <td className="px-4 py-3 font-semibold text-[color:var(--primary,#1d5330)]">
+                        <td className="px-4 py-3 font-semibold text-[color:var(--color-brand-primary)]">
                           {row.plus}
                         </td>
                         <td className="px-4 py-3">{row.pro}</td>

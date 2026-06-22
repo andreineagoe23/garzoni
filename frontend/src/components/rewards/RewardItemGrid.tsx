@@ -119,9 +119,9 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
               padding="md"
               className="group flex h-full flex-col gap-4 transition hover:-translate-y-1"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
               <div className="relative">
-                <div className="overflow-hidden rounded-2xl border border-[color:var(--border-color)]">
+                <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border-default)]">
                   {item.image && !brokenImages[item.id] ? (
                     <img
                       src={
@@ -178,8 +178,8 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       disabled={!canAfford}
                       className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-xs font-semibold text-white transition ${
                         isDonate
-                          ? "bg-[color:var(--primary-bright,#2a7347)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
-                          : "bg-[color:var(--primary)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
+                          ? "bg-[color:var(--color-brand-primary-hover)] shadow-lg shadow-[color:var(--color-brand-primary)]/30 hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40"
+                          : "bg-[color:var(--color-brand-primary)] shadow-lg shadow-[color:var(--color-brand-primary)]/30 hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40"
                       } ${!canAfford ? "opacity-50 cursor-not-allowed" : ""}`}
                       title={
                         !canAfford
@@ -196,8 +196,8 @@ const RewardItemGrid = ({ type, balance, onAction }: Props) => {
                       disabled={!canAfford}
                       className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-xs font-semibold text-white transition ${
                         isDonate
-                          ? "bg-[color:var(--primary-bright,#2a7347)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
-                          : "bg-[color:var(--primary)] shadow-lg shadow-[color:var(--primary)]/30 hover:shadow-xl hover:shadow-[color:var(--primary)]/40"
+                          ? "bg-[color:var(--color-brand-primary-hover)] shadow-lg shadow-[color:var(--color-brand-primary)]/30 hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40"
+                          : "bg-[color:var(--color-brand-primary)] shadow-lg shadow-[color:var(--color-brand-primary)]/30 hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40"
                       } ${!canAfford ? "opacity-50 cursor-not-allowed" : ""}`}
                       title={
                         !canAfford

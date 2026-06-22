@@ -28,14 +28,14 @@ export const ErrorState = ({
   const displayMessage = message ?? t("dashboard.errorState.message");
   return (
     <div
-      className={`rounded-xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 p-6 ${className}`}
+      className={`rounded-xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 p-6 ${className}`}
     >
       <div className="flex items-start gap-3">
         <span className="text-2xl" aria-hidden="true">
           <GarzoniIcon name="warning" size={28} />
         </span>
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-[color:var(--error,#dc2626)] mb-1">
+          <h3 className="text-base font-semibold text-[color:var(--color-state-error)] mb-1">
             {displayTitle}
           </h3>
           <p className="text-sm text-content-muted mb-3">{displayMessage}</p>

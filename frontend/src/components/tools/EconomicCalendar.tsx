@@ -136,7 +136,7 @@ const EconomicCalendar = () => {
 
   return (
     <section className="space-y-6 min-w-0 w-full">
-      <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-3 py-4 sm:px-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
+      <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card px-3 py-4 sm:px-4 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -158,7 +158,7 @@ const EconomicCalendar = () => {
         </div>
         {/* Theme (dark/light) is set at first load from app theme; script embed cannot update on toggle. */}
         {loadError && (
-          <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-6 text-center text-sm text-[color:var(--error,#dc2626)]">
+          <div className="rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-4 py-6 text-center text-sm text-[color:var(--color-state-error)]">
             <p className="font-semibold">
               {t("tools.calendar.errors.loadFailed")}
             </p>
@@ -169,14 +169,14 @@ const EconomicCalendar = () => {
               href="https://www.tradingview.com/economic-calendar/"
               rel="noopener noreferrer"
               target="_blank"
-              className="mt-3 inline-block rounded-lg border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-90"
+              className="mt-3 inline-block rounded-lg border border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--color-brand-primary)] hover:opacity-90"
             >
               {t("tools.calendar.errors.openNewTab")}
             </a>
           </div>
         )}
         {!loaded && !loadError && (
-          <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-6 text-center text-sm text-content-muted">
+          <div className="rounded-2xl border border-dashed border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-6 text-center text-sm text-content-muted">
             {t("tools.calendar.loading")}
           </div>
         )}
@@ -202,7 +202,7 @@ const EconomicCalendar = () => {
                   rel="noopener noreferrer"
                   target="_blank"
                   aria-label="TradingView economic calendar"
-                  className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
+                  className="font-semibold text-[color:var(--color-brand-primary)] hover:opacity-80"
                 />
               ),
               open: (
@@ -211,7 +211,7 @@ const EconomicCalendar = () => {
                   rel="noopener noreferrer"
                   target="_blank"
                   aria-label="Open economic calendar in new tab"
-                  className="font-semibold text-[color:var(--primary,#1d5330)] underline hover:opacity-80"
+                  className="font-semibold text-[color:var(--color-brand-primary)] underline hover:opacity-80"
                 />
               ),
             }}
@@ -234,7 +234,7 @@ const EconomicCalendar = () => {
           return (
             <div
               key={event.id}
-              className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-4 py-4 shadow-sm"
+              className="rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card px-4 py-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-content-primary">
@@ -242,7 +242,7 @@ const EconomicCalendar = () => {
                 </h4>
                 <div className="flex items-center gap-2">
                   {isRelevant && (
-                    <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+                    <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
                       {t("tools.calendar.relevant")}
                     </span>
                   )}
@@ -283,7 +283,7 @@ const EconomicCalendar = () => {
                     });
                   }
                 }}
-                className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:opacity-80"
+                className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)] hover:opacity-80"
               >
                 {t("tools.calendar.learnMore")}
               </a>

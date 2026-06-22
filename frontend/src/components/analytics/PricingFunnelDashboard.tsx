@@ -171,7 +171,7 @@ const SegmentedControl = <T extends string | number>({
   <div
     role="group"
     aria-label={ariaLabel}
-    className="inline-flex flex-wrap gap-1 rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#fff)]/60 p-1"
+    className="inline-flex flex-wrap gap-1 rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)]/60 p-1"
   >
     {options.map((opt) => {
       const active = opt.value === value;
@@ -183,7 +183,7 @@ const SegmentedControl = <T extends string | number>({
           onClick={() => onChange(opt.value)}
           className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
             active
-              ? "bg-[color:var(--primary,#1d5330)] text-white shadow-sm"
+              ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
               : "text-content-muted hover:text-content-primary"
           }`}
         >
@@ -648,7 +648,7 @@ const PricingFunnelDashboard = () => {
                   {topPlans.map((p) => (
                     <tr
                       key={p.plan}
-                      className="border-t border-[color:var(--border-color,rgba(0,0,0,0.06))]"
+                      className="border-t border-[color:var(--color-border-default)]"
                     >
                       <td className="px-3 py-2 text-sm text-content-primary">
                         {humanize(p.plan)}
@@ -693,7 +693,7 @@ const PricingFunnelDashboard = () => {
                   {platformRows.map(([key, row]) => (
                     <tr
                       key={key}
-                      className="border-t border-[color:var(--border-color,rgba(0,0,0,0.06))]"
+                      className="border-t border-[color:var(--color-border-default)]"
                     >
                       <td className="px-3 py-2 text-sm font-semibold text-content-primary">
                         {PLATFORM_LABELS[key] ?? humanize(key)}

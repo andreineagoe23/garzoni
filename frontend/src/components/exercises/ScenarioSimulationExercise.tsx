@@ -114,7 +114,7 @@ const ScenarioSimulationExercise = ({
 
       <div className="mt-6 space-y-4">
         <div
-          className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-surface-page px-4 py-4 text-sm text-content-muted"
+          className="rounded-2xl border border-dashed border-[color:var(--color-border-default)] bg-surface-page px-4 py-4 text-sm text-content-muted"
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             const choiceId = event.dataTransfer.getData("text/plain");
@@ -153,8 +153,8 @@ const ScenarioSimulationExercise = ({
               feedbackType && isSelected
                 ? feedbackType === "success"
                   ? "border-[color:#2a7347]/45 bg-[color:#2a7347]/12 text-[color:#2a7347]"
-                  : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
-                : "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary";
+                  : "border-[color:var(--color-state-error)]/60 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
+                : "border-[color:var(--color-border-default)] bg-surface-page text-content-primary";
             return (
               <button
                 key={choice.id}
@@ -209,8 +209,8 @@ const ScenarioSimulationExercise = ({
             }
             className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 ${
               selectedId === null || selectedId === undefined || disabled
-                ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted"
-                : "bg-[color:var(--primary,#1d5330)] text-white shadow-lg shadow-[color:#2a7347]/30 hover:shadow-xl hover:shadow-[color:#2a7347]/40"
+                ? "cursor-not-allowed bg-[color:var(--color-border-default)] text-content-muted"
+                : "bg-[color:var(--color-brand-primary)] text-white shadow-lg shadow-[color:#2a7347]/30 hover:shadow-xl hover:shadow-[color:#2a7347]/40"
             }`}
           >
             {t("exercises.scenario.submitChoice")}
@@ -223,7 +223,7 @@ const ScenarioSimulationExercise = ({
           className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
             feedbackType === "success"
               ? "border-[color:#2a7347]/35 bg-[color:#2a7347]/10 text-[color:#2a7347]"
-              : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+              : "border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
           }`}
         >
           {feedback}

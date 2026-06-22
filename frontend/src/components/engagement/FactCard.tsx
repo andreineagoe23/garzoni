@@ -17,7 +17,7 @@ function FactCard({ fact, onMarkRead }: FactCardProps) {
           <button
             type="button"
             onClick={onMarkRead}
-            className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary-bright,#2a7347)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary-bright,#2a7347)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary-bright,#2a7347)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40"
+            className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary-hover)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary-hover)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary-hover)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/40"
           >
             {t("missions.facts.markRead")}
           </button>

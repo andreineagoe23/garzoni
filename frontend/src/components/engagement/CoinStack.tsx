@@ -26,8 +26,8 @@ function CoinStack({ balance, coinUnit = 10, target = 100 }: CoinStackProps) {
               key={amount}
               className={`coin flex h-20 flex-col items-center justify-center rounded-full border text-sm font-semibold shadow-md transition ${
                 unlocked
-                  ? "border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] text-[color:var(--primary-bright,#2a7347)]"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] text-content-muted"
+                  ? "border-[color:var(--color-brand-primary-hover)]/40 bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] text-[color:var(--color-brand-primary-hover)]"
+                  : "border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] text-content-muted"
               }`}
             >
               {"\u00A3"}

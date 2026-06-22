@@ -916,7 +916,7 @@ function PortfolioAnalyzer() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-6 text-center text-sm text-content-muted shadow-inner shadow-black/5">
+      <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-5 py-6 text-center text-sm text-content-muted shadow-inner shadow-black/5">
         {t("tools.portfolio.loading")}
       </div>
     );
@@ -943,8 +943,8 @@ function PortfolioAnalyzer() {
             onClick={() => setMode(m)}
             className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
               mode === m
-                ? "bg-[color:var(--primary,#1d5330)] text-white shadow"
-                : "border border-[color:var(--border-color,#d1d5db)] text-content-muted hover:border-[color:var(--primary,#1d5330)]/40"
+                ? "bg-[color:var(--color-brand-primary)] text-white shadow"
+                : "border border-[color:var(--color-border-default)] text-content-muted hover:border-[color:var(--color-brand-primary)]/40"
             }`}
           >
             {m === "real" ? "Real Portfolio" : "Virtual Portfolio"}
@@ -964,13 +964,13 @@ function PortfolioAnalyzer() {
       )}
 
       {error && (
-        <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
+        <div className="rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/20">
           {error}
         </div>
       )}
 
       {!hasEntries && !loading && mode === "virtual" && (
-        <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
+        <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">🎯</div>
             <span className="inline-block rounded-full bg-[#e6c87a]/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#e6c87a]">
@@ -996,7 +996,7 @@ function PortfolioAnalyzer() {
             </div>
             <Link
               to="/tools/market-explorer"
-              className="mt-2 inline-block rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90"
+              className="mt-2 inline-block rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90"
             >
               Explore the Market →
             </Link>
@@ -1005,7 +1005,7 @@ function PortfolioAnalyzer() {
       )}
 
       {!hasEntries && !loading && mode === "real" && (
-        <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
+        <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-8 sm:px-8 sm:py-12 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] text-center">
           <div className="mx-auto max-w-md space-y-4">
             <div className="text-6xl">📊</div>
             <h4 className="text-xl font-semibold text-content-primary">
@@ -1025,7 +1025,7 @@ function PortfolioAnalyzer() {
                     purchase_price: "185",
                   })
                 }
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--color-brand-primary)]/40 hover:text-[color:var(--color-brand-primary)]"
               >
                 {t("tools.portfolio.loadSampleStock")}
               </button>
@@ -1039,7 +1039,7 @@ function PortfolioAnalyzer() {
                     purchase_price: "34000",
                   })
                 }
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary,#1d5330)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[color:var(--color-brand-primary)]/40 hover:text-[color:var(--color-brand-primary)]"
               >
                 {t("tools.portfolio.loadSampleCrypto")}
               </button>
@@ -1052,7 +1052,7 @@ function PortfolioAnalyzer() {
         <>
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-w-0">
             <div
-              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -1080,7 +1080,7 @@ function PortfolioAnalyzer() {
             </div>
 
             <div
-              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -1094,7 +1094,7 @@ function PortfolioAnalyzer() {
                   className={`text-3xl font-bold ${
                     filteredSummary.total_gain_loss >= 0
                       ? "text-emerald-500"
-                      : "text-[color:var(--error,#dc2626)]"
+                      : "text-[color:var(--color-state-error)]"
                   }`}
                 >
                   {filteredSummary.total_gain_loss >= 0 ? "+" : ""}
@@ -1109,7 +1109,7 @@ function PortfolioAnalyzer() {
                   className={`text-xs ${
                     filteredSummary.total_gain_loss >= 0
                       ? "text-emerald-600"
-                      : "text-[color:var(--error,#dc2626)]"
+                      : "text-[color:var(--color-state-error)]"
                   }`}
                 >
                   {totalGainLossPercentage >= 0 ? "+" : ""}
@@ -1123,7 +1123,7 @@ function PortfolioAnalyzer() {
             </div>
 
             <div
-              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -1148,7 +1148,7 @@ function PortfolioAnalyzer() {
 
           {insight && (
             <div
-              className="rounded-2xl sm:rounded-3xl border-2 border-[color:var(--primary,#1d5330)]/20 bg-surface-card px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              className="rounded-2xl sm:rounded-3xl border-2 border-[color:var(--color-brand-primary)]/20 bg-surface-card px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -1164,7 +1164,7 @@ function PortfolioAnalyzer() {
                       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                       : insight.goalAlignment === "risky"
                         ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-                        : "bg-[color:var(--error,#dc2626)]/15 text-[color:var(--error,#dc2626)]"
+                        : "bg-[color:var(--color-state-error)]/15 text-[color:var(--color-state-error)]"
                   }`}
                 >
                   {insight.goalAlignment === "good_fit"
@@ -1220,7 +1220,7 @@ function PortfolioAnalyzer() {
                   {insight.insightCards.map((card) => (
                     <div
                       key={card.id}
-                      className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-4 py-4 text-sm text-content-primary min-w-0"
+                      className="rounded-2xl border border-[color:var(--color-border-default)] bg-surface-card px-4 py-4 text-sm text-content-primary min-w-0"
                     >
                       <div className="flex items-center justify-between">
                         <h5 className="text-sm font-semibold">{card.title}</h5>
@@ -1269,7 +1269,7 @@ function PortfolioAnalyzer() {
                                 );
                               }
                             }}
-                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)] hover:opacity-80"
+                            className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)] hover:opacity-80"
                           >
                             Lesson →
                           </Link>
@@ -1277,7 +1277,7 @@ function PortfolioAnalyzer() {
                         {card.actionLink && (
                           <Link
                             to={card.actionLink}
-                            className="text-xs font-semibold uppercase tracking-wide text-content-muted hover:text-[color:var(--primary,#1d5330)]"
+                            className="text-xs font-semibold uppercase tracking-wide text-content-muted hover:text-[color:var(--color-brand-primary)]"
                           >
                             Tool action →
                           </Link>
@@ -1295,7 +1295,7 @@ function PortfolioAnalyzer() {
                   type="button"
                   onClick={explainPortfolioInPlainLanguage}
                   disabled={isAiMeaningLoading}
-                  className="inline-flex items-center rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-xs font-semibold text-content-primary transition hover:border-[color:var(--primary,#1d5330)]/50 hover:text-[color:var(--primary,#1d5330)] disabled:opacity-60"
+                  className="inline-flex items-center rounded-full border border-[color:var(--color-border-default)] px-3 py-1.5 text-xs font-semibold text-content-primary transition hover:border-[color:var(--color-brand-primary)]/50 hover:text-[color:var(--color-brand-primary)] disabled:opacity-60"
                 >
                   {isAiMeaningLoading
                     ? "Thinking..."
@@ -1303,18 +1303,18 @@ function PortfolioAnalyzer() {
                 </button>
                 <Link
                   to={insight.nextAction.href}
-                  className="inline-flex items-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40"
+                  className="inline-flex items-center rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40"
                 >
                   {insight.nextAction.label} →
                 </Link>
               </div>
               {aiMeaningError && (
-                <p className="mt-3 text-xs text-[color:var(--error,#dc2626)]">
+                <p className="mt-3 text-xs text-[color:var(--color-state-error)]">
                   {aiMeaningError}
                 </p>
               )}
               {aiMeaning && (
-                <div className="mt-3 rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card px-3 py-3">
+                <div className="mt-3 rounded-xl border border-[color:var(--color-border-default)] bg-surface-card px-3 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                     AI take
                   </p>
@@ -1328,7 +1328,7 @@ function PortfolioAnalyzer() {
 
           {chartData.length > 0 && summary?.allocation && (
             <div
-              className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+              className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
               style={{
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
@@ -1409,7 +1409,7 @@ function PortfolioAnalyzer() {
                             </div>
                             <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                               <div
-                                className="h-full bg-gradient-to-r from-[color:var(--primary,#1d5330)] to-[color:var(--primary,#1d5330)]/80 transition-all duration-500"
+                                className="h-full bg-gradient-to-r from-[color:var(--color-brand-primary)] to-[color:var(--color-brand-primary)]/80 transition-all duration-500"
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
@@ -1445,7 +1445,7 @@ function PortfolioAnalyzer() {
         }`}
       >
         <div
-          className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+          className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
           style={{
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
@@ -1461,7 +1461,7 @@ function PortfolioAnalyzer() {
                 name="asset_type"
                 value={newEntry.asset_type}
                 onChange={handleInputChange}
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+                className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
               >
                 <option value="stock">{t("tools.portfolio.stock")}</option>
                 <option value="crypto">{t("tools.portfolio.crypto")}</option>
@@ -1489,13 +1489,13 @@ function PortfolioAnalyzer() {
                     onBlur={() => setTimeout(() => setSymbolResults([]), 150)}
                     placeholder="Search Apple, BTC, TSLA…"
                     required
-                    className="flex-1 rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+                    className="flex-1 rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
                   />
                   <button
                     type="button"
                     onClick={handleLookupPrice}
                     disabled={lookupLoading || !newEntry.symbol.trim()}
-                    className="shrink-0 rounded-full border border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/20 disabled:opacity-50"
+                    className="shrink-0 rounded-full border border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)]/20 disabled:opacity-50"
                   >
                     {lookupLoading
                       ? t("tools.portfolio.lookupLoading")
@@ -1503,7 +1503,7 @@ function PortfolioAnalyzer() {
                   </button>
                 </div>
                 {(symbolResults.length > 0 || symbolSearchLoading) && (
-                  <div className="absolute z-50 mt-1 w-full rounded-xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] shadow-lg overflow-hidden">
+                  <div className="absolute z-50 mt-1 w-full rounded-xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] shadow-lg overflow-hidden">
                     {symbolSearchLoading && (
                       <p className="px-4 py-3 text-xs text-content-muted">
                         Searching…
@@ -1514,7 +1514,7 @@ function PortfolioAnalyzer() {
                         key={asset.symbol}
                         type="button"
                         onMouseDown={() => void handleSelectAsset(asset)}
-                        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors border-b border-[color:var(--border-color,#d1d5db)] last:border-b-0"
+                        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[color:var(--input-bg,#f9fafb)] transition-colors border-b border-[color:var(--color-border-default)] last:border-b-0"
                       >
                         <div>
                           <span className="text-sm font-bold text-content-primary">
@@ -1532,7 +1532,7 @@ function PortfolioAnalyzer() {
                   </div>
                 )}
                 {lookupError && (
-                  <p className="mt-1 text-xs text-[color:var(--error,#dc2626)]">
+                  <p className="mt-1 text-xs text-[color:var(--color-state-error)]">
                     {lookupError}
                   </p>
                 )}
@@ -1558,7 +1558,7 @@ function PortfolioAnalyzer() {
                 step="any"
                 required
                 min="0"
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+                className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
               />
             </label>
 
@@ -1572,7 +1572,7 @@ function PortfolioAnalyzer() {
                 step="any"
                 required
                 min="0"
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+                className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
               />
             </label>
 
@@ -1584,7 +1584,7 @@ function PortfolioAnalyzer() {
                 value={newEntry.purchase_date}
                 onChange={handleInputChange}
                 required
-                className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+                className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
               />
             </label>
             <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -1592,7 +1592,7 @@ function PortfolioAnalyzer() {
                 type="checkbox"
                 checked={isPaperTrade}
                 onChange={(e) => setIsPaperTrade(e.target.checked)}
-                className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] accent-[color:var(--primary,#1d5330)]"
+                className="h-4 w-4 rounded border-[color:var(--color-border-default)] accent-[color:var(--color-brand-primary)]"
               />
               Paper trade (use virtual cash)
               {isPaperTrade && virtualBalance !== null && (
@@ -1606,7 +1606,7 @@ function PortfolioAnalyzer() {
             </label>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             >
               {isPaperTrade ? "Buy with Virtual Cash" : "Add Entry"}
             </button>
@@ -1614,7 +1614,7 @@ function PortfolioAnalyzer() {
         </div>
 
         <div
-          className="rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
+          className="rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-4 py-5 sm:px-6 sm:py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] min-w-0"
           style={{
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
@@ -1633,7 +1633,7 @@ function PortfolioAnalyzer() {
           </div>
 
           {hasEntries ? (
-            <div className="mt-4 overflow-hidden rounded-2xl border border-[color:var(--border-color,#d1d5db)] min-w-0">
+            <div className="mt-4 overflow-hidden rounded-2xl border border-[color:var(--color-border-default)] min-w-0">
               <div className="max-h-[400px] overflow-auto">
                 <table
                   className="min-w-full border-collapse text-sm"
@@ -1664,7 +1664,7 @@ function PortfolioAnalyzer() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)]">
+                  <tbody className="divide-y divide-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)]">
                     {filteredEntries.map((entry) => (
                       <tr
                         key={entry.id}
@@ -1707,7 +1707,7 @@ function PortfolioAnalyzer() {
                               className={`font-semibold ${
                                 entry.gain_loss >= 0
                                   ? "text-emerald-500"
-                                  : "text-[color:var(--error,#dc2626)]"
+                                  : "text-[color:var(--color-state-error)]"
                               }`}
                             >
                               {entry.gain_loss >= 0 ? "+" : ""}
@@ -1725,7 +1725,7 @@ function PortfolioAnalyzer() {
                               className={`text-xs ${
                                 entry.gain_loss >= 0
                                   ? "text-emerald-600"
-                                  : "text-[color:var(--error,#dc2626)]"
+                                  : "text-[color:var(--color-state-error)]"
                               }`}
                             >
                               {entry.gain_loss_percentage >= 0 ? "+" : ""}
@@ -1753,7 +1753,7 @@ function PortfolioAnalyzer() {
                                 handleDelete(entry.id);
                               }
                             }}
-                            className="rounded-full border border-[color:var(--error,#dc2626)] px-3 py-1 text-xs font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--error,#dc2626)]/40"
+                            className="rounded-full border border-[color:var(--color-state-error)] px-3 py-1 text-xs font-semibold text-[color:var(--color-state-error)] transition hover:bg-[color:var(--color-state-error)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-state-error)]/40"
                           >
                             Delete
                           </button>
@@ -1765,7 +1765,7 @@ function PortfolioAnalyzer() {
               </div>
             </div>
           ) : (
-            <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-8 text-center">
+            <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-6 py-8 text-center">
               <p className="text-sm text-content-muted">
                 No portfolio entries yet. Add your first entry above.
               </p>

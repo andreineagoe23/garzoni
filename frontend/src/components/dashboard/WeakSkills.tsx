@@ -104,7 +104,7 @@ const WeakSkills = ({
               <GarzoniIcon
                 name="target"
                 size={44}
-                className="text-[color:var(--primary,#1d5330)]"
+                className="text-[color:var(--color-brand-primary)]"
               />
             }
             title={t("dashboard.weakSkills.skillInsights")}
@@ -116,7 +116,7 @@ const WeakSkills = ({
     // Strong-only state — surface top 3 strongest skills as a maintenance prompt.
     return (
       <div className="mt-6">
-        <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
+        <div className="rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-4 backdrop-blur-sm">
           <h2 className="mb-1 text-base font-semibold text-content-primary sm:text-lg">
             {t("dashboard.weakSkills.strongest.title")}
           </h2>
@@ -127,7 +127,7 @@ const WeakSkills = ({
             {strongestSkills.slice(0, 3).map((skill) => (
               <div
                 key={skill.skill}
-                className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3"
+                className="rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-3"
               >
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-semibold text-content-primary">
@@ -157,7 +157,7 @@ const WeakSkills = ({
 
   return (
     <div className="mt-6">
-      <div className="rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-4 backdrop-blur-sm">
+      <div className="rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-4 backdrop-blur-sm">
         <h2 className="mb-1 text-base font-semibold text-content-primary sm:text-lg">
           {t("dashboard.weakSkills.areasToImprove")}
         </h2>
@@ -183,7 +183,7 @@ const WeakSkills = ({
             return (
               <div
                 key={skill.skill}
-                className="group flex flex-col gap-2 rounded-xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card p-3 text-left"
+                className="group flex flex-col gap-2 rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-3 text-left"
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-sm font-semibold text-content-primary">
@@ -213,7 +213,7 @@ const WeakSkills = ({
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)]">
                   <div
-                    className={`h-full rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary,var(--primary,#1d5330))] to-[color:var(--color-brand-primary,var(--primary,#1d5330))]/70 ${
+                    className={`h-full rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary,var(--color-brand-primary))] to-[color:var(--color-brand-primary,var(--color-brand-primary))]/70 ${
                       prefersReducedMotion ? "" : "transition-all duration-300"
                     }`}
                     style={{ width: `${skill.proficiency}%` }}
@@ -250,10 +250,10 @@ const WeakSkills = ({
                   <button
                     type="button"
                     onClick={() => onPrimaryAction?.(skill)}
-                    className={`flex-1 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 ${
+                    className={`flex-1 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 ${
                       isDue
-                        ? "border-[color:var(--primary,#1d5330)] bg-[color:var(--primary,#1d5330)] text-white hover:shadow-md"
-                        : "border-[color:var(--primary,#1d5330)]/40 bg-transparent text-[color:var(--primary-bright,#2a7347)] hover:bg-[color:var(--primary,#1d5330)]/5"
+                        ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)] text-white hover:shadow-md"
+                        : "border-[color:var(--color-brand-primary)]/40 bg-transparent text-[color:var(--color-brand-primary-hover)] hover:bg-[color:var(--color-brand-primary)]/5"
                     }`}
                     aria-label={t("dashboard.weakSkills.practiceSkillAria", {
                       skill: skill.skill,
@@ -265,7 +265,7 @@ const WeakSkills = ({
                     <button
                       type="button"
                       onClick={() => onAskTutor?.(skill)}
-                      className="rounded-full border border-[color:var(--border-color,#d1d5db)] px-3 py-1.5 text-[11px] text-content-muted transition hover:border-[color:var(--primary,#1d5330)]/40 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                      className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1.5 text-[11px] text-content-muted transition hover:border-[color:var(--color-brand-primary)]/40 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
                     >
                       {t("dashboard.weakSkills.action.askTutor")}
                     </button>

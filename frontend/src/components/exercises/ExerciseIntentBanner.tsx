@@ -60,7 +60,7 @@ export default function ExerciseIntentBanner({
     <div
       role="region"
       aria-label={t("exercises.skillIntent.regionLabel")}
-      className="mb-4 rounded-2xl border border-[color:var(--primary,#1d5330)]/45 bg-[color:var(--primary,#1d5330)]/12 px-4 py-3 text-sm text-content-primary shadow-sm shadow-[color:var(--primary,#1d5330)]/10"
+      className="mb-4 rounded-2xl border border-[color:var(--color-brand-primary)]/45 bg-[color:var(--color-brand-primary)]/12 px-4 py-3 text-sm text-content-primary shadow-sm shadow-[color:var(--color-brand-primary)]/10"
     >
       <div className="flex flex-col gap-2 sm:gap-3">
         <div className="min-w-0 space-y-1">
@@ -80,7 +80,7 @@ export default function ExerciseIntentBanner({
           <button
             type="button"
             onClick={onChangeCategory}
-            className="order-3 w-full rounded-full border border-[color:var(--primary,#1d5330)]/55 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/35 sm:order-1 sm:w-auto"
+            className="order-3 w-full rounded-full border border-[color:var(--color-brand-primary)]/55 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/35 sm:order-1 sm:w-auto"
           >
             {t("exercises.skillIntent.changeCategory")}
           </button>
@@ -88,7 +88,7 @@ export default function ExerciseIntentBanner({
             <button
               type="button"
               onClick={onClearFilter}
-              className="order-1 w-full rounded-full border border-[color:var(--primary,#1d5330)]/55 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/35 sm:order-2 sm:w-auto"
+              className="order-1 w-full rounded-full border border-[color:var(--color-brand-primary)]/55 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/35 sm:order-2 sm:w-auto"
             >
               {t("exercises.skillIntent.clearFilter")}
             </button>
@@ -96,7 +96,7 @@ export default function ExerciseIntentBanner({
           <button
             type="button"
             onClick={onDismissRecommendation}
-            className="order-2 w-full rounded-full border border-[color:var(--border-color,#6b7280)]/50 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-content-muted transition hover:border-[color:var(--primary,#1d5330)]/45 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/25 sm:order-3 sm:w-auto"
+            className="order-2 w-full rounded-full border border-[color:var(--color-border-default)]/50 bg-surface-card px-3 py-1.5 text-center text-xs font-semibold text-content-muted transition hover:border-[color:var(--color-brand-primary)]/45 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/25 sm:order-3 sm:w-auto"
           >
             {t("exercises.skillIntent.dismissRecommendation")}
           </button>

@@ -41,7 +41,7 @@ const QuestionnaireReminderBanner: React.FC<
     return (
       <GlassCard padding="md" className="app-card mb-6">
         <div className="flex items-center gap-3 text-sm text-content-muted">
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--color-brand-primary)] border-t-transparent" />
           {t("onboarding.reminderBanner.loading")}
         </div>
       </GlassCard>

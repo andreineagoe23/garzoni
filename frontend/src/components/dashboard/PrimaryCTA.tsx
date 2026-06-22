@@ -18,10 +18,10 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
     <div
       className={`mt-6 rounded-xl border p-4 transition-all ${
         primaryCTA.priority === "high"
-          ? "border-[color:var(--error,#dc2626)]/40 bg-gradient-to-r from-[color:var(--error,#dc2626)]/10 to-[color:var(--error,#dc2626)]/5"
+          ? "border-[color:var(--color-state-error)]/40 bg-gradient-to-r from-[color:var(--color-state-error)]/10 to-[color:var(--color-state-error)]/5"
           : primaryCTA.priority === "medium"
-            ? "border-[color:var(--primary,#1d5330)]/40 bg-gradient-to-r from-[color:var(--primary,#1d5330)]/10 to-[color:var(--primary,#1d5330)]/5"
-            : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card"
+            ? "border-[color:var(--color-brand-primary)]/40 bg-gradient-to-r from-[color:var(--color-brand-primary)]/10 to-[color:var(--color-brand-primary)]/5"
+            : "border-[color:var(--color-border-default)] bg-surface-card"
       }`}
     >
       <div className="flex items-center justify-between">
@@ -30,7 +30,7 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
             <GarzoniIcon
               name={primaryCTA.iconName}
               size={24}
-              className="text-[color:var(--primary,#1d5330)]"
+              className="text-[color:var(--color-brand-primary)]"
             />
           )}
           <div>
@@ -45,7 +45,7 @@ const PrimaryCTA = ({ primaryCTA }: { primaryCTA?: PrimaryCtaData | null }) => {
         <button
           type="button"
           onClick={primaryCTA.action}
-          className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
+          className="rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:px-4 sm:py-2 sm:text-sm"
           aria-label={primaryCTA.text}
         >
           {t("dashboard.primaryCta.getStarted")}

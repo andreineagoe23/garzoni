@@ -76,7 +76,7 @@ function CoursePage() {
           <Skeleton className="h-4 w-48" />
         </div>
       ) : error ? (
-        <div className="app-card p-4 border-[color:var(--error,#dc2626)]/40 text-sm text-[color:var(--error,#dc2626)]">
+        <div className="app-card p-4 border-[color:var(--color-state-error)]/40 text-sm text-[color:var(--color-state-error)]">
           <div className="flex flex-col gap-3">
             <div>{errorMessage}</div>
             {accessDenied && (

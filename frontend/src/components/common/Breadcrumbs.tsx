@@ -31,7 +31,7 @@ const Breadcrumbs = ({
         return (
           <React.Fragment key={item.label + index}>
             {index > 0 && (
-              <span className="text-[color:var(--border-color,#d1d5db)]">
+              <span className="text-[color:var(--color-border-default)]">
                 /
               </span>
             )}

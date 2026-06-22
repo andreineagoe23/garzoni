@@ -51,8 +51,8 @@ function Header() {
         className={[
           "mx-auto flex h-[56px] w-full max-w-6xl items-center justify-between px-3 sm:h-[72px] sm:px-6",
           // Make it feel like glass immediately (especially on the Welcome page).
-          "bg-[color:var(--card-bg,#ffffff)]/55",
-          "border border-[color:var(--border-color,rgba(255,255,255,0.12))]",
+          "bg-[color:var(--color-surface-card)]/55",
+          "border border-[color:var(--color-border-default)]",
         ].join(" ")}
         style={{
           backdropFilter: "blur(14px)",
@@ -87,7 +87,7 @@ function Header() {
             type="button"
             onClick={handleDarkModeToggle}
             aria-label={t("header.toggleDarkMode")}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/35 text-content-muted shadow-sm transition hover:border-[color:var(--border-color,rgba(0,0,0,0.2))] hover:text-content-primary hover:bg-[color:var(--primary,#1d5330)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 sm:h-10 sm:w-10"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)]/35 text-content-muted shadow-sm transition hover:border-[color:var(--color-border-default)] hover:text-content-primary hover:bg-[color:var(--color-brand-primary)]/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 sm:h-10 sm:w-10"
           >
             {darkMode ? <SunFill size={18} /> : <MoonStarsFill size={18} />}
           </button>

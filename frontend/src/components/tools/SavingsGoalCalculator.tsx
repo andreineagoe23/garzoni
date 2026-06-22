@@ -113,13 +113,13 @@ const SavingsGoalCalculator = () => {
       </header>
 
       <div
-        className="rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
+        className="rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card backdrop-blur-lg px-6 py-6 shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))]"
         style={{
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-left">
           <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("tools.savingsCalc.demoPresets")}
           </p>
@@ -129,7 +129,7 @@ const SavingsGoalCalculator = () => {
                 key={preset.label}
                 type="button"
                 onClick={() => setFormData(preset.values)}
-                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[#2a7347]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
+                className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-primary transition hover:border-[#2a7347]/40 hover:text-[color:var(--color-brand-primary-hover)]"
               >
                 {preset.label}
               </button>
@@ -157,7 +157,7 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -172,7 +172,7 @@ const SavingsGoalCalculator = () => {
               required
               min="0"
               step="100"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -187,7 +187,7 @@ const SavingsGoalCalculator = () => {
               required
               min="1"
               max="50"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -203,7 +203,7 @@ const SavingsGoalCalculator = () => {
               min="0"
               max="30"
               step="0.1"
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             />
           </label>
 
@@ -213,7 +213,7 @@ const SavingsGoalCalculator = () => {
               name="compound_frequency"
               value={formData.compound_frequency}
               onChange={handleChange}
-              className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary shadow-inner focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             >
               <option value="1">{t("tools.savingsCalc.annually")}</option>
               <option value="4">{t("tools.savingsCalc.quarterly")}</option>
@@ -225,7 +225,7 @@ const SavingsGoalCalculator = () => {
           <div className="md:col-span-2">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
             >
               {t("tools.savingsCalc.calculate")}
             </button>
@@ -233,7 +233,7 @@ const SavingsGoalCalculator = () => {
         </form>
 
         {result && (
-          <div className="app-callout text-[color:var(--primary-bright,#2a7347)]">
+          <div className="app-callout text-[color:var(--color-brand-primary-hover)]">
             <p>
               {t("tools.savingsCalc.finalSavings")}:{" "}
               <span className="font-semibold">
@@ -250,7 +250,7 @@ const SavingsGoalCalculator = () => {
         )}
 
         {error && (
-          <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
+          <div className="rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/20">
             {error}
           </div>
         )}

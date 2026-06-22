@@ -443,7 +443,7 @@ const PersonalCFOHub = () => {
         <button
           type="button"
           onClick={() => persistViewPref("auto")}
-          className="inline-flex items-center gap-2 rounded-full bg-[color:var(--primary)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white"
+          className="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white"
         >
           {t("tools.personalCfo.openDashboard")}
           <span aria-hidden="true">→</span>
@@ -464,9 +464,9 @@ const PersonalCFOHub = () => {
               {t("tools.personalCfo.subtitle")}
             </p>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[color:var(--primary)]/30">
-              <span className="text-sm font-bold text-[color:var(--primary)]">
+          <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[color:var(--color-brand-primary)]/30">
+              <span className="text-sm font-bold text-[color:var(--color-brand-primary)]">
                 {completionPercent}%
               </span>
             </div>
@@ -486,9 +486,9 @@ const PersonalCFOHub = () => {
           </div>
         </div>
 
-        <div className="mt-5 h-1.5 w-full rounded-full bg-[color:var(--border-color)] overflow-hidden">
+        <div className="mt-5 h-1.5 w-full rounded-full bg-[color:var(--color-border-default)] overflow-hidden">
           <div
-            className="h-full bg-[color:var(--primary)] transition-all duration-500"
+            className="h-full bg-[color:var(--color-brand-primary)] transition-all duration-500"
             style={{ width: `${completionPercent}%` }}
           />
         </div>
@@ -516,7 +516,7 @@ const PersonalCFOHub = () => {
             <ul className="mt-3 space-y-1.5 text-sm text-content-primary">
               {summary.highlights.map((line, idx) => (
                 <li key={idx} className="flex gap-2">
-                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]" />
+                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-brand-primary)]" />
                   <span>{line}</span>
                 </li>
               ))}
@@ -538,7 +538,7 @@ const PersonalCFOHub = () => {
           {summary.next_action && (
             <Link
               to={summary.next_action.href ?? "/tools/next-steps"}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-[color:var(--primary)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white"
             >
               {summary.next_action.label}
               <span aria-hidden="true">→</span>
@@ -562,10 +562,10 @@ const PersonalCFOHub = () => {
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--primary)]/10 text-[10px] font-bold text-[color:var(--primary)]">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--color-brand-primary)]/10 text-[10px] font-bold text-[color:var(--color-brand-primary)]">
                     {index + 1}
                   </span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--border-color)] text-[color:var(--primary)]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)]">
                     <span className="h-4 w-4">{ICONS[step.iconKey]}</span>
                   </span>
                 </div>
@@ -576,7 +576,7 @@ const PersonalCFOHub = () => {
                     </span>
                   )}
                   {isCompleted && (
-                    <span className="rounded-full bg-[color:var(--primary)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--primary)]">
+                    <span className="rounded-full bg-[color:var(--color-brand-primary)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
                       {t("tools.personalCfo.badges.done")}
                     </span>
                   )}
@@ -600,7 +600,7 @@ const PersonalCFOHub = () => {
                 <Link
                   to={`/tools/${step.toolRoute}`}
                   onClick={() => handleStepClick(step)}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[color:var(--primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--primary-bright,#2a7347)]"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--color-brand-primary-hover)]"
                 >
                   {isPreview
                     ? t("tools.personalCfo.cta.preview")
@@ -612,7 +612,7 @@ const PersonalCFOHub = () => {
                 <button
                   type="button"
                   onClick={() => handleMarkComplete(step.id)}
-                  className="rounded-full border border-[color:var(--border-color)] px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-content-muted transition hover:text-content-primary"
+                  className="rounded-full border border-[color:var(--color-border-default)] px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-content-muted transition hover:text-content-primary"
                   aria-label={
                     isCompleted
                       ? t("tools.personalCfo.markIncomplete")

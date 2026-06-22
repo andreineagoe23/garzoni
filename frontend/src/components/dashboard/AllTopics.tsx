@@ -139,13 +139,13 @@ const AllTopics = ({
       const el = document.getElementById(anchor);
       if (el) {
         el.scrollIntoView({ behavior: "smooth" });
-        el.classList.add("ring-2", "ring-[color:var(--primary,#1d5330)]");
+        el.classList.add("ring-2", "ring-[color:var(--color-brand-primary)]");
         setActivePathId(anchor);
         setTimeout(
           () =>
             el.classList.remove(
               "ring-2",
-              "ring-[color:var(--primary,#1d5330)]"
+              "ring-[color:var(--color-brand-primary)]"
             ),
           2000
         );
@@ -221,9 +221,9 @@ const AllTopics = ({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-8 text-content-muted shadow-inner shadow-black/5">
+      <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-6 py-8 text-content-muted shadow-inner shadow-black/5">
         <div className="flex items-center gap-3">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--primary,#1d5330)] border-t-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--color-brand-primary)] border-t-transparent" />
           {t("allTopics.loading")}
         </div>
       </div>
@@ -232,7 +232,7 @@ const AllTopics = ({
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-6 py-8 text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/10">
+      <div className="rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-6 py-8 text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/10">
         {error}
       </div>
     );
@@ -260,7 +260,7 @@ const AllTopics = ({
               setSortBy(newSort);
               trackEvent("sort_change", { sort_by: newSort });
             }}
-            className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            className="rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
             aria-label={t("allTopics.sortByAria")}
           >
             <option value="default">{t("allTopics.sort.default")}</option>
@@ -295,7 +295,7 @@ const AllTopics = ({
               setFilterBy(newFilter);
               trackEvent("filter_change", { filter_by: newFilter });
             }}
-            className="rounded-lg border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+            className="rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-3 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
             aria-label={t("allTopics.filterAria")}
           >
             <option value="all">{t("allTopics.filter.all")}</option>
@@ -321,12 +321,12 @@ const AllTopics = ({
             className="app-card group"
             padding="lg"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
             <div className="relative">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
                   {path.image && (
-                    <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--input-bg,#f3f4f6)] shadow-md sm:block">
+                    <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f3f4f6)] shadow-md sm:block">
                       <img
                         src={path.image}
                         alt={pathDisplayTitle(path.title)}

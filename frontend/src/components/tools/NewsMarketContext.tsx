@@ -71,7 +71,7 @@ function TradingViewNewsWidget() {
     <section className="space-y-3 min-w-0 w-full">
       {/* Theme (dark/light) is set at first load from app theme; script embed cannot update on toggle. */}
       <div
-        className="tradingview-widget-container rounded-2xl sm:rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-surface-card shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
+        className="tradingview-widget-container rounded-2xl sm:rounded-3xl border border-[color:var(--color-border-default)] bg-surface-card shadow-xl shadow-[color:var(--shadow-color,rgba(0,0,0,0.1))] overflow-hidden w-full max-w-full"
         ref={container}
         style={{
           height: WIDGET_HEIGHT,
@@ -89,7 +89,7 @@ function TradingViewNewsWidget() {
             href="https://www.tradingview.com/"
             rel="noopener noreferrer nofollow"
             target="_blank"
-            className="font-semibold text-[color:var(--primary,#1d5330)] hover:opacity-80"
+            className="font-semibold text-[color:var(--color-brand-primary)] hover:opacity-80"
           >
             Top stories by TradingView
           </a>

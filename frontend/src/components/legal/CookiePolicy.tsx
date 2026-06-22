@@ -83,7 +83,7 @@ const CookiePolicy = () => {
           <button
             type="button"
             onClick={openCookieSettings}
-            className="font-medium text-[color:var(--primary,#1d5330)] underline hover:no-underline"
+            className="font-medium text-[color:var(--color-brand-primary)] underline hover:no-underline"
           >
             {t("cookieConsent.cookieSettings")}
           </button>{" "}

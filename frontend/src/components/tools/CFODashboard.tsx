@@ -217,7 +217,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
         <button
           type="button"
           onClick={() => void load()}
-          className="mt-3 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-content-primary"
+          className="mt-3 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-default)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-content-primary"
         >
           {t("tools.cfoDashboard.retry")}
         </button>
@@ -253,7 +253,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
             <button
               type="button"
               onClick={onReviewSteps}
-              className="rounded-full border border-[color:var(--border-color)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-content-primary"
+              className="rounded-full border border-[color:var(--color-border-default)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-content-primary"
             >
               {t("tools.cfoDashboard.reviewSteps")}
             </button>
@@ -265,7 +265,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
                   metadata: { surface: "web", trigger: "header" },
                 }).catch(() => undefined);
               }}
-              className="rounded-full bg-[color:var(--primary)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white"
+              className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white"
             >
               {t("tools.cfoDashboard.askCfo")}
             </button>
@@ -343,7 +343,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
                 metadata: { surface: "web", trigger: "ai_card" },
               }).catch(() => undefined);
             }}
-            className="rounded-full border border-[color:var(--primary)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--primary)]"
+            className="rounded-full border border-[color:var(--color-brand-primary)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]"
           >
             {t("tools.cfoDashboard.ai.chat")}
           </button>
@@ -441,13 +441,13 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
                     {data.portfolio.top_holdings.map((h) => (
                       <tr
                         key={`${h.symbol}-${h.purchase_date ?? ""}`}
-                        className="border-t border-[color:var(--border-color)]"
+                        className="border-t border-[color:var(--color-border-default)]"
                       >
                         <td className="py-2">
                           <span className="font-semibold text-content-primary">
                             {h.symbol.toUpperCase()}
                           </span>
-                          <span className="ml-2 rounded-full bg-[color:var(--primary)]/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-[color:var(--primary)]">
+                          <span className="ml-2 rounded-full bg-[color:var(--color-brand-primary)]/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-[color:var(--color-brand-primary)]">
                             {h.asset_type}
                           </span>
                         </td>
@@ -630,7 +630,7 @@ function KpiCard({
     muted: "text-content-muted",
   } as const;
   return (
-    <div className="rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-4">
+    <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-4">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-content-muted">
         {label}
       </p>
@@ -661,7 +661,7 @@ function GoalCard({
         ? "bg-emerald-100 text-emerald-700"
         : "bg-amber-100 text-amber-700";
   return (
-    <div className="rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-4 py-3">
+    <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-3">
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-semibold text-content-primary line-clamp-2">
           {goal.name}
@@ -676,9 +676,9 @@ function GoalCard({
           </span>
         )}
       </div>
-      <div className="mt-2 h-1.5 w-full rounded-full bg-[color:var(--border-color)] overflow-hidden">
+      <div className="mt-2 h-1.5 w-full rounded-full bg-[color:var(--color-border-default)] overflow-hidden">
         <div
-          className="h-full bg-[color:var(--primary)] transition-all"
+          className="h-full bg-[color:var(--color-brand-primary)] transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -708,7 +708,7 @@ function ScenarioCard({
 }) {
   const ten = scenario.horizons.find((h) => h.years === 10);
   return (
-    <div className="rounded-2xl border border-[color:var(--border-color)] px-4 py-3">
+    <div className="rounded-2xl border border-[color:var(--color-border-default)] px-4 py-3">
       <p
         className="text-[11px] font-semibold uppercase tracking-wide"
         style={{ color: SCENARIO_COLORS[scenario.name] }}

@@ -71,33 +71,33 @@ const StatusSummary = ({
         <div
           className={`app-stat-tile transition ${
             reviewsDue > 0
-              ? "!border-[color:var(--error,#dc2626)]/40 !bg-[color:var(--error,#dc2626)]/10 !shadow-lg !shadow-[color:var(--error,#dc2626)]/20"
+              ? "!border-[color:var(--color-state-error)]/40 !bg-[color:var(--color-state-error)]/10 !shadow-lg !shadow-[color:var(--color-state-error)]/20"
               : ""
           }`}
         >
           <div className="flex items-center justify-between gap-2">
             <div
-              className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-content-muted"}`}
+              className={`flex items-center gap-2 text-sm font-medium ${reviewsDue > 0 ? "text-[color:var(--color-state-error)]" : "text-content-muted"}`}
             >
               <GarzoniIcon
                 name="sync"
                 size={16}
                 className={
                   reviewsDue > 0
-                    ? "text-[color:var(--error,#dc2626)]"
+                    ? "text-[color:var(--color-state-error)]"
                     : "text-content-muted"
                 }
               />
               <span>{t("dashboard.statusSummary.reviewsDue")}</span>
             </div>
             {reviewsDue > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-[color:var(--error,#dc2626)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--error,#dc2626)] animate-pulse">
+              <span className="inline-flex items-center rounded-full bg-[color:var(--color-state-error)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--color-state-error)] animate-pulse">
                 {t("dashboard.statusSummary.urgent")}
               </span>
             ) : null}
           </div>
           <p
-            className={`mt-2 text-2xl font-bold ${reviewsDue > 0 ? "text-[color:var(--error,#dc2626)]" : "text-content-primary"}`}
+            className={`mt-2 text-2xl font-bold ${reviewsDue > 0 ? "text-[color:var(--color-state-error)]" : "text-content-primary"}`}
           >
             {formatNumber(reviewsDue, locale)}
           </p>
@@ -112,7 +112,7 @@ const StatusSummary = ({
             <button
               type="button"
               onClick={onOpenReviews}
-              className="mt-3 inline-flex items-center rounded-full border border-[color:var(--error,#dc2626)]/40 bg-white/70 px-3 py-1 text-xs font-semibold text-[color:var(--error,#dc2626)] transition hover:bg-[color:var(--error,#dc2626)] hover:text-white"
+              className="mt-3 inline-flex items-center rounded-full border border-[color:var(--color-state-error)]/40 bg-white/70 px-3 py-1 text-xs font-semibold text-[color:var(--color-state-error)] transition hover:bg-[color:var(--color-state-error)] hover:text-white"
             >
               {t("dashboard.statusSummary.startReviews")}
             </button>
@@ -149,7 +149,7 @@ const StatusSummary = ({
           <GarzoniIcon
             name="fire"
             size={16}
-            className="text-[color:var(--primary-bright,#2a7347)]"
+            className="text-[color:var(--color-brand-primary-hover)]"
           />
           <span className="app-eyebrow">
             {t("dashboard.statusSummary.streak")}

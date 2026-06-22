@@ -202,7 +202,7 @@ function QuizPage() {
       <PageContainer maxWidth="4xl">
         <GlassCard
           padding="md"
-          className="border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-sm text-[color:var(--error,#dc2626)] shadow-[color:var(--error,#dc2626)]/10"
+          className="border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)] shadow-[color:var(--color-state-error)]/10"
         >
           {error}
         </GlassCard>
@@ -213,7 +213,7 @@ function QuizPage() {
   if (totalQuizzes === 0) {
     return (
       <PageContainer maxWidth="4xl">
-        <div className="rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-6 py-4 text-sm text-content-muted shadow-inner shadow-black/5">
+        <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-6 py-4 text-sm text-content-muted shadow-inner shadow-black/5">
           {t("courses.quiz.noQuizData")}
         </div>
       </PageContainer>
@@ -287,7 +287,7 @@ function QuizPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-color,#d1d5db)] text-xl font-light leading-none text-content-muted transition hover:border-[color:#2a7347]/50 hover:bg-[color:#2a7347]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border-default)] text-xl font-light leading-none text-content-muted transition hover:border-[color:#2a7347]/50 hover:bg-[color:#2a7347]/10 hover:text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
           aria-label={t("courses.quiz.exitQuizAria")}
         >
           ×
@@ -321,7 +321,7 @@ function QuizPage() {
               className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-[color:#2a7347]/40 ${
                 selectedAnswer === choice.text
                   ? "border-[color:#2a7347] bg-[color:#2a7347]/10 text-[color:#2a7347]"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] text-content-primary"
+                  : "border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] text-content-primary"
               }`}
             >
               <input
@@ -331,7 +331,7 @@ function QuizPage() {
                 value={choice.text}
                 checked={selectedAnswer === choice.text}
                 onChange={(event) => setSelectedAnswer(event.target.value)}
-                className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[color:#2a7347]"
+                className="h-4 w-4 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:#2a7347]"
               />
               {choice.text}
             </label>
@@ -342,7 +342,7 @@ function QuizPage() {
           <button
             type="button"
             onClick={() => void handleSubmit()}
-            className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
+            className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[color:#2a7347]/30 transition hover:shadow-xl hover:shadow-[color:#2a7347]/40 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40"
           >
             {t("courses.quiz.submitAnswer")}
           </button>
@@ -374,7 +374,7 @@ function QuizPage() {
                 ? "border-[color:#2a7347]/45 bg-[color:#2a7347]/12 text-[color:#2a7347]"
                 : feedbackCorrect === false
                   ? "border-amber-400/60 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                  : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                  : "border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
             }`}
           >
             <MascotWithMessage

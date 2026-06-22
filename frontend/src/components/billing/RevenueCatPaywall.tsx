@@ -315,13 +315,13 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                 className={[
                   "relative flex flex-col gap-4 rounded-2xl border p-5 text-left shadow-sm transition",
                   plan.isBestValue
-                    ? "border-[color:var(--primary,#1d5330)] shadow-lg shadow-[color:var(--primary,#1d5330)]/20 bg-surface-card"
-                    : "border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-surface-card",
+                    ? "border-[color:var(--color-brand-primary)] shadow-lg shadow-[color:var(--color-brand-primary)]/20 bg-surface-card"
+                    : "border-[color:var(--color-border-default)] bg-surface-card",
                 ].join(" ")}
               >
                 {/* Best value badge */}
                 {plan.isBestValue && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-0.5 text-xs font-bold text-white shadow">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[color:var(--color-brand-primary)] px-3 py-0.5 text-xs font-bold text-white shadow">
                     Best value
                   </span>
                 )}
@@ -373,13 +373,13 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
 
       {/* Error message */}
       {error && (
-        <p className="rounded-xl bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]">
+        <p className="rounded-xl bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)]">
           {error}
         </p>
       )}
 
       {/* Restore + dismiss */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--border-color,#e5e7eb)] pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-border-default)] pt-4">
         <GlassButton
           variant="ghost"
           size="sm"

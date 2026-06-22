@@ -184,7 +184,7 @@ const BudgetPlanner = () => {
             <button
               type="button"
               onClick={handleStartLink}
-              className="rounded-full bg-[color:var(--primary)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--primary-bright,#2a7347)]"
+              className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--color-brand-primary-hover)]"
             >
               {accounts.length > 0
                 ? t("tools.budgetPlanner.relinkAccount")
@@ -193,14 +193,14 @@ const BudgetPlanner = () => {
           )}
         </div>
         {providerStatus && !providerStatus.enabled && (
-          <p className="mt-3 rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--card-bg)] px-3 py-2 text-xs text-content-muted">
+          <p className="mt-3 rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-3 py-2 text-xs text-content-muted">
             {t("tools.budgetPlanner.providerUnavailable")}
           </p>
         )}
       </header>
 
       {error && (
-        <div className="app-card border-[color:var(--error,#dc2626)]/30 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]">
+        <div className="app-card border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)]">
           {error}
         </div>
       )}
@@ -239,8 +239,8 @@ const BudgetPlanner = () => {
           <p
             className={`mt-1 text-2xl font-semibold ${
               (summary?.net_cash_flow ?? 0) >= 0
-                ? "text-[color:var(--primary)]"
-                : "text-[color:var(--error,#dc2626)]"
+                ? "text-[color:var(--color-brand-primary)]"
+                : "text-[color:var(--color-state-error)]"
             }`}
           >
             {loading
@@ -271,7 +271,7 @@ const BudgetPlanner = () => {
         </div>
         <ul className="mt-3 space-y-2">
           {envelopes.length === 0 && !loading && (
-            <li className="rounded-2xl border border-dashed border-[color:var(--border-color)] px-4 py-4 text-center text-xs text-content-muted">
+            <li className="rounded-2xl border border-dashed border-[color:var(--color-border-default)] px-4 py-4 text-center text-xs text-content-muted">
               {t("tools.budgetPlanner.envelopes.empty")}
             </li>
           )}
@@ -285,7 +285,7 @@ const BudgetPlanner = () => {
             return (
               <li
                 key={env.id}
-                className="rounded-2xl border border-[color:var(--border-color)] px-3 py-3"
+                className="rounded-2xl border border-[color:var(--color-border-default)] px-3 py-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-content-primary">
@@ -294,7 +294,7 @@ const BudgetPlanner = () => {
                   <span
                     className={`text-xs ${
                       over
-                        ? "text-[color:var(--error,#dc2626)]"
+                        ? "text-[color:var(--color-state-error)]"
                         : "text-content-muted"
                     }`}
                   >
@@ -314,12 +314,12 @@ const BudgetPlanner = () => {
                     })}
                   </span>
                 </div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--border-color)]">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-border-default)]">
                   <div
                     className={`h-full transition-all ${
                       over
-                        ? "bg-[color:var(--error,#dc2626)]"
-                        : "bg-[color:var(--primary)]"
+                        ? "bg-[color:var(--color-state-error)]"
+                        : "bg-[color:var(--color-brand-primary)]"
                     }`}
                     style={{ width: `${Math.min(percent, 100)}%` }}
                   />
@@ -338,7 +338,7 @@ const BudgetPlanner = () => {
             onChange={(e) =>
               setNewEnvelope((p) => ({ ...p, category: e.target.value }))
             }
-            className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--input-bg)] px-3 py-2 text-sm text-content-primary"
+            className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg)] px-3 py-2 text-sm text-content-primary"
           >
             {CATEGORY_PRESETS.map((cat) => (
               <option key={cat} value={cat}>
@@ -353,7 +353,7 @@ const BudgetPlanner = () => {
             onChange={(e) =>
               setNewEnvelope((p) => ({ ...p, label: e.target.value }))
             }
-            className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--input-bg)] px-3 py-2 text-sm text-content-primary"
+            className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg)] px-3 py-2 text-sm text-content-primary"
           />
           <input
             type="number"
@@ -364,12 +364,12 @@ const BudgetPlanner = () => {
             }
             min="0"
             step="10"
-            className="rounded-full border border-[color:var(--border-color)] bg-[color:var(--input-bg)] px-3 py-2 text-sm text-content-primary"
+            className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg)] px-3 py-2 text-sm text-content-primary"
           />
           <button
             type="submit"
             disabled={creating}
-            className="rounded-full bg-[color:var(--primary)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[color:var(--primary-bright,#2a7347)] disabled:opacity-60"
+            className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[color:var(--color-brand-primary-hover)] disabled:opacity-60"
           >
             {creating
               ? t("tools.budgetPlanner.envelopes.adding")
@@ -389,8 +389,8 @@ const BudgetPlanner = () => {
                 key={row.category}
                 className={`flex items-center justify-between rounded-2xl border px-3 py-2 text-sm ${
                   row.over_budget
-                    ? "border-[color:var(--error,#dc2626)]/40 text-[color:var(--error,#dc2626)]"
-                    : "border-[color:var(--border-color)] text-content-primary"
+                    ? "border-[color:var(--color-state-error)]/40 text-[color:var(--color-state-error)]"
+                    : "border-[color:var(--color-border-default)] text-content-primary"
                 }`}
               >
                 <span>{row.label}</span>

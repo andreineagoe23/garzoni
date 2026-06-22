@@ -88,7 +88,7 @@ const MissionCard = ({
       role="article"
       aria-labelledby={`mission-title-${mission.id}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
       <div className="relative">
         <header className="space-y-3 border-b border-border pb-4">
           <div className="flex items-center justify-between gap-4">
@@ -98,7 +98,7 @@ const MissionCard = ({
             >
               {mission.name}
             </h3>
-            <span className="rounded-full bg-[color:var(--primary,#1d5330)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+            <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
               {isDaily ? t("missions.badge.daily") : t("missions.badge.weekly")}
             </span>
           </div>
@@ -135,7 +135,7 @@ const MissionCard = ({
                   <GarzoniIcon
                     name="sparkles"
                     size={14}
-                    className="text-[color:var(--primary,#1d5330)]"
+                    className="text-[color:var(--color-brand-primary)]"
                   />
                   {t("missions.progress.completed")}
                 </span>
@@ -156,7 +156,7 @@ const MissionCard = ({
         </header>
 
         {isCompleted ? (
-          <div className="mt-4 space-y-3 rounded-2xl border border-[color:var(--primary-bright,#2a7347)]/40 bg-[color:var(--primary-bright,#2a7347)]/10 px-4 py-3 text-xs text-[color:var(--primary-bright,#2a7347)] shadow-inner shadow-[color:var(--primary-bright,#2a7347)]/15">
+          <div className="mt-4 space-y-3 rounded-2xl border border-[color:var(--color-brand-primary-hover)]/40 bg-[color:var(--color-brand-primary-hover)]/10 px-4 py-3 text-xs text-[color:var(--color-brand-primary-hover)] shadow-inner shadow-[color:var(--color-brand-primary-hover)]/15">
             <div className="flex items-center justify-between font-semibold">
               <span>{t("missions.complete.title")}</span>
               <span>+{mission.points_reward} XP</span>
@@ -171,7 +171,7 @@ const MissionCard = ({
               <button
                 type="button"
                 onClick={() => onSwap(mission.id)}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--primary,#1d5330)]/40 bg-[color:var(--primary,#1d5330)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
                 aria-label={t("missions.swap.aria", {
                   name: mission.name,
                 })}
@@ -184,7 +184,7 @@ const MissionCard = ({
                 <button
                   type="button"
                   onClick={() => setShowSavingsMenu((prev) => !prev)}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
                 >
                   {showSavingsMenu
                     ? t("missions.savings.hideJar")
@@ -221,7 +221,7 @@ const MissionCard = ({
                       <button
                         type="submit"
                         disabled={isDaily && isCompleted}
-                        className="inline-flex items-center justify-center rounded-full bg-[color:var(--primary-bright,#2a7347)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--primary-bright,#2a7347)]/30 transition hover:shadow-xl hover:shadow-[color:var(--primary-bright,#2a7347)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-bright,#2a7347)]/40 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary-hover)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary-hover)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary-hover)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/40 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isDaily && isCompleted
                           ? t("missions.savings.savedToday")
@@ -240,7 +240,7 @@ const MissionCard = ({
                   <button
                     type="button"
                     onClick={onLoadFact}
-                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--primary,#1d5330)] px-4 py-2 text-xs font-semibold text-[color:var(--primary,#1d5330)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40"
+                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
                   >
                     {t("missions.facts.tryAgain")}
                   </button>

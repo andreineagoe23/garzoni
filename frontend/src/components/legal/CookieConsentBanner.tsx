@@ -64,7 +64,7 @@ export default function CookieConsentBanner() {
                   type="checkbox"
                   checked={analytics}
                   onChange={(e) => setAnalytics(e.target.checked)}
-                  className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]"
                 />
                 <span className="min-w-0 text-sm text-content-primary">
                   {t("cookieConsent.analyticsLabel")}
@@ -75,7 +75,7 @@ export default function CookieConsentBanner() {
                   type="checkbox"
                   checked={marketing}
                   onChange={(e) => setMarketing(e.target.checked)}
-                  className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#2563eb)] focus:ring-[color:var(--primary,#2563eb)]"
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]"
                 />
                 <span className="min-w-0 text-sm text-content-primary">
                   {t("cookieConsent.marketingLabel")}
@@ -107,7 +107,7 @@ export default function CookieConsentBanner() {
   // First-layer banner: Accept and Reject with equal prominence (GDPR)
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[9998] border-t border-[color:var(--border-color,rgba(0,0,0,0.1))] bg-[color:var(--card-bg,#ffffff)]/95 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:p-4 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]"
+      className="fixed bottom-0 left-0 right-0 z-[9998] border-t border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)]/95 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:p-4 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]"
       role="region"
       aria-label={t("cookieConsent.bannerAria")}
     >

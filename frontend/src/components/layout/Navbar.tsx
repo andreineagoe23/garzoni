@@ -158,10 +158,10 @@ function Navbar() {
     (extraClasses = "") =>
     ({ isActive }) =>
       [
-        "relative z-10 inline-flex h-7 items-center justify-center gap-1 rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 px-3 text-xs font-semibold text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] shadow-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] md:h-[36px] lg:h-[38px] xl:h-10",
+        "relative z-10 inline-flex h-7 items-center justify-center gap-1 rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 px-3 text-xs font-semibold text-[color:var(--color-icon-muted,var(--color-text-muted))] shadow-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] md:h-[36px] lg:h-[38px] xl:h-10",
         isActive
-          ? "border-[color:var(--color-brand-primary,var(--primary,#1d5330))] bg-[color:var(--color-brand-primary,var(--primary,#1d5330))] text-[color:var(--color-text-inverse,#ffffff)] shadow-md hover:border-[color:var(--color-brand-primary,var(--primary,#1d5330))] hover:bg-[color:var(--color-brand-primary,var(--primary,#1d5330))]/90 hover:text-[color:var(--color-text-inverse,#ffffff)] focus:ring-[color:var(--primary,#1d5330)]/40"
-          : "border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.18)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 hover:text-[color:var(--color-text-primary,var(--text-color,#111827))] focus:ring-[color:var(--primary,#1d5330)]/40",
+          ? "border-[color:var(--color-brand-primary,var(--color-brand-primary))] bg-[color:var(--color-brand-primary,var(--color-brand-primary))] text-[color:var(--color-text-inverse,#ffffff)] shadow-md hover:border-[color:var(--color-brand-primary,var(--color-brand-primary))] hover:bg-[color:var(--color-brand-primary,var(--color-brand-primary))]/90 hover:text-[color:var(--color-text-inverse,#ffffff)] focus:ring-[color:var(--color-brand-primary)]/40"
+          : "border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 text-[color:var(--color-icon-muted,var(--color-text-muted))] hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:ring-[color:var(--color-brand-primary)]/40",
         extraClasses,
       ]
         .filter(Boolean)
@@ -218,7 +218,7 @@ function Navbar() {
   };
 
   const menuRowClass =
-    "flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] transition-colors hover:bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.08)))] hover:text-[color:var(--color-text-primary,var(--text-color,#111827))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary,#1d5330)]/40";
+    "flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[color:var(--color-icon-muted,var(--color-text-muted))] transition-colors hover:bg-[color:var(--color-border-default,var(--color-border-default))] hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-primary)]/40";
 
   return (
     <nav
@@ -290,7 +290,7 @@ function Navbar() {
               type="button"
               onClick={handleDarkModeToggle}
               aria-label={t("nav.ariaToggleDarkMode")}
-              className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.18)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 hover:text-[color:var(--color-text-primary,var(--text-color,#111827))] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
+              className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 text-[color:var(--color-icon-muted,var(--color-text-muted))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               {darkMode ? (
@@ -303,7 +303,7 @@ function Navbar() {
               type="button"
               onClick={handleLogoutClick}
               aria-label={t("nav.ariaLogout")}
-              className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.18)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 hover:text-[color:var(--color-text-primary,var(--text-color,#111827))] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
+              className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 text-[color:var(--color-icon-muted,var(--color-text-muted))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <BoxArrowRight className="h-3.5 w-3.5 text-inherit transition-all duration-300 ease-in-out sm:h-[15px] sm:w-[15px]" />
@@ -312,7 +312,7 @@ function Navbar() {
               type="button"
               onClick={handleProfileClick}
               aria-label={t("nav.ariaGoToProfile")}
-              className="relative z-10 inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.18)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
+              className="relative z-10 inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <img
@@ -341,10 +341,10 @@ function Navbar() {
                 aria-expanded={profileMenuOpen}
                 aria-label={t("nav.ariaAccountMenu")}
                 onClick={() => setProfileMenuOpen((open) => !open)}
-                className="relative z-10 inline-flex items-center gap-1 rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 py-0.5 pl-0.5 pr-1.5 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.18)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 touch-manipulation md:pr-2"
+                className="relative z-10 inline-flex items-center gap-1 rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 py-0.5 pl-0.5 pr-1.5 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation md:pr-2"
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
-                <span className="relative inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.08)))] md:h-9 md:w-9 lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10">
+                <span className="relative inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] md:h-9 md:w-9 lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10">
                   <img
                     src={avatarSrc}
                     alt=""
@@ -361,7 +361,7 @@ function Navbar() {
                 </span>
                 <ChevronDown
                   aria-hidden
-                  className={`h-3.5 w-3.5 shrink-0 text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] transition-transform duration-200 md:h-4 md:w-4 ${
+                  className={`h-3.5 w-3.5 shrink-0 text-[color:var(--color-icon-muted,var(--color-text-muted))] transition-transform duration-200 md:h-4 md:w-4 ${
                     profileMenuOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -412,7 +412,7 @@ function Navbar() {
                             aria-label={t("nav.ariaToggleAdminMode")}
                             className={`${menuRowClass} ${
                               adminMode
-                                ? "text-[color:var(--color-brand-primary,var(--primary,#1d5330))]"
+                                ? "text-[color:var(--color-brand-primary,var(--color-brand-primary))]"
                                 : ""
                             }`}
                             onClick={() => toggleAdminMode()}
@@ -428,12 +428,12 @@ function Navbar() {
                           </button>
                         ) : null}
                         <div
-                          className="my-2 h-px bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.08)))]"
+                          className="my-2 h-px bg-[color:var(--color-border-default,var(--color-border-default))]"
                           aria-hidden
                         />
                         <LanguageSelector variant="menuSection" />
                         <div
-                          className="my-2 h-px bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.08)))]"
+                          className="my-2 h-px bg-[color:var(--color-border-default,var(--color-border-default))]"
                           aria-hidden
                         />
                         <button
@@ -468,7 +468,7 @@ function Navbar() {
             </div>
             <button
               type="button"
-              className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--color-border-default,var(--border-color,#d1d5db))] text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] transition hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.2)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 hover:text-[color:var(--color-text-primary,var(--text-color,#111827))] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/40 md:hidden touch-manipulation sm:h-10 sm:w-10"
+              className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--color-border-default,var(--color-border-default))] text-[color:var(--color-icon-muted,var(--color-text-muted))] transition hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 md:hidden touch-manipulation sm:h-10 sm:w-10"
               onClick={toggleMenu}
               aria-expanded={menuOpen}
               aria-label={t("nav.ariaToggleMenu")}

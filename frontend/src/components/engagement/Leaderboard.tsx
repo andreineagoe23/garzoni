@@ -60,13 +60,13 @@ function friendActionButtonClass(isFriend: boolean, pending: boolean) {
   return cx(
     "ml-auto inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40",
     isFriend &&
-      "cursor-not-allowed bg-[#1d5330]/10 text-[color:var(--primary-bright,#2a7347)]",
+      "cursor-not-allowed bg-[#1d5330]/10 text-[color:var(--color-brand-primary-hover)]",
     pending &&
       !isFriend &&
-      "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted",
+      "cursor-not-allowed bg-[color:var(--color-border-default)] text-content-muted",
     !isFriend &&
       !pending &&
-      "bg-[color:var(--primary,#1d5330)] text-white shadow hover:shadow-lg"
+      "bg-[color:var(--color-brand-primary)] text-white shadow hover:shadow-lg"
   );
 }
 
@@ -328,7 +328,7 @@ const Leaderboards = () => {
                 "app-card relative min-h-[160px] w-[31%] overflow-hidden border-2 p-2 transition hover:-translate-y-0.5 md:min-h-[260px] md:w-[220px] md:p-4",
                 podiumHighlight[idxInTopThree] ?? podiumHighlight[2],
                 isYou &&
-                  "ring-2 ring-[color:var(--primary-bright,#2a7347)] ring-offset-2 ring-offset-transparent",
+                  "ring-2 ring-[color:var(--color-brand-primary-hover)] ring-offset-2 ring-offset-transparent",
                 rank === 1 && "w-[34%] md:w-[220px]",
                 rank === 2 && "-translate-y-1 md:translate-y-0 md:order-1",
                 rank === 3 && "translate-y-1 md:translate-y-0 md:order-3",
@@ -337,7 +337,7 @@ const Leaderboards = () => {
                 rank === 3 && "md:order-3"
               )}
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/5 via-transparent to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/5 via-transparent to-transparent" />
               <div className="relative flex flex-col items-center gap-1.5 text-center md:gap-3">
                 <span
                   className="text-2xl leading-none md:text-4xl"
@@ -382,7 +382,7 @@ const Leaderboards = () => {
                       {entry.user.username}
                     </span>
                     {isYou && (
-                      <span className="shrink-0 rounded-full bg-[#2a7347]/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)] md:px-2 md:text-xs">
+                      <span className="shrink-0 rounded-full bg-[#2a7347]/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[color:var(--color-brand-primary-hover)] md:px-2 md:text-xs">
                         {t("leaderboard.youBadge")}
                       </span>
                     )}
@@ -423,7 +423,7 @@ const Leaderboards = () => {
           "group relative flex flex-col gap-4 overflow-hidden border p-4 transition hover:-translate-y-1",
           highlight || "app-card-sm",
           isYou &&
-            "ring-2 ring-[color:var(--primary-bright,#2a7347)]/80 ring-offset-2 ring-offset-transparent"
+            "ring-2 ring-[color:var(--color-brand-primary-hover)]/80 ring-offset-2 ring-offset-transparent"
         )}
       >
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#2a7347]/4 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
@@ -439,7 +439,7 @@ const Leaderboards = () => {
               <img
                 src={entry.user.profile_avatar || DEFAULT_AVATAR_URL}
                 alt=""
-                className="h-12 w-12 shrink-0 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
+                className="h-12 w-12 shrink-0 rounded-full border border-[color:var(--color-border-default)] object-cover shadow-sm"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = DEFAULT_AVATAR_URL;
@@ -449,7 +449,7 @@ const Leaderboards = () => {
                 <p className="flex flex-wrap items-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
                   <span className="truncate">{entry.user.username}</span>
                   {isYou && (
-                    <span className="shrink-0 rounded-full bg-[color:#2a7347]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+                    <span className="shrink-0 rounded-full bg-[color:#2a7347]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
                       {t("leaderboard.youBadge")}
                     </span>
                   )}
@@ -522,7 +522,7 @@ const Leaderboards = () => {
           </h1>
         </div>
         <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-          <div className="flex overflow-hidden rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-1 text-sm shadow-sm">
+          <div className="flex overflow-hidden rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] p-1 text-sm shadow-sm">
             {["global", "friends"].map((tab) => (
               <button
                 key={tab}
@@ -532,7 +532,7 @@ const Leaderboards = () => {
                   "relative z-10 inline-flex flex-1 touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40",
                   activeTab === tab
                     ? "bg-gradient-to-r from-[#2a7347] to-[#1d5330] text-white shadow-lg shadow-[#1d5330]/30 hover:shadow-xl hover:shadow-[#1d5330]/40"
-                    : "border border-white/20 bg-transparent text-content-muted hover:border-[#2a7347]/50 hover:bg-[#1d5330]/10 hover:text-[color:var(--primary-bright,#2a7347)]"
+                    : "border border-white/20 bg-transparent text-content-muted hover:border-[#2a7347]/50 hover:bg-[#1d5330]/10 hover:text-[color:var(--color-brand-primary-hover)]"
                 )}
               >
                 {tab === "global"
@@ -547,7 +547,7 @@ const Leaderboards = () => {
                 value={timeFilter}
                 onChange={(event) => setTimeFilter(event.target.value)}
                 disabled={globalBusy}
-                className="w-full rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-4 py-2 text-sm font-medium text-content-muted shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:opacity-60"
+                className="w-full rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-2 text-sm font-medium text-content-muted shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:opacity-60"
               >
                 {timeFilterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -569,7 +569,7 @@ const Leaderboards = () => {
               "rounded-full border px-3 py-1.5 text-xs font-semibold",
               !activeSkill
                 ? "border-[#2a7347] bg-[#2a7347]/10 text-[#2a7347]"
-                : "border-[color:var(--border-color)] text-content-muted"
+                : "border-[color:var(--color-border-default)] text-content-muted"
             )}
           >
             XP
@@ -583,7 +583,7 @@ const Leaderboards = () => {
                 "rounded-full border px-3 py-1.5 text-xs font-semibold",
                 activeSkill === skill
                   ? "border-[#2a7347] bg-[#2a7347]/10 text-[#2a7347]"
-                  : "border-[color:var(--border-color)] text-content-muted"
+                  : "border-[color:var(--color-border-default)] text-content-muted"
               )}
             >
               {skill}
@@ -599,7 +599,7 @@ const Leaderboards = () => {
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={t("leaderboard.searchPlaceholder")}
             aria-label={t("leaderboard.searchAriaLabel")}
-            className="w-full rounded-3xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] px-5 py-3 pr-11 text-sm text-content-primary shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/30"
+            className="w-full rounded-3xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-5 py-3 pr-11 text-sm text-content-primary shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/30"
             type="search"
             autoComplete="off"
           />
@@ -609,7 +609,7 @@ const Leaderboards = () => {
           />
         </div>
         {error && (
-          <div className="rounded-3xl border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)] shadow-inner shadow-[color:var(--error,#dc2626)]/20">
+          <div className="rounded-3xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/20">
             {error}
           </div>
         )}
@@ -625,7 +625,7 @@ const Leaderboards = () => {
         !filteredLeaderboard.some(
           (entry) => entry.user.id === userRank.user.id
         ) && (
-          <div className="app-card p-4 border-[color:var(--primary-bright,#2a7347)]/40">
+          <div className="app-card p-4 border-[color:var(--color-brand-primary-hover)]/40">
             <div className="flex flex-wrap items-center gap-4">
               <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#2a7347] to-[#1d5330] text-lg font-bold text-white shadow-md shadow-[#1d5330]/30">
                 #{userRank.rank ?? "—"}
@@ -634,7 +634,7 @@ const Leaderboards = () => {
                 <img
                   src={userRank.user.profile_avatar || DEFAULT_AVATAR_URL}
                   alt=""
-                  className="h-10 w-10 rounded-full border border-[color:var(--border-color,#d1d5db)] object-cover shadow-sm"
+                  className="h-10 w-10 rounded-full border border-[color:var(--color-border-default)] object-cover shadow-sm"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = DEFAULT_AVATAR_URL;
@@ -673,7 +673,7 @@ const Leaderboards = () => {
                 <button
                   type="button"
                   onClick={() => setListVisible((v) => v + LIST_PAGE_SIZE)}
-                  className="rounded-full border border-[#2a7347]/40 bg-[#1d5330]/10 px-6 py-2 text-sm font-semibold text-[color:var(--primary-bright,#2a7347)] shadow-sm transition hover:bg-[#1d5330]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40"
+                  className="rounded-full border border-[#2a7347]/40 bg-[#1d5330]/10 px-6 py-2 text-sm font-semibold text-[color:var(--color-brand-primary-hover)] shadow-sm transition hover:bg-[#1d5330]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40"
                 >
                   {t("leaderboard.loadMore")}
                 </button>

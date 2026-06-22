@@ -72,7 +72,7 @@ const LanguageSelector = ({ variant = "default" }: LanguageSelectorProps) => {
   if (variant === "menuSection") {
     return (
       <div className="w-full px-1">
-        <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))]">
+        <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-icon-muted,var(--color-text-muted))]">
           {t("language.label")}
         </p>
         <div className="flex flex-col gap-0.5">
@@ -95,10 +95,10 @@ const LanguageSelector = ({ variant = "default" }: LanguageSelectorProps) => {
                 aria-disabled={isComingSoon}
                 className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-all duration-200 ease-in-out ${
                   isActive
-                    ? "bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] text-[color:var(--color-text-primary,var(--text-color,#111827))]"
+                    ? "bg-[color:var(--color-border-default,var(--color-border-default))] text-[color:var(--color-text-primary,var(--color-text-primary))]"
                     : isComingSoon
-                      ? "cursor-not-allowed text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] opacity-60"
-                      : "text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] hover:bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.06)))] hover:text-[color:var(--color-text-primary,var(--text-color,#111827))]"
+                      ? "cursor-not-allowed text-[color:var(--color-icon-muted,var(--color-text-muted))] opacity-60"
+                      : "text-[color:var(--color-icon-muted,var(--color-text-muted))] hover:bg-[color:var(--color-border-default,var(--color-border-default))] hover:text-[color:var(--color-text-primary,var(--color-text-primary))]"
                 }`}
               >
                 <span className="text-sm" aria-hidden="true">
@@ -122,7 +122,7 @@ const LanguageSelector = ({ variant = "default" }: LanguageSelectorProps) => {
         aria-label={t("language.label")}
         title={currentLabel}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/80 text-[13px] text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.18)))] hover:bg-[color:var(--color-surface-elevated,var(--card-bg,#ffffff))]/90 hover:text-[color:var(--color-text-primary,var(--text-color,#111827))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-ring-focus,var(--primary,#1d5330))]/40 touch-manipulation sm:h-10 sm:w-10"
+        className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 text-[13px] text-[color:var(--color-icon-muted,var(--color-text-muted))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-ring-focus,var(--color-brand-primary))]/40 touch-manipulation sm:h-10 sm:w-10"
         style={{ WebkitTapHighlightColor: "transparent" }}
       >
         <span aria-hidden="true">{currentFlag}</span>
@@ -132,7 +132,7 @@ const LanguageSelector = ({ variant = "default" }: LanguageSelectorProps) => {
         <div
           role="menu"
           aria-label={t("language.label")}
-          className="absolute right-0 mt-2 min-w-[160px] overflow-hidden rounded-2xl border border-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.12)))] bg-[color:var(--color-surface-card,var(--card-bg,#ffffff))]/95 p-1 shadow-lg backdrop-blur"
+          className="absolute right-0 mt-2 min-w-[160px] overflow-hidden rounded-2xl border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/95 p-1 shadow-lg backdrop-blur"
         >
           {SUPPORTED_LANGUAGES.map((language) => {
             const label = t(`language.option.${language.code}`);
@@ -153,10 +153,10 @@ const LanguageSelector = ({ variant = "default" }: LanguageSelectorProps) => {
                 aria-disabled={isComingSoon}
                 className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold transition-all duration-200 ease-in-out ${
                   isActive
-                    ? "bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.1)))] text-[color:var(--color-text-primary,var(--text-color,#111827))]"
+                    ? "bg-[color:var(--color-border-default,var(--color-border-default))] text-[color:var(--color-text-primary,var(--color-text-primary))]"
                     : isComingSoon
-                      ? "cursor-not-allowed text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] opacity-60"
-                      : "text-[color:var(--color-icon-muted,var(--muted-text,#6b7280))] hover:bg-[color:var(--color-border-default,var(--border-color,rgba(0,0,0,0.06)))] hover:text-[color:var(--color-text-primary,var(--text-color,#111827))]"
+                      ? "cursor-not-allowed text-[color:var(--color-icon-muted,var(--color-text-muted))] opacity-60"
+                      : "text-[color:var(--color-icon-muted,var(--color-text-muted))] hover:bg-[color:var(--color-border-default,var(--color-border-default))] hover:text-[color:var(--color-text-primary,var(--color-text-primary))]"
                 }`}
               >
                 <span className="text-sm" aria-hidden="true">

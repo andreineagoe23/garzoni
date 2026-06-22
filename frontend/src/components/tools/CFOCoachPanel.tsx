@@ -107,10 +107,10 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
         onClick={onClose}
       />
       <div
-        className="relative z-10 flex w-full max-w-xl flex-col bg-[color:var(--card-bg)] shadow-2xl sm:m-6 sm:rounded-2xl"
+        className="relative z-10 flex w-full max-w-xl flex-col bg-[color:var(--color-surface-card)] shadow-2xl sm:m-6 sm:rounded-2xl"
         style={{ maxHeight: "min(90vh, 720px)", height: "90vh" }}
       >
-        <header className="flex items-center justify-between border-b border-[color:var(--border-color)] px-5 py-3">
+        <header className="flex items-center justify-between border-b border-[color:var(--color-border-default)] px-5 py-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
               {t("tools.cfoCoach.eyebrow")}
@@ -122,7 +122,7 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-[color:var(--border-color)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-muted"
+            className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-muted"
           >
             {t("common.close")}
           </button>
@@ -133,7 +133,7 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
           className="flex-1 overflow-y-auto px-5 py-4 space-y-3"
         >
           {messages.length === 0 && (
-            <div className="rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-sm text-content-primary">
+            <div className="rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-3 text-sm text-content-primary">
               {greeting}
             </div>
           )}
@@ -147,7 +147,7 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
               <div
                 className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-6 ${
                   m.role === "user"
-                    ? "bg-[color:var(--primary)] text-white"
+                    ? "bg-[color:var(--color-brand-primary)] text-white"
                     : "bg-[color:var(--input-bg,#f9fafb)] text-content-primary"
                 }`}
               >
@@ -170,7 +170,7 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
         </div>
 
         {messages.length === 0 && (
-          <div className="border-t border-[color:var(--border-color)] px-5 py-3">
+          <div className="border-t border-[color:var(--color-border-default)] px-5 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-content-muted">
               {t("tools.cfoCoach.quickPrompts")}
             </p>
@@ -182,7 +182,7 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
                   onClick={() =>
                     void send(t(`tools.cfoCoach.prompts.${q.key}`, q.text))
                   }
-                  className="rounded-full border border-[color:var(--border-color)] px-3 py-1 text-xs text-content-primary transition hover:bg-[color:var(--input-bg,#f9fafb)]"
+                  className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs text-content-primary transition hover:bg-[color:var(--input-bg,#f9fafb)]"
                 >
                   {t(`tools.cfoCoach.prompts.${q.key}`, q.text)}
                 </button>
@@ -192,7 +192,7 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
         )}
 
         <form
-          className="flex items-center gap-2 border-t border-[color:var(--border-color)] px-5 py-3"
+          className="flex items-center gap-2 border-t border-[color:var(--color-border-default)] px-5 py-3"
           onSubmit={(e) => {
             e.preventDefault();
             void send(input);
@@ -203,13 +203,13 @@ const CFOCoachPanel = ({ open, onClose }: Props) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t("tools.cfoCoach.placeholder")}
-            className="flex-1 rounded-full border border-[color:var(--border-color)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30"
+            className="flex-1 rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/30"
             disabled={sending}
           />
           <button
             type="submit"
             disabled={sending || !input.trim()}
-            className="rounded-full bg-[color:var(--primary)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50"
+            className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50"
           >
             {t("tools.cfoCoach.send")}
           </button>

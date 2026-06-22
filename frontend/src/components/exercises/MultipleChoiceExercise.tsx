@@ -135,12 +135,12 @@ const MultipleChoiceExercise = ({
               className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 ${
                 isSelected
                   ? "border-[color:#2a7347] bg-[color:#2a7347]/10 text-[color:#2a7347] shadow-inner"
-                  : "border-[color:var(--border-color,#d1d5db)] bg-surface-page text-content-primary hover:border-[color:#2a7347]/40"
+                  : "border-[color:var(--color-border-default)] bg-surface-page text-content-primary hover:border-[color:#2a7347]/40"
               } ${
                 feedbackType && isSelected
                   ? feedbackType === "success"
                     ? "border-[color:#2a7347]/45 bg-[color:#2a7347]/12 text-[color:#2a7347]"
-                    : "border-[color:var(--error,#dc2626)]/60 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+                    : "border-[color:var(--color-state-error)]/60 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
                   : ""
               } ${isCompleted || disabled ? "cursor-not-allowed opacity-70" : ""}`}
             >
@@ -171,8 +171,8 @@ const MultipleChoiceExercise = ({
             disabled={selectedAnswer === null || disabled}
             className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 ${
               selectedAnswer === null || disabled
-                ? "cursor-not-allowed bg-[color:var(--border-color,#d1d5db)] text-content-muted"
-                : "bg-[color:var(--primary,#1d5330)] text-white shadow-lg shadow-[color:#2a7347]/30 hover:shadow-xl hover:shadow-[color:#2a7347]/40"
+                ? "cursor-not-allowed bg-[color:var(--color-border-default)] text-content-muted"
+                : "bg-[color:var(--color-brand-primary)] text-white shadow-lg shadow-[color:#2a7347]/30 hover:shadow-xl hover:shadow-[color:#2a7347]/40"
             }`}
           >
             {t("exercises.actions.submit")}
@@ -185,7 +185,7 @@ const MultipleChoiceExercise = ({
           className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
             feedbackType === "success"
               ? "border-[color:#2a7347]/35 bg-[color:#2a7347]/10 text-[color:#2a7347]"
-              : "border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 text-[color:var(--error,#dc2626)]"
+              : "border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
           }`}
           aria-live="polite"
         >

@@ -198,7 +198,7 @@ const NextStepsEngine = () => {
             <button
               type="button"
               onClick={() => setUseDemo((prev) => !prev)}
-              className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-muted transition hover:border-[color:var(--primary-bright,#2a7347)]/40 hover:text-[color:var(--primary-bright,#2a7347)]"
+              className="rounded-full border border-[color:var(--color-border-default)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-content-muted transition hover:border-[color:var(--color-brand-primary-hover)]/40 hover:text-[color:var(--color-brand-primary-hover)]"
             >
               {useDemo ? "Use live activity" : "Use demo suggestions"}
             </button>
@@ -248,7 +248,7 @@ const NextStepsEngine = () => {
                   : `Because ${item.because.charAt(0).toLowerCase() + item.because.slice(1)}`}
               </p>
             )}
-            <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary,#1d5330)]">
+            <span className="mt-3 inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
               Open resource →
             </span>
           </a>

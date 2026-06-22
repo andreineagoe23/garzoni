@@ -295,7 +295,7 @@ function Missions() {
             <GarzoniIcon
               name="sparkles"
               size={18}
-              className="text-[color:var(--primary)]"
+              className="text-[color:var(--color-brand-primary)]"
             />
           ),
           duration: 3000,
@@ -492,7 +492,7 @@ function Missions() {
         <GlassCard padding="md" className="">
           <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
             {/* Left: compact "at a glance" mini-card */}
-            <div className="flex-1 rounded-xl border border-[color:var(--border-color)]  px-4 py-3 shadow-sm">
+            <div className="flex-1 rounded-xl border border-[color:var(--color-border-default)]  px-4 py-3 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-content-muted">
                 {t("missions.summary.title")}
               </p>
@@ -527,11 +527,11 @@ function Missions() {
               )}
 
               {adaptiveSuggestions && (
-                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--primary)] leading-tight">
+                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--color-brand-primary)] leading-tight">
                   <GarzoniIcon
                     name="lightbulb"
                     size={14}
-                    className="mr-2 inline-block text-[color:var(--primary)]"
+                    className="mr-2 inline-block text-[color:var(--color-brand-primary)]"
                   />
                   {t("missions.summary.suggestedSavings", {
                     amount: adaptiveSuggestions.suggestedSavingsTarget,
@@ -563,7 +563,7 @@ function Missions() {
               {streakItems.map((item, index) => (
                 <div
                   key={`${item.type}-${index}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--primary)]/40 bg-[color:var(--primary)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--primary)]"
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]"
                   role="status"
                   aria-label={t("missions.streakItemAria", {
                     type: item.type,
@@ -574,13 +574,13 @@ function Missions() {
                     <GarzoniIcon
                       name="snowflake"
                       size={14}
-                      className="inline-block text-[color:var(--primary)]"
+                      className="inline-block text-[color:var(--color-brand-primary)]"
                     />
                   ) : (
                     <GarzoniIcon
                       name="bolt"
                       size={14}
-                      className="inline-block text-[color:var(--primary)]"
+                      className="inline-block text-[color:var(--color-brand-primary)]"
                     />
                   )}
                   {item.quantity}x
@@ -596,7 +596,7 @@ function Missions() {
         {Object.values(errors).length > 0 && (
           <GlassCard
             padding="md"
-            className="border-[color:var(--error)]/40 bg-[color:var(--error)]/10 text-sm text-[color:var(--error)] shadow-[color:var(--error)]/20"
+            className="border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)] shadow-[color:var(--color-state-error)]/20"
           >
             <ul className="space-y-1">
               {Object.entries(errors).map(([key, message]) => (
@@ -623,7 +623,7 @@ function Missions() {
                         {mission.description}
                       </p>
                     </div>
-                    <span className="rounded-full border border-[color:var(--primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--primary)]">
+                    <span className="rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
                       {done}/{steps.length} steps
                     </span>
                   </div>
@@ -631,7 +631,7 @@ function Missions() {
                     {steps.map((step, index) => (
                       <div
                         key={step.id || index}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-color)] px-4 py-3"
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-border-default)] px-4 py-3"
                       >
                         <div>
                           <p className="text-sm font-semibold text-content-primary">
@@ -667,8 +667,8 @@ function Missions() {
               disabled={dailyMissions.length === 0}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "daily"
-                  ? "border-[color:var(--primary)] bg-[color:var(--primary)]/15 text-[color:var(--primary)]"
-                  : "border-[color:var(--border-color)]  text-content-muted hover:bg-[color:var(--card-bg)]"
+                  ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
+                  : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
               }`}
             >
               {t("missions.tab.dailyWithCount", {
@@ -682,8 +682,8 @@ function Missions() {
               disabled={weeklyMissions.length === 0}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                 missionScope === "weekly"
-                  ? "border-[color:var(--primary)] bg-[color:var(--primary)]/15 text-[color:var(--primary)]"
-                  : "border-[color:var(--border-color)]  text-content-muted hover:bg-[color:var(--card-bg)]"
+                  ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
+                  : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
               }`}
             >
               {t("missions.tab.weeklyWithCount", {
@@ -814,7 +814,7 @@ function Missions() {
                       </p>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-[color:var(--primary)]/40 bg-[color:var(--primary)]/10 px-4 py-3 text-sm text-[color:var(--primary)]">
+                  <div className="rounded-2xl border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-4 py-3 text-sm text-[color:var(--color-brand-primary)]">
                     {t("missions.wrapup.cta")}
                   </div>
                 </div>

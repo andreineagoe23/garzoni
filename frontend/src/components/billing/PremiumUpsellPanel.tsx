@@ -105,7 +105,7 @@ const PremiumUpsellPanel = () => {
 
   return (
     <GlassCard padding="lg" className="space-y-6">
-      <div className="space-y-3 rounded-2xl border border-[color:var(--border-color,#e5e7eb)] bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 via-[color:var(--primary,#1d5330)]/10 to-transparent px-4 py-4">
+      <div className="space-y-3 rounded-2xl border border-[color:var(--color-border-default)] bg-gradient-to-br from-[color:var(--accent,#ffd700)]/5 via-[color:var(--color-brand-primary)]/10 to-transparent px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">

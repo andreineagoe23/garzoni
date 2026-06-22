@@ -167,7 +167,7 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
                 });
               }
             }}
-            className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--primary-bright,#2a7347)] hover:text-[color:var(--primary,#1d5330)] transition"
+            className="inline-flex text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary-hover)] hover:text-[color:var(--color-brand-primary)] transition"
           >
             {t("tools.detail.learnConcept")}
           </Link>

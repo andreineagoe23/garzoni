@@ -26,7 +26,7 @@ const DailyGoalCard = ({
             <GarzoniIcon
               name="target"
               size={18}
-              className="text-[color:var(--primary-bright,#2a7347)]"
+              className="text-[color:var(--color-brand-primary-hover)]"
             />
           </div>
           <span className="app-eyebrow">{t("dashboard.dailyGoal.label")}</span>

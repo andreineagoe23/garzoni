@@ -133,7 +133,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="rounded-full border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] p-2 text-content-muted shadow-sm transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+        className="rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] p-2 text-content-muted shadow-sm transition hover:text-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
         aria-label={t("profile.avatarSelector.changeAvatar")}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
@@ -143,10 +143,10 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
 
       {isOpen && (
         <div
-          className="fixed left-1/2 z-[2000] w-[min(92vw,48rem)] -translate-x-1/2 overflow-x-auto overflow-y-visible rounded-2xl border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--card-bg,#ffffff)] shadow-2xl shadow-black/30"
+          className="fixed left-1/2 z-[2000] w-[min(92vw,48rem)] -translate-x-1/2 overflow-x-auto overflow-y-visible rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] shadow-2xl shadow-black/30"
           style={{ top: popoverTop ?? 0 }}
         >
-          <div className="flex items-start justify-between border-b border-[color:var(--border-color,#d1d5db)] px-6 py-4">
+          <div className="flex items-start justify-between border-b border-[color:var(--color-border-default)] px-6 py-4">
             <div>
               <h3 className="text-lg font-semibold text-content-primary">
                 {t("profile.avatarSelector.title")}
@@ -191,7 +191,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                 <select
                   value={selectedStyle}
                   onChange={(event) => setSelectedStyle(event.target.value)}
-                  className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                  className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                 >
                   {AVATAR_STYLES.map((style) => (
                     <option key={style.id} value={style.id}>
@@ -211,7 +211,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
                     placeholder={t(
                       "profile.avatarSelector.customizePlaceholder"
                     )}
-                    className="w-full rounded-lg border border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
+                    className="w-full rounded-lg border border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#ffffff)] px-4 py-3 text-sm text-content-primary shadow-sm transition focus:border-[color:var(--accent,#ffd700)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/30"
                   />
                   <p className="text-xs text-content-muted">
                     {t("profile.avatarSelector.customizeHint")}
@@ -262,11 +262,11 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
             </div>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--border-color,#d1d5db)] px-6 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--color-border-default)] px-6 py-5 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={closeModal}
-              className="inline-flex items-center justify-center rounded-lg border border-[color:var(--border-color,#d1d5db)] px-5 py-2.5 text-sm font-semibold text-content-muted transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
+              className="inline-flex items-center justify-center rounded-lg border border-[color:var(--color-border-default)] px-5 py-2.5 text-sm font-semibold text-content-muted transition hover:bg-[color:var(--input-bg,#f3f4f6)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40"
             >
               {t("shared.cancel")}
             </button>
@@ -274,7 +274,7 @@ function AvatarSelector({ currentAvatar, onAvatarChange }) {
               type="button"
               onClick={saveAvatar}
               disabled={loading || !previewAvatar}
-              className="inline-flex items-center justify-center rounded-lg bg-[color:var(--primary,#1d5330)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex items-center justify-center rounded-lg bg-[color:var(--color-brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[color:var(--accent,#ffd700)]/30 transition hover:shadow-lg hover:shadow-[color:var(--accent,#ffd700)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#ffd700)]/40 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {loading
                 ? t("profile.avatarSelector.saving")

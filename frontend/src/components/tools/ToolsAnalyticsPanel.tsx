@@ -22,7 +22,7 @@ const ToolsAnalyticsPanel = () => {
   const nextStepsRate = toolOpen > 0 ? recommendationClick / toolOpen : 0;
 
   return (
-    <div className="rounded-2xl border border-dashed border-[color:var(--border-color,#d1d5db)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-sm text-content-muted">
+    <div className="rounded-2xl border border-dashed border-[color:var(--color-border-default)] bg-[color:var(--input-bg,#f9fafb)] px-4 py-4 text-sm text-content-muted">
       <p className="text-xs font-semibold uppercase tracking-wide">
         Tools analytics (debug) — see docs/monitoring-red-flags.md
       </p>
