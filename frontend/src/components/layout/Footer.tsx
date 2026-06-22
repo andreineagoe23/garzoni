@@ -95,7 +95,7 @@ function Footer() {
                 <span
                   className="footer-brand"
                   style={{
-                    fontFamily: "var(--brand-font-display,'Fraunces',serif)",
+                    fontFamily: "var(--brand-font-display,'Inter',sans-serif)",
                     fontSize: "20px",
                     letterSpacing: "0.15em",
                     color: "#e5e7eb",
@@ -161,7 +161,7 @@ function Footer() {
                   href="https://www.tiktok.com/@garzoni.educational"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
                   aria-label={t("footer.garzoniOn", { platform: "TikTok" })}
                 >
                   <FaTiktokIcon size={18} />
@@ -170,7 +170,7 @@ function Footer() {
                   href="https://x.com/garzoni_"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
                   aria-label={t("footer.garzoniOn", { platform: "X" })}
                 >
                   <FaXTwitterIcon size={18} />
@@ -179,7 +179,7 @@ function Footer() {
                   href="https://www.instagram.com/garzoni.educational/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
                   aria-label={t("footer.garzoniOn", { platform: "Instagram" })}
                 >
                   <FaInstagramIcon size={18} />
@@ -188,7 +188,7 @@ function Footer() {
                   href="https://www.facebook.com/profile.php?id=61587379603993"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
                   aria-label={t("footer.garzoniOn", { platform: "Facebook" })}
                 >
                   <FaFacebookFIcon size={18} />
@@ -197,7 +197,7 @@ function Footer() {
                   href="https://www.youtube.com/@garzoni.educational"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
                   aria-label={t("footer.garzoniOn", { platform: "YouTube" })}
                 >
                   <FaYoutubeIcon size={18} />
@@ -206,7 +206,7 @@ function Footer() {
                   href="https://www.linkedin.com/company/garzoni"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--primary-bright,#2a7347)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
                   aria-label={t("footer.garzoniOn", { platform: "LinkedIn" })}
                 >
                   <FaLinkedinInIcon size={18} />
