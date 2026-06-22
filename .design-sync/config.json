@@ -12,7 +12,7 @@
     "SelectInput": "src/components/ui/SelectInput.tsx",
     "Modal": "src/components/ui/Modal.tsx"
   },
-  "cssEntry": "dist/assets/index-BftvHsuZ.css",
+  "cssEntry": "dist/assets/index-902ZQCGj.css",
   "extraFonts": "../.design-sync/assets/fonts.css",
   "dtsPropsFor": {
     "GlassButton": "/** Visual style of the button. */\n  variant?: \"primary\" | \"active\" | \"success\" | \"danger\" | \"ghost\";\n  /** Control size. */\n  size?: \"sm\" | \"md\" | \"lg\" | \"xl\";\n  /** Leading icon — a string glyph or any React node. */\n  icon?: React.ReactNode;\n  /** Shows busy state and disables the button. */\n  loading?: boolean;\n  children: React.ReactNode;\n  onClick?: React.MouseEventHandler<HTMLButtonElement>;\n  disabled?: boolean;\n  type?: \"button\" | \"submit\" | \"reset\";\n  className?: string;",
