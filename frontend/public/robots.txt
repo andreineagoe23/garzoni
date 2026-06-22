@@ -15,6 +15,7 @@ Disallow: /quiz/
 Disallow: /leaderboards
 Disallow: /missions
 Disallow: /pricing-dashboard
+Disallow: /analytics
 Disallow: /tools/
 Disallow: /exercises
 Disallow: /exercise/

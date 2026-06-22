@@ -532,6 +532,10 @@ class QuestionnaireCompleteView(APIView):
 
             progress.save()
 
+            from authentication.services.profile_analytics import mark_onboarding_completed
+
+            mark_onboarding_completed(request.user, when=progress.completed_at)
+
             invalidate_profile_cache(request.user)
 
             total_time = sum(progress.time_spent_per_question.values())

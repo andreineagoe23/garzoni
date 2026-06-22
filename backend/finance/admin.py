@@ -8,6 +8,7 @@ from finance.models import (
     UserPurchase,
     PortfolioEntry,
     FinancialGoal,
+    FunnelEvent,
 )
 
 
@@ -64,3 +65,28 @@ admin.site.register(Reward, RewardAdmin)
 admin.site.register(UserPurchase)
 admin.site.register(PortfolioEntry)
 admin.site.register(FinancialGoal)
+
+
+@admin.register(FunnelEvent)
+class FunnelEventAdmin(admin.ModelAdmin):
+    """Read-only funnel event inspector for debugging analytics."""
+
+    list_display = ("event_type", "status", "platform", "user", "session_id", "created_at")
+    list_filter = ("event_type", "status", "platform", "created_at")
+    search_fields = ("event_type", "session_id", "user__username", "user__email")
+    readonly_fields = (
+        "user",
+        "event_type",
+        "status",
+        "platform",
+        "session_id",
+        "metadata",
+        "created_at",
+    )
+    date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

@@ -37,3 +37,35 @@ class RequestIdMiddleware:
             return response
         finally:
             clear_request_id()
+
+
+class LastSeenPlatformMiddleware:
+    """Update profile.last_seen_platform at most once per user per hour."""
+
+    CACHE_TTL_SECONDS = 3600
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return response
+
+        from django.core.cache import cache
+
+        from authentication.services.profile_analytics import update_last_seen_platform
+        from core.request_platform import resolve_request_platform
+
+        platform = resolve_request_platform(request)
+        if not platform:
+            return response
+
+        cache_key = f"garzoni:last_seen_platform:{user.pk}:{platform}"
+        if cache.get(cache_key):
+            return response
+
+        if update_last_seen_platform(user, platform):
+            cache.set(cache_key, 1, self.CACHE_TTL_SECONDS)
+        return response

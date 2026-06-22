@@ -16,6 +16,7 @@ class QuestionnaireProgressAdmin(admin.ModelAdmin):
         "user",
         "version",
         "status",
+        "progress_pct",
         "current_section_index",
         "current_question_index",
         "started_at",
@@ -25,5 +26,10 @@ class QuestionnaireProgressAdmin(admin.ModelAdmin):
     ]
     list_filter = ["status", "rewards_granted", "version", "started_at"]
     search_fields = ["user__username", "user__email"]
-    readonly_fields = ["started_at", "updated_at", "completed_at"]
+    readonly_fields = ["started_at", "updated_at", "completed_at", "progress_pct"]
     raw_id_fields = ["user", "version"]
+
+    def progress_pct(self, obj):
+        return f"{obj.get_progress_percentage()}%"
+
+    progress_pct.short_description = "Progress"

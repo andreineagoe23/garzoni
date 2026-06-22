@@ -468,6 +468,26 @@ class FunnelAnalyticsTest(APITestCase):
         mobile = self.client.get(reverse("funnel-metrics"), {"platform": "mobile"})
         self.assertEqual(mobile.data["users"]["new_in_range"], 1)
 
+    def test_metrics_includes_learning_and_subscription_blocks(self):
+        self.member.profile.signup_platform = "web"
+        self.member.profile.streak = 5
+        self.member.profile.last_completed_date = (timezone.now() - timedelta(days=10)).date()
+        self.member.profile.subscription_plan_id = "plus"
+        self.member.profile.is_premium = True
+        self.member.profile.save()
+
+        self.client.force_authenticate(user=self.staff)
+        resp = self.client.get(reverse("funnel-metrics"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("onboarding_funnel", resp.data)
+        self.assertIn("activation", resp.data)
+        self.assertIn("subscription_mix", resp.data)
+        self.assertIn("streak_distribution", resp.data)
+        self.assertIn("at_risk", resp.data)
+        self.assertIn("engagement_by_plan", resp.data)
+        self.assertGreaterEqual(resp.data["at_risk"]["count"], 1)
+        self.assertIn("plus", resp.data["subscription_mix"]["by_plan"])
+
     def test_resolve_request_platform_helper(self):
         from core.request_platform import resolve_request_platform
 

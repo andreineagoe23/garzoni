@@ -19,10 +19,15 @@ import { useAdmin } from "contexts/AdminContext";
 import { GlassButton, GlassCard } from "components/ui";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 import Skeleton, { SkeletonGroup } from "components/common/Skeleton";
+import FormNotice from "components/common/FormNotice";
+import AnalyticsMetricTile from "components/analytics/AnalyticsMetricTile";
+import AnalyticsSegmentedControl from "components/analytics/AnalyticsSegmentedControl";
+import { useChartPalette } from "components/analytics/useChartPalette";
 import { fetchFunnelMetrics } from "services/analyticsService";
 import { queryKeys } from "lib/reactQuery";
 
 type Platform = "all" | "web" | "mobile";
+type Tab = "growth" | "learning" | "subscriptions";
 
 type FunnelSummary = {
   pricing_views?: number;
@@ -38,6 +43,33 @@ type FunnelSummary = {
 type PlatformRow = FunnelSummary & {
   events?: number;
   active_users?: number;
+};
+
+type OnboardingFunnel = {
+  signups?: number;
+  questionnaire_started?: number;
+  onboarding_completed?: number;
+  signup_to_started_rate?: number;
+  started_to_completed_rate?: number;
+  signup_to_completed_rate?: number;
+};
+
+type ActivationMetrics = {
+  signups_in_range?: number;
+  activated?: number;
+  activation_rate?: number;
+  activated_within_1d?: number;
+  activated_within_7d?: number;
+  median_days_to_first_lesson?: number | null;
+};
+
+type SubscriptionMix = {
+  total_profiles?: number;
+  premium?: number;
+  has_paid?: number;
+  premium_rate?: number;
+  by_plan?: Record<string, number>;
+  by_status?: Record<string, number>;
 };
 
 type MetricsResponse = {
@@ -76,6 +108,19 @@ type MetricsResponse = {
     checkouts_completed: number;
   }[];
   by_platform?: Record<string, PlatformRow>;
+  onboarding_funnel?: OnboardingFunnel;
+  onboarding_timeseries?: { day: string; completions: number }[];
+  activation?: ActivationMetrics;
+  subscription_mix?: SubscriptionMix;
+  streak_distribution?: { bucket: string; count: number }[];
+  at_risk?: { count?: number; description?: string };
+  engagement_by_plan?: {
+    plan: string;
+    users: number;
+    avg_streak: number;
+    total_earned_money: number;
+  }[];
+  learning_timeseries?: { day: string; learners: number }[];
 };
 
 const RANGES = [
@@ -84,6 +129,12 @@ const RANGES = [
   { days: 30, key: "30d" },
   { days: 90, key: "90d" },
 ] as const;
+
+const TABS: { value: Tab; labelKey: string }[] = [
+  { value: "growth", labelKey: "analytics.tabGrowth" },
+  { value: "learning", labelKey: "analytics.tabLearning" },
+  { value: "subscriptions", labelKey: "analytics.tabSubscriptions" },
+];
 
 const PLATFORMS: { value: Platform; labelKey: string; fallback: string }[] = [
   { value: "all", labelKey: "analytics.platformAll", fallback: "All" },
@@ -102,15 +153,6 @@ const PLATFORM_LABELS: Record<string, string> = {
   unknown: "Server / unknown",
 };
 
-const COLORS = {
-  users: "#1d5330",
-  usersFill: "#9bd1ad",
-  events: "#3b82f6",
-  revenue: "#f59e0b",
-  bar: "#1d5330",
-};
-
-/** "tool_open" → "Tool open". */
 const humanize = (raw: string) =>
   raw
     .replace(/_/g, " ")
@@ -118,26 +160,6 @@ const humanize = (raw: string) =>
     .trim();
 
 const nfmt = (n: number | undefined) => (n ?? 0).toLocaleString();
-
-type MetricCardProps = {
-  label: string;
-  value: React.ReactNode;
-  footer?: React.ReactNode;
-  accent?: string;
-};
-
-const MetricCard = ({ label, value, footer, accent }: MetricCardProps) => (
-  <GlassCard padding="lg" className="flex flex-col gap-1">
-    <p className="text-sm font-semibold text-content-muted">{label}</p>
-    <p
-      className="text-3xl font-bold text-content-primary"
-      style={accent ? { color: accent } : undefined}
-    >
-      {value}
-    </p>
-    {footer && <p className="text-xs text-content-muted">{footer}</p>}
-  </GlassCard>
-);
 
 const ChartCard = ({
   title,
@@ -157,62 +179,62 @@ const ChartCard = ({
   </GlassCard>
 );
 
-const SegmentedControl = <T extends string | number>({
-  options,
-  value,
-  onChange,
-  ariaLabel,
+const KeyValueTable = ({
+  rows,
+  nameLabel,
+  valueLabel,
 }: {
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-  ariaLabel: string;
+  rows: [string, number][];
+  nameLabel: string;
+  valueLabel: string;
 }) => (
-  <div
-    role="group"
-    aria-label={ariaLabel}
-    className="inline-flex flex-wrap gap-1 rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)]/60 p-1"
-  >
-    {options.map((opt) => {
-      const active = opt.value === value;
-      return (
-        <button
-          key={String(opt.value)}
-          type="button"
-          aria-pressed={active}
-          onClick={() => onChange(opt.value)}
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-            active
-              ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
-              : "text-content-muted hover:text-content-primary"
-          }`}
-        >
-          {opt.label}
-        </button>
-      );
-    })}
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[320px] text-left">
+      <thead>
+        <tr className="text-xs uppercase tracking-wide text-content-muted">
+          <th className="px-3 py-2">{nameLabel}</th>
+          <th className="px-3 py-2 text-right">{valueLabel}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(([key, count]) => (
+          <tr key={key} className="border-t border-border">
+            <td className="px-3 py-2 text-sm text-content-primary">
+              {humanize(key)}
+            </td>
+            <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
+              {nfmt(count)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 );
 
 const PricingFunnelDashboard = () => {
   const { t } = useTranslation();
   const { canAdminister } = useAdmin();
+  const palette = useChartPalette();
   const [platform, setPlatform] = useState<Platform>("all");
   const [days, setDays] = useState<number>(30);
+  const [tab, setTab] = useState<Tab>("growth");
 
-  const { data, isLoading, refetch, isFetching } = useQuery<MetricsResponse>({
-    queryKey: queryKeys.pricingFunnelMetrics(platform, days),
-    enabled: canAdminister,
-    queryFn: async () => {
-      const response = await fetchFunnelMetrics({ platform, days });
-      return response.data;
-    },
-  });
+  const { data, isLoading, isError, refetch, isFetching } =
+    useQuery<MetricsResponse>({
+      queryKey: queryKeys.pricingFunnelMetrics(platform, days),
+      enabled: canAdminister,
+      queryFn: async () => {
+        const response = await fetchFunnelMetrics({ platform, days });
+        return response.data;
+      },
+    });
 
-  const summary = data?.summary || {};
-  const active = data?.active_users || {};
-  const users = data?.users || {};
-  const totals = data?.totals || {};
+  const summary = data?.summary ?? {};
+  const active = data?.active_users ?? {};
+  const users = data?.users ?? {};
+  const totals = data?.totals ?? {};
+
   const signupSeries = useMemo(
     () => data?.signups_timeseries || [],
     [data?.signups_timeseries]
@@ -221,6 +243,18 @@ const PricingFunnelDashboard = () => {
   const revenueSeries = useMemo(
     () => data?.revenue_timeseries || [],
     [data?.revenue_timeseries]
+  );
+  const onboardingSeries = useMemo(
+    () => data?.onboarding_timeseries || [],
+    [data?.onboarding_timeseries]
+  );
+  const learningSeries = useMemo(
+    () => data?.learning_timeseries || [],
+    [data?.learning_timeseries]
+  );
+  const streakSeries = useMemo(
+    () => data?.streak_distribution || [],
+    [data?.streak_distribution]
   );
   const topFeatures = useMemo(
     () =>
@@ -239,6 +273,7 @@ const PricingFunnelDashboard = () => {
     [data?.top_clicks]
   );
   const topPlans = data?.top_plans || [];
+  const engagementByPlan = data?.engagement_by_plan || [];
   const revenueByCurrency = useMemo(
     () => data?.revenue?.by_currency || [],
     [data?.revenue?.by_currency]
@@ -250,6 +285,36 @@ const PricingFunnelDashboard = () => {
       ([a], [b]) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99)
     );
   }, [data?.by_platform]);
+
+  const onboardingFunnelChart = useMemo(() => {
+    const funnel = data?.onboarding_funnel;
+    return [
+      { stage: t("analytics.funnelSignups"), count: funnel?.signups ?? 0 },
+      {
+        stage: t("analytics.funnelStarted"),
+        count: funnel?.questionnaire_started ?? 0,
+      },
+      {
+        stage: t("analytics.funnelCompleted"),
+        count: funnel?.onboarding_completed ?? 0,
+      },
+    ];
+  }, [data?.onboarding_funnel, t]);
+
+  const planRows = useMemo(
+    () =>
+      Object.entries(data?.subscription_mix?.by_plan ?? {}).sort(
+        (a, b) => b[1] - a[1]
+      ),
+    [data?.subscription_mix?.by_plan]
+  );
+  const statusRows = useMemo(
+    () =>
+      Object.entries(data?.subscription_mix?.by_status ?? {}).sort(
+        (a, b) => b[1] - a[1]
+      ),
+    [data?.subscription_mix?.by_status]
+  );
 
   const revenueLabel = useMemo(() => {
     if (revenueByCurrency.length === 0) return "—";
@@ -280,7 +345,7 @@ const PricingFunnelDashboard = () => {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-content-primary">
+            <h1 className="app-display text-2xl text-content-primary">
               {t("analytics.title")}
             </h1>
             <p className="text-sm text-content-muted">
@@ -298,9 +363,19 @@ const PricingFunnelDashboard = () => {
           </GlassButton>
         </div>
 
-        {/* Controls: platform + range */}
+        {isError && <FormNotice>{t("analytics.loadError")}</FormNotice>}
+
         <div className="flex flex-wrap items-center gap-3">
-          <SegmentedControl<Platform>
+          <AnalyticsSegmentedControl<Tab>
+            ariaLabel={t("analytics.title")}
+            value={tab}
+            onChange={setTab}
+            options={TABS.map((item) => ({
+              value: item.value,
+              label: t(item.labelKey),
+            }))}
+          />
+          <AnalyticsSegmentedControl<Platform>
             ariaLabel={t("analytics.platform")}
             value={platform}
             onChange={setPlatform}
@@ -309,7 +384,7 @@ const PricingFunnelDashboard = () => {
               label: t(p.labelKey),
             }))}
           />
-          <SegmentedControl<number>
+          <AnalyticsSegmentedControl<number>
             ariaLabel={t("analytics.range")}
             value={days}
             onChange={setDays}
@@ -320,402 +395,661 @@ const PricingFunnelDashboard = () => {
           />
         </div>
 
-        {/* New accounts (ground truth from the User table) */}
-        {isLoading ? (
-          <SkeletonGroup>
-            <Skeleton className="h-28 w-full rounded-2xl" />
-            <Skeleton className="h-28 w-full rounded-2xl" />
-          </SkeletonGroup>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              label={t("analytics.totalUsers")}
-              value={nfmt(users.total)}
-              footer={t("analytics.totalUsersFooter")}
-            />
-            <MetricCard
-              label={t("analytics.newLast24h")}
-              value={nfmt(users.new_last_1d)}
-              accent={COLORS.users}
-            />
-            <MetricCard
-              label={t("analytics.newLast7d")}
-              value={nfmt(users.new_last_7d)}
-              accent={COLORS.users}
-            />
-            <MetricCard
-              label={t("analytics.newLast30d")}
-              value={nfmt(users.new_last_30d)}
-              accent={COLORS.users}
-            />
-          </div>
-        )}
-
-        {/* New signups over time */}
-        {!isLoading && signupSeries.length > 0 && (
-          <ChartCard
-            title={t("analytics.signupsOverTime")}
-            subtitle={t("analytics.signupsOverTimeSub")}
-          >
-            <div className="h-60">
-              <ResponsiveContainer>
-                <BarChart
-                  data={signupSeries}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar
-                    dataKey="signups"
-                    name={t("analytics.signups")}
-                    fill={COLORS.users}
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartCard>
-        )}
-
-        {/* Active users (engagement, event-derived) */}
-        {isLoading ? (
-          <SkeletonGroup>
-            <Skeleton className="h-28 w-full rounded-2xl" />
-            <Skeleton className="h-28 w-full rounded-2xl" />
-          </SkeletonGroup>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              label={t("analytics.activeLast24h")}
-              value={nfmt(active.last_1d)}
-              accent={COLORS.users}
-            />
-            <MetricCard
-              label={t("analytics.activeLast7d")}
-              value={nfmt(active.last_7d)}
-              accent={COLORS.users}
-            />
-            <MetricCard
-              label={t("analytics.activeLast30d")}
-              value={nfmt(active.last_30d)}
-              accent={COLORS.users}
-            />
-            <MetricCard
-              label={t("analytics.revenue")}
-              value={revenueLabel}
-              footer={t("analytics.revenueScope")}
-              accent={COLORS.revenue}
-            />
-          </div>
-        )}
-
-        {/* Engagement totals */}
-        {!isLoading && (
-          <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard
-              label={t("analytics.totalEvents")}
-              value={nfmt(totals.events)}
-            />
-            <MetricCard
-              label={t("analytics.sessions")}
-              value={nfmt(totals.sessions)}
-            />
-            <MetricCard
-              label={t("analytics.signedInUsers")}
-              value={nfmt(totals.signed_in_users)}
-            />
-          </div>
-        )}
-
-        {/* Active users + events over time */}
-        {!isLoading && (
-          <ChartCard
-            title={t("analytics.usersOverTime")}
-            subtitle={t("analytics.usersOverTimeSub")}
-          >
-            {timeseries.length === 0 ? (
-              <p className="text-sm text-content-muted">
-                {t("analytics.noActivity")}
-              </p>
+        {tab === "growth" && !isError && (
+          <>
+            {isLoading ? (
+              <SkeletonGroup>
+                <Skeleton className="h-28 w-full rounded-2xl" />
+                <Skeleton className="h-28 w-full rounded-2xl" />
+              </SkeletonGroup>
             ) : (
-              <div className="h-72">
-                <ResponsiveContainer>
-                  <AreaChart
-                    data={timeseries}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="gUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor={COLORS.usersFill}
-                          stopOpacity={0.7}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor={COLORS.usersFill}
-                          stopOpacity={0.05}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                    <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="active_users"
-                      name={t("analytics.activeUsers")}
-                      stroke={COLORS.users}
-                      fill="url(#gUsers)"
-                      strokeWidth={2}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="events"
-                      name={t("analytics.events")}
-                      stroke={COLORS.events}
-                      fillOpacity={0}
-                      strokeWidth={1.5}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <AnalyticsMetricTile
+                  label={t("analytics.totalUsers")}
+                  value={nfmt(users.total)}
+                  footer={t("analytics.totalUsersFooter")}
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.newLast24h")}
+                  value={nfmt(users.new_last_1d)}
+                  tone="brand"
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.newLast7d")}
+                  value={nfmt(users.new_last_7d)}
+                  tone="brand"
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.newLast30d")}
+                  value={nfmt(users.new_last_30d)}
+                  tone="brand"
+                />
               </div>
             )}
-          </ChartCard>
-        )}
 
-        {/* Funnel */}
-        {!isLoading && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <MetricCard
-              label={t("analytics.pricingViews")}
-              value={nfmt(summary.pricing_views)}
-              footer={t("analytics.pricingViewsFooter")}
-            />
-            <MetricCard
-              label={t("analytics.checkoutsCreated")}
-              value={nfmt(summary.checkouts_created)}
-              footer={t("analytics.conversion", {
-                percent: summary.pricing_to_checkout_rate ?? 0,
-              })}
-            />
-            <MetricCard
-              label={t("analytics.successfulPayments")}
-              value={nfmt(summary.checkouts_completed)}
-              footer={t("analytics.conversion", {
-                percent: summary.checkout_to_paid_rate ?? 0,
-              })}
-            />
-          </div>
-        )}
+            {!isLoading && signupSeries.length > 0 && (
+              <ChartCard
+                title={t("analytics.signupsOverTime")}
+                subtitle={t("analytics.signupsOverTimeSub")}
+              >
+                <div className="h-60">
+                  <ResponsiveContainer>
+                    <BarChart
+                      data={signupSeries}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                      <Tooltip />
+                      <Bar
+                        dataKey="signups"
+                        name={t("analytics.signups")}
+                        fill={palette.brand}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </ChartCard>
+            )}
 
-        {/* Revenue over time */}
-        {!isLoading && revenueSeries.length > 0 && (
-          <ChartCard
-            title={t("analytics.revenueOverTime")}
-            subtitle={t("analytics.revenueScope")}
-          >
-            <div className="h-64">
-              <ResponsiveContainer>
-                <LineChart
-                  data={revenueSeries}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            {!isLoading && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <AnalyticsMetricTile
+                  label={t("analytics.activeLast24h")}
+                  value={nfmt(active.last_1d)}
+                  tone="brand"
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.activeLast7d")}
+                  value={nfmt(active.last_7d)}
+                  tone="brand"
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.activeLast30d")}
+                  value={nfmt(active.last_30d)}
+                  tone="brand"
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.revenue")}
+                  value={revenueLabel}
+                  footer={t("analytics.revenueScope")}
+                  tone="warning"
+                />
+              </div>
+            )}
+
+            {!isLoading && (
+              <div className="grid gap-4 sm:grid-cols-3">
+                <AnalyticsMetricTile
+                  label={t("analytics.totalEvents")}
+                  value={nfmt(totals.events)}
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.sessions")}
+                  value={nfmt(totals.sessions)}
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.signedInUsers")}
+                  value={nfmt(totals.signed_in_users)}
+                />
+              </div>
+            )}
+
+            {!isLoading && (
+              <ChartCard
+                title={t("analytics.usersOverTime")}
+                subtitle={t("analytics.usersOverTimeSub")}
+              >
+                {timeseries.length === 0 ? (
+                  <p className="text-sm text-content-muted">
+                    {t("analytics.noActivity")}
+                  </p>
+                ) : (
+                  <div className="h-72">
+                    <ResponsiveContainer>
+                      <AreaChart
+                        data={timeseries}
+                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="gUsers"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor={palette.brandSoft}
+                              stopOpacity={0.7}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor={palette.brandSoft}
+                              stopOpacity={0.05}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                        <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                        <Tooltip />
+                        <Legend />
+                        <Area
+                          type="monotone"
+                          dataKey="active_users"
+                          name={t("analytics.activeUsers")}
+                          stroke={palette.brand}
+                          fill="url(#gUsers)"
+                          strokeWidth={2}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="events"
+                          name={t("analytics.events")}
+                          stroke={palette.info}
+                          fillOpacity={0}
+                          strokeWidth={1.5}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </ChartCard>
+            )}
+
+            {!isLoading && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <AnalyticsMetricTile
+                  label={t("analytics.pricingViews")}
+                  value={nfmt(summary.pricing_views)}
+                  footer={t("analytics.pricingViewsFooter")}
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.checkoutsCreated")}
+                  value={nfmt(summary.checkouts_created)}
+                  footer={t("analytics.conversion", {
+                    percent: summary.pricing_to_checkout_rate ?? 0,
+                  })}
+                />
+                <AnalyticsMetricTile
+                  label={t("analytics.successfulPayments")}
+                  value={nfmt(summary.checkouts_completed)}
+                  footer={t("analytics.conversion", {
+                    percent: summary.checkout_to_paid_rate ?? 0,
+                  })}
+                />
+              </div>
+            )}
+
+            {!isLoading && revenueSeries.length > 0 && (
+              <ChartCard
+                title={t("analytics.revenueOverTime")}
+                subtitle={t("analytics.revenueScope")}
+              >
+                <div className="h-64">
+                  <ResponsiveContainer>
+                    <LineChart
+                      data={revenueSeries}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        name={t("analytics.revenue")}
+                        stroke={palette.warning}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </ChartCard>
+            )}
+
+            {!isLoading && (
+              <div className="grid gap-4 lg:grid-cols-2">
+                <ChartCard
+                  title={t("analytics.topFeatures")}
+                  subtitle={t("analytics.topFeaturesSub")}
                 >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="total"
-                    name={t("analytics.revenue")}
-                    stroke={COLORS.revenue}
-                    strokeWidth={2}
-                    dot={false}
+                  {topFeatures.length === 0 ? (
+                    <p className="text-sm text-content-muted">
+                      {t("analytics.noActivity")}
+                    </p>
+                  ) : (
+                    <div
+                      style={{ height: Math.max(160, topFeatures.length * 34) }}
+                    >
+                      <ResponsiveContainer>
+                        <BarChart
+                          data={topFeatures}
+                          layout="vertical"
+                          margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
+                        >
+                          <XAxis
+                            type="number"
+                            tick={{ fontSize: 11 }}
+                            allowDecimals={false}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="name"
+                            tick={{ fontSize: 11 }}
+                            width={150}
+                          />
+                          <Tooltip />
+                          <Bar
+                            dataKey="count"
+                            name={t("analytics.count")}
+                            fill={palette.brand}
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </ChartCard>
+
+                <ChartCard
+                  title={t("analytics.topClicks")}
+                  subtitle={t("analytics.topClicksSub")}
+                >
+                  {topClicks.length === 0 ? (
+                    <p className="text-sm text-content-muted">
+                      {t("analytics.noActivity")}
+                    </p>
+                  ) : (
+                    <div
+                      style={{ height: Math.max(160, topClicks.length * 34) }}
+                    >
+                      <ResponsiveContainer>
+                        <BarChart
+                          data={topClicks}
+                          layout="vertical"
+                          margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
+                        >
+                          <XAxis
+                            type="number"
+                            tick={{ fontSize: 11 }}
+                            allowDecimals={false}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="name"
+                            tick={{ fontSize: 11 }}
+                            width={150}
+                          />
+                          <Tooltip />
+                          <Bar
+                            dataKey="count"
+                            name={t("analytics.count")}
+                            fill={palette.info}
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </ChartCard>
+              </div>
+            )}
+
+            {!isLoading && topPlans.length > 0 && (
+              <ChartCard
+                title={t("analytics.topPlans")}
+                subtitle={t("analytics.topPlansSub")}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[420px] text-left">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-wide text-content-muted">
+                        <th className="px-3 py-2">{t("analytics.plan")}</th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.checkoutsCreated")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topPlans.map((p) => (
+                        <tr key={p.plan} className="border-t border-border">
+                          <td className="px-3 py-2 text-sm text-content-primary">
+                            {humanize(p.plan)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
+                            {nfmt(p.count)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </ChartCard>
+            )}
+
+            {!isLoading && platformRows.length > 0 && (
+              <ChartCard
+                title={t("analytics.platformSplit")}
+                subtitle={t("analytics.platformSplitSubtitle")}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] text-left">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-wide text-content-muted">
+                        <th className="px-3 py-2">{t("analytics.platform")}</th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.activeUsers")}
+                        </th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.events")}
+                        </th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.pricingViews")}
+                        </th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.successfulPayments")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {platformRows.map(([key, row]) => (
+                        <tr key={key} className="border-t border-border">
+                          <td className="px-3 py-2 text-sm font-semibold text-content-primary">
+                            {PLATFORM_LABELS[key] ?? humanize(key)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm text-content-primary">
+                            {nfmt(row.active_users)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm text-content-primary">
+                            {nfmt(row.events)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm text-content-primary">
+                            {nfmt(row.pricing_views)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
+                            {nfmt(row.checkouts_completed)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </ChartCard>
+            )}
+          </>
+        )}
+
+        {tab === "learning" && !isLoading && !isError && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <AnalyticsMetricTile
+                label={t("analytics.funnelCompleted")}
+                value={nfmt(data?.onboarding_funnel?.onboarding_completed)}
+                footer={t("analytics.conversion", {
+                  percent:
+                    data?.onboarding_funnel?.signup_to_completed_rate ?? 0,
+                })}
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.activatedUsers")}
+                value={nfmt(data?.activation?.activated)}
+                footer={t("analytics.activationRateSub")}
+                tone="accent"
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.activationRate")}
+                value={`${data?.activation?.activation_rate ?? 0}%`}
+                tone="accent"
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.atRiskUsers")}
+                value={nfmt(data?.at_risk?.count)}
+                footer={data?.at_risk?.description}
+                tone="error"
+              />
+            </div>
+
+            <ChartCard
+              title={t("analytics.onboardingFunnel")}
+              subtitle={t("analytics.onboardingFunnelSub")}
+            >
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart
+                    data={onboardingFunnelChart}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="stage" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar
+                      dataKey="count"
+                      name={t("analytics.count")}
+                      fill={palette.brand}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+
+            {onboardingSeries.length > 0 && (
+              <ChartCard
+                title={t("analytics.onboardingOverTime")}
+                subtitle={t("analytics.onboardingOverTimeSub")}
+              >
+                <div className="h-60">
+                  <ResponsiveContainer>
+                    <LineChart data={onboardingSeries}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="completions"
+                        name={t("analytics.completions")}
+                        stroke={palette.brand}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </ChartCard>
+            )}
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <AnalyticsMetricTile
+                label={t("analytics.medianDaysToLesson")}
+                value={
+                  data?.activation?.median_days_to_first_lesson != null
+                    ? data.activation.median_days_to_first_lesson
+                    : "—"
+                }
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.activatedWithin1d")}
+                value={nfmt(data?.activation?.activated_within_1d)}
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.activatedWithin7d")}
+                value={nfmt(data?.activation?.activated_within_7d)}
+              />
+            </div>
+
+            <ChartCard
+              title={t("analytics.streakDistribution")}
+              subtitle={t("analytics.streakDistributionSub")}
+            >
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart data={streakSeries}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="bucket" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar
+                      dataKey="count"
+                      name={t("analytics.usersCount")}
+                      fill={palette.accent}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+
+            <ChartCard
+              title={t("analytics.learningOverTime")}
+              subtitle={t("analytics.learningOverTimeSub")}
+            >
+              {learningSeries.length === 0 ? (
+                <p className="text-sm text-content-muted">
+                  {t("analytics.noActivity")}
+                </p>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer>
+                    <AreaChart data={learningSeries}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                      <Tooltip />
+                      <Area
+                        type="monotone"
+                        dataKey="learners"
+                        name={t("analytics.learners")}
+                        stroke={palette.accent}
+                        fill={palette.accent}
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </ChartCard>
+          </>
+        )}
+
+        {tab === "subscriptions" && !isLoading && !isError && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <AnalyticsMetricTile
+                label={t("analytics.premiumAccounts")}
+                value={nfmt(data?.subscription_mix?.premium)}
+                tone="warning"
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.paidAccounts")}
+                value={nfmt(data?.subscription_mix?.has_paid)}
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.premiumRate")}
+                value={`${data?.subscription_mix?.premium_rate ?? 0}%`}
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.totalUsers")}
+                value={nfmt(data?.subscription_mix?.total_profiles)}
+              />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ChartCard
+                title={t("analytics.planBreakdown")}
+                subtitle={t("analytics.subscriptionMixSub")}
+              >
+                {planRows.length === 0 ? (
+                  <p className="text-sm text-content-muted">
+                    {t("analytics.noActivity")}
+                  </p>
+                ) : (
+                  <KeyValueTable
+                    rows={planRows}
+                    nameLabel={t("analytics.plan")}
+                    valueLabel={t("analytics.usersCount")}
                   />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartCard>
-        )}
+                )}
+              </ChartCard>
 
-        {/* Top features + clicks */}
-        {!isLoading && (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ChartCard
-              title={t("analytics.topFeatures")}
-              subtitle={t("analytics.topFeaturesSub")}
-            >
-              {topFeatures.length === 0 ? (
-                <p className="text-sm text-content-muted">
-                  {t("analytics.noActivity")}
-                </p>
-              ) : (
-                <div style={{ height: Math.max(160, topFeatures.length * 34) }}>
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={topFeatures}
-                      layout="vertical"
-                      margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
-                    >
-                      <XAxis
-                        type="number"
-                        tick={{ fontSize: 11 }}
-                        allowDecimals={false}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="name"
-                        tick={{ fontSize: 11 }}
-                        width={150}
-                      />
-                      <Tooltip />
-                      <Bar
-                        dataKey="count"
-                        name={t("analytics.count")}
-                        fill={COLORS.bar}
-                        radius={[0, 4, 4, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+              <ChartCard
+                title={t("analytics.statusBreakdown")}
+                subtitle={t("analytics.subscriptionMixSub")}
+              >
+                {statusRows.length === 0 ? (
+                  <p className="text-sm text-content-muted">
+                    {t("analytics.noActivity")}
+                  </p>
+                ) : (
+                  <KeyValueTable
+                    rows={statusRows}
+                    nameLabel={t("analytics.statusLabel")}
+                    valueLabel={t("analytics.usersCount")}
+                  />
+                )}
+              </ChartCard>
+            </div>
+
+            {engagementByPlan.length > 0 && (
+              <ChartCard
+                title={t("analytics.engagementByPlan")}
+                subtitle={t("analytics.engagementByPlanSub")}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[520px] text-left">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-wide text-content-muted">
+                        <th className="px-3 py-2">{t("analytics.plan")}</th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.usersCount")}
+                        </th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.avgStreak")}
+                        </th>
+                        <th className="px-3 py-2 text-right">
+                          {t("analytics.totalEarned")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {engagementByPlan.map((row) => (
+                        <tr key={row.plan} className="border-t border-border">
+                          <td className="px-3 py-2 text-sm text-content-primary">
+                            {humanize(row.plan)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm text-content-primary">
+                            {nfmt(row.users)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm text-content-primary">
+                            {row.avg_streak}
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
+                            {row.total_earned_money.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title={t("analytics.topClicks")}
-              subtitle={t("analytics.topClicksSub")}
-            >
-              {topClicks.length === 0 ? (
-                <p className="text-sm text-content-muted">
-                  {t("analytics.noActivity")}
-                </p>
-              ) : (
-                <div style={{ height: Math.max(160, topClicks.length * 34) }}>
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={topClicks}
-                      layout="vertical"
-                      margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
-                    >
-                      <XAxis
-                        type="number"
-                        tick={{ fontSize: 11 }}
-                        allowDecimals={false}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="name"
-                        tick={{ fontSize: 11 }}
-                        width={150}
-                      />
-                      <Tooltip />
-                      <Bar
-                        dataKey="count"
-                        name={t("analytics.count")}
-                        fill={COLORS.events}
-                        radius={[0, 4, 4, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </ChartCard>
-          </div>
+              </ChartCard>
+            )}
+          </>
         )}
 
-        {/* What they're spending on (plans) */}
-        {!isLoading && topPlans.length > 0 && (
-          <ChartCard
-            title={t("analytics.topPlans")}
-            subtitle={t("analytics.topPlansSub")}
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[420px] text-left">
-                <thead>
-                  <tr className="text-xs uppercase tracking-wide text-content-muted">
-                    <th className="px-3 py-2">{t("analytics.plan")}</th>
-                    <th className="px-3 py-2 text-right">
-                      {t("analytics.checkoutsCreated")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topPlans.map((p) => (
-                    <tr
-                      key={p.plan}
-                      className="border-t border-[color:var(--color-border-default)]"
-                    >
-                      <td className="px-3 py-2 text-sm text-content-primary">
-                        {humanize(p.plan)}
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
-                        {nfmt(p.count)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ChartCard>
-        )}
-
-        {/* Platform comparison (always all platforms) */}
-        {!isLoading && platformRows.length > 0 && (
-          <ChartCard
-            title={t("analytics.platformSplit")}
-            subtitle={t("analytics.platformSplitSubtitle")}
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-left">
-                <thead>
-                  <tr className="text-xs uppercase tracking-wide text-content-muted">
-                    <th className="px-3 py-2">{t("analytics.platform")}</th>
-                    <th className="px-3 py-2 text-right">
-                      {t("analytics.activeUsers")}
-                    </th>
-                    <th className="px-3 py-2 text-right">
-                      {t("analytics.events")}
-                    </th>
-                    <th className="px-3 py-2 text-right">
-                      {t("analytics.pricingViews")}
-                    </th>
-                    <th className="px-3 py-2 text-right">
-                      {t("analytics.successfulPayments")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {platformRows.map(([key, row]) => (
-                    <tr
-                      key={key}
-                      className="border-t border-[color:var(--color-border-default)]"
-                    >
-                      <td className="px-3 py-2 text-sm font-semibold text-content-primary">
-                        {PLATFORM_LABELS[key] ?? humanize(key)}
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm text-content-primary">
-                        {nfmt(row.active_users)}
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm text-content-primary">
-                        {nfmt(row.events)}
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm text-content-primary">
-                        {nfmt(row.pricing_views)}
-                      </td>
-                      <td className="px-3 py-2 text-right text-sm font-semibold text-content-primary">
-                        {nfmt(row.checkouts_completed)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ChartCard>
+        {(tab === "learning" || tab === "subscriptions") && isLoading && (
+          <SkeletonGroup>
+            <Skeleton className="h-28 w-full rounded-2xl" />
+            <Skeleton className="h-72 w-full rounded-2xl" />
+          </SkeletonGroup>
         )}
       </div>
     </section>

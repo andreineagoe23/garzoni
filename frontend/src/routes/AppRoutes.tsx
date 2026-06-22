@@ -151,6 +151,10 @@ const AppRoutes = () => {
       />
       <Route path="/missions" element={protectedWithBoundary(<Missions />)} />
       <Route
+        path="/analytics"
+        element={protectedWithBoundary(<PricingFunnelDashboard />)}
+      />
+      <Route
         path="/pricing-dashboard"
         element={protectedWithBoundary(<PricingFunnelDashboard />)}
       />

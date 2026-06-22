@@ -119,6 +119,12 @@ class UserProfile(models.Model):
     # e.g. accounts created before this was tracked). Powers the new-signups-by-
     # platform split in the admin analytics dashboard. Reporting-only.
     signup_platform = models.CharField(max_length=16, blank=True, default="")
+    # Last client seen on an authenticated request (updated at login + throttled middleware).
+    last_seen_platform = models.CharField(max_length=16, blank=True, default="")
+    # Set when onboarding questionnaire completes; powers signup → onboarding funnel.
+    onboarding_completed_at = models.DateTimeField(null=True, blank=True)
+    # First lesson completion timestamp; powers time-to-activate metrics.
+    first_lesson_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username

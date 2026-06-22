@@ -5,12 +5,18 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_in
 from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from authentication.models import UserEmailPreference, UserProfile
+from authentication.services.profile_analytics import (
+    sync_last_login_date,
+    update_last_seen_platform,
+)
 from authentication.tasks import send_welcome_email
+from core.request_platform import resolve_request_platform
 from core.utils import normalize_text_encoding
 from notifications.tasks import safe_enqueue_sync_user_to_customer_io
 
@@ -36,13 +42,16 @@ def normalize_user_identity_fields(sender, instance, **kwargs):
 
     if instance.pk:
         try:
-            prev = User.objects.only(*_CIO_SYNC_FIELDS).get(pk=instance.pk)
+            prev = User.objects.only(*_CIO_SYNC_FIELDS, "last_login").get(pk=instance.pk)
         except User.DoesNotExist:
             instance._cio_prev_identity = None
+            instance._profile_prev_last_login = None
         else:
             instance._cio_prev_identity = {f: getattr(prev, f, "") for f in _CIO_SYNC_FIELDS}
+            instance._profile_prev_last_login = prev.last_login
     else:
         instance._cio_prev_identity = None
+        instance._profile_prev_last_login = None
 
 
 @receiver(post_save, sender=User)
@@ -122,6 +131,9 @@ def create_user_profile(sender, instance, created, **kwargs):
 
     # Update path: re-push identify if any tracked identity field actually changed.
     prev = getattr(instance, "_cio_prev_identity", None)
+    prev_login = getattr(instance, "_profile_prev_last_login", None)
+    if instance.last_login and instance.last_login != prev_login:
+        sync_last_login_date(instance, when=instance.last_login)
     if not prev:
         return
     changed = any((prev.get(f) or "") != (getattr(instance, f, "") or "") for f in _CIO_SYNC_FIELDS)
@@ -143,6 +155,16 @@ def create_user_profile(sender, instance, created, **kwargs):
         threading.Thread(target=_dispatch, daemon=True).start()
 
     transaction.on_commit(_enqueue_cio_update_sync)
+
+
+@receiver(user_logged_in)
+def sync_profile_login_analytics(sender, request, user, **kwargs):
+    """Mirror last login date and last seen platform on every successful login."""
+    sync_last_login_date(user)
+    if request:
+        platform = resolve_request_platform(request)
+        if platform:
+            update_last_seen_platform(user, platform)
 
 
 @receiver(post_save, sender=UserEmailPreference)

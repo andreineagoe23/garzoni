@@ -78,7 +78,7 @@ function Navbar() {
         ? [
             ...NAV_ITEMS,
             {
-              path: "/pricing-dashboard",
+              path: "/analytics",
               key: "nav.conversions",
               icon: "📈",
               label: "Analytics",

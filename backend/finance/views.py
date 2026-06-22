@@ -3778,8 +3778,33 @@ class FunnelMetricsView(APIView):
                 "revenue_timeseries": revenue_timeseries,
                 "timeseries": timeseries,
                 "by_platform": by_platform,
+                **self._learning_and_subscription_metrics(since=since, platform=platform),
             }
         )
+
+    @staticmethod
+    def _learning_and_subscription_metrics(*, since, platform: str) -> dict:
+        from authentication.services.analytics_metrics import (
+            build_activation_metrics,
+            build_at_risk,
+            build_engagement_by_plan,
+            build_learning_timeseries,
+            build_onboarding_funnel,
+            build_onboarding_timeseries,
+            build_streak_distribution,
+            build_subscription_mix,
+        )
+
+        return {
+            "onboarding_funnel": build_onboarding_funnel(since=since, platform=platform),
+            "onboarding_timeseries": build_onboarding_timeseries(since=since, platform=platform),
+            "activation": build_activation_metrics(since=since, platform=platform),
+            "subscription_mix": build_subscription_mix(platform=platform),
+            "streak_distribution": build_streak_distribution(platform=platform),
+            "at_risk": build_at_risk(platform=platform),
+            "engagement_by_plan": build_engagement_by_plan(platform=platform),
+            "learning_timeseries": build_learning_timeseries(since=since, platform=platform),
+        }
 
 
 _PLUS_REQUIRED = {"error": "Requires Plus or Pro plan.", "reason": "upgrade"}

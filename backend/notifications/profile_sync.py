@@ -66,15 +66,23 @@ def build_identify_traits(user: User) -> dict[str, Any]:
         traits["streak_alerts_opt_in"] = bool(prefs.streak_alerts)
         traits["reminder_frequency"] = prefs.reminder_frequency or "weekly"
         traits["push_opt_in"] = bool(getattr(prefs, "push_notifications", True))
-    # Onboarding + lesson progress drive the Welcome journey branches in CIO
-    # (campaign 1: branches on onboarding_completed and lessons_completed).
-    try:
-        from onboarding.models import QuestionnaireProgress
+    if profile is not None:
+        if profile.onboarding_completed_at:
+            traits["onboarding_completed"] = True
+        else:
+            try:
+                from onboarding.models import QuestionnaireProgress
 
-        traits["onboarding_completed"] = QuestionnaireProgress.objects.filter(
-            user=user, status="completed"
-        ).exists()
-    except Exception:
+                traits["onboarding_completed"] = QuestionnaireProgress.objects.filter(
+                    user=user, status="completed"
+                ).exists()
+            except Exception:
+                traits["onboarding_completed"] = False
+        if profile.first_lesson_at:
+            traits["first_lesson_at"] = int(profile.first_lesson_at.timestamp())
+        if profile.last_seen_platform:
+            traits["last_seen_platform"] = profile.last_seen_platform
+    else:
         traits["onboarding_completed"] = False
     try:
         from education.models import LessonCompletion

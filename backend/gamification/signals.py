@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from gamification.models import Mission, MultiStepMission, MultiStepMissionProgress
 from gamification.services.mission_cycles import get_or_create_current_mission_completion
@@ -91,8 +92,10 @@ if LessonCompletion is not None:
         # next regular identify; avoid hammering CIO per lesson.
         try:
             if LessonCompletion.objects.filter(user_progress__user=user).count() == 1:
+                from authentication.services.profile_analytics import mark_first_lesson
                 from notifications.tasks import safe_enqueue_sync_user_to_customer_io
 
+                mark_first_lesson(user, when=timezone.now())
                 safe_enqueue_sync_user_to_customer_io(user.id)
         except Exception:
             pass
