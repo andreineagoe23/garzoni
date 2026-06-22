@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { GlassButton, GlassCard, Modal } from "components/ui";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
@@ -91,7 +91,7 @@ const SubscriptionManager = () => {
   // ───────────────────────────────────────────────────────────────────────────
 
   const getErrorMessage = (error: unknown, fallback: string) => {
-    if (axios.isAxiosError(error)) {
+    if (isAxiosError(error)) {
       return (
         error.response?.data?.error || error.response?.data?.detail || fallback
       );

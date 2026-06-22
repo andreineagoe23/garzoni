@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Trans, useTranslation } from "react-i18next";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "components/layout/Header";
@@ -153,7 +153,7 @@ function Register() {
       });
       if (result.success) return;
     } catch (registerError) {
-      if (axios.isAxiosError(registerError)) {
+      if (isAxiosError(registerError)) {
         const data = registerError.response?.data;
         const detail =
           typeof data?.detail === "string"

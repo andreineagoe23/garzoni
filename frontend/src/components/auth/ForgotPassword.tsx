@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/logo/logo.svg";
@@ -27,7 +27,7 @@ function ForgotPassword() {
       const response = await requestPasswordReset(email);
       setMessage(response.data.message || t("auth.forgotPassword.success"));
     } catch (requestError) {
-      if (axios.isAxiosError(requestError)) {
+      if (isAxiosError(requestError)) {
         setError(
           requestError.response?.data?.error ||
             requestError.response?.data?.detail ||

@@ -88,5 +88,13 @@ module.exports = tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",
     },
+  },
+  {
+    // Tests legitimately mock shared deps (e.g. vi.mock("axios")) to drive the
+    // code under test — the dep guard doesn't apply to them.
+    files: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": "off",
+    },
   }
 );

@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { useAuth } from "contexts/AuthContext";
 import PageContainer from "components/common/PageContainer";
 import CourseList from "./CourseList";
@@ -40,9 +40,8 @@ function CoursePage() {
     enabled: Boolean(pathId),
   });
 
-  const accessDenied =
-    axios.isAxiosError(error) && error.response?.status === 403;
-  const requiredPlan = axios.isAxiosError(error)
+  const accessDenied = isAxiosError(error) && error.response?.status === 403;
+  const requiredPlan = isAxiosError(error)
     ? error.response?.data?.required_plan
     : null;
   const errorMessage = accessDenied

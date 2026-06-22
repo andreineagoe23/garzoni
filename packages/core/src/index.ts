@@ -17,6 +17,9 @@ export {
   HTTP_CLIENT_SESSION_EXPIRED_REASON,
 } from "./services/httpClient";
 export { default as apiClient } from "./services/httpClient";
+// Re-export so app code can type-narrow API errors without importing axios
+// directly (axios is owned by the core http layer).
+export { isAxiosError } from "axios";
 
 export * from "./services/authService";
 export * from "./services/userService";

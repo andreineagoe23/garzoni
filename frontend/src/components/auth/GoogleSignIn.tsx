@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import apiClient from "services/httpClient";
 import { GOOGLE_OAUTH_CLIENT_ID } from "services/backendUrl";
 import { useTheme } from "contexts/ThemeContext";
@@ -125,8 +125,7 @@ export default function GoogleSignIn({
         }
       } catch (err: unknown) {
         const msg =
-          axios.isAxiosError(err) &&
-          typeof err.response?.data?.detail === "string"
+          isAxiosError(err) && typeof err.response?.data?.detail === "string"
             ? err.response.data.detail
             : ((err as Error)?.message ?? "Google sign-in failed.");
         onError(msg);

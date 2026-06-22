@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -175,7 +175,7 @@ function QuizPage() {
       console.error("Error submitting answer:", err);
       setFeedbackCorrect(false);
       setMascotRotationKey((n) => n + 1);
-      if (axios.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         setFeedback(
           (err.response?.data as { message?: string })?.message ??
             t("shared.somethingWentWrong")

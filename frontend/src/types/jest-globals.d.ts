@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /** Global `jest` is assigned from `vi` in setupTests.ts (CRA → Vitest migration). */
 
 declare global {

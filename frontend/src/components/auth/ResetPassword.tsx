@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { confirmPasswordReset } from "services/authService";
 import { useParams, useNavigate } from "react-router-dom";
 import FormNotice from "components/common/FormNotice";
@@ -43,7 +43,7 @@ function ResetPassword() {
       );
       setTimeout(() => navigate("/login"), 2500);
     } catch (resetError) {
-      if (axios.isAxiosError(resetError)) {
+      if (isAxiosError(resetError)) {
         setError(
           resetError.response?.data?.message ||
             resetError.response?.data?.error ||

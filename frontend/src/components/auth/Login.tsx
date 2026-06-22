@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
+import { isAxiosError } from "@garzoni/core";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 import Header from "components/layout/Header";
@@ -138,7 +138,7 @@ function Login() {
       });
       if (result.success) return;
     } catch (loginError) {
-      if (axios.isAxiosError(loginError)) {
+      if (isAxiosError(loginError)) {
         const data = loginError.response?.data;
         const msg =
           (typeof data?.detail === "string" ? data.detail : null) ||

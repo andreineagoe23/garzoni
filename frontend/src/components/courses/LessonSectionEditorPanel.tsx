@@ -74,7 +74,6 @@ const RichTextEditor = ({
           onChangeRef.current?.(data);
         });
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("CKEditor failed to initialize", err);
         if (cancelled) return;
         setLoadError(t("courses.editor.loadFailed"));
