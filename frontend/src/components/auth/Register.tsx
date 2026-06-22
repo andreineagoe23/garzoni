@@ -12,6 +12,7 @@ import apiClient from "services/httpClient";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
 import { peekPendingReferralCode } from "utils/pendingReferral";
+import FormNotice from "components/common/FormNotice";
 
 type ReferralValidationState = "idle" | "checking" | "valid" | "invalid";
 
@@ -210,10 +211,7 @@ function Register() {
             </div>
 
             {errorMessage && (
-              <div
-                role="alert"
-                className="mt-6 space-y-2 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
-              >
+              <FormNotice variant="error" className="mt-6 space-y-2">
                 <p>{errorMessage}</p>
                 {errorCode && (
                   <p className="text-xs opacity-80">Error code: {errorCode}</p>
@@ -227,7 +225,7 @@ function Register() {
                     {t("auth.register.tryGoogleHint")}
                   </p>
                 )}
-              </div>
+              </FormNotice>
             )}
 
             <form onSubmit={handleRegister} className="mt-8 space-y-6">
@@ -335,7 +333,7 @@ function Register() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--primary,#1d5330)]"
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--color-brand-primary)]"
                     aria-label={
                       showPassword
                         ? t("auth.login.hidePassword")
@@ -373,10 +371,10 @@ function Register() {
                   <p
                     className={`text-xs ${
                       referralValidationState === "valid"
-                        ? "text-[color:var(--primary-bright,#2a7347)]"
+                        ? "text-[color:var(--color-brand-primary-hover)]"
                         : referralValidationState === "checking"
                           ? "text-content-muted"
-                          : "text-[color:var(--error,#dc2626)]"
+                          : "text-[color:var(--color-state-error)]"
                     }`}
                   >
                     {referralValidationState === "checking"
@@ -397,7 +395,7 @@ function Register() {
                   required
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
                 />
                 <span>
                   <Trans
@@ -439,7 +437,7 @@ function Register() {
                   required
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
                 />
                 <span>{t("auth.register.ageConfirm")}</span>
               </label>
@@ -454,7 +452,7 @@ function Register() {
                   type="checkbox"
                   checked={marketingOptIn}
                   onChange={(e) => setMarketingOptIn(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--primary,#1d5330)] focus:ring-[color:var(--primary,#1d5330)]/30"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--border-color)] text-[color:var(--color-brand-primary)] focus:ring-[color:var(--color-brand-primary)]/30"
                 />
                 <span>{t("auth.register.marketingOptIn")}</span>
               </label>
@@ -527,7 +525,7 @@ function Register() {
               <button
                 type="button"
                 onClick={() => navigate("/login")}
-                className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary,#1d5330)]/80"
+                className="font-semibold text-[color:var(--color-brand-primary)] transition hover:text-[color:var(--color-brand-primary)]/80"
               >
                 {t("auth.register.loginHere")}
               </button>

@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { confirmPasswordReset } from "services/authService";
 import { useParams, useNavigate } from "react-router-dom";
+import FormNotice from "components/common/FormNotice";
+
 function ResetPassword() {
   const { t } = useTranslation();
   const { uidb64, token } = useParams();
@@ -57,7 +59,7 @@ function ResetPassword() {
 
   return (
     <div className="app-page flex items-center justify-center px-6 py-12 sm:px-8">
-      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#1d5330)]/30 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/30 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(29,83,48,0.35),_transparent_55%)] pointer-events-none" />
 
       <div
@@ -77,23 +79,15 @@ function ResetPassword() {
         </div>
 
         {message && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="mb-6 rounded-lg border border-[color:var(--primary-bright,#2a7347)]/50 bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)]"
-          >
+          <FormNotice variant="success" className="mb-6">
             {message}
-          </div>
+          </FormNotice>
         )}
 
         {error && (
-          <div
-            role="alert"
-            aria-live="assertive"
-            className="mb-6 rounded-lg border border-[color:var(--error,#ef4444)]/40 bg-[color:var(--error,#ef4444)]/10 px-4 py-3 text-sm text-[color:var(--error,#ef4444)]"
-          >
+          <FormNotice variant="error" className="mb-6">
             {error}
-          </div>
+          </FormNotice>
         )}
 
         <form onSubmit={handleResetPassword} className="space-y-6">
@@ -136,7 +130,7 @@ function ResetPassword() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#1d5330)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#1d5330)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#1d5330)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#1d5330)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--color-brand-primary)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/40 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting
               ? t("auth.resetPassword.submitting")

@@ -11,7 +11,7 @@ export default function WhyThisMatters({ toolSlug }: Props) {
   if (!hook) return null;
 
   return (
-    <div className="app-card border border-[color:var(--primary,#1d5330)]/15 bg-[color:var(--primary,#1d5330)]/5 p-4">
+    <div className="app-card border border-[color:var(--color-brand-primary)]/15 bg-[color:var(--color-brand-primary)]/5 p-4">
       <p className="app-eyebrow mb-1">{hook.title}</p>
       <p className="text-sm text-content-muted">{hook.explainer}</p>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -23,7 +23,7 @@ export default function WhyThisMatters({ toolSlug }: Props) {
               source: "why_this_matters",
             })
           }
-          className="rounded-full border border-[color:var(--primary,#1d5330)]/30 px-3 py-1.5 text-xs font-semibold text-[color:var(--primary-bright,#2a7347)] transition hover:bg-[color:var(--primary,#1d5330)] hover:text-white"
+          className="rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary-hover)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white"
         >
           Learn the concept
         </Link>
@@ -35,7 +35,7 @@ export default function WhyThisMatters({ toolSlug }: Props) {
               source: "why_this_matters",
             })
           }
-          className="rounded-full bg-[color:var(--primary,#1d5330)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
+          className="rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
         >
           Practice this skill
         </Link>

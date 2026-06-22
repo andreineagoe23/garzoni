@@ -11,6 +11,7 @@ import { useRecaptcha } from "contexts/RecaptchaContext";
 import { GlassButton } from "components/ui";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
+import FormNotice from "components/common/FormNotice";
 
 function Login() {
   const { t } = useTranslation();
@@ -177,15 +178,12 @@ function Login() {
             </div>
 
             {error && (
-              <div
-                role="alert"
-                className="mt-6 space-y-1 rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
-              >
+              <FormNotice variant="error" className="mt-6 space-y-1">
                 <p>{error}</p>
                 {errorCode && (
                   <p className="text-xs opacity-80">Error code: {errorCode}</p>
                 )}
-              </div>
+              </FormNotice>
             )}
 
             <form onSubmit={handleLogin} className="mt-8 space-y-6">
@@ -231,7 +229,7 @@ function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--primary-bright,#2a7347)]"
+                    className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-content-muted transition hover:text-[color:var(--color-brand-primary-hover)]"
                     aria-label={
                       showPassword
                         ? t("auth.login.hidePassword")
@@ -250,14 +248,14 @@ function Login() {
                     name="remember_me"
                     checked={formData.remember_me}
                     onChange={handleChange}
-                    className="h-4 w-4 rounded border-[color:var(--border-color,#d1d5db)] text-[color:var(--primary,#1d5330)] focus:ring-[#2a7347]/30"
+                    className="h-4 w-4 rounded border-[color:var(--color-border-default)] text-[color:var(--color-brand-primary)] focus:ring-[#2a7347]/30"
                   />
                   {t("auth.login.rememberMe")}
                 </label>
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
-                  className="text-sm font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary-bright,#2a7347)]"
+                  className="text-sm font-semibold text-[color:var(--color-brand-primary)] transition hover:text-[color:var(--color-brand-primary-hover)]"
                 >
                   {t("auth.login.forgotPassword")}
                 </button>
@@ -320,7 +318,7 @@ function Login() {
               <button
                 type="button"
                 onClick={() => navigate("/register")}
-                className="font-semibold text-[color:var(--primary,#1d5330)] transition hover:text-[color:var(--primary-bright,#2a7347)]"
+                className="font-semibold text-[color:var(--color-brand-primary)] transition hover:text-[color:var(--color-brand-primary-hover)]"
               >
                 {t("auth.login.signUpNow")}
               </button>

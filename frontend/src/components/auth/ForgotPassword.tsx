@@ -5,6 +5,7 @@ import axios from "axios";
 import { requestPasswordReset } from "services/authService";
 import { useNavigate } from "react-router-dom";
 import logo from "assets/logo/logo.svg";
+import FormNotice from "components/common/FormNotice";
 
 function ForgotPassword() {
   const { t } = useTranslation();
@@ -47,7 +48,7 @@ function ForgotPassword() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="relative flex min-h-screen items-center justify-center bg-[color:var(--bg-color,#0f172a)] transition-colors">
-        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary,#2563eb)]/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/20 via-transparent to-transparent" />
         <div className="relative w-full max-w-lg px-6 py-12 sm:px-10">
           <div
             className="app-card flex flex-col items-center px-6 py-10"
@@ -70,23 +71,15 @@ function ForgotPassword() {
             </p>
 
             {message && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="mt-6 w-full rounded-lg border border-[color:var(--primary-bright,#2a7347)]/50 bg-[color:var(--primary-soft,rgba(29,83,48,0.10))] px-4 py-3 text-sm text-[color:var(--primary-bright,#2a7347)]"
-              >
+              <FormNotice variant="success" className="mt-6 w-full">
                 {message}
-              </div>
+              </FormNotice>
             )}
 
             {error && (
-              <div
-                role="alert"
-                aria-live="assertive"
-                className="mt-6 w-full rounded-lg border border-[color:var(--error,#dc2626)]/40 bg-[color:var(--error,#dc2626)]/10 px-4 py-3 text-sm text-[color:var(--error,#dc2626)]"
-              >
+              <FormNotice variant="error" className="mt-6 w-full">
                 {error}
-              </div>
+              </FormNotice>
             )}
 
             <form
@@ -114,7 +107,7 @@ function ForgotPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--primary,#2563eb)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--primary,#2563eb)]/40 transition hover:shadow-xl hover:shadow-[color:var(--primary,#2563eb)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--primary,#2563eb)] disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex w-full items-center justify-center rounded-lg bg-[color:var(--color-brand-primary)] px-5 py-3 text-base font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/40 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoading
                   ? t("auth.forgotPassword.submitting")
