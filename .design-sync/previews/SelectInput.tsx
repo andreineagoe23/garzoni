@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { SelectInput } from "@garzoni/web";
 
 const Stage = ({ children }: { children: React.ReactNode }) => (
-  <div data-theme="dark" style={{ background: "#0b0f14", padding: 28, maxWidth: 380 }}>
+  <div
+    data-theme="dark"
+    style={{ background: "#0b0f14", padding: 28, maxWidth: 380 }}
+  >
     {children}
   </div>
 );
@@ -18,7 +21,13 @@ export const Default = () => {
   const [value, setValue] = useState("painter");
   return (
     <Stage>
-      <SelectInput id="trade" label="Trade" value={value} onChange={setValue} options={trades} />
+      <SelectInput
+        id="trade"
+        label="Trade"
+        value={value}
+        onChange={setValue}
+        options={trades}
+      />
     </Stage>
   );
 };

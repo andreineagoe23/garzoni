@@ -1,6 +1,7 @@
 # design-sync notes — Garzoni Design System
 
 ## What is synced
+
 - Source is the **app** `@garzoni/web` (frontend/), NOT a component library. Scope = the
   6 primitives in `frontend/src/components/ui/` (GlassButton, GlassCard, GlassContainer,
   TextInput, SelectInput, Modal — the exports in `ui/index.ts`).
@@ -8,6 +9,7 @@
 - No library dist; the bundle is built via `--entry frontend/src/components/ui/index.ts`.
 
 ## Build invariants
+
 - `frontend/.storybook/` exists but has **zero stories** → shape forced to `package`
   (`cfg.shape`), not storybook.
 - Build cmd (must run first, produces `frontend/dist/`): `pnpm -F @garzoni/web build`.
@@ -16,6 +18,7 @@
   `node .ds-sync/package-build.mjs --config .design-sync/config.json --node-modules frontend/node_modules --entry frontend/src/components/ui/index.ts --out ./ds-bundle`
 
 ## Styling
+
 - Components use custom Tailwind theme classes (`bg-surface-card`, `text-brand-primary`,
   `text-state-error`, …) → CSS vars in `frontend/src/styles/brand.css` + `app-theme.css`.
 - `cfg.cssEntry = frontend/dist/assets/index-<hash>.css` — the compiled **app** CSS
@@ -31,17 +34,20 @@
   `cfg.overrides.Modal.cardMode=single`, `primaryStory=Open`, `viewport=640x420`.
 
 ## Fonts
+
 - Inter + JetBrains Mono are served at runtime from Google Fonts (`<link>` in `index.html`).
 - Shipped via `cfg.extraFonts = ../.design-sync/assets/fonts.css` — 40 `@font-face` rules
   with **remote gstatic woff2 src** (fetched from fonts.googleapis.com css2). Fonts load from
   the gstatic CDN at render time, same as the real app. Needs render-env internet egress.
 
 ## Known render warns (triaged — do not chase)
+
 - `[FONT_MISSING] "source-code-pro"` — accepted. Generic monospace **fallback** name in
   `src/index.css`'s mono stack (`source-code-pro, Menlo, Monaco, …`), not a real brand font.
   System mono renders fine.
 
 ## Re-sync risks
+
 - **cssEntry hashed filename rots**: `dist/assets/index-*.css` changes on every `vite build`.
   If a re-sync warns `[CSS_PLACEHOLDER]`/missing, update `cfg.cssEntry` to the new
   `dist/assets/index-*.css` (largest one). Requires `pnpm -F @garzoni/web build` first.

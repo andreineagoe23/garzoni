@@ -11,8 +11,9 @@ export const Open = () => {
   return (
     <Modal isOpen title="End apprenticeship contract?" onClose={() => {}}>
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-        This records the contract for Giovanni di Maestro as concluded on 12 March 1573.
-        The entry will remain in the archive but can no longer be edited.
+        This records the contract for Giovanni di Maestro as concluded on 12
+        March 1573. The entry will remain in the archive but can no longer be
+        edited.
       </p>
     </Modal>
   );

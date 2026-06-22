@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { TextInput } from "@garzoni/web";
 
 const Stage = ({ children }: { children: React.ReactNode }) => (
-  <div data-theme="dark" style={{ background: "#0b0f14", padding: 28, maxWidth: 380 }}>
+  <div
+    data-theme="dark"
+    style={{ background: "#0b0f14", padding: 28, maxWidth: 380 }}
+  >
     {children}
   </div>
 );
@@ -11,7 +14,12 @@ export const Default = () => {
   const [value, setValue] = useState("Giovanni di Maestro");
   return (
     <Stage>
-      <TextInput id="name" label="Full name" value={value} onChange={setValue} />
+      <TextInput
+        id="name"
+        label="Full name"
+        value={value}
+        onChange={setValue}
+      />
     </Stage>
   );
 };
@@ -51,7 +59,13 @@ export const Password = () => {
   const [value, setValue] = useState("secret-pass");
   return (
     <Stage>
-      <TextInput id="pw" label="Password" type="password" value={value} onChange={setValue} />
+      <TextInput
+        id="pw"
+        label="Password"
+        type="password"
+        value={value}
+        onChange={setValue}
+      />
     </Stage>
   );
 };

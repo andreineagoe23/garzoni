@@ -9,13 +9,26 @@ const Stage = ({ children }: { children: React.ReactNode }) => (
 
 const Body = () => (
   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-    <span style={{ fontSize: 13, color: "var(--color-brand-primary)", fontWeight: 600 }}>
+    <span
+      style={{
+        fontSize: 13,
+        color: "var(--color-brand-primary)",
+        fontWeight: 600,
+      }}
+    >
       Apprentice
     </span>
     <h3 style={{ margin: 0, fontSize: 18, color: "var(--color-text-primary)" }}>
       Giovanni di Maestro
     </h3>
-    <p style={{ margin: 0, fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+    <p
+      style={{
+        margin: 0,
+        fontSize: 14,
+        color: "var(--color-text-muted)",
+        lineHeight: 1.5,
+      }}
+    >
       Bound to a Venetian goldsmith in 1567 for a term of six years.
     </p>
   </div>

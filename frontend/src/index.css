@@ -8,8 +8,12 @@ body {
   margin: 0;
   font-family: var(
     --brand-font-primary,
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     "Helvetica Neue",
-    Helvetica,
     Arial,
     sans-serif
   );

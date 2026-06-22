@@ -1,19 +1,13 @@
-import { Platform } from "react-native";
-
 /**
  * Garzoni brand tokens — mirrors `brand/kit/tokens.css` (single source of truth).
  *
- * Body font: native Helvetica equivalent per platform (`Helvetica Neue` on iOS,
- * `sans-serif`/Roboto on Android) — matches web stack.
- * Display font: `Fraunces_400Regular` — loaded via `expo-font` in `app/_layout.tsx`
- * (see `@expo-google-fonts/fraunces`). Falls back to system serif if load fails.
- * Mono font: `JetBrainsMono_400Regular` — same loader.
+ * Single brand font everywhere: Inter (matches web `--brand-font-primary`).
+ * Loaded via `expo-font` in `app/_layout.tsx` (see `@expo-google-fonts/inter`).
+ * NOTE: React Native ignores `fontWeight` for custom fonts — use the explicit
+ * weighted tokens below (`fontMedium`/`fontBold`/`fontDisplay`) to change weight.
+ * Mono font: `JetBrainsMono_400Regular` — numerics/stats/prices only.
  */
-const fontPrimary = Platform.select({
-  ios: "Helvetica Neue",
-  android: "sans-serif",
-  default: "System",
-}) as string;
+const fontPrimary = "Inter_400Regular";
 
 export const brand = {
   green: "#1d5330",
@@ -37,11 +31,11 @@ export const brand = {
   textMuted: "rgba(229,231,235,0.72)",
 
   fontPrimary,
-  fontMedium: fontPrimary,
-  fontBold: fontPrimary,
-  /** Display serif — h1/h2/h3 + editorial italics. Loaded via expo-font in app/_layout.tsx. */
-  fontDisplay: "Fraunces_400Regular",
-  fontDisplayItalic: "Fraunces_400Regular_Italic",
+  fontMedium: "Inter_500Medium",
+  fontBold: "Inter_700Bold",
+  /** Display — headings / editorial. Inter SemiBold (Inter needs weight to read as a heading). */
+  fontDisplay: "Inter_600SemiBold",
+  fontDisplayItalic: "Inter_400Regular_Italic",
   /** Mono — stats, prices, percentages, code. Loaded via expo-font in app/_layout.tsx. */
   fontMono: "JetBrainsMono_400Regular",
 

@@ -139,7 +139,9 @@ function ToolSwitcherDropdown({
             <div
               key={group.id}
               className={
-                gi > 0 ? "border-t border-[color:var(--color-border-default)]" : ""
+                gi > 0
+                  ? "border-t border-[color:var(--color-border-default)]"
+                  : ""
               }
             >
               <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wide text-content-muted">

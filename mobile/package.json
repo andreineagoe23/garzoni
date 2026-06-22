@@ -35,7 +35,8 @@
     "test": "jest --config jest.config.js"
   },
   "dependencies": {
-    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@amplitude/analytics-react-native": "^1.5.57",
+    "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/vector-icons": "^15.1.1",
     "@garzoni/core": "workspace:^",
@@ -45,7 +46,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.9.14",
     "@react-navigation/native": "^7.1.8",
-    "@sentry/react-native": "^8.11.0",
+    "@sentry/react-native": "^8.15.0",
     "@tanstack/react-query": "^5.59.15",
     "axios": "^1.7.9",
     "customerio-reactnative": "^6.4.0",

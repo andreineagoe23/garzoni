@@ -25,6 +25,7 @@ import {
 } from "../src/bootstrap/i18nMobile";
 import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
+import { initAnalyticsMobile } from "../src/bootstrap/analyticsMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
 import { RootErrorBoundary } from "../src/components/common/RootErrorBoundary";
 import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
@@ -33,12 +34,20 @@ import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 import {
-  useFonts as useFraunces,
-  Fraunces_400Regular,
-  Fraunces_400Regular_Italic,
-  Fraunces_600SemiBold,
-} from "@expo-google-fonts/fraunces";
+  useFonts as useInter,
+  Inter_400Regular,
+  Inter_400Regular_Italic,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from "@expo-google-fonts/inter";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
+import { installGlobalInterFont } from "../src/theme/installFonts";
+
+// Patch RN Text/TextInput once at module load so all text renders in Inter,
+// mapping each fontWeight to the matching Inter face (see installFonts.ts).
+installGlobalInterFont();
 
 /** Root route segments reachable without a session (pre-auth + legal/reset). */
 const PUBLIC_ROOT_SEGMENTS = new Set([
@@ -193,10 +202,13 @@ function ThemedRoot() {
 function RootLayout() {
   const [bootstrapReady, setBootstrapReady] = useState(false);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
-  const [fontsLoaded] = useFraunces({
-    Fraunces_400Regular,
-    Fraunces_400Regular_Italic,
-    Fraunces_600SemiBold,
+  const [fontsLoaded] = useInter({
+    Inter_400Regular,
+    Inter_400Regular_Italic,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
     JetBrainsMono_400Regular,
   });
 
@@ -207,6 +219,7 @@ function RootLayout() {
         initI18nMobile();
         await hydrateI18nLanguageMobile();
         initHttpClientMobile();
+        initAnalyticsMobile();
         setBootstrapReady(true);
       } catch (e) {
         setBootstrapError(

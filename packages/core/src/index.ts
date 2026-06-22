@@ -64,6 +64,13 @@ export type {
   CryptoQuote,
 } from "./services/marketData";
 
+export {
+  configureAnalyticsAdapter,
+  initAnalytics,
+  trackAnalyticsEvent,
+} from "./services/analyticsCore";
+export type { AnalyticsAdapter } from "./services/analyticsCore";
+
 export { initGarzoniI18n, i18n, normalizeLanguage } from "./i18n";
 export {
   setAppLanguageResolver,

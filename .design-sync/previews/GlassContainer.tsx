@@ -9,7 +9,13 @@ const Stage = ({ children }: { children: React.ReactNode }) => (
 
 const Inner = ({ label }: { label: string }) => (
   <div style={{ padding: 24 }}>
-    <h3 style={{ margin: "0 0 6px", fontSize: 16, color: "var(--color-text-primary)" }}>
+    <h3
+      style={{
+        margin: "0 0 6px",
+        fontSize: 16,
+        color: "var(--color-text-primary)",
+      }}
+    >
       {label}
     </h3>
     <p style={{ margin: 0, fontSize: 14, color: "var(--color-text-muted)" }}>
