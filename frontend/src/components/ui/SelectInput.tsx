@@ -28,7 +28,10 @@ const SelectInput = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-sm font-semibold text-white/90">
+      <label
+        htmlFor={id}
+        className="text-sm font-semibold text-content-primary"
+      >
         {label}
       </label>
       <select
@@ -37,7 +40,7 @@ const SelectInput = ({
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={Boolean(error)}
         aria-describedby={describedBy}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--primary,#1d5330)]/50"
+        className="w-full rounded-xl border border-border bg-surface-card px-4 py-2 text-sm text-content-primary focus:outline-none focus:ring-2 focus:ring-focus"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -48,7 +51,7 @@ const SelectInput = ({
       {(helperText || error) && (
         <p
           id={`${id}-help`}
-          className={`text-xs ${error ? "text-red-300" : "text-white/60"}`}
+          className={`text-xs ${error ? "text-state-error" : "text-content-muted"}`}
         >
           {error || helperText}
         </p>
