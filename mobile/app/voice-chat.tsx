@@ -2,9 +2,10 @@
  * Voice Tutor — Pro-only screen.
  * Hold to record → Whisper transcription → GPT answer → TTS playback.
  */
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  AppState,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,6 +22,10 @@ try {
   /* native module not in this dev build — feature gated at runtime */
 }
 import { router } from "expo-router";
+import {
+  isAppActiveForAudio,
+  isBackgroundAudioError,
+} from "../src/lib/audioPlayback";
 import { logDevError } from "../src/lib/logDevError";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -146,14 +151,67 @@ export default function VoiceChat() {
   const [status, setStatus] = useState<"idle" | "recording" | "processing">(
     "idle",
   );
-  const [sound, setSound] = useState<AudioType.Sound | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const soundRef = useRef<AudioType.Sound | null>(null);
+  const pendingTtsUriRef = useRef<string | null>(null);
+
+  const unloadSound = useCallback(async () => {
+    const current = soundRef.current;
+    soundRef.current = null;
+    if (current) {
+      try {
+        await current.unloadAsync();
+      } catch {
+        /* already unloaded */
+      }
+    }
+  }, []);
+
+  const playTtsFromUri = useCallback(
+    async (dataUri: string) => {
+      if (!Audio) return;
+
+      if (!isAppActiveForAudio()) {
+        pendingTtsUriRef.current = dataUri;
+        return;
+      }
+
+      try {
+        await unloadSound();
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+        });
+        const { sound: snd } = await Audio.Sound.createAsync({ uri: dataUri });
+        soundRef.current = snd;
+        await snd.playAsync();
+      } catch (e) {
+        if (isBackgroundAudioError(e)) {
+          pendingTtsUriRef.current = dataUri;
+          return;
+        }
+        logDevError("voice-chat.playTts", e);
+      }
+    },
+    [unloadSound],
+  );
 
   useEffect(() => {
     return () => {
-      sound?.unloadAsync();
+      void unloadSound();
     };
-  }, [sound]);
+  }, [unloadSound]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next !== "active") return;
+      const pending = pendingTtsUriRef.current;
+      if (!pending) return;
+      pendingTtsUriRef.current = null;
+      void playTtsFromUri(pending);
+    });
+    return () => sub.remove();
+  }, [playTtsFromUri]);
 
   const startRecording = async () => {
     if (!Audio) {
@@ -161,6 +219,9 @@ export default function VoiceChat() {
         "Not available",
         "Voice requires a development build with expo-av.",
       );
+      return;
+    }
+    if (!isAppActiveForAudio()) {
       return;
     }
     try {
@@ -192,7 +253,9 @@ export default function VoiceChat() {
       setRecording(rec);
       setStatus("recording");
     } catch (e) {
-      logDevError("voice-chat.startRecording", e);
+      if (!isBackgroundAudioError(e)) {
+        logDevError("voice-chat.startRecording", e);
+      }
     }
   };
 
@@ -223,14 +286,14 @@ export default function VoiceChat() {
         { role: "assistant", text: response_text },
       ]);
 
-      // Play TTS audio
       if (audio_base64 && Audio) {
         const dataUri = `data:${mime || "audio/mpeg"};base64,${audio_base64}`;
-        const { sound: snd } = await Audio.Sound.createAsync({ uri: dataUri });
-        setSound(snd);
-        await snd.playAsync();
+        await playTtsFromUri(dataUri);
       }
     } catch (e: any) {
+      if (isBackgroundAudioError(e)) {
+        return;
+      }
       const msg = e?.response?.data?.error || "Could not process voice.";
       Alert.alert("Error", msg);
     } finally {
