@@ -428,6 +428,21 @@
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* Token-derived (color-mix → auto theme-aware, no separate dark block). */
+.app-badge-warning {
+  background: color-mix(in srgb, var(--color-state-warning) 12%, transparent);
+  color: var(--color-state-warning);
+  border: 1px solid
+    color-mix(in srgb, var(--color-state-warning) 30%, transparent);
+}
+
+.app-badge-success {
+  background: color-mix(in srgb, var(--color-state-success) 12%, transparent);
+  color: var(--color-state-success);
+  border: 1px solid
+    color-mix(in srgb, var(--color-state-success) 30%, transparent);
+}
+
 /* ── Primary soft action row (green tinted card) ─────────────── */
 .app-action-primary {
   background: linear-gradient(

@@ -60,11 +60,12 @@ function daysSince(iso?: string | null): number | null {
   return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
 }
 
+// Canonical token-based badges (see .app-badge-* in styles/app-theme.css).
 const PILL_CLASS: Record<Exclude<PillKind, null>, string> = {
-  due: "bg-red-500/15 text-red-400",
-  overdue: "bg-red-500/15 text-red-400",
-  declining: "bg-amber-500/15 text-amber-400",
-  improving: "bg-emerald-500/15 text-emerald-400",
+  due: "app-badge-error",
+  overdue: "app-badge-error",
+  declining: "app-badge-warning",
+  improving: "app-badge-success",
 };
 
 const WeakSkills = ({
