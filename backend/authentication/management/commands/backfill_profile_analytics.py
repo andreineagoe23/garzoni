@@ -24,7 +24,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = bool(options.get("dry_run"))
-        User = get_user_model()
 
         onboarding_rows = QuestionnaireProgress.objects.filter(
             status="completed",

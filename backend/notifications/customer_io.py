@@ -168,9 +168,16 @@ def cdp_identify(
     POST /v1/identify — CDP API (same contract as Pipelines "Customer.io API" source test curl).
     Authorization: Basic base64("API_KEY:")
 
-    Email is intentionally excluded from CDP traits: CIO tries to set it as an identifier
-    and fails with "Failed Attribute Change" when another profile already claims that email.
-    Email is set via the Track API (PUT /api/v1/customers/{id}) instead.
+    Email IS sent in CDP traits. Journeys/campaigns read the CDP profile and address
+    re-engagement email as ``{{customer.email}}``; when email was stripped here, device-less
+    "haven't downloaded" profiles had no email attribute and every send failed with
+    "undefined variable: customer.email" (then retried — the activity-log storm). The Track API
+    PUT alone did not populate the CDP profile that journeys read, so email must go through CDP.
+
+    Trade-off: a genuine duplicate-email account (two Django ids, same email) may log a one-off
+    "Failed Attribute Change" for the losing profile. That is acceptable — the alternative is the
+    entire not-downloaded cohort being unreachable. Duplicates should be merged in CIO, not
+    worked around by hiding email.
     """
     if not getattr(settings, "CIO_CDP_ENABLED", True):
         return True, "skipped (CIO_CDP_ENABLED=false)"
@@ -179,8 +186,13 @@ def cdp_identify(
         return False, "missing CIO_CDP_API_KEY"
     clean_traits: dict[str, Any] = {}
     for k, v in (traits or {}).items():
-        # Skip email (set via Track API) and id (redundant, already the userId)
-        if k in ("email", "id"):
+        # Skip only id (redundant — already the userId). Email is kept: journeys
+        # address {{customer.email}} off the CDP profile (see docstring).
+        if k == "id":
+            continue
+        if k == "email" and not (str(v).strip() if v is not None else ""):
+            # Never send a blank email — CIO treats it as an identifier change and a
+            # blank/null value triggers "Failed Attribute Change" instead of a no-op.
             continue
         if isinstance(v, (str, int, float, bool)):
             clean_traits[str(k)] = v
