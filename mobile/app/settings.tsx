@@ -30,6 +30,7 @@ import { useTranslation } from "react-i18next";
 import GlassCard from "../src/components/ui/GlassCard";
 import GlassButton from "../src/components/ui/GlassButton";
 import { deleteCustomerIoDeviceTokenOnly } from "../src/bootstrap/customerIoMobile";
+import { openStoreReview } from "../src/bootstrap/reviewPrompt";
 
 type EmailPrefs = {
   reminders: boolean;
@@ -59,7 +60,7 @@ function normalizeReminderFromApi(raw: string | undefined): ReminderCadence {
 export default function SettingsScreen() {
   const c = useThemeColors();
   const gutter = useScreenGutter();
-  const { resolved, setMode } = useTheme();
+  const { mode, setMode } = useTheme();
   const router = useRouter();
   const qc = useQueryClient();
   const { t } = useTranslation("common");
@@ -184,6 +185,16 @@ export default function SettingsScreen() {
           value: "monthly" as const,
           label: t("settings.preferences.reminders.monthly"),
         },
+      ] as const,
+    [t],
+  );
+
+  const themeOptions = useMemo(
+    () =>
+      [
+        { value: "light" as const, label: t("settings.mobile.themeLight") },
+        { value: "dark" as const, label: t("settings.mobile.themeDark") },
+        { value: "system" as const, label: t("settings.mobile.themeSystem") },
       ] as const,
     [t],
   );
@@ -323,12 +334,18 @@ export default function SettingsScreen() {
           {t("settings.mobile.appearance")}
         </Text>
         <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
-          <Row
-            label="Dark mode"
-            value={resolved === "dark"}
-            onValueChange={(v) => setMode(v ? "dark" : "light")}
-            c={c}
-          />
+          <View style={styles.segmentRow}>
+            {themeOptions.map((opt) => (
+              <GlassButton
+                key={opt.value}
+                variant={mode === opt.value ? "active" : "ghost"}
+                size="sm"
+                onPress={() => setMode(opt.value)}
+              >
+                {opt.label}
+              </GlassButton>
+            ))}
+          </View>
         </GlassCard>
 
         <Text style={[styles.section, { color: c.textFaint }]}>
@@ -402,6 +419,23 @@ export default function SettingsScreen() {
             <Ionicons name="chatbubble-outline" size={20} color={c.primary} />
             <Text style={[styles.linkLabel, { color: c.text }]}>
               Send Feedback
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={c.textFaint} />
+          </Pressable>
+          <Pressable
+            style={[
+              styles.linkRow,
+              {
+                borderTopWidth: StyleSheet.hairlineWidth,
+                borderTopColor: c.border,
+              },
+            ]}
+            onPress={() => void openStoreReview()}
+            accessibilityRole="button"
+          >
+            <Ionicons name="star-outline" size={20} color={c.primary} />
+            <Text style={[styles.linkLabel, { color: c.text }]}>
+              {t("settings.mobile.rateApp")}
             </Text>
             <Ionicons name="chevron-forward" size={16} color={c.textFaint} />
           </Pressable>

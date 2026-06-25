@@ -1,4 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Linking, Platform } from "react-native";
+
+/** Apple App Store id + Android package, for the store-listing fallback. */
+const APP_STORE_ID = "6761790801";
+const ANDROID_PACKAGE = "app.garzoni.mobile";
 
 /**
  * Lazily resolve expo-store-review. The native module ("ExpoStoreReview") is
@@ -58,5 +63,36 @@ export async function maybeRequestReview(reason: ReviewReason): Promise<void> {
   } catch {
     // Best-effort: never throw from a review prompt path.
     void reason;
+  }
+}
+
+/**
+ * Manual "Rate app" action from Settings. The user explicitly asked, so skip the
+ * delight-event gating used by maybeRequestReview: try the native in-app review
+ * sheet first, then fall back to opening the store listing's review page.
+ */
+export async function openStoreReview(): Promise<void> {
+  try {
+    const StoreReview = getStoreReview();
+    if (
+      StoreReview &&
+      (await StoreReview.isAvailableAsync()) &&
+      (await StoreReview.hasAction())
+    ) {
+      await StoreReview.requestReview();
+      return;
+    }
+  } catch {
+    // fall through to the store listing
+  }
+
+  const url =
+    Platform.OS === "ios"
+      ? `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`
+      : `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
+  try {
+    await Linking.openURL(url);
+  } catch {
+    // nothing more we can do
   }
 }

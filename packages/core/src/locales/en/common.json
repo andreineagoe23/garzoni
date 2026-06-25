@@ -2119,7 +2119,11 @@
     },
     "mobile": {
       "pushNote": "Push notifications and hearts visibility are managed on the Profile tab.",
-      "appearance": "Appearance"
+      "appearance": "Appearance",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
+      "rateApp": "Rate Garzoni"
     }
   },
   "auth": {

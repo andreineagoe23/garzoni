@@ -2119,7 +2119,11 @@
     },
     "mobile": {
       "pushNote": "Notificările push și vizibilitatea inimilor sunt în fila Profil.",
-      "appearance": "Aspect"
+      "appearance": "Aspect",
+      "themeLight": "Luminos",
+      "themeDark": "Întunecat",
+      "themeSystem": "Sistem",
+      "rateApp": "Evaluează Garzoni"
     }
   },
   "auth": {
