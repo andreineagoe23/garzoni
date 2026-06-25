@@ -181,7 +181,12 @@ class UserProgress(models.Model):
     last_course_activity_date = models.DateField(null=True, blank=True)
     learning_session_count = models.PositiveIntegerField(
         default=0,
-        help_text="Consecutive days of activity on this course (not the global streak).",
+        help_text=(
+            "Per-course consecutive-day streak (NOT total sessions and NOT the "
+            "global profile streak). Bumps once per day the learner is active on "
+            "this course; resets to 1 after a gap. See Profile.streak for the "
+            "global streak."
+        ),
     )
     # Persist immersive course/lesson flow position (section index within flattened flow)
     flow_current_index = models.PositiveIntegerField(default=0)
@@ -198,6 +203,17 @@ class UserProgress(models.Model):
         db_table = "core_userprogress"
         indexes = [
             models.Index(fields=["user", "course"], name="userprogress_user_course_idx"),
+        ]
+        constraints = [
+            # One progress row per (user, course). NULL user (orphaned after the
+            # account is deleted via SET_NULL) is exempt so historical rows can
+            # coexist. Prevents the duplicate rows that concurrent get_or_create
+            # could otherwise create.
+            models.UniqueConstraint(
+                condition=models.Q(("user__isnull", False)),
+                fields=("user", "course"),
+                name="uniq_userprogress_user_course",
+            ),
         ]
 
     def update_streak(self):

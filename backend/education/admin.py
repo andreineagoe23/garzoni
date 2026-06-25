@@ -551,6 +551,7 @@ class PathAdmin(admin.ModelAdmin):
 class CourseAdmin(admin.ModelAdmin):
     list_display = ("title", "path", "order", "is_active")
     list_filter = ("path", "is_active")
+    search_fields = ("title",)
     inlines = [CourseTranslationInline]
     ordering = ("path__sort_order", "path_id", "order")
 
@@ -560,6 +561,26 @@ class QuizAdmin(admin.ModelAdmin):
     list_display = ("title", "course")
     list_filter = ("course",)
     inlines = [QuizTranslationInline]
+
+
+class OrphanProgressFilter(admin.SimpleListFilter):
+    """Flag progress rows whose owning account was deleted (user_id is NULL)."""
+
+    title = "owner"
+    parameter_name = "orphan"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", "Orphaned (account deleted)"),
+            ("no", "Has owner"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(user__isnull=True)
+        if self.value() == "no":
+            return queryset.filter(user__isnull=False)
+        return queryset
 
 
 @admin.register(UserProgress)
@@ -575,8 +596,19 @@ class UserProgressAdmin(admin.ModelAdmin):
         "learning_session_count",
         "last_course_activity_date",
     )
-    list_filter = ("course", "is_course_complete")
-    search_fields = ("user__username", "course__title")
+    list_filter = (OrphanProgressFilter, "course", "is_course_complete")
+    search_fields = ("user__username", "user__email", "course__title")
+    date_hierarchy = "last_course_activity_date"
+    ordering = ("-last_course_activity_date",)
+    autocomplete_fields = ("user", "course")
+    list_select_related = ("user", "course")
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related("completed_lessons", "completed_sections")
+        )
 
     def completed_lessons_count(self, obj):
         return obj.completed_lessons.count()

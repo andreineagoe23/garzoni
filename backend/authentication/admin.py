@@ -10,24 +10,162 @@ from django.utils import timezone
 from authentication.models import UserProfile, Referral, FriendRequest
 from authentication.user_display import normalize_display_string
 from authentication.services.hearts import apply_hearts_regen, hearts_constants, hearts_payload
+from education.models import UserProgress
 from gamification.models import MissionCompletion, UserBadge
 
 User = get_user_model()
 
 
+class ReadOnlyInline:
+    """Mixin: render an inline as a non-editable viewing panel on the User page."""
+
+    extra = 0
+    can_delete = False
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class UserProfileInline(ReadOnlyInline, admin.StackedInline):
+    """At-a-glance billing + engagement summary on the User page.
+
+    Editing lives on the dedicated UserProfile admin; this is read-only context.
+    """
+
+    model = UserProfile
+    fk_name = "user"
+    verbose_name_plural = "Profile (billing & engagement)"
+    fields = (
+        ("signup_platform", "last_seen_platform"),
+        ("is_premium", "has_paid"),
+        ("subscription_plan_id", "subscription_status", "trial_end"),
+        ("stripe_customer_id", "stripe_subscription_id", "apple_sub"),
+        ("streak", "hearts", "points", "earned_money"),
+        ("last_completed_date", "onboarding_completed_at", "first_lesson_at"),
+        ("investing_experience", "risk_comfort", "income_range"),
+        "expo_push_token",
+    )
+    readonly_fields = (
+        "signup_platform",
+        "last_seen_platform",
+        "is_premium",
+        "has_paid",
+        "subscription_plan_id",
+        "subscription_status",
+        "trial_end",
+        "stripe_customer_id",
+        "stripe_subscription_id",
+        "apple_sub",
+        "streak",
+        "hearts",
+        "points",
+        "earned_money",
+        "last_completed_date",
+        "onboarding_completed_at",
+        "first_lesson_at",
+        "investing_experience",
+        "risk_comfort",
+        "income_range",
+        "expo_push_token",
+    )
+
+
+class UserProgressInline(ReadOnlyInline, admin.TabularInline):
+    """Every course this user has touched, with completion + activity signals."""
+
+    model = UserProgress
+    fk_name = "user"
+    verbose_name_plural = "Course progress"
+    fields = (
+        "course",
+        "is_course_complete",
+        "lessons_done",
+        "sections_done",
+        "learning_session_count",
+        "last_course_activity_date",
+    )
+    readonly_fields = fields
+
+    def lessons_done(self, obj):
+        return obj.completed_lessons.count()
+
+    lessons_done.short_description = "Lessons"
+
+    def sections_done(self, obj):
+        return obj.completed_sections.count()
+
+    sections_done.short_description = "Sections"
+
+
+class ReferralsMadeInline(ReadOnlyInline, admin.TabularInline):
+    """People this user referred (and reward status)."""
+
+    model = Referral
+    fk_name = "referrer"
+    verbose_name_plural = "Referrals made"
+    fields = ("referred_user", "reward_status", "referral_code", "earned_at", "created_at")
+    readonly_fields = fields
+
+
+class SentFriendRequestInline(ReadOnlyInline, admin.TabularInline):
+    """Friend requests this user sent."""
+
+    model = FriendRequest
+    fk_name = "sender"
+    verbose_name_plural = "Friend requests sent"
+    fields = ("receiver", "status", "created_at")
+    readonly_fields = fields
+
+
 class UserAdmin(BaseUserAdmin):
-    """User admin with normalized display so mojibake (RoÈ™u, âš ï¸) shows clean in list."""
+    """User admin with normalized display so mojibake (RoÈ™u, âš ï¸) shows clean in list.
+
+    Acts as the per-user hub: profile, course progress and social data are
+    surfaced inline so an admin can investigate one account without hopping
+    between separate admin pages.
+    """
+
+    inlines = [UserProfileInline, UserProgressInline, ReferralsMadeInline, SentFriendRequestInline]
 
     list_display = (
         "username_display",
         "email",
         "first_name_display",
         "last_name_display",
+        "subscription_status_display",
+        "is_premium_display",
+        "streak_display",
+        "last_active_display",
         "is_staff",
         "date_joined",
         "last_login",
     )
-    list_filter = ("is_staff", "is_superuser", "is_active", "date_joined")
+    list_filter = (
+        "is_staff",
+        "is_superuser",
+        "is_active",
+        "date_joined",
+        "profile__is_premium",
+        "profile__subscription_status",
+        "profile__signup_platform",
+    )
+    search_fields = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "profile__stripe_customer_id",
+        "profile__stripe_subscription_id",
+        "profile__apple_sub",
+        "profile__referral_code",
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("profile")
 
     def username_display(self, obj):
         return normalize_display_string(obj.username)
@@ -43,6 +181,31 @@ class UserAdmin(BaseUserAdmin):
         return normalize_display_string(obj.last_name)
 
     last_name_display.short_description = "Last name"
+
+    def subscription_status_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.subscription_status if profile else "—"
+
+    subscription_status_display.short_description = "Sub status"
+
+    def is_premium_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        return bool(profile and profile.is_premium)
+
+    is_premium_display.short_description = "Premium"
+    is_premium_display.boolean = True
+
+    def streak_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.streak if profile else "—"
+
+    streak_display.short_description = "Streak"
+
+    def last_active_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.last_completed_date if profile else None
+
+    last_active_display.short_description = "Last lesson"
 
 
 admin.site.unregister(User)
