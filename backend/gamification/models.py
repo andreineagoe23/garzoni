@@ -244,6 +244,7 @@ class MultiStepMissionProgress(models.Model):
         self.save(update_fields=["completed_steps", "status", "completed_at", "updated_at"])
 
     class Meta:
+        verbose_name_plural = "Multi-step mission progress"
         db_table = "core_multistepmissionprogress"
         unique_together = ("user", "mission")
         indexes = [

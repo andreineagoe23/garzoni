@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from core.admin_mixins import NoAddDeleteAdminMixin
 from onboarding.models import QuestionnaireVersion, QuestionnaireProgress
 
 
@@ -11,7 +13,7 @@ class QuestionnaireVersionAdmin(admin.ModelAdmin):
 
 
 @admin.register(QuestionnaireProgress)
-class QuestionnaireProgressAdmin(admin.ModelAdmin):
+class QuestionnaireProgressAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = [
         "user",
         "version",

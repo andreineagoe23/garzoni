@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.html import format_html, format_html_join
 
+from core.admin_mixins import NoAddDeleteAdminMixin
 from education.models import (
     Path,
     Course,
@@ -496,7 +497,7 @@ class ExerciseAdmin(EducationAuditMixin, admin.ModelAdmin):
 
 
 @admin.register(UserExerciseProgress)
-class UserExerciseProgressAdmin(admin.ModelAdmin):
+class UserExerciseProgressAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing user exercise progress."""
 
     list_display = ("user", "exercise", "completed", "attempts")
@@ -514,7 +515,7 @@ class QuestionAdmin(admin.ModelAdmin):
 
 
 @admin.register(PollResponse)
-class PollResponseAdmin(admin.ModelAdmin):
+class PollResponseAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing poll responses."""
 
     list_display = ("question", "answer", "responded_at")
@@ -584,7 +585,7 @@ class OrphanProgressFilter(admin.SimpleListFilter):
 
 
 @admin.register(UserProgress)
-class UserProgressAdmin(admin.ModelAdmin):
+class UserProgressAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Surface engagement and streak data for progress tracking."""
 
     list_display = (
@@ -676,7 +677,7 @@ class EducationAuditLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(SectionCompletion)
-class SectionCompletionAdmin(admin.ModelAdmin):
+class SectionCompletionAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin to inspect section-level completions for troubleshooting engagement."""
 
     list_display = ("section", "user", "lesson", "course", "completed_at")

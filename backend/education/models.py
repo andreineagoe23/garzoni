@@ -615,6 +615,7 @@ class UserExerciseProgress(models.Model):
     user_answer = models.JSONField(null=True, blank=True)
 
     class Meta:
+        verbose_name_plural = "User exercise progress"
         unique_together = ("user", "exercise")
         db_table = "core_userexerciseprogress"
         indexes = [

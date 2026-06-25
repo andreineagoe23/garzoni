@@ -16,6 +16,7 @@ class SupportEntry(models.Model):
         return self.question
 
     class Meta:
+        verbose_name_plural = "Support entries"
         db_table = "core_supportentry"
         constraints = [
             models.CheckConstraint(
@@ -42,6 +43,7 @@ class SupportFeedback(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = "Support feedback"
         unique_together = ("user", "support_entry")
         indexes = [
             models.Index(fields=["user", "support_entry"]),

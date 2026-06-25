@@ -1,5 +1,7 @@
 # support/admin.py
 from django.contrib import admin
+
+from core.admin_mixins import NoAddDeleteAdminMixin
 from support.models import SupportEntry, SupportFeedback, ContactMessage
 
 
@@ -22,9 +24,10 @@ class SupportEntryAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupportFeedback)
-class SupportFeedbackAdmin(admin.ModelAdmin):
+class SupportFeedbackAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = ("id", "user", "support_entry_preview", "vote", "created_at")
     list_filter = ("vote",)
+    search_fields = ("user__username", "user__email")
 
     def support_entry_preview(self, obj):
         q = obj.support_entry.question
@@ -34,7 +37,7 @@ class SupportFeedbackAdmin(admin.ModelAdmin):
 
 
 @admin.register(ContactMessage)
-class ContactMessageAdmin(admin.ModelAdmin):
+class ContactMessageAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Contact form and feedback hub submissions (not FAQ votes)."""
 
     list_display = ("id", "email", "topic", "message_preview", "created_at")

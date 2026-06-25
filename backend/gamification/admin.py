@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+
+from core.admin_mixins import NoAddDeleteAdminMixin
 from gamification.models import (
     Badge,
     UserBadge,
@@ -114,7 +116,7 @@ class MissionAdmin(admin.ModelAdmin):
         self.message_user(request, f"Created {created} live mission(s) from templates.")
 
 
-class MissionCompletionAdmin(admin.ModelAdmin):
+class MissionCompletionAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing mission completions."""
 
     list_display = (
@@ -157,7 +159,7 @@ class MultiStepMissionAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug", "description", "badge_name")
 
 
-class MultiStepMissionProgressAdmin(admin.ModelAdmin):
+class MultiStepMissionProgressAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = ("user", "mission", "status", "completed_at", "updated_at")
     list_filter = ("status", "mission")
     search_fields = ("user__username", "mission__name")
@@ -197,16 +199,16 @@ class BadgeAdmin(admin.ModelAdmin):
 
 
 @admin.register(StreakItem)
-class StreakItemAdmin(admin.ModelAdmin):
+class StreakItemAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for streak items."""
 
     list_display = ("user", "item_type", "quantity", "expires_at", "created_at")
     list_filter = ("item_type",)
-    search_fields = ("user__username",)
+    search_fields = ("user__username", "user__email")
 
 
 @admin.register(MissionPerformance)
-class MissionPerformanceAdmin(admin.ModelAdmin):
+class MissionPerformanceAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for mission performance analytics."""
 
     list_display = ("user", "mission", "time_to_completion_seconds", "created_at")
@@ -215,8 +217,16 @@ class MissionPerformanceAdmin(admin.ModelAdmin):
     readonly_fields = ("mastery_before", "mastery_after", "skill_improvements")
 
 
+@admin.register(UserBadge)
+class UserBadgeAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
+    """Badges are awarded by gamification logic; inspect/edit only."""
+
+    list_display = ("user", "badge", "earned_at")
+    list_filter = ("badge",)
+    search_fields = ("user__username", "user__email", "badge__name")
+
+
 admin.site.register(Badge, BadgeAdmin)
-admin.site.register(UserBadge)
 admin.site.register(Mission, MissionAdmin)
 admin.site.register(MissionCompletion, MissionCompletionAdmin)
 admin.site.register(MultiStepMission, MultiStepMissionAdmin)

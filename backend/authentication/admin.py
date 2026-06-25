@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
 
+from core.admin_mixins import NoAddDeleteAdminMixin
 from authentication.models import UserProfile, Referral, FriendRequest
 from authentication.user_display import normalize_display_string
 from authentication.services.hearts import apply_hearts_regen, hearts_constants, hearts_payload
@@ -213,7 +214,7 @@ admin.site.register(User, UserAdmin)
 
 
 @admin.register(Referral)
-class ReferralAdmin(admin.ModelAdmin):
+class ReferralAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing referrals."""
 
     list_display = (
@@ -239,8 +240,12 @@ class ReferralAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    """Admin configuration for managing user profiles."""
+class UserProfileAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
+    """Admin configuration for managing user profiles.
+
+    Profiles are auto-created per user via signal, so manual add/delete is
+    disabled; existing profiles stay editable for support adjustments.
+    """
 
     list_display = (
         "user",
@@ -525,7 +530,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 
 @admin.register(FriendRequest)
-class FriendRequestAdmin(admin.ModelAdmin):
+class FriendRequestAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing friend requests."""
 
     list_display = ("sender", "receiver", "status", "created_at")

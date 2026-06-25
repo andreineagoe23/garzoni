@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from core.admin_mixins import NoAddDeleteAdminMixin, ReadOnlyAdminMixin
 from budgeting.models import (
     BudgetEnvelope,
     BudgetPeriodSummary,
@@ -12,7 +13,9 @@ from budgeting.models import (
 
 
 @admin.register(LinkedAccount)
-class LinkedAccountAdmin(admin.ModelAdmin):
+class LinkedAccountAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
+    # Never render the bank credentials on the change form, even to staff.
+    exclude = ("encrypted_access_token", "encrypted_refresh_token")
     list_display = (
         "id",
         "user",
@@ -26,7 +29,7 @@ class LinkedAccountAdmin(admin.ModelAdmin):
 
 
 @admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "user",
@@ -48,14 +51,14 @@ class TransactionCategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(BudgetEnvelope)
-class BudgetEnvelopeAdmin(admin.ModelAdmin):
+class BudgetEnvelopeAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = ("user", "category", "label", "monthly_target", "is_active")
     list_filter = ("is_active",)
     search_fields = ("label", "user__email")
 
 
 @admin.register(BudgetPeriodSummary)
-class BudgetPeriodSummaryAdmin(admin.ModelAdmin):
+class BudgetPeriodSummaryAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = (
         "user",
         "period_start",
@@ -70,7 +73,7 @@ class BudgetPeriodSummaryAdmin(admin.ModelAdmin):
 
 
 @admin.register(SpendingAnomaly)
-class SpendingAnomalyAdmin(admin.ModelAdmin):
+class SpendingAnomalyAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_display = (
         "user",
         "kind",
@@ -84,6 +87,8 @@ class SpendingAnomalyAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProviderWebhookEvent)
-class ProviderWebhookEventAdmin(admin.ModelAdmin):
+class ProviderWebhookEventAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    # Raw provider payloads may carry PII; inspect only, never edit.
     list_display = ("event_id", "provider", "processed", "received_at")
     list_filter = ("provider", "processed")
+    readonly_fields = ("event_id", "provider", "processed", "received_at", "payload")

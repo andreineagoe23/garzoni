@@ -83,6 +83,7 @@ class TransactionCategory(models.Model):
     is_transfer = models.BooleanField(default=False)
 
     class Meta:
+        verbose_name_plural = "Transaction categories"
         ordering = ["label"]
 
     def __str__(self) -> str:
@@ -201,6 +202,7 @@ class BudgetPeriodSummary(models.Model):
     computed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        verbose_name_plural = "Budget period summaries"
         unique_together = ("user", "period_start")
         ordering = ["-period_start"]
 
@@ -230,6 +232,7 @@ class SpendingAnomaly(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = "Spending anomalies"
         indexes = [
             models.Index(fields=["user", "detected_for"]),
             models.Index(fields=["user", "resolved_at"]),

@@ -37,6 +37,7 @@ class UserFactProgress(models.Model):
     read_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = "User fact progress"
         unique_together = ("user", "fact")
         db_table = "core_userfactprogress"
 

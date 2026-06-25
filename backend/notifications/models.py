@@ -12,6 +12,7 @@ class NotificationIdempotency(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = "Notification idempotencies"
         db_table = "notifications_idempotency"
         ordering = ["-created_at"]
 

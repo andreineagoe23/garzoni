@@ -123,6 +123,21 @@ if getattr(settings, "SERVE_FRONTEND", False):
 else:
     frontend_url = getattr(settings, "FRONTEND_URL", "").rstrip("/")
     if frontend_url:
+        # The admin "Product analytics" link is relative (/analytics). On the
+        # backend host the SPA isn't served, so bounce it to the frontend where
+        # the PricingFunnelDashboard route lives (otherwise it 404s).
+        urlpatterns += [
+            path(
+                "analytics",
+                RedirectView.as_view(url=f"{frontend_url}/analytics", permanent=False),
+                name="analytics-redirect",
+            ),
+            path(
+                "analytics/",
+                RedirectView.as_view(url=f"{frontend_url}/analytics", permanent=False),
+                name="analytics-redirect-slash",
+            ),
+        ]
         for route in LEGAL_PAGE_ROUTES:
             urlpatterns += [
                 path(

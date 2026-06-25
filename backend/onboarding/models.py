@@ -128,6 +128,7 @@ class QuestionnaireProgress(models.Model):
         )
 
     class Meta:
+        verbose_name_plural = "Questionnaire progress"
         db_table = "onboarding_questionnaireprogress"
         indexes = [
             models.Index(fields=["user", "status"]),

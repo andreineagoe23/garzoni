@@ -1,5 +1,7 @@
 # finance/admin.py
 from django.contrib import admin
+
+from core.admin_mixins import NoAddDeleteAdminMixin
 from finance.models import (
     FinanceFact,
     UserFactProgress,
@@ -12,12 +14,12 @@ from finance.models import (
 )
 
 
-class SimulatedSavingsAccountAdmin(admin.ModelAdmin):
+class SimulatedSavingsAccountAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing simulated savings accounts."""
 
     list_display = ("user", "balance")
     fields = ("user", "balance")
-    search_fields = ("user__username",)
+    search_fields = ("user__username", "user__email")
 
 
 class RewardAdmin(admin.ModelAdmin):
@@ -52,19 +54,35 @@ class FinanceFactAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserFactProgress)
-class UserFactProgressAdmin(admin.ModelAdmin):
+class UserFactProgressAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     """Admin configuration for managing user fact progress."""
 
     list_display = ("user", "fact", "read_at")
     list_filter = ("read_at",)
-    search_fields = ("user__username", "fact__text")
+    search_fields = ("user__username", "user__email", "fact__text")
+
+
+@admin.register(UserPurchase)
+class UserPurchaseAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
+    """Purchases are written by the billing flow; inspect/edit only."""
+
+    list_display = ("user", "reward", "purchased_at")
+    search_fields = ("user__username", "user__email", "reward__name")
+    list_filter = ("purchased_at",)
+
+
+@admin.register(PortfolioEntry)
+class PortfolioEntryAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
+    search_fields = ("user__username", "user__email")
+
+
+@admin.register(FinancialGoal)
+class FinancialGoalAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
+    search_fields = ("user__username", "user__email")
 
 
 admin.site.register(SimulatedSavingsAccount, SimulatedSavingsAccountAdmin)
 admin.site.register(Reward, RewardAdmin)
-admin.site.register(UserPurchase)
-admin.site.register(PortfolioEntry)
-admin.site.register(FinancialGoal)
 
 
 @admin.register(FunnelEvent)
