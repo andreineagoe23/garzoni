@@ -73,6 +73,20 @@ backfill-mission-completions:
 ensure-lesson-sections:
 	docker compose exec backend python manage.py ensure_lesson_sections
 
+# Education content pipeline (author bundles + videos + fixes [+ translate]).
+# ARGS lets you pass flags, e.g.: make content-pipeline ARGS="--dry-run"
+#                                 make content-pipeline ARGS="--translate-force"
+content-pipeline:
+	docker compose exec backend python manage.py apply_content_pipeline $(ARGS)
+
+# Same pipeline against Railway PROD. Executes inside the deployed backend
+# container (prod DATABASE_URL already present there), so local <-> prod stay
+# identical. Set SERVICE if your backend service is named differently.
+# ALWAYS dry-run first: make content-pipeline-prod ARGS="--dry-run"
+SERVICE ?= backend
+content-pipeline-prod:
+	railway ssh --service $(SERVICE) python manage.py apply_content_pipeline $(ARGS)
+
 # Load canonical backup (500 lesson sections, 263 exercises). Use with dev stack.
 # Run from repo root: make -f Makefile load-backup  (requires: docker compose -f docker-compose.dev.yml up -d)
 load-backup:

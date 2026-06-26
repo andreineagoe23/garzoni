@@ -4,11 +4,14 @@ leaving everything else (options, correct answer, explanation, other sections)
 untouched. Built for backfilling short_description and widening short exercise
 question stems without rewriting whole lessons.
 
-JSON shape: a list of objects, each keyed by lesson id:
+JSON shape: a list of objects. Each identifies a lesson either by local "id"
+(fine when DBs share IDs) or, portably, by "title" (+ optional "course"):
   [
     {"id": 103, "short_description": "…", "q3": "…", "q6": "…"},
-    {"id": 104, "short_description": "…"}
+    {"title": "Mortgage Basics", "course": "Property Financing & Mortgages", "ex6": {...}}
   ]
+Prefer title-based keys for content that must apply across environments
+(local and Railway prod), since auto-increment IDs are not guaranteed to match.
 Only present keys are applied. "q3"/"q6" replace exercise_data["question"]
 on section order 3/6, preserving the rest of exercise_data.
 
@@ -47,9 +50,19 @@ class Command(BaseCommand):
         n_sd = n_q = n_ex = n_lessons = 0
         with transaction.atomic():
             for fix in fixes:
-                lesson = Lesson.objects.filter(id=fix["id"]).prefetch_related("sections").first()
+                if fix.get("id") is not None:
+                    qs = Lesson.objects.filter(id=fix["id"])
+                    ref = f"id={fix['id']}"
+                elif fix.get("title"):
+                    qs = Lesson.objects.filter(title=fix["title"])
+                    if fix.get("course"):
+                        qs = qs.filter(course__title=fix["course"])
+                    ref = f"title={fix['title']!r}"
+                else:
+                    raise CommandError(f"Fix entry needs an 'id' or 'title': {fix}")
+                lesson = qs.prefetch_related("sections").first()
                 if not lesson:
-                    self.stdout.write(self.style.WARNING(f"Lesson {fix['id']} not found, skip."))
+                    self.stdout.write(self.style.WARNING(f"Lesson {ref} not found, skip."))
                     continue
                 changed = []
                 if "short_description" in fix and fix["short_description"]:
@@ -65,7 +78,7 @@ class Command(BaseCommand):
                     if not section or not section.exercise_data:
                         self.stdout.write(
                             self.style.WARNING(
-                                f"Lesson {fix['id']} section {order} has no exercise_data, skip."
+                                f"Lesson {ref} section {order} has no exercise_data, skip."
                             )
                         )
                         continue
@@ -84,7 +97,7 @@ class Command(BaseCommand):
                     if not section:
                         self.stdout.write(
                             self.style.WARNING(
-                                f"Lesson {fix['id']} has no exercise section {order}, skip."
+                                f"Lesson {ref} has no exercise section {order}, skip."
                             )
                         )
                         continue

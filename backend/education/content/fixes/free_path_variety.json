@@ -1,0 +1,21 @@
+[
+  {"course": "Taxes Made Simple", "title": "How to Read Your Payslip", "ex6": {"type": "numeric", "data": {
+    "question": "A payslip shows 2,000 GBP gross pay, with 200 GBP income tax, 120 GBP National Insurance, and 100 GBP pension deducted. What is the net (take-home) pay, in GBP?",
+    "unit": "GBP", "expected_value": 1580, "tolerance": 0, "placeholder": "e.g. 1580",
+    "explanation": "Net pay is gross minus all deductions: 2,000 - (200 + 120 + 100) = 2,000 - 420 = 1,580 GBP."}}},
+
+  {"course": "Taxes Made Simple", "title": "Income Tax & Tax-Free Allowances", "ex6": {"type": "numeric", "data": {
+    "question": "Your tax-free allowance is 12,570 GBP and you earn 20,000 GBP this year. How much of your income is actually subject to income tax, in GBP?",
+    "unit": "GBP", "expected_value": 7430, "tolerance": 0, "placeholder": "e.g. 7430",
+    "explanation": "Only income above the allowance is taxed: 20,000 - 12,570 = 7,430 GBP."}}},
+
+  {"course": "Spotting Scams & Staying Safe", "title": "What to Do If You've Been Scammed", "ex6": {"type": "drag-and-drop", "data": {
+    "question": "You have just been scammed. Drag these three actions into the order you should do them, from first (top) to last.",
+    "items": [
+      {"id": "report", "label": "Report it to the official fraud or police service"},
+      {"id": "bank", "label": "Contact your bank to stop or reverse the payment"},
+      {"id": "passwords", "label": "Change any passwords that may be exposed"}
+    ],
+    "targets": [{"id": "bank"}, {"id": "passwords"}, {"id": "report"}],
+    "explanation": "Speed protects your money, so contact your bank first; then secure your accounts by changing exposed passwords; then report it to help stop the scammer and support any refund."}}}
+]
