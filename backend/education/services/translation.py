@@ -49,10 +49,56 @@ class TranslationProvider(ABC):
         options: List[str] = [str(o) for o in exercise_data.get("options") or []]
         explanation = str(exercise_data.get("explanation") or "").strip()
 
+        ctx = {**(context or {}), "content_type": "exercise"}
+
+        # Non-multiple-choice shapes (numeric, drag-and-drop) have no options; translate
+        # their text fields while preserving ids, numbers, and structure.
+        if question and not options:
+            items = exercise_data.get("items")
+            expected = exercise_data.get("expected_value") or exercise_data.get("correct_answer")
+            ro_expl = (
+                self.translate_text(explanation, {**ctx, "field": "exercise_explanation"})
+                if explanation
+                else exercise_data.get("explanation", "")
+            )
+            if isinstance(items, list) and items:  # drag-and-drop
+                ro_items = [
+                    (
+                        {
+                            **it,
+                            "label": self.translate_text(
+                                str(it.get("label", "")), {**ctx, "field": "exercise_option"}
+                            ),
+                        }
+                        if isinstance(it, dict)
+                        else it
+                    )
+                    for it in items
+                ]
+                return {
+                    **exercise_data,
+                    "question": self.translate_text(
+                        question, {**ctx, "field": "exercise_question"}
+                    ),
+                    "items": ro_items,
+                    "explanation": ro_expl,
+                }
+            if expected is not None:  # numeric
+                out = {
+                    **exercise_data,
+                    "question": self.translate_text(
+                        question, {**ctx, "field": "exercise_question"}
+                    ),
+                    "explanation": ro_expl,
+                }
+                if exercise_data.get("prompt"):
+                    out["prompt"] = self.translate_text(str(exercise_data["prompt"]), ctx)
+                return out
+            return exercise_data
+
         if not question or not options:
             return exercise_data
 
-        ctx = {**(context or {}), "content_type": "exercise"}
         ro_q = self.translate_text(question, {**ctx, "field": "exercise_question"})
         ro_opts = [self.translate_text(opt, {**ctx, "field": "exercise_option"}) for opt in options]
         ro_expl = (

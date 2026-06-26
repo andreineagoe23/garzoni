@@ -5,8 +5,16 @@ from django.core.management.base import BaseCommand
 from django.utils.html import strip_tags
 
 from education.models import Lesson
+from education.lesson_section_structure import SECTION_TEMPLATE_9
 
-TARGET_TYPES = ["text", "exercise", "text", "video", "text", "exercise", "text"]
+# Canonical 9-section layout, derived from the single source of truth.
+TARGET_TYPES = [ctype for _o, _t, ctype, _r in SECTION_TEMPLATE_9]
+TEXT_ORDERS = [o for o, _t, ctype, _r in SECTION_TEMPLATE_9 if ctype == "text"]
+EXERCISE_ORDERS = [o for o, _t, ctype, _r in SECTION_TEMPLATE_9 if ctype == "exercise"]
+VIDEO_ORDERS = [o for o, _t, ctype, _r in SECTION_TEMPLATE_9 if ctype == "video"]
+# Key Takeaways (7) and Next Steps (8) are intentionally short per authoring standards.
+SUMMARY_ORDERS = {7, 8}
+
 YOUTUBE_ID_RE = re.compile(
     r"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{11})"
 )
@@ -25,7 +33,7 @@ def has_valid_youtube_url(url: str | None) -> bool:
 
 
 class Command(BaseCommand):
-    help = "Quality gates for lessons: exact structure, text depth, non-generic exercises, and video validity."
+    help = "Quality gates for lessons: 9-section structure, text depth, non-generic exercises, video validity."
 
     def add_arguments(self, parser):
         parser.add_argument("--json", action="store_true", help="Output JSON report to stdout.")
@@ -39,14 +47,14 @@ class Command(BaseCommand):
         parser.add_argument(
             "--min-text-len",
             type=int,
-            default=500,
-            help="Minimum chars for text sections (except order 7). Default: 500",
+            default=300,
+            help="Minimum chars for deep text sections (1, 2, 4, 5). Default: 300",
         )
         parser.add_argument(
             "--min-summary-len",
             type=int,
-            default=350,
-            help="Minimum chars for final text section (order 7). Default: 350",
+            default=150,
+            help="Minimum chars for summary text sections (7 Key Takeaways, 8 Next Steps). Default: 150",
         )
         parser.add_argument(
             "--min-question-len",
@@ -73,32 +81,25 @@ class Command(BaseCommand):
             sections = list(lesson.sections.all().order_by("order"))
             reasons = []
 
-            if len(sections) != 7:
-                reasons.append(f"expected 7 sections, found {len(sections)}")
+            if len(sections) != len(TARGET_TYPES):
+                reasons.append(f"expected {len(TARGET_TYPES)} sections, found {len(sections)}")
             current_types = [s.content_type for s in sections]
             if current_types != TARGET_TYPES:
                 reasons.append(f"invalid section order/types: {current_types}")
 
             by_order = {s.order: s for s in sections}
 
-            for order in (1, 3, 5):
+            for order in TEXT_ORDERS:
                 s = by_order.get(order)
                 if not s or s.content_type != "text":
                     reasons.append(f"section {order} must be text")
                     continue
                 text_len = len(strip_tags(s.text_content or "").strip())
-                if text_len < min_text_len:
-                    reasons.append(f"text section {order} too short ({text_len} < {min_text_len})")
+                floor = min_summary_len if order in SUMMARY_ORDERS else min_text_len
+                if text_len < floor:
+                    reasons.append(f"text section {order} too short ({text_len} < {floor})")
 
-            s7 = by_order.get(7)
-            if not s7 or s7.content_type != "text":
-                reasons.append("section 7 must be text")
-            else:
-                text_len = len(strip_tags(s7.text_content or "").strip())
-                if text_len < min_summary_len:
-                    reasons.append(f"text section 7 too short ({text_len} < {min_summary_len})")
-
-            for order in (2, 6):
+            for order in EXERCISE_ORDERS:
                 s = by_order.get(order)
                 if not s or s.content_type != "exercise":
                     reasons.append(f"section {order} must be exercise")
@@ -114,17 +115,31 @@ class Command(BaseCommand):
                 q_lower = q.lower()
                 if any(p in q_lower for p in GENERIC_PATTERNS):
                     reasons.append(f"exercise section {order} uses generic prompt")
-                if not isinstance(opts, list) or len(opts) < 4:
-                    reasons.append(f"exercise section {order} requires 4 options")
-                if not isinstance(correct, int):
-                    reasons.append(f"exercise section {order} missing integer correctAnswer")
+                # Type-specific shape checks (multiple-choice is the default).
+                ex_type = s.exercise_type or "multiple-choice"
+                if ex_type == "multiple-choice":
+                    if not isinstance(opts, list) or len(opts) < 4:
+                        reasons.append(f"exercise section {order} requires 4 options")
+                    if not isinstance(correct, int):
+                        reasons.append(f"exercise section {order} missing integer correctAnswer")
+                elif ex_type == "numeric":
+                    if (
+                        data.get("expected_value") if isinstance(data, dict) else None
+                    ) is None and (
+                        data.get("correct_answer") if isinstance(data, dict) else None
+                    ) is None:
+                        reasons.append(f"exercise section {order} numeric missing expected_value")
+                elif ex_type == "drag-and-drop":
+                    items = data.get("items") if isinstance(data, dict) else None
+                    if not isinstance(items, list) or len(items) < 2:
+                        reasons.append(f"exercise section {order} drag-and-drop needs >=2 items")
 
-            s4 = by_order.get(4)
-            if not s4 or s4.content_type != "video":
-                reasons.append("section 4 must be video")
-            else:
-                if not has_valid_youtube_url(s4.video_url):
-                    reasons.append("section 4 has invalid youtube URL")
+            for order in VIDEO_ORDERS:
+                s = by_order.get(order)
+                if not s or s.content_type != "video":
+                    reasons.append(f"section {order} must be video")
+                elif not has_valid_youtube_url(s.video_url):
+                    reasons.append(f"section {order} has invalid youtube URL")
 
             if reasons:
                 failing += 1

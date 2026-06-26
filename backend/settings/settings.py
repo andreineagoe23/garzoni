@@ -391,6 +391,8 @@ OPENAI_IDEMPOTENCY_TTL_SECONDS = int(os.getenv("OPENAI_IDEMPOTENCY_TTL_SECONDS",
 
 # OpenAI payload validation / abuse prevention
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+# Model used by translate_lessons_to_ro / OpenAITranslator. Empty -> provider default (gpt-4o-mini).
+CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "").strip()
 OPENAI_MAX_PROMPT_CHARS = int(os.getenv("OPENAI_MAX_PROMPT_CHARS", "4000"))
 OPENAI_MAX_MESSAGES = int(os.getenv("OPENAI_MAX_MESSAGES", "30"))
 OPENAI_MAX_MESSAGE_CHARS = int(os.getenv("OPENAI_MAX_MESSAGE_CHARS", "2000"))
