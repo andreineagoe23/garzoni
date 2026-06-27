@@ -16,8 +16,7 @@
     },
     "onlyBuiltDependencies": [
       "sharp",
-      "react-vertical-timeline-component",
-      "puppeteer"
+      "react-vertical-timeline-component"
     ]
   },
   "devDependencies": {

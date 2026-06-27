@@ -80,6 +80,32 @@ async function renderRoute(browser, route) {
   }
 }
 
+/**
+ * Launch headless Chrome. On Vercel/CI (Amazon Linux build container) the system
+ * is missing the shared libraries a normal Chrome needs (libnspr4.so etc.), so we
+ * use @sparticuz/chromium which bundles a self-contained Chromium. Locally we use
+ * the full `puppeteer` package and its managed Chrome download.
+ */
+async function launchBrowser() {
+  const isServerless = !!(process.env.VERCEL || process.env.CI);
+
+  if (isServerless) {
+    const chromium = (await import("@sparticuz/chromium")).default;
+    const puppeteerCore = (await import("puppeteer-core")).default;
+    return puppeteerCore.launch({
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
+  }
+
+  const puppeteer = (await import("puppeteer")).default;
+  return puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+}
+
 async function fetchPublicLessonSlugs() {
   try {
     const apiBase =
@@ -106,21 +132,18 @@ async function main() {
     process.exit(1);
   }
 
-  let puppeteer;
+  let browser;
   try {
-    ({ default: puppeteer } = await import("puppeteer"));
-  } catch {
+    browser = await launchBrowser();
+  } catch (err) {
     console.error(
-      "⚠ puppeteer not installed — skipping prerender. Run `pnpm install` to enable AI-crawler prerendering."
+      "⚠ Could not launch a headless browser — skipping prerender:",
+      err.message
     );
     return;
   }
 
   const server = await serveDist();
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
 
   const routes = [...STATIC_ROUTES];
 
