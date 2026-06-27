@@ -96,6 +96,19 @@ urlpatterns = [
         EmailPreferencesView.as_view(),
         name="email_preferences",
     ),
+    # Aliases: earlier CIO syncs minted links under /api/auth/email/... (the
+    # route lives at /api/email/...). Keep these so already-delivered emails
+    # don't 404. Safe to remove once old links age out.
+    path(
+        "auth/email/unsubscribe/",
+        EmailUnsubscribeView.as_view(),
+        name="email_unsubscribe_alias",
+    ),
+    path(
+        "auth/email/preferences/",
+        EmailPreferencesView.as_view(),
+        name="email_preferences_alias",
+    ),
     path("change-password/", change_password, name="change-password"),
     path("delete-account/", delete_account, name="delete-account"),
     path(

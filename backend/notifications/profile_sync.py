@@ -101,8 +101,8 @@ def build_identify_traits(user: User) -> dict[str, Any]:
         if api_base:
             try:
                 token = profile.get_unsubscribe_token()
-                traits["preferences_url"] = f"{api_base}/auth/email/preferences/?token={token}"
-                traits["unsubscribe_url"] = f"{api_base}/auth/email/unsubscribe/?token={token}"
+                traits["preferences_url"] = f"{api_base}/email/preferences/?token={token}"
+                traits["unsubscribe_url"] = f"{api_base}/email/unsubscribe/?token={token}"
             except Exception:
                 pass
     traits["last_seen_at"] = int(timezone.now().timestamp())
