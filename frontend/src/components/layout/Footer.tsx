@@ -51,10 +51,18 @@ function Footer() {
       heading: t("footer.company"),
       requiresAuth: false,
       links: [
-        { label: t("footer.about"), to: "/welcome" },
+        { label: t("footer.about"), to: "/about" },
         { label: t("footer.features"), to: "/marketing" },
         { label: t("footer.subscriptions"), to: "/subscriptions" },
         { label: t("footer.contact"), to: "/support" },
+      ],
+    },
+    {
+      heading: "Learn",
+      requiresAuth: false,
+      links: [
+        { label: "Free Lessons", to: "/learn" },
+        { label: "About Garzoni", to: "/about" },
       ],
     },
     {
@@ -89,7 +97,7 @@ function Footer() {
           {/* Brand, copy, and link columns only — same grid as before */}
           <div className="w-full">
             <div
-              className={`grid grid-cols-3 gap-4 sm:gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 ${isAuthenticated ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}
+              className={`grid grid-cols-3 gap-4 sm:gap-8 sm:grid-cols-3 sm:items-start sm:gap-x-8 ${isAuthenticated ? "lg:grid-cols-6" : "lg:grid-cols-5"}`}
             >
               <div className="col-span-3 space-y-4 sm:col-span-3 lg:col-span-2">
                 <span

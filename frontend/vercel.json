@@ -20,7 +20,7 @@
       "destination": "https://garzoni-production.up.railway.app/sitemap.xml"
     },
     {
-      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|sitemap\\.xml$).*)",
+      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|__prerendered(?:/|$)|sitemap\\.xml$).*)",
       "destination": "/index.html"
     }
   ],
@@ -91,6 +91,19 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/__prerendered/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
         }
       ]
     }

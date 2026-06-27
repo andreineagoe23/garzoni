@@ -1,0 +1,25 @@
+# Garzoni
+
+> Garzoni is a personal finance education platform for young adults. It teaches budgeting, saving, investing, debt management, credit scores, and taxes through interactive ten-minute lessons, daily streaks, spaced repetition, and an AI-powered financial coach. Available on web and iOS.
+
+Garzoni is a learning platform — think "Duolingo for personal finance" — not a budgeting tracker. The goal is lasting financial literacy through short, practical, jargon-free lessons. Garzoni is a financial education app, not a registered financial adviser, and does not recommend specific financial products.
+
+## Core Topics
+- Budgeting: building a budget, the 50/30/20 rule, tracking spending
+- Saving: emergency funds, savings goals, habit formation
+- Debt management: avalanche vs snowball payoff strategies
+- Investing basics: stocks, bonds, ETFs, compound interest, starting small
+- Credit scores: understanding, monitoring, and improving credit
+- Taxes: fundamentals explained in plain language
+- AI financial coaching: personalised, interactive guidance in simulators
+
+## Key Pages
+- [Home](https://www.garzoni.app/): Overview of Garzoni
+- [Free Lessons](https://www.garzoni.app/learn): Catalog of free finance lessons
+- [About](https://www.garzoni.app/about): Mission and approach
+- [Features](https://www.garzoni.app/marketing): Product features
+- [Pricing](https://www.garzoni.app/subscriptions): Plans (free Starter tier available)
+
+## Notes
+- The free Starter plan requires no payment card and includes the full lesson library, daily streaks, XP, and basic calculators.
+- Lessons are available to read without an account at /learn.

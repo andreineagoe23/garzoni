@@ -49,7 +49,7 @@
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "npx --yes prettier --write .",
     "format:check": "npx --yes prettier --check .",
-    "build": "pnpm exec tsc --noEmit && vite build",
+    "build": "pnpm exec tsc --noEmit && vite build && (pnpm exec puppeteer browsers install chrome || true) && node scripts/prerender.mjs",
     "build:analyze": "cross-env ANALYZE=true pnpm exec tsc --noEmit && cross-env ANALYZE=true vite build",
     "type-check": "pnpm exec tsc --noEmit --skipLibCheck",
     "test": "vitest run",
@@ -93,6 +93,8 @@
     "typescript-eslint": "^8.61.1",
     "vite": "^6.0.7",
     "vite-imagetools": "7.0.5",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "puppeteer": "^24.0.0",
+    "@vercel/edge": "^1.2.0"
   }
 }

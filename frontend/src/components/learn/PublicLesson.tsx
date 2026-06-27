@@ -20,9 +20,17 @@ type PublicLessonResponse = {
   }>;
 };
 
+type RelatedLesson = {
+  slug: string;
+  title: string;
+  short_description: string;
+  course: { id: number; title: string };
+};
+
 export default function PublicLesson() {
   const { slug } = useParams<{ slug: string }>();
   const [data, setData] = useState<PublicLessonResponse | null>(null);
+  const [related, setRelated] = useState<RelatedLesson[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +54,26 @@ export default function PublicLesson() {
       cancelled = true;
     };
   }, [slug]);
+
+  useEffect(() => {
+    if (!data) return;
+    let cancelled = false;
+    apiClient
+      .get<{ results: RelatedLesson[] }>("/public/lessons/")
+      .then((res) => {
+        if (cancelled) return;
+        const others = (res.data.results ?? [])
+          .filter((l) => l.slug !== data.slug && l.course.id === data.course.id)
+          .slice(0, 4);
+        setRelated(others);
+      })
+      .catch(() => {
+        if (!cancelled) setRelated([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [data]);
 
   const sanitizedLessonHtml = useMemo(
     () => DOMPurify.sanitize(data?.detailed_content || ""),
@@ -103,9 +131,15 @@ export default function PublicLesson() {
           description,
           image: data.image_url || undefined,
         }}
+        breadcrumbs={[
+          { name: "Home", url: "https://www.garzoni.app/" },
+          { name: "Lessons", url: "https://www.garzoni.app/learn" },
+          { name: data.title, url: canonical },
+        ]}
       />
       <nav aria-label="Breadcrumb" style={{ fontSize: 14, opacity: 0.7 }}>
-        <Link to="/">Home</Link> › <span>{data.course.title}</span>
+        <Link to="/">Home</Link> › <Link to="/learn">Lessons</Link> ›{" "}
+        <span>{data.course.title}</span>
       </nav>
       <h1>{data.title}</h1>
       {data.short_description ? <p>{data.short_description}</p> : null}
@@ -129,6 +163,25 @@ export default function PublicLesson() {
           <div dangerouslySetInnerHTML={{ __html: s.sanitizedText }} />
         </section>
       ))}
+      {related.length > 0 ? (
+        <section style={{ marginTop: "3rem" }}>
+          <h2>Related lessons</h2>
+          <ul style={{ lineHeight: 1.9 }}>
+            {related.map((l) => (
+              <li key={l.slug}>
+                <Link to={`/learn/${l.slug}`}>{l.title}</Link>
+              </li>
+            ))}
+          </ul>
+          <p>
+            <Link to="/learn">Browse all free lessons →</Link>
+          </p>
+        </section>
+      ) : (
+        <p style={{ marginTop: "2rem" }}>
+          <Link to="/learn">Browse all free lessons →</Link>
+        </p>
+      )}
       <aside
         style={{
           marginTop: "3rem",

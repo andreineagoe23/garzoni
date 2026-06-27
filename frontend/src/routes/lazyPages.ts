@@ -4,6 +4,12 @@ export const Welcome = React.lazy(() => import("components/landing/Welcome"));
 export const PublicLesson = React.lazy(
   () => import("components/learn/PublicLesson")
 );
+export const LearnIndex = React.lazy(
+  () => import("components/learn/LearnIndex")
+);
+export const AboutPage = React.lazy(
+  () => import("components/landing/AboutPage")
+);
 export const CoursePage = React.lazy(
   () => import("components/courses/CoursePage")
 );

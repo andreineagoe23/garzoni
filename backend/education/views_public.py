@@ -65,6 +65,52 @@ def public_lesson_detail(request, slug: str):
     return response
 
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public_lesson_list(request):
+    """List all publicly-indexable lessons, grouped for the /learn catalog.
+
+    Only returns lessons explicitly flagged is_public=True — identical security
+    boundary to public_lesson_detail. Never exposes private or auth-gated content.
+    """
+    lessons = (
+        Lesson.objects.select_related("course", "course__path")
+        .filter(is_public=True)
+        .order_by("course__order", "id")
+    )
+
+    items = []
+    for lesson in lessons:
+        image_url = ""
+        try:
+            if lesson.image:
+                image_url = request.build_absolute_uri(lesson.image.url)
+        except Exception:
+            image_url = ""
+        items.append(
+            {
+                "slug": lesson.slug,
+                "title": lesson.title,
+                "short_description": lesson.short_description or "",
+                "image_url": image_url,
+                "course": {
+                    "id": lesson.course_id,
+                    "title": lesson.course.title if lesson.course else "",
+                },
+                "path": {
+                    "id": lesson.course.path_id if lesson.course else None,
+                    "title": (
+                        lesson.course.path.title if lesson.course and lesson.course.path else ""
+                    ),
+                },
+            }
+        )
+
+    response = Response({"count": len(items), "results": items})
+    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    return response
+
+
 @cache_page(60 * 60)
 def sitemap_xml(request):
     """Plain XML sitemap. No django.contrib.sitemaps dependency."""
@@ -73,6 +119,9 @@ def sitemap_xml(request):
 
     static_urls = [
         (f"{site_url}/", "1.0", "daily"),
+        (f"{site_url}/marketing", "0.8", "weekly"),
+        (f"{site_url}/learn", "0.9", "weekly"),
+        (f"{site_url}/about", "0.7", "monthly"),
         (f"{site_url}/subscriptions", "0.8", "weekly"),
         (f"{site_url}/login", "0.5", "monthly"),
         (f"{site_url}/register", "0.5", "monthly"),

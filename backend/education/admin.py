@@ -212,15 +212,29 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "course",
+        "is_public",
         "section_count",
         "published_section_count",
         "last_updated",
     )
-    list_filter = ("course",)
+    list_filter = ("course", "is_public")
+    list_editable = ("is_public",)
     search_fields = ("title", "course__title")
-    actions = ["migrate_legacy_content"]
+    readonly_fields = ("slug",)
+    actions = ["migrate_legacy_content", "make_public", "make_private"]
     fieldsets = (
-        (None, {"fields": ("course", "title", "short_description")}),
+        (
+            None,
+            {
+                "fields": (
+                    "course",
+                    "title",
+                    "slug",
+                    "short_description",
+                    "is_public",
+                )
+            },
+        ),
         (
             "Legacy lesson content (editable but superseded by lesson sections)",
             {
@@ -235,6 +249,16 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
             },
         ),
     )
+
+    @admin.action(description="Mark selected lessons as public (SEO-indexable)")
+    def make_public(self, request, queryset):
+        updated = queryset.update(is_public=True)
+        self.message_user(request, f"{updated} lesson(s) marked public.")
+
+    @admin.action(description="Mark selected lessons as private")
+    def make_private(self, request, queryset):
+        updated = queryset.update(is_public=False)
+        self.message_user(request, f"{updated} lesson(s) marked private.")
 
     def section_count(self, obj):
         """Return the count of sections in a lesson."""
