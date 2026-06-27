@@ -1,9 +1,5 @@
 export type WeakSkillNextStepType =
-  | "review"
-  | "lesson"
-  | "quiz"
-  | "practice"
-  | "tutor";
+  "review" | "lesson" | "quiz" | "practice" | "tutor";
 
 export type WeakSkillNextStep = {
   type: WeakSkillNextStepType;

@@ -96,13 +96,14 @@ https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..7
 **Spacing scale (4px grid):** `4, 8, 12, 16, 20, 24, 32, 48`
 
 **Radius scale:**
-| Token | Value | Usage |
-|---|---|---|
-| `radius-sm` | `6px` | Tags, micro pills |
-| `radius-md` | `10px` | Icon tiles |
-| `radius-lg` | `14px` | `.app-card-sm` |
+
+| Token         | Value      | Usage                                                                                                |
+| ------------- | ---------- | ---------------------------------------------------------------------------------------------------- |
+| `radius-sm`   | `6px`      | Tags, micro pills                                                                                    |
+| `radius-md`   | `10px`     | Icon tiles                                                                                           |
+| `radius-lg`   | `14px`     | `.app-card-sm`                                                                                       |
 | `radius-card` | **`20px`** | **`.app-card`, `.app-card-raised`, email cards — canonical card radius across web + mobile + email** |
-| `radius-pill` | `9999px` | Badges, CTAs, progress |
+| `radius-pill` | `9999px`   | Badges, CTAs, progress                                                                               |
 
 ---
 

@@ -1,16 +1,46 @@
 [
-  {"id": 128, "ex6": {"type": "numeric", "data": {
-    "question": "A rental property brings in 800 GBP/month in rent, while total monthly costs are 850 GBP. What is the monthly cash flow in GBP? Use a negative number if it is a loss.",
-    "unit": "GBP", "expected_value": -50, "tolerance": 0, "placeholder": "e.g. -50",
-    "explanation": "Cash flow = income (800) minus costs (850) = -50 GBP. A negative figure means the property loses money every month."}}},
+  {
+    "id": 128,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "A rental property brings in 800 GBP/month in rent, while total monthly costs are 850 GBP. What is the monthly cash flow in GBP? Use a negative number if it is a loss.",
+        "unit": "GBP",
+        "expected_value": -50,
+        "tolerance": 0,
+        "placeholder": "e.g. -50",
+        "explanation": "Cash flow = income (800) minus costs (850) = -50 GBP. A negative figure means the property loses money every month."
+      }
+    }
+  },
 
-  {"id": 146, "ex6": {"type": "numeric", "data": {
-    "question": "You backtest a strategy over 100 trades: a 48% win rate, an average winner of 60 pips and an average loser of 30 pips. What is the expectancy per trade, in pips?",
-    "unit": "pips", "expected_value": 13.2, "tolerance": 0.2, "placeholder": "e.g. 13.2",
-    "explanation": "Expectancy = (0.48 x 60) - (0.52 x 30) = 28.8 - 15.6 = 13.2 pips. A positive expectancy means the edge is profitable over many trades."}}},
+  {
+    "id": 146,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "You backtest a strategy over 100 trades: a 48% win rate, an average winner of 60 pips and an average loser of 30 pips. What is the expectancy per trade, in pips?",
+        "unit": "pips",
+        "expected_value": 13.2,
+        "tolerance": 0.2,
+        "placeholder": "e.g. 13.2",
+        "explanation": "Expectancy = (0.48 x 60) - (0.52 x 30) = 28.8 - 15.6 = 13.2 pips. A positive expectancy means the edge is profitable over many trades."
+      }
+    }
+  },
 
-  {"id": 132, "ex6": {"type": "numeric", "data": {
-    "question": "Flat A rents for 50 GBP/month more than Flat B but sits empty 2 months a year; Flat B is always occupied. If Flat B rents for 800 GBP/month, how much MORE or LESS does Flat A earn per year, in GBP? Use a negative number if Flat A earns less.",
-    "unit": "GBP", "expected_value": -100, "tolerance": 0, "placeholder": "e.g. -100",
-    "explanation": "Flat A: 850 x 10 = 8,500. Flat B: 800 x 12 = 9,600. Difference = 8,500 - 9,600 = -100 GBP. Two void months wipe out the higher rent."}}}
+  {
+    "id": 132,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "Flat A rents for 50 GBP/month more than Flat B but sits empty 2 months a year; Flat B is always occupied. If Flat B rents for 800 GBP/month, how much MORE or LESS does Flat A earn per year, in GBP? Use a negative number if Flat A earns less.",
+        "unit": "GBP",
+        "expected_value": -100,
+        "tolerance": 0,
+        "placeholder": "e.g. -100",
+        "explanation": "Flat A: 850 x 10 = 8,500. Flat B: 800 x 12 = 9,600. Difference = 8,500 - 9,600 = -100 GBP. Two void months wipe out the higher rent."
+      }
+    }
+  }
 ]

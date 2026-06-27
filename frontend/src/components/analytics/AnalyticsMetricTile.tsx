@@ -1,12 +1,7 @@
 import React from "react";
 
 export type MetricTone =
-  | "default"
-  | "brand"
-  | "warning"
-  | "info"
-  | "accent"
-  | "error";
+  "default" | "brand" | "warning" | "info" | "accent" | "error";
 
 const TONE_CLASS: Record<MetricTone, string> = {
   default: "text-content-primary",

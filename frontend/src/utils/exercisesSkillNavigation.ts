@@ -2,9 +2,7 @@ import type { NavigateFunction } from "react-router-dom";
 
 /** Navigation `state.reason` for dashboard → exercises deep links (analytics + banner context). */
 export type ExercisesSkillReason =
-  | "weak_skill_click"
-  | "weak_skill_practice"
-  | "weak_skill_review";
+  "weak_skill_click" | "weak_skill_practice" | "weak_skill_review";
 
 const LEGACY_REASON_TO_CANONICAL: Record<string, ExercisesSkillReason> = {
   improve_weak_skill: "weak_skill_practice",

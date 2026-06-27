@@ -51,8 +51,7 @@ function lessonsLoadErrorMessage(
   }
   const status = error.response?.status;
   const data = error.response?.data as
-    | { error?: string; detail?: string }
-    | undefined;
+    { error?: string; detail?: string } | undefined;
   const msg =
     (typeof data?.error === "string" && data.error) ||
     (typeof data?.detail === "string" && data.detail) ||

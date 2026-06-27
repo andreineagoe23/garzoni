@@ -126,8 +126,7 @@ apiClient.interceptors.response.use(
         error.message ||
         getApiErrorFallbackMessage();
       const responseHeaders = error.response?.headers as
-        | Record<string, string | string[] | undefined>
-        | undefined;
+        Record<string, string | string[] | undefined> | undefined;
       const requestIdHeader =
         responseHeaders?.["x-request-id"] ?? responseHeaders?.["X-Request-ID"];
       const requestId =

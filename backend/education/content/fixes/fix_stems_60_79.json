@@ -1,76 +1,298 @@
 [
-  {"id": 4,   "q3": "When you are setting a financial goal using the SMART method, why is it important to attach a specific timeframe to it?"},
-  {"id": 5,   "q3": "In the popular '50/30/20 Rule' of budgeting, what do the three percentages each actually represent?"},
-  {"id": 8,   "q3": "When comparing types of credit, what is the key feature that distinguishes 'Secured' credit from 'Unsecured' credit?"},
-  {"id": 9,   "q3": "In the context of how credit scores are calculated, what does the term 'Credit Utilization' actually refer to?"},
-  {"id": 10,  "q3": "Among the options below, what is widely considered the most important factor in building a strong credit score over time?"},
-  {"id": 14,  "q3": "When evaluating an investment, what is the typical relationship between the level of risk and the potential return?"},
-  {"id": 16,  "q3": "When deciding on the asset allocation for your investment plan, what should you primarily take into account?"},
-  {"id": 19,  "q3": "When evaluating a rental property, what formula do you use to calculate its 'Gross Rental Yield'?"},
-  {"id": 21,  "q3": "Within a typical real estate cycle, what usually happens to prices and demand during the 'Expansion' phase?"},
-  {"id": 22,  "q3": "When building a property portfolio, how does diversification across locations or types help you manage risk?"},
-  {"id": 28,  "q3": "Within the wider cryptocurrency market, what is the main function that a 'Stablecoin' is designed to serve?"},
-  {"id": 32,  "q3": "In decentralized finance, why is over-collateralization considered important for the safety of lending protocols?"},
-  {"id": 34,  "q3": "In blockchain technology, what is the main problem that 'Layer 2' scaling solutions are designed to solve?"},
-  {"id": 35,  "q3": "Compared with traditional stock markets, what key feature makes the global Forex market unique?"},
-  {"id": 36,  "q3": "In the EUR/USD currency pair shown in forex quotes, which of the two currencies is considered the 'Base' currency?"},
-  {"id": 38,  "q3": "In Forex technical analysis, what does the term 'Support' refer to when price falls toward a certain level?"},
-  {"id": 39,  "q3": "When a forex trader uses fundamental analysis, what is the primary goal they are trying to achieve?"},
-  {"id": 40,  "q3": "In forex trading, what does a strategy known as 'Trend Following' actually involve doing?"},
-  {"id": 41,  "q3": "In forex trading, how does using 'Leverage' impact both the potential gains and the risks of a trading account?"},
-  {"id": 42,  "q3": "In Forex trading, what is the primary purpose of placing a 'Stop Loss' order on an open position?"},
-  {"id": 43,  "q3": "In forex trading, what is the primary role that a written, structured trading plan is meant to play?"},
-  {"id": 44,  "q3": "When budgeting on an irregular or variable income, what does the 'Baseline' figure actually refer to?"},
-  {"id": 45,  "q3": "To keep your budget accurate and effective over time, how frequently should you review and adjust it?"},
-  {"id": 48,  "q3": "In personal finance, what does the practice of 'Intentional Spending' encourage you to do with your money?"},
-  {"id": 52,  "q3": "What does the term 'Lifestyle Creep' mean, and how can it quietly affect your long-term ability to save?"},
-  {"id": 54,  "q3": "Within a broader wealth-protection strategy, what is the main goal of diversifying your assets?"},
-  {"id": 57,  "q3": "In financial psychology, what does the term 'Money Block' refer to in a person's relationship with money?"},
-  {"id": 58,  "q3": "In building a healthy money mindset, how does practising 'Financial Gratitude' help reduce impulsive overspending?"},
-  {"id": 60,  "q3": "When you set a personal 'Spending Threshold' boundary, what is the main goal you are trying to achieve?"},
-  {"id": 63,  "q3": "Among the options below, what is generally considered the ideal amount to hold in a fully funded emergency fund?"},
-  {"id": 64,  "q3": "In behavioural finance, what does 'Tunnelling' refer to in how people think when under financial stress?"},
-  {"id": 66,  "q3": "In a financial and career context, what does the 'Value-First' approach to networking involve doing?"},
-  {"id": 67,  "q3": "When planning your finances, what is the key difference that distinguishes a 'Financial Goal' from a 'Financial Vision'?"},
-  {"id": 73,  "q3": "Within the BRRRR property-investing method, what is the primary goal of the 'Refinance' step?"},
-  {"id": 74,  "q3": "For a property investor, what is a key advantage of scaling up from residential into commercial real estate?"},
-  {"id": 76,  "q3": "In the context of cryptocurrency scams, what does the term 'Rug Pull' refer to when a project collapses?"},
-  {"id": 80,  "q3": "In decentralized finance, what is the primary difference between 'Staking' and 'Yield Farming'?"},
-  {"id": 81,  "q3": "When reading a price chart, what information does a single 'Candlestick' provide about that time period?"},
-  {"id": 82,  "q3": "In trading psychology, which two emotions are most often said to negatively impact your trading decisions?"},
-  {"id": 83,  "q3": "In the context of forex trading, what does the process known as 'Backtesting' a strategy actually involve?"},
-  {"id": 84,  "q3": "For a forex trader, why is having a structured pre-market routine considered important to consistent results?"},
-  {"id": 87,  "q3": "When two people start managing their finances together as a couple, what is the most important first step?"},
-  {"id": 88,  "q3": "In personal finance, what is the primary purpose of sitting down to conduct an Annual Financial Review?"},
-  {"id": 89,  "q3": "In personal finance, what does 'Lifestyle Inflation' refer to as your income grows over time?"},
-  {"id": 91,  "q3": "Within a structured savings plan, what is a 'Sinking Fund' set up and used for over time?"},
-  {"id": 95,  "q3": "In money psychology, what core belief is central to a 'Scarcity Mindset' when it comes to finances?"},
-  {"id": 96,  "q3": "In financial psychology, how do 'Limiting Beliefs' about money typically affect a person's financial behaviour?"},
-  {"id": 98,  "q3": "To help manage impulse spending, what does the popular '24-Hour Rule' suggest you do before buying?"},
-  {"id": 99,  "q3": "In personal finance, what are the three key components that make up a comprehensive financial safety net?"},
-  {"id": 101, "q3": "If you approach your finances with a growth mindset, how should you handle a money mistake when it happens?"},
-  {"id": 102, "q3": "In a personal-finance context, what does the idea of 'Building Long-Term Direction' actually involve?"},
-  {"id": 106, "q3": "When you are separating spending while creating a budget, which of the following best describes a 'Need'?"},
-  {"id": 107, "q3": "When you sit down for your very first income and expense review, what is the main goal of the exercise?"},
-  {"id": 111, "q3": "When you start building an emergency fund from scratch, what is the recommended first milestone to aim for?"},
-  {"id": 112, "q3": "Among the situations below, which one is an appropriate reason to actually dip into your emergency fund?"},
-  {"id": 114, "q3": "When classifying your financial goals, what timeframe is typically associated with a 'short-term' goal?"},
-  {"id": 117, "q3": "Once you have set your financial goals, why is it important to regularly review and adjust them over time?"},
-  {"id": 121, "q3": "While you are paying down existing debt, what strategy best helps prevent you from taking on new debt?"},
-  {"id": 122, "q3": "Among the options below, what mindset change can most help you work effectively towards becoming debt-free?"},
-  {"id": 123, "q3": "When you make a monthly mortgage payment, what are the two main components that the payment is split into?"},
-  {"id": 126, "q3": "In mortgage terminology, what does the ratio known as 'LTV' (Loan-to-Value) actually represent?"},
-  {"id": 129, "q3": "When assessing a rental property, how do 'Gross' and 'Net' rental income differ in terms of expenses?"},
-  {"id": 133, "q3": "Among the options below, what is the primary difference between DeFi and traditional bank-based finance?"},
-  {"id": 135, "q3": "Within a DeFi liquidity pool, what does a 'Liquidity Provider' (LP) actually do to earn trading fees?"},
-  {"id": 137, "q3": "Before you put money into any DeFi strategy, what is the most important initial step to take first?"},
-  {"id": 139, "q3": "For storing your crypto, what is the fundamental difference between a 'Hot Wallet' and a 'Cold Wallet'?"},
-  {"id": 140, "q3": "Among the options below, which warning sign most strongly suggests that a crypto investment might be a scam?"},
-  {"id": 141, "q3": "In crypto risk management, what does the practice known as 'Position Sizing' actually refer to?"},
-  {"id": 142, "q3": "Among the options below, which practice is essential for keeping your cryptocurrency accounts secure?"},
-  {"id": 143, "q3": "In Forex trading, what is the core assumption that Technical Analysis is fundamentally built upon?"},
-  {"id": 148, "q3": "Among the options below, what is a common reason that retail traders struggle to succeed in forex trading?"},
-  {"id": 150, "q3": "In forex trading, what is the primary purpose of attaching a 'Stop-Loss' order to an open position?"},
-  {"id": 151, "q3": "In trading psychology, what does it actually mean to approach the markets with a 'Probabilistic Mindset'?"},
-  {"id": 152, "q3": "Among the options below, what is widely regarded as the key to achieving long-term success in forex trading?"}
+  {
+    "id": 4,
+    "q3": "When you are setting a financial goal using the SMART method, why is it important to attach a specific timeframe to it?"
+  },
+  {
+    "id": 5,
+    "q3": "In the popular '50/30/20 Rule' of budgeting, what do the three percentages each actually represent?"
+  },
+  {
+    "id": 8,
+    "q3": "When comparing types of credit, what is the key feature that distinguishes 'Secured' credit from 'Unsecured' credit?"
+  },
+  {
+    "id": 9,
+    "q3": "In the context of how credit scores are calculated, what does the term 'Credit Utilization' actually refer to?"
+  },
+  {
+    "id": 10,
+    "q3": "Among the options below, what is widely considered the most important factor in building a strong credit score over time?"
+  },
+  {
+    "id": 14,
+    "q3": "When evaluating an investment, what is the typical relationship between the level of risk and the potential return?"
+  },
+  {
+    "id": 16,
+    "q3": "When deciding on the asset allocation for your investment plan, what should you primarily take into account?"
+  },
+  {
+    "id": 19,
+    "q3": "When evaluating a rental property, what formula do you use to calculate its 'Gross Rental Yield'?"
+  },
+  {
+    "id": 21,
+    "q3": "Within a typical real estate cycle, what usually happens to prices and demand during the 'Expansion' phase?"
+  },
+  {
+    "id": 22,
+    "q3": "When building a property portfolio, how does diversification across locations or types help you manage risk?"
+  },
+  {
+    "id": 28,
+    "q3": "Within the wider cryptocurrency market, what is the main function that a 'Stablecoin' is designed to serve?"
+  },
+  {
+    "id": 32,
+    "q3": "In decentralized finance, why is over-collateralization considered important for the safety of lending protocols?"
+  },
+  {
+    "id": 34,
+    "q3": "In blockchain technology, what is the main problem that 'Layer 2' scaling solutions are designed to solve?"
+  },
+  {
+    "id": 35,
+    "q3": "Compared with traditional stock markets, what key feature makes the global Forex market unique?"
+  },
+  {
+    "id": 36,
+    "q3": "In the EUR/USD currency pair shown in forex quotes, which of the two currencies is considered the 'Base' currency?"
+  },
+  {
+    "id": 38,
+    "q3": "In Forex technical analysis, what does the term 'Support' refer to when price falls toward a certain level?"
+  },
+  {
+    "id": 39,
+    "q3": "When a forex trader uses fundamental analysis, what is the primary goal they are trying to achieve?"
+  },
+  {
+    "id": 40,
+    "q3": "In forex trading, what does a strategy known as 'Trend Following' actually involve doing?"
+  },
+  {
+    "id": 41,
+    "q3": "In forex trading, how does using 'Leverage' impact both the potential gains and the risks of a trading account?"
+  },
+  {
+    "id": 42,
+    "q3": "In Forex trading, what is the primary purpose of placing a 'Stop Loss' order on an open position?"
+  },
+  {
+    "id": 43,
+    "q3": "In forex trading, what is the primary role that a written, structured trading plan is meant to play?"
+  },
+  {
+    "id": 44,
+    "q3": "When budgeting on an irregular or variable income, what does the 'Baseline' figure actually refer to?"
+  },
+  {
+    "id": 45,
+    "q3": "To keep your budget accurate and effective over time, how frequently should you review and adjust it?"
+  },
+  {
+    "id": 48,
+    "q3": "In personal finance, what does the practice of 'Intentional Spending' encourage you to do with your money?"
+  },
+  {
+    "id": 52,
+    "q3": "What does the term 'Lifestyle Creep' mean, and how can it quietly affect your long-term ability to save?"
+  },
+  {
+    "id": 54,
+    "q3": "Within a broader wealth-protection strategy, what is the main goal of diversifying your assets?"
+  },
+  {
+    "id": 57,
+    "q3": "In financial psychology, what does the term 'Money Block' refer to in a person's relationship with money?"
+  },
+  {
+    "id": 58,
+    "q3": "In building a healthy money mindset, how does practising 'Financial Gratitude' help reduce impulsive overspending?"
+  },
+  {
+    "id": 60,
+    "q3": "When you set a personal 'Spending Threshold' boundary, what is the main goal you are trying to achieve?"
+  },
+  {
+    "id": 63,
+    "q3": "Among the options below, what is generally considered the ideal amount to hold in a fully funded emergency fund?"
+  },
+  {
+    "id": 64,
+    "q3": "In behavioural finance, what does 'Tunnelling' refer to in how people think when under financial stress?"
+  },
+  {
+    "id": 66,
+    "q3": "In a financial and career context, what does the 'Value-First' approach to networking involve doing?"
+  },
+  {
+    "id": 67,
+    "q3": "When planning your finances, what is the key difference that distinguishes a 'Financial Goal' from a 'Financial Vision'?"
+  },
+  {
+    "id": 73,
+    "q3": "Within the BRRRR property-investing method, what is the primary goal of the 'Refinance' step?"
+  },
+  {
+    "id": 74,
+    "q3": "For a property investor, what is a key advantage of scaling up from residential into commercial real estate?"
+  },
+  {
+    "id": 76,
+    "q3": "In the context of cryptocurrency scams, what does the term 'Rug Pull' refer to when a project collapses?"
+  },
+  {
+    "id": 80,
+    "q3": "In decentralized finance, what is the primary difference between 'Staking' and 'Yield Farming'?"
+  },
+  {
+    "id": 81,
+    "q3": "When reading a price chart, what information does a single 'Candlestick' provide about that time period?"
+  },
+  {
+    "id": 82,
+    "q3": "In trading psychology, which two emotions are most often said to negatively impact your trading decisions?"
+  },
+  {
+    "id": 83,
+    "q3": "In the context of forex trading, what does the process known as 'Backtesting' a strategy actually involve?"
+  },
+  {
+    "id": 84,
+    "q3": "For a forex trader, why is having a structured pre-market routine considered important to consistent results?"
+  },
+  {
+    "id": 87,
+    "q3": "When two people start managing their finances together as a couple, what is the most important first step?"
+  },
+  {
+    "id": 88,
+    "q3": "In personal finance, what is the primary purpose of sitting down to conduct an Annual Financial Review?"
+  },
+  {
+    "id": 89,
+    "q3": "In personal finance, what does 'Lifestyle Inflation' refer to as your income grows over time?"
+  },
+  {
+    "id": 91,
+    "q3": "Within a structured savings plan, what is a 'Sinking Fund' set up and used for over time?"
+  },
+  {
+    "id": 95,
+    "q3": "In money psychology, what core belief is central to a 'Scarcity Mindset' when it comes to finances?"
+  },
+  {
+    "id": 96,
+    "q3": "In financial psychology, how do 'Limiting Beliefs' about money typically affect a person's financial behaviour?"
+  },
+  {
+    "id": 98,
+    "q3": "To help manage impulse spending, what does the popular '24-Hour Rule' suggest you do before buying?"
+  },
+  {
+    "id": 99,
+    "q3": "In personal finance, what are the three key components that make up a comprehensive financial safety net?"
+  },
+  {
+    "id": 101,
+    "q3": "If you approach your finances with a growth mindset, how should you handle a money mistake when it happens?"
+  },
+  {
+    "id": 102,
+    "q3": "In a personal-finance context, what does the idea of 'Building Long-Term Direction' actually involve?"
+  },
+  {
+    "id": 106,
+    "q3": "When you are separating spending while creating a budget, which of the following best describes a 'Need'?"
+  },
+  {
+    "id": 107,
+    "q3": "When you sit down for your very first income and expense review, what is the main goal of the exercise?"
+  },
+  {
+    "id": 111,
+    "q3": "When you start building an emergency fund from scratch, what is the recommended first milestone to aim for?"
+  },
+  {
+    "id": 112,
+    "q3": "Among the situations below, which one is an appropriate reason to actually dip into your emergency fund?"
+  },
+  {
+    "id": 114,
+    "q3": "When classifying your financial goals, what timeframe is typically associated with a 'short-term' goal?"
+  },
+  {
+    "id": 117,
+    "q3": "Once you have set your financial goals, why is it important to regularly review and adjust them over time?"
+  },
+  {
+    "id": 121,
+    "q3": "While you are paying down existing debt, what strategy best helps prevent you from taking on new debt?"
+  },
+  {
+    "id": 122,
+    "q3": "Among the options below, what mindset change can most help you work effectively towards becoming debt-free?"
+  },
+  {
+    "id": 123,
+    "q3": "When you make a monthly mortgage payment, what are the two main components that the payment is split into?"
+  },
+  {
+    "id": 126,
+    "q3": "In mortgage terminology, what does the ratio known as 'LTV' (Loan-to-Value) actually represent?"
+  },
+  {
+    "id": 129,
+    "q3": "When assessing a rental property, how do 'Gross' and 'Net' rental income differ in terms of expenses?"
+  },
+  {
+    "id": 133,
+    "q3": "Among the options below, what is the primary difference between DeFi and traditional bank-based finance?"
+  },
+  {
+    "id": 135,
+    "q3": "Within a DeFi liquidity pool, what does a 'Liquidity Provider' (LP) actually do to earn trading fees?"
+  },
+  {
+    "id": 137,
+    "q3": "Before you put money into any DeFi strategy, what is the most important initial step to take first?"
+  },
+  {
+    "id": 139,
+    "q3": "For storing your crypto, what is the fundamental difference between a 'Hot Wallet' and a 'Cold Wallet'?"
+  },
+  {
+    "id": 140,
+    "q3": "Among the options below, which warning sign most strongly suggests that a crypto investment might be a scam?"
+  },
+  {
+    "id": 141,
+    "q3": "In crypto risk management, what does the practice known as 'Position Sizing' actually refer to?"
+  },
+  {
+    "id": 142,
+    "q3": "Among the options below, which practice is essential for keeping your cryptocurrency accounts secure?"
+  },
+  {
+    "id": 143,
+    "q3": "In Forex trading, what is the core assumption that Technical Analysis is fundamentally built upon?"
+  },
+  {
+    "id": 148,
+    "q3": "Among the options below, what is a common reason that retail traders struggle to succeed in forex trading?"
+  },
+  {
+    "id": 150,
+    "q3": "In forex trading, what is the primary purpose of attaching a 'Stop-Loss' order to an open position?"
+  },
+  {
+    "id": 151,
+    "q3": "In trading psychology, what does it actually mean to approach the markets with a 'Probabilistic Mindset'?"
+  },
+  {
+    "id": 152,
+    "q3": "Among the options below, what is widely regarded as the key to achieving long-term success in forex trading?"
+  }
 ]

@@ -74,8 +74,7 @@ type AuthContextValue = {
 
 type FetchUserResult = true | false | { unauthorized: true };
 type RefreshResult =
-  | { ok: true; token: string }
-  | { ok: false; reason: string };
+  { ok: true; token: string } | { ok: false; reason: string };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -607,8 +606,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const embeddedFinancial =
         (
           profileData?.user_data as
-            | { financial_profile?: FinancialProfile }
-            | undefined
+            { financial_profile?: FinancialProfile } | undefined
         )?.financial_profile ?? null;
       if (embeddedFinancial && !financialProfileRef.current) {
         financialProfileRef.current = embeddedFinancial;

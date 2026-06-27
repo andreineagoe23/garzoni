@@ -1,8 +1,5 @@
 export type ToolGroup =
-  | "personal-cfo"
-  | "understand-world"
-  | "understand-myself"
-  | "decide-next";
+  "personal-cfo" | "understand-world" | "understand-myself" | "decide-next";
 
 export type MobileToolDef = {
   id: string;

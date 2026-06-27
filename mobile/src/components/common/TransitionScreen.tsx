@@ -6,10 +6,7 @@ import { Button } from "../ui";
 import AuthLogoMark from "../auth/AuthLogoMark";
 
 export type TransitionVariant =
-  | "onboarding"
-  | "payment"
-  | "path-refresh"
-  | "upgrade";
+  "onboarding" | "payment" | "path-refresh" | "upgrade";
 
 interface Props {
   variant: TransitionVariant;

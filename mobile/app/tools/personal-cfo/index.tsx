@@ -25,12 +25,7 @@ const COMPLETION_STORAGE_KEY = "garzoni:tools:personal-cfo:completed-steps";
 const VIEW_PREF_KEY = "garzoni:tools:personal-cfo:view";
 
 type StepId =
-  | "goals"
-  | "savings"
-  | "budget"
-  | "portfolio"
-  | "market"
-  | "next-steps";
+  "goals" | "savings" | "budget" | "portfolio" | "market" | "next-steps";
 
 type StepPhase = "live" | "preview";
 

@@ -1,10 +1,7 @@
 import apiClient from "./httpClient";
 
 export type FeedEventType =
-  | "mission_completed"
-  | "badge_earned"
-  | "duel_won"
-  | "streak_milestone";
+  "mission_completed" | "badge_earned" | "duel_won" | "streak_milestone";
 
 export type FeedUser = {
   id: number;

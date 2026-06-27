@@ -200,8 +200,7 @@ export default function MissionsScreen() {
   const getLessonRequirement = useCallback(
     (mission: Mission) => {
       const ref = mission.goal_reference as
-        | { required_lessons?: number }
-        | undefined;
+        { required_lessons?: number } | undefined;
       const baseRequired = ref?.required_lessons;
       if (baseRequired) return baseRequired;
       if (userLevel === "advanced") return 3;

@@ -1,15 +1,24 @@
-{% extends "admin/index.html" %}
-
-{# Inject the analytics banner into the empty `pretitle` block (above the page
-   title). This avoids overriding `content` and re-emitting the parent block,
-   so there is no parent-content tag that can leak as literal text if template
-   inheritance misbehaves. The app list and recent actions are inherited as-is. #}
-{% block pretitle %}
-<div style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; border: 1px solid var(--hairline-color, #ddd); border-radius: 8px; background: var(--darkened-bg, #f8f8f8);">
-  <h2 style="margin: 0 0 0.35rem; font-size: 1.1rem;">Product analytics</h2>
-  <p style="margin: 0 0 0.75rem; color: var(--body-quiet-color, #666);">
-    Growth, learning engagement, subscriptions, and revenue — interactive charts for staff.
+{% extends "admin/index.html" %} {# Inject the analytics banner into the empty
+`pretitle` block (above the page title). This avoids overriding `content` and
+re-emitting the parent block, so there is no parent-content tag that can leak as
+literal text if template inheritance misbehaves. The app list and recent actions
+are inherited as-is. #} {% block pretitle %}
+<div
+  style="
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--hairline-color, #ddd);
+    border-radius: 8px;
+    background: var(--darkened-bg, #f8f8f8);
+  "
+>
+  <h2 style="margin: 0 0 0.35rem; font-size: 1.1rem">Product analytics</h2>
+  <p style="margin: 0 0 0.75rem; color: var(--body-quiet-color, #666)">
+    Growth, learning engagement, subscriptions, and revenue — interactive charts
+    for staff.
   </p>
-  <a href="/analytics" style="font-weight: 600;">Open product analytics dashboard →</a>
+  <a href="/analytics" style="font-weight: 600"
+    >Open product analytics dashboard →</a
+  >
 </div>
 {% endblock %}

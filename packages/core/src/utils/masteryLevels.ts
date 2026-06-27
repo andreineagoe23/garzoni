@@ -1,11 +1,7 @@
 import type { TFunction } from "i18next";
 
 export type MasteryLevelBand =
-  | "not_started"
-  | "attempted"
-  | "familiar"
-  | "proficient"
-  | "mastered";
+  "not_started" | "attempted" | "familiar" | "proficient" | "mastered";
 
 const BANDS: readonly MasteryLevelBand[] = [
   "not_started",

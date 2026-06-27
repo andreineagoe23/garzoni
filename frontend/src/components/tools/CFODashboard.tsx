@@ -95,9 +95,7 @@ type DashboardPayload = {
     holdings_count: number;
     risk_score: number;
     diversification:
-      | "well_diversified"
-      | "moderately_diversified"
-      | "concentrated";
+      "well_diversified" | "moderately_diversified" | "concentrated";
     allocation: AllocationRow[];
     top_holdings: Holding[];
   };

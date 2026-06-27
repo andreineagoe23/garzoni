@@ -243,8 +243,10 @@ function ProfileInner() {
 
   const goals = useMemo(() => {
     const dailyGoal = (merged?.daily_goal as
-      | { earned_xp_today?: number; target_xp?: number }
-      | undefined) ?? { earned_xp_today: 0, target_xp: 50 };
+      { earned_xp_today?: number; target_xp?: number } | undefined) ?? {
+      earned_xp_today: 0,
+      target_xp: 50,
+    };
     const dailyCurrent = Math.round(Number(dailyGoal.earned_xp_today ?? 0));
     const dailyTarget = Math.max(
       1,

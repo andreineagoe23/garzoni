@@ -483,8 +483,7 @@ export default function ChatScreen() {
         if (isAxiosError(err)) {
           const status = err.response?.status;
           const data = err.response?.data as
-            | { flag?: string; error?: string }
-            | undefined;
+            { flag?: string; error?: string } | undefined;
           if (status === 401) {
             errorMessage = t("chatbot.sessionExpired");
           } else if (

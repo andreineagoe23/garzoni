@@ -155,8 +155,7 @@ const Leaderboards = () => {
           )?.referral_code === "string" &&
             (
               profilePayload?.user_data as
-                | { referral_code?: string }
-                | undefined
+                { referral_code?: string } | undefined
             )?.referral_code) ||
           "";
         setReferralCode(resolvedReferralCode);

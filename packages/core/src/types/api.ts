@@ -227,11 +227,7 @@ export type PersonalizedPathResponse = {
     proficiency?: number;
     due_at?: string | null;
     level_band?:
-      | "not_started"
-      | "attempted"
-      | "familiar"
-      | "proficient"
-      | "mastered";
+      "not_started" | "attempted" | "familiar" | "proficient" | "mastered";
     level_label?: string;
   }>;
   upgrade_prompt?: string;

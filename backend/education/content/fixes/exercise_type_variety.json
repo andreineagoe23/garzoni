@@ -1,63 +1,167 @@
 [
-  {"id": 5, "ex6": {"type": "numeric", "data": {
-    "question": "Your take-home pay is 2,000 GBP a month. Using the 50/30/20 rule, how much should go toward savings and extra debt repayment each month?",
-    "unit": "GBP", "expected_value": 400, "tolerance": 0, "placeholder": "e.g. 400",
-    "explanation": "The 50/30/20 rule sends 20% to savings and debt. 20% of 2,000 GBP is 400 GBP."}}},
+  {
+    "id": 5,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "Your take-home pay is 2,000 GBP a month. Using the 50/30/20 rule, how much should go toward savings and extra debt repayment each month?",
+        "unit": "GBP",
+        "expected_value": 400,
+        "tolerance": 0,
+        "placeholder": "e.g. 400",
+        "explanation": "The 50/30/20 rule sends 20% to savings and debt. 20% of 2,000 GBP is 400 GBP."
+      }
+    }
+  },
 
-  {"id": 107, "ex6": {"type": "numeric", "data": {
-    "question": "Your first review shows monthly income of 2,000 GBP and expenses of 2,100 GBP. By how many GBP are you overspending each month?",
-    "unit": "GBP", "expected_value": 100, "tolerance": 0, "placeholder": "e.g. 100",
-    "explanation": "Expenses (2,100) minus income (2,000) is a 100 GBP monthly shortfall — the gap you need to close first."}}},
+  {
+    "id": 107,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "Your first review shows monthly income of 2,000 GBP and expenses of 2,100 GBP. By how many GBP are you overspending each month?",
+        "unit": "GBP",
+        "expected_value": 100,
+        "tolerance": 0,
+        "placeholder": "e.g. 100",
+        "explanation": "Expenses (2,100) minus income (2,000) is a 100 GBP monthly shortfall — the gap you need to close first."
+      }
+    }
+  },
 
-  {"id": 111, "ex6": {"type": "numeric", "data": {
-    "question": "Your monthly expenses are 2,000 GBP and you want a 3-month emergency fund. Saving 300 GBP each month, how many months will it take to reach the goal?",
-    "unit": "months", "expected_value": 20, "tolerance": 0, "placeholder": "e.g. 20",
-    "explanation": "A 3-month fund is 6,000 GBP. At 300 GBP a month, 6,000 / 300 = 20 months."}}},
+  {
+    "id": 111,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "Your monthly expenses are 2,000 GBP and you want a 3-month emergency fund. Saving 300 GBP each month, how many months will it take to reach the goal?",
+        "unit": "months",
+        "expected_value": 20,
+        "tolerance": 0,
+        "placeholder": "e.g. 20",
+        "explanation": "A 3-month fund is 6,000 GBP. At 300 GBP a month, 6,000 / 300 = 20 months."
+      }
+    }
+  },
 
-  {"id": 126, "ex6": {"type": "numeric", "data": {
-    "question": "You have a 50,000 GBP deposit for a 200,000 GBP property. What is your Loan-to-Value (LTV) ratio, expressed as a percentage?",
-    "unit": "%", "expected_value": 75, "tolerance": 0, "placeholder": "e.g. 75",
-    "explanation": "You borrow 150,000 GBP of the 200,000 GBP price. LTV = 150,000 / 200,000 = 75%."}}},
+  {
+    "id": 126,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "You have a 50,000 GBP deposit for a 200,000 GBP property. What is your Loan-to-Value (LTV) ratio, expressed as a percentage?",
+        "unit": "%",
+        "expected_value": 75,
+        "tolerance": 0,
+        "placeholder": "e.g. 75",
+        "explanation": "You borrow 150,000 GBP of the 200,000 GBP price. LTV = 150,000 / 200,000 = 75%."
+      }
+    }
+  },
 
-  {"id": 129, "ex6": {"type": "numeric", "data": {
-    "question": "A property rents for 1,000 GBP/month. Annual costs are: mortgage 7,200, insurance 600, maintenance 1,200, void allowance 600. What is the annual NET rental income in GBP?",
-    "unit": "GBP", "expected_value": 2400, "tolerance": 0, "placeholder": "e.g. 2400",
-    "explanation": "Gross rent is 12,000 GBP/year. Costs total 9,600 GBP. Net = 12,000 - 9,600 = 2,400 GBP."}}},
+  {
+    "id": 129,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "A property rents for 1,000 GBP/month. Annual costs are: mortgage 7,200, insurance 600, maintenance 1,200, void allowance 600. What is the annual NET rental income in GBP?",
+        "unit": "GBP",
+        "expected_value": 2400,
+        "tolerance": 0,
+        "placeholder": "e.g. 2400",
+        "explanation": "Gross rent is 12,000 GBP/year. Costs total 9,600 GBP. Net = 12,000 - 9,600 = 2,400 GBP."
+      }
+    }
+  },
 
-  {"id": 130, "ex6": {"type": "numeric", "data": {
-    "question": "You set aside 10% of annual rental income for maintenance. If the property earns 12,000 GBP per year, how many GBP should you set aside?",
-    "unit": "GBP", "expected_value": 1200, "tolerance": 0, "placeholder": "e.g. 1200",
-    "explanation": "10% of 12,000 GBP is 1,200 GBP — a realistic maintenance reserve protects your cash flow."}}},
+  {
+    "id": 130,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "You set aside 10% of annual rental income for maintenance. If the property earns 12,000 GBP per year, how many GBP should you set aside?",
+        "unit": "GBP",
+        "expected_value": 1200,
+        "tolerance": 0,
+        "placeholder": "e.g. 1200",
+        "explanation": "10% of 12,000 GBP is 1,200 GBP — a realistic maintenance reserve protects your cash flow."
+      }
+    }
+  },
 
-  {"id": 131, "ex6": {"type": "numeric", "data": {
-    "question": "A rental earns 1,200 GBP/month. The mortgage is 700, insurance 50, and you set aside 150 for maintenance and vacancies. What is the monthly NET cash flow in GBP?",
-    "unit": "GBP", "expected_value": 300, "tolerance": 0, "placeholder": "e.g. 300",
-    "explanation": "Costs total 900 GBP. Net cash flow = 1,200 - 900 = 300 GBP per month."}}},
+  {
+    "id": 131,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "A rental earns 1,200 GBP/month. The mortgage is 700, insurance 50, and you set aside 150 for maintenance and vacancies. What is the monthly NET cash flow in GBP?",
+        "unit": "GBP",
+        "expected_value": 300,
+        "tolerance": 0,
+        "placeholder": "e.g. 300",
+        "explanation": "Costs total 900 GBP. Net cash flow = 1,200 - 900 = 300 GBP per month."
+      }
+    }
+  },
 
-  {"id": 135, "ex6": {"type": "numeric", "data": {
-    "question": "A liquidity pool charges a 0.3% fee per trade and handles 1,000,000 EUR of trades in a day. What is the total daily fee earned by liquidity providers, in EUR?",
-    "unit": "EUR", "expected_value": 3000, "tolerance": 0, "placeholder": "e.g. 3000",
-    "explanation": "0.3% of 1,000,000 EUR is 3,000 EUR, shared among providers in proportion to their share of the pool."}}},
+  {
+    "id": 135,
+    "ex6": {
+      "type": "numeric",
+      "data": {
+        "question": "A liquidity pool charges a 0.3% fee per trade and handles 1,000,000 EUR of trades in a day. What is the total daily fee earned by liquidity providers, in EUR?",
+        "unit": "EUR",
+        "expected_value": 3000,
+        "tolerance": 0,
+        "placeholder": "e.g. 3000",
+        "explanation": "0.3% of 1,000,000 EUR is 3,000 EUR, shared among providers in proportion to their share of the pool."
+      }
+    }
+  },
 
-  {"id": 115, "ex6": {"type": "drag-and-drop", "data": {
-    "question": "Drag these financial goals into the order you should fund them, from first (top) to last.",
-    "items": [
-      {"id": "holiday", "label": "Save for a holiday"},
-      {"id": "invest", "label": "Invest in stocks for growth"},
-      {"id": "emergency", "label": "Build a starter emergency fund"},
-      {"id": "creditcard", "label": "Pay off a credit card at 19% APR"}
-    ],
-    "targets": [{"id": "emergency"}, {"id": "creditcard"}, {"id": "invest"}, {"id": "holiday"}],
-    "explanation": "Secure a safety net first, then clear high-interest debt (a guaranteed 19% return), then invest for growth, and treat a holiday — a want — last."}}},
+  {
+    "id": 115,
+    "ex6": {
+      "type": "drag-and-drop",
+      "data": {
+        "question": "Drag these financial goals into the order you should fund them, from first (top) to last.",
+        "items": [
+          { "id": "holiday", "label": "Save for a holiday" },
+          { "id": "invest", "label": "Invest in stocks for growth" },
+          { "id": "emergency", "label": "Build a starter emergency fund" },
+          { "id": "creditcard", "label": "Pay off a credit card at 19% APR" }
+        ],
+        "targets": [
+          { "id": "emergency" },
+          { "id": "creditcard" },
+          { "id": "invest" },
+          { "id": "holiday" }
+        ],
+        "explanation": "Secure a safety net first, then clear high-interest debt (a guaranteed 19% return), then invest for growth, and treat a holiday — a want — last."
+      }
+    }
+  },
 
-  {"id": 120, "ex6": {"type": "drag-and-drop", "data": {
-    "question": "Using the Debt Avalanche method, drag these debts into the order you should pay them off, from first (top) to last.",
-    "items": [
-      {"id": "car", "label": "Car loan — 6% APR"},
-      {"id": "student", "label": "Student loan — 1.5% APR"},
-      {"id": "credit", "label": "Credit card — 22% APR"},
-      {"id": "store", "label": "Store card — 19% APR"}
-    ],
-    "targets": [{"id": "credit"}, {"id": "store"}, {"id": "car"}, {"id": "student"}],
-    "explanation": "The Avalanche method always attacks the highest interest rate first, because that debt costs you the most money each month."}}}
+  {
+    "id": 120,
+    "ex6": {
+      "type": "drag-and-drop",
+      "data": {
+        "question": "Using the Debt Avalanche method, drag these debts into the order you should pay them off, from first (top) to last.",
+        "items": [
+          { "id": "car", "label": "Car loan — 6% APR" },
+          { "id": "student", "label": "Student loan — 1.5% APR" },
+          { "id": "credit", "label": "Credit card — 22% APR" },
+          { "id": "store", "label": "Store card — 19% APR" }
+        ],
+        "targets": [
+          { "id": "credit" },
+          { "id": "store" },
+          { "id": "car" },
+          { "id": "student" }
+        ],
+        "explanation": "The Avalanche method always attacks the highest interest rate first, because that debt costs you the most money each month."
+      }
+    }
+  }
 ]

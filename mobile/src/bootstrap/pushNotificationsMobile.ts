@@ -95,8 +95,7 @@ export function setupNotificationResponseHandlers(): void {
     responseSubscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data as
-          | Record<string, unknown>
-          | undefined;
+          Record<string, unknown> | undefined;
         const target = extractDeeplink(data ?? null);
         if (target) void navigateToDeeplink(target);
       });
@@ -108,8 +107,7 @@ export function setupNotificationResponseHandlers(): void {
         const last = await Notifications.getLastNotificationResponseAsync();
         if (!last) return;
         const data = last.notification.request.content.data as
-          | Record<string, unknown>
-          | undefined;
+          Record<string, unknown> | undefined;
         const target = extractDeeplink(data ?? null);
         if (target) await navigateToDeeplink(target);
       } catch (e) {
@@ -123,8 +121,7 @@ export function setupNotificationResponseHandlers(): void {
 
 function resolveEasProjectId(): string | undefined {
   const extra = Constants.expoConfig?.extra as
-    | { eas?: { projectId?: string } }
-    | undefined;
+    { eas?: { projectId?: string } } | undefined;
   return extra?.eas?.projectId;
 }
 

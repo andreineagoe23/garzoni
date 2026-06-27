@@ -38,12 +38,7 @@ export type JourneyChestModel = {
 };
 
 export type JourneyDecorationKind =
-  | "tree"
-  | "trees"
-  | "peak"
-  | "cloud"
-  | "grass"
-  | "rock";
+  "tree" | "trees" | "peak" | "cloud" | "grass" | "rock";
 
 export type JourneyDecorationModel = {
   /** Ground anchor: x is the sprite's center, y is where its FEET sit. */

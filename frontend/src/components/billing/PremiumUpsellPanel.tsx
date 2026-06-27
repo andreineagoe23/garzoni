@@ -44,13 +44,11 @@ const PremiumUpsellPanel = () => {
             ? profileData.referral_code
             : typeof (
                   profileData?.user_data as
-                    | { referral_code?: string }
-                    | undefined
+                    { referral_code?: string } | undefined
                 )?.referral_code === "string"
               ? (
                   profileData?.user_data as
-                    | { referral_code?: string }
-                    | undefined
+                    { referral_code?: string } | undefined
                 )?.referral_code || ""
               : "";
         setReferralCode(profileReferral);

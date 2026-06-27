@@ -401,8 +401,7 @@ export async function fetchRevenueCatPaywallOffering(
     result = await fetchRevenueCatOfferingByIdentifier(explicit);
   } else {
     const extra = Constants.expoConfig?.extra as
-      | { revenueCatPaywallPlacement?: string }
-      | undefined;
+      { revenueCatPaywallPlacement?: string } | undefined;
     const placement = extra?.revenueCatPaywallPlacement?.trim();
     if (placement) {
       try {

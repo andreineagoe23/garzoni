@@ -13,12 +13,7 @@ import { radius, spacing, typography } from "../../theme/tokens";
 import LoadingSpinner from "./LoadingSpinner";
 
 export type GlassButtonVariant =
-  | "primary"
-  | "active"
-  | "secondary"
-  | "success"
-  | "danger"
-  | "ghost";
+  "primary" | "active" | "secondary" | "success" | "danger" | "ghost";
 
 export type GlassButtonSize = "sm" | "md" | "lg" | "xl";
 

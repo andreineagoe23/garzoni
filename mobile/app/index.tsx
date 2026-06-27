@@ -92,8 +92,7 @@ export default function Index() {
           Boolean(
             (
               profile.user_data as
-                | { subscription_plan_id?: string | null }
-                | undefined
+                { subscription_plan_id?: string | null } | undefined
             )?.subscription_plan_id,
           );
         setPlanStatus(chosen ? "chosen" : "not_chosen");

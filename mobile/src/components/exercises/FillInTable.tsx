@@ -87,8 +87,7 @@ export default function FillInTable({
   const columns = (data?.columns ?? []) as string[];
   const rows = (data?.rows ?? []) as { id: string; label?: string }[];
   const correctAnswer = data?.correctAnswer as
-    | Record<string, string[]>
-    | undefined;
+    Record<string, string[]> | undefined;
 
   const emptyAnswers = useMemo(
     () => Object.fromEntries(rows.map((r) => [r.id, columns.map(() => "")])),

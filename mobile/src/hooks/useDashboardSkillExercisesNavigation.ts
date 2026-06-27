@@ -22,9 +22,7 @@ export type DashboardWeakSkill = {
 
 /** Parity with web `ExercisesSkillReason` (navigation state). */
 export type ExercisesSkillIntentReason =
-  | "weak_skill_click"
-  | "weak_skill_practice"
-  | "weak_skill_review";
+  "weak_skill_click" | "weak_skill_practice" | "weak_skill_review";
 
 export function navigateToExercisesFromDashboardSkill(
   skill: string,

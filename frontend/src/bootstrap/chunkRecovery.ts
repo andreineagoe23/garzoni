@@ -5,8 +5,7 @@ export const initChunkRecovery = () => {
 
   const handleChunkError = (
     errorEvent:
-      | ErrorEvent
-      | { error?: unknown; message?: string; target?: unknown }
+      ErrorEvent | { error?: unknown; message?: string; target?: unknown }
   ) => {
     const { error, message } = errorEvent || {};
     const target = (errorEvent as { target?: Record<string, unknown> })?.target;
@@ -52,8 +51,7 @@ export const initChunkRecovery = () => {
     "unhandledrejection",
     (event: PromiseRejectionEvent) => {
       const reason = event?.reason as
-        | { name?: string; message?: string }
-        | undefined;
+        { name?: string; message?: string } | undefined;
       if (
         reason?.name === "ChunkLoadError" ||
         (typeof reason?.message === "string" &&

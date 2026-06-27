@@ -11,12 +11,7 @@ const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:personal-cfo";
 const COMPLETION_STORAGE_KEY = "garzoni:tools:personal-cfo:completed-steps";
 
 type CFOStepId =
-  | "goals"
-  | "savings"
-  | "budget"
-  | "portfolio"
-  | "market"
-  | "next-steps";
+  "goals" | "savings" | "budget" | "portfolio" | "market" | "next-steps";
 
 type CFOStepDefinition = {
   id: CFOStepId;

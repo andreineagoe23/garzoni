@@ -131,8 +131,7 @@ export default function PersonalizedPathContentMobile({
       profilePayload?.is_questionnaire_completed ??
       (
         profilePayload?.user_data as
-          | { is_questionnaire_completed?: boolean }
-          | undefined
+          { is_questionnaire_completed?: boolean } | undefined
       )?.is_questionnaire_completed ??
       false,
     ) || questionnaireQuery.data?.status === "completed";

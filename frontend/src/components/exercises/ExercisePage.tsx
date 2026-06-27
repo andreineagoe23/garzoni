@@ -346,8 +346,7 @@ const ExercisePage = () => {
         (candidate.type === "fill-in-table" &&
           (() => {
             const table = exerciseData.table as
-              | { rows?: unknown; columns?: unknown }
-              | undefined;
+              { rows?: unknown; columns?: unknown } | undefined;
             return Array.isArray(table?.rows) && Array.isArray(table?.columns);
           })()) ||
         (candidate.type === "scenario-simulation" &&

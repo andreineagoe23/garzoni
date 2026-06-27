@@ -6,8 +6,7 @@ import { getBackendUrl } from "@garzoni/core";
  */
 export function getWebAppBaseUrl(): string {
   const extra = Constants.expoConfig?.extra as
-    | { webAppUrl?: string }
-    | undefined;
+    { webAppUrl?: string } | undefined;
   const fromEnv = extra?.webAppUrl?.trim();
   if (fromEnv) return fromEnv.replace(/\/$/, "");
 

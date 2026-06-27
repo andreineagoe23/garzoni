@@ -14,10 +14,7 @@ const SavingsCalculatorTool = React.lazy(
 const BudgetPlanner = React.lazy(() => import("./BudgetPlanner"));
 
 export type ToolGroupId =
-  | "personal-cfo"
-  | "understand-world"
-  | "understand-myself"
-  | "decide-next";
+  "personal-cfo" | "understand-world" | "understand-myself" | "decide-next";
 
 export type ToolDefinition = {
   id: string;
