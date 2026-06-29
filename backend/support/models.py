@@ -54,6 +54,39 @@ class SupportFeedback(models.Model):
         return f"{self.user.username if self.user else 'Anonymous'} - {self.support_entry.question[:50]}"
 
 
+class AppReviewResponse(models.Model):
+    """
+    A response to the in-app review/sentiment prompt. Happy users get routed to
+    the store review; neutral/unhappy users give us a reason instead. Stored so
+    we can report on sentiment and the most common reasons over time.
+    """
+
+    SENTIMENT_CHOICES = [
+        ("happy", "Happy"),
+        ("neutral", "Neutral"),
+        ("unhappy", "Unhappy"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    sentiment = models.CharField(max_length=10, choices=SENTIMENT_CHOICES)
+    reasons = models.JSONField(default=list, blank=True)
+    message = models.TextField(blank=True, default="")
+    routed_to_store = models.BooleanField(default=False)
+    platform = models.CharField(max_length=20, blank=True, default="")
+    app_version = models.CharField(max_length=40, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "core_appreviewresponse"
+        indexes = [
+            models.Index(fields=["sentiment", "-created_at"]),
+        ]
+
+    def __str__(self):
+        who = self.user.username if self.user else "Anonymous"
+        return f"{who} - {self.sentiment}"
+
+
 class ContactMessage(models.Model):
     email = models.EmailField()
     topic = models.CharField(max_length=100)

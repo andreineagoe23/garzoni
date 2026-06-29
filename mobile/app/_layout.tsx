@@ -32,6 +32,7 @@ import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
+import ReviewPromptModal from "../src/components/review/ReviewPromptModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 import {
   useFonts as useInter,
@@ -193,6 +194,7 @@ function ThemedRoot() {
           currentRoute={pathname}
           onDismiss={() => setShakeModalVisible(false)}
         />
+        <ReviewPromptModal />
         <Toast topOffset={insets.top + 8} />
       </View>
     </NavigationThemeProvider>

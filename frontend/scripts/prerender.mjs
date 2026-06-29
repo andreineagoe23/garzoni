@@ -64,6 +64,58 @@ function saveHtml(routePath, html) {
   console.log(`  ✓ ${routePath} → ${outFile.replace(DIST, "dist")}`);
 }
 
+/**
+ * Collapse duplicate SEO tags in the rendered <head>.
+ *
+ * The static index.html ships homepage-default SEO tags (title, canonical,
+ * description, og:*, twitter:*) as a pre-hydration fallback. react-helmet-async
+ * sets the page-specific title via document.title (mutating the existing tag) but
+ * for meta/link it *appends* its own copies (marked data-rh="true") without
+ * removing the static ones. The snapshot therefore ends up with two canonicals,
+ * two descriptions, etc. — and a stale canonical pointing at the homepage will
+ * de-index every lesson. This keeps helmet's managed copy and drops the static
+ * duplicate, per semantic key.
+ */
+async function dedupeHead(page) {
+  await page.evaluate(() => {
+    const head = document.head;
+    if (!head) return;
+
+    const keyOf = (el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "title") return "title";
+      if (tag === "meta") {
+        const k = el.getAttribute("name") || el.getAttribute("property");
+        return k ? `meta:${k.toLowerCase()}` : null;
+      }
+      if (tag === "link" && el.getAttribute("rel") === "canonical") {
+        return "link:canonical";
+      }
+      return null;
+    };
+
+    const groups = new Map();
+    for (const el of Array.from(head.children)) {
+      const key = keyOf(el);
+      if (!key) continue;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(el);
+    }
+
+    for (const els of groups.values()) {
+      if (els.length < 2) continue;
+      const managed = els.filter((e) => e.getAttribute("data-rh") === "true");
+      // Prefer helmet's managed copy; otherwise keep the last one written.
+      const keep = managed.length
+        ? managed[managed.length - 1]
+        : els[els.length - 1];
+      for (const el of els) {
+        if (el !== keep) el.remove();
+      }
+    }
+  });
+}
+
 async function renderRoute(browser, route) {
   const page = await browser.newPage();
   try {
@@ -74,6 +126,7 @@ async function renderRoute(browser, route) {
     await page.waitForSelector("#root", { timeout: 10_000 });
     // Wait a bit for React to hydrate
     await new Promise((r) => setTimeout(r, 1500));
+    await dedupeHead(page);
     return await page.content();
   } finally {
     await page.close();

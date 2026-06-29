@@ -268,6 +268,17 @@ export type FeedbackPayload = {
 export const submitFeedback = (payload: FeedbackPayload) =>
   apiClient.post("/contact/", payload);
 
+export type AppReviewPayload = {
+  sentiment: "happy" | "neutral" | "unhappy";
+  reasons?: string[];
+  message?: string;
+  routed_to_store?: boolean;
+  platform?: string;
+  app_version?: string;
+};
+export const submitAppReview = (payload: AppReviewPayload) =>
+  apiClient.post("/app-review-feedback/", payload);
+
 export const postSubscriptionPortal = () =>
   apiClient.post<{ url?: string }>("/subscriptions/portal/", {});
 

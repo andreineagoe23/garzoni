@@ -1824,6 +1824,31 @@
     "error": "Failed to send feedback. Please try again.",
     "backToSupport": "Back to Support"
   },
+  "reviewPrompt": {
+    "sentimentTitle": "Enjoying Garzoni?",
+    "sentimentSubtitle": "Your quick take helps us get better.",
+    "happy": "Love it",
+    "neutral": "It's okay",
+    "unhappy": "Not really",
+    "reasonTitle": "What would make it better?",
+    "reasonSubtitle": "Pick any that apply — totally optional.",
+    "reasons": {
+      "too_hard": "Too hard",
+      "too_easy": "Too easy",
+      "too_few_lessons": "Not enough lessons",
+      "bugs": "Bugs or glitches",
+      "price": "Price",
+      "content": "Content quality",
+      "other": "Something else"
+    },
+    "messagePlaceholder": "Anything else you'd like us to know? (optional)",
+    "submit": "Send",
+    "submitting": "Sending…",
+    "skip": "Not now",
+    "thanksTitle": "Thank you! 💛",
+    "thanksBody": "We read every response.",
+    "errorToast": "Couldn't send — try again later."
+  },
   "profile": {
     "weekdays": {
       "sun": "Sun",

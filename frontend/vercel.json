@@ -2,6 +2,14 @@
   "installCommand": "cd .. && corepack enable && pnpm install --frozen-lockfile",
   "buildCommand": "cd .. && pnpm --filter @garzoni/web build",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "garzoni.app" }],
+      "destination": "https://www.garzoni.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api",

@@ -1824,6 +1824,31 @@
     "error": "Nu s-a putut trimite feedback-ul. Te rugăm să încerci din nou.",
     "backToSupport": "Înapoi la Suport"
   },
+  "reviewPrompt": {
+    "sentimentTitle": "Îți place Garzoni?",
+    "sentimentSubtitle": "Părerea ta rapidă ne ajută să devenim mai buni.",
+    "happy": "Îmi place",
+    "neutral": "E ok",
+    "unhappy": "Nu prea",
+    "reasonTitle": "Ce l-ar face mai bun?",
+    "reasonSubtitle": "Alege ce se potrivește — opțional.",
+    "reasons": {
+      "too_hard": "Prea greu",
+      "too_easy": "Prea ușor",
+      "too_few_lessons": "Prea puține lecții",
+      "bugs": "Erori sau probleme",
+      "price": "Preț",
+      "content": "Calitatea conținutului",
+      "other": "Altceva"
+    },
+    "messagePlaceholder": "Mai e ceva ce ai vrea să știm? (opțional)",
+    "submit": "Trimite",
+    "submitting": "Se trimite…",
+    "skip": "Mai târziu",
+    "thanksTitle": "Mulțumim! 💛",
+    "thanksBody": "Citim fiecare răspuns.",
+    "errorToast": "Nu s-a putut trimite — încearcă mai târziu."
+  },
   "profile": {
     "weekdays": {
       "sun": "Dum",

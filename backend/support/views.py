@@ -10,7 +10,12 @@ import logging
 import hashlib
 import time
 
-from support.models import SupportEntry, SupportFeedback, ContactMessage
+from support.models import (
+    SupportEntry,
+    SupportFeedback,
+    ContactMessage,
+    AppReviewResponse,
+)
 from support.serializers import SupportEntrySerializer
 from support.tasks import send_contact_email
 from support.throttles import ContactRateThrottle
@@ -115,6 +120,59 @@ def vote_support(request, support_id):
             {"error": "Support entry not found", "request_id": request_id},
             status=404,
         )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([ContactRateThrottle])
+def app_review_feedback(request):
+    """Record a response to the in-app review/sentiment prompt and mirror it to Customer.io."""
+    request_id = getattr(request, "request_id", None)
+    sentiment = request.data.get("sentiment")
+    if sentiment not in {"happy", "neutral", "unhappy"}:
+        return Response({"error": "Invalid sentiment", "request_id": request_id}, status=400)
+
+    reasons = request.data.get("reasons") or []
+    if not isinstance(reasons, list):
+        reasons = []
+    reasons = [str(r)[:64] for r in reasons][:10]
+
+    message = (request.data.get("message") or "").strip()[:2000]
+    routed_to_store = bool(request.data.get("routed_to_store"))
+    platform = (request.data.get("platform") or "").strip()[:20]
+    app_version = (request.data.get("app_version") or "").strip()[:40]
+
+    user = request.user if request.user.is_authenticated else None
+
+    AppReviewResponse.objects.create(
+        user=user,
+        sentiment=sentiment,
+        reasons=reasons,
+        message=message,
+        routed_to_store=routed_to_store,
+        platform=platform,
+        app_version=app_version,
+    )
+
+    # Mirror to Customer.io for segments/journeys (no PII / free-text in payload).
+    if user is not None:
+        try:
+            from notifications.events import NotificationEvents
+
+            NotificationEvents().track(
+                user,
+                "app_review_response",
+                {
+                    "sentiment": sentiment,
+                    "routed_to_store": routed_to_store,
+                    "platform": platform,
+                    "reason_count": len(reasons),
+                },
+            )
+        except Exception as e:
+            logger.warning("app_review_cio_track_failed request_id=%s err=%s", request_id, str(e))
+
+    return Response({"message": "Thanks for your feedback!"}, status=201)
 
 
 @api_view(["POST"])

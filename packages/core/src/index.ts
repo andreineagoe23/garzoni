@@ -23,7 +23,7 @@ export { isAxiosError } from "axios";
 
 export * from "./services/authService";
 export * from "./services/userService";
-export type { FeedbackPayload } from "./services/userService";
+export type { FeedbackPayload, AppReviewPayload } from "./services/userService";
 export * from "./services/duelsService";
 export * from "./services/socialService";
 export {
