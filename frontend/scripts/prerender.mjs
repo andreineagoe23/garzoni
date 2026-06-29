@@ -57,6 +57,15 @@ function serveDist() {
   });
 }
 
+// Markers that mean the page rendered an error/empty state instead of real
+// content (e.g. the API 404'd mid-build). We must never bake these into a
+// static snapshot — a "not found" page tells crawlers the URL is broken.
+const ERROR_MARKERS = ["Guide not found", "Lesson not found"];
+
+function isErrorSnapshot(html) {
+  return ERROR_MARKERS.some((marker) => html.includes(marker));
+}
+
 function saveHtml(routePath, html) {
   const safePath = routePath === "/" ? "/index" : routePath;
   const outFile = join(OUT, `${safePath}.html`);
@@ -125,8 +134,24 @@ async function renderRoute(browser, route) {
       timeout: 30_000,
     });
     await page.waitForSelector("#root", { timeout: 10_000 });
-    // Wait a bit for React to hydrate
-    await new Promise((r) => setTimeout(r, 1500));
+    // Wait for real content. Data-driven pages (lessons/guides) render a
+    // "Loading…" state with no <h1> until their API call resolves, so a fixed
+    // delay can snapshot the loading/not-found state during a slow or racy API.
+    // Wait for a populated <h1> instead; fall back after the timeout for the
+    // (few) routes that legitimately have no <h1>.
+    try {
+      await page.waitForFunction(
+        () => {
+          const h1 = document.querySelector("h1");
+          return !!h1 && h1.textContent.trim().length > 0;
+        },
+        { timeout: 8000 }
+      );
+    } catch {
+      // No <h1> appeared — proceed with whatever rendered.
+    }
+    // Small settle for any remaining hydration.
+    await new Promise((r) => setTimeout(r, 500));
     await dedupeHead(page);
     return await page.content();
   } finally {
@@ -231,13 +256,28 @@ async function main() {
 
   console.log(`Rendering ${routes.length} routes...\n`);
 
+  let skipped = 0;
   for (const route of routes) {
     try {
       const html = await renderRoute(browser, route);
+      if (isErrorSnapshot(html)) {
+        // Don't overwrite a previously-good snapshot with an error page; leave
+        // the old file (or no file) so the next build can self-correct.
+        console.error(
+          `  ⚠ ${route}: rendered an error/not-found state — skipping save`
+        );
+        skipped++;
+        continue;
+      }
       saveHtml(route, html);
     } catch (err) {
       console.error(`  ✗ ${route}: ${err.message}`);
     }
+  }
+  if (skipped > 0) {
+    console.log(
+      `\n⚠ Skipped ${skipped} route(s) that rendered an error state.`
+    );
   }
 
   await browser.close();

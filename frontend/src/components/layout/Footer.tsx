@@ -167,7 +167,7 @@ function Footer() {
             <div className="flex flex-col items-center justify-between gap-3 pb-4 sm:flex-row sm:items-center">
               <div className="grid w-full max-w-sm grid-cols-3 justify-items-center gap-3 sm:w-auto sm:max-w-none sm:grid-cols-6 sm:justify-items-start">
                 <a
-                  href="https://www.tiktok.com/@garzoni.educational"
+                  href="https://www.tiktok.com/@garzoni.app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
@@ -176,7 +176,7 @@ function Footer() {
                   <FaTiktokIcon size={18} />
                 </a>
                 <a
-                  href="https://x.com/garzoni_"
+                  href="https://x.com/garzoniapp"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
@@ -185,7 +185,7 @@ function Footer() {
                   <FaXTwitterIcon size={18} />
                 </a>
                 <a
-                  href="https://www.instagram.com/garzoni.educational/"
+                  href="https://www.instagram.com/garzoni.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
@@ -203,7 +203,7 @@ function Footer() {
                   <FaFacebookFIcon size={18} />
                 </a>
                 <a
-                  href="https://www.youtube.com/@garzoni.educational"
+                  href="https://www.youtube.com/@garzoni_app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"

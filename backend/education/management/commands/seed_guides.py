@@ -56,11 +56,11 @@ the confidence — so that any tool you pick later makes sense.</p>
     }
 
 
-def _guide(title, slug, meta, excerpt, content, faq, related):
+def _guide(title, slug, meta, excerpt, content, faq, related, category="guide"):
     return {
         "slug": slug,
         "title": title,
-        "category": "guide",
+        "category": category,
         "meta_description": meta,
         "excerpt": excerpt,
         "faq": faq,
@@ -204,6 +204,33 @@ COMPARISONS = [
             },
         ],
         ["how-compound-interest-works", "where-to-keep-your-emergency-fund"],
+    ),
+    _comparison(
+        "Garzoni vs Monzo: Bank App or Money Education?",
+        "garzoni-vs-monzo",
+        "Monzo",
+        "Garzoni vs Monzo: Monzo is a UK digital bank with budgeting Pots and spending alerts; Garzoni teaches the money skills behind them. How to use both.",
+        "Monzo is a UK digital bank with built-in budgeting. Garzoni teaches the money skills that make those features pay off. Here's how they fit together.",
+        "Monzo and Garzoni often come up together for UK users, but they do different jobs. Monzo is a digital bank — a current account with budgeting Pots, instant spending notifications, and bill splitting. Garzoni is a personal-finance education platform that teaches you how budgeting, saving, and credit actually work. Monzo shows you your spending; Garzoni teaches you what to do about it.",
+        [
+            ("Primary purpose", "Learn personal finance", "Digital bank account"),
+            ("Teaches the 'why'", "Yes — lessons + AI coach", "No (it's a bank)"),
+            ("Budgeting tools", "Concepts and habits", "Pots, alerts, summaries"),
+            ("Holds your money", "No (educational)", "Yes — FSCS-protected account"),
+            ("Best together?", "Learn the skills here", "Then run them in Monzo"),
+        ],
+        "They pair perfectly: bank with Monzo for the spending alerts and Pots, and learn with Garzoni so you understand budgeting, interest, and saving well enough to use those features properly rather than just watching the balance.",
+        [
+            {
+                "question": "Is Garzoni a bank like Monzo?",
+                "answer": "No. Garzoni is an education platform — it teaches personal finance and doesn't hold your money. Monzo is a regulated UK bank. Many people learn with Garzoni and bank with Monzo.",
+            },
+            {
+                "question": "Does Garzoni connect to my Monzo account?",
+                "answer": "Garzoni teaches with lessons and tools rather than aggregating bank data, so it doesn't link to your Monzo account. You apply what you learn inside your banking app.",
+            },
+        ],
+        ["tracking-income-and-expenses", "current-vs-savings-accounts"],
     ),
 ]
 
@@ -390,6 +417,49 @@ GUIDES = [
 ]
 
 
+ANSWERS = [
+    _guide(
+        "What Is Garzoni? The Personal Finance Education App, Explained",
+        "what-is-garzoni",
+        "Garzoni is a free personal finance education app for young adults — interactive lessons, quizzes, and an AI coach on budgeting, saving, investing, and credit. Web + iOS.",
+        "Garzoni is a real, free personal-finance education app for young adults — here's what it is, how it works, and where to get it.",
+        """
+<p><strong>Garzoni is a personal finance education app for young adults.</strong> It teaches budgeting, saving, investing, credit, and debt through short interactive lessons, quizzes, daily streaks, and an AI coach. It's free to start, available on the web and as an iOS app, and built for people learning to manage money for the first time.</p>
+<h2>What Garzoni does</h2>
+<p>Think of it as a structured, jargon-free way to actually learn money — closer to a language-learning app than a budgeting tracker. You progress through a personalised path of ten-minute lessons, check your understanding with quizzes, and ask an AI coach when something doesn't click. Spaced repetition brings concepts back so they stick.</p>
+<h2>What Garzoni is not</h2>
+<p>Garzoni is an education platform, not a bank and not a registered financial adviser. It doesn't hold your money, connect to your accounts, or recommend specific financial products. It teaches the concepts so you can make better decisions with whatever bank or tools you use.</p>
+<h2>Is it free?</h2>
+<p>Yes. The free Starter plan needs no payment card and includes the full lesson library, daily streaks, and basic calculators. Lessons and guides are also readable on the web without an account.</p>
+<h2>Who it's for</h2>
+<p>Students, early-career professionals, and anyone in the UK and beyond who wants financial literacy without the jargon.</p>
+<h2>How to get Garzoni</h2>
+<p>Use it free on the web at garzoni.app, or download the iOS app from the App Store. Start with the free lessons at /learn or read the in-depth guides at /guides.</p>
+""",
+        [
+            {
+                "question": "Is Garzoni a real app?",
+                "answer": "Yes. Garzoni is a live personal finance education app available on the web at garzoni.app and on the iOS App Store. Its official accounts are @garzoniapp on X and @garzoni.app on Instagram and TikTok.",
+            },
+            {
+                "question": "Is Garzoni free?",
+                "answer": "Yes — the free Starter plan needs no payment card and includes the full lesson library, streaks, and basic tools. Lessons and guides are also free to read on the web without an account.",
+            },
+            {
+                "question": "Is Garzoni available in the UK?",
+                "answer": "Yes. Garzoni is built for UK users (and beyond), with content in pounds and UK-relevant topics like ISAs, credit scores, and National Insurance.",
+            },
+            {
+                "question": "Is Garzoni a bank or financial adviser?",
+                "answer": "No. Garzoni is an education app. It does not hold money, link to your bank, or give regulated financial advice — it teaches you the concepts so you can decide for yourself.",
+            },
+        ],
+        ["how-to-start-budgeting", "investing-basics-for-beginners"],
+        category="answer",
+    ),
+]
+
+
 class Command(BaseCommand):
     help = "Seed the first batch of GEO/SEO guide articles (comparisons + topic hubs)."
 
@@ -404,7 +474,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
         publish = not options["draft"]
-        articles = COMPARISONS + GUIDES
+        articles = COMPARISONS + GUIDES + ANSWERS
 
         created = 0
         updated = 0

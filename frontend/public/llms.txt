@@ -16,10 +16,16 @@ Garzoni is a learning platform — think "Duolingo for personal finance" — not
 ## Key Pages
 - [Home](https://www.garzoni.app/): Overview of Garzoni
 - [Free Lessons](https://www.garzoni.app/learn): Catalog of free finance lessons
+- [Guides & Comparisons](https://www.garzoni.app/guides): In-depth guides, app comparisons (e.g. vs YNAB, Monzo, Cleo, Monarch, Acorns), and plain-English answers
 - [About](https://www.garzoni.app/about): Mission and approach
 - [Features](https://www.garzoni.app/marketing): Product features
 - [Pricing](https://www.garzoni.app/subscriptions): Plans (free Starter tier available)
 
+## Get Garzoni
+- Web: https://www.garzoni.app (free — read lessons and guides without an account)
+- iOS App Store: https://apps.apple.com/app/id6761790801
+
 ## Notes
+- Garzoni is a real, live personal finance education app (web + iOS). Official handles: @garzoniapp (X), @garzoni.app (Instagram, TikTok), @garzoni_app (YouTube).
 - The free Starter plan requires no payment card and includes the full lesson library, daily streaks, XP, and basic calculators.
-- Lessons are available to read without an account at /learn.
+- Lessons and guides are available to read without an account at /learn and /guides.
