@@ -905,3 +905,66 @@ class ExerciseTranslation(models.Model):
     class Meta:
         db_table = "education_exercise_translation"
         unique_together = [("exercise", "language")]
+
+
+class Article(models.Model):
+    """SEO/GEO content surface — guides, comparisons, and answer pages.
+
+    Published articles are exposed at /guides/<slug> on web and via
+    /api/public/articles/<slug>/. They are prerendered for AI crawlers (the
+    build-time prerender script fetches published slugs), so this is the
+    citeable long-form content layer above the lesson catalog.
+    """
+
+    CATEGORY_CHOICES = [
+        ("guide", "Guide"),
+        ("comparison", "Comparison"),
+        ("answer", "Answer / FAQ"),
+    ]
+
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="guide", db_index=True
+    )
+    # SEO meta description (<=160 chars recommended). Falls back to excerpt.
+    meta_description = models.TextField(blank=True)
+    # Short summary shown on the /guides index cards.
+    excerpt = models.TextField(blank=True)
+    content = CKEditor5Field(config_name="extends")
+    author = models.CharField(max_length=120, default="Garzoni Team")
+    image = models.ImageField(upload_to="article_images/", blank=True, null=True)
+    # Optional FAQ pairs surfaced as FAQPage JSON-LD: [{"question": ..., "answer": ...}]
+    faq = models.JSONField(blank=True, null=True)
+    related_lessons = models.ManyToManyField(Lesson, blank=True, related_name="articles")
+    is_published = models.BooleanField(default=False, db_index=True)
+    published_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Article"
+        verbose_name_plural = "Articles"
+        db_table = "education_article"
+        ordering = ["-published_at", "-created_at"]
+        indexes = [models.Index(fields=["is_published", "published_at"])]
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+
+            base = slugify(self.title)[:200] or f"article-{self.pk or ''}".strip("-")
+            candidate = base
+            n = 2
+            Model = type(self)
+            while Model.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f"{base}-{n}"[:220]
+                n += 1
+            self.slug = candidate
+        # Stamp publish time the first time it goes live.
+        if self.is_published and self.published_at is None:
+            self.published_at = timezone.now()
+        super().save(*args, **kwargs)

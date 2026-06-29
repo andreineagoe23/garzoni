@@ -19,7 +19,12 @@ from .views import (
     whats_next,
 )
 from .views_ai import ExerciseExplainView, CoachBriefView
-from .views_public import public_lesson_detail, public_lesson_list
+from .views_public import (
+    public_article_detail,
+    public_article_list,
+    public_lesson_detail,
+    public_lesson_list,
+)
 
 router = DefaultRouter()
 router.register(r"paths", PathViewSet, basename="path")
@@ -46,6 +51,8 @@ urlpatterns = [
     path("exercises/explain/", ExerciseExplainView.as_view(), name="exercise-explain"),
     path("public/lessons/", public_lesson_list, name="public-lesson-list"),
     path("public/lessons/<slug:slug>/", public_lesson_detail, name="public-lesson-detail"),
+    path("public/articles/", public_article_list, name="public-article-list"),
+    path("public/articles/<slug:slug>/", public_article_detail, name="public-article-detail"),
     path("", include(router.urls)),
     path("personalized-path/", PersonalizedPathView.as_view(), name="personalized-path"),
     path(

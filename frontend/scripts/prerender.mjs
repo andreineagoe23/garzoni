@@ -12,6 +12,7 @@ const STATIC_ROUTES = [
   "/",
   "/about",
   "/learn",
+  "/guides",
   "/marketing",
   "/subscriptions",
   "/privacy-policy",
@@ -177,6 +178,24 @@ async function fetchPublicLessonSlugs() {
   }
 }
 
+async function fetchPublishedArticleSlugs() {
+  try {
+    const apiBase =
+      process.env.VITE_API_URL || "https://garzoni-production.up.railway.app";
+    const res = await fetch(`${apiBase}/api/public/articles/`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (Array.isArray(data)) return data.map((a) => a.slug);
+    if (data.results) return data.results.map((a) => a.slug);
+    return [];
+  } catch {
+    console.log(
+      "  ⚠ Could not fetch published article slugs (API may not have the endpoint yet)"
+    );
+    return [];
+  }
+}
+
 async function main() {
   console.log("\n🔨 Prerendering public pages for AI crawlers...\n");
 
@@ -203,6 +222,11 @@ async function main() {
   const lessonSlugs = await fetchPublicLessonSlugs();
   for (const slug of lessonSlugs) {
     routes.push(`/learn/${slug}`);
+  }
+
+  const articleSlugs = await fetchPublishedArticleSlugs();
+  for (const slug of articleSlugs) {
+    routes.push(`/guides/${slug}`);
   }
 
   console.log(`Rendering ${routes.length} routes...\n`);

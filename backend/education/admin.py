@@ -30,6 +30,7 @@ from education.models import (
     LessonSectionTranslation,
     QuizTranslation,
     ExerciseTranslation,
+    Article,
 )
 
 
@@ -726,3 +727,58 @@ class SectionCompletionAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     user.admin_order_field = "user_progress__user"
     lesson.admin_order_field = "section__lesson"
     course.admin_order_field = "section__lesson__course"
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    """Manage SEO/GEO articles served at /guides/<slug>."""
+
+    list_display = ("title", "category", "is_published", "published_at", "updated_at")
+    list_filter = ("category", "is_published")
+    list_editable = ("is_published",)
+    search_fields = ("title", "excerpt", "meta_description")
+    readonly_fields = ("slug", "created_at", "updated_at")
+    filter_horizontal = ("related_lessons",)
+    actions = ["make_published", "make_unpublished"]
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "title",
+                    "slug",
+                    "category",
+                    "author",
+                    "is_published",
+                    "published_at",
+                )
+            },
+        ),
+        (
+            "SEO",
+            {"fields": ("meta_description", "excerpt", "image", "faq")},
+        ),
+        (
+            "Content",
+            {"fields": ("content", "related_lessons")},
+        ),
+        (
+            "Timestamps",
+            {"classes": ("collapse",), "fields": ("created_at", "updated_at")},
+        ),
+    )
+
+    @admin.action(description="Publish selected articles")
+    def make_published(self, request, queryset):
+        count = 0
+        for article in queryset:
+            if not article.is_published:
+                article.is_published = True
+                article.save()  # save() stamps published_at on first publish
+                count += 1
+        self.message_user(request, f"{count} article(s) published.")
+
+    @admin.action(description="Unpublish selected articles")
+    def make_unpublished(self, request, queryset):
+        updated = queryset.update(is_published=False)
+        self.message_user(request, f"{updated} article(s) unpublished.")

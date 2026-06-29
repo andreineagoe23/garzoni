@@ -10,6 +10,12 @@ export const LearnIndex = React.lazy(
 export const AboutPage = React.lazy(
   () => import("components/landing/AboutPage")
 );
+export const GuidesIndex = React.lazy(
+  () => import("components/guides/GuidesIndex")
+);
+export const ArticlePage = React.lazy(
+  () => import("components/guides/ArticlePage")
+);
 export const CoursePage = React.lazy(
   () => import("components/courses/CoursePage")
 );

@@ -62,6 +62,7 @@ function Footer() {
       requiresAuth: false,
       links: [
         { label: "Free Lessons", to: "/learn" },
+        { label: "Guides & Comparisons", to: "/guides" },
         { label: "About Garzoni", to: "/about" },
       ],
     },

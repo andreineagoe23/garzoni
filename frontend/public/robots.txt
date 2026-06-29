@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Allow: /learn/
+Allow: /guides/
 Allow: /about
 Allow: /marketing
 Disallow: /onboarding

@@ -12,7 +12,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .models import Lesson, LessonSection
+from .models import Article, Lesson, LessonSection
 
 
 def _section_payload(section: LessonSection) -> dict:
@@ -111,6 +111,72 @@ def public_lesson_list(request):
     return response
 
 
+def _article_card(article: Article) -> dict:
+    return {
+        "slug": article.slug,
+        "title": article.title,
+        "category": article.category,
+        "excerpt": article.excerpt or "",
+        "image_url": article.image.url if article.image else "",
+        "published_at": article.published_at.isoformat() if article.published_at else None,
+        "updated_at": article.updated_at.isoformat() if article.updated_at else None,
+    }
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public_article_list(request):
+    """List published articles for the /guides index. Only is_published=True."""
+    articles = Article.objects.filter(is_published=True)
+    items = [_article_card(a) for a in articles]
+    response = Response({"count": len(items), "results": items})
+    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    return response
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public_article_detail(request, slug: str):
+    try:
+        article = Article.objects.prefetch_related(
+            "related_lessons", "related_lessons__course"
+        ).get(slug=slug, is_published=True)
+    except Article.DoesNotExist:
+        raise Http404("Article not found")
+
+    image_url = ""
+    try:
+        if article.image:
+            image_url = request.build_absolute_uri(article.image.url)
+    except Exception:
+        image_url = ""
+
+    payload = {
+        "slug": article.slug,
+        "title": article.title,
+        "category": article.category,
+        "meta_description": article.meta_description or article.excerpt or "",
+        "excerpt": article.excerpt or "",
+        "content": article.content or "",
+        "author": article.author,
+        "image_url": image_url,
+        "faq": article.faq or [],
+        "published_at": article.published_at.isoformat() if article.published_at else None,
+        "updated_at": article.updated_at.isoformat() if article.updated_at else None,
+        "related_lessons": [
+            {
+                "slug": lesson.slug,
+                "title": lesson.title,
+                "short_description": lesson.short_description or "",
+            }
+            for lesson in article.related_lessons.filter(is_public=True)
+        ],
+    }
+    response = Response(payload)
+    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    return response
+
+
 @cache_page(60 * 60)
 def sitemap_xml(request):
     """Plain XML sitemap. No django.contrib.sitemaps dependency."""
@@ -121,6 +187,7 @@ def sitemap_xml(request):
         (f"{site_url}/", "1.0", "daily"),
         (f"{site_url}/marketing", "0.8", "weekly"),
         (f"{site_url}/learn", "0.9", "weekly"),
+        (f"{site_url}/guides", "0.9", "weekly"),
         (f"{site_url}/about", "0.7", "monthly"),
         (f"{site_url}/subscriptions", "0.8", "weekly"),
         (f"{site_url}/login", "0.5", "monthly"),
@@ -136,9 +203,14 @@ def sitemap_xml(request):
         for slug in Lesson.objects.filter(is_public=True).values_list("slug", flat=True)
     ]
 
+    article_urls = [
+        (f"{site_url}/guides/{slug}", "0.8", "weekly")
+        for slug in Article.objects.filter(is_published=True).values_list("slug", flat=True)
+    ]
+
     parts = ['<?xml version="1.0" encoding="UTF-8"?>']
     parts.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
-    for loc, priority, changefreq in static_urls + lesson_urls:
+    for loc, priority, changefreq in static_urls + lesson_urls + article_urls:
         parts.append("<url>")
         parts.append(f"<loc>{loc}</loc>")
         parts.append(f"<lastmod>{now_iso}</lastmod>")
