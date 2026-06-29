@@ -8,7 +8,7 @@ quiz state, or per-user progress.
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -27,6 +27,7 @@ def _section_payload(section: LessonSection) -> dict:
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([])  # public SEO reads — crawlers/prerender hit these in bursts
 def public_lesson_detail(request, slug: str):
     try:
         lesson = (
@@ -67,6 +68,7 @@ def public_lesson_detail(request, slug: str):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([])  # public SEO reads — crawlers/prerender hit these in bursts
 def public_lesson_list(request):
     """List all publicly-indexable lessons, grouped for the /learn catalog.
 
@@ -125,6 +127,7 @@ def _article_card(article: Article) -> dict:
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([])  # public SEO reads — crawlers/prerender hit these in bursts
 def public_article_list(request):
     """List published articles for the /guides index. Only is_published=True."""
     articles = Article.objects.filter(is_published=True)
@@ -136,6 +139,7 @@ def public_article_list(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([])  # public SEO reads — crawlers/prerender hit these in bursts
 def public_article_detail(request, slug: str):
     try:
         article = Article.objects.prefetch_related(
