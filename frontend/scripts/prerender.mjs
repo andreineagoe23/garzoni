@@ -259,12 +259,24 @@ async function main() {
   let skipped = 0;
   for (const route of routes) {
     try {
-      const html = await renderRoute(browser, route);
-      if (isErrorSnapshot(html)) {
-        // Don't overwrite a previously-good snapshot with an error page; leave
-        // the old file (or no file) so the next build can self-correct.
+      let html = await renderRoute(browser, route);
+      // A not-found render for a route we know exists (its slug came from the
+      // published list/API) is a transient API hiccup mid-build. Retry a couple
+      // of times before giving up so a blip never costs us the page.
+      let attempt = 0;
+      while (isErrorSnapshot(html) && attempt < 2) {
+        attempt++;
         console.error(
-          `  ⚠ ${route}: rendered an error/not-found state — skipping save`
+          `  ↻ ${route}: error state, retry ${attempt}/2 after backoff…`
+        );
+        await new Promise((r) => setTimeout(r, 2500 * attempt));
+        html = await renderRoute(browser, route);
+      }
+      if (isErrorSnapshot(html)) {
+        // Still bad — don't overwrite a previously-good snapshot with an error
+        // page; leave the old file (or none) so the next build self-corrects.
+        console.error(
+          `  ⚠ ${route}: still error after retries — skipping save`
         );
         skipped++;
         continue;
