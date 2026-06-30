@@ -43,6 +43,7 @@ from budgeting.services.summaries import (
 )
 from finance.models import FinancialGoal, PortfolioEntry
 from finance.utils import record_funnel_event
+from core.request_platform import resolve_request_platform
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +132,7 @@ class BudgetEnvelopeViewSet(viewsets.ModelViewSet):
         record_funnel_event(
             "budget_envelope_created",
             user=request.user,
+            platform=resolve_request_platform(request),
             metadata={
                 "category": (response.data or {}).get("category"),
             },
@@ -248,6 +250,7 @@ class ProviderLinkTokenView(APIView):
         record_funnel_event(
             "budget_account_link_started",
             user=request.user,
+            platform=resolve_request_platform(request),
             metadata={"provider": provider.name},
         )
         return Response({"connect_url": url, "provider": provider.name})
@@ -348,6 +351,7 @@ class PersonalCfoSummaryView(APIView):
         record_funnel_event(
             "personal_cfo_summary_view",
             user=request.user,
+            platform=resolve_request_platform(request),
             metadata={
                 "has_spending_data": spending is not None,
                 "alert_count": len(alerts),
@@ -398,6 +402,7 @@ class PersonalCfoDashboardView(APIView):
         record_funnel_event(
             "personal_cfo_dashboard_view",
             user=request.user,
+            platform=resolve_request_platform(request),
             metadata={
                 "surface": surface,
                 "real_holdings_count": payload.get("context", {}).get("real_holdings_count"),
@@ -501,6 +506,7 @@ class PersonalCfoCoachView(APIView):
             record_funnel_event(
                 "personal_cfo_coach_message",
                 user=request.user,
+                platform=resolve_request_platform(request),
                 metadata={"surface": request.data.get("surface") or "unknown"},
             )
         return Response(payload, status=code)

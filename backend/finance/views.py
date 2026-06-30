@@ -76,6 +76,7 @@ from authentication.user_display import normalize_display_string
 from gamification.models import MissionCompletion
 from gamification.services.mission_cycles import daily_cycle_id, weekly_cycle_id
 from finance.utils import record_funnel_event
+from core.request_platform import resolve_request_platform
 from django.apps import apps
 from authentication.entitlements import (
     get_entitlements_for_user,
@@ -2073,6 +2074,7 @@ class StripeWebhookView(APIView):
             record_funnel_event(
                 "webhook_received",
                 user=request.user if request.user.is_authenticated else None,
+                platform="server",
                 metadata={"event_type": event.get("type")},
             )
 
@@ -2262,6 +2264,7 @@ class StripeWebhookView(APIView):
                                         else "checkout_expired"
                                     ),
                                     user=user_profile.user,
+                                    platform="server",
                                     session_id=session.get("id", ""),
                                     metadata={
                                         "payment_intent": session.get("payment_intent", ""),
@@ -2481,6 +2484,7 @@ class StripeWebhookView(APIView):
                 "webhook_received",
                 status="error",
                 user=request.user if request.user.is_authenticated else None,
+                platform="server",
                 metadata={"error": str(e)},
             )
 
@@ -2615,6 +2619,7 @@ class VerifySessionView(APIView):
                 record_funnel_event(
                     "checkout_verified",
                     user=user_for_event,
+                    platform=resolve_request_platform(request),
                     session_id=str(getattr(session, "id", "") or ""),
                     metadata=event_metadata,
                 )
@@ -2877,6 +2882,7 @@ class SubscriptionCreateView(APIView):
             record_funnel_event(
                 "checkout_created",
                 user=request.user,
+                platform=resolve_request_platform(request),
                 session_id=getattr(checkout_session, "id", ""),
                 metadata={
                     "plan_id": plan_id,
@@ -3126,6 +3132,7 @@ class SubscriptionChangeView(APIView):
             record_funnel_event(
                 "subscription_plan_changed",
                 user=request.user,
+                platform=resolve_request_platform(request),
                 metadata={"plan_id": new_plan, "billing_interval": billing_interval},
             )
             return Response(
@@ -3401,6 +3408,7 @@ class EntitlementStatusView(APIView):
                 "entitlement_lookup",
                 user=request.user,
                 status="success",
+                platform=resolve_request_platform(request),
                 metadata={"plan": plan},
             )
             return Response(payload)
@@ -3410,6 +3418,7 @@ class EntitlementStatusView(APIView):
                 "entitlement_lookup",
                 user=request.user,
                 status="error",
+                platform=resolve_request_platform(request),
                 metadata={"error": str(exc)},
             )
             return Response({"error": "Unable to verify entitlements right now."}, status=503)
@@ -3447,6 +3456,10 @@ class FunnelEventIngestView(APIView):
         "exercise_skill_intent_mapped_zero",
         "exercises_page_view",
         "exercise_started",
+        # Lesson engagement funnel (post-signup activation)
+        "lesson_started",
+        "section_completed",
+        "lesson_completed",
         "upgrade_click",
         # Onboarding questionnaire events
         "questionnaire_step_view",
@@ -3687,6 +3700,36 @@ class FunnelMetricsView(APIView):
             .order_by("-count")[:10]
         )
 
+        # --- Lesson engagement funnel: started -> completed (post-signup activation) ---
+        lesson_started = events.filter(event_type="lesson_started")
+        lesson_completed = events.filter(event_type="lesson_completed")
+        section_completed = events.filter(event_type="section_completed")
+        learners_started = lesson_started.values("user").distinct().count()
+        learners_completed = lesson_completed.values("user").distinct().count()
+        top_lessons = [
+            {
+                "lesson_id": r["lesson_id"],
+                "starts": r["count"],
+                "learners": r["learners"],
+            }
+            for r in lesson_started.annotate(lesson_id=KeyTextTransform("lesson_id", "metadata"))
+            .values("lesson_id")
+            .annotate(count=Count("id"), learners=Count("user", distinct=True))
+            .order_by("-count")[:10]
+        ]
+        lesson_funnel = {
+            "lessons_started": lesson_started.count(),
+            "lessons_completed": lesson_completed.count(),
+            "sections_completed": section_completed.count(),
+            "learners_started": learners_started,
+            "learners_completed": learners_completed,
+            # Of learners who entered a lesson, share that completed at least one.
+            "completion_rate": (
+                round(learners_completed / learners_started * 100, 1) if learners_started else 0
+            ),
+            "top_lessons": top_lessons,
+        }
+
         # --- What they're spending on: checkout intent by plan ---
         plan_rows = (
             events.filter(event_type="checkout_created")
@@ -3753,7 +3796,8 @@ class FunnelMetricsView(APIView):
         present = all_events.values_list("platform", flat=True).distinct().order_by("platform")
         by_platform = {}
         for p in present:
-            key = p or "unknown"
+            # Empty platform = legacy rows logged before attribution; surface as "server".
+            key = p or "server"
             qs = all_events.filter(platform=p)
             by_platform[key] = {
                 **self._summarise(qs),
@@ -3773,6 +3817,7 @@ class FunnelMetricsView(APIView):
                 "summary": self._summarise(events),
                 "top_features": top_features,
                 "top_clicks": top_clicks,
+                "lesson_funnel": lesson_funnel,
                 "top_plans": top_plans,
                 "revenue": revenue,
                 "revenue_timeseries": revenue_timeseries,

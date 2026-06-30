@@ -1,6 +1,7 @@
 {
   "common": {
     "dismiss": "Poate mai târziu",
+    "skipForNow": "Sari peste — explorează gratuit",
     "close": "Închide",
     "loadTimeout": "Încărcarea durează prea mult. Verifică conexiunea."
   },
@@ -362,6 +363,17 @@
     "streakBucket": "Zile streak",
     "atRiskUsers": "Utilizatori cu risc",
     "atRiskUsersSub": "Streak activ dar fără lecție de 7+ zile.",
+    "lessonsStarted": "Lecții începute",
+    "lessonLearnersStarted": "{{count}} cursanți au intrat într-o lecție",
+    "lessonsCompleted": "Lecții finalizate",
+    "lessonLearnersCompleted": "{{count}} cursanți au finalizat una",
+    "lessonCompletionRate": "Rată de finalizare a lecțiilor",
+    "lessonCompletionRateSub": "Din cursanții care au intrat într-o lecție",
+    "sectionsCompleted": "Secțiuni finalizate",
+    "topLessons": "Cele mai începute lecții",
+    "topLessonsSub": "Lecțiile în care intră cei mai mulți cursanți",
+    "lessonLabel": "Lecția",
+    "starts": "începuturi",
     "learningOverTime": "Activitate de învățare în timp",
     "learningOverTimeSub": "Utilizatori cu o lecție finalizată zilnic.",
     "learners": "Învățători",
@@ -2323,6 +2335,7 @@
     "trialEndsOn": "Perioada de probă se termină pe {{date}}",
     "viewPersonalizedPath": "Vezi traseul tău personalizat",
     "goToDashboard": "Mergi la Acasă",
+    "skipForNow": "Sari peste — începe gratuit",
     "checkSubscriptionOptions": "Vezi opțiunile de abonament",
     "comparePlans": "Compară planurile",
     "seeWhatChanges": "Vezi ce se schimbă pe nivel",

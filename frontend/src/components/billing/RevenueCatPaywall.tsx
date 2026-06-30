@@ -378,8 +378,24 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         </p>
       )}
 
-      {/* Restore + dismiss */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-border-default)] pt-4">
+      {/* Skip for now — own full-width row so it's always visible, not buried
+          next to Restore. Free users should never feel trapped on the paywall. */}
+      {onClose && (
+        <div className="border-t border-[color:var(--color-border-default)] pt-4">
+          <GlassButton
+            variant="ghost"
+            size="md"
+            className="w-full"
+            disabled={Boolean(purchasing) || restoring}
+            onClick={onClose}
+          >
+            {t("common.skipForNow", "Skip for now — keep exploring for free")}
+          </GlassButton>
+        </div>
+      )}
+
+      {/* Restore */}
+      <div className="flex items-center justify-center">
         <GlassButton
           variant="ghost"
           size="sm"
@@ -389,17 +405,6 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         >
           {restoring ? "Restoring…" : "Restore purchases"}
         </GlassButton>
-
-        {onClose && (
-          <GlassButton
-            variant="ghost"
-            size="sm"
-            disabled={Boolean(purchasing) || restoring}
-            onClick={onClose}
-          >
-            {t("common.dismiss", "Maybe later")}
-          </GlassButton>
-        )}
       </div>
 
       {/* Legal */}

@@ -94,6 +94,19 @@ type MetricsResponse = {
   summary?: FunnelSummary;
   top_features?: { event_type: string; count: number; users?: number }[];
   top_clicks?: { event_type: string; count: number }[];
+  lesson_funnel?: {
+    lessons_started?: number;
+    lessons_completed?: number;
+    sections_completed?: number;
+    learners_started?: number;
+    learners_completed?: number;
+    completion_rate?: number;
+    top_lessons?: {
+      lesson_id: string | null;
+      starts: number;
+      learners: number;
+    }[];
+  };
   top_plans?: { plan: string; count: number }[];
   revenue?: {
     by_currency?: { currency: string; total: number; payments: number }[];
@@ -150,6 +163,8 @@ const PLATFORM_LABELS: Record<string, string> = {
   web: "Web",
   ios: "iOS",
   android: "Android",
+  server: "Server (backend events)",
+  // Legacy rows logged before platform attribution was added.
   unknown: "Server / unknown",
 };
 
@@ -280,7 +295,7 @@ const PricingFunnelDashboard = () => {
   );
   const platformRows = useMemo(() => {
     const map = data?.by_platform || {};
-    const order = ["web", "ios", "android", "unknown"];
+    const order = ["web", "ios", "android", "server", "unknown"];
     return Object.entries(map).sort(
       ([a], [b]) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99)
     );
@@ -815,6 +830,59 @@ const PricingFunnelDashboard = () => {
                 tone="error"
               />
             </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <AnalyticsMetricTile
+                label={t("analytics.lessonsStarted")}
+                value={nfmt(data?.lesson_funnel?.lessons_started)}
+                footer={t("analytics.lessonLearnersStarted", {
+                  count: data?.lesson_funnel?.learners_started ?? 0,
+                })}
+                tone="accent"
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.lessonsCompleted")}
+                value={nfmt(data?.lesson_funnel?.lessons_completed)}
+                footer={t("analytics.lessonLearnersCompleted", {
+                  count: data?.lesson_funnel?.learners_completed ?? 0,
+                })}
+                tone="accent"
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.lessonCompletionRate")}
+                value={`${data?.lesson_funnel?.completion_rate ?? 0}%`}
+                footer={t("analytics.lessonCompletionRateSub")}
+              />
+              <AnalyticsMetricTile
+                label={t("analytics.sectionsCompleted")}
+                value={nfmt(data?.lesson_funnel?.sections_completed)}
+              />
+            </div>
+
+            {(data?.lesson_funnel?.top_lessons?.length ?? 0) > 0 && (
+              <ChartCard
+                title={t("analytics.topLessons")}
+                subtitle={t("analytics.topLessonsSub")}
+              >
+                <ul className="divide-y divide-border/40">
+                  {data?.lesson_funnel?.top_lessons?.map((l) => (
+                    <li
+                      key={l.lesson_id ?? "unknown"}
+                      className="flex items-center justify-between py-2 text-sm"
+                    >
+                      <span className="text-muted-foreground">
+                        {t("analytics.lessonLabel", "Lesson")} #
+                        {l.lesson_id ?? "?"}
+                      </span>
+                      <span className="font-medium">
+                        {nfmt(l.starts)} {t("analytics.starts", "starts")} ·{" "}
+                        {nfmt(l.learners)} {t("analytics.learners", "learners")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </ChartCard>
+            )}
 
             <ChartCard
               title={t("analytics.onboardingFunnel")}

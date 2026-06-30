@@ -21,6 +21,7 @@ from onboarding.serializers import (
 from authentication.models import UserProfile
 from authentication.services.profile import invalidate_profile_cache
 from finance.utils import record_funnel_event  # noqa: F401 — kept for other callers in this module
+from core.request_platform import resolve_request_platform
 
 logger = logging.getLogger(__name__)
 
@@ -376,13 +377,16 @@ class QuestionnaireNextQuestionView(APIView):
         return Response(serializer.data)
 
 
-def _record_questionnaire_answer_event(user_id, metadata):
+def _record_questionnaire_answer_event(user_id, metadata, platform=""):
     """Fire funnel event async via Celery; falls back to sync if Celery unavailable."""
     try:
         from finance.tasks import record_funnel_event_task
 
         record_funnel_event_task.delay(
-            "questionnaire_answer_submitted", user_id=user_id, metadata=metadata
+            "questionnaire_answer_submitted",
+            user_id=user_id,
+            metadata=metadata,
+            platform=platform,
         )
     except Exception:
         from finance.utils import record_funnel_event
@@ -392,7 +396,12 @@ def _record_questionnaire_answer_event(user_id, metadata):
             user = get_user_model().objects.get(pk=user_id)
         except Exception:
             user = None
-        record_funnel_event("questionnaire_answer_submitted", user=user, metadata=metadata)
+        record_funnel_event(
+            "questionnaire_answer_submitted",
+            user=user,
+            platform=platform,
+            metadata=metadata,
+        )
 
 
 class QuestionnaireSaveAnswerView(APIView):
@@ -461,6 +470,7 @@ class QuestionnaireSaveAnswerView(APIView):
 
                 # Defer analytics write outside the transaction so it never holds the lock
                 user_id = request.user.pk
+                event_platform = resolve_request_platform(request)
                 event_metadata = {
                     "question_id": question_id,
                     "section_index": section_index,
@@ -468,7 +478,9 @@ class QuestionnaireSaveAnswerView(APIView):
                     "time_spent_seconds": time_spent,
                 }
                 transaction.on_commit(
-                    lambda: _record_questionnaire_answer_event(user_id, event_metadata)
+                    lambda: _record_questionnaire_answer_event(
+                        user_id, event_metadata, platform=event_platform
+                    )
                 )
 
         serializer = QuestionnaireProgressSerializer(progress)
@@ -542,6 +554,7 @@ class QuestionnaireCompleteView(APIView):
             record_funnel_event(
                 "questionnaire_completed",
                 user=request.user,
+                platform=resolve_request_platform(request),
                 metadata={
                     "version": progress.version.version,
                     "total_time_seconds": total_time,
@@ -599,6 +612,7 @@ class QuestionnaireAbandonView(APIView):
         record_funnel_event(
             "questionnaire_abandoned",
             user=request.user,
+            platform=resolve_request_platform(request),
             metadata={
                 "section_index": progress.current_section_index,
                 "question_index": progress.current_question_index,

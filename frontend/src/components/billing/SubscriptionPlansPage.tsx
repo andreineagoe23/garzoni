@@ -597,7 +597,10 @@ const SubscriptionPlansPage = () => {
                 {subscriptionInfo.hasPaid
                   ? t("subscriptions.viewPersonalizedPath")
                   : questionnaireComplete
-                    ? t("subscriptions.goToDashboard")
+                    ? t(
+                        "subscriptions.skipForNow",
+                        "Skip for now — start learning free"
+                      )
                     : t("subscriptions.checkSubscriptionOptions")}
               </GlassButton>
               {(subscriptionInfo.hasPaid ||

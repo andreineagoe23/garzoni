@@ -32,6 +32,7 @@ def record_funnel_event_task(
     status: str = "success",
     session_id: str = "",
     metadata: dict | None = None,
+    platform: str = "",
 ):
     """Async wrapper for record_funnel_event — keeps caller request latency low."""
     from django.contrib.auth import get_user_model
@@ -51,6 +52,7 @@ def record_funnel_event_task(
         status=status,
         session_id=session_id,
         metadata=metadata or {},
+        platform=platform,
     )
 
 

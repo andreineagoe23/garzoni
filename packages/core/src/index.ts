@@ -27,6 +27,10 @@ export type { FeedbackPayload, AppReviewPayload } from "./services/userService";
 export * from "./services/duelsService";
 export * from "./services/socialService";
 export {
+  recordFunnelEvent,
+  fetchFunnelMetrics,
+} from "./services/analyticsService";
+export {
   fetchEntitlements,
   consumeEntitlement,
   FEATURE_COPY,

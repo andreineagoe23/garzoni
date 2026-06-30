@@ -222,6 +222,21 @@ async function fetchPublishedArticleSlugs() {
 }
 
 async function main() {
+  // Prerendered HTML is only ever served by the Vercel edge middleware on the
+  // production deployment (bots → dist/__prerendered). Generating it on local,
+  // CI, and Vercel preview builds just wastes time and makes every build fetch
+  // the production API to enumerate lessons/articles. Run only on Vercel
+  // production; allow PRERENDER=1 to force it locally for testing.
+  const force = process.env.PRERENDER === "1";
+  const isVercelProduction = process.env.VERCEL_ENV === "production";
+  if (!force && !isVercelProduction) {
+    console.log(
+      "\n⏭  Skipping prerender (not a Vercel production build). " +
+        "Set PRERENDER=1 to force locally.\n"
+    );
+    return;
+  }
+
   console.log("\n🔨 Prerendering public pages for AI crawlers...\n");
 
   if (!existsSync(DIST)) {

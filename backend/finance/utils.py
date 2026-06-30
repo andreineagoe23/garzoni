@@ -23,9 +23,11 @@ def record_funnel_event(
 ) -> None:
     """Persist a funnel event without breaking the caller on failure.
 
-    ``platform`` ("web"/"ios"/"android"/"") tags the originating client so the
-    analytics dashboard can split the funnel. Server-side callers (e.g. Stripe
-    webhooks) leave it empty.
+    ``platform`` ("web"/"ios"/"android") tags the originating client so the
+    analytics dashboard can split the funnel — pass
+    ``resolve_request_platform(request)`` from request-bound callers. Genuine
+    server-side callers (e.g. Stripe webhooks, Celery tasks) pass
+    ``platform="server"``. Empty string is treated as "server" in the dashboard.
     """
 
     FunnelEvent = apps.get_model("finance", "FunnelEvent")

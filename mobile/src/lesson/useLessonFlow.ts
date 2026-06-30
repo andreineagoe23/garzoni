@@ -6,6 +6,7 @@ import {
   completeLesson,
   fetchCourseFlowState,
   saveCourseFlowState,
+  recordFunnelEvent,
   queryKeys,
   staleTimes,
 } from "@garzoni/core";
@@ -215,6 +216,19 @@ export function useLessonFlow(
   const totalSteps = flowItems.length;
   const completedSteps = flowItems.filter((i) => i.isCompleted).length;
 
+  // Emit lesson_started once per lesson entered so the analytics dashboard can
+  // measure post-signup activation and lesson engagement on mobile too.
+  const startedLessonIdsRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const lessonId = currentItem?.lessonId;
+    if (!lessonId || !Number.isFinite(lessonId)) return;
+    if (startedLessonIdsRef.current.has(lessonId)) return;
+    startedLessonIdsRef.current.add(lessonId);
+    void recordFunnelEvent("lesson_started", {
+      metadata: { lesson_id: lessonId, course_id: courseId },
+    });
+  }, [currentItem?.lessonId, courseId]);
+
   // Keep ref in sync so unmount handler sees latest index without stale closure.
   useEffect(() => {
     currentIndexRef.current = currentIndex;
@@ -256,12 +270,19 @@ export function useLessonFlow(
     mutationFn: completeSection,
     // The flow UI tracks completion locally via completedIds; remote queries
     // are only marked stale and refetch in one burst when the flow exits.
-    onSuccess: markProgressStale,
+    onSuccess: (_data, sectionId) => {
+      void recordFunnelEvent("section_completed", {
+        metadata: { section_id: Number(sectionId), course_id: courseId },
+      });
+      markProgressStale();
+    },
   });
 
   const completeLessonMutation = useMutation({
     mutationFn: completeLesson,
     onSuccess: (_data, lessonId) => {
+      // lesson_completed funnel event is emitted server-side in
+      // _complete_lesson_for_user; only the Customer.io engagement event fires here.
       void import("../bootstrap/customerIoMobile").then(
         ({ trackGarzoniEvent }) =>
           trackGarzoniEvent("lesson_completed", { lesson_id: lessonId }),

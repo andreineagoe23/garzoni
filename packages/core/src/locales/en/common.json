@@ -1,6 +1,7 @@
 {
   "common": {
     "dismiss": "Maybe later",
+    "skipForNow": "Skip for now — keep exploring for free",
     "close": "Close",
     "loadTimeout": "Taking too long to load. Check your connection."
   },
@@ -362,6 +363,17 @@
     "streakBucket": "Streak days",
     "atRiskUsers": "At-risk learners",
     "atRiskUsersSub": "Active streak but no lesson in 7+ days.",
+    "lessonsStarted": "Lessons started",
+    "lessonLearnersStarted": "{{count}} learners entered a lesson",
+    "lessonsCompleted": "Lessons completed",
+    "lessonLearnersCompleted": "{{count}} learners completed one",
+    "lessonCompletionRate": "Lesson completion rate",
+    "lessonCompletionRateSub": "Of learners who entered a lesson",
+    "sectionsCompleted": "Sections completed",
+    "topLessons": "Most started lessons",
+    "topLessonsSub": "Which lessons learners enter most",
+    "lessonLabel": "Lesson",
+    "starts": "starts",
     "learningOverTime": "Learning activity over time",
     "learningOverTimeSub": "Users with a lesson completion each day.",
     "learners": "Learners",
@@ -2323,6 +2335,7 @@
     "trialEndsOn": "Trial ends on {{date}}",
     "viewPersonalizedPath": "View your personalized path",
     "goToDashboard": "Go to dashboard",
+    "skipForNow": "Skip for now — start learning free",
     "checkSubscriptionOptions": "Check subscription options",
     "comparePlans": "Compare plans",
     "seeWhatChanges": "See what changes by tier",

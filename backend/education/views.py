@@ -17,6 +17,7 @@ import logging
 import stripe
 from django.conf import settings
 from finance.utils import record_funnel_event
+from core.request_platform import resolve_request_platform
 from authentication.services.profile import invalidate_profile_cache
 
 from education.services.checkpoint_quizzes import ensure_checkpoint_quizzes_for_lesson
@@ -533,7 +534,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             if lesson.course and lesson.course.path:
                 if not _user_can_access_path(request.user, lesson.course.path):
                     return _path_access_denied_response(lesson.course.path)
-            _complete_lesson_for_user(request.user, lesson)
+            _complete_lesson_for_user(request.user, lesson, request=request)
             invalidate_profile_cache(request.user)
             cache.delete(f"progress_summary_{request.user.id}")
             return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
@@ -745,7 +746,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 if not _user_can_access_path(request.user, course.path):
                     return _path_access_denied_response(course.path)
 
-            user_progress = _complete_lesson_for_user(request.user, lesson)
+            user_progress = _complete_lesson_for_user(request.user, lesson, request=request)
             invalidate_profile_cache(request.user)
             cache.delete(f"progress_summary_{request.user.id}")
             return Response(
@@ -1672,8 +1673,13 @@ def _complete_section_for_user(user, section: LessonSection):
     return progress, was_new_section
 
 
-def _complete_lesson_for_user(user, lesson: Lesson):
-    """Shared lesson completion flow used by both userprogress and lessons endpoints."""
+def _complete_lesson_for_user(user, lesson: Lesson, request=None):
+    """Shared lesson completion flow used by both userprogress and lessons endpoints.
+
+    Pass ``request`` so the authoritative ``lesson_completed`` funnel event is
+    attributed to the originating platform (web/ios/android); falls back to
+    ``"server"`` when called without a request.
+    """
     course = lesson.course
     with transaction.atomic():
         user_progress, _ = UserProgress.objects.select_for_update().get_or_create(
@@ -1749,6 +1755,27 @@ def _complete_lesson_for_user(user, lesson: Lesson):
         _maybe_mark_course_complete(user, user_progress, course)
 
     user_progress.refresh_from_db()
+
+    if was_lesson_new:
+        try:
+            record_funnel_event(
+                "lesson_completed",
+                user=user,
+                platform=(resolve_request_platform(request) if request is not None else "server"),
+                metadata={
+                    "lesson_id": lesson.id,
+                    "course_id": course.id if course else None,
+                    "source": "server",
+                },
+            )
+        except Exception:
+            logger.warning(
+                "funnel lesson_completed emit failed user_id=%s lesson_id=%s",
+                user.id,
+                lesson.id,
+                exc_info=True,
+            )
+
     return user_progress
 
 

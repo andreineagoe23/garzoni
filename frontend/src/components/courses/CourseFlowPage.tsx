@@ -33,6 +33,7 @@ import {
   updateLessonSection,
 } from "services/userService";
 import { attachToken } from "services/httpClient";
+import { recordFunnelEvent } from "services/analyticsService";
 import { getBackendUrl } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
@@ -520,6 +521,9 @@ function CourseFlowPage() {
       setCompletedSectionIds((prev) =>
         prev.includes(normalizedId) ? prev : [...prev, normalizedId]
       );
+      void recordFunnelEvent("section_completed", {
+        metadata: { section_id: normalizedId, course_id: courseIdNumber },
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
     },
@@ -528,6 +532,9 @@ function CourseFlowPage() {
 
   const completeLessonMutation = useMutation({
     mutationFn: completeLesson,
+    // lesson_completed funnel event is emitted server-side in
+    // _complete_lesson_for_user (authoritative, correctly platform-attributed),
+    // so it is not duplicated here.
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
@@ -563,6 +570,19 @@ function CourseFlowPage() {
 
   const currentItem = flowSections[currentIndex] || null;
   const isLast = currentIndex >= flowSections.length - 1;
+
+  // Emit lesson_started once per lesson entered, so the analytics dashboard can
+  // measure signup -> first-lesson activation and lesson-by-lesson engagement.
+  const startedLessonIdsRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const lessonId = currentItem?.lessonId;
+    if (!lessonId || !Number.isFinite(lessonId)) return;
+    if (startedLessonIdsRef.current.has(lessonId)) return;
+    startedLessonIdsRef.current.add(lessonId);
+    void recordFunnelEvent("lesson_started", {
+      metadata: { lesson_id: lessonId, course_id: courseIdNumber },
+    });
+  }, [currentItem?.lessonId, courseIdNumber]);
 
   const isBlocked = !adminMode && heartsEnabled && hearts <= 0;
 
