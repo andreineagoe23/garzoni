@@ -130,6 +130,7 @@ export default function PublicLesson() {
           name: data.title,
           description,
           image: data.image_url || undefined,
+          partOf: data.course?.title || undefined,
         }}
         breadcrumbs={[
           { name: "Home", url: "https://www.garzoni.app/" },

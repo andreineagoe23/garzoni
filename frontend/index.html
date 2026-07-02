@@ -238,76 +238,83 @@
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
 
+    <!-- Consolidated entity graph: one Organization linked as publisher of the
+         WebSite, the web app, and the iOS app. Cross-referenced by @id so Google
+         Knowledge Graph + LLMs resolve them as one entity. Detail pages add their
+         own Course/Article/Breadcrumb nodes via SeoHead, referencing #organization. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Garzoni",
-        "url": "https://www.garzoni.app",
-        "applicationCategory": "FinanceApplication",
-        "operatingSystem": "Web, iOS",
-        "logo": "https://www.garzoni.app/logo-512.png",
-        "description": "Personal finance education platform for young adults. Learn budgeting, saving, investing, and debt management through interactive lessons, AI coaching, and real-world financial tools.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "GBP"
-        },
-        "sameAs": [
-          "https://x.com/garzoniapp",
-          "https://www.linkedin.com/company/garzoni",
-          "https://www.tiktok.com/@garzoni.app",
-          "https://www.instagram.com/garzoni.app/",
-          "https://www.facebook.com/profile.php?id=61587379603993",
-          "https://www.youtube.com/@garzoni_app"
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.garzoni.app/#organization",
+            "name": "Garzoni",
+            "url": "https://www.garzoni.app",
+            "logo": "https://www.garzoni.app/logo-512.png",
+            "description": "Personal finance education platform for young adults. Interactive lessons on budgeting, saving, investing, credit, debt management, and taxes — with AI-powered coaching and spaced repetition.",
+            "sameAs": [
+              "https://x.com/garzoniapp",
+              "https://www.linkedin.com/company/garzoni",
+              "https://www.tiktok.com/@garzoni.app",
+              "https://www.instagram.com/garzoni.app/",
+              "https://www.facebook.com/profile.php?id=61587379603993",
+              "https://www.youtube.com/@garzoni_app"
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "support@garzoni.app",
+              "contactType": "customer support"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.garzoni.app/#website",
+            "name": "Garzoni",
+            "url": "https://www.garzoni.app",
+            "inLanguage": ["en", "ro"],
+            "publisher": { "@id": "https://www.garzoni.app/#organization" }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://www.garzoni.app/#webapp",
+            "name": "Garzoni",
+            "url": "https://www.garzoni.app",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Web",
+            "browserRequirements": "Requires JavaScript. Requires HTML5.",
+            "description": "Personal finance education for young adults. Learn budgeting, saving, investing, and debt management through interactive lessons, AI coaching, and real-world financial tools.",
+            "publisher": { "@id": "https://www.garzoni.app/#organization" },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "GBP"
+            }
+          },
+          {
+            "@type": "MobileApplication",
+            "@id": "https://www.garzoni.app/#mobileapp",
+            "name": "Garzoni - Personal Finance",
+            "url": "https://www.garzoni.app",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "IOS",
+            "description": "Garzoni is a personal finance education app for young adults. Learn budgeting, saving, investing, credit, and debt through short interactive lessons, quizzes, and an AI coach.",
+            "publisher": { "@id": "https://www.garzoni.app/#organization" },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "GBP",
+              "url": "https://apps.apple.com/app/id6761790801"
+            },
+            "downloadUrl": "https://apps.apple.com/app/id6761790801",
+            "installUrl": "https://apps.apple.com/app/id6761790801",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "5.0",
+              "ratingCount": "4"
+            }
+          }
         ]
-      }
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Garzoni",
-        "applicationCategory": "FinanceApplication",
-        "operatingSystem": "iOS, Web",
-        "url": "https://www.garzoni.app",
-        "downloadUrl": "https://apps.apple.com/app/id6761790801",
-        "installUrl": "https://apps.apple.com/app/id6761790801",
-        "inLanguage": ["en", "ro"],
-        "description": "Garzoni is a personal finance education app for young adults. Learn budgeting, saving, investing, credit, and debt through short interactive lessons, quizzes, and an AI coach.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "GBP"
-        },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Garzoni",
-          "url": "https://www.garzoni.app"
-        }
-      }
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Garzoni",
-        "url": "https://www.garzoni.app",
-        "logo": "https://www.garzoni.app/logo-512.png",
-        "description": "Personal finance education platform for young adults. Interactive lessons on budgeting, saving, investing, credit, debt management, and taxes — with AI-powered coaching and spaced repetition.",
-        "sameAs": [
-          "https://x.com/garzoniapp",
-          "https://www.linkedin.com/company/garzoni",
-          "https://www.tiktok.com/@garzoni.app",
-          "https://www.instagram.com/garzoni.app/",
-          "https://www.facebook.com/profile.php?id=61587379603993",
-          "https://www.youtube.com/@garzoni_app"
-        ],
-        "contactPoint": {
-          "@type": "ContactPoint",
-          "email": "support@garzoni.app",
-          "contactType": "customer support"
-        }
       }
     </script>
   </body>

@@ -4,6 +4,8 @@ type CourseSchema = {
   name: string;
   description: string;
   image?: string;
+  /** Parent course title, emitted as isPartOf on the LearningResource. */
+  partOf?: string;
 };
 
 type FaqItem = {
@@ -39,6 +41,10 @@ type Props = {
 const DEFAULT_IMAGE = "https://www.garzoni.app/og-image.jpg";
 const SITE_NAME = "Garzoni";
 const SITE_URL = "https://www.garzoni.app";
+// @id of the Organization node defined in the index.html entity graph. Detail
+// pages reference it instead of re-declaring a partial Organization, so the
+// whole site resolves to a single publisher entity.
+const ORG_ID = `${SITE_URL}/#organization`;
 
 export default function SeoHead({
   title,
@@ -53,18 +59,25 @@ export default function SeoHead({
   article,
 }: Props) {
   const ogImage = image || DEFAULT_IMAGE;
-  const courseJsonLd = course
+  // A single lesson is a LearningResource (an individual educational unit), not a
+  // full Course. Free + provider-linked + language-tagged for entity/AI clarity.
+  const learningResourceJsonLd = course
     ? {
         "@context": "https://schema.org",
-        "@type": "Course",
+        "@type": "LearningResource",
         name: course.name,
         description: course.description,
-        provider: {
-          "@type": "Organization",
-          name: SITE_NAME,
-          sameAs: SITE_URL,
-        },
+        url: canonical,
+        learningResourceType: "Lesson",
+        educationalUse: "self-study",
+        isAccessibleForFree: true,
         inLanguage: locale,
+        provider: { "@id": ORG_ID },
+        publisher: { "@id": ORG_ID },
+        about: { "@type": "Thing", name: "Personal finance" },
+        ...(course.partOf
+          ? { isPartOf: { "@type": "Course", name: course.partOf } }
+          : {}),
         ...(course.image ? { image: course.image } : {}),
       }
     : null;
@@ -104,20 +117,17 @@ export default function SeoHead({
         "@context": "https://schema.org",
         "@type": "Article",
         headline: article.headline,
+        url: canonical,
+        mainEntityOfPage: canonical,
+        isAccessibleForFree: true,
+        inLanguage: locale,
         datePublished: article.datePublished,
         ...(article.dateModified ? { dateModified: article.dateModified } : {}),
         author: {
           "@type": "Person",
           name: article.author || "Garzoni Team",
         },
-        publisher: {
-          "@type": "Organization",
-          name: SITE_NAME,
-          logo: {
-            "@type": "ImageObject",
-            url: `${SITE_URL}/logo-512.png`,
-          },
-        },
+        publisher: { "@id": ORG_ID },
         image: ogImage,
       }
     : null;
@@ -154,9 +164,9 @@ export default function SeoHead({
         />
       ))}
 
-      {courseJsonLd ? (
+      {learningResourceJsonLd ? (
         <script type="application/ld+json">
-          {JSON.stringify(courseJsonLd)}
+          {JSON.stringify(learningResourceJsonLd)}
         </script>
       ) : null}
 
