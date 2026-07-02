@@ -3796,8 +3796,10 @@ class FunnelMetricsView(APIView):
         present = all_events.values_list("platform", flat=True).distinct().order_by("platform")
         by_platform = {}
         for p in present:
-            # Empty platform = legacy rows logged before attribution; surface as "server".
-            key = p or "server"
+            # Empty platform = legacy rows logged before attribution. Bucket as
+            # "unknown" (matching new_by_platform) so they stay distinct from
+            # rows explicitly logged with platform="server" (Stripe/server events).
+            key = p or "unknown"
             qs = all_events.filter(platform=p)
             by_platform[key] = {
                 **self._summarise(qs),
