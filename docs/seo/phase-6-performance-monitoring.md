@@ -39,14 +39,14 @@ EN-only).
 
 ## Mobile CWV — homepage
 
-| Metric | Lighthouse | Playwright confirm | Threshold | Verdict |
-|---|---|---|---|---|
-| Performance score | 48/100 | — | — | Poor |
-| LCP | 9.2s | 4.1s | ≤2.5s | **FAIL** (both sources >4s) |
-| CLS | 0.037 (short trace) | **0.6365** (6s settle) | ≤0.1 | **FAIL** — single 0.602 shift |
-| TBT (INP proxy) | 541ms | ~220–240ms | ≤200ms | FAIL/borderline |
-| FCP | 5.5s | 3.4s | — | Poor |
-| TTFB | 34ms | ~110ms | ≤200ms | Good — server not the bottleneck |
+| Metric            | Lighthouse          | Playwright confirm     | Threshold | Verdict                          |
+| ----------------- | ------------------- | ---------------------- | --------- | -------------------------------- |
+| Performance score | 48/100              | —                      | —         | Poor                             |
+| LCP               | 9.2s                | 4.1s                   | ≤2.5s     | **FAIL** (both sources >4s)      |
+| CLS               | 0.037 (short trace) | **0.6365** (6s settle) | ≤0.1      | **FAIL** — single 0.602 shift    |
+| TBT (INP proxy)   | 541ms               | ~220–240ms             | ≤200ms    | FAIL/borderline                  |
+| FCP               | 5.5s                | 3.4s                   | —         | Poor                             |
+| TTFB              | 34ms                | ~110ms                 | ≤200ms    | Good — server not the bottleneck |
 
 **Desktop unthrottled: all Good** (LCP 0.98s, CLS 0.002, TBT ~136ms). This is a mobile-only problem — exactly the segment deciding whether to download the app.
 
@@ -85,17 +85,17 @@ Hashed assets get `cache-control: max-age=0, must-revalidate` — the immutable 
 
 ## P6. Monitoring / infra gaps
 
-| Item | Finding | Fix |
-|---|---|---|
-| IndexNow | Not implemented (no key file, zero repo refs) | Key file in `frontend/public/`, submit via `~/.claude/skills/seo/scripts/indexnow_submit.py` post-deploy |
-| Sitemap lastmod | All 68 URLs dynamically stamped today's date — Google ignores lying lastmod | Emit real content-updated dates; drop /login, /register from sitemap |
-| Soft-200s | Unknown paths return 200 SPA shell (also fakes /indexnow.txt checks) | SPA not-found state + real /404 snapshot |
-| Config drift | Root `vercel.json` ≠ `frontend/vercel.json` (live); differing CSP/rewrites — how C1-style regressions ship | Delete or align root config |
-| GA4 ↔ Searchable | All Searchable GA4 endpoints return empty (sources, pages, AI referrals) | Reconnect GA4 property in Searchable |
-| CrUX | No field data this session | Re-run PSI/CrUX after quota reset; homepage may lack CrUX traffic |
-| Trailing slash | `/learn/` 200s without redirect (and 404s for bots pre-C1) | `"trailingSlash": false` in vercel.json |
-| HSTS | www: 31536000 +includeSubDomains; apex: 63072000 without | Align; consider preload |
-| lang mismatch | Shell `en-GB` vs prerendered `en` | Pick one (no hreflang needed while public pages EN-only) |
+| Item             | Finding                                                                                                    | Fix                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| IndexNow         | Not implemented (no key file, zero repo refs)                                                              | Key file in `frontend/public/`, submit via `~/.claude/skills/seo/scripts/indexnow_submit.py` post-deploy |
+| Sitemap lastmod  | All 68 URLs dynamically stamped today's date — Google ignores lying lastmod                                | Emit real content-updated dates; drop /login, /register from sitemap                                     |
+| Soft-200s        | Unknown paths return 200 SPA shell (also fakes /indexnow.txt checks)                                       | SPA not-found state + real /404 snapshot                                                                 |
+| Config drift     | Root `vercel.json` ≠ `frontend/vercel.json` (live); differing CSP/rewrites — how C1-style regressions ship | Delete or align root config                                                                              |
+| GA4 ↔ Searchable | All Searchable GA4 endpoints return empty (sources, pages, AI referrals)                                   | Reconnect GA4 property in Searchable                                                                     |
+| CrUX             | No field data this session                                                                                 | Re-run PSI/CrUX after quota reset; homepage may lack CrUX traffic                                        |
+| Trailing slash   | `/learn/` 200s without redirect (and 404s for bots pre-C1)                                                 | `"trailingSlash": false` in vercel.json                                                                  |
+| HSTS             | www: 31536000 +includeSubDomains; apex: 63072000 without                                                   | Align; consider preload                                                                                  |
+| lang mismatch    | Shell `en-GB` vs prerendered `en`                                                                          | Pick one (no hreflang needed while public pages EN-only)                                                 |
 
 ## Priority order
 

@@ -6,6 +6,7 @@ These are left out on purpose — they need an asset, a product decision, or
 off-repo access.
 
 ## P3 — JS diet (biggest remaining perf lever, needs decisions)
+
 - **461KB unused JS**; `vendor-react` ~1,154ms + `index` ~779ms main-thread =
   bulk of TBT. Route-level code splitting so the marketing homepage doesn't ship
   the app bundle.
@@ -18,6 +19,7 @@ off-repo access.
   routes.
 
 ## P4 — Logo (needs an asset)
+
 Nav/Header logo is served **1200×1200 for a 48–80px display** from
 `garzoni-production.up.railway.app` (third origin, no preconnect) — ~156KB
 wasted. Fix needs a real small **rectangular** wordmark (SVG or ~2× WebP) served
@@ -26,10 +28,11 @@ wordmark. Add explicit intrinsic `width`/`height` once the asset exists (can't
 guess the aspect without distorting). Files: `Navbar.tsx`, `Header.tsx`.
 
 ## Config / infra (off-repo or deploy-config decisions)
+
 - **root `vercel.json` vs `frontend/vercel.json` drift** — both now carry the P5
-  + CSP-font fixes, but they still diverge (root CSP lacks `media-src`,
-  customer.io, stripe). `frontend/` is the live one. Decide: delete root, or keep
-  it fully in sync. Left in place — deleting is a Vercel project-root decision.
+  - CSP-font fixes, but they still diverge (root CSP lacks `media-src`,
+    customer.io, stripe). `frontend/` is the live one. Decide: delete root, or keep
+    it fully in sync. Left in place — deleting is a Vercel project-root decision.
 - **GA4 ↔ Searchable** — all Searchable GA4 endpoints return empty; reconnect the
   GA4 property so traffic/AI-referral data flows.
 - **CrUX / PSI** — re-run `pagespeed_check.py` after quota reset to confirm
@@ -43,6 +46,7 @@ guess the aspect without distorting). Files: `Navbar.tsx`, `Header.tsx`.
   snapshot.
 
 ## Verify after deploy
+
 - Repeat-visit: hashed `/assets/*` return `cache-control: immutable`.
 - Fonts load same-origin (no `fonts.googleapis.com` request); no CSP violations
   in console.

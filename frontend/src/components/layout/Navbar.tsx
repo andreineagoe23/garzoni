@@ -39,6 +39,15 @@ const NAV_ITEMS = [
   { path: "/support", key: "nav.support", icon: "❓", label: "Support" },
 ];
 
+// Shown to logged-out visitors on public pages (e.g. /learn, /guides). The app
+// nav items above all require auth, so exposing them (plus the profile/account
+// menu) to unauthenticated users leaks the app surface — these public,
+// already-indexable pages are all a signed-out visitor should see.
+const PUBLIC_NAV_ITEMS = [
+  { path: "/learn", key: "nav.freeLessons", icon: "📚", label: "Free Lessons" },
+  { path: "/guides", key: "nav.guides", icon: "📖", label: "Guides" },
+];
+
 /** Dashboard spans both All Topics and Personalized Path routes. */
 function isDashboardRoutePath(pathname: string) {
   return (
@@ -72,21 +81,22 @@ function Navbar() {
     ? `${mediaBase}/media/logo/garzoni-logo-white-rectangular.png`
     : `${mediaBase}/media/logo/garzoni-logo-black-rectangular.png`;
 
-  const navItems = useMemo(
-    () =>
-      adminMode && canAdminister
-        ? [
-            ...NAV_ITEMS,
-            {
-              path: "/analytics",
-              key: "nav.conversions",
-              icon: "📈",
-              label: "Analytics",
-            },
-          ]
-        : NAV_ITEMS,
-    [adminMode, canAdminister]
-  );
+  const navItems = useMemo(() => {
+    if (!isAuthenticated) {
+      return PUBLIC_NAV_ITEMS;
+    }
+    return adminMode && canAdminister
+      ? [
+          ...NAV_ITEMS,
+          {
+            path: "/analytics",
+            key: "nav.conversions",
+            icon: "📈",
+            label: "Analytics",
+          },
+        ]
+      : NAV_ITEMS;
+  }, [adminMode, canAdminister, isAuthenticated]);
 
   useEffect(() => {
     const closeOnResize = () => {
@@ -238,9 +248,9 @@ function Navbar() {
           <div className="relative flex max-md:pl-2 items-center justify-start gap-2 sm:gap-3">
             <div className="relative h-full w-[140px] sm:w-[180px] md:w-[220px] lg:w-[250px]">
               <NavLink
-                to="/all-topics"
+                to={isAuthenticated ? "/all-topics" : "/"}
                 onClick={closeMenu}
-                aria-label="Garzoni dashboard"
+                aria-label="Garzoni home"
                 className="app-navbar__brand absolute left-0 top-1/2 z-10 inline-flex -translate-y-1/2 items-center no-underline transition hover:opacity-90 hover:no-underline touch-manipulation"
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
@@ -299,55 +309,27 @@ function Navbar() {
                 <MoonStarsFill className="h-3.5 w-3.5 text-inherit transition-all duration-300 ease-in-out sm:h-[15px] sm:w-[15px]" />
               )}
             </button>
-            <button
-              type="button"
-              onClick={handleLogoutClick}
-              aria-label={t("nav.ariaLogout")}
-              className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 text-[color:var(--color-icon-muted,var(--color-text-muted))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
-              style={{ WebkitTapHighlightColor: "transparent" }}
-            >
-              <BoxArrowRight className="h-3.5 w-3.5 text-inherit transition-all duration-300 ease-in-out sm:h-[15px] sm:w-[15px]" />
-            </button>
-            <button
-              type="button"
-              onClick={handleProfileClick}
-              aria-label={t("nav.ariaGoToProfile")}
-              className="relative z-10 inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
-              style={{ WebkitTapHighlightColor: "transparent" }}
-            >
-              <img
-                src={avatarSrc}
-                alt={t("profile.avatarAlt")}
-                className="h-full w-full object-cover"
-                onError={(event) => {
-                  if (event.currentTarget.src === DEFAULT_AVATAR_URL) {
-                    return;
-                  }
-                  event.currentTarget.onerror = null;
-                  event.currentTarget.src = DEFAULT_AVATAR_URL;
-                }}
-                referrerPolicy="no-referrer"
-              />
-            </button>
-          </div>
-
-          {/* Right: utility icons on md+, burger only on mobile */}
-          <div className="flex max-md:pr-2 items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
-            <div className="relative z-10 hidden md:block" ref={profileMenuRef}>
-              <button
-                ref={profileAccountButtonRef}
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={profileMenuOpen}
-                aria-label={t("nav.ariaAccountMenu")}
-                onClick={() => setProfileMenuOpen((open) => !open)}
-                className="relative z-10 inline-flex items-center gap-1 rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 py-0.5 pl-0.5 pr-1.5 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation md:pr-2"
-                style={{ WebkitTapHighlightColor: "transparent" }}
-              >
-                <span className="relative inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] md:h-9 md:w-9 lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10">
+            {isAuthenticated ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleLogoutClick}
+                  aria-label={t("nav.ariaLogout")}
+                  className="relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 text-[color:var(--color-icon-muted,var(--color-text-muted))] shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
+                  <BoxArrowRight className="h-3.5 w-3.5 text-inherit transition-all duration-300 ease-in-out sm:h-[15px] sm:w-[15px]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleProfileClick}
+                  aria-label={t("nav.ariaGoToProfile")}
+                  className="relative z-10 inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px] sm:w-[34px]"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
                   <img
                     src={avatarSrc}
-                    alt=""
+                    alt={t("profile.avatarAlt")}
                     className="h-full w-full object-cover"
                     onError={(event) => {
                       if (event.currentTarget.src === DEFAULT_AVATAR_URL) {
@@ -358,114 +340,175 @@ function Navbar() {
                     }}
                     referrerPolicy="no-referrer"
                   />
-                </span>
-                <ChevronDown
-                  aria-hidden
-                  className={`h-3.5 w-3.5 shrink-0 text-[color:var(--color-icon-muted,var(--color-text-muted))] transition-transform duration-200 md:h-4 md:w-4 ${
-                    profileMenuOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {profileMenuOpen && typeof document !== "undefined"
-                ? createPortal(
-                    <div
-                      ref={profileDropdownPortalRef}
-                      className="fixed z-[1300] w-[min(100vw-1.5rem,260px)] [isolation:isolate]"
-                    >
-                      <GlassContainer
-                        variant="default"
-                        role="menu"
-                        aria-label={t("nav.ariaAccountMenu")}
-                        className="w-full rounded-2xl py-2"
+                </button>
+              </>
+            ) : (
+              <NavLink
+                to="/login"
+                aria-label={t("nav.login")}
+                className="relative z-10 inline-flex h-7 items-center justify-center rounded-full border border-[color:var(--color-brand-primary,var(--color-brand-primary))] bg-[color:var(--color-brand-primary,var(--color-brand-primary))] px-3 text-xs font-semibold text-[color:var(--color-text-inverse,#ffffff)] shadow-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:h-[34px]"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+              >
+                {t("nav.login")}
+              </NavLink>
+            )}
+          </div>
+
+          {/* Right: utility icons on md+, burger only on mobile */}
+          <div className="flex max-md:pr-2 items-center justify-end gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
+            {isAuthenticated ? (
+              <div
+                className="relative z-10 hidden md:block"
+                ref={profileMenuRef}
+              >
+                <button
+                  ref={profileAccountButtonRef}
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={profileMenuOpen}
+                  aria-label={t("nav.ariaAccountMenu")}
+                  onClick={() => setProfileMenuOpen((open) => !open)}
+                  className="relative z-10 inline-flex items-center gap-1 rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 py-0.5 pl-0.5 pr-1.5 shadow-sm transition-all duration-300 ease-in-out hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation md:pr-2"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
+                  <span className="relative inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] md:h-9 md:w-9 lg:h-[38px] lg:w-[38px] xl:h-10 xl:w-10">
+                    <img
+                      src={avatarSrc}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        if (event.currentTarget.src === DEFAULT_AVATAR_URL) {
+                          return;
+                        }
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = DEFAULT_AVATAR_URL;
+                      }}
+                      referrerPolicy="no-referrer"
+                    />
+                  </span>
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-3.5 w-3.5 shrink-0 text-[color:var(--color-icon-muted,var(--color-text-muted))] transition-transform duration-200 md:h-4 md:w-4 ${
+                      profileMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {profileMenuOpen && typeof document !== "undefined"
+                  ? createPortal(
+                      <div
+                        ref={profileDropdownPortalRef}
+                        className="fixed z-[1300] w-[min(100vw-1.5rem,260px)] [isolation:isolate]"
                       >
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={menuRowClass}
-                          onClick={handleProfileClick}
+                        <GlassContainer
+                          variant="default"
+                          role="menu"
+                          aria-label={t("nav.ariaAccountMenu")}
+                          className="w-full rounded-2xl py-2"
                         >
-                          <GarzoniIcon
-                            name="👤"
-                            size={18}
-                            className="shrink-0 text-inherit"
-                          />
-                          {t("nav.profile")}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={menuRowClass}
-                          onClick={handleSettingsClick}
-                        >
-                          <GarzoniIcon
-                            name="⚙️"
-                            size={18}
-                            className="shrink-0 text-inherit"
-                          />
-                          {t("nav.settings")}
-                        </button>
-                        {canAdminister ? (
                           <button
                             type="button"
-                            role="menuitemcheckbox"
-                            aria-checked={adminMode}
-                            aria-label={t("nav.ariaToggleAdminMode")}
-                            className={`${menuRowClass} ${
-                              adminMode
-                                ? "text-[color:var(--color-brand-primary,var(--color-brand-primary))]"
-                                : ""
-                            }`}
-                            onClick={() => toggleAdminMode()}
+                            role="menuitem"
+                            className={menuRowClass}
+                            onClick={handleProfileClick}
                           >
                             <GarzoniIcon
-                              name="📈"
+                              name="👤"
                               size={18}
                               className="shrink-0 text-inherit"
                             />
-                            {adminMode
-                              ? t("dashboard.header.adminMode")
-                              : t("dashboard.header.enableAdmin")}
+                            {t("nav.profile")}
                           </button>
-                        ) : null}
-                        <div
-                          className="my-2 h-px bg-[color:var(--color-border-default,var(--color-border-default))]"
-                          aria-hidden
-                        />
-                        <LanguageSelector variant="menuSection" />
-                        <div
-                          className="my-2 h-px bg-[color:var(--color-border-default,var(--color-border-default))]"
-                          aria-hidden
-                        />
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={menuRowClass}
-                          onClick={handleDarkModeToggle}
-                          aria-label={t("nav.ariaToggleDarkMode")}
-                        >
-                          {darkMode ? (
-                            <SunFill className="h-[18px] w-[18px] shrink-0 text-inherit" />
-                          ) : (
-                            <MoonStarsFill className="h-[18px] w-[18px] shrink-0 text-inherit" />
-                          )}
-                          {t("header.toggleDarkMode")}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={menuRowClass}
-                          onClick={handleLogoutClick}
-                          aria-label={t("nav.ariaLogout")}
-                        >
-                          <BoxArrowRight className="h-[18px] w-[18px] shrink-0 text-inherit" />
-                          {t("nav.ariaLogout")}
-                        </button>
-                      </GlassContainer>
-                    </div>,
-                    document.body
-                  )
-                : null}
-            </div>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={menuRowClass}
+                            onClick={handleSettingsClick}
+                          >
+                            <GarzoniIcon
+                              name="⚙️"
+                              size={18}
+                              className="shrink-0 text-inherit"
+                            />
+                            {t("nav.settings")}
+                          </button>
+                          {canAdminister ? (
+                            <button
+                              type="button"
+                              role="menuitemcheckbox"
+                              aria-checked={adminMode}
+                              aria-label={t("nav.ariaToggleAdminMode")}
+                              className={`${menuRowClass} ${
+                                adminMode
+                                  ? "text-[color:var(--color-brand-primary,var(--color-brand-primary))]"
+                                  : ""
+                              }`}
+                              onClick={() => toggleAdminMode()}
+                            >
+                              <GarzoniIcon
+                                name="📈"
+                                size={18}
+                                className="shrink-0 text-inherit"
+                              />
+                              {adminMode
+                                ? t("dashboard.header.adminMode")
+                                : t("dashboard.header.enableAdmin")}
+                            </button>
+                          ) : null}
+                          <div
+                            className="my-2 h-px bg-[color:var(--color-border-default,var(--color-border-default))]"
+                            aria-hidden
+                          />
+                          <LanguageSelector variant="menuSection" />
+                          <div
+                            className="my-2 h-px bg-[color:var(--color-border-default,var(--color-border-default))]"
+                            aria-hidden
+                          />
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={menuRowClass}
+                            onClick={handleDarkModeToggle}
+                            aria-label={t("nav.ariaToggleDarkMode")}
+                          >
+                            {darkMode ? (
+                              <SunFill className="h-[18px] w-[18px] shrink-0 text-inherit" />
+                            ) : (
+                              <MoonStarsFill className="h-[18px] w-[18px] shrink-0 text-inherit" />
+                            )}
+                            {t("header.toggleDarkMode")}
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={menuRowClass}
+                            onClick={handleLogoutClick}
+                            aria-label={t("nav.ariaLogout")}
+                          >
+                            <BoxArrowRight className="h-[18px] w-[18px] shrink-0 text-inherit" />
+                            {t("nav.ariaLogout")}
+                          </button>
+                        </GlassContainer>
+                      </div>,
+                      document.body
+                    )
+                  : null}
+              </div>
+            ) : (
+              <div className="hidden items-center gap-2 md:flex">
+                <NavLink
+                  to="/login"
+                  className="relative z-10 inline-flex h-9 items-center justify-center rounded-full border border-[color:var(--color-border-default,var(--color-border-default))] bg-[color:var(--color-surface-card,var(--color-surface-card))]/80 px-4 text-sm font-semibold text-[color:var(--color-text-primary,var(--color-text-primary))] shadow-sm transition hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation lg:h-10"
+                >
+                  {t("nav.login")}
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className="relative z-10 inline-flex h-9 items-center justify-center rounded-full border border-[color:var(--color-brand-primary,var(--color-brand-primary))] bg-[color:var(--color-brand-primary,var(--color-brand-primary))] px-4 text-sm font-semibold text-[color:var(--color-text-inverse,#ffffff)] shadow-sm transition hover:bg-[color:var(--color-brand-primary,var(--color-brand-primary))]/90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation lg:h-10"
+                >
+                  {t("nav.signUp")}
+                </NavLink>
+              </div>
+            )}
             <button
               type="button"
               className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--color-border-default,var(--color-border-default))] text-[color:var(--color-icon-muted,var(--color-text-muted))] transition hover:border-[color:var(--color-border-default,var(--color-border-default))] hover:bg-[color:var(--color-surface-elevated,var(--color-surface-card))]/90 hover:text-[color:var(--color-text-primary,var(--color-text-primary))] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 md:hidden touch-manipulation sm:h-10 sm:w-10"

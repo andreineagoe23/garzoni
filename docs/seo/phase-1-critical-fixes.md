@@ -7,6 +7,7 @@ Everything else in this plan is moot until these ship. All findings verified liv
 **Impact:** The entire content moat (43 `/learn/*` + 13 `/guides/*` pages) is invisible to Googlebot, bingbot, GPTBot, ClaudeBot, PerplexityBot, Google-Extended. This directly guts the AI-visibility/GEO project (Phase 2 shipped these 43 lessons for exactly this purpose). Explains AI visibility score stuck at 6.7/100.
 
 **Evidence:**
+
 - `curl -A "Googlebot/2.1" https://www.garzoni.app/learn/how-compound-interest-works` → `404`, 126-byte body
 - Same for `/guides/garzoni-vs-ynab`, all 43 lesson URLs tested; cache-busting params rule out stale edge cache
 - `x-vercel-cache: HIT`, `content-disposition: inline; filename="404.html"` — genuine static 404 from edge
@@ -15,11 +16,13 @@ Everything else in this plan is moot until these ship. All findings verified liv
 - Local `dist/__prerendered/learn/` and `dist/__prerendered/guides/` are empty in this checkout
 
 **Root cause chain:**
+
 1. `frontend/scripts/prerender.mjs` fetches slugs and renders nested routes — but treats prerender failure as non-fatal ("a prerender failure should not block the SPA deploy"), so a silent Puppeteer/@sparticuz/chromium failure on the last production build shipped zero nested snapshots without failing CI.
 2. `frontend/middleware.ts` rewrites bot requests to `/__prerendered{path}.html`.
 3. The SPA catch-all rewrite in `frontend/vercel.json` explicitly **excludes** `__prerendered(?:/|$)`, so a missing snapshot falls through to `404.html` instead of the intended SPA-shell fallback (contradicting the comment at prerender.mjs:320).
 
 **Fix plan:**
+
 1. Check last Vercel production build log for the prerender step (look for `⚠ Could not launch a headless browser` or `✗ {route}: {error}`).
 2. Remove the `__prerendered(?:/|$)` exclusion from the SPA catch-all in `frontend/vercel.json` — Vercel rewrites run after filesystem check, so existing snapshots still serve; misses fall back to `index.html` 200 instead of a hard 404.
 3. Make prerender fail loudly: if `lessonSlugs.length === 0 || articleSlugs.length === 0` on a production build → `process.exit(1)`.
@@ -40,6 +43,7 @@ Everything else in this plan is moot until these ship. All findings verified liv
 **Impact:** Android App Links AND iOS Universal Links fail for the `garzoni.app` host — shared apex links don't deep-link into the app (install/deep-link path broken). Known issue, confirmed unchanged.
 
 **Evidence:**
+
 - `https://garzoni.app/.well-known/assetlinks.json` → 307 → www (both platforms require direct 200, no redirects)
 - Same for `apple-app-site-association`
 - Both mobile configs declare apex: `mobile/app.json` `associatedDomains: ["applinks:garzoni.app", ...]` + intent filter `host: "garzoni.app"` with `autoVerify: true`

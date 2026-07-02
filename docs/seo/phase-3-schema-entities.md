@@ -4,17 +4,17 @@ Depends on: Phase 1 C1 (lesson pages must be crawlable before their schema matte
 
 ## Current state (verified via Googlebot-UA fetch)
 
-| Type | Home | /subscriptions | /learn | Lesson/guide detail | Status |
-|---|---|---|---|---|---|
-| Organization | ✅ | ✅ | ✅ | blocked by C1 | Valid (name, url, logo, 6 sameAs, contactPoint) |
-| WebApplication | ✅ | ✅ | ✅ | — | Valid but duplicates SoftwareApplication |
-| SoftwareApplication | ✅ | ✅ | ✅ | — | **No `aggregateRating`; no Android; App Store URL only** |
-| FAQPage | ✅ (6 Q) | ❌ | ✅ (3 Q) | — | Keep — AI-citation value only (Google retired FAQ rich results May 2026; no SERP feature) |
-| BreadcrumbList | ❌ | ❌ | ✅ | — | Add to detail pages post-C1 |
-| WebSite | ❌ | ❌ | ❌ | ❌ | Missing everywhere |
-| MobileApplication | ❌ | ❌ | ❌ | ❌ | **Missing — highest-impact gap** |
-| Course/LearningResource | — | — | — | ❌ | Missing (current Course markup minimal: name/description/provider only — rich-result ineligible) |
-| Article/BlogPosting (guides) | — | — | — | ❌ | Missing |
+| Type                         | Home     | /subscriptions | /learn   | Lesson/guide detail | Status                                                                                           |
+| ---------------------------- | -------- | -------------- | -------- | ------------------- | ------------------------------------------------------------------------------------------------ |
+| Organization                 | ✅       | ✅             | ✅       | blocked by C1       | Valid (name, url, logo, 6 sameAs, contactPoint)                                                  |
+| WebApplication               | ✅       | ✅             | ✅       | —                   | Valid but duplicates SoftwareApplication                                                         |
+| SoftwareApplication          | ✅       | ✅             | ✅       | —                   | **No `aggregateRating`; no Android; App Store URL only**                                         |
+| FAQPage                      | ✅ (6 Q) | ❌             | ✅ (3 Q) | —                   | Keep — AI-citation value only (Google retired FAQ rich results May 2026; no SERP feature)        |
+| BreadcrumbList               | ❌       | ❌             | ✅       | —                   | Add to detail pages post-C1                                                                      |
+| WebSite                      | ❌       | ❌             | ❌       | ❌                  | Missing everywhere                                                                               |
+| MobileApplication            | ❌       | ❌             | ❌       | ❌                  | **Missing — highest-impact gap**                                                                 |
+| Course/LearningResource      | —        | —              | —        | ❌                  | Missing (current Course markup minimal: name/description/provider only — rich-result ineligible) |
+| Article/BlogPosting (guides) | —        | —              | —        | ❌                  | Missing                                                                                          |
 
 All blocks: JSON-LD ✓, HTTPS @context ✓, absolute URLs ✓, no deprecated types ✓ (no HowTo).
 
@@ -23,6 +23,7 @@ All blocks: JSON-LD ✓, HTTPS @context ✓, absolute URLs ✓, no deprecated ty
 ### S1. Add MobileApplication node (replace generic SoftwareApplication)
 
 Ready-to-paste (homepage + /subscriptions). **Gates:**
+
 - Play Store `offers`/`downloadUrl`/`installUrl` entries only AFTER the Play listing is live (currently 404 — linking a dead store page is worse than omitting it). Until then ship iOS-only version.
 - `aggregateRating` only with REAL values from App Store Connect (currently 5.0 × 4). Fabricated ratings violate Google guidelines. Note: 4 ratings is thin — acceptable to publish real numbers, but expect no star rich-result gravitas until volume grows (Phase 2 A2.1).
 
@@ -73,6 +74,7 @@ Target shape: `Organization#organization` ← publisher of → `WebSite#website`
   "publisher": { "@id": "https://www.garzoni.app/#organization" }
 }
 ```
+
 (No SearchAction — site has no on-site search.)
 
 ### S4. Post-C1: detail-page schema

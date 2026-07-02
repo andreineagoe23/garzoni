@@ -9,6 +9,7 @@ Depends on: Phase 1 C1 (content must be crawlable). Finance = YMYL — Sept 2025
 No byline, credentials, reviewer, or editorial policy anywhere. API-level `author: "Garzoni Team"` on guides — not a named person.
 
 **Plan:**
+
 1. Named author/reviewer per lesson + bio page (credentials, photo, LinkedIn).
 2. `author`/`reviewedBy` in schema (ties into Phase 3 S4).
 3. Editorial-standards page linked from footer ("how we research, review cadence, sources policy").
@@ -25,11 +26,11 @@ No published/updated dates on page, none in schema (API has timestamps — surfa
 
 ## E4. HIGH — Thin lessons vs quality gates
 
-| Page | Words | Target |
-|---|---|---|
-| APR vs AER | 391 | 800–1,200 |
-| Good vs Bad Debt | 378 | 800–1,200 |
-| Compound Interest | 576 | 800–1,200 |
+| Page              | Words | Target    |
+| ----------------- | ----- | --------- |
+| APR vs AER        | 391   | 800–1,200 |
+| Good vs Bad Debt  | 378   | 800–1,200 |
+| Compound Interest | 576   | 800–1,200 |
 
 Expand with: per-lesson unique FAQ block, worked table/example, cited sources. Don't pad — the writing quality is good (FRE 71–72, FKGL ~7, ideal for the audience); depth is what's missing.
 

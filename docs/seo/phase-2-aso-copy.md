@@ -5,6 +5,7 @@ here is copy/metadata to paste into **App Store Connect** and **Play Console** �
 these can't be done from the repo. Character counts verified against store limits.
 
 Status of the in-repo Phase 2 items (already shipped):
+
 - Website hero stat `4.9★` → `5.0★` (matches the real App Store rating of 5.0).
 - Website `Beta users` → `Learners`; testimonial `Beta user, Paris` → `Early user, Paris`.
 - No user-facing Google Play links exist in the web app yet (nothing to gate); the
@@ -20,18 +21,22 @@ Status of the in-repo Phase 2 items (already shipped):
 > anyone or the clock may reset.
 
 **App title** (30 char max) — pick one:
+
 - `Garzoni: Learn Money & Finance` (30) ✅ recommended — keyword-forward
 - `Garzoni - Learn Finance` (23)
 
 **Short description** (80 char max, indexed):
+
 ```
 Learn budgeting, investing & money skills in 5-min lessons. Build real wealth.
 ```
+
 (78 chars)
 
 **Full description** (4,000 char max — Google indexes this, unlike Apple; ~2–3%
 natural density on: personal finance, budgeting, financial literacy, investing,
 money management, saving — no stuffing):
+
 ```
 Garzoni is the fun way to learn personal finance. Short, interactive lessons turn
 budgeting, saving, investing, credit, and debt into a daily habit — like a game,
@@ -58,14 +63,17 @@ confidence.
 
 Master money management one lesson at a time. Download Garzoni and start today.
 ```
+
 (Adjust to taste; keep the keyword themes.)
 
 **Assets to upload:**
+
 - Feature graphic 1024×500 (required for featuring)
 - Phone screenshots: min 2, max 8 — put a benefit caption on the first 3
 - No emojis / ALL CAPS / "best" / "free" in the title (policy)
 
 **Post-launch (do NOT do until the listing is live and returns 200):**
+
 - Add Play badge beside the App Store badge above the fold on `/` and `/marketing`
 - Add the Play URL to schema (Phase 3) and re-enable the Play link in `404.html`
 - Android Vitals gate ranking: crash rate < 1.09%, ANR < 0.47% (watch Sentry
@@ -76,6 +84,7 @@ Master money management one lesson at a time. Download Garzoni and start today.
 ## iOS App Store (A2)
 
 ### Romanian localization (biggest free win — product already ships RO)
+
 Add a **Romanian (Romania)** localization in App Store Connect:
 
 - **Title** (30): `Garzoni - Finanțe Personale` (27)
@@ -87,13 +96,16 @@ Add a **Romanian (Romania)** localization in App Store Connect:
   copy in `packages/core/src/locales/ro/*` to reuse tone/terms.
 
 ### English keyword field (100 bytes, hidden) — audit in App Store Connect
+
 Apple indexes title + subtitle words once each, so do NOT repeat them here.
 Comma-separated, no spaces:
+
 ```
 financialliteracy,money,budgeting,invest,savings,debt,credit,wealth,learn,finance
 ```
 
 ### Other App Store Connect actions (impact order)
+
 1. **Ratings volume** — 4 ratings is the #1 conversion blocker. The in-app prompt
    (`mobile/src/bootstrap/reviewPrompt.ts`) now caps at 3/365d and fires only on
    delight events (lesson complete / quiz pass / streak milestone). Consider
@@ -116,12 +128,14 @@ financialliteracy,money,budgeting,invest,savings,debt,credit,wealth,learn,financ
 ---
 
 ## Store ↔ web consistency (A3) — remaining
+
 - ✅ Website rating now `5.0★` (was `4.9`), matching the store.
 - ✅ `Beta users` → `Learners`.
 - iOS Smart App Banner (`app-id=6761790801`) present on all routes — keep.
 - When Play is live: badge + URL into schema + `/marketing`.
 
 ## Leading indicators to watch
+
 - Play Console: track status → production; installs trend
 - App Store Connect: ratings count (baseline 4); impressions → product-page-view conversion
 - GSC: brand impressions for "garzoni app" / "garzoni android"

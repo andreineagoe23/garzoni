@@ -36,7 +36,11 @@
     "ariaToggleMenu": "Toggle navigation menu",
     "ariaAccountMenu": "Open account menu",
     "ariaToggleAdminMode": "Toggle admin mode",
-    "menu": "Account"
+    "menu": "Account",
+    "freeLessons": "Free Lessons",
+    "guides": "Guides",
+    "login": "Log in",
+    "signUp": "Sign up free"
   },
   "language": {
     "label": "Language",

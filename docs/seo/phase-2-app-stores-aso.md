@@ -5,6 +5,7 @@
 `https://play.google.com/store/apps/details?id=app.garzoni.mobile` → **404 in GB, RO, US** (verified 2026-07-01). App is unpublished or stuck in a closed-testing track. Store pages are ~30–45% of download-intent SERP results ("financial literacy app" SERP is dominated by Play/App Store listings) — half the mobile market is unreachable and the SERP surface is forfeited.
 
 **Plan:**
+
 1. Check Play Console track status. Personal developer accounts (created after Nov 2023) require **12+ testers opted in for 14 continuous days** before production access — if that's the blocker, recruit testers now (community, friends, CIO email list).
 2. Prepare listing assets in parallel (don't wait for track clearance):
    - Title (30 chars): `Garzoni: Learn Personal Finance` is 31 — use `Garzoni - Learn Finance` or `Garzoni: Money & Finance` — include a keyword, title is Play's strongest signal
@@ -19,20 +20,22 @@
 ## A2. iOS App Store — current listing audit
 
 **Listing (GB storefront, v1.1.4, 2026-06-18):**
-| Field | Value | Verdict |
-|---|---|---|
-| Title | `Garzoni - Personal Finance` (26/30) | OK; 4 chars spare |
-| Subtitle | `Budget, Invest & Build Wealth` (29/30) | Good keyword coverage, no title duplication |
-| Category | Finance (primary), Education (secondary) | Sensible; consider testing Education primary — less competitive |
-| Rating | 5.0 × **4 ratings** | Volume is the #1 conversion blocker |
-| Preview video | Present ("School taught you everything" hook) | ✓ |
-| Screenshots | Video + captioned screenshots ("Your money journey starts here", "Tools for real decisions", "Learn by doing, not reading") | Captions present ✓ (indexed since June 2025) but dark art + small serif text — illegible at search-thumbnail size |
-| Promotional text | "Limited time: get your first month free…" | ✓ good use (updatable without release) |
-| Languages | **EN only** | RO locale fully exists in product — free win |
-| In-app events | None | Gap |
-| Accessibility | "Not yet indicated" | Gap (new App Store section) |
+
+| Field            | Value                                                                                                                       | Verdict                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Title            | `Garzoni - Personal Finance` (26/30)                                                                                        | OK; 4 chars spare                                                                                                 |
+| Subtitle         | `Budget, Invest & Build Wealth` (29/30)                                                                                     | Good keyword coverage, no title duplication                                                                       |
+| Category         | Finance (primary), Education (secondary)                                                                                    | Sensible; consider testing Education primary — less competitive                                                   |
+| Rating           | 5.0 × **4 ratings**                                                                                                         | Volume is the #1 conversion blocker                                                                               |
+| Preview video    | Present ("School taught you everything" hook)                                                                               | ✓                                                                                                                 |
+| Screenshots      | Video + captioned screenshots ("Your money journey starts here", "Tools for real decisions", "Learn by doing, not reading") | Captions present ✓ (indexed since June 2025) but dark art + small serif text — illegible at search-thumbnail size |
+| Promotional text | "Limited time: get your first month free…"                                                                                  | ✓ good use (updatable without release)                                                                            |
+| Languages        | **EN only**                                                                                                                 | RO locale fully exists in product — free win                                                                      |
+| In-app events    | None                                                                                                                        | Gap                                                                                                               |
+| Accessibility    | "Not yet indicated"                                                                                                         | Gap (new App Store section)                                                                                       |
 
 **Priority actions (impact order):**
+
 1. **Ratings volume.** 4 ratings = no social proof; every competitor (Money Masters, Zogo, Fingo) has thousands. `SKStoreReviewController` prompt already exists in `mobile/src/bootstrap/reviewPrompt.ts` — audit its trigger timing (fire after streak milestone / lesson completion high, not app open; max 3 prompts/365 days).
 2. **Add Romanian localization** (title/subtitle/description/screenshots for RO storefront). Product already ships RO — listing localization is metadata-only work and opens an entire keyword surface where competition is thin.
 3. **Keyword field (hidden, 100 bytes)** — not externally auditable. Check App Store Connect: no words repeated from title/subtitle (Apple indexes each word once); commas without spaces; candidates: `financial literacy,money,budgeting,invest,savings,debt,credit,wealth,learn`.

@@ -36,7 +36,11 @@
     "ariaToggleMenu": "Deschide/închide meniul de navigare",
     "ariaAccountMenu": "Deschide meniul contului",
     "ariaToggleAdminMode": "Comută modul admin",
-    "menu": "Cont"
+    "menu": "Cont",
+    "freeLessons": "Lecții gratuite",
+    "guides": "Ghiduri",
+    "login": "Autentificare",
+    "signUp": "Înscrie-te gratuit"
   },
   "language": {
     "label": "Limbă",

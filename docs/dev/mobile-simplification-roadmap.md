@@ -1,7 +1,7 @@
 # Mobile Simplification Roadmap (Deferred Phases)
 
 This document records the **larger simplification bets** for the Garzoni mobile app that are
-intentionally *not* built in the first "quick wins" pass. The quick-wins pass covered:
+intentionally _not_ built in the first "quick wins" pass. The quick-wins pass covered:
 Home collapse (one hero + minimal status), plain-language money-first Tools, one default Learn
 view, and a copy audit — all reversible, config/copy-level, no backend changes.
 
@@ -95,11 +95,11 @@ Requires reconciling the **double onboarding gate**:
 
 ## Success metrics (segment by onboarding intent once Phase 6 ships)
 
-| Metric | Direction |
-|---|---|
-| D1 retention | up |
-| % reaching lesson-complete in first session | up |
-| Home time-before-first-tap | down (faster decision) |
-| Tools hub → tool-open rate (Money tools) | up |
-| Support tickets mentioning "confusing/overwhelming" | down |
-| Subscription conversion | monitor (may rise if value precedes paywall) |
+| Metric                                              | Direction                                    |
+| --------------------------------------------------- | -------------------------------------------- |
+| D1 retention                                        | up                                           |
+| % reaching lesson-complete in first session         | up                                           |
+| Home time-before-first-tap                          | down (faster decision)                       |
+| Tools hub → tool-open rate (Money tools)            | up                                           |
+| Support tickets mentioning "confusing/overwhelming" | down                                         |
+| Subscription conversion                             | monitor (may rise if value precedes paywall) |

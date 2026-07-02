@@ -50,9 +50,8 @@ export default function ToolsHubScreen() {
   const columns = gridColumns(2, 3, 4);
   const cardWidth = gridItemWidth(availableWidth, columns, spacing.md);
   // Open on "My money" so the tab lands on personal finance, not everything at once.
-  const [activeFilter, setActiveFilter] = useState<FilterOption>(
-    "understand-myself",
-  );
+  const [activeFilter, setActiveFilter] =
+    useState<FilterOption>("understand-myself");
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
 
   const entQuery = useQuery({
