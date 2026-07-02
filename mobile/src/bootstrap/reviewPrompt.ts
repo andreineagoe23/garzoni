@@ -29,6 +29,12 @@ const REVIEWED_KEY = "garzoni:review_prompt_reviewed";
 const MIN_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
 // Prompt after the user's first positive event (e.g. first lesson completed).
 const MIN_POSITIVE_EVENTS = 1;
+// Hard ceiling of 3 prompts per rolling 365 days — mirrors Apple's native
+// SKStoreReviewController limit so our sentiment modal never over-asks a user
+// who keeps dismissing it (the 30-day cooldown alone would allow ~12/year).
+const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+const MAX_PROMPTS_PER_YEAR = 3;
+const PROMPT_TIMESTAMPS_KEY = "garzoni:review_prompt_timestamps";
 
 export type ReviewReason = "lesson_complete" | "quiz_pass" | "streak_milestone";
 
@@ -69,7 +75,23 @@ export async function shouldPromptReview(
     const now = Date.now();
     if (lastTs && now - lastTs < MIN_INTERVAL_MS) return false;
 
+    // Enforce the rolling 365-day ceiling on how many times we prompt.
+    let timestamps: number[] = [];
+    try {
+      const raw = await AsyncStorage.getItem(PROMPT_TIMESTAMPS_KEY);
+      const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+      if (Array.isArray(parsed)) {
+        timestamps = parsed.filter((t): t is number => typeof t === "number");
+      }
+    } catch {
+      timestamps = [];
+    }
+    const recent = timestamps.filter((t) => now - t < YEAR_MS);
+    if (recent.length >= MAX_PROMPTS_PER_YEAR) return false;
+
+    recent.push(now);
     await AsyncStorage.setItem(LAST_PROMPT_KEY, String(now));
+    await AsyncStorage.setItem(PROMPT_TIMESTAMPS_KEY, JSON.stringify(recent));
     return true;
   } catch {
     // Best-effort: never throw from a review prompt path.

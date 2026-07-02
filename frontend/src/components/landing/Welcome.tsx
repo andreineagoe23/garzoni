@@ -398,7 +398,7 @@ function Welcome() {
               <div className="hero-meta">
                 <div>
                   <strong>
-                    4.9
+                    5.0
                     <em
                       style={{
                         fontFamily: "var(--font-display)",
@@ -414,7 +414,7 @@ function Welcome() {
                 </div>
                 <div>
                   <strong>12k+</strong>
-                  <span>Beta users</span>
+                  <span>Learners</span>
                 </div>
                 <div>
                   <strong>84%</strong>
@@ -1225,7 +1225,7 @@ function Welcome() {
               what my own money is doing."
             </blockquote>
             <div className="quote-author">
-              <strong>Léa M.</strong> — Beta user, Paris
+              <strong>Léa M.</strong> — Early user, Paris
             </div>
           </div>
         </section>

@@ -64,6 +64,34 @@ describe("shouldPromptReview (gating)", () => {
     expect(await shouldPromptReview("streak_milestone")).toBe(true);
   });
 
+  it("stops after 3 prompts within a rolling 365 days", async () => {
+    const past = () => String(Date.now() - 31 * 24 * 60 * 60 * 1000);
+    // Three prompts are allowed (spacing past the 30-day cooldown each time).
+    expect(await shouldPromptReview("lesson_complete")).toBe(true);
+    store["garzoni:review_prompt_last_ts"] = past();
+    expect(await shouldPromptReview("lesson_complete")).toBe(true);
+    store["garzoni:review_prompt_last_ts"] = past();
+    expect(await shouldPromptReview("lesson_complete")).toBe(true);
+    // The 4th is blocked by the annual ceiling even though the cooldown elapsed.
+    store["garzoni:review_prompt_last_ts"] = past();
+    expect(await shouldPromptReview("lesson_complete")).toBe(false);
+  });
+
+  it("allows prompting again once old prompts age out of the 365-day window", async () => {
+    expect(await shouldPromptReview("lesson_complete")).toBe(true);
+    // Simulate 3 prompts that all happened >1 year ago, plus an elapsed cooldown.
+    const overAYearAgo = Date.now() - 366 * 24 * 60 * 60 * 1000;
+    store["garzoni:review_prompt_timestamps"] = JSON.stringify([
+      overAYearAgo,
+      overAYearAgo,
+      overAYearAgo,
+    ]);
+    store["garzoni:review_prompt_last_ts"] = String(
+      Date.now() - 31 * 24 * 60 * 60 * 1000,
+    );
+    expect(await shouldPromptReview("streak_milestone")).toBe(true);
+  });
+
   it("never prompts again once the user has left a review", async () => {
     await markReviewed();
     expect(await shouldPromptReview("lesson_complete")).toBe(false);
