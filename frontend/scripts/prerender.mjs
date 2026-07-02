@@ -8,6 +8,69 @@ const DIST = join(__dirname, "..", "dist");
 const OUT = join(DIST, "__prerendered");
 const PORT = 4173;
 
+// Data-driven pages (lessons/guides) fetch their content from the backend at
+// runtime. During prerender the SPA runs inside headless Chrome on
+// http://localhost:PORT, so getBackendUrl() infers "http://localhost:8000/api"
+// (or, with VITE_BACKEND_URL set, an absolute origin that CORS-blocks a
+// localhost page). Either way the browser can't reach the API and every lesson
+// renders "Lesson not found". We fix this by intercepting any /api/ request the
+// page makes and fulfilling it server-side (node → backend), which has no CORS.
+const PRERENDER_API_BASE = (
+  process.env.PRERENDER_API_BASE ||
+  process.env.VITE_BACKEND_URL ||
+  "https://garzoni-production.up.railway.app/api"
+)
+  .trim()
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "")
+  .concat("/api");
+
+async function fulfillApiRequest(req) {
+  // Re-target whatever origin the bundle used (localhost:8000, localhost:PORT,
+  // or an absolute backend) onto PRERENDER_API_BASE, fetched from node.
+  const reqUrl = new URL(req.url());
+  const idx = reqUrl.pathname.indexOf("/api/");
+  const rest =
+    idx >= 0
+      ? reqUrl.pathname.slice(idx + "/api/".length)
+      : reqUrl.pathname.replace(/^\//, "");
+  const target = `${PRERENDER_API_BASE}/${rest}${reqUrl.search}`;
+
+  // The page origin (http://localhost:PORT) differs from the API URL's origin,
+  // so the browser still enforces CORS on our fulfilled response and fires a
+  // preflight. Echo permissive CORS headers and short-circuit OPTIONS, or the
+  // XHR is blocked and the lesson renders "not found" despite a 200 body.
+  const cors = {
+    "access-control-allow-origin": req.headers().origin || "*",
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    "access-control-allow-headers":
+      req.headers()["access-control-request-headers"] ||
+      "authorization,content-type",
+  };
+  if (req.method() === "OPTIONS") {
+    return req.respond({ status: 204, headers: cors, body: "" });
+  }
+  try {
+    const res = await fetch(target, {
+      method: req.method(),
+      headers: { accept: "application/json" },
+    });
+    const body = await res.text();
+    await req.respond({
+      status: res.status,
+      headers: {
+        ...cors,
+        "content-type": res.headers.get("content-type") || "application/json",
+      },
+      body,
+    });
+  } catch (err) {
+    console.error(`  ⚠ api proxy failed for ${target}: ${err.message}`);
+    await req.respond({ status: 502, headers: cors, body: "{}" });
+  }
+}
+
 const STATIC_ROUTES = [
   "/",
   "/about",
@@ -78,13 +141,14 @@ function saveHtml(routePath, html) {
  * Collapse duplicate SEO tags in the rendered <head>.
  *
  * The static index.html ships homepage-default SEO tags (title, canonical,
- * description, og:*, twitter:*) as a pre-hydration fallback. react-helmet-async
- * sets the page-specific title via document.title (mutating the existing tag) but
- * for meta/link it *appends* its own copies (marked data-rh="true") without
- * removing the static ones. The snapshot therefore ends up with two canonicals,
- * two descriptions, etc. — and a stale canonical pointing at the homepage will
+ * description, og:*, twitter:*) as a pre-hydration fallback. For meta/link,
+ * react-helmet-async *appends* its own copies (marked data-rh="true") without
+ * removing the static ones, so the snapshot ends up with two canonicals, two
+ * descriptions, etc. — and a stale canonical pointing at the homepage would
  * de-index every lesson. This keeps helmet's managed copy and drops the static
- * duplicate, per semantic key.
+ * duplicate, per semantic key. The <title> is a special case: helmet does not
+ * reliably update it in the serialized snapshot, so we mirror og:title onto it
+ * below (see note there).
  */
 async function dedupeHead(page) {
   await page.evaluate(() => {
@@ -123,11 +187,45 @@ async function dedupeHead(page) {
         if (el !== keep) el.remove();
       }
     }
+
+    // react-helmet-async (this version) reliably applies its <meta> tags but
+    // leaves the document <title> as the static index.html default in the
+    // serialized snapshot. SeoHead always sets <title> and og:title from the
+    // same value, so mirror the helmet-managed og:title back onto <title> to
+    // give crawlers the page-specific title instead of the homepage default.
+    const ogTitle = head
+      .querySelector('meta[property="og:title"]')
+      ?.getAttribute("content");
+    const titleEl = head.querySelector("title");
+    if (ogTitle && titleEl && titleEl.textContent !== ogTitle) {
+      titleEl.textContent = ogTitle;
+    }
   });
 }
 
 async function renderRoute(browser, route) {
   const page = await browser.newPage();
+  await page.setRequestInterception(true);
+  page.on("request", async (req) => {
+    try {
+      if (/\/api\//.test(req.url())) {
+        if (process.env.PRERENDER_DEBUG)
+          console.error(`    [api] ${req.url()}`);
+        await fulfillApiRequest(req);
+      } else {
+        await req.continue();
+      }
+    } catch {
+      // Request may already be resolved or the page/target gone (during teardown).
+      // Swallow — an unhandled rejection here destabilizes the browser connection.
+    }
+  });
+  if (process.env.PRERENDER_DEBUG) {
+    page.on("console", (msg) => console.error(`    [console] ${msg.text()}`));
+    page.on("requestfailed", (req) =>
+      console.error(`    [failed] ${req.url()} ${req.failure()?.errorText}`)
+    );
+  }
   try {
     await page.goto(`http://localhost:${PORT}${route}`, {
       waitUntil: "networkidle0",
@@ -181,7 +279,11 @@ async function launchBrowser() {
   const puppeteer = (await import("puppeteer")).default;
   return puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
   });
 }
 
@@ -248,10 +350,12 @@ async function main() {
   try {
     browser = await launchBrowser();
   } catch (err) {
-    console.error(
-      "⚠ Could not launch a headless browser — skipping prerender:",
-      err.message
-    );
+    // A silent headless-browser failure previously shipped zero nested snapshots
+    // without failing CI, 404'ing every lesson/guide to bots. On a production
+    // build this must be fatal so a broken prerender never reaches Googlebot.
+    console.error("✗ Could not launch a headless browser:", err.message);
+    if (isVercelProduction) process.exit(1);
+    console.error("  (non-production — skipping prerender)");
     return;
   }
 
@@ -267,6 +371,22 @@ async function main() {
   const articleSlugs = await fetchPublishedArticleSlugs();
   for (const slug of articleSlugs) {
     routes.push(`/guides/${slug}`);
+  }
+
+  // Empty slug lists on a production build mean the API was unreachable or
+  // returned nothing — shipping only the ~10 static snapshots would leave the
+  // entire content moat (43 lessons + 13 guides) 404ing to bots. Fail loudly.
+  if (
+    isVercelProduction &&
+    (lessonSlugs.length === 0 || articleSlugs.length === 0)
+  ) {
+    console.error(
+      `✗ Prerender aborted: lessons=${lessonSlugs.length}, articles=${articleSlugs.length}. ` +
+        "Public content API returned no slugs on a production build."
+    );
+    await browser.close();
+    server.close();
+    process.exit(1);
   }
 
   console.log(`Rendering ${routes.length} routes...\n`);
@@ -316,8 +436,10 @@ async function main() {
 }
 
 main().catch((err) => {
-  // Non-fatal: a prerender failure should not block the SPA deploy. Bots will
-  // temporarily fall back to the client-rendered shell until the next build.
-  console.error("⚠ Prerender step failed (continuing build):", err.message);
+  console.error("⚠ Prerender step failed:", err.message);
+  // On production an unexpected failure must block the deploy — a build that
+  // ships a stale/empty __prerendered tree 404's every lesson to crawlers.
+  // On preview/local, fall back to the client-rendered shell and continue.
+  if (process.env.VERCEL_ENV === "production") process.exit(1);
   process.exit(0);
 });

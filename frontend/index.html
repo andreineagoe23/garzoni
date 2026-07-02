@@ -76,7 +76,10 @@
     </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="canonical" href="https://www.garzoni.app/" />
+    <!-- No hardcoded canonical: react-helmet-async sets a per-route canonical.
+         A static homepage canonical here would (if the prerender dedupe ever
+         missed it) collapse every lesson/guide onto the homepage URL. A wrong
+         canonical is worse than none. -->
     <meta name="theme-color" content="#0b0f14" />
     <meta name="google" content="notranslate" />
 

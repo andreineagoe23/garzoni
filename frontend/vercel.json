@@ -4,9 +4,9 @@
   "outputDirectory": "dist",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/((?!\\.well-known/).*)",
       "has": [{ "type": "host", "value": "garzoni.app" }],
-      "destination": "https://www.garzoni.app/:path*",
+      "destination": "https://www.garzoni.app/$1",
       "permanent": true
     }
   ],
@@ -28,7 +28,7 @@
       "destination": "https://garzoni-production.up.railway.app/sitemap.xml"
     },
     {
-      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|__prerendered(?:/|$)|sitemap\\.xml$).*)",
+      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|sitemap\\.xml$).*)",
       "destination": "/index.html"
     }
   ],
@@ -58,7 +58,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://assets.customer.io https://js.stripe.com https://*.js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://res.cloudinary.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://res.cloudinary.com; connect-src 'self' https://garzoni-production.up.railway.app https://www.googletagmanager.com https://amplitude.com https://*.amplitude.com https://sentry.io https://*.sentry.io https://api.revenuecat.com https://res.cloudinary.com https://track-eu.customer.io https://*.customer.io https://api.stripe.com; frame-src https://www.google.com https://recaptcha.google.com https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://assets.customer.io https://js.stripe.com https://*.js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://res.cloudinary.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://res.cloudinary.com; media-src 'self' https://res.cloudinary.com; connect-src 'self' https://garzoni-production.up.railway.app https://www.googletagmanager.com https://amplitude.com https://*.amplitude.com https://sentry.io https://*.sentry.io https://api.revenuecat.com https://res.cloudinary.com https://track-eu.customer.io https://*.customer.io https://api.stripe.com; frame-src https://www.google.com https://recaptcha.google.com https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:"
         }
       ]
     },

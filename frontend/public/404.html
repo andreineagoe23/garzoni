@@ -1,4 +1,105 @@
-<script>
-  var redirectTo = window.location.pathname.replace(/^\//, "");
-  window.location.href = "/" + redirectTo;
-</script>
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Page not found — Garzoni</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b0f14;
+        color: #e6edf3;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          sans-serif;
+        text-align: center;
+        padding: 24px;
+      }
+      .card {
+        max-width: 480px;
+      }
+      h1 {
+        font-size: 4rem;
+        margin: 0;
+        line-height: 1;
+      }
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 8px 0 4px;
+      }
+      p {
+        color: #9fb0c0;
+        margin: 0 0 24px;
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 28px;
+      }
+      .links a {
+        color: #e6edf3;
+        text-decoration: none;
+        border: 1px solid #223040;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 500;
+        transition: border-color 0.15s;
+      }
+      .links a:hover {
+        border-color: #3a5170;
+      }
+      .badges {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .badges a {
+        color: #9fb0c0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        border: 1px solid #223040;
+        border-radius: 8px;
+        padding: 8px 14px;
+      }
+      .badges a:hover {
+        color: #e6edf3;
+        border-color: #3a5170;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>404</h1>
+      <h2>Page not found</h2>
+      <p>The page you're looking for doesn't exist or has moved.</p>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/learn">Lessons</a>
+        <a href="/guides">Guides</a>
+        <a href="/about">About</a>
+      </div>
+      <div class="badges">
+        <a href="https://apps.apple.com/app/id6761790801"
+          >Download on the App Store</a
+        >
+      </div>
+    </div>
+  </body>
+</html>

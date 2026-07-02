@@ -1,7 +1,7 @@
 import { next, rewrite } from "@vercel/edge";
 
 const AI_BOT_RE =
-  /googlebot|google-extended|gptbot|oai-searchbot|chatgpt-user|claudebot|claude-searchbot|perplexitybot|bytespider|meta-externalagent|cohere-ai|anthropic-ai|applebot|bingbot/i;
+  /googlebot|google-extended|gptbot|oai-searchbot|chatgpt-user|claudebot|claude-searchbot|perplexitybot|bytespider|meta-externalagent|cohere-ai|anthropic-ai|applebot|bingbot|twitterbot|facebookexternalhit|linkedinbot|whatsapp|slackbot|telegrambot|discordbot|duckduckbot|yandex/i;
 
 const SKIP_RE =
   /\.(js|css|png|jpg|jpeg|svg|ico|woff2?|webp|gif|json|xml|txt)$/i;
