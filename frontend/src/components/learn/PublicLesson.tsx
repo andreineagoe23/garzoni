@@ -10,6 +10,7 @@ type PublicLessonResponse = {
   short_description: string;
   detailed_content: string;
   image_url: string;
+  updated_at: string | null;
   course: { id: number; title: string };
   sections: Array<{
     id: number;
@@ -17,6 +18,8 @@ type PublicLessonResponse = {
     title: string;
     content_type: string;
     text_content: string;
+    source_label: string;
+    source_url: string;
   }>;
 };
 
@@ -87,6 +90,29 @@ export default function PublicLesson() {
       })),
     [data?.sections]
   );
+  // Unique external references across sections → visible Sources block + schema.
+  const sources = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ name: string; url: string }> = [];
+    for (const s of data?.sections ?? []) {
+      const url = (s.source_url || "").trim();
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      out.push({ name: (s.source_label || "").trim() || url, url });
+    }
+    return out;
+  }, [data?.sections]);
+  const updatedLabel = useMemo(() => {
+    if (!data?.updated_at) return "";
+    const d = new Date(data.updated_at);
+    return Number.isNaN(d.getTime())
+      ? ""
+      : d.toLocaleDateString("en-GB", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+  }, [data?.updated_at]);
 
   if (loading) {
     return (
@@ -131,6 +157,8 @@ export default function PublicLesson() {
           description,
           image: data.image_url || undefined,
           partOf: data.course?.title || undefined,
+          dateModified: data.updated_at || undefined,
+          citations: sources.length > 0 ? sources : undefined,
         }}
         breadcrumbs={[
           { name: "Home", url: "https://www.garzoni.app/" },
@@ -143,6 +171,12 @@ export default function PublicLesson() {
         <span>{data.course.title}</span>
       </nav>
       <h1>{data.title}</h1>
+      {updatedLabel ? (
+        <p style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>
+          Reviewed and updated{" "}
+          <time dateTime={data.updated_at ?? undefined}>{updatedLabel}</time>
+        </p>
+      ) : null}
       {data.short_description ? <p>{data.short_description}</p> : null}
       {data.image_url ? (
         <img
@@ -164,6 +198,24 @@ export default function PublicLesson() {
           <div dangerouslySetInnerHTML={{ __html: s.sanitizedText }} />
         </section>
       ))}
+      {sources.length > 0 ? (
+        <section style={{ marginTop: "2.5rem" }}>
+          <h2>Sources</h2>
+          <ul style={{ lineHeight: 1.8, fontSize: 14 }}>
+            {sources.map((s) => (
+              <li key={s.url}>
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {s.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {related.length > 0 ? (
         <section style={{ marginTop: "3rem" }}>
           <h2>Related lessons</h2>
@@ -210,6 +262,16 @@ export default function PublicLesson() {
         >
           Create a free account
         </Link>
+        <p style={{ marginTop: "1rem", marginBottom: 0 }}>
+          <a
+            href="https://apps.apple.com/app/id6761790801"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 14, opacity: 0.85 }}
+          >
+            Or download Garzoni on the App Store →
+          </a>
+        </p>
       </aside>
     </main>
   );

@@ -89,6 +89,22 @@ export default function ArticlePage() {
     `${data.title} — a free personal finance guide from Garzoni.`;
   const datePublished =
     data.published_at || data.updated_at || new Date().toISOString();
+  const fmtDate = (iso: string | null): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime())
+      ? ""
+      : d.toLocaleDateString("en-GB", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+  };
+  const publishedLabel = fmtDate(data.published_at);
+  const updatedLabel =
+    data.updated_at && data.updated_at !== data.published_at
+      ? fmtDate(data.updated_at)
+      : "";
 
   return (
     <main style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
@@ -119,6 +135,20 @@ export default function ArticlePage() {
       <h1>{data.title}</h1>
       <p style={{ fontSize: 14, opacity: 0.65 }}>
         By {data.author || "Garzoni Team"}
+        {publishedLabel ? (
+          <>
+            {" · "}
+            <time dateTime={data.published_at ?? undefined}>
+              {publishedLabel}
+            </time>
+          </>
+        ) : null}
+        {updatedLabel ? (
+          <>
+            {" · Updated "}
+            <time dateTime={data.updated_at ?? undefined}>{updatedLabel}</time>
+          </>
+        ) : null}
       </p>
 
       {data.image_url ? (

@@ -22,6 +22,10 @@ def _section_payload(section: LessonSection) -> dict:
         "title": section.title,
         "content_type": section.content_type,
         "text_content": section.text_content or "" if section.content_type == "text" else "",
+        # Per-section attribution (E-E-A-T): surfaced as a Sources block + schema
+        # citations on the lesson page. Empty unless an editor has populated them.
+        "source_label": section.source_label or "",
+        "source_url": section.source_url or "",
     }
 
 
@@ -45,12 +49,19 @@ def public_lesson_detail(request, slug: str):
     except Exception:
         image_url = ""
 
+    # Lessons carry no timestamp of their own, but each section has a real
+    # auto_now updated_at. The newest section edit is an honest "last updated"
+    # signal for the lesson (rendered visibly + as schema dateModified).
+    section_updates = [s.updated_at for s in lesson.sections.all() if s.updated_at]
+    updated_at = max(section_updates).isoformat() if section_updates else None
+
     payload = {
         "slug": lesson.slug,
         "title": lesson.title,
         "short_description": lesson.short_description,
         "detailed_content": lesson.detailed_content or "",
         "image_url": image_url,
+        "updated_at": updated_at,
         "course": {
             "id": lesson.course_id,
             "title": lesson.course.title if lesson.course else "",

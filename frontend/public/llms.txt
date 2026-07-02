@@ -20,6 +20,7 @@ Garzoni is a learning platform — think "Duolingo for personal finance" — not
 - [About](https://www.garzoni.app/about): Mission and approach
 - [Features](https://www.garzoni.app/marketing): Product features
 - [Pricing](https://www.garzoni.app/subscriptions): Plans (free Starter tier available)
+- [Full Content Corpus](https://www.garzoni.app/llms-full.txt): Plain-text of all public lessons and guides for LLM ingestion
 
 ## Get Garzoni
 - Web: https://www.garzoni.app (free — read lessons and guides without an account)

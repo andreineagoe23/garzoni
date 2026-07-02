@@ -6,6 +6,10 @@ type CourseSchema = {
   image?: string;
   /** Parent course title, emitted as isPartOf on the LearningResource. */
   partOf?: string;
+  /** ISO date of the most recent content edit → schema dateModified. */
+  dateModified?: string;
+  /** External references → schema citation. */
+  citations?: Array<{ name?: string; url: string }>;
 };
 
 type FaqItem = {
@@ -75,8 +79,18 @@ export default function SeoHead({
         provider: { "@id": ORG_ID },
         publisher: { "@id": ORG_ID },
         about: { "@type": "Thing", name: "Personal finance" },
+        ...(course.dateModified ? { dateModified: course.dateModified } : {}),
         ...(course.partOf
           ? { isPartOf: { "@type": "Course", name: course.partOf } }
+          : {}),
+        ...(course.citations && course.citations.length > 0
+          ? {
+              citation: course.citations.map((c) => ({
+                "@type": "CreativeWork",
+                ...(c.name ? { name: c.name } : {}),
+                url: c.url,
+              })),
+            }
           : {}),
         ...(course.image ? { image: course.image } : {}),
       }

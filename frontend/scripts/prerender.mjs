@@ -323,6 +323,92 @@ async function fetchPublishedArticleSlugs() {
   }
 }
 
+/** Crude but dependency-free HTML → plain text for the LLM corpus. */
+function htmlToText(html) {
+  return (html || "")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<\/(p|div|h[1-6]|li|br|section|tr)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;|&rsquo;|&lsquo;/g, "'")
+    .replace(/&quot;|&ldquo;|&rdquo;/g, '"')
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * Emit dist/llms-full.txt — a single plain-text corpus of every public lesson
+ * and guide, for LLM ingestion (the route previously served the SPA shell,
+ * which is garbage if crawled). Best-effort: never blocks the build.
+ */
+async function writeLlmsFull(lessonSlugs, articleSlugs) {
+  const base = PRERENDER_API_BASE;
+  const parts = [
+    "# Garzoni — Full Content Corpus",
+    "",
+    "> Plain-text of all public Garzoni lessons and guides, for LLM ingestion.",
+    "> Canonical pages: https://www.garzoni.app/learn/<slug> and /guides/<slug>.",
+    "",
+  ];
+  for (const slug of lessonSlugs) {
+    try {
+      const res = await fetch(`${base}/public/lessons/${slug}/`);
+      if (!res.ok) continue;
+      const d = await res.json();
+      const body = [
+        d.detailed_content,
+        ...(d.sections || []).map((s) => s.text_content),
+      ]
+        .map(htmlToText)
+        .filter(Boolean)
+        .join("\n\n");
+      parts.push(
+        `## Lesson: ${d.title}`,
+        `URL: https://www.garzoni.app/learn/${d.slug}`,
+        "",
+        htmlToText(d.short_description),
+        "",
+        body,
+        "",
+        "---",
+        ""
+      );
+    } catch {
+      // skip this lesson
+    }
+  }
+  for (const slug of articleSlugs) {
+    try {
+      const res = await fetch(`${base}/public/articles/${slug}/`);
+      if (!res.ok) continue;
+      const d = await res.json();
+      parts.push(
+        `## Guide: ${d.title}`,
+        `URL: https://www.garzoni.app/guides/${d.slug}`,
+        "",
+        htmlToText(d.excerpt),
+        "",
+        htmlToText(d.content),
+        "",
+        "---",
+        ""
+      );
+    } catch {
+      // skip this guide
+    }
+  }
+  writeFileSync(join(DIST, "llms-full.txt"), parts.join("\n"), "utf-8");
+  console.log(
+    `  ✓ llms-full.txt (${lessonSlugs.length} lessons + ${articleSlugs.length} guides)`
+  );
+}
+
 async function main() {
   // Prerendered HTML is only ever served by the Vercel edge middleware on the
   // production deployment (bots → dist/__prerendered). Generating it on local,
@@ -429,6 +515,12 @@ async function main() {
 
   await browser.close();
   server.close();
+
+  try {
+    await writeLlmsFull(lessonSlugs, articleSlugs);
+  } catch (err) {
+    console.error("  ⚠ llms-full.txt generation failed:", err.message);
+  }
 
   console.log(
     `\n✅ Prerendered ${routes.length} pages to dist/__prerendered/\n`
