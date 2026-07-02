@@ -85,16 +85,7 @@ function MarketingPage() {
           name="description"
           content="Garzoni is a personal finance education app. Build streaks, earn XP, and master your money with AI-powered tools."
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
+        {/* Fonts are self-hosted via Fontsource (src/styles/fonts.css). */}
       </Helmet>
 
       <div className={`mkt${darkMode ? "" : " mkt-light"}`}>

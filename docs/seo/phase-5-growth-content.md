@@ -2,6 +2,41 @@
 
 Depends on: Phase 4 E1 (named author needed to compete with NerdWallet-class listicles), Phase 1 C1.
 
+## Shipped in code (this phase)
+
+Content + schema plumbing for the missing SERP surfaces is live. Companion
+manual/editorial work in [phase-5-growth-todo.md](./phase-5-growth-todo.md).
+
+- **Model + schema:** `Article` gained a `roundup` and `alternatives` category
+  and an `item_list` JSONField (migration `0046`). New `SeoHead.itemList` prop
+  emits **ItemList JSON-LD** (each entry a `SoftwareApplication`, ranked) so
+  roundup/alternatives pages read as app comparisons to Google + AI crawlers.
+  `ArticlePage` passes it through; the public article API exposes `item_list`.
+- **G1** — `/guides/duolingo-for-money-best-apps` roundup (Fingo / Zogo / Money
+  Masters / Seed / Garzoni), Garzoni framed as best for depth + habit. Homepage
+  "What's inside" H2 reworked to question form and now says **"the Duolingo for
+  finance"**.
+- **G2** — two roundup listicles: `/guides/best-financial-literacy-apps` and
+  `/guides/best-budgeting-apps-for-beginners`, each with a "How we picked"
+  methodology, criteria table, and ItemList schema.
+- **G3** — three alternatives pages: `/guides/zogo-alternatives`,
+  `/guides/money-masters-alternatives`, `/guides/fingo-alternatives`.
+- **G4** — `/guides/best-money-app-for-students` (segmented, "built for 16+")
+  guide.
+- All seven ship via `python manage.py seed_growth_guides` (idempotent;
+  `--dry-run` / `--draft`). New slugs auto-flow into sitemap, prerender, and
+  `llms-full.txt` — no infra change.
+
+**Honesty guard rails baked in:** competitor descriptions are general + hedged
+(no invented pricing/features/URLs), every roundup dates itself and pushes
+verification to the app's own site, and Garzoni is only claimed to win the
+category it actually competes in (learning), never banking/brokerage/budgeting
+execution. Author is still `Garzoni Team` — **swap in a real byline once Phase 4
+E1 lands** (roundups compete far better with a credentialed author).
+
+---
+
+
 ## SERP reality (SXO analysis, 5 download-intent queries)
 
 Composition across queries: **listicles ~40%, app-store pages ~30%, product landing pages ~25%.** Garzoni fields only a landing page — competing on 1 of 3 surfaces.

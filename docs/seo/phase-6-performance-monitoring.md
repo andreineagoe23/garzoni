@@ -2,6 +2,41 @@
 
 Lab data (Lighthouse 13 mobile preset + Playwright/CDP cross-check, 2026-07-01). PSI API rate-limited all session; CrUX field data unavailable — re-run `pagespeed_check.py` later to confirm 75th-percentile field values.
 
+## Shipped in code (2026-07-02)
+
+Safe, high-leverage subset done; asset/product-judgement items left as manual
+follow-ups in [phase-6-todo.md](./phase-6-todo.md).
+
+- **P5 caching bug** — immutable header source `/static/(.*)` → **`/assets/(.*)`**
+  (Vite emits `/assets/`) in both `frontend/vercel.json` (live) and root
+  `vercel.json`. Free repeat-visit win.
+- **P2 self-host fonts** — Inter + JetBrains Mono now bundled via Fontsource
+  (`src/styles/fonts.css`, imported first in `index.tsx`); removed the
+  render-blocking `fonts.googleapis.com` stylesheet + preconnects from
+  `index.html`, `Welcome.tsx`, `MarketingPage.tsx`. woff2 ships same-origin to
+  `/assets` (immutable-cached, `font-src 'self'`). **CSP tightened:** dropped
+  `fonts.googleapis.com` (style-src) and `fonts.gstatic.com` (font-src) from
+  both configs. Biggest lab LCP lever.
+- **P1 CLS 0.6 footer collapse** — the footer is lazy (`Suspense fallback={null}`
+  in `AppShell.tsx`) so it popped in from 0px. Now the fallback + the footer
+  element both reserve `min-h-[560px] sm:min-h-[360px] lg:min-h-[320px]`.
+- **P6 sitemap** — real per-URL `<lastmod>` (lessons = `Max(sections.updated_at)`,
+  articles = `updated_at`); static pages omit lastmod (no daily-changing lie);
+  dropped `/login` + `/register`.
+- **P6 IndexNow** — key file `frontend/public/53fde4032ad192dc911e87f41973ce8d.txt`.
+  Submit post-deploy with `~/.claude/skills/seo/scripts/indexnow_submit.py`
+  (key `53fde4032ad192dc911e87f41973ce8d`). Google ignores IndexNow; Bing/Copilot
+  do consume it.
+- **P6 trailing slash** — `"trailingSlash": false` in `frontend/vercel.json`.
+
+**Deferred (see phase-6-todo.md):** P3 JS diet / drop Three.js globe (product +
+bundle-arch call), P4 logo resize (needs a real small rectangular WebP asset),
+root-vs-frontend `vercel.json` drift (deploy-config decision), GA4↔Searchable
+reconnect, CrUX re-pull, HSTS apex alignment, lang `en-GB`/`en` mismatch (cosmetic,
+EN-only).
+
+---
+
 ## Mobile CWV — homepage
 
 | Metric | Lighthouse | Playwright confirm | Threshold | Verdict |

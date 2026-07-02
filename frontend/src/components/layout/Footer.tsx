@@ -81,7 +81,7 @@ function Footer() {
 
   return (
     <footer
-      className="app-footer w-full px-4 pb-8"
+      className="app-footer w-full px-4 pb-8 min-h-[560px] sm:min-h-[360px] lg:min-h-[320px]"
       aria-label={t("footer.ariaLabel")}
       data-path={location.pathname}
     >

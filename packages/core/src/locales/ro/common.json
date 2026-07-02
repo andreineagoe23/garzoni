@@ -596,7 +596,8 @@
         "nextSteps": "Ce ar trebui să învăț în continuare?"
       },
       "comingSoon": "În curând",
-      "comingSoonHint": "Disponibil pe web azi; nativ într-un update viitor."
+      "comingSoonHint": "Disponibil pe web azi; nativ într-un update viitor.",
+      "notABank": "Planifică și învață despre banii tăi — Garzoni nu se conectează la banca ta."
     },
     "disclaimer": {
       "educationalOnly": "Doar educațional. Nu este sfat financiar personal și nu reprezintă o recomandare de a cumpăra, vinde sau deține vreun activ.",
@@ -646,27 +647,27 @@
     },
     "groups": {
       "personal-cfo": {
-        "title": "CFO personal",
-        "label": "CFO",
-        "description": "Centrul tău ghidat de comandă financiară: obiective, buget și portofoliu.",
+        "title": "Plan ghidat",
+        "label": "Plan",
+        "description": "Un plan ghidat pentru obiectivele, bugetul și portofoliul tău.",
         "imageAlt": "Hub-ul Personal CFO"
       },
       "understand-world": {
-        "title": "Înțelege lumea",
-        "label": "Lume",
+        "title": "Piețe și știri",
+        "label": "Știri",
         "description": "Context macro, știri și ce mișcă piețele.",
         "imageAlt": "Economie și piețe globale"
       },
       "understand-myself": {
-        "title": "Înțelege-te pe tine",
-        "label": "Tu",
-        "description": "Portofoliul tău, obiectivele și cum se aliniază.",
+        "title": "Banii mei",
+        "label": "Bani",
+        "description": "Bugetul, economiile, obiectivele și portofoliul tău într-un singur loc.",
         "imageAlt": "Finanțe personale și obiective"
       },
       "decide-next": {
-        "title": "Planifică ce să înveți",
-        "label": "Următorul pas",
-        "description": "Explorează piețele și alege următorul pas de învățare.",
+        "title": "Ce urmează",
+        "label": "Următorul",
+        "description": "Explorează piețele și alege următorul pas.",
         "imageAlt": "Plan de învățare și pași următori"
       }
     },

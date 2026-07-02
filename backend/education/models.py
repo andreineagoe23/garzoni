@@ -919,6 +919,8 @@ class Article(models.Model):
     CATEGORY_CHOICES = [
         ("guide", "Guide"),
         ("comparison", "Comparison"),
+        ("roundup", "Roundup / Best-of listicle"),
+        ("alternatives", "Alternatives"),
         ("answer", "Answer / FAQ"),
     ]
 
@@ -936,6 +938,10 @@ class Article(models.Model):
     image = models.ImageField(upload_to="article_images/", blank=True, null=True)
     # Optional FAQ pairs surfaced as FAQPage JSON-LD: [{"question": ..., "answer": ...}]
     faq = models.JSONField(blank=True, null=True)
+    # Optional ranked apps/items for roundup + alternatives pages, surfaced as
+    # ItemList JSON-LD: [{"name": ..., "url": ..., "description": ...}]. Order is
+    # the ranking (position 1 = first element).
+    item_list = models.JSONField(blank=True, null=True)
     related_lessons = models.ManyToManyField(Lesson, blank=True, related_name="articles")
     is_published = models.BooleanField(default=False, db_index=True)
     published_at = models.DateTimeField(blank=True, null=True)

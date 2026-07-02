@@ -178,16 +178,7 @@ function Welcome() {
           name="description"
           content="Garzoni teaches you money the way you learn a language — ten-minute lessons, daily streaks, and AI-guided tools."
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
+        {/* Fonts are self-hosted via Fontsource (src/styles/fonts.css). */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -504,15 +495,17 @@ function Welcome() {
         <section className="section" id="features">
           <div className="wrap">
             <div className="section-head">
-              <div className="eyebrow">What's inside</div>
+              <div className="eyebrow">What does Garzoni actually teach?</div>
               <h2>
-                A toolkit that turns <em className="em-gold">knowing</em> into{" "}
+                The <em className="em-gold">Duolingo for finance</em> — turning{" "}
+                <em className="em-gold">knowing</em> into{" "}
                 <em className="em-gold">doing</em>.
               </h2>
               <p>
-                Three layers working together — the daily habit, the guided
-                lessons, and the AI-powered simulators that let you
-                pressure-test real decisions.
+                Garzoni teaches money the way Duolingo teaches languages: three
+                layers working together — the daily habit, the guided lessons,
+                and the AI-powered simulators that let you pressure-test real
+                decisions.
               </p>
             </div>
             <div className="features">

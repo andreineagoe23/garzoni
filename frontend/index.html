@@ -158,13 +158,9 @@
     <link rel="preconnect" href="https://garzoni-production.up.railway.app" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
 
-    <!-- Inter — single brand font for all UI text & headings. JetBrains Mono for numerics. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Inter (UI + headings) + JetBrains Mono (numerics) are self-hosted via
+         Fontsource (see src/styles/fonts.css), bundled same-origin — no
+         render-blocking fonts.googleapis round-trip. -->
 
     <script>
       (function () {

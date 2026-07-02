@@ -19,12 +19,20 @@ type ArticleListResponse = {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  guide: "Guides",
+  roundup: "Best-of roundups",
   comparison: "Comparisons",
+  alternatives: "Alternatives",
+  guide: "Guides",
   answer: "Answers",
 };
 
-const CATEGORY_ORDER = ["comparison", "guide", "answer"];
+const CATEGORY_ORDER = [
+  "roundup",
+  "comparison",
+  "alternatives",
+  "guide",
+  "answer",
+];
 
 const FAQ_ITEMS = [
   {

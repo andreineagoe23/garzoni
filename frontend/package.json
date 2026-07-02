@@ -6,6 +6,8 @@
   "dependencies": {
     "@amplitude/analytics-browser": "^2.33.5",
     "@ckeditor/ckeditor5-build-classic": "41.4.2",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@garzoni/core": "workspace:*",
     "@revenuecat/purchases-js": "^1.30.0",
     "@sentry/react": "^10.36.0",

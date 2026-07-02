@@ -85,7 +85,18 @@ const AppShell = ({
           !isCourseFlowPath &&
           !isLegalAndUnauth && <Chatbot />}
         {hasFooter && (
-          <Suspense fallback={null}>
+          // Reserve the footer's height while its lazy chunk loads so it doesn't
+          // pop in from 0px and cause a large layout shift (Phase 6 P1 — the
+          // homepage CLS 0.6 offender). Fallback min-height matches the loaded
+          // footer's own min-height below.
+          <Suspense
+            fallback={
+              <div
+                className="min-h-[560px] sm:min-h-[360px] lg:min-h-[320px]"
+                aria-hidden="true"
+              />
+            }
+          >
             <Footer />
           </Suspense>
         )}

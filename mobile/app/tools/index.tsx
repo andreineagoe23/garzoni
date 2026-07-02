@@ -22,11 +22,12 @@ import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatar
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 import { trackGarzoniEvent } from "../../src/bootstrap/customerIoMobile";
 
+// Money-first ordering: personal finance tools surface before markets/news.
 const ALL_GROUPS: ToolGroup[] = [
-  "personal-cfo",
-  "understand-world",
   "understand-myself",
+  "personal-cfo",
   "decide-next",
+  "understand-world",
 ];
 
 type FilterOption = ToolGroup | "all";
@@ -48,7 +49,10 @@ export default function ToolsHubScreen() {
   // Phone: 2-up. Tablet: 3-up. Large tablet: 4-up.
   const columns = gridColumns(2, 3, 4);
   const cardWidth = gridItemWidth(availableWidth, columns, spacing.md);
-  const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
+  // Open on "My money" so the tab lands on personal finance, not everything at once.
+  const [activeFilter, setActiveFilter] = useState<FilterOption>(
+    "understand-myself",
+  );
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
 
   const entQuery = useQuery({
@@ -86,6 +90,19 @@ export default function ToolsHubScreen() {
         left={<HeaderAvatarButton />}
         right={<HeaderRightButtons />}
       />
+
+      {/* Expectation-setter: these are planning/learning tools, not a linked bank. */}
+      <Text
+        style={[
+          styles.notABankLine,
+          { color: c.textMuted, paddingHorizontal: horizontalPad },
+        ]}
+      >
+        {t("tools.hub.notABank", {
+          defaultValue:
+            "Plan and learn about your money — Garzoni doesn’t connect to your bank.",
+        })}
+      </Text>
 
       {/* Group pill filter */}
       <ScrollView
@@ -191,6 +208,11 @@ export default function ToolsHubScreen() {
 }
 
 const styles = StyleSheet.create({
+  notABankLine: {
+    fontSize: typography.xs,
+    lineHeight: typography.xs + 6,
+    marginTop: spacing.xs,
+  },
   filterRow: {
     paddingVertical: spacing.md,
     gap: spacing.sm,

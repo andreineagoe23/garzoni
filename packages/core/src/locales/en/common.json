@@ -596,7 +596,8 @@
         "nextSteps": "What should I learn next?"
       },
       "comingSoon": "Coming soon",
-      "comingSoonHint": "Available on web today; native in a future update."
+      "comingSoonHint": "Available on web today; native in a future update.",
+      "notABank": "Plan and learn about your money — Garzoni doesn’t connect to your bank."
     },
     "disclaimer": {
       "educationalOnly": "Educational only. Not personal financial advice, and not a recommendation to buy, sell, or hold any asset.",
@@ -646,27 +647,27 @@
     },
     "groups": {
       "personal-cfo": {
-        "title": "Personal CFO",
-        "label": "CFO",
-        "description": "Your guided financial command center for goals, budget, and portfolio.",
+        "title": "Guided plan",
+        "label": "Plan",
+        "description": "A guided plan across your goals, budget, and portfolio.",
         "imageAlt": "Personal CFO hub"
       },
       "understand-world": {
-        "title": "Understand the World",
-        "label": "World",
+        "title": "Markets & news",
+        "label": "News",
         "description": "Macro context, news, and what is moving markets.",
         "imageAlt": "Global economy and markets"
       },
       "understand-myself": {
-        "title": "Understand Myself",
-        "label": "You",
-        "description": "Your portfolio, goals, and how they line up.",
+        "title": "My money",
+        "label": "Money",
+        "description": "Your budget, savings, goals, and portfolio in one place.",
         "imageAlt": "Personal finance and goals"
       },
       "decide-next": {
-        "title": "Plan What to Learn",
+        "title": "What next",
         "label": "Next",
-        "description": "Explore markets and pick your next learning step.",
+        "description": "Explore markets and pick your next step.",
         "imageAlt": "Learning plan and next steps"
       }
     },

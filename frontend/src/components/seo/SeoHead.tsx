@@ -29,6 +29,13 @@ type ArticleSchema = {
   author?: string;
 };
 
+// A ranked app/item in a roundup or alternatives page → emitted as ItemList.
+type ItemListEntry = {
+  name: string;
+  url?: string;
+  description?: string;
+};
+
 type Props = {
   title: string;
   description: string;
@@ -40,6 +47,10 @@ type Props = {
   faqItems?: FaqItem[];
   breadcrumbs?: Breadcrumb[];
   article?: ArticleSchema;
+  /** Ranked apps in a roundup/alternatives page → ItemList JSON-LD. */
+  itemList?: ItemListEntry[];
+  /** Human-readable name for the ItemList (defaults to the page title). */
+  itemListName?: string;
 };
 
 const DEFAULT_IMAGE = "https://www.garzoni.app/og-image.jpg";
@@ -61,6 +72,8 @@ export default function SeoHead({
   faqItems,
   breadcrumbs,
   article,
+  itemList,
+  itemListName,
 }: Props) {
   const ogImage = image || DEFAULT_IMAGE;
   // A single lesson is a LearningResource (an individual educational unit), not a
@@ -122,6 +135,31 @@ export default function SeoHead({
             position: i + 1,
             name: crumb.name,
             item: crumb.url,
+          })),
+        }
+      : null;
+
+  // Roundup / alternatives pages: a ranked ItemList of apps. Each entry is a
+  // SoftwareApplication so the list reads as an app comparison to crawlers.
+  const itemListJsonLd =
+    itemList && itemList.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: itemListName || title,
+          url: canonical,
+          numberOfItems: itemList.length,
+          itemListOrder: "https://schema.org/ItemListOrderDescending",
+          itemListElement: itemList.map((entry, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "SoftwareApplication",
+              name: entry.name,
+              applicationCategory: "FinanceApplication",
+              ...(entry.url ? { url: entry.url } : {}),
+              ...(entry.description ? { description: entry.description } : {}),
+            },
           })),
         }
       : null;
@@ -197,6 +235,12 @@ export default function SeoHead({
       {articleJsonLd ? (
         <script type="application/ld+json">
           {JSON.stringify(articleJsonLd)}
+        </script>
+      ) : null}
+
+      {itemListJsonLd ? (
+        <script type="application/ld+json">
+          {JSON.stringify(itemListJsonLd)}
         </script>
       ) : null}
     </Helmet>

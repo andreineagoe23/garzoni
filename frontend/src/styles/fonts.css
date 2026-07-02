@@ -1,0 +1,19 @@
+/*
+ * Self-hosted fonts (Phase 6 P2). Replaces the render-blocking
+ * fonts.googleapis.com stylesheet (~864ms, the single biggest render-blocker
+ * on mobile). Fontsource ships the woff2 files as same-origin /assets, so they
+ * need no third-party DNS/connect round-trip and are covered by `font-src 'self'`.
+ *
+ * Weights mirror the old Google Fonts request exactly:
+ *   Inter          400/500/600/700 + italic 400/600
+ *   JetBrains Mono 400/500 (numerics)
+ * Each import pulls in `font-display: swap` by default.
+ */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/400-italic.css";
+@import "@fontsource/inter/600-italic.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";

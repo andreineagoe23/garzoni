@@ -6,6 +6,8 @@ import SeoHead from "components/seo/SeoHead";
 
 type FaqPair = { question: string; answer: string };
 
+type ItemListEntry = { name: string; url?: string; description?: string };
+
 type RelatedLesson = {
   slug: string;
   title: string;
@@ -22,6 +24,7 @@ type ArticleResponse = {
   author: string;
   image_url: string;
   faq: FaqPair[];
+  item_list: ItemListEntry[];
   published_at: string | null;
   updated_at: string | null;
   related_lessons: RelatedLesson[];
@@ -120,6 +123,12 @@ export default function ArticlePage() {
           author: data.author || "Garzoni Team",
         }}
         faqItems={data.faq && data.faq.length > 0 ? data.faq : undefined}
+        itemList={
+          data.item_list && data.item_list.length > 0
+            ? data.item_list
+            : undefined
+        }
+        itemListName={data.title}
         breadcrumbs={[
           { name: "Home", url: "https://www.garzoni.app/" },
           { name: "Guides", url: "https://www.garzoni.app/guides" },

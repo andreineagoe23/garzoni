@@ -5,6 +5,7 @@ content safe for public reading (title, image, prose) and never exercise answers
 quiz state, or per-user progress.
 """
 
+from django.db.models import Max
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
@@ -176,6 +177,7 @@ def public_article_detail(request, slug: str):
         "author": article.author,
         "image_url": image_url,
         "faq": article.faq or [],
+        "item_list": article.item_list or [],
         "published_at": article.published_at.isoformat() if article.published_at else None,
         "updated_at": article.updated_at.isoformat() if article.updated_at else None,
         "related_lessons": [
@@ -194,41 +196,56 @@ def public_article_detail(request, slug: str):
 
 @cache_page(60 * 60)
 def sitemap_xml(request):
-    """Plain XML sitemap. No django.contrib.sitemaps dependency."""
-    site_url = "https://www.garzoni.app"
-    now_iso = timezone.now().date().isoformat()
+    """Plain XML sitemap. No django.contrib.sitemaps dependency.
 
+    lastmod is a real content-updated date where we have one (lessons/articles
+    carry `updated_at`). Static pages omit lastmod rather than stamp today's
+    date on every crawl — Google ignores a lastmod that changes every day, so a
+    lie is worse than an omission. /login and /register are excluded (thin,
+    non-indexable utility pages that shouldn't be in the sitemap).
+    """
+    site_url = "https://www.garzoni.app"
+
+    # (loc, priority, changefreq, lastmod-or-None)
     static_urls = [
-        (f"{site_url}/", "1.0", "daily"),
-        (f"{site_url}/marketing", "0.8", "weekly"),
-        (f"{site_url}/learn", "0.9", "weekly"),
-        (f"{site_url}/guides", "0.9", "weekly"),
-        (f"{site_url}/about", "0.7", "monthly"),
-        (f"{site_url}/subscriptions", "0.8", "weekly"),
-        (f"{site_url}/login", "0.5", "monthly"),
-        (f"{site_url}/register", "0.5", "monthly"),
-        (f"{site_url}/privacy-policy", "0.3", "yearly"),
-        (f"{site_url}/cookie-policy", "0.3", "yearly"),
-        (f"{site_url}/terms-of-service", "0.3", "yearly"),
-        (f"{site_url}/financial-disclaimer", "0.3", "yearly"),
+        (f"{site_url}/", "1.0", "daily", None),
+        (f"{site_url}/marketing", "0.8", "weekly", None),
+        (f"{site_url}/learn", "0.9", "weekly", None),
+        (f"{site_url}/guides", "0.9", "weekly", None),
+        (f"{site_url}/about", "0.7", "monthly", None),
+        (f"{site_url}/subscriptions", "0.8", "weekly", None),
+        (f"{site_url}/privacy-policy", "0.3", "yearly", None),
+        (f"{site_url}/cookie-policy", "0.3", "yearly", None),
+        (f"{site_url}/terms-of-service", "0.3", "yearly", None),
+        (f"{site_url}/financial-disclaimer", "0.3", "yearly", None),
     ]
 
+    def _iso(dt):
+        return dt.date().isoformat() if dt else None
+
+    # Lessons carry no timestamp of their own — the honest "last modified" is the
+    # newest section edit (matches the lesson detail API's updated_at).
     lesson_urls = [
-        (f"{site_url}/learn/{slug}", "0.9", "weekly")
-        for slug in Lesson.objects.filter(is_public=True).values_list("slug", flat=True)
+        (f"{site_url}/learn/{slug}", "0.9", "weekly", _iso(updated))
+        for slug, updated in Lesson.objects.filter(is_public=True)
+        .annotate(section_updated=Max("sections__updated_at"))
+        .values_list("slug", "section_updated")
     ]
 
     article_urls = [
-        (f"{site_url}/guides/{slug}", "0.8", "weekly")
-        for slug in Article.objects.filter(is_published=True).values_list("slug", flat=True)
+        (f"{site_url}/guides/{slug}", "0.8", "weekly", _iso(updated))
+        for slug, updated in Article.objects.filter(is_published=True).values_list(
+            "slug", "updated_at"
+        )
     ]
 
     parts = ['<?xml version="1.0" encoding="UTF-8"?>']
     parts.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
-    for loc, priority, changefreq in static_urls + lesson_urls + article_urls:
+    for loc, priority, changefreq, lastmod in static_urls + lesson_urls + article_urls:
         parts.append("<url>")
         parts.append(f"<loc>{loc}</loc>")
-        parts.append(f"<lastmod>{now_iso}</lastmod>")
+        if lastmod:
+            parts.append(f"<lastmod>{lastmod}</lastmod>")
         parts.append(f"<changefreq>{changefreq}</changefreq>")
         parts.append(f"<priority>{priority}</priority>")
         parts.append("</url>")
