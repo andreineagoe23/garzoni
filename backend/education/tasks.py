@@ -83,11 +83,16 @@ def decay_course_mastery():
         publisher = NotificationEvents()
         today = timezone.localdate().isoformat()
         for user_id, payload in nudge_users.items():
+            user = payload.pop("user")
+            # Coach Nudge is an email-only journey; firing it for a user with no
+            # email creates a bare CIO profile whose {{customer.email}} never
+            # renders and the transactional send fails+retries. Skip them.
+            if not (getattr(user, "email", "") or "").strip():
+                continue
             cache_key = f"coach_nudge:{user_id}:{today}"
             if not cache.add(cache_key, True, timeout=90_000):
                 continue
-            user = payload.pop("user")
-            ok, _ = publisher.track(user, CioEventName.COACH_NUDGE, payload)
+            ok, _ = publisher.track(user, CioEventName.COACH_NUDGE, payload, identify_first=True)
             if ok:
                 nudges += 1
 
@@ -128,6 +133,7 @@ def emit_streak_about_to_expire():
             profile.user,
             CioEventName.STREAK_ABOUT_TO_EXPIRE,
             {"streak_count": int(profile.streak or 0)},
+            identify_first=True,
         )
         if ok:
             sent += 1
