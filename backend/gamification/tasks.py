@@ -13,31 +13,32 @@ from gamification.models import MissionCompletion
 logger = logging.getLogger(__name__)
 
 
-@shared_task(name="gamification.models.reset_daily_missions")
-def reset_daily_missions():
-    """
-    Rotate daily mission cycles: archive prior cycle rows and open a fresh row per user/mission.
-    Historical rows remain queryable (no destructive wipe).
+def _archive_legacy_rows(mission_type: str) -> int:
+    """Retire pre-cycle rows (cycle_id="") in one bulk UPDATE. Dated rows from
+    prior cycles need no archiving — reads filter on the current cycle id."""
+    from django.db.models import CharField, Value
+    from django.db.models.functions import Cast, Concat
 
-    Registered as ``gamification.models.reset_daily_missions`` so Beat schedules and
-    django_celery_beat PeriodicTask rows keep a stable task name after the move from models.py.
-    """
-    from gamification.services.mission_cycles import daily_cycle_id
+    return MissionCompletion.objects.filter(mission__mission_type=mission_type, cycle_id="").update(
+        cycle_id=Concat(Value("x"), Cast("id", output_field=CharField()))
+    )
 
-    today_id = daily_cycle_id()
 
-    daily_rows = (
-        MissionCompletion.objects.filter(mission__mission_type="daily")
-        .exclude(cycle_id=today_id)
+def _rotate_cycle_eager(mission_type: str, current_cycle_id: str) -> None:
+    """Legacy eager rotation: archive prior rows, re-open the full pool per
+    user. O(users × pool) — only runs with MISSIONS_LAZY_ASSIGNMENT off."""
+    rows = (
+        MissionCompletion.objects.filter(mission__mission_type=mission_type)
+        .exclude(cycle_id=current_cycle_id)
         .exclude(cycle_id__startswith="x")
     )
-    for mc in daily_rows.iterator(chunk_size=500):
+    for mc in rows.iterator(chunk_size=500):
         archive_id = f"x{mc.pk}"[:40]
         MissionCompletion.objects.filter(pk=mc.pk).update(cycle_id=archive_id)
         MissionCompletion.objects.get_or_create(
             user_id=mc.user_id,
             mission_id=mc.mission_id,
-            cycle_id=today_id,
+            cycle_id=current_cycle_id,
             defaults={
                 "progress": 0,
                 "status": "not_started",
@@ -46,6 +47,23 @@ def reset_daily_missions():
                 "xp_awarded": 0,
             },
         )
+
+
+@shared_task(name="gamification.models.reset_daily_missions")
+def reset_daily_missions():
+    """
+    Rotate daily mission cycles. Lazy mode: one bulk archive of legacy rows —
+    new-cycle rows materialize on first touch. Eager mode keeps the historical
+    per-user re-open loop.
+
+    Registered as ``gamification.models.reset_daily_missions`` so Beat schedules and
+    django_celery_beat PeriodicTask rows keep a stable task name after the move from models.py.
+    """
+    from gamification.services.mission_cycles import daily_cycle_id
+
+    if getattr(settings, "MISSIONS_LAZY_ASSIGNMENT", False):
+        return _archive_legacy_rows("daily")
+    _rotate_cycle_eager("daily", daily_cycle_id())
 
 
 @shared_task(name="gamification.models.reset_weekly_missions")
@@ -57,28 +75,9 @@ def reset_weekly_missions():
     """
     from gamification.services.mission_cycles import weekly_cycle_id
 
-    wk = weekly_cycle_id()
-
-    weekly_rows = (
-        MissionCompletion.objects.filter(mission__mission_type="weekly")
-        .exclude(cycle_id=wk)
-        .exclude(cycle_id__startswith="x")
-    )
-    for mc in weekly_rows.iterator(chunk_size=500):
-        archive_id = f"x{mc.pk}"[:40]
-        MissionCompletion.objects.filter(pk=mc.pk).update(cycle_id=archive_id)
-        MissionCompletion.objects.get_or_create(
-            user_id=mc.user_id,
-            mission_id=mc.mission_id,
-            cycle_id=wk,
-            defaults={
-                "progress": 0,
-                "status": "not_started",
-                "completed_at": None,
-                "completion_idempotency_key": None,
-                "xp_awarded": 0,
-            },
-        )
+    if getattr(settings, "MISSIONS_LAZY_ASSIGNMENT", False):
+        return _archive_legacy_rows("weekly")
+    _rotate_cycle_eager("weekly", weekly_cycle_id())
 
 
 @shared_task(name="gamification.tasks.spawn_streak_rescue_missions")
@@ -124,6 +123,30 @@ def spawn_streak_rescue_missions():
             )
             touched += 1
     return touched
+
+
+@shared_task(name="gamification.tasks.evaluate_badges_task", ignore_result=True, time_limit=60)
+def evaluate_badges_task(user_id: int) -> None:
+    """Full badge-criteria sweep for one user, off the request path.
+
+    Dispatched (debounced) from ``grant_reward`` so a burst of grants —
+    lesson + sections + mission in one action — coalesces into a single
+    evaluation. The debounce lock is cleared before evaluating so grants
+    that land mid-sweep can schedule a fresh pass.
+    """
+    from django.contrib.auth.models import User
+    from django.core.cache import cache
+
+    from gamification.utils import evaluate_badges_for_user
+
+    cache.delete(f"badge_eval_pending:{user_id}")
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        return
+    try:
+        evaluate_badges_for_user(user)
+    except Exception:
+        logger.exception("evaluate_badges_task failed user_id=%s", user_id)
 
 
 @shared_task(name="gamification.tasks.finalize_due_duels")

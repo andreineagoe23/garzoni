@@ -1,14 +1,18 @@
-"""Compute monthly spending summaries and envelope status for a user."""
+"""Compute monthly spending summaries and envelope status for a user.
+
+All aggregation happens database-side (conditional ``Sum`` + one grouped
+pass per call); Python only maps envelope targets onto the grouped rows.
+"""
 
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Dict, Iterable, List, Optional
+from typing import Iterable, List, Optional, Tuple
 
-from django.db.models import Q
+from django.db.models import Count, DecimalField, F, Q, Sum, Value
+from django.db.models.functions import Coalesce, Lower, NullIf
 from django.utils import timezone
 
 from budgeting.models import (
@@ -17,6 +21,8 @@ from budgeting.models import (
     SpendingAnomaly,
     Transaction,
 )
+
+_ZERO_DEC = Value(Decimal("0"), output_field=DecimalField())
 
 
 @dataclass
@@ -42,27 +48,49 @@ def month_start(d: date) -> date:
     return d.replace(day=1)
 
 
-def envelope_spent_this_period(user, env: BudgetEnvelope, ref: date) -> Decimal:
+def _period_bounds(ref: date) -> Tuple[date, date]:
     period_start = month_start(ref)
     next_period_start = (period_start + timedelta(days=32)).replace(day=1)
-    qs = Transaction.objects.filter(
-        user=user,
-        posted_at__gte=period_start,
-        posted_at__lt=next_period_start,
-        amount__lt=0,
-    ).filter(Q(category__slug=env.category) | Q(provider_category_raw__iexact=env.category))
-    total = Decimal("0")
-    for tx in qs.iterator():
-        total += -tx.amount  # convert outflow to positive spend
-    return total
+    return period_start, next_period_start
+
+
+def _outflow_spend_by_pair(user, period_start: date, next_period_start: date):
+    """One grouped pass over the month's outflows keyed by
+    ``(category slug, lowercased raw provider category)`` so envelope matching
+    (slug OR raw) can be resolved from the grouped rows without double
+    counting transactions that match both."""
+    return (
+        Transaction.objects.filter(
+            user=user,
+            posted_at__gte=period_start,
+            posted_at__lt=next_period_start,
+            amount__lt=0,
+        )
+        .annotate(raw_cat=Lower("provider_category_raw"))
+        .values("category__slug", "raw_cat")
+        .annotate(spend=Sum(-F("amount")))
+    )
 
 
 def envelopes_with_progress(user, ref: date | None = None):
     ref = ref or timezone.now().date()
-    envelopes = BudgetEnvelope.objects.filter(user=user, is_active=True)
+    envelopes = list(BudgetEnvelope.objects.filter(user=user, is_active=True))
     out = []
+    if not envelopes:
+        return out
+    period_start, next_period_start = _period_bounds(ref)
+    pairs = list(_outflow_spend_by_pair(user, period_start, next_period_start))
     for env in envelopes:
-        spent = envelope_spent_this_period(user, env, ref)
+        cat = env.category
+        cat_lower = cat.lower()
+        spent = sum(
+            (
+                row["spend"]
+                for row in pairs
+                if row["category__slug"] == cat or row["raw_cat"] == cat_lower
+            ),
+            Decimal("0"),
+        )
         out.append(
             {
                 "id": env.id,
@@ -77,35 +105,54 @@ def envelopes_with_progress(user, ref: date | None = None):
 
 
 def _aggregate_period(user, period_start: date) -> PeriodSummary:
-    next_period_start = (period_start + timedelta(days=32)).replace(day=1)
+    _, next_period_start = _period_bounds(period_start)
     transactions = Transaction.objects.filter(
         user=user,
         posted_at__gte=period_start,
         posted_at__lt=next_period_start,
     )
-    total_income = Decimal("0")
-    total_spent = Decimal("0")
-    by_cat: Dict[str, Decimal] = defaultdict(Decimal)
-    currency = "USD"
-    for tx in transactions.iterator():
-        currency = tx.currency or currency
-        if tx.amount > 0:
-            total_income += tx.amount
-        else:
-            spent = -tx.amount
-            total_spent += spent
-            key = (
-                tx.category.slug
-                if tx.category_id and getattr(tx.category, "slug", None)
-                else (tx.provider_category_raw or "other").lower()
+
+    totals = transactions.aggregate(
+        income=Coalesce(Sum("amount", filter=Q(amount__gt=0)), _ZERO_DEC),
+        spent=Coalesce(Sum(-F("amount"), filter=Q(amount__lt=0)), _ZERO_DEC),
+    )
+    total_income: Decimal = totals["income"]
+    total_spent: Decimal = totals["spent"]
+
+    # Dominant non-empty currency for the period (the old Python loop took
+    # whichever row iterated last — arbitrary for mixed-currency users).
+    currency_row = (
+        transactions.exclude(currency="")
+        .values("currency")
+        .annotate(n=Count("id"))
+        .order_by("-n", "currency")
+        .first()
+    )
+    currency = currency_row["currency"] if currency_row else "USD"
+
+    # Spend per category: slug when categorised, else lowercased raw provider
+    # category, else "other" — same key the envelopes are matched on.
+    cat_rows = (
+        transactions.filter(amount__lt=0)
+        .annotate(
+            cat=Coalesce(
+                "category__slug",
+                NullIf(Lower("provider_category_raw"), Value("")),
+                Value("other"),
             )
-            by_cat[key] += spent
+        )
+        .values("cat")
+        .annotate(spend=Sum(-F("amount")))
+        .order_by("-spend", "cat")
+    )
 
     envelopes = {
         env.category: env for env in BudgetEnvelope.objects.filter(user=user, is_active=True)
     }
     rows: List[CategoryRow] = []
-    for slug, spent in sorted(by_cat.items(), key=lambda x: -x[1]):
+    for row in cat_rows:
+        slug = row["cat"]
+        spent = row["spend"]
         env = envelopes.get(slug)
         rows.append(
             CategoryRow(
@@ -184,6 +231,11 @@ def recompute_summary(user, ref: date | None = None) -> PeriodSummary:
         },
     )
     detect_anomalies(user, summary)
+    # Fresh spending data changes the CFO dashboard payload — drop its cache.
+    # Local import: dashboard.py imports this module at load time.
+    from budgeting.services.dashboard import invalidate_cfo_dashboard_cache
+
+    invalidate_cfo_dashboard_cache(user.id)
     return summary
 
 

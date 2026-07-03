@@ -10,6 +10,7 @@ from rest_framework.throttling import UserRateThrottle
 import logging
 import random
 from datetime import timedelta
+from django.conf import settings as dj_settings
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Avg, F, Q, Sum
@@ -39,9 +40,11 @@ from authentication.models import UserProfile
 
 from gamification.services.ledger_labels import describe_ledger_event
 from gamification.services.mission_cycles import (
+    _stable_seed,
     daily_cycle_id,
     ensure_current_cycle_mission_completions,
     get_or_create_current_mission_completion,
+    select_cycle_missions,
     weekly_cycle_id,
     cycle_id_for_mission,
 )
@@ -65,8 +68,9 @@ MISSIONS_WEEKLY_DISPLAY = 4
 
 
 def _deterministic_shuffle(items, seed_str):
-    """Shuffle list in place using a deterministic seed. Returns the same order for same seed_str."""
-    rng = random.Random(hash(seed_str) % (2**32))
+    """Shuffle list in place using a deterministic seed. Returns the same order
+    for same seed_str across processes (builtin hash is per-process random)."""
+    rng = random.Random(_stable_seed(seed_str))
     rng.shuffle(items)
     return items
 
@@ -117,31 +121,8 @@ class MissionView(APIView):
         try:
             d_id = daily_cycle_id()
             w_id = weekly_cycle_id()
-            daily_completions = self._load_visible_completions(user, "daily", d_id)
-            weekly_completions = self._load_visible_completions(user, "weekly", w_id)
-
-            # Self-heal users with stale/empty cycle rows by opening fresh rows
-            # from the live mission pool for the current daily/weekly period.
-            daily_has_current = any(c.cycle_id == d_id for c in daily_completions)
-            weekly_has_current = any(c.cycle_id == w_id for c in weekly_completions)
-            daily_current_ids = {c.mission_id for c in daily_completions if c.cycle_id == d_id}
-            weekly_current_ids = {c.mission_id for c in weekly_completions if c.cycle_id == w_id}
-            daily_pool_count = Mission.objects.filter(mission_type="daily").count()
-            weekly_pool_count = Mission.objects.filter(mission_type="weekly").count()
-            if (
-                not daily_completions
-                or not daily_has_current
-                or len(daily_current_ids) < daily_pool_count
-            ):
-                ensure_current_cycle_mission_completions(user, "daily")
-                daily_completions = self._load_visible_completions(user, "daily", d_id)
-            if (
-                not weekly_completions
-                or not weekly_has_current
-                or len(weekly_current_ids) < weekly_pool_count
-            ):
-                ensure_current_cycle_mission_completions(user, "weekly")
-                weekly_completions = self._load_visible_completions(user, "weekly", w_id)
+            local_today = timezone.localdate()
+            lazy = getattr(dj_settings, "MISSIONS_LAZY_ASSIGNMENT", False)
 
             def _build_payload(completion):
                 return {
@@ -156,6 +137,19 @@ class MissionView(APIView):
                     "purpose_statement": normalize_text_encoding(
                         completion.mission.purpose_statement or ""
                     ),
+                }
+
+            def _synthetic_payload(entry):
+                return {
+                    "id": entry["id"],
+                    "name": normalize_text_encoding(entry["name"]),
+                    "description": normalize_text_encoding(entry["description"]),
+                    "points_reward": entry["points_reward"],
+                    "progress": 0,
+                    "status": "not_started",
+                    "goal_type": entry["goal_type"],
+                    "goal_reference": entry["goal_reference"] or {},
+                    "purpose_statement": normalize_text_encoding(entry["purpose_statement"] or ""),
                 }
 
             def _pick_best(completions, current_cid):
@@ -174,35 +168,101 @@ class MissionView(APIView):
                         best[mid] = c
                 return best
 
-            daily_missions = [
-                _build_payload(c) for c in _pick_best(daily_completions, d_id).values()
-            ]
-            weekly_missions = [
-                _build_payload(c) for c in _pick_best(weekly_completions, w_id).values()
-            ]
+            def _lazy_display(mission_type, cid, count):
+                """Read-only display assembly: materialized rows the user has
+                touched (progress, swap-ins, completions) take precedence,
+                deterministic picks fill remaining slots as synthetics."""
+                best = _pick_best(self._load_visible_completions(user, mission_type, cid), cid)
+                swapped_out = {c.mission_id for c in best.values() if c.swapped_at is not None}
+                sticky = [
+                    c
+                    for c in best.values()
+                    if c.swapped_at is None
+                    and (c.swapped_from_mission_id or c.status != "not_started" or c.progress > 0)
+                ]
+                sticky.sort(key=lambda c: (c.status == "completed", c.progress), reverse=True)
+                display = [_build_payload(c) for c in sticky[:count]]
+                shown = {p["id"] for p in display}
+                picks = select_cycle_missions(
+                    user.id,
+                    mission_type,
+                    cid,
+                    count=count,
+                    exclude_ids=swapped_out | shown,
+                )
+                for entry in picks:
+                    if len(display) >= count:
+                        break
+                    row = best.get(entry["id"])
+                    display.append(_build_payload(row) if row else _synthetic_payload(entry))
+                return _deterministic_shuffle(display, f"{user.id}-{mission_type}-{cid}")
 
-            now = timezone.now()
-            local_today = timezone.localdate()
-            today_str = local_today.isoformat()
-            # Week start (Monday)
-            week_start = local_today - timedelta(days=local_today.weekday())
-            week_str = week_start.isoformat()
+            if lazy:
+                daily_display = _lazy_display("daily", d_id, MISSIONS_DAILY_DISPLAY)
+                weekly_display = _lazy_display("weekly", w_id, MISSIONS_WEEKLY_DISPLAY)
+            else:
+                daily_completions = self._load_visible_completions(user, "daily", d_id)
+                weekly_completions = self._load_visible_completions(user, "weekly", w_id)
 
-            seed_daily = f"{user.id}-daily-{today_str}"
-            seed_weekly = f"{user.id}-weekly-{week_str}"
-            _deterministic_shuffle(daily_missions, seed_daily)
-            _deterministic_shuffle(weekly_missions, seed_weekly)
+                # Self-heal users with stale/empty cycle rows by opening fresh
+                # rows from the live mission pool for the current period.
+                daily_has_current = any(c.cycle_id == d_id for c in daily_completions)
+                weekly_has_current = any(c.cycle_id == w_id for c in weekly_completions)
+                daily_current_ids = {c.mission_id for c in daily_completions if c.cycle_id == d_id}
+                weekly_current_ids = {
+                    c.mission_id for c in weekly_completions if c.cycle_id == w_id
+                }
+                daily_pool_count = Mission.objects.filter(mission_type="daily").count()
+                weekly_pool_count = Mission.objects.filter(mission_type="weekly").count()
+                if (
+                    not daily_completions
+                    or not daily_has_current
+                    or len(daily_current_ids) < daily_pool_count
+                ):
+                    ensure_current_cycle_mission_completions(user, "daily")
+                    daily_completions = self._load_visible_completions(user, "daily", d_id)
+                if (
+                    not weekly_completions
+                    or not weekly_has_current
+                    or len(weekly_current_ids) < weekly_pool_count
+                ):
+                    ensure_current_cycle_mission_completions(user, "weekly")
+                    weekly_completions = self._load_visible_completions(user, "weekly", w_id)
+
+                daily_missions = [
+                    _build_payload(c) for c in _pick_best(daily_completions, d_id).values()
+                ]
+                weekly_missions = [
+                    _build_payload(c) for c in _pick_best(weekly_completions, w_id).values()
+                ]
+
+                week_start = local_today - timedelta(days=local_today.weekday())
+                _deterministic_shuffle(daily_missions, f"{user.id}-daily-{local_today.isoformat()}")
+                _deterministic_shuffle(
+                    weekly_missions, f"{user.id}-weekly-{week_start.isoformat()}"
+                )
+                daily_display = _diverse_pick(daily_missions, MISSIONS_DAILY_DISPLAY)
+                weekly_display = _diverse_pick(weekly_missions, MISSIONS_WEEKLY_DISPLAY)
+
             can_swap = not MissionCompletion.objects.filter(
                 user=user, swapped_at__date=local_today
             ).exists()
 
-            multi_step_missions = []
-            for mission in MultiStepMission.objects.filter(is_active=True).order_by("id"):
-                progress, _ = MultiStepMissionProgress.objects.get_or_create(
-                    user=user,
-                    mission=mission,
+            # Read-only: progress rows are created lazily by the signal
+            # handlers when a step actually advances; missing rows render as
+            # not-started synthetics instead of get_or_create on every GET.
+            active_multistep = list(MultiStepMission.objects.filter(is_active=True).order_by("id"))
+            progress_by_mission = {
+                p.mission_id: p
+                for p in MultiStepMissionProgress.objects.filter(
+                    user=user, mission__in=active_multistep
                 )
-                completed = set(progress.completed_steps or [])
+            }
+            multi_step_missions = []
+            for mission in active_multistep:
+                progress = progress_by_mission.get(mission.id)
+                completed_steps = list(progress.completed_steps or []) if progress else []
+                completed = set(completed_steps)
                 steps = []
                 for step in mission.steps or []:
                     step_id = step.get("id")
@@ -215,16 +275,16 @@ class MissionView(APIView):
                         "description": mission.description,
                         "points_reward": mission.points_reward,
                         "badge_name": mission.badge_name,
-                        "status": progress.status,
-                        "completed_steps": progress.completed_steps or [],
+                        "status": progress.status if progress else "not_started",
+                        "completed_steps": completed_steps,
                         "steps": steps,
                     }
                 )
 
             return Response(
                 {
-                    "daily_missions": _diverse_pick(daily_missions, MISSIONS_DAILY_DISPLAY),
-                    "weekly_missions": _diverse_pick(weekly_missions, MISSIONS_WEEKLY_DISPLAY),
+                    "daily_missions": daily_display,
+                    "weekly_missions": weekly_display,
                     "multi_step_missions": multi_step_missions,
                     "can_swap": can_swap,
                 },

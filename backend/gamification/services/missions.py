@@ -2,10 +2,12 @@ import hashlib
 import logging
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from decimal import Decimal
 
+from core.utils import normalize_text_encoding
 from gamification.models import (
     Mission,
     MissionCompletion,
@@ -14,12 +16,89 @@ from gamification.models import (
 )
 from gamification.services.mission_cycles import (
     cycle_id_for_mission,
+    daily_cycle_id,
     get_or_create_current_mission_completion,
+    select_cycle_missions,
+    weekly_cycle_id,
 )
 from gamification.services.rewards import grant_reward
 from education.models import Mastery
 
 logger = logging.getLogger(__name__)
+
+
+def current_cycle_completions(user, goal_types):
+    """Current-cycle (or legacy rolling) MissionCompletion rows for the given
+    goal types, excluding archived rows. Shared by every mission-progress
+    trigger so cycle filtering can't drift between call sites."""
+    d_id = daily_cycle_id()
+    w_id = weekly_cycle_id()
+    return (
+        MissionCompletion.objects.filter(user=user, mission__goal_type__in=goal_types)
+        .filter(
+            Q(mission__mission_type="daily", cycle_id__in=[d_id, ""])
+            | Q(mission__mission_type="weekly", cycle_id__in=[w_id, ""])
+        )
+        .exclude(cycle_id__startswith="x")
+        .select_related("mission")
+    )
+
+
+def touch_assigned_completions(user, goal_types):
+    """Progress-trigger entry point: materialize rows for this cycle's
+    *assigned* missions matching ``goal_types``, then return the current-cycle
+    queryset.
+
+    Under MISSIONS_LAZY_ASSIGNMENT only the deterministic per-cycle picks get
+    rows (missions the user can actually see); already-materialized rows
+    (swaps, manual completions, rows from the eager era) flow through the
+    returned queryset regardless. With the flag off this is a no-op wrapper —
+    eager mode pre-creates the full pool elsewhere."""
+    from django.conf import settings
+
+    if getattr(settings, "MISSIONS_LAZY_ASSIGNMENT", False):
+        wanted = set(goal_types)
+        candidates: dict[int, str] = {}
+        for mission_type in ("daily", "weekly"):
+            cid = daily_cycle_id() if mission_type == "daily" else weekly_cycle_id()
+            for entry in select_cycle_missions(user.id, mission_type, cid):
+                if entry["goal_type"] in wanted:
+                    candidates[entry["id"]] = cid
+        if candidates:
+            # A not-yet-archived legacy row (cycle_id="") already tracks this
+            # mission; creating a current-cycle sibling would double-progress
+            # and double-award it.
+            legacy_ids = set(
+                MissionCompletion.objects.filter(
+                    user=user, cycle_id="", mission_id__in=candidates.keys()
+                ).values_list("mission_id", flat=True)
+            )
+            for mission_id, cid in candidates.items():
+                if mission_id in legacy_ids:
+                    continue
+                MissionCompletion.objects.get_or_create(
+                    user=user,
+                    mission_id=mission_id,
+                    cycle_id=cid,
+                    defaults={"progress": 0, "status": "not_started"},
+                )
+    return current_cycle_completions(user, goal_types)
+
+
+def current_mission_deltas(user, goal_types):
+    """Serialize current-cycle mission rows in the same shape as /missions/
+    payload items so mutation responses can be merged into cached client state."""
+    return [
+        {
+            "id": c.mission_id,
+            "name": normalize_text_encoding(c.mission.name),
+            "points_reward": c.mission.points_reward,
+            "progress": c.progress,
+            "status": c.status,
+            "goal_type": c.mission.goal_type,
+        }
+        for c in current_cycle_completions(user, goal_types)
+    ]
 
 
 def track_mission_performance(user, mission_completion, completion_data):

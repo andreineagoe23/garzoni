@@ -6,6 +6,8 @@ export type NextStep = {
   description: string;
   category: StepCategory;
   xp: number;
+  /** In-app route where the step is actually done (e.g. /tools/budget-planner). */
+  route?: string;
 };
 
 export type NextStepsResponse = {

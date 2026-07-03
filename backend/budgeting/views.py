@@ -34,8 +34,16 @@ from budgeting.serializers import (
     SpendingAnomalySerializer,
     TransactionSerializer,
 )
+from django.core.cache import cache
+
 from support.services.openai import OpenAIService, get_conversation_history, reset_cfo_conversation
-from budgeting.services.dashboard import build_dashboard
+from budgeting.services.dashboard import (
+    CFO_DASHBOARD_CACHE_TTL,
+    build_dashboard,
+    build_dashboard_context,
+    dashboard_cache_key,
+    resolve_narrative,
+)
 from budgeting.services.providers import get_provider
 from budgeting.services.summaries import (
     envelopes_with_progress,
@@ -391,14 +399,20 @@ class PersonalCfoDashboardView(APIView):
                 status=402,
             )
         surface = request.query_params.get("surface") or "web"
-        try:
-            payload = build_dashboard(request.user, surface=surface)
-        except Exception as exc:
-            logger.exception("cfo_dashboard_failed user=%s err=%s", request.user.id, exc)
-            return Response(
-                {"error": "Could not build dashboard. Please try again."},
-                status=500,
-            )
+        cache_key = dashboard_cache_key(request.user.id, surface)
+        payload = cache.get(cache_key)
+        if payload is None:
+            try:
+                payload = build_dashboard(request.user, surface=surface)
+            except Exception as exc:
+                logger.exception("cfo_dashboard_failed user=%s err=%s", request.user.id, exc)
+                return Response(
+                    {"error": "Could not build dashboard. Please try again."},
+                    status=500,
+                )
+            # Short TTL: the deterministic blocks change slowly, and the AI
+            # narrative has its own endpoint + invalidation on generation.
+            cache.set(cache_key, payload, CFO_DASHBOARD_CACHE_TTL)
         record_funnel_event(
             "personal_cfo_dashboard_view",
             user=request.user,
@@ -410,6 +424,35 @@ class PersonalCfoDashboardView(APIView):
             },
         )
         return Response(payload)
+
+
+class PersonalCfoNarrativeView(APIView):
+    """Lightweight AI-narrative poll target.
+
+    The dashboard returns instantly with a deterministic narrative and
+    ``ai_analysis.status="pending"``; clients poll this endpoint until the
+    background task has cached the AI text (``status="ready"``)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        plan = get_user_plan(request.user)
+        if not plan_allows(plan, "plus"):
+            return Response(
+                {
+                    "error": "Requires Plus or Pro plan.",
+                    "reason": "upgrade",
+                    "feature": "personal_cfo",
+                },
+                status=402,
+            )
+        surface = request.query_params.get("surface") or "web"
+        try:
+            ctx = build_dashboard_context(request.user)
+        except Exception as exc:
+            logger.exception("cfo_narrative_ctx_failed user=%s err=%s", request.user.id, exc)
+            return Response({"error": "Could not resolve narrative."}, status=500)
+        return Response(resolve_narrative(request.user, ctx, surface=surface))
 
 
 class PersonalCfoProgressView(APIView):

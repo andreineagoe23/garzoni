@@ -73,8 +73,8 @@ from notifications.tasks import (
     send_billing_payment_receipt_task,
 )
 from authentication.user_display import normalize_display_string
-from gamification.models import MissionCompletion
-from gamification.services.mission_cycles import daily_cycle_id, weekly_cycle_id
+from gamification.services.missions import touch_assigned_completions
+from finance.services.savings import add_savings_and_update_missions
 from finance.utils import record_funnel_event
 from core.request_platform import resolve_request_platform
 from django.apps import apps
@@ -1120,73 +1120,15 @@ class SavingsAccountView(APIView):
             if amount <= 0:
                 return Response({"error": "Amount must be positive"}, status=400)
 
-            today = timezone.now().date()
-            user = request.user
-
-            with transaction.atomic():
-                # Update savings account
-                (
-                    account,
-                    created,
-                ) = SimulatedSavingsAccount.objects.select_for_update().get_or_create(
-                    user=user, defaults={"balance": amount}
-                )
-                if not created:
-                    account.balance += amount
-                    account.save()
-
-                d_id = daily_cycle_id()
-                w_id = weekly_cycle_id()
-                missions = (
-                    MissionCompletion.objects.select_related("mission")
-                    .filter(
-                        user=user,
-                        mission__goal_type="add_savings",
-                        status__in=["not_started", "in_progress"],
-                    )
-                    .filter(
-                        Q(mission__mission_type="daily", cycle_id=d_id)
-                        | Q(mission__mission_type="daily", cycle_id="")
-                        | Q(mission__mission_type="weekly", cycle_id=w_id)
-                        | Q(mission__mission_type="weekly", cycle_id="")
-                    )
-                    .exclude(cycle_id__startswith="x")
-                )
-
-                for completion in missions:
-                    mission_type = completion.mission.mission_type
-                    target = Decimal(str(completion.mission.goal_reference.get("target", 100)))
-
-                    # Daily savings: only update once per day
-                    if mission_type == "daily":
-                        if (
-                            completion.completed_at is not None
-                            and completion.completed_at.date() == today
-                        ):
-                            continue  # Already completed today
-
-                        increment = (amount / target) * 100
-                        completion.progress = min(completion.progress + increment, 100)
-
-                        if completion.progress >= 100:
-                            completion.status = "completed"
-                            completion.completed_at = timezone.now()
-
-                    # Weekly savings: cumulative
-                    elif mission_type == "weekly":
-                        increment = (amount / target) * 100
-                        completion.progress = min(completion.progress + increment, 100)
-
-                        if completion.progress >= 100:
-                            completion.status = "completed"
-                            completion.completed_at = timezone.now()
-
-                    completion.save()
-
-                return Response(
-                    {"message": "Savings updated!", "balance": float(account.balance)},
-                    status=200,
-                )
+            account, mission_deltas = add_savings_and_update_missions(request.user, amount)
+            return Response(
+                {
+                    "message": "Savings updated!",
+                    "balance": float(account.balance),
+                    "missions": mission_deltas,
+                },
+                status=200,
+            )
 
         except (ValueError, InvalidOperation) as e:
             logger.error(f"Invalid amount: {str(e)}")
@@ -1915,29 +1857,13 @@ class FinanceFactView(APIView):
             # Log the fact as read
             UserFactProgress.objects.create(user=request.user, fact=fact)
 
-            d_id = daily_cycle_id()
-            w_id = weekly_cycle_id()
-            completions = (
-                MissionCompletion.objects.filter(
-                    user=request.user,
-                    mission__goal_type="read_fact",
-                    status__in=["not_started", "in_progress"],
-                )
-                .filter(
-                    Q(mission__mission_type="daily", cycle_id=d_id)
-                    | Q(mission__mission_type="daily", cycle_id="")
-                    | Q(mission__mission_type="weekly", cycle_id=w_id)
-                    | Q(mission__mission_type="weekly", cycle_id="")
-                )
-                .exclude(cycle_id__startswith="x")
-                .select_related("mission")
+            completions = touch_assigned_completions(request.user, ["read_fact"]).filter(
+                status__in=["not_started", "in_progress"]
             )
 
             for completion in completions:
-                if completion.mission.mission_type == "daily":
-                    completion.update_progress()  # 100% on 1st fact
-                elif completion.mission.mission_type == "weekly":
-                    completion.update_progress()  # +20% each time
+                # daily: 100% on 1st fact; weekly: +20% each time
+                completion.update_progress()
 
             return Response({"message": "Fact marked as read!"}, status=200)
 

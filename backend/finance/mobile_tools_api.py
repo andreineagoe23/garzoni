@@ -44,38 +44,6 @@ def _economic_calendar_events():
     return events
 
 
-# Mirrors mobile `DEMO_STEPS` so swipe + complete flows match expectations.
-_NEXT_STEPS_BODY = {
-    "steps": [
-        {
-            "id": "demo-1",
-            "title": "Check your savings rate",
-            "description": (
-                "Run the Goals Reality Check to see if your savings pace matches " "your goals."
-            ),
-            "category": "action",
-            "xp": 10,
-        },
-        {
-            "id": "demo-2",
-            "title": "Learn about inflation",
-            "description": ("Understanding CPI helps you plan purchasing power over time."),
-            "category": "learn",
-            "xp": 5,
-        },
-        {
-            "id": "demo-3",
-            "title": "Explore market indices",
-            "description": ("Get a feel for major markets before making investment decisions."),
-            "category": "explore",
-            "xp": 5,
-        },
-    ],
-    "completed_today": 0,
-    "limit": 3,
-}
-
-
 class EconomicCalendarMobileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -84,15 +52,21 @@ class EconomicCalendarMobileView(APIView):
 
 
 class NextStepsMobileView(APIView):
+    """Contextual action queue computed from live user state (see
+    finance.services.next_steps)."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(_NEXT_STEPS_BODY)
+        from finance.services.next_steps import build_next_steps
+
+        return Response(build_next_steps(request.user))
 
 
 class NextStepCompleteMobileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, step_id):
-        # Queue state is managed client-side; accept for future analytics / caps.
-        return Response({"ok": True})
+        from finance.services.next_steps import complete_next_step
+
+        return Response(complete_next_step(request.user, step_id))

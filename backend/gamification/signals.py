@@ -1,15 +1,32 @@
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
 from gamification.models import Mission, MultiStepMission, MultiStepMissionProgress
-from gamification.services.mission_cycles import get_or_create_current_mission_completion
+from gamification.services.mission_cycles import (
+    get_or_create_current_mission_completion,
+    invalidate_mission_pool_cache,
+)
+
+
+@receiver(post_save, sender=Mission)
+@receiver(post_delete, sender=Mission)
+def invalidate_pool_on_mission_change(sender, **kwargs):
+    """Keep the cached per-type mission pool fresh for admin edits and
+    content loads (lazy assignment selects picks from this cache)."""
+    invalidate_mission_pool_cache()
 
 
 @receiver(post_save, sender=User)
 def assign_missions_to_new_user(sender, instance, created, **kwargs):
-    if not created:
+    """Eager-mode only: pre-create a completion row per pool mission.
+
+    Under MISSIONS_LAZY_ASSIGNMENT the per-cycle picks are computed and rows
+    materialize on first touch, so new users need no rows at all."""
+    from django.conf import settings
+
+    if not created or getattr(settings, "MISSIONS_LAZY_ASSIGNMENT", False):
         return
     for mission_type in ("daily", "weekly"):
         missions = Mission.objects.filter(mission_type=mission_type)

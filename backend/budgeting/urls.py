@@ -6,6 +6,7 @@ from budgeting.views import (
     LinkedAccountViewSet,
     PersonalCfoCoachView,
     PersonalCfoDashboardView,
+    PersonalCfoNarrativeView,
     PersonalCfoProgressView,
     PersonalCfoSummaryView,
     ProviderLinkTokenView,
@@ -69,6 +70,11 @@ urlpatterns = [
         "personal-cfo/dashboard/",
         PersonalCfoDashboardView.as_view(),
         name="personal-cfo-dashboard",
+    ),
+    path(
+        "personal-cfo/narrative/",
+        PersonalCfoNarrativeView.as_view(),
+        name="personal-cfo-narrative",
     ),
     path(
         "personal-cfo/progress/",

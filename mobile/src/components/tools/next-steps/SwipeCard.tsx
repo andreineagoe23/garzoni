@@ -21,9 +21,11 @@ type Props = {
   step: NextStep;
   onComplete: () => void;
   onSkip: () => void;
+  /** Navigate to the surface where the step is done (steps with a route). */
+  onOpen?: () => void;
 };
 
-export function SwipeCard({ step, onComplete, onSkip }: Props) {
+export function SwipeCard({ step, onComplete, onSkip, onOpen }: Props) {
   const c = useThemeColors();
   const translateX = useRef(new Animated.Value(0)).current;
   const rotate = translateX.interpolate({
@@ -123,9 +125,33 @@ export function SwipeCard({ step, onComplete, onSkip }: Props) {
         </Text>
       </View>
 
-      {/* XP badge */}
-      <View style={[styles.xpBadge, { backgroundColor: c.accentMuted }]}>
-        <Text style={[styles.xpText, { color: c.accent }]}>+{step.xp} XP</Text>
+      {/* Open-in-tool + XP badge */}
+      <View style={styles.actionRow}>
+        {onOpen ? (
+          <Pressable
+            accessibilityLabel={`Open: ${step.title}`}
+            onPress={onOpen}
+            style={({ pressed }) => [
+              styles.openBtn,
+              {
+                opacity: pressed ? 0.85 : 1,
+                borderColor: categoryColor + "66",
+                backgroundColor: categoryColor + "18",
+              },
+            ]}
+          >
+            <Text style={[styles.openBtnText, { color: categoryColor }]}>
+              Take me there
+            </Text>
+          </Pressable>
+        ) : (
+          <View />
+        )}
+        <View style={[styles.xpBadge, { backgroundColor: c.accentMuted }]}>
+          <Text style={[styles.xpText, { color: c.accent }]}>
+            +{step.xp} XP
+          </Text>
+        </View>
       </View>
 
       {/* Swipe hints */}
@@ -179,6 +205,19 @@ const styles = StyleSheet.create({
   body: { gap: spacing.sm, flex: 1 },
   title: { fontSize: typography.lg, fontWeight: "700", lineHeight: 24 },
   description: { fontSize: typography.sm, lineHeight: 20 },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  openBtn: {
+    borderRadius: radius.full,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  openBtnText: { fontSize: typography.xs, fontWeight: "700" },
   xpBadge: {
     alignSelf: "flex-end",
     borderRadius: radius.full,

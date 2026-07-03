@@ -113,6 +113,18 @@ export type Mission = {
   mission_name?: string;
 };
 
+/** Mission state returned inline by action endpoints (lesson complete,
+ * savings deposit) so clients can merge fresh progress into the cached
+ * /missions/ payload without refetching. */
+export type MissionDelta = {
+  id: number;
+  name?: string;
+  points_reward?: number;
+  progress?: number;
+  status?: string;
+  goal_type?: string;
+};
+
 export type MissionBuckets = {
   daily_missions?: Mission[];
   weekly_missions?: Mission[];

@@ -165,6 +165,7 @@ export {
 } from "./engagement/mascotPresentation";
 export type { ResolvedMascotPresentation } from "./engagement/mascotPresentation";
 export { MOOD_TO_MASCOT } from "./engagement/mascotTypes";
+export { mergeMissionDeltas } from "./engagement/missionDeltas";
 export { useOnlineSync } from "./hooks/useOnlineSync";
 
 export type {
@@ -174,6 +175,7 @@ export type {
   WhatsNextActionType,
   Mission,
   MissionBuckets,
+  MissionDelta,
   Entitlements,
   PersonalizedPathCourse,
   PersonalizedPathResponse,

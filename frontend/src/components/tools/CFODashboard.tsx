@@ -117,7 +117,11 @@ type DashboardPayload = {
     scenarios: Scenario[];
     timeline: TimelinePoint[];
   };
-  ai_analysis: { text: string; source: "ai" | "fallback" };
+  ai_analysis: {
+    text: string;
+    source: "ai" | "fallback";
+    status?: "ready" | "pending";
+  };
   context: {
     monthly_contribution: number;
     real_holdings_count: number;
@@ -183,6 +187,33 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
       metadata: { surface: "web" },
     }).catch(() => undefined);
   }, [load]);
+
+  // Dashboard responds instantly with a deterministic narrative and status
+  // "pending" while the AI text generates in the background — poll the
+  // lightweight narrative endpoint until it flips to "ready".
+  const narrativePending = data?.ai_analysis?.status === "pending";
+  useEffect(() => {
+    if (!narrativePending) return undefined;
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      if (attempts > 15) {
+        window.clearInterval(timer);
+        return;
+      }
+      apiClient
+        .get("/personal-cfo/narrative/?surface=web")
+        .then((res) => {
+          const block = res.data as DashboardPayload["ai_analysis"];
+          if (block?.status === "ready") {
+            window.clearInterval(timer);
+            setData((prev) => (prev ? { ...prev, ai_analysis: block } : prev));
+          }
+        })
+        .catch(() => window.clearInterval(timer));
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [narrativePending]);
 
   const fmt = useCallback(
     (value: number, fractionDigits = 0) =>

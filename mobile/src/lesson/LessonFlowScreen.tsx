@@ -43,6 +43,7 @@ import TextSection from "../components/lesson/TextSection";
 import VideoSection from "../components/lesson/VideoSection";
 import ExerciseSection from "../components/lesson/ExerciseSection";
 import { useLessonFlow, type FlowItem } from "./useLessonFlow";
+import RewardClaimModal from "../components/engagement/RewardClaimModal";
 import LessonCheckpointModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointModal";
@@ -254,6 +255,8 @@ export default function LessonFlowScreen({
     totalSteps,
     completedIds,
     courseComplete,
+    missionCompletedNow,
+    setMissionCompletedNow,
     goNext,
     goPrev,
     handleCompleteCurrent,
@@ -795,6 +798,12 @@ export default function LessonFlowScreen({
             {t("courses.flow.backToCourses")}
           </Button>
         </View>
+        <RewardClaimModal
+          visible={missionCompletedNow != null}
+          missionName={missionCompletedNow?.name ?? ""}
+          xp={missionCompletedNow?.xp ?? 0}
+          onDismiss={() => setMissionCompletedNow(null)}
+        />
       </SafeAreaView>
     );
   }
@@ -1127,6 +1136,13 @@ export default function LessonFlowScreen({
         quizzes={checkpointRows}
         courseId={courseId}
         onDone={finishCheckpointModal}
+      />
+
+      <RewardClaimModal
+        visible={missionCompletedNow != null}
+        missionName={missionCompletedNow?.name ?? ""}
+        xp={missionCompletedNow?.xp ?? 0}
+        onDismiss={() => setMissionCompletedNow(null)}
       />
     </SafeAreaView>
   );

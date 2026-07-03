@@ -12,6 +12,7 @@ from datetime import timedelta
 
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
 
@@ -96,6 +97,44 @@ def upsert_normalized_transactions(account: LinkedAccount, transactions) -> int:
         # Force a fresh summary so dashboards reflect the new data.
         recompute_summary(account.user)
     return inserted
+
+
+@shared_task(ignore_result=True, time_limit=90)
+def generate_cfo_narrative_task(user_id: int) -> bool:
+    """Generate the AI CFO narrative off the request path and cache it.
+
+    Context is rebuilt here (not passed in) so a task that sat in the queue
+    while the user's finances changed stores the narrative under the hash of
+    the data it actually described. The per-user enqueue lock is released on
+    every exit path so a failed generation can be retried by the next view.
+    """
+
+    from budgeting.services.dashboard import (
+        CFO_NARRATIVE_CACHE_TTL,
+        build_dashboard_context,
+        context_hash,
+        generate_ai_narrative,
+        invalidate_cfo_dashboard_cache,
+        narrative_cache_key,
+    )
+
+    User = get_user_model()
+    try:
+        user = User.objects.get(pk=user_id)
+        ctx = build_dashboard_context(user)
+        text = generate_ai_narrative(user, ctx)
+        if not text:
+            return False
+        cache.set(
+            narrative_cache_key(user_id, context_hash(ctx)),
+            text,
+            CFO_NARRATIVE_CACHE_TTL,
+        )
+        # Cached dashboard payloads embed the (stale, pending) ai block.
+        invalidate_cfo_dashboard_cache(user_id)
+        return True
+    finally:
+        cache.delete(f"cfo_ai_lock:{user_id}")
 
 
 @shared_task(ignore_result=True)

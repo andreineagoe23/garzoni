@@ -102,7 +102,11 @@ export type CFODashboardPayload = {
     scenarios: Scenario[];
     timeline: TimelinePoint[];
   };
-  ai_analysis: { text: string; source: "ai" | "fallback" };
+  ai_analysis: {
+    text: string;
+    source: "ai" | "fallback";
+    status?: "ready" | "pending";
+  };
   context: {
     monthly_contribution: number;
     real_holdings_count: number;
@@ -169,6 +173,44 @@ export default function CFODashboard({ onReviewSteps, onOpenCoach }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // The dashboard returns instantly with a deterministic narrative and
+  // status "pending" while the AI text is generated in the background —
+  // poll the lightweight narrative endpoint until it flips to "ready".
+  const narrativePending = data?.ai_analysis?.status === "pending";
+  useEffect(() => {
+    if (!narrativePending) return;
+    let attempts = 0;
+    const timer = setInterval(() => {
+      attempts += 1;
+      if (attempts > 15) {
+        clearInterval(timer);
+        return;
+      }
+      void (apiClient as any)
+        .get("/personal-cfo/narrative/?surface=mobile")
+        .then(
+          (res: {
+            data: { text: string; source: string; status: string };
+          }) => {
+            if (res.data?.status === "ready") {
+              clearInterval(timer);
+              setData((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      ai_analysis:
+                        res.data as CFODashboardPayload["ai_analysis"],
+                    }
+                  : prev,
+              );
+            }
+          },
+        )
+        .catch(() => clearInterval(timer));
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [narrativePending]);
 
   if (loading) {
     return (

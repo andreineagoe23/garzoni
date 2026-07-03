@@ -183,6 +183,15 @@ if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
 # and related profile fields; when false those paths no-op.
 GAMIFICATION_RETENTION_V2 = env_bool("GAMIFICATION_RETENTION_V2", False)
 GAMIFICATION_DAILY_GOAL_TARGET_XP = int(os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50"))
+# Badge evaluation runs as a debounced Celery task after XP grants. Default
+# true (sync) in DEBUG so dev without a worker still awards badges instantly;
+# production (worker + beat running) should leave this false.
+BADGE_EVAL_SYNC = env_bool("BADGE_EVAL_SYNC", DEBUG)
+# Lazy mission assignment: MissionCompletion rows are only materialized for
+# missions the user can see (deterministic per-cycle picks + swaps), progress
+# triggers touch only those rows, and reset tasks stop re-creating the full
+# pool per user. Kill switch for the C1 rollout.
+MISSIONS_LAZY_ASSIGNMENT = env_bool("MISSIONS_LAZY_ASSIGNMENT", True)
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",

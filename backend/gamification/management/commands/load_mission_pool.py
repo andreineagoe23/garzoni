@@ -83,4 +83,7 @@ class Command(BaseCommand):
                 updated += 1
                 self.stdout.write(f"Updated: {mission.name} ({mission_type})")
 
+        from gamification.services.mission_cycles import invalidate_mission_pool_cache
+
+        invalidate_mission_pool_cache()
         self.stdout.write(self.style.SUCCESS(f"Done. Created: {created}, Updated: {updated}"))

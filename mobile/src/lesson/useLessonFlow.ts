@@ -6,9 +6,12 @@ import {
   completeLesson,
   fetchCourseFlowState,
   saveCourseFlowState,
+  mergeMissionDeltas,
   recordFunnelEvent,
   queryKeys,
   staleTimes,
+  type MissionBuckets,
+  type MissionDelta,
 } from "@garzoni/core";
 import { unwrapApiList } from "../lib/unwrapApiList";
 
@@ -63,6 +66,12 @@ export function useLessonFlow(
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [courseComplete, setCourseComplete] = useState(false);
+  // Mission the just-completed lesson finished (from the mutation response);
+  // drives the in-flow celebration sheet.
+  const [missionCompletedNow, setMissionCompletedNow] = useState<{
+    name: string;
+    xp: number;
+  } | null>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentIndexRef = useRef(0);
 
@@ -280,7 +289,7 @@ export function useLessonFlow(
 
   const completeLessonMutation = useMutation({
     mutationFn: completeLesson,
-    onSuccess: (_data, lessonId) => {
+    onSuccess: (data, lessonId) => {
       // lesson_completed funnel event is emitted server-side in
       // _complete_lesson_for_user; only the Customer.io engagement event fires here.
       void import("../bootstrap/customerIoMobile").then(
@@ -290,6 +299,27 @@ export function useLessonFlow(
       void import("../bootstrap/reviewPrompt").then(({ maybeRequestReview }) =>
         maybeRequestReview("lesson_complete"),
       );
+      // The response carries authoritative mission states for this action —
+      // merge into the missions cache so the Missions screen is already fresh,
+      // and surface the first mission this lesson finished for a celebration
+      // sheet (server-detected transition; can't re-fire on later lessons).
+      const deltas: MissionDelta[] = data?.data?.missions ?? [];
+      if (deltas.length > 0) {
+        queryClient.setQueryData<MissionBuckets | undefined>(
+          queryKeys.missions(),
+          (prev) => mergeMissionDeltas(prev, deltas),
+        );
+      }
+      const completedNow = data?.data?.missions_completed_now ?? [];
+      if (completedNow.length > 0) {
+        setMissionCompletedNow({
+          name: completedNow[0].name ?? "",
+          xp: completedNow.reduce(
+            (sum, m) => sum + (m.points_reward ?? 0),
+            0,
+          ),
+        });
+      }
       markProgressStale();
     },
   });
@@ -337,6 +367,8 @@ export function useLessonFlow(
     completedIds,
     courseComplete,
     setCourseComplete,
+    missionCompletedNow,
+    setMissionCompletedNow,
     goNext,
     goPrev,
     handleCompleteCurrent,

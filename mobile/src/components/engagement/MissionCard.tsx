@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { router, type Href } from "expo-router";
 import type { FinanceFact, Mission } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
@@ -91,6 +92,25 @@ export default function MissionCard({
   const coinUnit = isDaily ? 1 : 10;
   const target = isDaily ? 10 : 100;
 
+  // Route the user straight to the surface where this mission is earned —
+  // cards for these goal types were previously dead ends.
+  const missionCta: { label: string; route: Href } | null =
+    mission.goal_type === "complete_lesson" ||
+    mission.goal_type === "complete_path"
+      ? {
+          label:
+            mission.goal_type === "complete_path"
+              ? t("missions.cta.completePath")
+              : t("missions.cta.completeLesson"),
+          route: "/(tabs)/learn?view=personalized" as Href,
+        }
+      : mission.goal_type === "clear_review_queue"
+        ? {
+            label: t("missions.cta.review"),
+            route: "/(tabs)/exercises" as Href,
+          }
+        : null;
+
   return (
     <GlassCard padding="lg" style={{ marginBottom: spacing.md }}>
       <View style={styles.header}>
@@ -166,6 +186,20 @@ export default function MissionCard({
         </View>
       ) : (
         <View style={{ marginTop: spacing.lg, gap: spacing.md }}>
+          {missionCta ? (
+            <Pressable
+              accessibilityLabel={missionCta.label}
+              onPress={() => router.push(missionCta.route)}
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                { opacity: pressed ? 0.9 : 1, backgroundColor: c.primary },
+              ]}
+            >
+              <Text style={[styles.primaryBtnText, { color: c.textOnPrimary }]}>
+                {missionCta.label}
+              </Text>
+            </Pressable>
+          ) : null}
           {canSwap && isDaily ? (
             <Pressable
               accessibilityLabel={t("missions.swap.aria", { name: title })}

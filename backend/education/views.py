@@ -70,6 +70,11 @@ from authentication.entitlements import (
 )
 from onboarding.models import QuestionnaireProgress
 from gamification.models import MissionCompletion
+from gamification.services.missions import (
+    current_cycle_completions,
+    current_mission_deltas,
+    touch_assigned_completions,
+)
 from gamification.services.rewards import (
     COINS_COURSE_COMPLETE,
     COINS_LESSON_FIRST_COMPLETION,
@@ -746,13 +751,33 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 if not _user_can_access_path(request.user, course.path):
                     return _path_access_denied_response(course.path)
 
+            # Snapshot open mission rows before completion so the response can
+            # tell clients which missions this action finished (vs. ones that
+            # were already complete).
+            open_before = set(
+                current_cycle_completions(request.user, ["complete_lesson", "complete_path"])
+                .filter(status__in=["not_started", "in_progress"])
+                .values_list("mission_id", flat=True)
+            )
             user_progress = _complete_lesson_for_user(request.user, lesson, request=request)
             invalidate_profile_cache(request.user)
             cache.delete(f"progress_summary_{request.user.id}")
+            # Current-cycle mission states touched by this action, in
+            # /missions/ item shape — clients merge these into cache
+            # instead of polling or guessing progress.
+            mission_deltas = current_mission_deltas(
+                request.user, ["complete_lesson", "complete_path"]
+            )
             return Response(
                 {
                     "status": "Lesson completed",
                     "streak": request.user.profile.streak,
+                    "missions": mission_deltas,
+                    "missions_completed_now": [
+                        d
+                        for d in mission_deltas
+                        if d["status"] == "completed" and d["id"] in open_before
+                    ],
                 },
                 status=status.HTTP_200_OK,
             )
@@ -1583,10 +1608,8 @@ def _maybe_mark_course_complete(user, user_progress, course) -> bool:
         bump_streak="none",
     )
 
-    path_missions = MissionCompletion.objects.filter(
-        user=user,
-        mission__goal_type="complete_path",
-        status__in=["not_started", "in_progress"],
+    path_missions = touch_assigned_completions(user, ["complete_path"]).filter(
+        status__in=["not_started", "in_progress"]
     )
     for mission_completion in path_missions:
         mission_completion.update_progress()
@@ -1741,10 +1764,8 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
                     evaluate_badges=False,
                 )
 
-            lesson_missions = MissionCompletion.objects.filter(
-                user=user,
-                mission__goal_type="complete_lesson",
-                status__in=["not_started", "in_progress"],
+            lesson_missions = touch_assigned_completions(user, ["complete_lesson"]).filter(
+                status__in=["not_started", "in_progress"]
             )
             for mission_completion in lesson_missions:
                 mission_completion.update_progress()

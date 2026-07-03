@@ -1508,6 +1508,11 @@
     "empty": {
       "title": "Nicio misiune acum",
       "body": "Misiuni noi apar după următorul reset. Trage în jos pentru a reîmprospăta."
+    },
+    "cta": {
+      "completeLesson": "Continuă lecțiile",
+      "review": "Deschide recapitulările",
+      "completePath": "Vezi traseul tău"
     }
   },
   "leaderboard": {

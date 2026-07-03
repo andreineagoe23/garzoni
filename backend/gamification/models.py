@@ -375,7 +375,7 @@ class MissionCompletion(models.Model):
             if due_count == 0:
                 self.progress = 100
             else:
-                completed = target - due_count
+                completed = max(target - due_count, 0)
                 self.progress = min(int((completed / target) * 100), 100)
 
         elif goal_type == "streak_rescue":

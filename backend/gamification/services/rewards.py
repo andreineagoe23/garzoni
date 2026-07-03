@@ -51,6 +51,48 @@ STREAK_MILESTONE_REWARDS: dict[int, tuple[int, Decimal]] = {
 
 BumpStreakMode = Literal["none", "profile", "user_progress"]
 
+# Debounce window for the async badge sweep — a burst of grants (lesson +
+# sections + mission in one action) coalesces into a single evaluation.
+BADGE_EVAL_DEBOUNCE_SECONDS = 30
+
+
+def _schedule_badge_evaluation(user: User) -> None:
+    """Dispatch the badge sweep to Celery, debounced per user.
+
+    Set ``BADGE_EVAL_SYNC=true`` (or run without a broker worker in dev) to
+    force the previous inline behavior; any dispatch failure also falls back
+    inline so badge awarding can never silently stop.
+    """
+    from django.conf import settings as dj_settings
+    from django.core.cache import cache
+
+    force_sync = getattr(dj_settings, "BADGE_EVAL_SYNC", False) or getattr(
+        dj_settings, "CELERY_TASK_ALWAYS_EAGER", False
+    )
+    if not force_sync:
+        try:
+            if cache.add(f"badge_eval_pending:{user.id}", 1, BADGE_EVAL_DEBOUNCE_SECONDS):
+                from gamification.tasks import evaluate_badges_task
+
+                evaluate_badges_task.delay(user.id)
+            return
+        except Exception:
+            cache.delete(f"badge_eval_pending:{user.id}")
+            logger.warning(
+                "badge evaluation dispatch failed; falling back inline",
+                extra={"user_id": getattr(user, "id", None)},
+            )
+
+    from gamification.utils import evaluate_badges_for_user
+
+    try:
+        evaluate_badges_for_user(user)
+    except Exception:
+        logger.exception(
+            "evaluate_badges_for_user failed",
+            extra={"user_id": getattr(user, "id", None)},
+        )
+
 
 @dataclass(frozen=True)
 class GrantResult:
@@ -167,15 +209,7 @@ def grant_reward(
             _maybe_streak_milestones(user, streak_before, streak_after)
 
         if evaluate_badges:
-            from gamification.utils import evaluate_badges_for_user
-
-            try:
-                evaluate_badges_for_user(user)
-            except Exception:
-                logger.exception(
-                    "evaluate_badges_for_user failed",
-                    extra={"user_id": getattr(user, "id", None)},
-                )
+            _schedule_badge_evaluation(user)
 
         return GrantResult(granted=True, duplicate=False, points=points, coins=coins_dec)
     except IntegrityError:

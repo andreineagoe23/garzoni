@@ -7,11 +7,13 @@ import {
   fetchStreakItems,
   getUserLevel,
   markFinanceFactRead,
+  mergeMissionDeltas,
   postSavingsDeposit,
   queryKeys,
   staleTimes,
   swapMission,
   type Mission,
+  type MissionDelta,
   type StreakItemDto,
   type UserProfile,
 } from "@garzoni/core";
@@ -368,14 +370,24 @@ export default function MissionsScreen() {
       return;
     }
     try {
-      await postSavingsDeposit(amount);
+      const res = await postSavingsDeposit(amount);
       setSavingsAmount("");
       setErrors((prev) => {
         const next = { ...prev };
         delete next.savings;
         return next;
       });
-      bumpMissionProgress(["add_savings"]);
+      // Server returns authoritative mission states for this action — merge
+      // them instead of guessing progress client-side.
+      const deltas: MissionDelta[] = res.data?.missions ?? [];
+      if (deltas.length > 0) {
+        queryClient.setQueryData<MissionsResponse | undefined>(
+          queryKeys.missions(),
+          (prev) => mergeMissionDeltas(prev, deltas),
+        );
+      } else {
+        bumpMissionProgress(["add_savings"]);
+      }
       Toast.show({
         type: "success",
         text1: t("missions.toast.savingsAdded"),
@@ -383,7 +395,6 @@ export default function MissionsScreen() {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.savingsBalance(),
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.missions() });
     } catch {
       const msg = t("missions.errors.addSavings");
       setErrors((prev) => ({ ...prev, savings: msg }));

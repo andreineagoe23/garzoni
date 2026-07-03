@@ -10,6 +10,8 @@ useful even when AI is degraded or budget-exhausted.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 from dataclasses import dataclass
 from datetime import date
@@ -17,6 +19,7 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 
 from authentication.entitlements import get_user_plan
@@ -25,6 +28,13 @@ from budgeting.services.summaries import PeriodSummary, get_or_compute_summary
 from finance.models import FinancialGoal, PortfolioEntry
 
 logger = logging.getLogger(__name__)
+
+# AI narrative caching: keyed by a hash of the numbers that feed the prompt,
+# so the narrative regenerates only when the user's finances actually change.
+CFO_NARRATIVE_CACHE_TTL = 6 * 3600
+CFO_NARRATIVE_LOCK_TTL = 120
+CFO_DASHBOARD_CACHE_TTL = 60
+_DASHBOARD_SURFACES = ("web", "mobile")
 
 # Three named scenarios used across the projections card.
 PROJECTION_SCENARIOS = (
@@ -368,18 +378,43 @@ def _build_narrative(ctx: DashboardContext, surface: str = "web") -> str:
     return " ".join(pieces)
 
 
-def _maybe_ai_narrative(user, ctx: DashboardContext, surface: str) -> Dict[str, Any]:
-    """Run the OpenAI client if we have an API key + the user has plan access.
+def context_hash(ctx: DashboardContext) -> str:
+    """Stable digest of the numbers that feed the AI prompt. Values are
+    rounded so float jitter doesn't force a regeneration."""
 
-    Returns ``{ "text": str, "source": "ai" | "fallback" }``. Failures are
-    swallowed silently — we always have the deterministic narrative as a
-    backstop. The caller decides whether to consume entitlement quota."""
+    payload = {
+        "nw": round(float(ctx.net_worth), 2),
+        "sr": round(ctx.savings_rate, 1) if ctx.savings_rate is not None else None,
+        "risk": ctx.risk_score,
+        "goals": ctx.goal_count,
+        "on_track": ctx.on_track_goals,
+        "holdings": ctx.real_holdings_count,
+        "mc": round(float(ctx.monthly_contribution), 2),
+        "cur": ctx.currency,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:32]
 
-    fallback = _build_narrative(ctx, surface=surface)
+
+def narrative_cache_key(user_id: int, ctx_hash: str) -> str:
+    return f"cfo_ai:{user_id}:{ctx_hash}"
+
+
+def dashboard_cache_key(user_id: int, surface: str) -> str:
+    return f"cfo_dash:v1:{user_id}:{surface}"
+
+
+def invalidate_cfo_dashboard_cache(user_id: int) -> None:
+    for surface in _DASHBOARD_SURFACES:
+        cache.delete(dashboard_cache_key(user_id, surface))
+
+
+def generate_ai_narrative(user, ctx: DashboardContext) -> Optional[str]:
+    """Synchronous OpenAI call. Returns the narrative text or ``None`` on any
+    failure — callers always have the deterministic narrative as a backstop.
+    Runs inside the Celery task, never on the request path."""
+
     if not getattr(settings, "OPENAI_API_KEY", ""):
-        return {"text": fallback, "source": "fallback"}
-    if get_user_plan(user) not in ("plus", "pro"):
-        return {"text": fallback, "source": "fallback"}
+        return None
     try:
         from openai import OpenAI
 
@@ -412,12 +447,50 @@ def _maybe_ai_narrative(user, ctx: DashboardContext, surface: str) -> Dict[str, 
             max_tokens=320,
         )
         text = (resp.choices[0].message.content or "").strip()
-        if not text:
-            return {"text": fallback, "source": "fallback"}
-        return {"text": text, "source": "ai"}
+        return text or None
     except Exception as exc:  # pragma: no cover - external dependency
         logger.warning("cfo_dashboard_ai_failed user=%s err=%s", user.id, exc)
-        return {"text": fallback, "source": "fallback"}
+        return None
+
+
+def resolve_narrative(
+    user, ctx: DashboardContext, surface: str = "web", enqueue: bool = True
+) -> Dict[str, Any]:
+    """Cache-aside narrative resolution — never calls OpenAI on the request path.
+
+    Returns ``{"text", "source": "ai"|"fallback", "status": "ready"|"pending"}``.
+    A cache miss for an entitled user returns the deterministic fallback with
+    ``status="pending"`` and fires the background generation task (deduped by a
+    per-user lock). Clients poll /personal-cfo/narrative/ until ready.
+    """
+
+    fallback = _build_narrative(ctx, surface=surface)
+    if not getattr(settings, "OPENAI_API_KEY", ""):
+        return {"text": fallback, "source": "fallback", "status": "ready"}
+    if get_user_plan(user) not in ("plus", "pro"):
+        return {"text": fallback, "source": "fallback", "status": "ready"}
+
+    key = narrative_cache_key(user.id, context_hash(ctx))
+    cached = cache.get(key)
+    if cached:
+        return {"text": cached, "source": "ai", "status": "ready"}
+
+    if enqueue and cache.add(f"cfo_ai_lock:{user.id}", 1, CFO_NARRATIVE_LOCK_TTL):
+        try:
+            from budgeting.tasks import generate_cfo_narrative_task
+
+            generate_cfo_narrative_task.delay(user.id)
+        except Exception as exc:  # pragma: no cover - broker outage
+            logger.warning("cfo_narrative_enqueue_failed user=%s err=%s", user.id, exc)
+            cache.delete(f"cfo_ai_lock:{user.id}")
+        else:
+            # In CELERY_TASK_ALWAYS_EAGER (dev) the task ran inline — serve
+            # the fresh narrative immediately instead of reporting pending.
+            cached = cache.get(key)
+            if cached:
+                return {"text": cached, "source": "ai", "status": "ready"}
+
+    return {"text": fallback, "source": "fallback", "status": "pending"}
 
 
 def build_dashboard(user, surface: str = "web") -> Dict[str, Any]:
@@ -454,7 +527,7 @@ def build_dashboard(user, surface: str = "web") -> Dict[str, Any]:
         monthly_contribution=monthly_contribution,
         currency=currency,
     )
-    ai_block = _maybe_ai_narrative(user, ctx, surface=surface)
+    ai_block = resolve_narrative(user, ctx, surface=surface)
 
     return {
         "generated_at": timezone.now().isoformat(),

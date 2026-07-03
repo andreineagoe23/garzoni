@@ -4,6 +4,7 @@ import type {
   WhatsNextAction,
   UserProfile,
   MissionBuckets,
+  MissionDelta,
   PersonalizedPathResponse,
 } from "types/api";
 
@@ -354,8 +355,18 @@ export const postContactForm = (body: {
 export const completeSection = (sectionId: string | number) =>
   apiClient.post(`/userprogress/complete_section/`, { section_id: sectionId });
 
+export type CompleteLessonResponse = {
+  status?: string;
+  streak?: number;
+  missions?: MissionDelta[];
+  /** Missions this specific action finished (server-detected transition). */
+  missions_completed_now?: MissionDelta[];
+};
+
 export const completeLesson = (lessonId: string | number) =>
-  apiClient.post(`/userprogress/complete/`, { lesson_id: lessonId });
+  apiClient.post<CompleteLessonResponse>(`/userprogress/complete/`, {
+    lesson_id: lessonId,
+  });
 
 /**
  * Mark every published section of a course complete (flow Finish). Idempotent;
@@ -433,7 +444,11 @@ export const fetchSavingsBalance = () =>
   apiClient.get<{ balance: number }>("/savings-account/");
 
 export const postSavingsDeposit = (amount: number) =>
-  apiClient.post<{ message?: string; balance: number }>("/savings-account/", {
+  apiClient.post<{
+    message?: string;
+    balance: number;
+    missions?: MissionDelta[];
+  }>("/savings-account/", {
     amount,
   });
 

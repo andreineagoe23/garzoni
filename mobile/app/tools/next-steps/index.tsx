@@ -8,7 +8,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { Stack } from "expo-router";
+import { router, Stack, type Href } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { apiClient } from "@garzoni/core";
@@ -163,6 +163,11 @@ export default function NextStepsScreen() {
                 void handleComplete();
               }}
               onSkip={handleSkip}
+              onOpen={
+                steps[0].route
+                  ? () => router.push(steps[0].route as Href)
+                  : undefined
+              }
             />
           </Animated.View>
         )}

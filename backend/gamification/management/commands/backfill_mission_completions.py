@@ -13,6 +13,17 @@ class Command(BaseCommand):
     help = "Create MissionCompletion for every user for every mission they don't have yet"
 
     def handle(self, *args, **options):
+        from django.conf import settings
+
+        if getattr(settings, "MISSIONS_LAZY_ASSIGNMENT", False):
+            self.stdout.write(
+                self.style.WARNING(
+                    "MISSIONS_LAZY_ASSIGNMENT is on: completion rows materialize on first "
+                    "touch and the full-pool backfill would recreate the row explosion. "
+                    "Set MISSIONS_LAZY_ASSIGNMENT=false if you really need the eager backfill."
+                )
+            )
+            return
         missions = list(Mission.objects.all())
         if not missions:
             self.stdout.write(
