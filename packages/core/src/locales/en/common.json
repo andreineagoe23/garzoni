@@ -1431,7 +1431,8 @@
     },
     "tab": {
       "dailyWithCount": "Daily ({{done}}/{{total}})",
-      "weeklyWithCount": "Weekly ({{done}}/{{total}})"
+      "weeklyWithCount": "Weekly ({{done}}/{{total}})",
+      "questsWithCount": "Quests ({{count}})"
     },
     "swap": {
       "aria": "Swap mission: {{name}}",

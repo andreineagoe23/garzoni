@@ -6,14 +6,11 @@ type Props = {
   children: ReactNode;
 };
 
-/** Staggered entrance for mission list items. */
+/** Staggered entrance for mission list items — calm fade-slide, no spring bounce. */
 export default function AnimatedMissionCard({ index, children }: Props) {
   return (
     <Animated.View
-      entering={FadeInDown.springify()
-        .damping(16)
-        .stiffness(200)
-        .delay(Math.min(index * 48, 360))}
+      entering={FadeInDown.duration(260).delay(Math.min(index * 40, 240))}
     >
       {children}
     </Animated.View>

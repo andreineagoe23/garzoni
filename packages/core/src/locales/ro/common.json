@@ -1431,7 +1431,8 @@
     },
     "tab": {
       "dailyWithCount": "Zilnic ({{done}}/{{total}})",
-      "weeklyWithCount": "Săptămânal ({{done}}/{{total}})"
+      "weeklyWithCount": "Săptămânal ({{done}}/{{total}})",
+      "questsWithCount": "Aventuri ({{count}})"
     },
     "missionFallback": "Misiune",
     "purpose": {

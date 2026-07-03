@@ -84,11 +84,10 @@ const MissionCard = ({
 
   return (
     <div
-      className="app-card relative overflow-hidden p-6 group transition hover:-translate-y-1"
+      className="app-card relative flex min-h-[260px] flex-col overflow-hidden p-6"
       role="article"
       aria-labelledby={`mission-title-${mission.id}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/3 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
       <div className="relative">
         <header className="space-y-3 border-b border-border pb-4">
           <div className="flex items-center justify-between gap-4">

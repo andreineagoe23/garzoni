@@ -76,7 +76,9 @@ export default function MissionsScreen() {
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
   const [pullRefreshing, setPullRefreshing] = useState(false);
-  const [missionScope, setMissionScope] = useState<"daily" | "weekly">("daily");
+  const [missionScope, setMissionScope] = useState<
+    "daily" | "weekly" | "quests"
+  >("daily");
   const [claimModal, setClaimModal] = useState<{
     name: string;
     xp: number;
@@ -125,7 +127,9 @@ export default function MissionsScreen() {
   const weeklyMissions = missionsQuery.data?.weekly_missions ?? [];
   const multiStepMissions = missionsQuery.data?.multi_step_missions ?? [];
   const noMissionsAvailable =
-    dailyMissions.length === 0 && weeklyMissions.length === 0;
+    dailyMissions.length === 0 &&
+    weeklyMissions.length === 0 &&
+    multiStepMissions.length === 0;
   const virtualBalance = savingsQuery.data ?? 0;
   const streakItems: StreakItemDto[] = streakItemsQuery.data ?? [];
   const currentFact = factQuery.data ?? null;
@@ -532,6 +536,17 @@ export default function MissionsScreen() {
                 total: weeklyMissions.length,
               })}
             </Button>
+            {multiStepMissions.length > 0 ? (
+              <Button
+                variant={missionScope === "quests" ? "primary" : "ghost"}
+                size="sm"
+                onPress={() => setMissionScope("quests")}
+              >
+                {t("missions.tab.questsWithCount", {
+                  count: multiStepMissions.length,
+                })}
+              </Button>
+            ) : null}
           </View>
 
           <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
@@ -638,7 +653,7 @@ export default function MissionsScreen() {
             </GlassCard>
           ) : null}
 
-          {multiStepMissions.length > 0 ? (
+          {missionScope === "quests" && multiStepMissions.length > 0 ? (
             <View style={{ gap: spacing.md, marginBottom: spacing.lg }}>
               {multiStepMissions.map((mission) => {
                 const steps = mission.steps ?? [];
@@ -715,7 +730,7 @@ export default function MissionsScreen() {
             />
           ) : (
             <>
-              {missionScope === "daily" ? (
+              {missionScope === "quests" ? null : missionScope === "daily" ? (
                 <View style={styles.grid}>
                   {dailyMissions.map((m, index) => (
                     <AnimatedMissionCard

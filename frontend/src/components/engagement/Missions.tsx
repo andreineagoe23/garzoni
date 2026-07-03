@@ -51,7 +51,9 @@ function Missions() {
   const [streakItems, setStreakItems] = useState<StreakItem[]>([]);
   const [canSwap, setCanSwap] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [missionScope, setMissionScope] = useState<"daily" | "weekly">("daily");
+  const [missionScope, setMissionScope] = useState<
+    "daily" | "weekly" | "quests"
+  >("daily");
   const [adaptiveSuggestions, setAdaptiveSuggestions] = useState<{
     suggestedSavingsTarget: number;
     learningStyle: string;
@@ -461,7 +463,9 @@ function Missions() {
   const allDailyCompleted =
     dailyMissions.length > 0 && dailyMissionsRemaining === 0;
   const noMissionsAvailable =
-    dailyMissions.length === 0 && weeklyMissions.length === 0;
+    dailyMissions.length === 0 &&
+    weeklyMissions.length === 0 &&
+    multiStepMissions.length === 0;
 
   const rawStreakCount = profile?.user_data?.streak ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
@@ -606,59 +610,6 @@ function Missions() {
           </GlassCard>
         )}
 
-        {multiStepMissions.length > 0 && (
-          <div className="grid gap-4">
-            {multiStepMissions.map((mission) => {
-              const steps = mission.steps || [];
-              const done = steps.filter((step) => step.completed).length;
-              return (
-                <GlassCard key={mission.id} padding="lg" className="">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <p className="app-eyebrow mb-1">Story mission</p>
-                      <h2 className="text-xl font-semibold text-content-primary">
-                        {mission.name}
-                      </h2>
-                      <p className="mt-1 text-sm text-content-muted">
-                        {mission.description}
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
-                      {done}/{steps.length} steps
-                    </span>
-                  </div>
-                  <div className="mt-4 grid gap-2">
-                    {steps.map((step, index) => (
-                      <div
-                        key={step.id || index}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-border-default)] px-4 py-3"
-                      >
-                        <div>
-                          <p className="text-sm font-semibold text-content-primary">
-                            {step.title}
-                          </p>
-                          <p className="text-xs uppercase tracking-wide text-content-muted">
-                            {step.type}
-                          </p>
-                        </div>
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            step.completed
-                              ? "bg-emerald-500/10 text-emerald-600"
-                              : "bg-surface-page text-content-muted"
-                          }`}
-                        >
-                          {step.completed ? "Done" : "Next"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
-              );
-            })}
-          </div>
-        )}
-
         {!missionsLoading && !noMissionsAvailable && (
           <div className="flex flex-wrap gap-2">
             <button
@@ -691,6 +642,21 @@ function Missions() {
                 total: weeklyMissions.length,
               })}
             </button>
+            {multiStepMissions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMissionScope("quests")}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  missionScope === "quests"
+                    ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
+                    : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
+                }`}
+              >
+                {t("missions.tab.questsWithCount", {
+                  count: multiStepMissions.length,
+                })}
+              </button>
+            )}
           </div>
         )}
 
@@ -709,7 +675,58 @@ function Missions() {
           </GlassCard>
         ) : (
           <>
-            {missionScope === "daily" ? (
+            {missionScope === "quests" ? (
+              <div className="grid gap-4">
+                {multiStepMissions.map((mission) => {
+                  const steps = mission.steps || [];
+                  const done = steps.filter((step) => step.completed).length;
+                  return (
+                    <GlassCard key={mission.id} padding="lg" className="">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="app-eyebrow mb-1">Story mission</p>
+                          <h2 className="text-xl font-semibold text-content-primary">
+                            {mission.name}
+                          </h2>
+                          <p className="mt-1 text-sm text-content-muted">
+                            {mission.description}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
+                          {done}/{steps.length} steps
+                        </span>
+                      </div>
+                      <div className="mt-4 grid gap-2">
+                        {steps.map((step, index) => (
+                          <div
+                            key={step.id || index}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-border-default)] px-4 py-3"
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-content-primary">
+                                {step.title}
+                              </p>
+                              <p className="text-xs uppercase tracking-wide text-content-muted">
+                                {step.type}
+                              </p>
+                            </div>
+                            <span
+                              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
+                                step.completed
+                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  : "bg-surface-page text-content-muted"
+                              }`}
+                            >
+                              {step.completed ? "Done" : "Next"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  );
+                })}
+              </div>
+            ) : missionScope === "daily" ? (
               <div className="grid gap-6 md:grid-cols-2">
                 {dailyMissions.length > 0 ? (
                   dailyMissions.map((mission, index) => (
