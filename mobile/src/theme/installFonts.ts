@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TextInput, type TextStyle } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  type TextStyle,
+} from "react-native";
 
 /**
  * Global Inter font installer.
@@ -64,13 +70,30 @@ export function installGlobalInterFont(): void {
       const flat = (StyleSheet.flatten((props as { style?: unknown }).style) ??
         {}) as TextStyle;
 
+      const patch: TextStyle = {};
       // Respect explicit font families (mono / display tokens, icon fonts).
-      if (flat.fontFamily) return originalRender.call(this, props, ref);
+      if (!flat.fontFamily) {
+        patch.fontFamily = interFamily(
+          flat.fontWeight,
+          flat.fontStyle === "italic",
+        );
+      }
+      // Android reserves extra ascent/descent per line by default, which makes
+      // text sit low inside buttons/chips compared to iOS. Strip it for iOS
+      // vertical-metrics parity unless a style opts back in.
+      if (
+        Platform.OS === "android" &&
+        flat.includeFontPadding === undefined
+      ) {
+        patch.includeFontPadding = false;
+      }
+      if (Object.keys(patch).length === 0) {
+        return originalRender.call(this, props, ref);
+      }
 
-      const family = interFamily(flat.fontWeight, flat.fontStyle === "italic");
       const nextProps = {
         ...props,
-        style: [(props as { style?: unknown }).style, { fontFamily: family }],
+        style: [(props as { style?: unknown }).style, patch],
       };
       return originalRender.call(this, nextProps, ref);
     };

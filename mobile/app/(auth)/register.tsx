@@ -324,15 +324,35 @@ export default function RegisterScreen() {
 
       <DarkDivider label={t("auth.orContinueWith")} />
 
+      {/* Social sign-in is tap-to-consent (like the login screen): tapping the
+          button accepts Terms/Privacy + 16+, with the notice below as the legal
+          basis. The checkboxes above only gate the email/password form. */}
       <AuthSocialSection
-        consent={canSubmit ? { accept_terms: true, age_confirmed: true } : null}
-        gatedMessage={t("auth.register.acceptToContinue")}
+        consent={{ accept_terms: true, age_confirmed: true }}
         onSuccess={async (access, refresh, meta) => {
           await applyTokens(access, refresh);
           replaceAfterSocialAuth(meta?.next);
         }}
         onError={(m) => setError(m)}
       />
+
+      <Text style={styles.socialTerms}>
+        {t("auth.socialTermsPrefix")}{" "}
+        <Text
+          style={styles.socialTermsLink}
+          onPress={() => router.push("/legal/terms")}
+        >
+          {t("auth.register.termsLink")}
+        </Text>
+        {t("auth.register.agreeJoin")}{" "}
+        <Text
+          style={styles.socialTermsLink}
+          onPress={() => router.push("/legal/privacy")}
+        >
+          {t("auth.register.privacyLink")}
+        </Text>
+        .
+      </Text>
 
       <View style={styles.bottomRow}>
         <Text style={styles.bottomText}>{t("auth.register.hasAccount")} </Text>
@@ -379,4 +399,12 @@ const styles = StyleSheet.create({
   consentTextWrap: { flex: 1 },
   consentText: { fontSize: 13, color: DARK.muted, lineHeight: 19 },
   consentLink: { color: DARK.primaryBright, fontWeight: "600" },
+  socialTerms: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: DARK.muted,
+    textAlign: "center",
+    marginTop: 12,
+  },
+  socialTermsLink: { color: DARK.primaryBright, fontWeight: "600" },
 });

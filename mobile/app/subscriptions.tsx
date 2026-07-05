@@ -47,6 +47,7 @@ import {
 } from "../src/billing/subscriptionRuntime";
 import { useAuthSession } from "../src/auth/AuthContext";
 import { userIdFromAccessToken } from "../src/auth/jwtClaims";
+import { trackEvent } from "../src/lib/analytics";
 
 // ─── Design constants (brand-specific, always dark) ──────────────────────────
 
@@ -583,6 +584,18 @@ export default function SubscriptionsScreen() {
     String(modeParam ?? "").toLowerCase() === "paywall" || legacyPaywall;
 
   const rcNative = useMemo(() => getRevenueCatPurchases() !== null, []);
+
+  // Paywall visibility — without this, mobile paywall drop-off is invisible
+  // in the funnel (web fires pricing_view from SubscriptionPlansPage).
+  const pricingViewSentRef = useRef(false);
+  useEffect(() => {
+    if (pricingViewSentRef.current) return;
+    pricingViewSentRef.current = true;
+    trackEvent("pricing_view", {
+      source: isPaywall ? "onboarding_paywall" : "in_app",
+    });
+  }, [isPaywall]);
+
   const [cycle, setCycle] = useState<Cycle>("yearly");
   const [plusPkgs, setPlusPkgs] = useState<PurchasesPackage[] | null>(null);
   const [proPkgs, setProPkgs] = useState<PurchasesPackage[] | null>(null);
@@ -658,6 +671,11 @@ export default function SubscriptionsScreen() {
       if (!rc) return;
       setPurchasingTier(tier);
       setPurchaseError(null);
+      trackEvent("upgrade_click", {
+        tier,
+        package: pkg.identifier,
+        source: isPaywall ? "onboarding_paywall" : "in_app",
+      });
       try {
         // 0. Identity MUST be the numeric Django PK before purchasing, so the
         //    receipt + webhook are attributed to the user the backend grants by
@@ -712,6 +730,11 @@ export default function SubscriptionsScreen() {
 
         if (entitlements && planRank(entitlements.plan) >= 1) {
           setPurchaseStep("success");
+          trackEvent("checkout_completed", {
+            tier,
+            package: pkg.identifier,
+            store: "revenuecat",
+          });
           // Warm the personalized-path cache during the success animation so
           // the user lands on a loaded screen instead of a spinner.
           void queryClient.prefetchQuery({
@@ -744,10 +767,22 @@ export default function SubscriptionsScreen() {
         ) {
           setPurchasingTier(null);
           setPurchaseStep("idle");
+          trackEvent("checkout_expired", {
+            tier,
+            package: pkg.identifier,
+            store: "revenuecat",
+            reason: "user_cancelled",
+          });
           return;
         }
         setPurchaseError(err.message ?? "Please try again.");
         setPurchaseStep("error");
+        trackEvent("checkout_failed", {
+          tier,
+          package: pkg.identifier,
+          store: "revenuecat",
+          code: err.code ?? "unknown",
+        });
       }
     },
     [isPaywall, queryClient, backendUserId, accessToken],
@@ -1045,7 +1080,10 @@ export default function SubscriptionsScreen() {
             {isPaywall && (
               <View style={styles.skipWrap}>
                 <Pressable
-                  onPress={() => router.replace("/(tabs)")}
+                  onPress={() => {
+                    trackEvent("cta_click", { cta: "paywall_skip" });
+                    router.replace("/(tabs)");
+                  }}
                   accessibilityRole="button"
                   hitSlop={12}
                 >

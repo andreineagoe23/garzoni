@@ -368,6 +368,10 @@ class GoogleOAuthCallbackView(APIView):
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
 
+        from authentication.services.profile_analytics import record_token_login
+
+        record_token_login(user, request)
+
         # New users go to onboarding; existing use state or default to all-topics
         if is_new_user:
             next_path = "onboarding"
@@ -544,6 +548,11 @@ class GoogleCredentialAuthView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
+
+        from authentication.services.profile_analytics import record_token_login
+
+        record_token_login(user, request)
+
         next_path = "onboarding" if is_new_user else (state or "all-topics")
         next_path = next_path.lstrip("/")
 

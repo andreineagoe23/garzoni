@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import type { DuelRecord } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";

@@ -67,6 +67,10 @@ def change_password(request):
     new_access = str(refresh.access_token)
     new_refresh = str(refresh)
 
+    from authentication.services.profile_analytics import record_token_login
+
+    record_token_login(user, request)
+
     def _enqueue_changed_notice():
         uid = user.pk
         idem = f"pwd_changed:{uid}:{timezone.now().date().isoformat()}"

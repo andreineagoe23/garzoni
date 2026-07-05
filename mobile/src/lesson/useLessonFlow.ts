@@ -7,13 +7,14 @@ import {
   fetchCourseFlowState,
   saveCourseFlowState,
   mergeMissionDeltas,
-  recordFunnelEvent,
   queryKeys,
+  trackAnalyticsEvent,
   staleTimes,
   type MissionBuckets,
   type MissionDelta,
 } from "@garzoni/core";
 import { unwrapApiList } from "../lib/unwrapApiList";
+import { trackEvent } from "../lib/analytics";
 
 export type FlowSection = {
   id: number | string;
@@ -233,9 +234,7 @@ export function useLessonFlow(
     if (!lessonId || !Number.isFinite(lessonId)) return;
     if (startedLessonIdsRef.current.has(lessonId)) return;
     startedLessonIdsRef.current.add(lessonId);
-    void recordFunnelEvent("lesson_started", {
-      metadata: { lesson_id: lessonId, course_id: courseId },
-    });
+    trackEvent("lesson_started", { lesson_id: lessonId, course_id: courseId });
   }, [currentItem?.lessonId, courseId]);
 
   // Keep ref in sync so unmount handler sees latest index without stale closure.
@@ -280,8 +279,9 @@ export function useLessonFlow(
     // The flow UI tracks completion locally via completedIds; remote queries
     // are only marked stale and refetch in one burst when the flow exits.
     onSuccess: (_data, sectionId) => {
-      void recordFunnelEvent("section_completed", {
-        metadata: { section_id: Number(sectionId), course_id: courseId },
+      trackEvent("section_completed", {
+        section_id: Number(sectionId),
+        course_id: courseId,
       });
       markProgressStale();
     },
@@ -291,7 +291,12 @@ export function useLessonFlow(
     mutationFn: completeLesson,
     onSuccess: (data, lessonId) => {
       // lesson_completed funnel event is emitted server-side in
-      // _complete_lesson_for_user; only the Customer.io engagement event fires here.
+      // _complete_lesson_for_user; fire Amplitude + Customer.io client-side only
+      // (recordFunnelEvent here would double-count in the funnel).
+      trackAnalyticsEvent("lesson_completed", {
+        lesson_id: lessonId,
+        course_id: courseId,
+      });
       void import("../bootstrap/customerIoMobile").then(
         ({ trackGarzoniEvent }) =>
           trackGarzoniEvent("lesson_completed", { lesson_id: lessonId }),

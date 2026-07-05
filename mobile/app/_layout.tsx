@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { router, Stack, usePathname, useSegments } from "expo-router";
 import { LinkPreviewContextProvider } from "expo-router/build/link/preview/LinkPreviewContext";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Platform, Dimensions } from "react-native";
+import * as NavigationBar from "expo-navigation-bar";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { Sentry } from "../src/bootstrap/sentryMobile";
 import Toast from "react-native-toast-message";
 import {
@@ -66,6 +68,39 @@ function ThemedRoot() {
   const insets = useSafeAreaInsets();
   const [shakeModalVisible, setShakeModalVisible] = useState(false);
   useNativeOnlineSync();
+
+  // Android edge-to-edge: the tab bar draws its own background behind the
+  // system navigation bar, so we disable the contrast scrim (androidNavigationBar
+  // .enforceContrast:false) to avoid a grey band on 3-button-nav phones. That
+  // means we must drive the nav-bar button color ourselves so the icons stay
+  // legible against `colors.bg` — light buttons on dark theme, dark on light.
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void NavigationBar.setButtonStyleAsync(
+      resolved === "dark" ? "light" : "dark",
+    );
+  }, [resolved]);
+
+  // iOS phones are portrait-locked via Info.plist while the Android manifest
+  // must stay orientation-unrestricted (Play flags manifest locks on Android
+  // 16 large screens). Lock at runtime instead, but only on phone-sized
+  // windows — tablets/unfolded foldables (smallest side ≥ 600dp) stay free,
+  // matching the iPad behaviour.
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const apply = ({ width, height }: { width: number; height: number }) => {
+      void (Math.min(width, height) < 600
+        ? ScreenOrientation.lockAsync(
+            ScreenOrientation.OrientationLock.PORTRAIT_UP,
+          )
+        : ScreenOrientation.unlockAsync());
+    };
+    apply(Dimensions.get("screen"));
+    const sub = Dimensions.addEventListener("change", ({ screen }) =>
+      apply(screen),
+    );
+    return () => sub.remove();
+  }, []);
 
   // Global auth guard. Without it the only auth check lives in `index.tsx`
   // (the `/` route), so every other screen — tools, (tabs), chat — renders

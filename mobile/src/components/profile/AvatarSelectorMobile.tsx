@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -8,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";

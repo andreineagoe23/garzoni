@@ -2,6 +2,8 @@ export const ANALYTICS_EVENTS = [
   "pricing_view",
   "checkout_created",
   "checkout_completed",
+  "checkout_expired",
+  "checkout_failed",
   "entitlement_lookup",
   "webhook_received",
   "dashboard_view",

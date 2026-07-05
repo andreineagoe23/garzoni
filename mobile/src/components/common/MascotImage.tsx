@@ -1,5 +1,6 @@
 import React from "react";
-import { Image, type ImageStyle, type StyleProp } from "react-native";
+import type { StyleProp } from "react-native";
+import { Image, type ImageStyle } from "expo-image";
 import { mascotImageUrl } from "@garzoni/core";
 
 export type MascotType = "owl" | "bull" | "bear";
@@ -16,7 +17,8 @@ export default function MascotImage({ mascot, size = 72, style }: Props) {
   return (
     <Image
       source={{ uri }}
-      style={[{ width: size, height: size, resizeMode: "contain" }, style]}
+      contentFit="contain"
+      style={[{ width: size, height: size }, style]}
       accessibilityIgnoresInvertColors
     />
   );

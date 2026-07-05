@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import type { BadgeCatalogItem, UserBadgeItem } from "@garzoni/core";
 import { getMediaBaseUrl } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
@@ -49,7 +50,7 @@ export default function BadgeGrid({ catalog, earned }: Props) {
             ]}
           >
             {uri ? (
-              <Image source={{ uri }} style={styles.img} resizeMode="contain" />
+              <Image source={{ uri }} style={styles.img} contentFit="contain" />
             ) : (
               <View
                 style={[styles.img, { backgroundColor: c.surfaceOffset }]}

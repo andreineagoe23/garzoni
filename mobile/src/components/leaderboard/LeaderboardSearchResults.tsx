@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { queryKeys, searchUsers, type UserSearchResult } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";

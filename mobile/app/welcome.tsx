@@ -10,6 +10,7 @@ import {
   View,
   type ViewToken,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, {
@@ -517,7 +518,7 @@ function WelcomeWordmark() {
   }
 
   return (
-    <Image
+    <ExpoImage
       accessibilityLabel="Garzoni"
       accessibilityRole="header"
       source={{ uri }}
@@ -526,7 +527,7 @@ function WelcomeWordmark() {
         height: imgH,
         alignSelf: "flex-start",
       }}
-      resizeMode="contain"
+      contentFit="contain"
       onError={() => setFailed(true)}
     />
   );

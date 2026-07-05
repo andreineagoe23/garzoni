@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db import transaction
+from django.db.models import Count, Max
 from django.http import HttpResponse
 from django.utils import timezone
 
@@ -41,7 +42,7 @@ class UserProfileInline(ReadOnlyInline, admin.StackedInline):
     fk_name = "user"
     verbose_name_plural = "Profile (billing & engagement)"
     fields = (
-        ("signup_platform", "last_seen_platform"),
+        ("signup_platform", "last_seen_platform", "last_seen_at"),
         ("is_premium", "has_paid"),
         ("subscription_plan_id", "subscription_status", "trial_end"),
         ("stripe_customer_id", "stripe_subscription_id", "apple_sub"),
@@ -53,6 +54,7 @@ class UserProfileInline(ReadOnlyInline, admin.StackedInline):
     readonly_fields = (
         "signup_platform",
         "last_seen_platform",
+        "last_seen_at",
         "is_premium",
         "has_paid",
         "subscription_plan_id",
@@ -135,24 +137,29 @@ class UserAdmin(BaseUserAdmin):
     list_display = (
         "username_display",
         "email",
-        "first_name_display",
-        "last_name_display",
         "subscription_status_display",
         "is_premium_display",
         "streak_display",
-        "last_active_display",
-        "is_staff",
+        "lessons_done_display",
+        "last_lesson_at_display",
+        "points_display",
+        "onboarded_display",
+        "platform_display",
+        "last_seen_display",
         "date_joined",
-        "last_login",
     )
+    ordering = ("-date_joined",)
+    date_hierarchy = "date_joined"
     list_filter = (
-        "is_staff",
-        "is_superuser",
-        "is_active",
-        "date_joined",
+        ("profile__onboarding_completed_at", admin.EmptyFieldListFilter),
+        ("profile__first_lesson_at", admin.EmptyFieldListFilter),
         "profile__is_premium",
         "profile__subscription_status",
         "profile__signup_platform",
+        "profile__last_seen_platform",
+        "is_staff",
+        "is_active",
+        "date_joined",
     )
     search_fields = (
         "username",
@@ -164,49 +171,140 @@ class UserAdmin(BaseUserAdmin):
         "profile__apple_sub",
         "profile__referral_code",
     )
+    actions = ["export_users_csv"]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("profile")
+        # Annotate engagement aggregates so the columns are sortable and the
+        # list renders without N+1 queries. Both aggregates ride the same
+        # LessonCompletion join, so no cross-product inflation.
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("profile")
+            .annotate(
+                _lessons_done=Count("user_progress__lessoncompletion", distinct=True),
+                _last_lesson_at=Max("user_progress__lessoncompletion__completed_at"),
+            )
+        )
 
+    @admin.display(description="username", ordering="username")
     def username_display(self, obj):
         return normalize_display_string(obj.username)
 
-    username_display.short_description = "username"
-
-    def first_name_display(self, obj):
-        return normalize_display_string(obj.first_name)
-
-    first_name_display.short_description = "First name"
-
-    def last_name_display(self, obj):
-        return normalize_display_string(obj.last_name)
-
-    last_name_display.short_description = "Last name"
-
+    @admin.display(description="Sub status", ordering="profile__subscription_status")
     def subscription_status_display(self, obj):
         profile = getattr(obj, "profile", None)
         return profile.subscription_status if profile else "—"
 
-    subscription_status_display.short_description = "Sub status"
-
+    @admin.display(description="Premium", ordering="profile__is_premium", boolean=True)
     def is_premium_display(self, obj):
         profile = getattr(obj, "profile", None)
         return bool(profile and profile.is_premium)
 
-    is_premium_display.short_description = "Premium"
-    is_premium_display.boolean = True
-
+    @admin.display(description="Streak", ordering="profile__streak")
     def streak_display(self, obj):
         profile = getattr(obj, "profile", None)
         return profile.streak if profile else "—"
 
-    streak_display.short_description = "Streak"
+    @admin.display(description="Lessons", ordering="_lessons_done")
+    def lessons_done_display(self, obj):
+        return obj._lessons_done
 
-    def last_active_display(self, obj):
+    @admin.display(description="Last lesson", ordering="_last_lesson_at")
+    def last_lesson_at_display(self, obj):
+        # Prefer the exact completion timestamp; legacy accounts may only have
+        # the profile date (set before LessonCompletion rows were reliable).
+        if obj._last_lesson_at:
+            return timezone.localtime(obj._last_lesson_at).strftime("%Y-%m-%d %H:%M")
         profile = getattr(obj, "profile", None)
         return profile.last_completed_date if profile else None
 
-    last_active_display.short_description = "Last lesson"
+    @admin.display(description="XP", ordering="profile__points")
+    def points_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.points if profile else "—"
+
+    @admin.display(
+        description="Onboarded", ordering="profile__onboarding_completed_at", boolean=True
+    )
+    def onboarded_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        return bool(profile and profile.onboarding_completed_at)
+
+    @admin.display(description="Platform", ordering="profile__signup_platform")
+    def platform_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        if not profile:
+            return "—"
+        signup = profile.signup_platform or "?"
+        seen = profile.last_seen_platform
+        if seen and seen != signup:
+            return f"{signup}→{seen}"
+        return signup
+
+    @admin.display(description="Last seen", ordering="profile__last_seen_at")
+    def last_seen_display(self, obj):
+        profile = getattr(obj, "profile", None)
+        last = profile.last_seen_at if profile else None
+        # Fall back to last_login for accounts predating last_seen_at tracking.
+        last = last or obj.last_login
+        if not last:
+            return "—"
+        return timezone.localtime(last).strftime("%Y-%m-%d %H:%M")
+
+    @admin.action(description="Export selected users as CSV (engagement)")
+    def export_users_csv(self, request, queryset):
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="users_engagement.csv"'
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                "username",
+                "email",
+                "sub_status",
+                "is_premium",
+                "streak",
+                "lessons_completed",
+                "last_lesson_at",
+                "xp",
+                "onboarding_completed_at",
+                "first_lesson_at",
+                "signup_platform",
+                "last_seen_platform",
+                "last_seen_at",
+                "date_joined",
+            ]
+        )
+        for user in queryset.select_related("profile"):
+            profile = getattr(user, "profile", None)
+            last_lesson = getattr(user, "_last_lesson_at", None)
+            writer.writerow(
+                [
+                    user.username,
+                    user.email,
+                    profile.subscription_status if profile else "",
+                    bool(profile and profile.is_premium),
+                    profile.streak if profile else "",
+                    getattr(user, "_lessons_done", ""),
+                    last_lesson.isoformat() if last_lesson else "",
+                    profile.points if profile else "",
+                    (
+                        profile.onboarding_completed_at.isoformat()
+                        if profile and profile.onboarding_completed_at
+                        else ""
+                    ),
+                    (
+                        profile.first_lesson_at.isoformat()
+                        if profile and profile.first_lesson_at
+                        else ""
+                    ),
+                    profile.signup_platform if profile else "",
+                    profile.last_seen_platform if profile else "",
+                    (profile.last_seen_at.isoformat() if profile and profile.last_seen_at else ""),
+                    user.date_joined.isoformat(),
+                ]
+            )
+        return response
 
 
 admin.site.unregister(User)
@@ -291,6 +389,7 @@ class UserProfileAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
         "apple_sub",
     )
     readonly_fields = (
+        "last_seen_at",
         "earned_money",
         "points",
         "referral_points",
@@ -326,6 +425,7 @@ class UserProfileAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
                     "referral_code",
                     "signup_platform",
                     "last_seen_platform",
+                    "last_seen_at",
                     "age_confirmed",
                     "dark_mode",
                     "email_reminder_preference",

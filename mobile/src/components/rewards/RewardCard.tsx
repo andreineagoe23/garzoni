@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
@@ -43,7 +44,7 @@ export default function RewardCard({
     >
       <GlassCard padding="md">
         {uri ? (
-          <Image source={{ uri }} style={styles.img} resizeMode="cover" />
+          <Image source={{ uri }} style={styles.img} contentFit="cover" />
         ) : null}
         <Text style={[styles.title, { color: c.text }]}>{title}</Text>
         {item.description ? (

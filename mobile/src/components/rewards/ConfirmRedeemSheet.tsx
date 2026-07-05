@@ -1,4 +1,5 @@
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { getMediaBaseUrl } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../theme/tokens";
@@ -52,7 +53,7 @@ export default function ConfirmRedeemSheet({
 
           {/* Image */}
           {uri ? (
-            <Image source={{ uri }} style={styles.img} resizeMode="cover" />
+            <Image source={{ uri }} style={styles.img} contentFit="cover" />
           ) : (
             <Text style={styles.emoji}>🎁</Text>
           )}

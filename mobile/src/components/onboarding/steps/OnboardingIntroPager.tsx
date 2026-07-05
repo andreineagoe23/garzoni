@@ -11,7 +11,6 @@ import {
   Animated,
   Dimensions,
   Easing,
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -20,6 +19,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { ImpactFeedbackStyle } from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
@@ -59,7 +59,7 @@ function IntroLogo() {
     <Image
       accessibilityLabel="Garzoni"
       source={{ uri }}
-      resizeMode="contain"
+      contentFit="contain"
       style={styles.logo}
       onError={() => setFailed(true)}
     />

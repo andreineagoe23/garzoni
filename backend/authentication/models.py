@@ -121,6 +121,9 @@ class UserProfile(models.Model):
     signup_platform = models.CharField(max_length=16, blank=True, default="")
     # Last client seen on an authenticated request (updated at login + throttled middleware).
     last_seen_platform = models.CharField(max_length=16, blank=True, default="")
+    # Last authenticated request timestamp (throttled to ~hourly by middleware).
+    # auth.last_login only moves on token issuance; this shows real app usage.
+    last_seen_at = models.DateTimeField(null=True, blank=True)
     # Set when onboarding questionnaire completes; powers signup → onboarding funnel.
     onboarding_completed_at = models.DateTimeField(null=True, blank=True)
     # First lesson completion timestamp; powers time-to-activate metrics.

@@ -194,6 +194,9 @@ module.exports = ({ config }) => ({
   },
   plugins: [
     ...(Array.isArray(config.plugins) ? config.plugins : []),
+    // Strip the portrait/orientation lock off the transitive ML Kit barcode
+    // activity so Android 16 large-screen devices aren't flagged by Play.
+    "./plugins/withLargeScreenSupport",
     [
       "@sentry/react-native/expo",
       {
@@ -202,6 +205,28 @@ module.exports = ({ config }) => ({
         // Do not use `sentry-wizard -i ios` here — Expo uses @sentry/react-native (see sentryMobile.ts).
         organization: process.env.SENTRY_ORG ?? "garzoni",
         project: resolveSentryProject(),
+      },
+    ],
+    [
+      "expo-splash-screen",
+      {
+        // The legacy top-level `splash` key is ignored by SDK 54 prebuild on
+        // Android 12+ (theme got no windowSplashScreenAnimatedIcon), so the OS
+        // fell back to the launcher icon cropped by the circular mask — the
+        // "zoomed logo" splash. This plugin generates the proper v31 styles.
+        backgroundColor: "#0b0f14",
+        image: "./assets/garzoni-logo-square-no-bg.png",
+        resizeMode: "contain",
+        android: {
+          // Android 12+ masks the splash icon to a circle (safe zone ≈160dp
+          // diameter). The wordmark is wide (1080×312 px in a 1200px square),
+          // so cap it at 150dp: half-diagonal ≈78dp stays inside the mask.
+          imageWidth: 150,
+        },
+        ios: {
+          // Keep the existing iOS look: full-screen aspect-fit wordmark.
+          enableFullScreenImage_legacy: true,
+        },
       },
     ],
     "expo-router",
@@ -213,7 +238,10 @@ module.exports = ({ config }) => ({
     [
       "expo-notifications",
       {
-        icon: "./assets/icon.png",
+        // Android status-bar small icon uses ONLY the alpha channel (system
+        // tints it); a fully opaque icon renders as a solid square. Must be a
+        // transparent-background silhouette.
+        icon: "./assets/notification-icon.png",
         color: "#01696f",
       },
     ],

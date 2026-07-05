@@ -40,7 +40,7 @@ class RequestIdMiddleware:
 
 
 class LastSeenPlatformMiddleware:
-    """Update profile.last_seen_platform at most once per user per hour."""
+    """Stamp profile.last_seen_at (+ platform) at most once per user per hour."""
 
     CACHE_TTL_SECONDS = 3600
 
@@ -55,17 +55,15 @@ class LastSeenPlatformMiddleware:
 
         from django.core.cache import cache
 
-        from authentication.services.profile_analytics import update_last_seen_platform
+        from authentication.services.profile_analytics import touch_last_seen
         from core.request_platform import resolve_request_platform
 
         platform = resolve_request_platform(request)
-        if not platform:
-            return response
 
-        cache_key = f"garzoni:last_seen_platform:{user.pk}:{platform}"
+        cache_key = f"garzoni:last_seen:{user.pk}"
         if cache.get(cache_key):
             return response
 
-        if update_last_seen_platform(user, platform):
+        if touch_last_seen(user, platform):
             cache.set(cache_key, 1, self.CACHE_TTL_SECONDS)
         return response

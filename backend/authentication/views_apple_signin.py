@@ -257,6 +257,11 @@ class AppleIdentityAuthView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
+
+        from authentication.services.profile_analytics import record_token_login
+
+        record_token_login(user, request)
+
         if is_new_user:
             next_path = "onboarding"
         else:

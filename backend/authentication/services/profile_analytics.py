@@ -70,3 +70,37 @@ def update_last_seen_platform(user: User, platform: str) -> bool:
         .update(last_seen_platform=platform)
     )
     return bool(updated)
+
+
+def touch_last_seen(user: User, platform: str = "") -> bool:
+    """Stamp profile.last_seen_at (and platform when valid) on authenticated activity.
+
+    Called from LastSeenPlatformMiddleware (throttled to ~once per hour per user)
+    so admins can see real app activity — auth.last_login only moves on token
+    issuance, not on continued sessions kept alive by refresh rotation.
+    """
+    platform = (platform or "").strip().lower()
+    values: dict = {"last_seen_at": timezone.now()}
+    if platform in {"web", "ios", "android"}:
+        values["last_seen_platform"] = platform
+    return bool(UserProfile.objects.filter(user=user).update(**values))
+
+
+def record_token_login(user: User, request=None) -> None:
+    """Mark a successful login for flows that mint JWTs directly.
+
+    Register, Google OAuth, Apple Sign-In and post-password-reset all call
+    RefreshToken.for_user(), which — unlike TokenObtainPairView — never updates
+    auth.last_login. Without this, those users show "Last login: -" in admin
+    forever. Mirrors the user_logged_in signal handler's bookkeeping.
+    """
+    now = timezone.now()
+    user.last_login = now
+    user.save(update_fields=["last_login"])
+    sync_last_login_date(user, when=now)
+    platform = ""
+    if request is not None:
+        from core.request_platform import resolve_request_platform
+
+        platform = resolve_request_platform(request)
+    touch_last_seen(user, platform)

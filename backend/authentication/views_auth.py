@@ -345,6 +345,10 @@ class LoginSecureView(APIView):
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
 
+            from authentication.services.profile_analytics import record_token_login
+
+            record_token_login(user, request)
+
             logger.info("Successful login for %s", mask_identifier(username))
 
             response = Response(
@@ -442,6 +446,11 @@ class RegisterSecureView(generics.CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
+
+        from authentication.services.profile_analytics import record_token_login
+
+        record_token_login(user, request)
+
         logger.info(
             "Register success user_id=%s username=%s",
             user.id,

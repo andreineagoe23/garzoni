@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
 import {
-  Image,
   LayoutAnimation,
   Pressable,
   ScrollView,
@@ -8,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import {

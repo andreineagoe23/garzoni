@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import {
   FlatList,
-  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import {
   fetchFriendActivityFeed,

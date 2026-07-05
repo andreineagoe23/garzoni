@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { authBrand } from "../../theme/authBrand";
 import { brand } from "../../theme/brand";
@@ -34,7 +35,7 @@ export default function AuthScreenLayout({
         <Image
           source={{ uri: backgroundUri as string }}
           style={StyleSheet.absoluteFill}
-          resizeMode="cover"
+          contentFit="cover"
         />
       ) : (
         <View

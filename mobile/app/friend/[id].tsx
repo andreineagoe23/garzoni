@@ -3,13 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
   Alert,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import {
   fetchPublicProfile,
@@ -501,7 +501,7 @@ function BadgesStrip({
                   <Image
                     source={{ uri: img }}
                     style={styles.badgeImage}
-                    resizeMode="contain"
+                    contentFit="contain"
                   />
                 ) : (
                   <View

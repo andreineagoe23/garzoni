@@ -50,6 +50,9 @@
         "aps-environment": "production"
       }
     },
+    "androidNavigationBar": {
+      "enforceContrast": false
+    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

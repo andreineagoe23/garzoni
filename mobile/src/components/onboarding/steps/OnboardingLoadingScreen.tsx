@@ -3,12 +3,12 @@ import { useTranslation } from "react-i18next";
 import {
   Animated,
   Easing,
-  Image,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { authLogoWhiteRectangularUrl } from "@garzoni/core";
 import Svg, {
   Circle,
@@ -382,7 +382,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
         <Image
           source={{ uri: authLogoWhiteRectangularUrl({ width: 560 }) }}
           style={s.logo}
-          resizeMode="contain"
+          contentFit="contain"
           accessibilityLabel="Garzoni"
         />
 

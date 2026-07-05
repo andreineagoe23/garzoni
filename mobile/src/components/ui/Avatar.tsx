@@ -1,5 +1,6 @@
 import React from "react";
-import { Image, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Image } from "expo-image";
 import { useThemeColors } from "../../theme/ThemeContext";
 
 type AvatarProps = {

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { authLogoRectangleNoBgUrl } from "@garzoni/core";
 import { spacing, typography } from "../../theme/tokens";
 
@@ -23,7 +24,7 @@ export default function AuthLogoMark() {
         accessibilityRole="image"
         source={{ uri: LOGO_URI }}
         style={styles.image}
-        resizeMode="contain"
+        contentFit="contain"
         onError={() => setFailed(true)}
       />
     </View>

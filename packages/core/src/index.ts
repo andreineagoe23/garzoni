@@ -77,6 +77,8 @@ export {
   trackAnalyticsEvent,
 } from "./services/analyticsCore";
 export type { AnalyticsAdapter } from "./services/analyticsCore";
+export { ANALYTICS_EVENTS } from "./types/analytics";
+export type { AnalyticsEvent } from "./types/analytics";
 
 export { initGarzoniI18n, i18n, normalizeLanguage } from "./i18n";
 export {
