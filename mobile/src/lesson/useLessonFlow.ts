@@ -314,10 +314,7 @@ export function useLessonFlow(
       if (completedNow.length > 0) {
         setMissionCompletedNow({
           name: completedNow[0].name ?? "",
-          xp: completedNow.reduce(
-            (sum, m) => sum + (m.points_reward ?? 0),
-            0,
-          ),
+          xp: completedNow.reduce((sum, m) => sum + (m.points_reward ?? 0), 0),
         });
       }
       markProgressStale();

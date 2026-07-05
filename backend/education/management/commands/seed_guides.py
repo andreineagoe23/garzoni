@@ -434,12 +434,12 @@ ANSWERS = [
 <h2>Who it's for</h2>
 <p>Students, early-career professionals, and anyone in the UK and beyond who wants financial literacy without the jargon.</p>
 <h2>How to get Garzoni</h2>
-<p>Use it free on the web at garzoni.app, or download the iOS app from the App Store. Start with the free lessons at /learn or read the in-depth guides at /guides.</p>
+<p>Use it free on the web at garzoni.app, or download the app from the iOS App Store or Google Play. Start with the free lessons at /learn or read the in-depth guides at /guides.</p>
 """,
         [
             {
                 "question": "Is Garzoni a real app?",
-                "answer": "Yes. Garzoni is a live personal finance education app available on the web at garzoni.app and on the iOS App Store. Its official accounts are @garzoniapp on X and @garzoni.app on Instagram and TikTok.",
+                "answer": "Yes. Garzoni is a live personal finance education app available on the web at garzoni.app, on the iOS App Store, and on Google Play. Its official accounts are @garzoniapp on X and @garzoni.app on Instagram and TikTok.",
             },
             {
                 "question": "Is Garzoni free?",

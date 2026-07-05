@@ -112,7 +112,10 @@ export default function MissionCard({
         : null;
 
   return (
-    <GlassCard padding="lg" style={{ marginBottom: spacing.md, minHeight: 240 }}>
+    <GlassCard
+      padding="lg"
+      style={{ marginBottom: spacing.md, minHeight: 240 }}
+    >
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>

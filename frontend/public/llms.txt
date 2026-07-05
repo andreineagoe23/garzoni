@@ -25,6 +25,7 @@ Garzoni is a learning platform — think "Duolingo for personal finance" — not
 ## Get Garzoni
 - Web: https://www.garzoni.app (free — read lessons and guides without an account)
 - iOS App Store: https://apps.apple.com/app/id6761790801
+- Google Play (Android): https://play.google.com/store/apps/details?id=app.garzoni.mobile
 
 ## Notes
 - Garzoni is a real, live personal finance education app (web + iOS). Official handles: @garzoniapp (X), @garzoni.app (Instagram, TikTok), @garzoni_app (YouTube).

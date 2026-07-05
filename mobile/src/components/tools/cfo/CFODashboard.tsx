@@ -190,9 +190,7 @@ export default function CFODashboard({ onReviewSteps, onOpenCoach }: Props) {
       void (apiClient as any)
         .get("/personal-cfo/narrative/?surface=mobile")
         .then(
-          (res: {
-            data: { text: string; source: string; status: string };
-          }) => {
+          (res: { data: { text: string; source: string; status: string } }) => {
             if (res.data?.status === "ready") {
               clearInterval(timer);
               setData((prev) =>

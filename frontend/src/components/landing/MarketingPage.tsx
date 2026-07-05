@@ -28,7 +28,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is there an Android version?",
-    a: "An Android build is in internal testing. Join the waitlist above and we'll let you know when it's public.",
+    a: 'Yes. Garzoni is live on Google Play — search "Garzoni" or download it from the Google Play button above. It\'s also on the iOS App Store and free to use on the web.',
   },
 ];
 
@@ -106,7 +106,7 @@ function MarketingPage() {
               </p>
               <div className="cta-row">
                 <a
-                  href="https://apps.apple.com/gb/app/garzoni-master-your-money/id6761790801"
+                  href="https://apps.apple.com/gb/app/garzoni-personal-finance/id6761790801"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-store"
@@ -129,6 +129,33 @@ function MarketingPage() {
                   >
                     <span className="btn-store-caption">Download on the</span>
                     <span className="btn-store-main">App Store</span>
+                  </div>
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=app.garzoni.mobile"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-store"
+                >
+                  {/* Google Play logo */}
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    fill="#fff"
+                  >
+                    <path d="M5 4v16a1 1 0 0 0 1.53.85l13-8a1 1 0 0 0 0-1.7l-13-8A1 1 0 0 0 5 4z" />
+                  </svg>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span className="btn-store-caption">Download on the</span>
+                    <span className="btn-store-main">Google Play</span>
                   </div>
                 </a>
                 <Link to="/register" className="btn-secondary">

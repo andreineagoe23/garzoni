@@ -165,7 +165,7 @@ DUOLINGO_FOR_MONEY = _roundup(
             "plus an AI coach that answers questions the moment they come up. Its "
             "strength is <strong>depth with a habit</strong> — it's built to take "
             'you from "I don\'t get money" to genuine confidence, not just to '
-            "nudge you. It's free to start, on the web and iOS, and it doesn't "
+            "nudge you. It's free to start, on the web, iOS, and Android, and it doesn't "
             "hold your money or sell products. If your goal is to <em>learn</em>, "
             "start here.</p>",
         ),
@@ -609,7 +609,7 @@ MONEY_MASTERS_ALTS = _alternatives_page(
             "<p>Garzoni offers a personalised path of short lessons with quizzes, "
             "streaks, spaced repetition, and an AI coach — built so the concepts "
             "actually stick rather than fade after a fun session. UK-relevant, "
-            "free to start on web and iOS. The best pick if you want depth and a "
+            "free to start on web, iOS, and Android. The best pick if you want depth and a "
             "durable habit.</p>",
         ),
         (

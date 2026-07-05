@@ -272,6 +272,16 @@ export default function PublicLesson() {
             Or download Garzoni on the App Store →
           </a>
         </p>
+        <p style={{ marginTop: "0.5rem", marginBottom: 0 }}>
+          <a
+            href="https://play.google.com/store/apps/details?id=app.garzoni.mobile"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 14, opacity: 0.85 }}
+          >
+            Or get Garzoni on Google Play →
+          </a>
+        </p>
       </aside>
     </main>
   );

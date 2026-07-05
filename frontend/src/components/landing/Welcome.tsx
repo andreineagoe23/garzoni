@@ -211,9 +211,9 @@ function Welcome() {
                 ten-minute lessons, daily streaks, and AI-guided tools that let
                 you practice the decisions that matter.
               </p>
-              <div className="cta-row" style={{ marginBottom: "4px" }}>
+              <div className="hero-cta-grid" style={{ marginBottom: "4px" }}>
                 <a
-                  href="https://apps.apple.com/gb/app/garzoni-master-your-money/id6761790801"
+                  href="https://apps.apple.com/gb/app/garzoni-personal-finance/id6761790801"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-store"
@@ -239,16 +239,57 @@ function Welcome() {
                     <span className="btn-store-main">App Store</span>
                   </div>
                 </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=app.garzoni.mobile"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-store"
+                >
+                  {/* Google Play logo */}
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    fill="#fff"
+                  >
+                    <path d="M5 4v16a1 1 0 0 0 1.53.85l13-8a1 1 0 0 0 0-1.7l-13-8A1 1 0 0 0 5 4z" />
+                  </svg>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span className="btn-store-caption">Download on the</span>
+                    <span className="btn-store-main">Google Play</span>
+                  </div>
+                </a>
                 <button
                   type="button"
                   onClick={() => setIsDemoOpen(true)}
-                  className="btn-secondary"
-                  style={{ cursor: "pointer" }}
+                  className="explore-btn"
                   aria-label="Watch the Garzoni demo video"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    height: "40px",
+                    padding: "0 18px",
+                    borderRadius: "100px",
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-muted, var(--muted-text, #6b7280))",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    transition: "border-color 0.2s, color 0.2s",
+                  }}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="14"
+                    height="14"
                     viewBox="0 0 16 16"
                     fill="currentColor"
                     aria-hidden="true"
@@ -257,9 +298,6 @@ function Welcome() {
                   </svg>
                   Watch demo
                 </button>
-              </div>
-              {/* Explore pages dropdown */}
-              <div style={{ marginTop: "16px" }}>
                 <button
                   ref={pagesButtonRef}
                   type="button"

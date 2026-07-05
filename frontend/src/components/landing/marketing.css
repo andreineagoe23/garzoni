@@ -137,6 +137,27 @@
   flex-wrap: wrap;
   align-items: center;
 }
+/* Hero CTAs as an aligned 2-col grid: store buttons on row 1, secondary
+   actions on row 2. Shared columns keep the two rows' widths + gutter aligned
+   (Watch demo matches App Store width, Explore matches Google Play). */
+.mkt .hero-cta-grid {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 16px 14px;
+  align-items: center;
+  justify-content: start;
+}
+/* Items stretch to their column's width; center content so nothing is
+   left-hugging when a cell is wider than its button's intrinsic size. */
+.mkt .hero-cta-grid > .btn-store,
+.mkt .hero-cta-grid > .explore-btn {
+  justify-content: center;
+}
+@media (max-width: 560px) {
+  .mkt .hero-cta-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .mkt .btn-store {
   display: inline-flex;
   align-items: center;
