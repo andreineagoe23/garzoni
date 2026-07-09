@@ -24,7 +24,19 @@ import {
   shouldPromptReview,
   triggerHappyPathStoreReview,
   markReviewed,
+  maybeRequestReview,
 } from "../reviewPrompt";
+
+jest.mock(
+  "../../components/review/reviewPromptStore",
+  () => ({
+    useReviewPromptStore: {
+      getState: () => ({ open: mockOpenSentimentModal }),
+    },
+  }),
+  { virtual: false },
+);
+const mockOpenSentimentModal = jest.fn();
 
 const store = (AsyncStorage as unknown as { __store: Record<string, string> })
   .__store;
@@ -129,5 +141,45 @@ describe("triggerHappyPathStoreReview", () => {
     expect(openURL).toHaveBeenCalledWith(
       expect.stringContaining("play.google.com/store/apps/details"),
     );
+  });
+});
+
+describe("maybeRequestReview (delight-moment entry point)", () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Object.defineProperty(Platform, "OS", { value: originalOS });
+  });
+
+  it("shows the native In-App Review card directly on Android (no sentiment gate)", async () => {
+    Object.defineProperty(Platform, "OS", { value: "android" });
+    await maybeRequestReview("lesson_complete");
+    expect(StoreReview.requestReview).toHaveBeenCalledTimes(1);
+    expect(mockOpenSentimentModal).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the sentiment modal on Android when the native module is unavailable", async () => {
+    Object.defineProperty(Platform, "OS", { value: "android" });
+    (StoreReview.isAvailableAsync as jest.Mock).mockResolvedValue(false);
+    (StoreReview.hasAction as jest.Mock).mockResolvedValue(false);
+    await maybeRequestReview("lesson_complete");
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
+    expect(mockOpenSentimentModal).toHaveBeenCalledWith("lesson_complete");
+  });
+
+  it("opens the sentiment modal on iOS", async () => {
+    Object.defineProperty(Platform, "OS", { value: "ios" });
+    await maybeRequestReview("quiz_pass");
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
+    expect(mockOpenSentimentModal).toHaveBeenCalledWith("quiz_pass");
+  });
+
+  it("does nothing when gating blocks the prompt", async () => {
+    Object.defineProperty(Platform, "OS", { value: "android" });
+    await maybeRequestReview("lesson_complete"); // first one passes
+    jest.clearAllMocks();
+    await maybeRequestReview("lesson_complete"); // 30-day cooldown blocks
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
+    expect(mockOpenSentimentModal).not.toHaveBeenCalled();
   });
 });

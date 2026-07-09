@@ -155,13 +155,36 @@ export async function triggerHappyPathStoreReview(): Promise<void> {
 }
 
 /**
- * Triggered at moments of user delight. If gating passes, opens our in-app
- * sentiment prompt (instead of going straight to the store sheet), so happy
- * users get routed to the store and unhappy users tell us why first.
+ * Triggered at moments of user delight. If gating passes:
+ *
+ * - Android: invoke the native In-App Review card directly, with no sentiment
+ *   pre-question. Play policy forbids gating the card behind "do you like the
+ *   app?", so ungated is the only compliant low-friction path — and the card
+ *   (rate in place, no app switch) converts far better than deep-linking to
+ *   the store listing. The API self-quotas and may silently show nothing;
+ *   that's fine, our own 30-day/3-per-year gating still applies.
+ * - iOS: open our in-app sentiment prompt, so happy users get routed to the
+ *   store and unhappy users tell us why first.
  */
 export async function maybeRequestReview(reason: ReviewReason): Promise<void> {
   try {
     if (!(await shouldPromptReview(reason))) return;
+
+    if (Platform.OS === "android") {
+      const StoreReview = getStoreReview();
+      if (
+        StoreReview &&
+        (await StoreReview.isAvailableAsync()) &&
+        (await StoreReview.hasAction())
+      ) {
+        await StoreReview.requestReview();
+        return;
+      }
+      // Native module unavailable (Expo Go / stale dev client): fall through
+      // to the sentiment modal, whose unhappy path needs no native module and
+      // whose happy path already falls back to the store listing.
+    }
+
     // Lazy require so the bootstrap module stays free of UI/store deps until used.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod =

@@ -204,6 +204,14 @@ class PathViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        # Catalog content is shared platform-wide: only staff may mutate it.
+        # Writable serializer fields like `access_tier` gate the paywall, so an
+        # unrestricted PATCH would let any user unlock premium paths for everyone.
+        if getattr(self, "action", None) in {"create", "update", "partial_update", "destroy"}:
+            return [IsAuthenticated(), IsStaffOrSuperuser()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         if self.action == "list":
             user = self.request.user
@@ -255,6 +263,12 @@ class CourseViewSet(viewsets.ModelViewSet):
     )
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        # Shared catalog content — restrict create/update/delete to staff.
+        if getattr(self, "action", None) in {"create", "update", "partial_update", "destroy"}:
+            return [IsAuthenticated(), IsStaffOrSuperuser()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         """Filter courses by path if path_id is provided."""
@@ -553,6 +567,14 @@ class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.prefetch_related("translations")
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        # `correct_answer` is a writable serializer field; only staff may create,
+        # edit, or delete quizzes so learners can't rewrite the shared answer key.
+        # Custom actions (checkpoint, complete) stay IsAuthenticated (not in this set).
+        if getattr(self, "action", None) in {"create", "update", "partial_update", "destroy"}:
+            return [IsAuthenticated(), IsStaffOrSuperuser()]
+        return [IsAuthenticated()]
 
     def get_serializer_context(self):
         ctx = super().get_serializer_context()
@@ -1929,6 +1951,13 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.prefetch_related("translations").only(*EXERCISE_SAFE_FIELDS)
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        # Shared catalog content — only staff may create/edit/delete exercises.
+        # Learner actions (categories, submit, hint) stay IsAuthenticated.
+        if getattr(self, "action", None) in {"create", "update", "partial_update", "destroy"}:
+            return [IsAuthenticated(), IsStaffOrSuperuser()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         # Only load safe fields so DBs missing core_exercise.version still work
