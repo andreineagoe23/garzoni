@@ -145,6 +145,13 @@ if (
 ):
     ALLOWED_HOSTS = [*ALLOWED_HOSTS, _railway_public_domain]
 
+# Canonical public hostnames must always be allowed, even if ALLOWED_HOSTS_CSV is stale.
+# api.garzoni.app is the Cloudflare-proxied custom domain the mobile app calls (it is NOT
+# the Railway-injected RAILWAY_PUBLIC_DOMAIN, so the block above does not cover it).
+for _canonical_host in ("garzoni.app", "www.garzoni.app", "api.garzoni.app"):
+    if "*" not in ALLOWED_HOSTS and _canonical_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS = [*ALLOWED_HOSTS, _canonical_host]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
