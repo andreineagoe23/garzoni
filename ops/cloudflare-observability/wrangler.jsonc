@@ -1,0 +1,13 @@
+{
+  // Cloudflare Worker: garzoni observability dashboard.
+  // Deploy with: wrangler deploy
+  // Secrets are NOT stored here — set them once with:
+  //   wrangler secret put CF_API_TOKEN     # scoped token: Zone Analytics Read (+ Firewall Services Read, Zone WAF Read for security cards)
+  //   wrangler secret put DASHBOARD_TOKEN  # random shared secret required as ?token=...
+  //   wrangler secret put DASHBOARD_PATH   # secret URL path segment, e.g. obs-xxxxxxxx
+  "name": "garzoni-observability",
+  "main": "worker.js",
+  "compatibility_date": "2025-07-01",
+  "observability": { "enabled": true },
+  "workers_dev": true
+}
