@@ -33,6 +33,22 @@ import {
 import type { CustomerInfo } from "@revenuecat/purchases-js";
 import RevenueCatPaywall from "components/billing/RevenueCatPaywall";
 
+// Promo is fulfilled by the store-side intro offers (App Store / Play), so the
+// web pricing page advertises the discount but sends buyers into the app to
+// claim it — there is no discounted web checkout during the promo.
+const APP_STORE_URL =
+  "https://apps.apple.com/gb/app/garzoni-personal-finance/id6761790801";
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=app.garzoni.mobile";
+
+const resolvePromoStoreUrl = (): string => {
+  if (typeof navigator === "undefined") return APP_STORE_URL;
+  const ua = navigator.userAgent || "";
+  if (/android/i.test(ua)) return PLAY_STORE_URL;
+  if (/iphone|ipad|ipod/i.test(ua)) return APP_STORE_URL;
+  return APP_STORE_URL; // desktop default (UK-first audience)
+};
+
 type PlanFeature = {
   name?: string;
   description?: string;
@@ -49,6 +65,14 @@ type Plan = {
   trial_days?: number | null;
   sort_order?: number | null;
   features?: Record<string, PlanFeature>;
+  promo_price_amount?: number | null;
+  promo_duration_label?: string | null;
+};
+
+type PromoInfo = {
+  id: string;
+  percent_off: number;
+  ends_on: string;
 };
 
 const formatFeatureValue = (
@@ -83,6 +107,7 @@ const SubscriptionPlansPage = () => {
   });
   const [selectionError, setSelectionError] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [promo, setPromo] = useState<PromoInfo | null>(null);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [billingInterval, setBillingInterval] = useState<"yearly" | "monthly">(
     "yearly"
@@ -213,7 +238,10 @@ const SubscriptionPlansPage = () => {
   useEffect(() => {
     apiClient
       .get("/plans/")
-      .then((r) => setPlans(r.data?.plans || []))
+      .then((r) => {
+        setPlans(r.data?.plans || []);
+        setPromo(r.data?.promo || null);
+      })
       .catch(() => {})
       .finally(() => setLoadingPlans(false));
   }, []);
@@ -393,6 +421,24 @@ const SubscriptionPlansPage = () => {
             </div>
           </div>
 
+          {promo && (
+            <div className="flex flex-col items-center gap-1 rounded-2xl border border-[color:var(--gold,#E6C87A)]/50 bg-[color:var(--gold,#E6C87A)]/10 px-4 py-3 text-center">
+              <p className="text-base font-bold text-[color:var(--accent,#111827)]">
+                {t("subscriptions.promoBanner", {
+                  percent: promo.percent_off,
+                })}
+              </p>
+              <p className="text-xs font-medium text-content-muted">
+                {t("subscriptions.promoBannerEnds", {
+                  date: formatDate(promo.ends_on, locale),
+                })}
+              </p>
+              <p className="text-xs font-semibold text-[color:var(--color-brand-primary)]">
+                {t("subscriptions.promoAppHint")}
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-col items-center gap-4">
             <div
               className="inline-flex rounded-xl border border-[color:var(--color-border-default)] bg-surface-card p-1"
@@ -446,6 +492,10 @@ const SubscriptionPlansPage = () => {
                   plan.name ||
                   plan.plan_id.charAt(0).toUpperCase() + plan.plan_id.slice(1);
                 const paidPlan = !isStarter;
+                const promoPrice =
+                  paidPlan && plan.promo_price_amount != null
+                    ? Number(plan.promo_price_amount)
+                    : null;
                 return (
                   <div
                     key={plan.plan_id}
@@ -477,8 +527,20 @@ const SubscriptionPlansPage = () => {
                         )}
                       </div>
                       <div className="text-3xl font-extrabold text-content-primary">
+                        {promoPrice != null && (
+                          <span className="mr-2 text-lg font-semibold text-content-muted line-through">
+                            {formatCurrency(
+                              Number(plan.price_amount || 0),
+                              plan.currency || "USD",
+                              locale,
+                              { minimumFractionDigits: 0 }
+                            )}
+                          </span>
+                        )}
                         {formatCurrency(
-                          Number(plan.price_amount || 0),
+                          promoPrice != null
+                            ? promoPrice
+                            : Number(plan.price_amount || 0),
                           plan.currency || "USD",
                           locale,
                           { minimumFractionDigits: 0 }
@@ -493,6 +555,16 @@ const SubscriptionPlansPage = () => {
                           }`}
                         </span>
                       </div>
+                      {promoPrice != null && promo && (
+                        <p className="text-xs font-semibold text-[color:var(--color-brand-primary)]">
+                          {t("subscriptions.promoBadge", {
+                            percent: promo.percent_off,
+                          })}{" "}
+                          {plan.billing_interval === "yearly"
+                            ? t("subscriptions.promoFirstYear")
+                            : t("subscriptions.promoFirstMonths")}
+                        </p>
+                      )}
                     </div>
                     <ul className="space-y-2.5 text-sm text-content-primary">
                       {(features.length
@@ -512,11 +584,34 @@ const SubscriptionPlansPage = () => {
                     <GlassButton
                       variant={isHighlight ? "active" : "ghost"}
                       className="mt-auto w-full"
-                      onClick={() => handlePlanSelect(plan)}
+                      onClick={() => {
+                        // During the promo, the discount only exists as a
+                        // store-side intro offer — send paid buyers into the
+                        // app to claim it rather than through web checkout.
+                        if (promoPrice != null) {
+                          Promise.resolve(
+                            recordFunnelEvent("promo_app_redirect", {
+                              plan: plan.plan_id,
+                              interval: plan.billing_interval,
+                            })
+                          ).catch(() => {});
+                          window.open(
+                            resolvePromoStoreUrl(),
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
+                          return;
+                        }
+                        handlePlanSelect(plan);
+                      }}
                     >
                       {isStarter
                         ? t("subscriptions.startStarter")
-                        : t("subscriptions.choosePlanCheckout", { name })}
+                        : promoPrice != null
+                          ? t("subscriptions.promoCtaApp", {
+                              percent: promo?.percent_off ?? 60,
+                            })
+                          : t("subscriptions.choosePlanCheckout", { name })}
                     </GlassButton>
                   </div>
                 );
