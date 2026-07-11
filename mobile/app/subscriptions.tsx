@@ -165,6 +165,15 @@ function formatIntroTrialLabel(intro: PurchasesIntroPrice): string {
   return `${n} ${unitWord} free trial`;
 }
 
+/** Label for a paid intro offer (store-configured discount), e.g. "first year" or "first 3 months". */
+function formatIntroOfferLabel(intro: PurchasesIntroPrice): string {
+  const n =
+    (intro.periodNumberOfUnits ?? 0) * Math.max(intro.cycles ?? 1, 1);
+  const unit = String(intro.periodUnit ?? "MONTH").toLowerCase();
+  if (n <= 1) return `first ${unit}`;
+  return `first ${n} ${unit}s`;
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function AmbientGlow() {
@@ -254,6 +263,12 @@ function TierCard({
   const per = cycle === "yearly" ? "/ month, billed annually" : "/ month";
   const intro = pkg?.product.introPrice;
   const showTrial = Boolean(intro && intro.price === 0);
+  // Store-configured discounted intro price (e.g. 60%-off promo) — free trials excluded.
+  const paidIntro = intro && intro.price > 0 ? intro : null;
+  const discountPct =
+    paidIntro && pkg && pkg.product.price > 0
+      ? Math.round((1 - paidIntro.price / pkg.product.price) * 100)
+      : null;
   const disabled = !pkg || isCurrent;
   const ctaLabel = isCurrent
     ? "Current plan"
@@ -297,11 +312,20 @@ function TierCard({
 
       {/* Price */}
       <View style={styles.priceRow}>
+        {paidIntro && <Text style={styles.priceStrike}>{price}</Text>}
         <Text style={[styles.price, { fontFamily: DISPLAY_FONT }]}>
-          {price}
+          {paidIntro ? paidIntro.priceString : price}
         </Text>
       </View>
-      <Text style={styles.pricePer}>{per}</Text>
+      {paidIntro ? (
+        <Text style={[styles.pricePer, { color: accent }]}>
+          {discountPct != null && discountPct > 0 ? `${discountPct}% off ` : ""}
+          {formatIntroOfferLabel(paidIntro)}, then {price}
+          {cycle === "yearly" ? " / year" : " / month"}
+        </Text>
+      ) : (
+        <Text style={styles.pricePer}>{per}</Text>
+      )}
 
       {/* Perks */}
       <View style={styles.perkList}>
@@ -1382,6 +1406,12 @@ const styles = StyleSheet.create({
     color: D.text,
     letterSpacing: -1.2,
     lineHeight: 44,
+  },
+  priceStrike: {
+    fontSize: 20,
+    color: D.faint,
+    textDecorationLine: "line-through",
+    marginRight: 8,
   },
   pricePer: {
     fontSize: 12,
