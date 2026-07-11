@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import date
 from typing import Dict, Optional, Tuple
 
 from django.core.cache import cache
@@ -308,32 +307,6 @@ PLAN_CATALOG = [
     },
 ]
 
-# Limited-time 60%-off promotion. These values only drive marketing display on
-# the pricing pages — actual checkout discounts are configured store-side
-# (App Store intro offers, Play Console offers, RC Web Billing intro offers)
-# and must be kept in sync with the store dashboards by hand.
-# Discount applies to the first year (yearly) / first 3 months (monthly).
-PROMO_CAMPAIGN = {
-    "id": "summer60",
-    "percent_off": 60,
-    "starts_on": date(2026, 7, 11),
-    "ends_on": date(2026, 8, 31),
-    "prices": {
-        ("plus", "yearly"): 23.99,
-        ("pro", "yearly"): 27.99,
-        ("plus", "monthly"): 2.79,
-        ("pro", "monthly"): 3.19,
-    },
-    "duration_labels": {"yearly": "first year", "monthly": "first 3 months"},
-}
-
-
-def get_active_promo(today: Optional[date] = None) -> Optional[Dict]:
-    today = today or timezone.now().date()
-    if PROMO_CAMPAIGN["starts_on"] <= today <= PROMO_CAMPAIGN["ends_on"]:
-        return PROMO_CAMPAIGN
-    return None
-
 
 def _usage_cache_key(user_id: int, feature: str) -> str:
     today = timezone.now().date().isoformat()
@@ -454,7 +427,6 @@ def get_entitlements_for_user(user) -> Dict:
 
 
 def get_plan_catalog(settings) -> Dict[str, list]:
-    promo = get_active_promo()
     plans = []
     for plan in PLAN_CATALOG:
         plan_key = plan["entitlements_plan"]
@@ -473,13 +445,6 @@ def get_plan_catalog(settings) -> Dict[str, list]:
 
         stripe_price_id = getattr(settings, plan.get("stripe_price_setting", ""), "") or None
 
-        promo_price = None
-        promo_duration_label = None
-        if promo:
-            promo_price = promo["prices"].get((plan["plan_id"], plan["billing_interval"]))
-            if promo_price is not None:
-                promo_duration_label = promo["duration_labels"].get(plan["billing_interval"])
-
         plans.append(
             {
                 "plan_id": plan["plan_id"],
@@ -491,19 +456,10 @@ def get_plan_catalog(settings) -> Dict[str, list]:
                 "sort_order": plan["sort_order"],
                 "stripe_price_id": stripe_price_id,
                 "features": features,
-                "promo_price_amount": promo_price,
-                "promo_duration_label": promo_duration_label,
             }
         )
 
-    payload = {"plans": plans}
-    if promo:
-        payload["promo"] = {
-            "id": promo["id"],
-            "percent_off": promo["percent_off"],
-            "ends_on": promo["ends_on"].isoformat(),
-        }
-    return payload
+    return {"plans": plans}
 
 
 def check_and_consume_entitlement(user, feature: str, amount: int = 1) -> Tuple[bool, Dict]:
