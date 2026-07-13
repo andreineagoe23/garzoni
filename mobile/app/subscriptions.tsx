@@ -298,6 +298,11 @@ function TierCard({
         <Text style={[styles.tierTagline, { fontFamily: DISPLAY_FONT }]}>
           {plan.tagline}
         </Text>
+        {paidIntro && discountPct != null && discountPct > 0 && (
+          <View style={styles.promoBadge}>
+            <Text style={styles.promoBadgeText}>{discountPct}% OFF</Text>
+          </View>
+        )}
         {showTrial && intro && (
           <View style={styles.trialBadge}>
             <Text style={styles.trialText}>{formatIntroTrialLabel(intro)}</Text>
@@ -1365,6 +1370,21 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginLeft: 16,
     marginBottom: 4,
+  },
+  promoBadge: {
+    alignSelf: "flex-start",
+    marginLeft: 16,
+    marginTop: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+    backgroundColor: D.gold,
+  },
+  promoBadgeText: {
+    fontSize: typography.xs,
+    fontWeight: "800",
+    color: D.bg,
+    letterSpacing: 0.6,
   },
   trialBadge: {
     alignSelf: "flex-start",
