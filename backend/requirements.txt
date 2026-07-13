@@ -5,7 +5,7 @@ billiard==4.2.1
 celery==5.4.0
 certifi==2024.8.30
 charset-normalizer==3.4.0
-click==8.1.7
+click==8.3.3
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
@@ -31,7 +31,7 @@ jsonfield==3.1.0
 kombu==5.4.2
 MarkupSafe==3.0.2
 packaging==24.2
-pillow==12.2.0
+pillow==12.3.0
 prompt_toolkit==3.0.48
 psycopg2==2.9.10
 cryptography>=41.0.0
