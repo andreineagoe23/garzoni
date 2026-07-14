@@ -8,29 +8,52 @@
 
 const ZONE_TAG = "bfa87ed9030cf1e84aed5bbbfc12cf93";
 const WINDOW_HOURS = 23; // free-plan adaptive datasets cap the range at 1 day
-const CACHED = new Set(["hit", "stale", "updating", "revalidated", "dynamic-cached"]);
+const CACHED = new Set([
+  "hit",
+  "stale",
+  "updating",
+  "revalidated",
+  "dynamic-cached",
+]);
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname !== `/${env.DASHBOARD_PATH}`) return new Response("Not Found", { status: 404 });
-    if (!env.DASHBOARD_TOKEN || url.searchParams.get("token") !== env.DASHBOARD_TOKEN)
+    if (url.pathname !== `/${env.DASHBOARD_PATH}`)
+      return new Response("Not Found", { status: 404 });
+    if (
+      !env.DASHBOARD_TOKEN ||
+      url.searchParams.get("token") !== env.DASHBOARD_TOKEN
+    )
       return new Response("Unauthorized", { status: 401 });
 
     const now = new Date();
     const since = new Date(now.getTime() - WINDOW_HOURS * 3600 * 1000);
-    const S = since.toISOString(), U = now.toISOString();
+    const S = since.toISOString(),
+      U = now.toISOString();
 
     // Traffic + firewall are separate requests so a firewall permission gap
     // (Analytics Read token without WAF scope) can't blank the whole page.
-    let payload = null, err = null, fw = null, fwErr = null;
-    try { payload = await gql(env.CF_API_TOKEN, buildQuery(S, U)); }
-    catch (e) { err = String(e); }
-    try { fw = await gql(env.CF_API_TOKEN, buildFwQuery(S, U)); }
-    catch (e) { fwErr = String(e); }
+    let payload = null,
+      err = null,
+      fw = null,
+      fwErr = null;
+    try {
+      payload = await gql(env.CF_API_TOKEN, buildQuery(S, U));
+    } catch (e) {
+      err = String(e);
+    }
+    try {
+      fw = await gql(env.CF_API_TOKEN, buildFwQuery(S, U));
+    } catch (e) {
+      fwErr = String(e);
+    }
 
     return new Response(renderHTML({ payload, fw, err, fwErr, S, U }), {
-      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+      },
     });
   },
 };
@@ -83,26 +106,46 @@ function buildFwQuery(S, U) {
 async function gql(token, query) {
   const r = await fetch("https://api.cloudflare.com/client/v4/graphql", {
     method: "POST",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
     body: JSON.stringify({ query }),
   });
   const j = await r.json();
-  if (j.errors && j.errors.length) throw new Error(j.errors.map(e => e.message).join("; "));
+  if (j.errors && j.errors.length)
+    throw new Error(j.errors.map((e) => e.message).join("; "));
   return (j.data && j.data.viewer && j.data.viewer.zones[0]) || {};
 }
 
 // ── rendering ──
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const fmt = n => (n ?? 0).toLocaleString("en-US");
-const bytes = n => { n = n || 0; const u = ["B", "KB", "MB", "GB", "TB"]; let i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return n.toFixed(1) + " " + u[i]; };
+const esc = (s) =>
+  String(s ?? "").replace(
+    /[&<>"]/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+  );
+const fmt = (n) => (n ?? 0).toLocaleString("en-US");
+const bytes = (n) => {
+  n = n || 0;
+  const u = ["B", "KB", "MB", "GB", "TB"];
+  let i = 0;
+  while (n >= 1024 && i < u.length - 1) {
+    n /= 1024;
+    i++;
+  }
+  return n.toFixed(1) + " " + u[i];
+};
 
 function rows(items, label, get, max) {
   if (!items || !items.length) return `<p class="empty">No data in window.</p>`;
   const top = Math.max(...items.map(get), 1);
-  return `<table>${items.slice(0, max || 25).map(it => {
-    const v = get(it);
-    return `<tr><td class="lbl">${label(it)}</td><td class="barcell"><span class="bar" style="width:${(v / top * 100).toFixed(1)}%"></span></td><td class="num">${fmt(v)}</td></tr>`;
-  }).join("")}</table>`;
+  return `<table>${items
+    .slice(0, max || 25)
+    .map((it) => {
+      const v = get(it);
+      return `<tr><td class="lbl">${label(it)}</td><td class="barcell"><span class="bar" style="width:${((v / top) * 100).toFixed(1)}%"></span></td><td class="num">${fmt(v)}</td></tr>`;
+    })
+    .join("")}</table>`;
 }
 
 function renderHTML({ payload, fw, err, fwErr, S, U }) {
@@ -111,25 +154,33 @@ function renderHTML({ payload, fw, err, fwErr, S, U }) {
   const s0 = (z.summary && z.summary[0]) || {};
   const reqs = s0.count || 0;
   const respBytes = (s0.sum && s0.sum.edgeResponseBytes) || 0;
-  const errCount = (z.status || []).filter(x => Number(x.dimensions.edgeResponseStatus) >= 400).reduce((a, x) => a + x.count, 0);
-  const errRatio = reqs ? (errCount / reqs * 100).toFixed(1) : "0.0";
+  const errCount = (z.status || [])
+    .filter((x) => Number(x.dimensions.edgeResponseStatus) >= 400)
+    .reduce((a, x) => a + x.count, 0);
+  const errRatio = reqs ? ((errCount / reqs) * 100).toFixed(1) : "0.0";
 
   const cacheTotal = (z.cache || []).reduce((a, x) => a + x.count, 0);
-  const cacheHit = (z.cache || []).filter(x => CACHED.has((x.dimensions.cacheStatus || "").toLowerCase())).reduce((a, x) => a + x.count, 0);
-  const cacheRatio = cacheTotal ? (cacheHit / cacheTotal * 100).toFixed(1) : "0.0";
+  const cacheHit = (z.cache || [])
+    .filter((x) => CACHED.has((x.dimensions.cacheStatus || "").toLowerCase()))
+    .reduce((a, x) => a + x.count, 0);
+  const cacheRatio = cacheTotal
+    ? ((cacheHit / cacheTotal) * 100).toFixed(1)
+    : "0.0";
   const fwTotal = (fz.fwActions || []).reduce((a, x) => a + x.count, 0);
   const fwNote = fwErr
     ? `<p class="empty">Security dataset needs WAF read scope on the API token — view WAF events in Cloudflare → Security → Analytics.</p>`
     : null;
 
-  const series = (z.overTime || []).map(p => p.count);
+  const series = (z.overTime || []).map((p) => p.count);
   const sparkMax = Math.max(...series, 1);
   const spark = series.length
-    ? `<div class="spark">${series.map(v => `<span style="height:${(v / sparkMax * 100).toFixed(1)}%" title="${fmt(v)}"></span>`).join("")}</div>`
+    ? `<div class="spark">${series.map((v) => `<span style="height:${((v / sparkMax) * 100).toFixed(1)}%" title="${fmt(v)}"></span>`).join("")}</div>`
     : `<p class="empty">No traffic in window.</p>`;
 
-  const card = (title, body) => `<section class="card"><h2>${title}</h2>${body}</section>`;
-  const stat = (label, val, sub) => `<div class="stat"><div class="v">${val}</div><div class="l">${label}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
+  const card = (title, body) =>
+    `<section class="card"><h2>${title}</h2>${body}</section>`;
+  const stat = (label, val, sub) =>
+    `<div class="stat"><div class="v">${val}</div><div class="l">${label}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
 
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Garzoni — Observability</title><style>
@@ -167,14 +218,83 @@ ${err ? `<div class="err">GraphQL error: ${esc(err)}</div>` : ""}
 ${card("Requests over time (hourly)", spark)}
 <div style="height:16px"></div>
 <div class="grid">
-  ${card("Top paths", rows(z.topPaths, it => esc(it.dimensions.clientRequestPath), it => it.count))}
-  ${card("Top countries", rows(z.topCountries, it => esc(it.dimensions.clientCountryName || "—"), it => it.count, 15))}
-  ${card("Response status", rows(z.status, it => statusTag(it.dimensions.edgeResponseStatus), it => it.count, 15))}
-  ${card("TLS versions", rows(z.tls, it => esc(it.dimensions.clientSSLProtocol || "—"), it => it.count, 10))}
-  ${card("Top error paths (4xx/5xx)", rows(z.errorPaths, it => `${esc(it.dimensions.clientRequestPath)} <span class="tag block">${esc(it.dimensions.edgeResponseStatus)}</span>`, it => it.count, 15))}
-  ${card("Security: actions", fwNote || rows(fz.fwActions, it => fwTag(it.dimensions.action), it => it.count, 20))}
-  ${card("Security: targeted paths", fwNote || rows(fz.fwPaths, it => `${esc(it.dimensions.clientRequestPath)} <span class="tag block">${esc(it.dimensions.action)}</span>`, it => it.count, 15))}
-  ${card("Security: top offending IPs", fwNote || rows(fz.fwIPs, it => `${esc(it.dimensions.clientIP)} <span class="meta">${esc(it.dimensions.clientCountryName || "")} · ${esc((it.dimensions.clientASNDescription || "").slice(0, 24))}</span>`, it => it.count, 15))}
+  ${card(
+    "Top paths",
+    rows(
+      z.topPaths,
+      (it) => esc(it.dimensions.clientRequestPath),
+      (it) => it.count,
+    ),
+  )}
+  ${card(
+    "Top countries",
+    rows(
+      z.topCountries,
+      (it) => esc(it.dimensions.clientCountryName || "—"),
+      (it) => it.count,
+      15,
+    ),
+  )}
+  ${card(
+    "Response status",
+    rows(
+      z.status,
+      (it) => statusTag(it.dimensions.edgeResponseStatus),
+      (it) => it.count,
+      15,
+    ),
+  )}
+  ${card(
+    "TLS versions",
+    rows(
+      z.tls,
+      (it) => esc(it.dimensions.clientSSLProtocol || "—"),
+      (it) => it.count,
+      10,
+    ),
+  )}
+  ${card(
+    "Top error paths (4xx/5xx)",
+    rows(
+      z.errorPaths,
+      (it) =>
+        `${esc(it.dimensions.clientRequestPath)} <span class="tag block">${esc(it.dimensions.edgeResponseStatus)}</span>`,
+      (it) => it.count,
+      15,
+    ),
+  )}
+  ${card(
+    "Security: actions",
+    fwNote ||
+      rows(
+        fz.fwActions,
+        (it) => fwTag(it.dimensions.action),
+        (it) => it.count,
+        20,
+      ),
+  )}
+  ${card(
+    "Security: targeted paths",
+    fwNote ||
+      rows(
+        fz.fwPaths,
+        (it) =>
+          `${esc(it.dimensions.clientRequestPath)} <span class="tag block">${esc(it.dimensions.action)}</span>`,
+        (it) => it.count,
+        15,
+      ),
+  )}
+  ${card(
+    "Security: top offending IPs",
+    fwNote ||
+      rows(
+        fz.fwIPs,
+        (it) =>
+          `${esc(it.dimensions.clientIP)} <span class="meta">${esc(it.dimensions.clientCountryName || "")} · ${esc((it.dimensions.clientASNDescription || "").slice(0, 24))}</span>`,
+        (it) => it.count,
+        15,
+      ),
+  )}
 </div>
 <p class="meta" style="margin-top:20px">Mobile traffic appears here only once it routes through api.garzoni.app. Free-plan analytics retain ~72h.</p>
 </div></body></html>`;
@@ -182,7 +302,7 @@ ${card("Requests over time (hourly)", spark)}
 
 function statusTag(code) {
   const c = Number(code);
-  const cls = c >= 400 ? "block" : (c >= 200 && c < 300) ? "ok" : "";
+  const cls = c >= 400 ? "block" : c >= 200 && c < 300 ? "ok" : "";
   return `<span class="tag ${cls}">${esc(code)}</span>`;
 }
 function fwTag(a) {

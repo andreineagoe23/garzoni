@@ -39,6 +39,9 @@ export const Missions = React.lazy(
 export const OnboardingQuestionnaire = React.lazy(
   () => import("components/onboarding/OnboardingQuestionnaire")
 );
+export const PlanReadyPage = React.lazy(
+  () => import("components/onboarding/PlanReadyPage")
+);
 export const ToolsPage = React.lazy(() => import("components/tools/ToolsPage"));
 export const RewardsPage = React.lazy(
   () => import("components/rewards/RewardsPage")

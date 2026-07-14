@@ -160,7 +160,7 @@ const StatusSummary = ({
         </p>
         {streakMeta?.streak_at_risk ? (
           <p className="mt-1 text-xs font-semibold text-amber-500">
-            {t("dashboard.statusSummary.streakAtRisk")}
+            {t("dashboard.statusSummary.streakAtRisk", { count: streakCount })}
           </p>
         ) : null}
         {streakMeta?.next_milestone != null && streakMeta.next_milestone > 0 ? (

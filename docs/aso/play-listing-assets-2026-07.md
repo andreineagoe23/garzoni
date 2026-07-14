@@ -8,6 +8,7 @@ Grow → Store presence → Main store listing, unless noted. Char counts verifi
 ```
 Garzoni: Learn Money & Finance
 ```
+
 30/30 chars.
 
 ## 2. Short description (80-char limit)
@@ -15,6 +16,7 @@ Garzoni: Learn Money & Finance
 ```
 Learn personal finance in 5-min lessons: budgeting, investing & money skills.
 ```
+
 77/80 chars.
 
 ## 3. Full description (4,000-char limit)
@@ -95,15 +97,19 @@ Public-facing; takes effect after review (can take a few days).
 ## 6. Romanian store listing (Play Console → Main store listing → Manage translations → Add: Romanian)
 
 **Title (30):**
+
 ```
 Garzoni: Educație Financiară
 ```
+
 28/30.
 
 **Short description (80):**
+
 ```
 Învață finanțe personale în lecții de 5 minute: buget, investiții, bani.
 ```
+
 72/80.
 
 **Full description:**
@@ -175,6 +181,7 @@ But fix these when you iterate:
 Frameless treatment (works on both stores, dodges the iOS-status-bar tell).
 
 **Per-canvas layout (all 10 identical):**
+
 - Canvas 1290×2796 (iPhone 6.7" — matches source, passes Play limits).
 - Background: `#0b0f14` (BG Dark), or subtle vertical gradient `#0b0f14`→`#111827`.
 - Caption zone = top ~26%:
@@ -185,17 +192,17 @@ Frameless treatment (works on both stores, dodges the iOS-status-bar tell).
 
 **Order (conversion-first; Play shows max 8 — use 1–8; first 3 = 90% of impact):**
 
-| # | Source shot | Eyebrow | Headline (accent = gold italic) | Subhead |
-|---|---|---|---|---|
-| 1 | Onboarding (streak/XP) | LEARN PERSONAL FINANCE | Master money in *5 minutes* a day | Build streaks, earn XP, actually stick with it. |
-| 2 | The Climb (mountain) | THE CLIMB | Your personal finance *journey* | A step-by-step path built around your goals. |
-| 3 | Applied Insight lesson | BITE-SIZE LESSONS | Lessons you'll *actually finish* | 500+ short lessons. No jargon, no overwhelm. |
-| 4 | Finance Assistant (AI) | 24/7 AI MONEY TUTOR | Ask anything, *anytime* | Plain-English answers the moment you're stuck. |
-| 5 | Portfolio Analyzer | REAL TOOLS | Practise investing, *risk-free* | Build a virtual portfolio and watch it perform. |
-| 6 | Personal CFO | YOUR PERSONAL CFO | See your *whole picture* | Net worth, goals and a 10-year outlook in one place. |
-| 7 | News Context | MARKETS, DECODED | The markets in *plain English* | Understand the headlines that move your money. |
-| 8 | Global Leaderboard | STAY MOTIVATED | Learn together, *climb higher* | Streaks, friends and a global leaderboard. |
-| 9 | Rewards / badges | EARN AS YOU LEARN | XP, coins & *badges* | Turn good money habits into rewards. (spare / iOS #9) |
+| #   | Source shot            | Eyebrow                | Headline (accent = gold italic)   | Subhead                                               |
+| --- | ---------------------- | ---------------------- | --------------------------------- | ----------------------------------------------------- |
+| 1   | Onboarding (streak/XP) | LEARN PERSONAL FINANCE | Master money in _5 minutes_ a day | Build streaks, earn XP, actually stick with it.       |
+| 2   | The Climb (mountain)   | THE CLIMB              | Your personal finance _journey_   | A step-by-step path built around your goals.          |
+| 3   | Applied Insight lesson | BITE-SIZE LESSONS      | Lessons you'll _actually finish_  | 500+ short lessons. No jargon, no overwhelm.          |
+| 4   | Finance Assistant (AI) | 24/7 AI MONEY TUTOR    | Ask anything, _anytime_           | Plain-English answers the moment you're stuck.        |
+| 5   | Portfolio Analyzer     | REAL TOOLS             | Practise investing, _risk-free_   | Build a virtual portfolio and watch it perform.       |
+| 6   | Personal CFO           | YOUR PERSONAL CFO      | See your _whole picture_          | Net worth, goals and a 10-year outlook in one place.  |
+| 7   | News Context           | MARKETS, DECODED       | The markets in _plain English_    | Understand the headlines that move your money.        |
+| 8   | Global Leaderboard     | STAY MOTIVATED         | Learn together, _climb higher_    | Streaks, friends and a global leaderboard.            |
+| 9   | Rewards / badges       | EARN AS YOU LEARN      | XP, coins & _badges_              | Turn good money habits into rewards. (spare / iOS #9) |
 
 The Climb "forest/basecamp" shot is the spare — swap into slot 2 if the mountain
 reads better small, or use as iOS #10.
@@ -219,6 +226,7 @@ show over 1–3 weeks. Track: Play Console → Statistics → Store performance
 target keywords weekly.
 
 ---
+
 Char-count verification (run after any edit):
 `python3 -c "print(len(open('desc.txt').read()))"` — title ≤30, short ≤80,
 full ≤4000, What's New ≤500.

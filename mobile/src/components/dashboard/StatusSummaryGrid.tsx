@@ -116,7 +116,9 @@ export default function StatusSummaryGrid({
           </Text>
           {streakMeta?.streak_at_risk ? (
             <Text style={[styles.meta, { color: "#b45309" }]}>
-              {t("dashboard.statusSummary.streakAtRisk")}
+              {t("dashboard.statusSummary.streakAtRisk", {
+                count: streakCount,
+              })}
             </Text>
           ) : null}
         </KPITile>

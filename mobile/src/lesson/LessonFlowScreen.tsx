@@ -223,6 +223,32 @@ export function createLessonFlowStyles(c: ThemeColors) {
       lineHeight: 22,
     },
     modalActions: { width: "100%", gap: spacing.sm },
+    heartsCapText: {
+      fontSize: typography.sm,
+      color: c.error,
+      fontWeight: "600",
+      textAlign: "center",
+      marginBottom: spacing.md,
+    },
+    heartsUpgradeCta: {
+      width: "100%",
+      marginTop: spacing.md,
+      paddingVertical: 14,
+      borderRadius: 14,
+      backgroundColor: c.accentMuted,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.accent,
+      alignItems: "center",
+    },
+    heartsUpgradeCtaEmphasized: {
+      borderWidth: 2,
+    },
+    heartsUpgradeCtaText: {
+      fontSize: typography.sm,
+      fontWeight: "700",
+      color: c.accent,
+      textAlign: "center",
+    },
   });
 }
 
@@ -380,6 +406,8 @@ export default function LessonFlowScreen({
   const hasCourseQuiz = (courseQuizQuery.data?.length ?? 0) > 0;
 
   const [outOfHeartsVisible, setOutOfHeartsVisible] = useState(false);
+  // Set when the free daily refill cap (429/403 with upgrade_hint) is hit.
+  const [refillCapReached, setRefillCapReached] = useState(false);
   const [fontScale, setFontScale] = useState(1);
   const [readingSettingsOpen, setReadingSettingsOpen] = useState(false);
   const [immersive, setImmersive] = useState(false);
@@ -1092,7 +1120,10 @@ export default function LessonFlowScreen({
         visible={outOfHeartsVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setOutOfHeartsVisible(false)}
+        onRequestClose={() => {
+          setRefillCapReached(false);
+          setOutOfHeartsVisible(false);
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -1105,13 +1136,40 @@ export default function LessonFlowScreen({
                 ? `${t("courses.flow.nextHeartIn")} ${heartCountdown.replace("Next in ", "")}.`
                 : t("courses.flow.outOfHeartsModalSubtitle")}
             </Text>
+            {refillCapReached ? (
+              <Text style={styles.heartsCapText}>
+                {t("courses.flow.refillCapReached")}
+              </Text>
+            ) : null}
             <View style={styles.modalActions}>
               <Button
                 variant="secondary"
                 onPress={() =>
-                  void refillHeartsSafe().then(() =>
-                    setOutOfHeartsVisible(false),
-                  )
+                  void (async () => {
+                    try {
+                      await refillHeartsSafe();
+                      setRefillCapReached(false);
+                      setOutOfHeartsVisible(false);
+                    } catch (e) {
+                      // Backend returns 429/403 + { upgrade_hint: true } once the
+                      // free daily refill cap is hit — surface the upgrade path.
+                      const resp = (
+                        e as {
+                          response?: {
+                            status?: number;
+                            data?: { upgrade_hint?: boolean };
+                          };
+                        }
+                      )?.response;
+                      if (
+                        resp &&
+                        (resp.status === 429 || resp.status === 403) &&
+                        resp.data?.upgrade_hint
+                      ) {
+                        setRefillCapReached(true);
+                      }
+                    }
+                  })()
                 }
               >
                 {t("courses.flow.refillHearts")}
@@ -1119,14 +1177,39 @@ export default function LessonFlowScreen({
               <Button
                 variant="secondary"
                 onPress={() => {
+                  setRefillCapReached(false);
                   setOutOfHeartsVisible(false);
                   router.push("/(tabs)/learn");
                 }}
               >
                 {t("courses.flow.practiseHeart")}
               </Button>
-              <Button onPress={() => setOutOfHeartsVisible(false)}>Wait</Button>
+              <Button
+                onPress={() => {
+                  setRefillCapReached(false);
+                  setOutOfHeartsVisible(false);
+                }}
+              >
+                Wait
+              </Button>
             </View>
+            {/* Upgrade path — Plus refills hearts 2× faster (server-side truth). */}
+            <Pressable
+              onPress={() => {
+                setRefillCapReached(false);
+                setOutOfHeartsVisible(false);
+                router.push("/subscriptions?reason=hearts");
+              }}
+              style={[
+                styles.heartsUpgradeCta,
+                refillCapReached && styles.heartsUpgradeCtaEmphasized,
+              ]}
+              accessibilityRole="button"
+            >
+              <Text style={styles.heartsUpgradeCtaText}>
+                {t("courses.flow.upgradeHeartsCta")}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Modal>

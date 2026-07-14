@@ -160,7 +160,7 @@
       "reviewsDue": "Reviews Due",
       "activeMissions": "Active Missions",
       "streak": "Streak",
-      "streakAtRisk": "Streak at risk — complete a short lesson today.",
+      "streakAtRisk": "Don't lose your {{count}}-day streak — one short lesson today.",
       "streakNextMilestone": "{{days}} day(s) to {{milestone}}-day milestone",
       "reviewsTileHintTapPractice": "Tap this tile to practice.",
       "missionsTileHintTapOpen": "Tap to open Missions.",
@@ -2298,6 +2298,15 @@
   "subscriptions": {
     "choosePlan": "Build Your Path",
     "intro": "Start free — no credit card needed. Upgrade to Plus or Pro when you're ready to unlock your personalized learning path and the full suite of tools.",
+    "paywallHeadlineGoal": "Unlock the path built for {{goal}}",
+    "noCommitment": "No commitment — cancel anytime",
+    "perWeek": "That's {{price}}/week",
+    "exitIntent": {
+      "title": "Not ready for a year?",
+      "body": "Try Plus monthly instead — same features, cancel whenever.",
+      "tryMonthly": "Show monthly plans",
+      "noThanks": "No thanks"
+    },
     "personalizedPathTitle": "Personalized Path Requires Plus",
     "personalizedPathIntro": "Complete your financial profile, then choose Plus or Pro to unlock your personalized path.",
     "rcRequiredTitle": "Production build required",
@@ -2506,6 +2515,16 @@
       "body": "Turn on reminders for streaks, missions, and learning nudges. You can change this anytime in Profile.",
       "enable": "Enable notifications",
       "notNow": "Not now"
+    },
+    "planReady": {
+      "eyebrow": "YOUR PERSONAL PLAN",
+      "title": "Your plan is",
+      "titleEm": "ready",
+      "subtitle": "Built around what you told us matters most.",
+      "goalsLabel": "What you're working toward",
+      "pathLabel": "Your first steps",
+      "outcomeFallback": "You've got a clear path ahead — let's get started.",
+      "cta": "See my plan options"
     },
     "questionnaireHeaderPersonalized": "Complete your financial profile",
     "questionnaireHeaderDefault": "Personalise your journey",

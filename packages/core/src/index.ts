@@ -231,6 +231,7 @@ export {
   saveAnswer as saveQuestionnaireAnswer,
   completeQuestionnaire,
   abandonQuestionnaire,
+  fetchPlanSummary,
 } from "./services/questionnaireService";
 export type {
   QuestionnaireProgress,
@@ -238,4 +239,8 @@ export type {
   NextQuestionResponse,
   SaveAnswerRequest,
   CompletionResponse,
+  PlanSummary,
+  PlanSummaryGoal,
+  PlanSummaryLesson,
+  PlanSummaryOutcome,
 } from "./services/questionnaireService";

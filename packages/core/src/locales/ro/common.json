@@ -160,7 +160,7 @@
       "reviewsDue": "Recapitulări restante",
       "activeMissions": "Misiuni active",
       "streak": "Serie",
-      "streakAtRisk": "Seria e în pericol — finalizează astăzi o lecție scurtă.",
+      "streakAtRisk": "Nu-ți pierde seria de {{count}} zile — o lecție scurtă azi.",
       "streakNextMilestone": "{{days}} zile până la pragul de {{milestone}} zile",
       "reviewsTileHintTapPractice": "Atinge acest panou pentru a exersa.",
       "missionsTileHintTapOpen": "Atinge pentru a deschide Misiuni.",
@@ -2298,6 +2298,15 @@
   "subscriptions": {
     "choosePlan": "Alege planul tău",
     "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium direct prin App Store sau Google Play.",
+    "paywallHeadlineGoal": "Deblochează traseul creat pentru {{goal}}",
+    "noCommitment": "Fără angajament — anulează oricând",
+    "perWeek": "Adică {{price}}/săptămână",
+    "exitIntent": {
+      "title": "Nu ești gata pentru un an?",
+      "body": "Încearcă Plus lunar — aceleași funcții, anulezi oricând.",
+      "tryMonthly": "Arată planurile lunare",
+      "noThanks": "Nu, mulțumesc"
+    },
     "personalizedPathTitle": "Traseul personalizat necesită Plus",
     "personalizedPathIntro": "Finalizează profilul financiar, apoi alege Plus sau Pro pentru a debloca traseul personalizat.",
     "rcRequiredTitle": "Este necesară o versiune instalată",
@@ -2506,6 +2515,16 @@
       "body": "Activează mementouri pentru serie, misiuni și îndemnuri de învățare. Poți schimba oricând din Profil.",
       "enable": "Activează notificările",
       "notNow": "Nu acum"
+    },
+    "planReady": {
+      "eyebrow": "PLANUL TĂU PERSONAL",
+      "title": "Planul tău este",
+      "titleEm": "gata",
+      "subtitle": "Construit în jurul a ceea ce ne-ai spus că îți pasă cel mai mult.",
+      "goalsLabel": "Ce vrei să realizezi",
+      "pathLabel": "Primii tăi pași",
+      "outcomeFallback": "Ai un traseu clar înainte — hai să începem.",
+      "cta": "Vezi opțiunile planului meu"
     },
     "questionnaireHeaderPersonalized": "Completează profilul tău financiar",
     "questionnaireHeaderDefault": "Personalizează-ți parcursul",

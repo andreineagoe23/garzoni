@@ -101,3 +101,33 @@ export const abandonQuestionnaire = (): Promise<QuestionnaireProgress> =>
   apiClient
     .post<QuestionnaireProgress>("/questionnaire/abandon/")
     .then((r) => r.data);
+
+// ─── Plan summary ("Your plan is ready" segue) ──────────────────────────────
+
+export interface PlanSummaryGoal {
+  key: string;
+  label: string;
+}
+
+export interface PlanSummaryLesson {
+  id: number;
+  title: string;
+  topic?: string;
+}
+
+export interface PlanSummaryOutcome {
+  text: string;
+  target_date?: string | null;
+}
+
+export interface PlanSummary {
+  stated_goals: PlanSummaryGoal[];
+  timeframe?: string | null;
+  risk_comfort?: string | null;
+  curated_lessons: PlanSummaryLesson[];
+  projected_outcome?: PlanSummaryOutcome | null;
+  recommended_tier: "plus" | "pro";
+}
+
+export const fetchPlanSummary = (): Promise<PlanSummary> =>
+  apiClient.get<PlanSummary>("/onboarding/plan-summary/").then((r) => r.data);

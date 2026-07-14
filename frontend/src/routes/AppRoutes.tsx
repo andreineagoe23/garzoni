@@ -21,6 +21,7 @@ import {
   Leaderboards,
   Missions,
   OnboardingQuestionnaire,
+  PlanReadyPage,
   ToolsPage,
   RewardsPage,
   SupportPage,
@@ -100,6 +101,10 @@ const AppRoutes = () => {
       <Route
         path="/onboarding"
         element={protectedWithBoundary(<OnboardingQuestionnaire />)}
+      />
+      <Route
+        path="/plan-ready"
+        element={protectedWithBoundary(<PlanReadyPage />)}
       />
       <Route path="/upgrade" element={<UpgradePage />} />
       <Route

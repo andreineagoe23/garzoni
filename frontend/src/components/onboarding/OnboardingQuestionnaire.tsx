@@ -137,7 +137,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       setShowCompletionModal(false);
       queryClient.invalidateQueries({ queryKey: ["questionnaire-progress"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      window.location.href = "/subscriptions";
+      navigate("/plan-ready");
     },
     onError: (error: { response?: { data?: { error?: string } } }) => {
       toast.error(
@@ -250,7 +250,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       } catch {
         toast.error(t("onboarding.couldNotComplete"));
       }
-      window.location.href = "/subscriptions";
+      navigate("/plan-ready");
     } catch (error) {
       console.error("Failed to save answer:", error);
       toast.error(t("onboarding.failedToSave"));
@@ -262,6 +262,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     questionIndex,
     saveAnswerMutation,
     completeMutation,
+    navigate,
     t,
   ]);
 
@@ -300,7 +301,7 @@ const OnboardingQuestionnaire: React.FC = () => {
           } catch {
             toast.error(t("onboarding.couldNotComplete"));
           }
-          window.location.href = "/subscriptions";
+          navigate("/plan-ready");
           return;
         }
         queryClient.invalidateQueries({
@@ -323,6 +324,7 @@ const OnboardingQuestionnaire: React.FC = () => {
       completeMutation,
       refetchNextQuestion,
       queryClient,
+      navigate,
       trackEvent,
       t,
     ]
@@ -692,11 +694,11 @@ const OnboardingQuestionnaire: React.FC = () => {
           rewards={completionRewards}
           onClose={() => {
             setShowCompletionModal(false);
-            navigate("/subscriptions");
+            navigate("/plan-ready");
           }}
           onStartLearning={() => {
             setShowCompletionModal(false);
-            navigate("/subscriptions");
+            navigate("/plan-ready");
           }}
         />
       )}

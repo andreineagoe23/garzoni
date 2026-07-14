@@ -250,3 +250,56 @@ class HeartsEndpointSecurityTest(APITestCase):
         response = self.client.post("/api/user/hearts/refill/", {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["hearts"], max_hearts)
+
+
+@_LOCMEM_CACHE
+class HeartsRefillDailyCapTest(APITestCase):
+    """Free users get a small daily cap on instant refills; Plus/Pro do not."""
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        self.user = User.objects.create_user(
+            username="refill-cap-user", password="unit-test-password!"
+        )
+        self.profile = UserProfile.objects.get_or_create(user=self.user)[0]
+        self.client.force_authenticate(user=self.user)
+
+    def _drain_and_refill(self):
+        """Set hearts to 0 then hit the refill endpoint once."""
+        self.profile.refresh_from_db()
+        self.profile.hearts = 0
+        self.profile.save(update_fields=["hearts"])
+        return self.client.post("/api/user/hearts/refill/", {}, format="json")
+
+    def test_free_user_capped_after_three_refills(self):
+        for _ in range(3):
+            response = self._drain_and_refill()
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 4th instant refill of the day is blocked
+        response = self._drain_and_refill()
+        self.assertEqual(response.status_code, 429)
+        self.assertTrue(response.data.get("upgrade_hint"))
+        self.assertIn("detail", response.data)
+
+    def test_full_refill_is_noop_and_does_not_consume_cap(self):
+        # Already full -> no-op, no cap consumed
+        hearts_response = self.client.get("/api/user/hearts/")
+        max_hearts = hearts_response.data["max_hearts"]
+        self.profile.hearts = max_hearts
+        self.profile.save(update_fields=["hearts"])
+        for _ in range(5):
+            response = self.client.post("/api/user/hearts/refill/", {}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_premium_user_not_capped(self):
+        self.profile.has_paid = True
+        self.profile.is_premium = True
+        self.profile.subscription_plan_id = "plus"
+        self.profile.save(update_fields=["has_paid", "is_premium", "subscription_plan_id"])
+
+        for _ in range(5):
+            response = self._drain_and_refill()
+            self.assertEqual(response.status_code, status.HTTP_200_OK)

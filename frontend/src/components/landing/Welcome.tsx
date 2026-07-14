@@ -13,9 +13,57 @@ import { garzoniDemoPosterUrl, garzoniDemoVideoUrl } from "@garzoni/core";
 import Header from "components/layout/Header";
 import { GlassContainer, Modal } from "components/ui";
 import { useTheme } from "contexts/ThemeContext";
+import apiClient from "services/httpClient";
+import { formatCurrency, getLocale } from "utils/format";
 import ParticleStage from "./ParticleStage";
 import "./marketing.css";
 import "./welcome.css";
+
+// ── Live pricing (public /plans/ catalog) ──────────────────────────────────
+type LandingPlan = {
+  plan_id: string;
+  billing_interval: string;
+  price_amount?: number | string;
+  currency?: string;
+  promo_price_amount?: number | null;
+};
+type LandingPromo = { id: string; percent_off: number; ends_on: string };
+
+type TierPricing = {
+  monthly: number;
+  yearly: number;
+  currency: string;
+  savingsPct: number;
+  monthlyPromo: number | null;
+  yearlyPromo: number | null;
+};
+
+// Real catalog fallback (used only if the /plans/ fetch fails). Kept in sync
+// with backend/authentication/entitlements.py — corrected from stale £5.00/£5.83.
+const FALLBACK_PRICING: Record<"plus" | "pro", TierPricing> = {
+  plus: {
+    monthly: 6.99,
+    yearly: 59.99,
+    currency: "GBP",
+    savingsPct: 28,
+    monthlyPromo: null,
+    yearlyPromo: null,
+  },
+  pro: {
+    monthly: 7.99,
+    yearly: 69.99,
+    currency: "GBP",
+    savingsPct: 27,
+    monthlyPromo: null,
+    yearlyPromo: null,
+  },
+};
+
+const computeSavingsPct = (monthly: number, yearly: number): number => {
+  if (!monthly || !yearly) return 0;
+  const pct = Math.round((1 - yearly / (monthly * 12)) * 100);
+  return pct > 0 ? pct : 0;
+};
 
 const PUBLIC_PAGES = [
   { to: "/marketing", label: "Features", emoji: "✨" },
@@ -152,6 +200,65 @@ function Welcome() {
       document.removeEventListener("keydown", onKey);
     };
   }, [pagesOpen]);
+
+  // Live pricing from the public catalog; falls back to the corrected numbers.
+  const [pricingPlans, setPricingPlans] = useState<LandingPlan[]>([]);
+  const [pricingPromo, setPricingPromo] = useState<LandingPromo | null>(null);
+  const priceLocale = getLocale();
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve(apiClient.get("/plans/"))
+      .then((r) => {
+        if (cancelled) return;
+        setPricingPlans(r?.data?.plans || []);
+        setPricingPromo(r?.data?.promo || null);
+      })
+      .catch(() => {
+        // Keep fallback pricing on failure.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const pricing = useMemo<Record<"plus" | "pro", TierPricing>>(() => {
+    const build = (planId: "plus" | "pro"): TierPricing => {
+      const monthly = pricingPlans.find(
+        (p) => p.plan_id === planId && p.billing_interval === "monthly"
+      );
+      const yearly = pricingPlans.find(
+        (p) => p.plan_id === planId && p.billing_interval === "yearly"
+      );
+      const monthlyPrice = Number(monthly?.price_amount ?? NaN);
+      const yearlyPrice = Number(yearly?.price_amount ?? NaN);
+      if (!Number.isFinite(monthlyPrice) || !Number.isFinite(yearlyPrice)) {
+        return FALLBACK_PRICING[planId];
+      }
+      const promoActive = !!pricingPromo;
+      return {
+        monthly: monthlyPrice,
+        yearly: yearlyPrice,
+        currency: monthly?.currency || yearly?.currency || "GBP",
+        savingsPct: computeSavingsPct(monthlyPrice, yearlyPrice),
+        monthlyPromo:
+          promoActive && monthly?.promo_price_amount != null
+            ? Number(monthly.promo_price_amount)
+            : null,
+        yearlyPromo:
+          promoActive && yearly?.promo_price_amount != null
+            ? Number(yearly.promo_price_amount)
+            : null,
+      };
+    };
+    return { plus: build("plus"), pro: build("pro") };
+  }, [pricingPlans, pricingPromo]);
+
+  const fmtPrice = (value: number, currency: string) =>
+    formatCurrency(value, currency, priceLocale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   const referralCode = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -1163,11 +1270,45 @@ function Welcome() {
                 </div>
                 <div className="price-tagline">A personalised path</div>
                 <div className="price-main">
-                  <span className="val">£5.00</span>
+                  {pricing.plus.monthlyPromo != null && (
+                    <span
+                      className="val"
+                      style={{
+                        textDecoration: "line-through",
+                        opacity: 0.5,
+                        marginRight: "8px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {fmtPrice(pricing.plus.monthly, pricing.plus.currency)}
+                    </span>
+                  )}
+                  <span className="val">
+                    {fmtPrice(
+                      pricing.plus.monthlyPromo ?? pricing.plus.monthly,
+                      pricing.plus.currency
+                    )}
+                  </span>
                   <span className="unit">/ month</span>
                 </div>
                 <div className="price-sub">
-                  Billed £59.99 annually · save 28%
+                  Billed{" "}
+                  {pricing.plus.yearlyPromo != null ? (
+                    <>
+                      <span
+                        style={{ textDecoration: "line-through", opacity: 0.6 }}
+                      >
+                        {fmtPrice(pricing.plus.yearly, pricing.plus.currency)}
+                      </span>{" "}
+                      {fmtPrice(
+                        pricing.plus.yearlyPromo,
+                        pricing.plus.currency
+                      )}
+                    </>
+                  ) : (
+                    fmtPrice(pricing.plus.yearly, pricing.plus.currency)
+                  )}{" "}
+                  annually · save {pricing.plus.savingsPct}%
                 </div>
                 <ul className="price-perks">
                   <li>
@@ -1208,11 +1349,42 @@ function Welcome() {
                 </div>
                 <div className="price-tagline">The full toolkit</div>
                 <div className="price-main">
-                  <span className="val">£5.83</span>
+                  {pricing.pro.monthlyPromo != null && (
+                    <span
+                      className="val"
+                      style={{
+                        textDecoration: "line-through",
+                        opacity: 0.5,
+                        marginRight: "8px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {fmtPrice(pricing.pro.monthly, pricing.pro.currency)}
+                    </span>
+                  )}
+                  <span className="val">
+                    {fmtPrice(
+                      pricing.pro.monthlyPromo ?? pricing.pro.monthly,
+                      pricing.pro.currency
+                    )}
+                  </span>
                   <span className="unit">/ month</span>
                 </div>
                 <div className="price-sub">
-                  Billed £69.99 annually · save 27%
+                  Billed{" "}
+                  {pricing.pro.yearlyPromo != null ? (
+                    <>
+                      <span
+                        style={{ textDecoration: "line-through", opacity: 0.6 }}
+                      >
+                        {fmtPrice(pricing.pro.yearly, pricing.pro.currency)}
+                      </span>{" "}
+                      {fmtPrice(pricing.pro.yearlyPromo, pricing.pro.currency)}
+                    </>
+                  ) : (
+                    fmtPrice(pricing.pro.yearly, pricing.pro.currency)
+                  )}{" "}
+                  annually · save {pricing.pro.savingsPct}%
                 </div>
                 <ul className="price-perks">
                   <li>

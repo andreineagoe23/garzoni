@@ -1,16 +1,52 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
 from authentication.models import UserProfile
+from authentication.entitlements import get_user_plan, plan_allows
 from authentication.services.hearts import (
     apply_hearts_regen,
     hearts_constants,
     hearts_payload,
 )
 from authentication.throttles import HeartsGrantRateThrottle, HeartsRefillRateThrottle
+
+
+# Free (starter) users get a small number of *instant* refills per day so the
+# hearts scarcity mechanic has teeth; Plus/Pro are effectively unlimited (still
+# bounded by the outer HeartsRefillRateThrottle). Overridable via settings.
+FREE_REFILL_DAILY_CAP = getattr(settings, "HEARTS_FREE_REFILL_DAILY_CAP", 3)
+
+
+def _refill_cap_cache_key(user_id, day):
+    return f"hearts_refill_count:{user_id}:{day.isoformat()}"
+
+
+def _user_is_premium(user) -> bool:
+    """True when the user's plan is Plus or Pro (no per-plan refill cap)."""
+    try:
+        return plan_allows(get_user_plan(user), "plus")
+    except Exception:
+        return False
+
+
+def _refills_used_today(user_id, now) -> int:
+    return int(cache.get(_refill_cap_cache_key(user_id, now.date())) or 0)
+
+
+def _record_refill(user_id, now):
+    """Increment today's instant-refill counter (expires after 48h)."""
+    key = _refill_cap_cache_key(user_id, now.date())
+    try:
+        # cache.add is a no-op if the key already exists, so incr always works.
+        cache.add(key, 0, timeout=60 * 60 * 48)
+        cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, timeout=60 * 60 * 48)
 
 
 class UserHeartsView(APIView):
@@ -97,8 +133,33 @@ class UserHeartsRefillView(APIView):
             max_hearts, _ = hearts_constants(profile)
             hearts = int(profile.hearts or 0)
             if hearts >= max_hearts:
+                # Already full — no-op, no cap consumed.
                 return Response(hearts_payload(profile, now=now))
+
+            # Plan-aware daily cap on *instant* refills (free users only). This is
+            # what gives the scarcity mechanic teeth and the upgrade CTA a payoff.
+            is_premium = _user_is_premium(request.user)
+            if not is_premium:
+                used_today = _refills_used_today(request.user.pk, now)
+                if used_today >= FREE_REFILL_DAILY_CAP:
+                    return Response(
+                        {
+                            "detail": (
+                                "You've used all your free heart refills for today. "
+                                "Upgrade to Plus for faster, unlimited refills."
+                            ),
+                            "upgrade_hint": True,
+                            "refill_daily_cap": FREE_REFILL_DAILY_CAP,
+                            "refills_used_today": used_today,
+                        },
+                        status=429,
+                    )
+
             profile.hearts = max_hearts
             profile.hearts_last_refill_at = now
             profile.save(update_fields=["hearts", "hearts_last_refill_at"])
+
+            if not is_premium:
+                _record_refill(request.user.pk, now)
+
             return Response(hearts_payload(profile, now=now))

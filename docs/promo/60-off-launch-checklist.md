@@ -3,12 +3,12 @@
 Campaign: **summer60** — 60% off all paid plans, 2026-07-11 → 2026-08-31.
 Discount shape: **first year** (yearly plans) / **first 3 months** (monthly plans).
 
-| Plan | Normal | Promo |
-|---|---|---|
-| Plus yearly | £59.99 | **£23.99** first year |
-| Pro yearly | £69.99 | **£27.99** first year |
+| Plan         | Normal   | Promo                       |
+| ------------ | -------- | --------------------------- |
+| Plus yearly  | £59.99   | **£23.99** first year       |
+| Pro yearly   | £69.99   | **£27.99** first year       |
 | Plus monthly | £6.99/mo | **£2.79/mo** first 3 months |
-| Pro monthly | £7.99/mo | **£3.19/mo** first 3 months |
+| Pro monthly  | £7.99/mo | **£3.19/mo** first 3 months |
 
 Code + Customer.io are already done (see "Already done" at the bottom). The steps below
 are dashboard-only and cannot be automated.
@@ -19,12 +19,12 @@ are dashboard-only and cannot be automated.
 
 My Apps → garzoni → Monetization → Subscriptions. For each product:
 
-| Product | Offer type | Setup |
-|---|---|---|
-| `app.garzoni.mobile.plus_yearly_v3` | Introductory Offer, **Pay Up Front** | 1 year at **£23.99** |
-| `app.garzoni.mobile.pro_yearly_v3` | Introductory Offer, **Pay Up Front** | 1 year at **£27.99** |
+| Product                              | Offer type                            | Setup                    |
+| ------------------------------------ | ------------------------------------- | ------------------------ |
+| `app.garzoni.mobile.plus_yearly_v3`  | Introductory Offer, **Pay Up Front**  | 1 year at **£23.99**     |
+| `app.garzoni.mobile.pro_yearly_v3`   | Introductory Offer, **Pay Up Front**  | 1 year at **£27.99**     |
 | `app.garzoni.mobile.plus_monthly_v3` | Introductory Offer, **Pay As You Go** | 3 months at **£2.79**/mo |
-| `app.garzoni.mobile.pro_monthly_v3` | Introductory Offer, **Pay As You Go** | 3 months at **£3.19**/mo |
+| `app.garzoni.mobile.pro_monthly_v3`  | Introductory Offer, **Pay As You Go** | 3 months at **£3.19**/mo |
 
 - Set the offer **end date = 31 Aug 2026** (ASC supports start/end dates on intro offers).
 - ⚠️ Apple allows **one intro offer per product per territory** — the yearly products
@@ -38,12 +38,12 @@ My Apps → garzoni → Monetization → Subscriptions. For each product:
 
 Monetize → Products → Subscriptions. For each base plan, **Add offer**:
 
-| Base plan | Offer phases |
-|---|---|
-| `plus-yearly` (product `app.garzoni.mobile.plus`) | Single payment: 1 year at **£23.99** |
-| `pro-yearly` (product `app.garzoni.mobile.pro`) | Single payment: 1 year at **£27.99** |
+| Base plan                                          | Offer phases                                         |
+| -------------------------------------------------- | ---------------------------------------------------- |
+| `plus-yearly` (product `app.garzoni.mobile.plus`)  | Single payment: 1 year at **£23.99**                 |
+| `pro-yearly` (product `app.garzoni.mobile.pro`)    | Single payment: 1 year at **£27.99**                 |
 | `plus-monthly` (product `app.garzoni.mobile.plus`) | Discounted recurring: 3 billing periods at **£2.79** |
-| `pro-monthly` (product `app.garzoni.mobile.pro`) | Discounted recurring: 3 billing periods at **£3.19** |
+| `pro-monthly` (product `app.garzoni.mobile.pro`)   | Discounted recurring: 3 billing periods at **£3.19** |
 
 - Eligibility: **New customer acquisition** (auto-applies; RevenueCat picks the offer up
   without app changes).
@@ -56,12 +56,12 @@ Monetize → Products → Subscriptions. For each base plan, **Add offer**:
 Projects → garzoni → Products (Stripe app `app3de1608d7a`). For each product, add an
 **Introductory Offer** (dashboard-only; not exposed via API/MCP):
 
-| RC product | Stripe id | Intro offer |
-|---|---|---|
-| Plus Yearly | `prod_Tw8XTqsFe6slAo` | **£23.99**, 1 year, pay upfront |
-| Pro Yearly | `prod_Tw8XX1mhiswUMR` | **£27.99**, 1 year, pay upfront |
+| RC product   | Stripe id             | Intro offer                          |
+| ------------ | --------------------- | ------------------------------------ |
+| Plus Yearly  | `prod_Tw8XTqsFe6slAo` | **£23.99**, 1 year, pay upfront      |
+| Pro Yearly   | `prod_Tw8XX1mhiswUMR` | **£27.99**, 1 year, pay upfront      |
 | Plus Monthly | `prod_UeM1DHb2SyTnH7` | **£2.79**, 3 months, multiple cycles |
-| Pro Monthly | `prod_UeM2zJPn7Cblal` | **£3.19**, 3 months, multiple cycles |
+| Pro Monthly  | `prod_UeM2zJPn7Cblal` | **£3.19**, 3 months, multiple cycles |
 
 - Eligibility: **first-time purchasers** (or Everyone if you want lapsed users covered).
 - Web Billing schedules intro price **after** the existing 7-day trial, so web keeps

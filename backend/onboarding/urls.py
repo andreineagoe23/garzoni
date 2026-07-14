@@ -6,6 +6,7 @@ from onboarding.views import (
     QuestionnaireCompleteView,
     QuestionnaireAbandonView,
     QuestionnaireCleanupView,
+    PlanSummaryView,
 )
 
 urlpatterns = [
@@ -38,5 +39,10 @@ urlpatterns = [
         "questionnaire/cleanup/",
         QuestionnaireCleanupView.as_view(),
         name="questionnaire-cleanup",
+    ),
+    path(
+        "onboarding/plan-summary/",
+        PlanSummaryView.as_view(),
+        name="onboarding-plan-summary",
     ),
 ]

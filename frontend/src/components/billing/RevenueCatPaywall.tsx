@@ -20,9 +20,10 @@
  *   - Plus: default offering (`offerings.current`). Pro: offering id `pro`.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type CustomerInfo, type Package } from "@revenuecat/purchases-js";
+import { recordFunnelEvent } from "services/analyticsService";
 import {
   configureRevenueCat,
   isValidAppUserId,
@@ -115,6 +116,11 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
   const [error, setError] = useState("");
   const [alreadyEntitled, setAlreadyEntitled] = useState(false);
   const [entitledInfo, setEntitledInfo] = useState<CustomerInfo | null>(null);
+
+  // Exit-intent: intercept the first dismiss with a monthly downsell offer.
+  const [showExitIntent, setShowExitIntent] = useState(false);
+  const exitIntentUsedRef = useRef(false);
+  const monthlyPlan = plans.find((p) => p.label === "Monthly") ?? null;
 
   const unlockHeadline =
     offeringIdentifier === RC_OFFERING_PRO ? "Garzoni Pro" : "Garzoni Plus";
@@ -242,6 +248,49 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     }
   }, [onSuccess]);
 
+  // ── Exit-intent (monthly downsell before real dismiss) ──────────────────────
+  const handleSkipClick = useCallback(() => {
+    // Only intercept once per paywall open, and only if there's a monthly
+    // package to downsell to. Otherwise dismiss for real.
+    if (
+      !exitIntentUsedRef.current &&
+      monthlyPlan &&
+      !purchasing &&
+      !restoring
+    ) {
+      exitIntentUsedRef.current = true;
+      setShowExitIntent(true);
+      Promise.resolve(
+        recordFunnelEvent("exit_intent_shown", {
+          source: "revenuecat_paywall",
+        })
+      ).catch(() => {});
+      return;
+    }
+    onClose?.();
+  }, [monthlyPlan, purchasing, restoring, onClose]);
+
+  const handleExitAccept = useCallback(() => {
+    if (!monthlyPlan) return;
+    Promise.resolve(
+      recordFunnelEvent("exit_intent_accepted", {
+        source: "revenuecat_paywall",
+      })
+    ).catch(() => {});
+    setShowExitIntent(false);
+    void handlePurchase(monthlyPlan);
+  }, [monthlyPlan, handlePurchase]);
+
+  const handleExitDecline = useCallback(() => {
+    Promise.resolve(
+      recordFunnelEvent("exit_intent_declined", {
+        source: "revenuecat_paywall",
+      })
+    ).catch(() => {});
+    setShowExitIntent(false);
+    onClose?.();
+  }, [onClose]);
+
   // ── Render ───────────────────────────────────────────────────────────────────
 
   if (alreadyEntitled) {
@@ -281,139 +330,196 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
   }
 
   return (
-    <GlassCard padding="lg" className="w-full max-w-3xl space-y-6">
-      {/* Header */}
-      <div className="space-y-1 text-center">
-        <h2 className="text-2xl font-bold text-content-primary">
-          Unlock {unlockHeadline}
-        </h2>
-        <p className="text-sm text-content-muted">
-          Get unlimited access to all courses, exercises, and premium features.
-        </p>
-      </div>
-
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-48 animate-pulse rounded-2xl bg-surface-card"
-            />
-          ))}
+    <>
+      <GlassCard padding="lg" className="w-full max-w-3xl space-y-6">
+        {/* Header */}
+        <div className="space-y-1 text-center">
+          <h2 className="text-2xl font-bold text-content-primary">
+            Unlock {unlockHeadline}
+          </h2>
+          <p className="text-sm text-content-muted">
+            Get unlimited access to all courses, exercises, and premium
+            features.
+          </p>
         </div>
-      )}
 
-      {/* Plan cards */}
-      {!loading && plans.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {plans.map((plan) => {
-            const isBusy = purchasing === plan.pkg.identifier;
-            return (
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="grid gap-4 md:grid-cols-3">
+            {[0, 1, 2].map((i) => (
               <div
-                key={plan.pkg.identifier}
-                className={[
-                  "relative flex flex-col gap-4 rounded-2xl border p-5 text-left shadow-sm transition",
-                  plan.isBestValue
-                    ? "border-[color:var(--color-brand-primary)] shadow-lg shadow-[color:var(--color-brand-primary)]/20 bg-surface-card"
-                    : "border-[color:var(--color-border-default)] bg-surface-card",
-                ].join(" ")}
-              >
-                {/* Best value badge */}
-                {plan.isBestValue && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[color:var(--color-brand-primary)] px-3 py-0.5 text-xs font-bold text-white shadow">
-                    Best value
-                  </span>
-                )}
+                key={i}
+                className="h-48 animate-pulse rounded-2xl bg-surface-card"
+              />
+            ))}
+          </div>
+        )}
 
-                <div className="space-y-1 pt-2">
-                  <p className="text-lg font-semibold text-content-primary">
-                    {plan.label}
-                  </p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold text-content-primary">
-                      {plan.price || "—"}
+        {/* Plan cards */}
+        {!loading && plans.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-3">
+            {plans.map((plan) => {
+              const isBusy = purchasing === plan.pkg.identifier;
+              return (
+                <div
+                  key={plan.pkg.identifier}
+                  className={[
+                    "relative flex flex-col gap-4 rounded-2xl border p-5 text-left shadow-sm transition",
+                    plan.isBestValue
+                      ? "border-[color:var(--color-brand-primary)] shadow-lg shadow-[color:var(--color-brand-primary)]/20 bg-surface-card"
+                      : "border-[color:var(--color-border-default)] bg-surface-card",
+                  ].join(" ")}
+                >
+                  {/* Best value badge */}
+                  {plan.isBestValue && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[color:var(--color-brand-primary)] px-3 py-0.5 text-xs font-bold text-white shadow">
+                      Best value
                     </span>
-                    {plan.period && (
-                      <span className="text-xs font-medium text-content-muted">
-                        {plan.period}
+                  )}
+
+                  <div className="space-y-1 pt-2">
+                    <p className="text-lg font-semibold text-content-primary">
+                      {plan.label}
+                    </p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-content-primary">
+                        {plan.price || "—"}
                       </span>
+                      {plan.period && (
+                        <span className="text-xs font-medium text-content-muted">
+                          {plan.period}
+                        </span>
+                      )}
+                    </div>
+                    {plan.isLifetime && (
+                      <p className="text-xs text-content-muted">
+                        Pay once, own forever
+                      </p>
                     )}
                   </div>
-                  {plan.isLifetime && (
-                    <p className="text-xs text-content-muted">
-                      Pay once, own forever
-                    </p>
-                  )}
+
+                  <ul className="space-y-1.5 text-sm text-content-primary">
+                    <li>✓ All premium courses</li>
+                    <li>✓ Unlimited AI tutor</li>
+                    <li>✓ Advanced exercises</li>
+                    {(plan.isBestValue || plan.isLifetime) && (
+                      <li>✓ Priority support</li>
+                    )}
+                  </ul>
+
+                  <div className="mt-auto flex flex-col gap-1.5">
+                    <GlassButton
+                      variant={plan.isBestValue ? "primary" : "ghost"}
+                      className="w-full"
+                      disabled={Boolean(purchasing) || restoring}
+                      loading={isBusy}
+                      onClick={() => void handlePurchase(plan)}
+                    >
+                      {isBusy ? "Opening checkout…" : `Choose ${plan.label} ›`}
+                    </GlassButton>
+                    {!plan.isLifetime && (
+                      <p className="text-center text-[11px] text-content-muted">
+                        No commitment — cancel anytime
+                      </p>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
 
-                <ul className="space-y-1.5 text-sm text-content-primary">
-                  <li>✓ All premium courses</li>
-                  <li>✓ Unlimited AI tutor</li>
-                  <li>✓ Advanced exercises</li>
-                  {(plan.isBestValue || plan.isLifetime) && (
-                    <li>✓ Priority support</li>
-                  )}
-                </ul>
+        {/* Error message */}
+        {error && (
+          <p className="rounded-xl bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)]">
+            {error}
+          </p>
+        )}
 
-                <GlassButton
-                  variant={plan.isBestValue ? "primary" : "ghost"}
-                  className="mt-auto w-full"
-                  disabled={Boolean(purchasing) || restoring}
-                  loading={isBusy}
-                  onClick={() => void handlePurchase(plan)}
-                >
-                  {isBusy ? "Opening checkout…" : `Choose ${plan.label}`}
-                </GlassButton>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Error message */}
-      {error && (
-        <p className="rounded-xl bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)]">
-          {error}
-        </p>
-      )}
-
-      {/* Skip for now — own full-width row so it's always visible, not buried
+        {/* Skip for now — own full-width row so it's always visible, not buried
           next to Restore. Free users should never feel trapped on the paywall. */}
-      {onClose && (
-        <div className="border-t border-[color:var(--color-border-default)] pt-4">
+        {onClose && (
+          <div className="border-t border-[color:var(--color-border-default)] pt-4">
+            <GlassButton
+              variant="ghost"
+              size="md"
+              className="w-full"
+              disabled={Boolean(purchasing) || restoring}
+              onClick={handleSkipClick}
+            >
+              {t("common.skipForNow", "Skip for now — keep exploring for free")}
+            </GlassButton>
+          </div>
+        )}
+
+        {/* Restore */}
+        <div className="flex items-center justify-center">
           <GlassButton
             variant="ghost"
-            size="md"
-            className="w-full"
-            disabled={Boolean(purchasing) || restoring}
-            onClick={onClose}
+            size="sm"
+            disabled={restoring || Boolean(purchasing)}
+            loading={restoring}
+            onClick={() => void handleRestore()}
           >
-            {t("common.skipForNow", "Skip for now — keep exploring for free")}
+            {restoring ? "Restoring…" : "Restore purchases"}
           </GlassButton>
         </div>
-      )}
 
-      {/* Restore */}
-      <div className="flex items-center justify-center">
-        <GlassButton
-          variant="ghost"
-          size="sm"
-          disabled={restoring || Boolean(purchasing)}
-          loading={restoring}
-          onClick={() => void handleRestore()}
+        {/* Legal */}
+        <p className="text-center text-xs text-content-muted">
+          Subscriptions auto-renew unless cancelled at least 24 hours before the
+          end of the current period. Manage or cancel anytime in your account
+          settings.
+        </p>
+      </GlassCard>
+
+      {/* Exit-intent downsell — shown once before the paywall actually closes. */}
+      {showExitIntent && monthlyPlan && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Try monthly instead"
         >
-          {restoring ? "Restoring…" : "Restore purchases"}
-        </GlassButton>
-      </div>
-
-      {/* Legal */}
-      <p className="text-center text-xs text-content-muted">
-        Subscriptions auto-renew unless cancelled at least 24 hours before the
-        end of the current period. Manage or cancel anytime in your account
-        settings.
-      </p>
-    </GlassCard>
+          <GlassCard
+            padding="lg"
+            className="w-full max-w-sm space-y-5 text-center"
+          >
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-content-primary">
+                Not ready for a year?
+              </h3>
+              <p className="text-sm text-content-muted">
+                Try monthly instead — {monthlyPlan.price}
+                {monthlyPlan.period ? ` ${monthlyPlan.period}` : ""}. Cancel
+                anytime.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <GlassButton
+                variant="primary"
+                className="w-full"
+                disabled={Boolean(purchasing) || restoring}
+                loading={purchasing === monthlyPlan.pkg.identifier}
+                onClick={handleExitAccept}
+              >
+                {`Start monthly — ${monthlyPlan.price}${
+                  monthlyPlan.period ? ` ${monthlyPlan.period}` : ""
+                } ›`}
+              </GlassButton>
+              <GlassButton
+                variant="ghost"
+                className="w-full"
+                disabled={Boolean(purchasing) || restoring}
+                onClick={handleExitDecline}
+              >
+                No thanks
+              </GlassButton>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+    </>
   );
 };
 

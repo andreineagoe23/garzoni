@@ -305,8 +305,11 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     reloadEntitlements?.();
   }, [queryClient, reloadEntitlements]);
 
-  // Redirect to onboarding only when questionnaire is in_progress (started but not completed).
-  // Do not redirect when status is "abandoned" (user chose "Save and finish later") so they stay on dashboard.
+  // Redirect to onboarding ONLY when the user has never engaged with the quiz
+  // (a fresh, never-touched progress record — status "in_progress" with zero
+  // answers). Users who are mid-quiz may browse the dashboard freely; the
+  // QuestionnaireReminderBanner nudges them back. Completed/abandoned users
+  // also stay put. This kills the mid-quiz redirect trap.
   // Do not redirect while questionnaire progress is still loading/refetching.
   useEffect(() => {
     if (!authInitialized) return;
@@ -318,10 +321,21 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     )
       return;
     if (!questionnaireProgress) return;
-    const progress = questionnaireProgress as { status?: string };
+    const progress = questionnaireProgress as {
+      status?: string;
+      answers?: Record<string, unknown> | null;
+    };
     if (progress.status === "completed") return;
     if (progress.status === "abandoned") return; // User chose "Save and finish later" – stay on dashboard
-    navigate("/onboarding", { replace: true });
+    // Backend auto-creates a fresh "in_progress" record on first fetch, so a
+    // never-touched user is in_progress with no saved answers. Only that state
+    // (a brand-new user who hasn't started) gets sent into onboarding.
+    const answersCount = progress.answers
+      ? Object.keys(progress.answers).length
+      : 0;
+    if (progress.status === "in_progress" && answersCount === 0) {
+      navigate("/onboarding", { replace: true });
+    }
   }, [
     authInitialized,
     hasPlusAccess,

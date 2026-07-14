@@ -35,6 +35,9 @@ import {
 } from "@garzoni/core";
 import OnboardingIntroPager from "../src/components/onboarding/steps/OnboardingIntroPager";
 import OnboardingLoadingScreen from "../src/components/onboarding/steps/OnboardingLoadingScreen";
+import PlanReadyScreen, {
+  type PlanReadyContinueOptions,
+} from "../src/components/onboarding/PlanReadyScreen";
 import QuestionnaireSingleChoice from "../src/components/onboarding/steps/QuestionnaireSingleChoice";
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
@@ -151,7 +154,7 @@ export default function OnboardingScreen() {
   const personalizedPathReason =
     String(reasonParam ?? "").toLowerCase() === "personalized_path";
   const [phase, setPhase] = useState<
-    "checking" | "intro" | "questionnaire" | "done" | "error"
+    "checking" | "intro" | "questionnaire" | "done" | "planReady" | "error"
   >("checking");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -292,34 +295,46 @@ export default function OnboardingScreen() {
     setErrorMsg("");
   }, []);
 
-  const goToPaywall = useCallback(() => {
-    router.replace("/subscriptions?mode=paywall");
+  const goToPaywall = useCallback((opts?: PlanReadyContinueOptions) => {
+    const parts = ["mode=paywall"];
+    if (opts?.recommendedTier) {
+      parts.push(`recommended=${encodeURIComponent(opts.recommendedTier)}`);
+    }
+    if (opts?.goalLabel) {
+      parts.push(`goal=${encodeURIComponent(opts.goalLabel)}`);
+    }
+    router.replace(`/subscriptions?${parts.join("&")}`);
   }, []);
 
-  const handleCompletionContinue = useCallback(() => {
-    Alert.alert(
-      t("onboarding.pushPrompt.title"),
-      t("onboarding.pushPrompt.body"),
-      [
-        {
-          text: t("onboarding.pushPrompt.notNow"),
-          style: "cancel",
-          onPress: () => {
-            void goToPaywall();
+  // Runs the push pre-permission prompt, then routes to the personalized
+  // paywall carrying the plan-ready recommended tier + primary goal.
+  const handlePlanReadyContinue = useCallback(
+    (opts: PlanReadyContinueOptions) => {
+      Alert.alert(
+        t("onboarding.pushPrompt.title"),
+        t("onboarding.pushPrompt.body"),
+        [
+          {
+            text: t("onboarding.pushPrompt.notNow"),
+            style: "cancel",
+            onPress: () => {
+              void goToPaywall(opts);
+            },
           },
-        },
-        {
-          text: t("onboarding.pushPrompt.enable"),
-          onPress: () => {
-            void (async () => {
-              await registerForPushAndSubmitToken();
-              await goToPaywall();
-            })();
+          {
+            text: t("onboarding.pushPrompt.enable"),
+            onPress: () => {
+              void (async () => {
+                await registerForPushAndSubmitToken();
+                await goToPaywall(opts);
+              })();
+            },
           },
-        },
-      ],
-    );
-  }, [goToPaywall, t]);
+        ],
+      );
+    },
+    [goToPaywall, t],
+  );
 
   if (phase === "checking") {
     return (
@@ -387,8 +402,17 @@ export default function OnboardingScreen() {
         <OnboardingLoadingScreen
           xp={completionRewards.xp}
           coins={completionRewards.coins}
-          onContinue={handleCompletionContinue}
+          onContinue={() => setPhase("planReady")}
         />
+      </SafeAreaView>
+    );
+  }
+
+  if (phase === "planReady") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <PlanReadyScreen onContinue={handlePlanReadyContinue} />
       </SafeAreaView>
     );
   }

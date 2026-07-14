@@ -33,6 +33,8 @@
     "nextHeartIn": "Next heart in",
     "practiseHeart": "Practise (+1 heart)",
     "refillHearts": "Refill hearts",
+    "upgradeHeartsCta": "Plus refills hearts 2× faster — Upgrade",
+    "refillCapReached": "You've used today's free refills",
     "closeOutOfHearts": "Close out of hearts dialog",
     "practiceCompleteHeart": "Practice complete - +1 heart",
     "heartsRefilled": "Hearts refilled",

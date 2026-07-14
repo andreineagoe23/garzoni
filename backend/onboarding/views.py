@@ -624,6 +624,45 @@ class QuestionnaireAbandonView(APIView):
         return Response(serializer.data)
 
 
+class PlanSummaryView(APIView):
+    """
+    "Your Plan Is Ready" segue payload for the post-questionnaire screen.
+
+    Reads only already-persisted data (financial-profile fields + questionnaire
+    answers). Every field degrades to null/empty when the questionnaire was
+    abandoned; the endpoint returns 200 and never 500.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(never_cache)
+    def get(self, request):
+        from onboarding.plan_summary import build_plan_summary
+
+        user = request.user
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            profile = None
+
+        progress = QuestionnaireProgress.objects.filter(user=user).first()
+        answers = (progress.answers if progress else {}) or {}
+
+        try:
+            payload = build_plan_summary(user, profile, answers)
+        except Exception as exc:
+            logger.warning("plan_summary build failed user=%s err=%s", user.id, exc)
+            payload = {
+                "stated_goals": [],
+                "timeframe": None,
+                "risk_comfort": None,
+                "curated_lessons": [],
+                "projected_outcome": None,
+                "recommended_tier": "plus",
+            }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
 class QuestionnaireCleanupView(APIView):
     """Admin endpoint to clean up stale progress entries."""
 

@@ -3408,6 +3408,13 @@ class FunnelEventIngestView(APIView):
         "budget_envelope_created",
         "budget_account_link_started",
         "budget_account_link_completed",
+        # Plan-ready + paywall exit-intent funnel (UX Phase 1)
+        "plan_ready_view",
+        "plan_ready_continue",
+        "exit_intent_shown",
+        "exit_intent_accepted",
+        "exit_intent_declined",
+        "promo_web_fullprice_click",
     }
 
     def post(self, request):

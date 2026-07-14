@@ -167,6 +167,29 @@ const SubscriptionPlansPage = () => {
   });
   const questionnaireComplete = questionnaireProgress?.status === "completed";
 
+  // ?recommended=pro|plus moves the "Recommended" highlight to that plan
+  // (e.g. arriving from the plan-ready segue). Defaults to Plus.
+  const recommendedTier = useMemo<"plus" | "pro">(() => {
+    const v = new URLSearchParams(location.search).get("recommended");
+    return v === "pro" ? "pro" : "plus";
+  }, [location.search]);
+
+  // Computed yearly savings % (Plus tier: monthly*12 vs yearly), for the
+  // billing toggle anchor. Only meaningful when > 0.
+  const yearlySavingsPct = useMemo(() => {
+    const m = plans.find(
+      (p) => p.plan_id === "plus" && p.billing_interval === "monthly"
+    );
+    const y = plans.find(
+      (p) => p.plan_id === "plus" && p.billing_interval === "yearly"
+    );
+    const mp = Number(m?.price_amount ?? NaN);
+    const yp = Number(y?.price_amount ?? NaN);
+    if (!Number.isFinite(mp) || !Number.isFinite(yp) || mp <= 0) return 0;
+    const pct = Math.round((1 - yp / (mp * 12)) * 100);
+    return pct > 0 ? pct : 0;
+  }, [plans]);
+
   const trialEndLabel = useMemo(
     () =>
       entitlements?.trialEnd ? formatDate(entitlements.trialEnd, locale) : null,
@@ -448,13 +471,24 @@ const SubscriptionPlansPage = () => {
               <button
                 type="button"
                 onClick={() => setBillingInterval("yearly")}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
                   billingInterval === "yearly"
                     ? "bg-[color:var(--color-brand-primary)] text-white shadow-sm"
                     : "text-content-muted hover:text-[color:var(--accent,#111827)]"
                 }`}
               >
                 {t("subscriptions.billingYearly")}
+                {yearlySavingsPct > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                      billingInterval === "yearly"
+                        ? "bg-white/20 text-white"
+                        : "bg-[color:var(--color-state-success)]/15 text-[color:var(--color-state-success)]"
+                    }`}
+                  >
+                    {`Save ${yearlySavingsPct}%`}
+                  </span>
+                )}
               </button>
               <button
                 type="button"
@@ -484,7 +518,7 @@ const SubscriptionPlansPage = () => {
                 const isStarter =
                   plan.plan_id === "starter" ||
                   Number(plan.price_amount || 0) === 0;
-                const isHighlight = plan.plan_id === "plus";
+                const isHighlight = plan.plan_id === recommendedTier;
                 const trialLabel = plan.trial_days
                   ? t("subscriptions.trialDays", { count: plan.trial_days })
                   : null;
@@ -565,6 +599,21 @@ const SubscriptionPlansPage = () => {
                             : t("subscriptions.promoFirstMonths")}
                         </p>
                       )}
+                      {paidPlan && plan.billing_interval === "yearly" && (
+                        <p className="text-xs text-content-muted">
+                          {`That's ${formatCurrency(
+                            (promoPrice != null
+                              ? promoPrice
+                              : Number(plan.price_amount || 0)) / 52,
+                            plan.currency || "USD",
+                            locale,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          )}/week — less than a coffee`}
+                        </p>
+                      )}
                     </div>
                     <ul className="space-y-2.5 text-sm text-content-primary">
                       {(features.length
@@ -581,38 +630,73 @@ const SubscriptionPlansPage = () => {
                         </li>
                       ))}
                     </ul>
-                    <GlassButton
-                      variant={isHighlight ? "active" : "ghost"}
-                      className="mt-auto w-full"
-                      onClick={() => {
-                        // During the promo, the discount only exists as a
-                        // store-side intro offer — send paid buyers into the
-                        // app to claim it rather than through web checkout.
-                        if (promoPrice != null) {
-                          Promise.resolve(
-                            recordFunnelEvent("promo_app_redirect", {
-                              plan: plan.plan_id,
-                              interval: plan.billing_interval,
-                            })
-                          ).catch(() => {});
-                          window.open(
-                            resolvePromoStoreUrl(),
-                            "_blank",
-                            "noopener,noreferrer"
-                          );
-                          return;
-                        }
-                        handlePlanSelect(plan);
-                      }}
-                    >
-                      {isStarter
-                        ? t("subscriptions.startStarter")
-                        : promoPrice != null
-                          ? t("subscriptions.promoCtaApp", {
-                              percent: promo?.percent_off ?? 60,
-                            })
-                          : t("subscriptions.choosePlanCheckout", { name })}
-                    </GlassButton>
+                    <div className="mt-auto flex flex-col gap-2">
+                      <GlassButton
+                        variant={isHighlight ? "active" : "ghost"}
+                        className="w-full"
+                        onClick={() => {
+                          // During the promo, the discount only exists as a
+                          // store-side intro offer — send paid buyers into the
+                          // app to claim it rather than through web checkout.
+                          if (promoPrice != null) {
+                            Promise.resolve(
+                              recordFunnelEvent("promo_app_redirect", {
+                                plan: plan.plan_id,
+                                interval: plan.billing_interval,
+                              })
+                            ).catch(() => {});
+                            window.open(
+                              resolvePromoStoreUrl(),
+                              "_blank",
+                              "noopener,noreferrer"
+                            );
+                            return;
+                          }
+                          handlePlanSelect(plan);
+                        }}
+                      >
+                        {isStarter ? (
+                          t("subscriptions.startStarter")
+                        ) : promoPrice != null ? (
+                          t("subscriptions.promoCtaApp", {
+                            percent: promo?.percent_off ?? 60,
+                          })
+                        ) : (
+                          <>
+                            {t("subscriptions.choosePlanCheckout", { name })}{" "}
+                            <span aria-hidden="true">›</span>
+                          </>
+                        )}
+                      </GlassButton>
+
+                      {/* Promo web dead-end fix: promo cards otherwise only open
+                          the app/store. Always offer a native web checkout at
+                          full price so web buyers are never bounced off-site
+                          with no on-web path to purchase. */}
+                      {promoPrice != null && (
+                        <GlassButton
+                          variant="ghost"
+                          className="w-full"
+                          onClick={() => {
+                            Promise.resolve(
+                              recordFunnelEvent("promo_web_fullprice_click", {
+                                plan: plan.plan_id,
+                                interval: plan.billing_interval,
+                              })
+                            ).catch(() => {});
+                            handlePlanSelect(plan);
+                          }}
+                        >
+                          Continue on web at full price ›
+                        </GlassButton>
+                      )}
+
+                      {paidPlan && (
+                        <p className="text-center text-[11px] text-content-muted">
+                          No commitment — cancel anytime
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}

@@ -9,5 +9,5 @@
   "main": "worker.js",
   "compatibility_date": "2025-07-01",
   "observability": { "enabled": true },
-  "workers_dev": true
+  "workers_dev": true,
 }

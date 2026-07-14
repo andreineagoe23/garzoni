@@ -3,6 +3,7 @@ import {
   Alert,
   Animated,
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type {
   PurchasesIntroPrice,
@@ -93,7 +95,6 @@ const PLAN_DATA = {
       "Early access to new tools",
       "Priority AI guidance",
     ],
-    recommended: true,
   },
 };
 
@@ -165,10 +166,21 @@ function formatIntroTrialLabel(intro: PurchasesIntroPrice): string {
   return `${n} ${unitWord} free trial`;
 }
 
+/** Format a numeric amount as currency, matching the store's currency code. */
+function formatCurrencyAmount(amount: number, currencyCode?: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currencyCode || "USD",
+    }).format(amount);
+  } catch {
+    return amount.toFixed(2);
+  }
+}
+
 /** Label for a paid intro offer (store-configured discount), e.g. "first year" or "first 3 months". */
 function formatIntroOfferLabel(intro: PurchasesIntroPrice): string {
-  const n =
-    (intro.periodNumberOfUnits ?? 0) * Math.max(intro.cycles ?? 1, 1);
+  const n = (intro.periodNumberOfUnits ?? 0) * Math.max(intro.cycles ?? 1, 1);
   const unit = String(intro.periodUnit ?? "MONTH").toLowerCase();
   if (n <= 1) return `first ${unit}`;
   return `first ${n} ${unit}s`;
@@ -248,6 +260,7 @@ function TierCard({
   cycle,
   isCurrent,
   loading,
+  recommended,
   onPress,
 }: {
   plan: (typeof PLAN_DATA)[Tier];
@@ -255,8 +268,10 @@ function TierCard({
   cycle: Cycle;
   isCurrent: boolean;
   loading: boolean;
+  recommended: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation("common");
   const isPro = plan.id === "pro";
   const accent = isPro ? D.goldWarm : D.primaryBright;
   const price = pkg?.product.priceString ?? "—";
@@ -273,11 +288,27 @@ function TierCard({
   const ctaLabel = isCurrent
     ? "Current plan"
     : `Start ${plan.name}${cycle === "yearly" ? " — Annual" : ""}`;
+  // Per-week contrast framing under the yearly price (annual total / 52).
+  const weeklyLabel =
+    cycle === "yearly" && pkg && pkg.product.price > 0
+      ? t("subscriptions.perWeek", {
+          price: formatCurrencyAmount(
+            pkg.product.price / 52,
+            pkg.product.currencyCode,
+          ),
+        })
+      : null;
 
   return (
-    <View style={[styles.tierCard, isPro && styles.tierCardPro]}>
+    <View
+      style={[
+        styles.tierCard,
+        isPro && styles.tierCardPro,
+        recommended && styles.tierCardRecommended,
+      ]}
+    >
       {/* Recommended pill */}
-      {isPro && (
+      {recommended && (
         <View style={styles.recommendedWrap}>
           <View style={styles.recommendedBadge}>
             <Text style={styles.recommendedText}>RECOMMENDED</Text>
@@ -331,6 +362,9 @@ function TierCard({
       ) : (
         <Text style={styles.pricePer}>{per}</Text>
       )}
+      {weeklyLabel && !paidIntro && (
+        <Text style={styles.priceWeek}>{weeklyLabel}</Text>
+      )}
 
       {/* Perks */}
       <View style={styles.perkList}>
@@ -361,9 +395,15 @@ function TierCard({
         ) : (
           <Text style={[styles.tierCtaText, { color: isPro ? D.bg : "#fff" }]}>
             {ctaLabel}
+            {!isCurrent ? "  ›" : ""}
           </Text>
         )}
       </Pressable>
+      {!isCurrent && pkg && (
+        <Text style={styles.ctaSubtitle}>
+          {t("subscriptions.noCommitment")}
+        </Text>
+      )}
       {!pkg && !loading && !isCurrent && (
         <Text style={styles.pkgUnavailableText}>
           Pricing unavailable — check your connection and try again.
@@ -592,16 +632,70 @@ function PurchaseProgressOverlay({
   );
 }
 
+// ─── Exit-intent bottom sheet ────────────────────────────────────────────────
+
+function ExitIntentSheet({
+  visible,
+  onAccept,
+  onDecline,
+}: {
+  visible: boolean;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  const { t } = useTranslation("common");
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onDecline}
+    >
+      <Pressable style={styles.sheetBackdrop} onPress={onDecline}>
+        <Pressable
+          style={styles.sheetCard}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>
+            {t("subscriptions.exitIntent.title")}
+          </Text>
+          <Text style={styles.sheetBody}>
+            {t("subscriptions.exitIntent.body")}
+          </Text>
+          <Pressable style={styles.sheetPrimary} onPress={onAccept}>
+            <Text style={styles.sheetPrimaryText}>
+              {t("subscriptions.exitIntent.tryMonthly")}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={styles.sheetSecondary}
+            onPress={onDecline}
+            hitSlop={8}
+          >
+            <Text style={styles.sheetSecondaryText}>
+              {t("subscriptions.exitIntent.noThanks")}
+            </Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function SubscriptionsScreen() {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const { top: topInset } = useSafeAreaInsets();
   const { accessToken } = useAuthSession();
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{
     mode?: string | string[];
     onboarding?: string | string[];
+    recommended?: string | string[];
+    goal?: string | string[];
   }>();
 
   const modeParam = Array.isArray(params.mode) ? params.mode[0] : params.mode;
@@ -611,6 +705,19 @@ export default function SubscriptionsScreen() {
   const legacyPaywall = String(onboardingParam ?? "").toLowerCase() === "true";
   const isPaywall =
     String(modeParam ?? "").toLowerCase() === "paywall" || legacyPaywall;
+
+  // Personalized paywall inputs from the plan-ready segue.
+  const recommendedParam = Array.isArray(params.recommended)
+    ? params.recommended[0]
+    : params.recommended;
+  const recommendedTier: Tier =
+    String(recommendedParam ?? "").toLowerCase() === "plus"
+      ? "plus"
+      : String(recommendedParam ?? "").toLowerCase() === "pro"
+        ? "pro"
+        : "pro"; // default preserves the pre-personalization behavior (Pro highlighted)
+  const goalParam = Array.isArray(params.goal) ? params.goal[0] : params.goal;
+  const goalLabel = goalParam ? String(goalParam) : null;
 
   const rcNative = useMemo(() => getRevenueCatPurchases() !== null, []);
 
@@ -626,6 +733,10 @@ export default function SubscriptionsScreen() {
   }, [isPaywall]);
 
   const [cycle, setCycle] = useState<Cycle>("yearly");
+  const [exitIntentVisible, setExitIntentVisible] = useState(false);
+  const exitIntentShownRef = useRef(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const plansYRef = useRef(0);
   const [plusPkgs, setPlusPkgs] = useState<PurchasesPackage[] | null>(null);
   const [proPkgs, setProPkgs] = useState<PurchasesPackage[] | null>(null);
   const [loading, setLoading] = useState(rcNative);
@@ -855,6 +966,37 @@ export default function SubscriptionsScreen() {
     setPurchaseError(null);
   }, []);
 
+  // Exit-intent: intercept the first "Skip for now" per paywall visit with a
+  // monthly-plan offer before dismissing to home.
+  const handleSkipPress = useCallback(() => {
+    if (!exitIntentShownRef.current) {
+      exitIntentShownRef.current = true;
+      trackEvent("exit_intent_shown", {
+        source: isPaywall ? "onboarding_paywall" : "in_app",
+      });
+      setExitIntentVisible(true);
+      return;
+    }
+    trackEvent("cta_click", { cta: "paywall_skip" });
+    router.replace("/(tabs)");
+  }, [isPaywall]);
+
+  const handleExitIntentAccept = useCallback(() => {
+    trackEvent("exit_intent_accepted", {});
+    setExitIntentVisible(false);
+    setCycle("monthly");
+    // Let the toggle re-render, then bring the plans into view.
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: plansYRef.current, animated: true });
+    });
+  }, []);
+
+  const handleExitIntentDecline = useCallback(() => {
+    trackEvent("exit_intent_declined", {});
+    setExitIntentVisible(false);
+    router.replace("/(tabs)");
+  }, []);
+
   const onRestore = useCallback(async () => {
     const rc = getRevenueCatPurchases();
     if (!rc) return;
@@ -1014,6 +1156,7 @@ export default function SubscriptionsScreen() {
         <AmbientGlow />
 
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={[
             styles.scroll,
             isPaywall && { paddingTop: topInset + spacing.xl },
@@ -1024,16 +1167,25 @@ export default function SubscriptionsScreen() {
             {/* Eyebrow */}
             <Text style={styles.eyebrow}>Subscription</Text>
 
-            {/* Editorial headline */}
-            <Text style={styles.headline}>
-              Pick the plan that{" "}
-              <Text
-                style={[styles.headlineEmphasis, { fontFamily: DISPLAY_FONT }]}
-              >
-                moves you forward
+            {/* Editorial headline — goal-referencing in the personalized paywall */}
+            {isPaywall && goalLabel ? (
+              <Text style={styles.headline}>
+                {t("subscriptions.paywallHeadlineGoal", { goal: goalLabel })}
               </Text>
-              .
-            </Text>
+            ) : (
+              <Text style={styles.headline}>
+                Pick the plan that{" "}
+                <Text
+                  style={[
+                    styles.headlineEmphasis,
+                    { fontFamily: DISPLAY_FONT },
+                  ]}
+                >
+                  moves you forward
+                </Text>
+                .
+              </Text>
+            )}
 
             {/* Status chip */}
             <StatusChip plan={currentPlan} interval={currentInterval} />
@@ -1051,7 +1203,12 @@ export default function SubscriptionsScreen() {
             ) : (
               <>
                 {/* Cycle toggle */}
-                <View style={styles.cycleContainer}>
+                <View
+                  style={styles.cycleContainer}
+                  onLayout={(e) => {
+                    plansYRef.current = e.nativeEvent.layout.y;
+                  }}
+                >
                   <CycleToggle
                     value={cycle}
                     onChange={setCycle}
@@ -1066,28 +1223,26 @@ export default function SubscriptionsScreen() {
                   </GlassCard>
                 ) : (
                   <>
-                    <TierCard
-                      plan={PLAN_DATA.plus}
-                      pkg={plusPkg}
-                      cycle={cycle}
-                      isCurrent={
-                        currentPlan === "plus" && currentInterval === cycle
-                      }
-                      loading={purchasingTier === "plus"}
-                      onPress={() =>
-                        plusPkg && void onPurchase("plus", plusPkg)
-                      }
-                    />
-                    <TierCard
-                      plan={PLAN_DATA.pro}
-                      pkg={proPkg}
-                      cycle={cycle}
-                      isCurrent={
-                        currentPlan === "pro" && currentInterval === cycle
-                      }
-                      loading={purchasingTier === "pro"}
-                      onPress={() => proPkg && void onPurchase("pro", proPkg)}
-                    />
+                    {(recommendedTier === "pro"
+                      ? (["pro", "plus"] as const)
+                      : (["plus", "pro"] as const)
+                    ).map((tier) => {
+                      const pkg = tier === "pro" ? proPkg : plusPkg;
+                      return (
+                        <TierCard
+                          key={tier}
+                          plan={PLAN_DATA[tier]}
+                          pkg={pkg}
+                          cycle={cycle}
+                          isCurrent={
+                            currentPlan === tier && currentInterval === cycle
+                          }
+                          loading={purchasingTier === tier}
+                          recommended={tier === recommendedTier}
+                          onPress={() => pkg && void onPurchase(tier, pkg)}
+                        />
+                      );
+                    })}
                   </>
                 )}
 
@@ -1109,10 +1264,7 @@ export default function SubscriptionsScreen() {
             {isPaywall && (
               <View style={styles.skipWrap}>
                 <Pressable
-                  onPress={() => {
-                    trackEvent("cta_click", { cta: "paywall_skip" });
-                    router.replace("/(tabs)");
-                  }}
+                  onPress={handleSkipPress}
                   accessibilityRole="button"
                   hitSlop={12}
                 >
@@ -1182,6 +1334,13 @@ export default function SubscriptionsScreen() {
             onDismiss={dismissPurchaseOverlay}
           />
         )}
+
+        {/* Exit-intent sheet on paywall skip */}
+        <ExitIntentSheet
+          visible={exitIntentVisible}
+          onAccept={handleExitIntentAccept}
+          onDecline={handleExitIntentDecline}
+        />
 
         {/* Restore in-progress overlay */}
         {restoring && (
@@ -1324,6 +1483,11 @@ const styles = StyleSheet.create({
     shadowColor: D.goldWarm,
     shadowOpacity: 0.15,
   },
+  tierCardRecommended: {
+    borderWidth: 2,
+    borderColor: D.primaryBright,
+    shadowOpacity: 0.4,
+  },
   recommendedWrap: {
     alignItems: "center",
     marginBottom: spacing.md,
@@ -1437,6 +1601,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: D.faint,
     marginBottom: spacing.lg,
+  },
+  priceWeek: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: D.muted,
+    marginTop: -10,
+    marginBottom: spacing.lg,
+  },
+  ctaSubtitle: {
+    fontSize: 12,
+    color: D.faint,
+    textAlign: "center",
+    marginTop: 8,
   },
   perkList: {
     gap: spacing.sm,
@@ -1710,5 +1887,72 @@ const styles = StyleSheet.create({
     color: D.text,
     fontWeight: "600",
     fontSize: 14,
+  },
+
+  // ── Exit-intent sheet ────────────────────────────────────────────────────────
+  sheetBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(11,15,20,0.72)",
+  },
+  sheetCard: {
+    backgroundColor: D.surfaceRaised,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: D.border,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
+    alignItems: "center",
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: D.ghost,
+    marginBottom: spacing.lg,
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: D.text,
+    textAlign: "center",
+    letterSpacing: -0.3,
+    marginBottom: spacing.sm,
+  },
+  sheetBody: {
+    fontSize: 14,
+    color: D.muted,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.sm,
+  },
+  sheetPrimary: {
+    width: "100%",
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: D.primaryBright,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetPrimaryText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.2,
+  },
+  sheetSecondary: {
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: spacing.sm,
+  },
+  sheetSecondaryText: {
+    color: D.muted,
+    fontSize: 14,
+    fontWeight: "500",
+    textDecorationLine: "underline",
   },
 });

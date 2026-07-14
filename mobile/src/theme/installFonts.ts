@@ -81,10 +81,7 @@ export function installGlobalInterFont(): void {
       // Android reserves extra ascent/descent per line by default, which makes
       // text sit low inside buttons/chips compared to iOS. Strip it for iOS
       // vertical-metrics parity unless a style opts back in.
-      if (
-        Platform.OS === "android" &&
-        flat.includeFontPadding === undefined
-      ) {
+      if (Platform.OS === "android" && flat.includeFontPadding === undefined) {
         patch.includeFontPadding = false;
       }
       if (Object.keys(patch).length === 0) {
