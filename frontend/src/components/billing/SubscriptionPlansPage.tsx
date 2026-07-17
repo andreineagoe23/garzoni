@@ -32,6 +32,7 @@ import {
 } from "services/revenueCatService";
 import type { CustomerInfo } from "@revenuecat/purchases-js";
 import RevenueCatPaywall from "components/billing/RevenueCatPaywall";
+import TrialTimeline from "components/billing/TrialTimeline";
 
 // Promo is fulfilled by the store-side intro offers (App Store / Play), so the
 // web pricing page advertises the discount but sends buyers into the app to
@@ -631,6 +632,17 @@ const SubscriptionPlansPage = () => {
                       ))}
                     </ul>
                     <div className="mt-auto flex flex-col gap-2">
+                      {/* Trial transparency timeline (UX plan 2.4) — shown on
+                          the highlighted plan for the selected billing cycle
+                          when it carries a free trial, above the CTA. */}
+                      {isHighlight &&
+                        paidPlan &&
+                        Number(plan.trial_days ?? 0) > 0 && (
+                          <TrialTimeline
+                            trialDays={Number(plan.trial_days)}
+                            className="rounded-xl border border-[color:var(--color-border-default)]/60 bg-surface-card/60 px-4 py-3"
+                          />
+                        )}
                       <GlassButton
                         variant={isHighlight ? "active" : "ghost"}
                         className="w-full"

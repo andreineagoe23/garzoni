@@ -27,6 +27,7 @@ import apiClient, { attachToken } from "services/httpClient";
 import { useAnalytics } from "hooks/useAnalytics";
 import { usePreferences } from "hooks/usePreferences";
 import StatusSummary from "./StatusSummary";
+import FirstWeekChecklist from "./FirstWeekChecklist";
 import PrimaryCTA from "./PrimaryCTA";
 import WeakSkills from "./WeakSkills";
 import QuestionnaireReminderBanner from "components/onboarding/QuestionnaireReminderBanner";
@@ -404,6 +405,53 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
     profile: profile ?? undefined,
   });
 
+  // First-week checklist data (UX plan 2.5). The backend is adding
+  // `first_lesson_at` / `has_used_tool` to the progress-summary payload; the
+  // shared ProgressSummary type in packages/core doesn't expose them yet (and
+  // packages/core is owned elsewhere), so read them defensively off the raw
+  // response with a local type extension.
+  const summaryExtras = (progressResponse?.data ?? {}) as {
+    first_lesson_at?: string | null;
+    has_used_tool?: boolean;
+  };
+  const checklistFirstLessonAt =
+    typeof summaryExtras.first_lesson_at === "string"
+      ? summaryExtras.first_lesson_at
+      : null;
+  const checklistHasUsedTool = Boolean(summaryExtras.has_used_tool);
+  // Account creation date: the profile payload exposes `date_joined` inside
+  // user_data (same field useCio.ts reads). Dashboard's `profile` memo may
+  // already be the unwrapped user_data object, so check both shapes.
+  const accountCreatedAt = useMemo(() => {
+    const fromProfile = (profile as Record<string, unknown> | null)
+      ?.date_joined;
+    if (typeof fromProfile === "string") return fromProfile;
+    const fromPayload = (
+      profilePayload as { user_data?: Record<string, unknown> } | null
+    )?.user_data?.date_joined;
+    return typeof fromPayload === "string" ? fromPayload : null;
+  }, [profile, profilePayload]);
+
+  // The checklist's "first lesson" / "start streak" items reuse the dashboard's
+  // existing start/resume lesson target.
+  const handleChecklistStartLesson = useCallback(() => {
+    if (resume?.course_id != null) {
+      if (resume.path_id != null) {
+        navigate(`/courses/${resume.path_id}/lessons/${resume.course_id}/flow`);
+      } else {
+        navigate(`/lessons/${resume.course_id}/flow`);
+      }
+      return;
+    }
+    if (startHere?.path_id != null && startHere?.course_id != null) {
+      navigate(
+        `/courses/${startHere.path_id}/lessons/${startHere.course_id}/flow`
+      );
+      return;
+    }
+    navigate("/all-topics");
+  }, [navigate, resume, startHere]);
+
   const weakSkillItems = useMemo(
     () =>
       weakestSkills
@@ -739,6 +787,24 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               prefersReducedMotion={prefersReducedMotion.current}
               onPrimaryAction={handleContinueImproving}
               onAskTutor={handleAskTutorAboutSkill}
+            />
+
+            <FirstWeekChecklist
+              accountCreatedAt={accountCreatedAt}
+              userId={
+                (profile as UserProfile)?.id ??
+                (profile as UserProfile)?.user?.id
+              }
+              questionnaireCompleted={
+                isQuestionnaireCompleted ||
+                (questionnaireProgress as { status?: string } | null)
+                  ?.status === "completed"
+              }
+              firstLessonAt={checklistFirstLessonAt}
+              hasUsedTool={checklistHasUsedTool}
+              streakCount={(profile as UserProfile)?.streak ?? 0}
+              onStartLesson={handleChecklistStartLesson}
+              onOpenTools={() => navigate("/tools")}
             />
 
             <StatusSummary

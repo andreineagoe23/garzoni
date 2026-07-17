@@ -325,6 +325,39 @@ def build_profile_payload(user, profile: UserProfile):
     payload["user_data"]["streak_meta"] = streak_meta
     payload["user_data"]["daily_goal"] = daily_goal
 
+    # Profile completeness meter (UX Phase 3, plan §3.3). Weighted so a fresh
+    # post-quiz user lands ~40-50 and never 0 (endowed progress). All signals are
+    # cheap: attribute reads on the already-loaded profile/user plus one exists()
+    # for tool usage; the whole payload is cached, so this runs on cache miss only.
+    has_used_tool = False
+    try:
+        from finance.models import FunnelEvent
+
+        has_used_tool = FunnelEvent.objects.filter(
+            user=user, event_type__in=("tool_open", "tool_opened")
+        ).exists()
+    except Exception:
+        has_used_tool = False
+
+    completeness_items = [
+        ("questionnaire", 40, bool(questionnaire_completed)),
+        ("first_lesson", 20, bool(getattr(profile, "first_lesson_at", None))),
+        ("name", 10, bool((user.first_name or "").strip())),
+        ("avatar", 10, bool((profile.profile_avatar or "").strip())),
+        ("notifications", 10, bool((getattr(profile, "expo_push_token", "") or "").strip())),
+        ("tool", 10, has_used_tool),
+    ]
+    profile_completeness = sum(weight for _, weight, earned in completeness_items if earned)
+    # Highest-value missing item drives the "complete your profile" next step.
+    completeness_next = next(
+        (key for key, _, earned in sorted(completeness_items, key=lambda i: -i[1]) if not earned),
+        None,
+    )
+    payload["profile_completeness"] = profile_completeness
+    payload["completeness_next"] = completeness_next
+    payload["user_data"]["profile_completeness"] = profile_completeness
+    payload["user_data"]["completeness_next"] = completeness_next
+
     if getattr(settings, "GAMIFICATION_RETENTION_V2", False):
         week_start = today - timezone.timedelta(days=today.weekday())
         missions_week = MissionCompletion.objects.filter(

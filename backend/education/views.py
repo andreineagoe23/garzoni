@@ -68,6 +68,7 @@ from authentication.entitlements import (
     get_user_plan,
     plan_allows,
 )
+from onboarding.answers import answer_values, primary_answer
 from onboarding.models import QuestionnaireProgress
 from gamification.models import MissionCompletion
 from gamification.services.missions import (
@@ -83,6 +84,7 @@ from gamification.services.rewards import (
     COINS_SECTION_FIRST_COMPLETION,
     XP_COURSE_COMPLETE,
     XP_EXERCISE_ATTEMPT_CAP,
+    XP_FIRST_LESSON_EVER_BONUS,
     XP_LESSON_FIRST_COMPLETION,
     XP_PATH_COMPLETE,
     XP_QUIZ_FIRST_COMPLETION_BONUS,
@@ -553,10 +555,13 @@ class LessonViewSet(viewsets.ModelViewSet):
             if lesson.course and lesson.course.path:
                 if not _user_can_access_path(request.user, lesson.course.path):
                     return _path_access_denied_response(lesson.course.path)
-            _complete_lesson_for_user(request.user, lesson, request=request)
+            _, completion_meta = _complete_lesson_for_user(request.user, lesson, request=request)
             invalidate_profile_cache(request.user)
             cache.delete(f"progress_summary_{request.user.id}")
-            return Response({"message": "Lesson completed!"}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Lesson completed!", **completion_meta},
+                status=status.HTTP_200_OK,
+            )
         except Lesson.DoesNotExist:
             return Response({"error": "Lesson not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -781,7 +786,9 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 .filter(status__in=["not_started", "in_progress"])
                 .values_list("mission_id", flat=True)
             )
-            user_progress = _complete_lesson_for_user(request.user, lesson, request=request)
+            user_progress, completion_meta = _complete_lesson_for_user(
+                request.user, lesson, request=request
+            )
             invalidate_profile_cache(request.user)
             cache.delete(f"progress_summary_{request.user.id}")
             # Current-cycle mission states touched by this action, in
@@ -800,6 +807,7 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                         for d in mission_deltas
                         if d["status"] == "completed" and d["id"] in open_before
                     ],
+                    **completion_meta,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -926,6 +934,18 @@ class UserProgressViewSet(viewsets.ModelViewSet):
                 if first_course:
                     start_here = {"path_id": first_path, "course_id": first_course}
 
+        # First-week checklist signals (UX Phase 2, plan §2.5): activation
+        # timestamp + a cheap "used any tool" flag from the funnel log.
+        first_lesson_at = getattr(getattr(user, "profile", None), "first_lesson_at", None)
+        try:
+            from finance.models import FunnelEvent
+
+            has_used_tool = FunnelEvent.objects.filter(
+                user=user, event_type__in=("tool_open", "tool_opened")
+            ).exists()
+        except Exception:
+            has_used_tool = False
+
         _payload = {
             "overall_progress": (
                 sum(d["percent_complete"] for d in progress_data) / len(progress_data)
@@ -939,6 +959,8 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             "paths": progress_data,
             "resume": resume,
             "start_here": start_here,
+            "first_lesson_at": first_lesson_at.isoformat() if first_lesson_at else None,
+            "has_used_tool": has_used_tool,
         }
         cache.set(_cache_key, _payload, 60)
         return Response(_payload)
@@ -1718,12 +1740,62 @@ def _complete_section_for_user(user, section: LessonSection):
     return progress, was_new_section
 
 
+def _handle_first_lesson_completion(user) -> bool:
+    """First-ever-lesson bookkeeping (UX Phase 2, plan §2.6).
+
+    Called right after a lesson lands in ``completed_lessons``. When it is the
+    user's FIRST lesson ever: stamps ``profile.first_lesson_at`` (the
+    LessonCompletion post_save signal never fires for M2M ``.add()`` — it goes
+    through bulk_create — so this is the authoritative call site), grants the
+    one-time celebration bonus XP (ledger-idempotent, can never double-grant),
+    and refreshes the CIO profile so the Welcome journey sees the activation.
+
+    Returns True when this completion is the user's first ever lesson.
+    """
+    from education.models import LessonCompletion
+
+    try:
+        if LessonCompletion.objects.filter(user_progress__user=user).count() != 1:
+            return False
+    except Exception:
+        logger.warning("first-lesson check failed user_id=%s", user.id, exc_info=True)
+        return False
+
+    try:
+        from authentication.services.profile_analytics import mark_first_lesson
+
+        mark_first_lesson(user)
+    except Exception:
+        logger.warning("mark_first_lesson failed user_id=%s", user.id, exc_info=True)
+
+    grant_reward(
+        user,
+        f"first_lesson_ever_bonus:{user.id}",
+        points=XP_FIRST_LESSON_EVER_BONUS,
+        bump_streak="none",
+        evaluate_badges=False,
+    )
+
+    try:
+        from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+
+        safe_enqueue_sync_user_to_customer_io(user.id)
+    except Exception:
+        logger.warning("CIO sync after first lesson failed user_id=%s", user.id, exc_info=True)
+
+    return True
+
+
 def _complete_lesson_for_user(user, lesson: Lesson, request=None):
     """Shared lesson completion flow used by both userprogress and lessons endpoints.
 
     Pass ``request`` so the authoritative ``lesson_completed`` funnel event is
     attributed to the originating platform (web/ios/android); falls back to
     ``"server"`` when called without a request.
+
+    Returns ``(user_progress, completion_meta)`` where ``completion_meta``
+    carries the first-lesson celebration fields for the API response:
+    ``{"is_first_lesson": bool, "first_lesson_bonus_xp": int | None}``.
     """
     course = lesson.course
     with transaction.atomic():
@@ -1799,7 +1871,9 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
 
     user_progress.refresh_from_db()
 
+    is_first_lesson = False
     if was_lesson_new:
+        is_first_lesson = _handle_first_lesson_completion(user)
         try:
             record_funnel_event(
                 "lesson_completed",
@@ -1819,7 +1893,11 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
                 exc_info=True,
             )
 
-    return user_progress
+    completion_meta = {
+        "is_first_lesson": is_first_lesson,
+        "first_lesson_bonus_xp": XP_FIRST_LESSON_EVER_BONUS if is_first_lesson else None,
+    }
+    return user_progress, completion_meta
 
 
 def _complete_course_for_user(user, course: Course):
@@ -3082,17 +3160,15 @@ class PersonalizedPathView(APIView):
 
     def calculate_onboarding_path_weights(self, answers):
         weights = defaultdict(int)
-        primary_goal = answers.get("primary_goal")
-        if primary_goal == "budget":
-            weights["budget"] += 4
-        elif primary_goal == "debt":
-            weights["debt"] += 4
-        elif primary_goal == "savings":
-            weights["savings"] += 4
-        elif primary_goal == "invest":
-            weights["invest"] += 4
+        # primary_goal is a multi-select on mobile (list, first = primary) and a
+        # scalar on web. The primary goal keeps its full weight; additional
+        # selected goals get a lighter boost so the path still leads with the
+        # user's #1 priority.
+        for idx, goal in enumerate(answer_values(answers.get("primary_goal"))):
+            if goal in ("budget", "debt", "savings", "invest"):
+                weights[goal] += 4 if idx == 0 else 2
 
-        biggest_challenge = answers.get("biggest_challenge")
+        biggest_challenge = primary_answer(answers.get("biggest_challenge"))
         if biggest_challenge == "overspending":
             weights["budget"] += 3
             weights["savings"] += 1
@@ -3186,8 +3262,11 @@ class PersonalizedPathView(APIView):
         goals = []
         seen = set()
         for key in ("primary_goal", "biggest_challenge"):
-            value = str(answers.get(key) or "").strip().lower()
-            if value:
+            # Answers may be a list (mobile multi-select) or scalar (web).
+            for raw in answer_values(answers.get(key)):
+                value = raw.strip().lower()
+                if not value:
+                    continue
                 label = goal_labels.get(value, value.replace("_", " ").title())
                 dedupe_key = label.lower()
                 if dedupe_key in seen:
@@ -3199,7 +3278,7 @@ class PersonalizedPathView(APIView):
     def _build_course_reason(self, path_key, answers, mastery_boosts):
         if mastery_boosts.get(path_key, 0) >= 2:
             return "Recommended to reinforce one of your weakest skills."
-        primary_goal = str(answers.get("primary_goal") or "")
+        primary_goal = str(primary_answer(answers.get("primary_goal")) or "")
         if primary_goal:
             return f"Matches your onboarding goal: {primary_goal}."
         return "Recommended to build a balanced money foundation."

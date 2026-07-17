@@ -73,6 +73,20 @@ def public_lesson_detail(request, slug: str):
             if s.content_type == "text"
         ],
     }
+
+    # Guest-taste teaser (plan §3.1). Surfaced only for public lessons that have
+    # a hand-whitelisted sample_question. correct_index + explanation are safe to
+    # expose because these teasers are authored by hand and never drawn from the
+    # real quiz pool — client-side answer checking is intentional here.
+    sample_question = lesson.sample_question
+    if isinstance(sample_question, dict) and sample_question.get("question"):
+        payload["sample_question"] = {
+            "question": sample_question.get("question"),
+            "options": sample_question.get("options") or [],
+            "correct_index": sample_question.get("correct_index"),
+            "explanation": sample_question.get("explanation") or "",
+        }
+
     response = Response(payload)
     response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
     return response
@@ -107,6 +121,12 @@ def public_lesson_list(request):
                 "title": lesson.title,
                 "short_description": lesson.short_description or "",
                 "image_url": image_url,
+                # Boolean only — the teaser question itself lives on the detail
+                # endpoint so the correct answer never ships in the catalog list.
+                "has_sample_question": bool(
+                    isinstance(lesson.sample_question, dict)
+                    and lesson.sample_question.get("question")
+                ),
                 "course": {
                     "id": lesson.course_id,
                     "title": lesson.course.title if lesson.course else "",

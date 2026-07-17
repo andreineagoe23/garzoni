@@ -301,6 +301,27 @@ class LogoutView(APIView):
         return response
 
 
+def _resolve_user_by_email(identifier: str) -> User | None:
+    """Resolve a login identifier that looks like an email to a unique User.
+
+    Case-insensitive lookup. Historical data may contain duplicate emails
+    (email has no unique constraint on auth.User), so duplicates are handled
+    conservatively: prefer a single exact-case match, otherwise return None and
+    let the login fail exactly as an unknown username would.
+    """
+    identifier = (identifier or "").strip()
+    if not identifier:
+        return None
+    matches = list(User.objects.filter(email__iexact=identifier)[:3])
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        exact = [u for u in matches if u.email == identifier]
+        if len(exact) == 1:
+            return exact[0]
+    return None
+
+
 class LoginSecureView(APIView):
     """Enhanced login view that uses HttpOnly cookies for refresh tokens and returns access tokens."""
 
@@ -334,6 +355,15 @@ class LoginSecureView(APIView):
             #  - returns one uniform error for missing user / wrong password /
             #    inactive, so the response body can't be used to enumerate users.
             user = authenticate(request, username=username, password=password)
+            if user is None and "@" in username:
+                # Slim login (UX Phase 2, plan §2.1): accept email as the login
+                # identifier. Username auth failed and the identifier looks like
+                # an email — resolve it to the account's username and retry
+                # through the same auth backend (keeps is_active / timing /
+                # uniform-error behavior).
+                email_user = _resolve_user_by_email(username)
+                if email_user is not None:
+                    user = authenticate(request, username=email_user.username, password=password)
             if user is None:
                 logger.warning("Invalid credentials for username: %s", mask_identifier(username))
                 return Response(

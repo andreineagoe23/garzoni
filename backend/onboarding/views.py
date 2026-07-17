@@ -652,6 +652,8 @@ class PlanSummaryView(APIView):
             payload = build_plan_summary(user, profile, answers)
         except Exception as exc:
             logger.warning("plan_summary build failed user=%s err=%s", user.id, exc)
+            from onboarding.plan_summary import paywall_placement
+
             payload = {
                 "stated_goals": [],
                 "timeframe": None,
@@ -659,6 +661,7 @@ class PlanSummaryView(APIView):
                 "curated_lessons": [],
                 "projected_outcome": None,
                 "recommended_tier": "plus",
+                "paywall_placement": paywall_placement(),
             }
         return Response(payload, status=status.HTTP_200_OK)
 

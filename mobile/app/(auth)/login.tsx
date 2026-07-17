@@ -61,7 +61,7 @@ export default function LoginScreen() {
   const onSubmit = async () => {
     setError("");
     if (!username.trim()) {
-      setError(t("auth.validation.usernameRequired"));
+      setError(t("auth.validation.emailOrUsernameRequired"));
       return;
     }
     if (!password) {
@@ -98,10 +98,12 @@ export default function LoginScreen() {
       <AuthBackendBanner />
       <DarkErrorBanner message={error} />
 
+      {/* Backend accepts email OR username on this field (email fallback). */}
       <DarkField
-        label={t("auth.login.username")}
-        placeholder={t("auth.login.usernamePlaceholder")}
+        label={t("auth.login.emailOrUsername")}
+        placeholder={t("auth.login.emailOrUsernamePlaceholder")}
         autoCapitalize="none"
+        keyboardType="email-address"
         autoCorrect={false}
         autoFocus
         returnKeyType="next"

@@ -3,7 +3,7 @@ import { View } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { useTheme } from "../../theme/ThemeContext";
 import { radius } from "../../theme/tokens";
-import { hash01 } from "../journey/journeyLayout";
+import { hash01 } from "@garzoni/core";
 import {
   CampsiteSprite,
   CloudSprite,

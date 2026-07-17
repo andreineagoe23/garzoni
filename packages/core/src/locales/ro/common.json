@@ -153,6 +153,13 @@
       "enableAdmin": "Activează admin"
     },
     "signInProfilePrompt": "Autentifică-te din tabul Profil pentru a vedea dashboardul.",
+    "climbCard": {
+      "eyebrow": "Ascensiunea",
+      "percentClimbed": "{{percent}}% urcat",
+      "next": "Urmează: {{title}}",
+      "summit": "Vârf",
+      "cta": "Continuă ascensiunea"
+    },
     "consistencyTitle": "Consecvența ta",
     "statusSummary": {
       "coursesCompleted": "Cursuri finalizate",
@@ -282,6 +289,49 @@
       "body": "După ce îți verifici emailul și finalizezi prima lecție, tu și prietenul tău veți primi fiecare 50% reducere la orice plan (prima lună sau anual) — valorifică pe web la checkout.",
       "cta": "Începe cu invitația ta",
       "dismiss": "Poate mai târziu"
+    }
+  },
+  "demoLesson": {
+    "entryCta": "Încearcă o lecție",
+    "eyebrow": "Lecție gratuită de probă",
+    "stepLabel": "Pasul {{current}} din {{total}}",
+    "xpBadge": "{{xp}} XP",
+    "checkAnswer": "Verifică răspunsul",
+    "continue": "Continuă",
+    "finish": "Termină",
+    "correct": "Bravo — corect",
+    "incorrect": "Nu chiar",
+    "info1": {
+      "title": "Regula 50/30/20",
+      "body": "O metodă simplă de a-ți împărți venitul net — banii care ajung efectiv în cont după taxe. Jumătate merg la nevoi, o treime la dorințe, iar restul spre viitorul tău: 50% nevoi, 30% dorințe, 20% economii și datorii.\n\nNevoile sunt lucrurile la care nu poți renunța — chirie, mâncare, facturi, transportul la muncă. Dorințele sunt lucrurile plăcute, precum ieșitul în oraș, abonamentele sau o escapadă de weekend. Ultimii 20% construiesc în liniște plasa ta de siguranță.\n\nCel mai bun lucru: fără tabele și fără să notezi fiecare cafea. Ții doar fiecare categorie aproximativ pe făgașul ei, iar bugetul se descurcă aproape singur."
+    },
+    "q1": {
+      "prompt": "În regula 50/30/20, ce acoperă cei 50%?",
+      "options": [
+        "Nevoi — chirie, mâncare, facturi",
+        "Dorințe — mese în oraș, călătorii",
+        "Economii și achitarea datoriilor"
+      ],
+      "explanation": "Felia de 50% acoperă esențialele: locuință, alimente, utilități și transport."
+    },
+    "info2": {
+      "title": "De ce contează cel mai mult cei 20%",
+      "body": "Acei 20% sunt partea la care majoritatea renunță prima — și tocmai ea schimbă totul. Așa acoperi o cheltuială neașteptată fără să apelezi la card și așa scapi de datoriile care îți iau dobândă pe tăcute în fiecare lună.\n\nSecretul e să te plătești pe tine primul: setează un transfer automat în ziua de salariu, înainte ca banii să apuce să dispară. Chiar și 50 £ pe săptămână devin peste 2.500 £ pe an fără să te gândești la asta.\n\nÎncepe cu puțin — țintește un fond de urgență cât cheltuielile esențiale pe o lună, apoi continuă. Mic, automat și un pic plictisitor — exact așa arată siguranța financiară reală."
+    },
+    "q2": {
+      "prompt": "Ai un venit net de 2.000 £ pe lună. Cât ar trebui să meargă spre economii și datorii?",
+      "options": [
+        "100 £",
+        "400 £",
+        "1.000 £"
+      ],
+      "explanation": "20% din 2.000 £ înseamnă 400 £ — ținta ta lunară pentru economii și achitarea datoriilor."
+    },
+    "done": {
+      "title": "Bravo — tocmai ai câștigat {{xp}} XP",
+      "subtitle": "Creează un cont gratuit ca să îl păstrezi și să-ți începi seria.",
+      "createAccount": "Creează cont gratuit",
+      "login": "Autentifică-te"
     }
   },
   "analytics": {
@@ -1549,7 +1599,7 @@
       "place3": "Locul 3"
     },
     "points": "{{points}} puncte",
-    "empty": "Nu au fost găsiți utilizatori pentru selecția curentă.",
+    "empty": "Nimeni în clasament încă — termină o lecție azi și prinde-ți locul pentru săptămâna asta.",
     "friendStatus": {
       "alreadyFriends": "Deja prieteni",
       "pending": "Cerere în așteptare",
@@ -1592,12 +1642,12 @@
     },
     "badges": {
       "title": "Insigne recente",
-      "empty": "Nicio insignă obținută încă.",
+      "empty": "Nicio insignă încă — abia a început.",
       "more": "+{{count}} altele"
     },
     "activity": {
       "title": "Activitate (ultimele 30 de zile)",
-      "empty": "Fără activitate recentă."
+      "empty": "Nicio activitate în ultimele 30 de zile."
     },
     "actions": {
       "challenge": "Provoacă la duel",
@@ -1743,11 +1793,22 @@
       "title": "XP-ul tău",
       "level": "Nivel: {{label}}",
       "xpToNext": "{{count}} XP până la următorul nivel",
+      "xpToTier": "{{count}} XP până la {{tier}}",
       "maxTier": "Nivel maxim",
       "tiers": {
         "beginner": "Începător",
         "intermediate": "Intermediar",
-        "advanced": "Avansat"
+        "advanced": "Avansat",
+        "advanced-ii": "Avansat II",
+        "advanced-iii": "Avansat III",
+        "advanced-iv": "Avansat IV",
+        "advanced-v": "Avansat V",
+        "advanced-vi": "Avansat VI",
+        "advanced-vii": "Avansat VII",
+        "advanced-viii": "Avansat VIII",
+        "advanced-ix": "Avansat IX",
+        "advanced-x": "Avansat X",
+        "advanced-x+": "Avansat X+"
       }
     },
     "refreshNote": "Monedele se reîmprospătează automat după fiecare achiziție sau donație.",
@@ -1959,11 +2020,11 @@
       "earnedAchievement": "Realizare obținută",
       "locked": "Blocat",
       "earnedOn": "Obținut {{date}}",
-      "empty": "Nu ai încă insigne obținute"
+      "empty": "Nicio insignă încă — prima ta lecție deblochează una. Începe să înveți!"
     },
     "activity": {
       "title": "Activitate recentă",
-      "empty": "Fără activitate recentă",
+      "empty": "Nicio activitate încă — termină o lecție și va apărea aici.",
       "showing": "Se afișează ultimele 3 activități din total {{total}}."
     },
     "friendRequests": {
@@ -2184,7 +2245,8 @@
       "emailRequired": "Introdu adresa de email.",
       "emailInvalid": "Introdu o adresă de email validă.",
       "passwordMinLength": "Folosește cel puțin 8 caractere.",
-      "passwordMismatch": "Parolele nu coincid."
+      "passwordMismatch": "Parolele nu coincid.",
+      "emailOrUsernameRequired": "Introdu emailul sau numele de utilizator."
     },
     "recaptcha": {
       "verifying": "Verificăm că ești om...",
@@ -2209,7 +2271,9 @@
       "networkError": "Nu s-a putut contacta serverul. Verifică că backend-ul rulează și că CORS este configurat.",
       "unexpectedError": "A apărut o eroare neașteptată. Te rugăm să încerci din nou.",
       "showPassword": "Arată parola",
-      "hidePassword": "Ascunde parola"
+      "hidePassword": "Ascunde parola",
+      "emailOrUsername": "Email sau nume de utilizator",
+      "emailOrUsernamePlaceholder": "tu@exemplu.com"
     },
     "register": {
       "title": "Creează cont",
@@ -2248,7 +2312,13 @@
       "agreePrefix": "Sunt de acord cu",
       "termsLink": "Termenii și condițiile",
       "agreeJoin": " și",
-      "privacyLink": "Politica de confidențialitate"
+      "privacyLink": "Politica de confidențialitate",
+      "stepIndicator": "Pasul {{current}} din {{total}}",
+      "continueStep": "Continuă",
+      "backStep": "Înapoi",
+      "step2Title": "Cum să-ți spunem?",
+      "step2Hint": "Opțional — poți adăuga mai târziu din profil.",
+      "skipNames": "Sari peste"
     },
     "forgotPassword": {
       "title": "Ai uitat parola",
@@ -2403,7 +2473,12 @@
     "paywallPackageMultiMonth": "Acces pe mai multe luni",
     "paywallPackageCustom": "Abonament",
     "paywallSubscribe": "Continuă",
-    "agreeToTerms": "Prin abonare accepți <terms>Condițiile de utilizare</terms> și <privacy>Politica de confidențialitate</privacy>."
+    "agreeToTerms": "Prin abonare accepți <terms>Condițiile de utilizare</terms> și <privacy>Politica de confidențialitate</privacy>.",
+    "trialTimeline": {
+      "today": "Azi — acces complet deblocat",
+      "reminder": "Ziua {{day}} — îți amintim înainte să se termine perioada de probă",
+      "charged": "Ziua {{day}} — începe abonamentul"
+    }
   },
   "onboarding": {
     "changeLaterHint": "Poți schimba oricând din Setări",
@@ -2485,24 +2560,6 @@
     "introButtonStart": "Începe",
     "introButtonBack": "Înapoi",
     "introSkip": "Sari peste",
-    "introSlides": {
-      "welcome": {
-        "title": "Bine ai venit la Garzoni",
-        "body": "Construiești abilități financiare reale cu lecții scurte, quizuri și exerciții."
-      },
-      "personalize": {
-        "title": "Personalizat pentru tine",
-        "body": "Răspunde la câteva întrebări ca să potrivim conținutul cu obiectivele și nivelul tău."
-      },
-      "earn": {
-        "title": "Câștigi în timp ce înveți",
-        "body": "Colectezi XP, monede și insigne pe măsură ce avansezi."
-      },
-      "plans": {
-        "title": "Planuri când ești pregătit",
-        "body": "Starter e gratuit ca să începi imediat. Plus deblochează traseul personalizat de învățare și lecții extinse. Pro adaugă întregul set de instrumente financiare și analize mai detaliate când vrei să mergi mai departe."
-      }
-    },
     "completionOverlay": {
       "title": "Totul e gata!",
       "subtitle": "Ți-am personalizat traseul de învățare în funcție de obiective.",
@@ -2514,7 +2571,12 @@
       "title": "Rămâi pe drumul bun?",
       "body": "Activează mementouri pentru serie, misiuni și îndemnuri de învățare. Poți schimba oricând din Profil.",
       "enable": "Activează notificările",
-      "notNow": "Nu acum"
+      "notNow": "Nu acum",
+      "eyebrow": "Încă un lucru",
+      "cta": "Amintește-mi",
+      "mockTitle": "Nu-ți pierde seria",
+      "mockBody": "O lecție scurtă îți menține seria — 5 minute.",
+      "mockTime": "acum"
     },
     "planReady": {
       "eyebrow": "PLANUL TĂU PERSONAL",

@@ -13,6 +13,7 @@
     "courseCompleteMascot": "You did it! Ready for the quiz?",
     "nextCourse": "Next course",
     "continueJourney": "Continue your journey",
+    "firstLessonUnlockCta": "Keep your streak — unlock everything",
     "takeQuiz": "Take the course quiz",
     "draftHidden": "Draft - hidden from learners",
     "addSection": "Add section",
@@ -81,7 +82,9 @@
     "checkpointProgress": "Question {{current}} of {{total}}",
     "checkpointDismissAria": "Close — skip this review and continue (no quiz rewards for skipped questions)",
     "checkpointLoadTitle": "Couldn't load review",
-    "checkpointLoadFailed": "We couldn’t load the quick review questions. You can keep going — try again later from the lesson."
+    "checkpointLoadFailed": "We couldn’t load the quick review questions. You can keep going — try again later from the lesson.",
+    "firstLessonTitle": "First lesson done!",
+    "firstLessonSubtitle": "Day 1 of your streak starts now 🔥 +{{bonus}} bonus XP"
   },
   "quiz": {
     "loading": "Loading quiz...",

@@ -28,6 +28,11 @@ class QuestionnaireVersion(models.Model):
         ordering = ["-version"]
 
 
+# Endowed progress seed: the % shown before any question is answered
+# ("account created" counts as step 1 of the flow). See get_progress_percentage.
+PROGRESS_SEED_PERCENT = 15
+
+
 class QuestionnaireProgress(models.Model):
     """
     Tracks partial responses, current question index, and timestamp
@@ -104,7 +109,14 @@ class QuestionnaireProgress(models.Model):
         return min(n + 1, total)
 
     def get_progress_percentage(self):
-        """Completion percentage based on questions answered (not sections)."""
+        """Displayed completion percentage based on questions answered.
+
+        Endowed progress (UX Phase 2, plan §2.2 — goal gradient): account
+        creation counts as step 1, so the first question renders at
+        ``PROGRESS_SEED_PERCENT`` instead of 0%. The raw question-based
+        percentage is remapped linearly onto the remaining band
+        (displayed = seed + raw * (100 - seed) / 100); completion stays 100.
+        """
         total = self.get_total_questions()
         if total == 0:
             return 0
@@ -113,7 +125,9 @@ class QuestionnaireProgress(models.Model):
         # We're on current_question_number (1-based); questions answered = that - 1
         current = self.get_current_question_number()
         answered = max(0, current - 1)
-        return int((answered / total) * 100)
+        raw = int((answered / total) * 100)
+        seed = PROGRESS_SEED_PERCENT
+        return min(100, seed + round(raw * (100 - seed) / 100))
 
     def get_completed_sections_count(self):
         """Get the number of completed sections."""

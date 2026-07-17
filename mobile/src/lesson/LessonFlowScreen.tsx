@@ -282,6 +282,7 @@ export default function LessonFlowScreen({
     completedIds,
     courseComplete,
     missionCompletedNow,
+    firstLessonCelebration,
     setMissionCompletedNow,
     goNext,
     goPrev,
@@ -344,6 +345,26 @@ export default function LessonFlowScreen({
     router.replace(`/flow/${nextId}`);
     return true;
   }, [nextPathCourse?.id]);
+
+  // Paywall placement experiment (3.5): the onboarding "post_first_lesson" arm
+  // defers the paywall to here. When the flag is set and this is the learner's
+  // first-ever lesson, the celebration's primary CTA routes to the paywall
+  // instead of the normal destination. Default flow is untouched.
+  const POST_LESSON_PAYWALL_KEY = "garzoni:pending_post_lesson_paywall";
+  const [pendingPostLessonPaywall, setPendingPostLessonPaywall] =
+    useState(false);
+  useEffect(() => {
+    void AsyncStorage.getItem(POST_LESSON_PAYWALL_KEY).then((v) =>
+      setPendingPostLessonPaywall(v === "1"),
+    );
+  }, []);
+  const routeToPostLessonPaywall = useCallback(() => {
+    void AsyncStorage.removeItem(POST_LESSON_PAYWALL_KEY);
+    setPendingPostLessonPaywall(false);
+    router.replace("/subscriptions?mode=paywall&from=post_first_lesson");
+  }, []);
+  const showPostLessonPaywallCta =
+    Boolean(firstLessonCelebration) && pendingPostLessonPaywall;
 
   // Per-section saves only mark progress queries stale (no refetch) to avoid a
   // request burst on every Continue tap. Flush ONE active refresh when the user
@@ -759,23 +780,39 @@ export default function LessonFlowScreen({
         >
           <ConfettiCannon
             ref={confettiRef}
-            count={120}
+            count={firstLessonCelebration ? 240 : 120}
             origin={{ x: width / 2, y: 0 }}
             fadeOut
             autoStart={false}
           />
         </View>
-        <Text style={styles.completeEmoji}>🎉</Text>
+        <Text style={styles.completeEmoji}>
+          {firstLessonCelebration ? "🔥" : "🎉"}
+        </Text>
         <Text style={styles.completeTitle}>
-          {t("courses.flow.courseComplete")}
+          {firstLessonCelebration
+            ? t("courses.flow.firstLessonTitle")
+            : t("courses.flow.courseComplete")}
         </Text>
-        <Text style={styles.completeSubtitle}>
-          {typeof pts === "number"
-            ? `You have ${pts} total XP.`
-            : t("courses.flow.courseCompleteSubtitle")}
-        </Text>
+        {firstLessonCelebration ? (
+          <Text style={styles.completeSubtitle}>
+            {t("courses.flow.firstLessonSubtitle", {
+              bonus: firstLessonCelebration.bonusXp,
+            })}
+          </Text>
+        ) : (
+          <Text style={styles.completeSubtitle}>
+            {typeof pts === "number"
+              ? `You have ${pts} total XP.`
+              : t("courses.flow.courseCompleteSubtitle")}
+          </Text>
+        )}
         <View style={styles.completeActions}>
-          {nextPathCourse?.id ? (
+          {showPostLessonPaywallCta ? (
+            <Button onPress={routeToPostLessonPaywall}>
+              {t("courses.flow.firstLessonUnlockCta")}
+            </Button>
+          ) : nextPathCourse?.id ? (
             <Button onPress={() => void goToNextPathCourse()}>
               {t("courses.flow.nextCourse")}
             </Button>

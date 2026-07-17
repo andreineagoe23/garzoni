@@ -13,6 +13,7 @@
     "courseCompleteMascot": "Ai reușit! Ești gata pentru quiz?",
     "nextCourse": "Următorul curs",
     "continueJourney": "Continuă parcursul",
+    "firstLessonUnlockCta": "Păstrează-ți seria — deblochează tot",
     "takeQuiz": "Fă quiz-ul cursului",
     "draftHidden": "Ciornă - ascuns de la elevi",
     "addSection": "Adaugă secțiune",
@@ -81,7 +82,9 @@
     "checkpointProgress": "Întrebarea {{current}} din {{total}}",
     "checkpointDismissAria": "Închide — sari peste recapitulare și continuă (fără recompense pentru întrebările sărite)",
     "checkpointLoadTitle": "Nu s-a putut încărca recapitularea",
-    "checkpointLoadFailed": "Nu am putut încărca întrebările de recapitulare. Poți continua — încearcă din nou mai târziu din lecție."
+    "checkpointLoadFailed": "Nu am putut încărca întrebările de recapitulare. Poți continua — încearcă din nou mai târziu din lecție.",
+    "firstLessonTitle": "Prima lecție terminată!",
+    "firstLessonSubtitle": "Ziua 1 a seriei tale începe acum 🔥 +{{bonus}} XP bonus"
   },
   "quiz": {
     "loading": "Se încarcă quiz-ul...",

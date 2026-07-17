@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "../../theme/ThemeContext";
-import type { JourneyTrailModel } from "./journeyLayout";
+import type { JourneyTrailModel } from "@garzoni/core";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 

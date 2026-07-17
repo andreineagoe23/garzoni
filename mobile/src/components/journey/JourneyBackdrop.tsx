@@ -9,7 +9,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import { useTheme } from "../../theme/ThemeContext";
-import { hash01, type JourneyNodeModel } from "./journeyLayout";
+import { hash01, type JourneyNodeModel } from "@garzoni/core";
 
 type Props = {
   nodes: JourneyNodeModel[];

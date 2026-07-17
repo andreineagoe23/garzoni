@@ -210,12 +210,14 @@ class OpenAIService:
                     parts.append(f"Completed {completed} course(s).")
 
             try:
+                from onboarding.answers import answer_values
                 from onboarding.models import QuestionnaireProgress
 
                 q = QuestionnaireProgress.objects.filter(user=user).first()
                 if q and q.answers:
-                    goal = q.answers.get("primary_goal")
-                    challenge = q.answers.get("biggest_challenge")
+                    # Answers may be lists (mobile multi-select) or scalars (web).
+                    goal = ", ".join(answer_values(q.answers.get("primary_goal")))
+                    challenge = ", ".join(answer_values(q.answers.get("biggest_challenge")))
                     if goal:
                         parts.append(f"Financial goal: {goal}.")
                     if challenge:

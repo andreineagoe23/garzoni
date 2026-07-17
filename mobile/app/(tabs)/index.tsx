@@ -26,6 +26,7 @@ import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";
 import DashboardResumeRow from "../../src/components/dashboard/DashboardResumeRow";
+import HomeJourneyCard from "../../src/components/dashboard/HomeJourneyCard";
 import WeakSkillsSectionMobile from "../../src/components/dashboard/WeakSkillsSectionMobile";
 import StatusSummaryGrid from "../../src/components/dashboard/StatusSummaryGrid";
 import PrimaryCTAMobile, {
@@ -769,6 +770,8 @@ function DashboardInner() {
             </View>
           ) : null}
 
+          {questionnaireCompletedForUi ? <HomeJourneyCard /> : null}
+
           {questionnaireCompletedForUi ? (
             <DashboardResumeRow
               resume={summary.resume}
@@ -793,7 +796,7 @@ function DashboardInner() {
           <View
             style={[
               styles.heatmapCard,
-              { backgroundColor: c.surfaceOffset, borderColor: c.border },
+              { backgroundColor: c.surface, borderColor: c.border },
             ]}
           >
             <Text style={[styles.sectionTitle, { color: c.text }]}>

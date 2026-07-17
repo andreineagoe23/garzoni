@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "contexts/AuthContext";
 import { GlassCard } from "components/ui";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
+import JourneyMapWeb from "components/journey/JourneyMapWeb";
+import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
 import {
   buildProgressByCourse,
@@ -150,6 +152,27 @@ function PersonalizedPathContent({
     () => derivePersonalizedPathState(personalizedQuery.data),
     [personalizedQuery.data]
   );
+
+  // Journey (the web port of "The Climb") is the default view once the path has
+  // courses; the list stays available behind the toggle. UX plan 3.2.
+  const [viewMode, setViewMode] = useState<"journey" | "list">("journey");
+  const showJourney = viewMode === "journey" && courses.length > 0;
+
+  // Fire `journey_view` once each time the journey mode becomes active.
+  useEffect(() => {
+    if (!showJourney) return;
+    Promise.resolve(
+      recordFunnelEvent("journey_view", {
+        metadata: { course_count: courses.length, source: "personalized_path" },
+      })
+    ).catch(() => {});
+  }, [showJourney, courses.length]);
+
+  const goalsLine = useMemo(
+    () => (personalizedQuery.data?.meta?.onboarding_goals || []).join(" · "),
+    [personalizedQuery.data?.meta?.onboarding_goals]
+  );
+
   const autoRefreshTriggered = useRef(false);
 
   useEffect(() => {
@@ -233,7 +256,41 @@ function PersonalizedPathContent({
         </GlassCard>
       )}
 
-      {heroCourse && (
+      {courses.length > 0 && (
+        <div className="flex justify-end">
+          <div className="inline-flex overflow-hidden rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] p-1 text-xs">
+            {(["journey", "list"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                aria-pressed={viewMode === mode}
+                className={`rounded-full px-3 py-1 font-semibold transition ${
+                  viewMode === mode
+                    ? "bg-gradient-to-r from-[#2a7347] to-[#1d5330] text-white"
+                    : "text-content-muted"
+                }`}
+              >
+                {mode === "journey" ? "Journey" : "List"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showJourney && (
+        <JourneyMapWeb
+          courses={courses}
+          progressByCourse={progressByCourse}
+          onCourseClick={onCourseClick}
+          goalsLine={goalsLine}
+          upgradePrompt={
+            isPreview ? personalizedQuery.data?.upgrade_prompt : undefined
+          }
+        />
+      )}
+
+      {!showJourney && heroCourse && (
         <GlassCard padding="lg" className="app-card relative overflow-hidden">
           {(() => {
             const metrics = getCourseMetrics(heroCourse, progressByCourse);
@@ -335,7 +392,7 @@ function PersonalizedPathContent({
         </GlassCard>
       )}
 
-      {!heroCourse && (
+      {!showJourney && !heroCourse && (
         <GlassCard padding="md" className="space-y-2">
           <p className="text-sm font-semibold text-content-primary">
             {t("personalizedPath.title")}
@@ -346,118 +403,122 @@ function PersonalizedPathContent({
         </GlassCard>
       )}
 
-      <section className="space-y-3">
-        <h4 className="app-eyebrow">
-          {t("personalizedPath.recommendedForYou")}
-        </h4>
-        <div className="relative">
-          {restCourses.map((course, index) => {
-            const metrics = getCourseMetrics(course, progressByCourse);
-            const percent = metrics.percent;
-            const focusHint =
-              percent < 30
-                ? "Focus on first two sections to build momentum."
-                : percent < 70
-                  ? "You are midway - complete remaining sections to unlock mastery."
-                  : "Almost done - finish the last section and review queue.";
-            const starterTasks = Array.isArray(course.starter_tasks)
-              ? course.starter_tasks.slice(0, 2)
-              : [];
-            return (
-              <div
-                key={course.id}
-                className="relative flex gap-3 pb-5 last:pb-0"
-              >
-                <div className="relative flex w-10 shrink-0 justify-center">
-                  {index < restCourses.length - 1 && (
-                    <span className="absolute top-9 bottom-0 w-[2px] bg-gradient-to-b from-[color:var(--color-brand-primary)]/50 to-[color:var(--color-border-default)]" />
-                  )}
-                  <div className="relative z-10 mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-surface-card)]">
-                    <GarzoniIcon
-                      name={courseIcon(course.path_title)}
-                      size={14}
-                      className="text-[color:var(--color-brand-primary)]"
-                    />
-                  </div>
-                </div>
-
-                <GlassCard
-                  padding="md"
-                  className="app-card relative flex-1 overflow-hidden"
+      {!showJourney && (
+        <section className="space-y-3">
+          <h4 className="app-eyebrow">
+            {t("personalizedPath.recommendedForYou")}
+          </h4>
+          <div className="relative">
+            {restCourses.map((course, index) => {
+              const metrics = getCourseMetrics(course, progressByCourse);
+              const percent = metrics.percent;
+              const focusHint =
+                percent < 30
+                  ? "Focus on first two sections to build momentum."
+                  : percent < 70
+                    ? "You are midway - complete remaining sections to unlock mastery."
+                    : "Almost done - finish the last section and review queue.";
+              const starterTasks = Array.isArray(course.starter_tasks)
+                ? course.starter_tasks.slice(0, 2)
+                : [];
+              return (
+                <div
+                  key={course.id}
+                  className="relative flex gap-3 pb-5 last:pb-0"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-content-muted">
-                        {course.path_title}
-                      </p>
-                      <p className="font-semibold">{course.title}</p>
-                      <p className="mt-1 text-xs text-content-muted">
-                        {course.reason}
-                      </p>
-                      <p className="mt-2 text-xs text-content-muted">
-                        {focusHint}
-                      </p>
-                      <div className="mt-2 text-xs text-content-muted">
-                        {metrics.totalSections && metrics.totalSections > 0 ? (
-                          <>
-                            {metrics.completedSections ?? 0}/
-                            {metrics.totalSections} sections •{" "}
-                            {metrics.completedLessons}/{metrics.totalLessons}{" "}
-                            lessons
-                          </>
-                        ) : (
-                          <>
-                            {metrics.completedLessons}/{metrics.totalLessons}{" "}
-                            lessons
-                          </>
-                        )}
-                      </div>
-                      {course.next_lesson_title && (
-                        <div className="mt-1 text-xs text-[color:var(--color-brand-primary)]">
-                          Next: {course.next_lesson_title}
-                        </div>
-                      )}
-                      {!course.next_lesson_title && starterTasks.length > 0 && (
-                        <ul className="mt-1 space-y-1 text-xs text-content-muted">
-                          {starterTasks.map((task, taskIdx) => (
-                            <li
-                              key={`${course.id}-task-${taskIdx}`}
-                              className="flex items-start gap-1"
-                            >
-                              <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-[color:var(--color-brand-primary)]/70" />
-                              <span>{task}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                  <div className="relative flex w-10 shrink-0 justify-center">
+                    {index < restCourses.length - 1 && (
+                      <span className="absolute top-9 bottom-0 w-[2px] bg-gradient-to-b from-[color:var(--color-brand-primary)]/50 to-[color:var(--color-border-default)]" />
+                    )}
+                    <div className="relative z-10 mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-surface-card)]">
+                      <GarzoniIcon
+                        name={courseIcon(course.path_title)}
+                        size={14}
+                        className="text-[color:var(--color-brand-primary)]"
+                      />
                     </div>
-                    <ProgressRing value={percent} />
                   </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs text-content-muted">
-                      {t("personalizedPath.eta", {
-                        minutes: metrics.estimatedMinutes,
-                      })}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => openCourse(course)}
-                      className="rounded-full bg-[#1d5330] px-3 py-1.5 text-xs font-semibold text-white shadow shadow-[#1d5330]/30 hover:bg-[#2a7347] transition"
-                    >
-                      {course.locked
-                        ? t("personalizedPath.unlock")
-                        : t("personalizedPath.open")}
-                    </button>
-                  </div>
-                  {course.locked && (
-                    <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
-                  )}
-                </GlassCard>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+
+                  <GlassCard
+                    padding="md"
+                    className="app-card relative flex-1 overflow-hidden"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-content-muted">
+                          {course.path_title}
+                        </p>
+                        <p className="font-semibold">{course.title}</p>
+                        <p className="mt-1 text-xs text-content-muted">
+                          {course.reason}
+                        </p>
+                        <p className="mt-2 text-xs text-content-muted">
+                          {focusHint}
+                        </p>
+                        <div className="mt-2 text-xs text-content-muted">
+                          {metrics.totalSections &&
+                          metrics.totalSections > 0 ? (
+                            <>
+                              {metrics.completedSections ?? 0}/
+                              {metrics.totalSections} sections •{" "}
+                              {metrics.completedLessons}/{metrics.totalLessons}{" "}
+                              lessons
+                            </>
+                          ) : (
+                            <>
+                              {metrics.completedLessons}/{metrics.totalLessons}{" "}
+                              lessons
+                            </>
+                          )}
+                        </div>
+                        {course.next_lesson_title && (
+                          <div className="mt-1 text-xs text-[color:var(--color-brand-primary)]">
+                            Next: {course.next_lesson_title}
+                          </div>
+                        )}
+                        {!course.next_lesson_title &&
+                          starterTasks.length > 0 && (
+                            <ul className="mt-1 space-y-1 text-xs text-content-muted">
+                              {starterTasks.map((task, taskIdx) => (
+                                <li
+                                  key={`${course.id}-task-${taskIdx}`}
+                                  className="flex items-start gap-1"
+                                >
+                                  <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-[color:var(--color-brand-primary)]/70" />
+                                  <span>{task}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                      </div>
+                      <ProgressRing value={percent} />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <p className="text-xs text-content-muted">
+                        {t("personalizedPath.eta", {
+                          minutes: metrics.estimatedMinutes,
+                        })}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => openCourse(course)}
+                        className="rounded-full bg-[#1d5330] px-3 py-1.5 text-xs font-semibold text-white shadow shadow-[#1d5330]/30 hover:bg-[#2a7347] transition"
+                      >
+                        {course.locked
+                          ? t("personalizedPath.unlock")
+                          : t("personalizedPath.open")}
+                      </button>
+                    </div>
+                    {course.locked && (
+                      <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
+                    )}
+                  </GlassCard>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h4 className="app-eyebrow">

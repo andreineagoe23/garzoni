@@ -14,7 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "../../theme/ThemeContext";
 import { spacing } from "../../theme/tokens";
-import { journeyNodeIcon, type JourneyNodeModel } from "./journeyLayout";
+import { journeyNodeIcon, type JourneyNodeModel } from "@garzoni/core";
 
 /** Face diameter of the chunky button. */
 const SIZE = 64;

@@ -7,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from authentication.models import UserProfile
-from authentication.entitlements import get_user_plan, plan_allows
+from authentication.entitlements import get_plan_from_profile, plan_allows
 from authentication.services.hearts import (
     apply_hearts_regen,
     hearts_constants,
@@ -26,10 +26,17 @@ def _refill_cap_cache_key(user_id, day):
     return f"hearts_refill_count:{user_id}:{day.isoformat()}"
 
 
-def _user_is_premium(user) -> bool:
-    """True when the user's plan is Plus or Pro (no per-plan refill cap)."""
+def _profile_is_premium(profile) -> bool:
+    """True when the profile's plan is Plus or Pro (no per-plan refill cap).
+
+    Takes the profile object directly (not `user.profile`) — the view already
+    holds a freshly `select_for_update`-queried profile, and `user.profile`
+    can be a stale cached descriptor (e.g. set by the post_save signal at
+    account creation, never refreshed after a later billing update mutates a
+    different Python instance of the same row).
+    """
     try:
-        return plan_allows(get_user_plan(user), "plus")
+        return plan_allows(get_plan_from_profile(profile), "plus")
     except Exception:
         return False
 
@@ -138,7 +145,7 @@ class UserHeartsRefillView(APIView):
 
             # Plan-aware daily cap on *instant* refills (free users only). This is
             # what gives the scarcity mechanic teeth and the upgrade CTA a payoff.
-            is_premium = _user_is_premium(request.user)
+            is_premium = _profile_is_premium(profile)
             if not is_premium:
                 used_today = _refills_used_today(request.user.pk, now)
                 if used_today >= FREE_REFILL_DAILY_CAP:

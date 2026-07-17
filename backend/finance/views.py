@@ -3415,6 +3415,19 @@ class FunnelEventIngestView(APIView):
         "exit_intent_accepted",
         "exit_intent_declined",
         "promo_web_fullprice_click",
+        # Signup + activation funnel (UX Phase 2)
+        "register_step_view",
+        "register_step_continue",
+        "push_prompt_shown",
+        "push_prompt_accepted",
+        "push_prompt_declined",
+        "checklist_item_click",
+        "first_lesson_celebration_view",
+        # Guest taste + journey funnel (UX Phase 3)
+        "sample_question_answered",
+        "demo_lesson_started",
+        "demo_lesson_completed",
+        "journey_view",
     }
 
     def post(self, request):

@@ -87,15 +87,38 @@ class QuestionnaireProgressTestCase(TestCase):
         self.assertEqual(progress.current_question_index, 0)
 
     def test_progress_percentage(self):
-        """Test progress percentage calculation (question-based: answered / total)."""
+        """Displayed progress = endowed seed + raw remapped onto the remaining band."""
         progress = QuestionnaireProgress.objects.create(
             user=self.user,
             version=self.version,
             status="in_progress",
             current_section_index=1,
         )
-        # Version has 3 questions (2 in section1, 1 in section2). At section 1, question 0 we're on question 3; answered = 2 → 66%
-        self.assertEqual(progress.get_progress_percentage(), 66)
+        # Version has 3 questions (2 in section1, 1 in section2). At section 1,
+        # question 0 we're on question 3; answered = 2 → raw 66% → displayed
+        # 15 + round(66 * 0.85) = 71 (goal-gradient seed, plan §2.2).
+        self.assertEqual(progress.get_progress_percentage(), 71)
+
+    def test_progress_percentage_seeded_before_first_answer(self):
+        """First question renders at the endowed seed (15%), never 0%."""
+        progress = QuestionnaireProgress.objects.create(
+            user=self.user,
+            version=self.version,
+            status="in_progress",
+        )
+        self.assertEqual(progress.get_progress_percentage(), 15)
+
+    def test_progress_percentage_caps_at_100(self):
+        # Completion is signaled by status, not by a section/question index
+        # "past" the last question (no such position exists in this model) —
+        # the early-return branch must yield exactly 100, not seed + raw.
+        progress = QuestionnaireProgress.objects.create(
+            user=self.user,
+            version=self.version,
+            status="completed",
+            current_section_index=1,
+        )
+        self.assertEqual(progress.get_progress_percentage(), 100)
 
     def test_idempotent_saving(self):
         """Test that saving the same answer twice doesn't create duplicates."""
@@ -303,6 +326,8 @@ class PlanSummaryEndpointTest(APITestCase):
                 "curated_lessons",
                 "projected_outcome",
                 "recommended_tier",
+                # Paywall-placement A/B flag (UX Phase 3, plan §3.5).
+                "paywall_placement",
             },
         )
 

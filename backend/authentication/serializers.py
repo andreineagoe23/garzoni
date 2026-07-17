@@ -5,6 +5,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password as _dj_validate_password
 from django.core.exceptions import ValidationError as _DjangoValidationError
+from django.utils.text import slugify
 
 from authentication.user_display import normalize_display_string
 from authentication.models import (
@@ -15,6 +16,28 @@ from authentication.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Auto-generated usernames are capped well below the model's 150-char limit so
+# the numeric dedupe suffix always fits.
+_AUTO_USERNAME_MAX_BASE_LENGTH = 30
+
+
+def generate_username_from_email(email: str) -> str:
+    """Unique username derived from the email local-part (slugified).
+
+    "jane.doe+app@x.com" -> "janedoeapp"; collisions get a numeric suffix
+    ("janedoeapp2", "janedoeapp3", ...). Falls back to "user" when the
+    local-part slugifies to nothing (e.g. non-latin characters).
+    """
+    local_part = (email or "").split("@", 1)[0]
+    base = slugify(local_part).replace("-", "") or "user"
+    base = base[:_AUTO_USERNAME_MAX_BASE_LENGTH]
+    candidate = base
+    suffix = 1
+    while User.objects.filter(username__iexact=candidate).exists():
+        suffix += 1
+        candidate = f"{base}{suffix}"
+    return candidate
 
 
 # Serializer for user registration, including optional referral code handling.
@@ -44,7 +67,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             "accept_terms",
             "age_confirmed",
         ]
-        extra_kwargs = {"password": {"write_only": True}}
+        # Slim signup (UX Phase 2, plan §2.1): email + password + consents are
+        # enough. username is auto-generated from the email local-part when
+        # omitted; first/last name are optional (User model blank=True) and can
+        # be collected later in profile or questionnaire.
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "username": {"required": False, "allow_blank": True},
+        }
 
     def validate_accept_terms(self, value):
         if value is not True:
@@ -108,12 +138,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("accept_terms", None)
         validated_data.pop("age_confirmed", None)
 
+        # Slim signup: auto-generate a username from the email local-part when
+        # the client didn't send one (dedupe handled by the generator).
+        username = (validated_data.get("username") or "").strip()
+        if not username:
+            username = generate_username_from_email(validated_data.get("email", ""))
+
         # The post_save signal handler (authentication.signals.create_user_profile)
         # reads `_signup_marketing_opt_in` off the User instance to decide the
         # initial marketing preference. Set it *before* create_user because
         # create_user internally calls save(), which fires post_save.
         user = User(
-            username=validated_data.get("username", ""),
+            username=username,
             email=validated_data.get("email", ""),
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),

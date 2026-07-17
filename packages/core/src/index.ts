@@ -201,8 +201,8 @@ export {
 } from "./constants/toolLearningHooks";
 export type { ToolLearningHook } from "./constants/toolLearningHooks";
 
-export { getUserLevel } from "./utils/userLevel";
-export type { UserLevel } from "./utils/userLevel";
+export { getUserLevel, getXpTier, getNextXpTier } from "./utils/userLevel";
+export type { UserLevel, XpTier } from "./utils/userLevel";
 export { masteryLevelLabel } from "./utils/masteryLevels";
 export type { MasteryLevelBand } from "./utils/masteryLevels";
 export { weakSkillNextStepLabels } from "./utils/weakSkillNextStep";
@@ -244,3 +244,6 @@ export type {
   PlanSummaryLesson,
   PlanSummaryOutcome,
 } from "./services/questionnaireService";
+
+// Journey map layout math (shared by mobile "The Climb" and the web port).
+export * from "./journey/journeyLayout";

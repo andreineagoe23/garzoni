@@ -23,6 +23,10 @@ logger = logging.getLogger(__name__)
 XP_LESSON_FIRST_COMPLETION = 10
 COINS_LESSON_FIRST_COMPLETION = Decimal("5.00")
 
+# One-time bonus for the user's FIRST ever lesson (UX Phase 2, plan §2.6 —
+# first-lesson celebration). Granted once per user, ledger-idempotent.
+XP_FIRST_LESSON_EVER_BONUS = 25
+
 XP_SECTION_FIRST_COMPLETION = 8
 COINS_SECTION_FIRST_COMPLETION = Decimal("4.00")
 

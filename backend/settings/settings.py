@@ -190,6 +190,12 @@ if DEBUG and env_bool("ENABLE_DJANGO_EXTENSIONS", False):
 # and related profile fields; when false those paths no-op.
 GAMIFICATION_RETENTION_V2 = env_bool("GAMIFICATION_RETENTION_V2", False)
 GAMIFICATION_DAILY_GOAL_TARGET_XP = int(os.getenv("GAMIFICATION_DAILY_GOAL_TARGET_XP", "50"))
+# UX Phase 3 (plan §3.5): paywall placement experiment flag surfaced in the
+# plan-summary payload. "onboarding" = current post-quiz paywall; "post_first_lesson"
+# = paywall after the first-lesson celebration. Any invalid value falls back to default.
+UX_PAYWALL_PLACEMENT = os.getenv("UX_PAYWALL_PLACEMENT", "onboarding").strip().lower()
+if UX_PAYWALL_PLACEMENT not in ("onboarding", "post_first_lesson"):
+    UX_PAYWALL_PLACEMENT = "onboarding"
 # Badge evaluation runs as a debounced Celery task after XP grants. Default
 # true (sync) in DEBUG so dev without a worker still awards badges instantly;
 # production (worker + beat running) should leave this false.

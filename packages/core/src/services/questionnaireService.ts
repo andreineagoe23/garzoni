@@ -127,6 +127,12 @@ export interface PlanSummary {
   curated_lessons: PlanSummaryLesson[];
   projected_outcome?: PlanSummaryOutcome | null;
   recommended_tier: "plus" | "pro";
+  /**
+   * Paywall placement experiment arm (3.5). "onboarding" (default/undefined)
+   * keeps today's flow: plan-ready → push prompt → paywall. "post_first_lesson"
+   * defers the paywall until after the first curated lesson's celebration.
+   */
+  paywall_placement?: "onboarding" | "post_first_lesson";
 }
 
 export const fetchPlanSummary = (): Promise<PlanSummary> =>

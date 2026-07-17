@@ -50,7 +50,7 @@ import {
   remainingMinutes,
   type JourneyDecorationKind,
   type JourneyNodeModel,
-} from "./journeyLayout";
+} from "@garzoni/core";
 import JourneyBackdrop from "./JourneyBackdrop";
 import JourneyNode from "./JourneyNode";
 import JourneyTrail from "./JourneyTrail";
@@ -413,7 +413,8 @@ export default function JourneyMapContent({
 
   const openCourse = (course: PersonalizedPathCourse) => {
     if (course.locked) {
-      router.push(href("/subscriptions?reason=personalized_path"));
+      // Locked/fog nodes are an endowment paywall surface (3.2).
+      router.push(href("/subscriptions?reason=journey"));
       return;
     }
     if (onCourseClick) {
@@ -816,9 +817,7 @@ export default function JourneyMapContent({
               <GlassButton
                 variant="primary"
                 size="sm"
-                onPress={() =>
-                  router.push(href("/subscriptions?reason=personalized_path"))
-                }
+                onPress={() => router.push(href("/subscriptions?reason=journey"))}
               >
                 {t("journey.unlockRoute", { defaultValue: "Unfog route" })}
               </GlassButton>

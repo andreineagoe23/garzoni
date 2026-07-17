@@ -61,6 +61,37 @@ class Course(models.Model):
         return self.title
 
 
+def validate_sample_question(value):
+    """Loosely validate the Lesson.sample_question teaser shape (plan §3.1).
+
+    ``None`` is always valid (the field is optional). When set it must be a dict
+    with a non-empty ``question`` string, an ``options`` list of >= 2 string
+    choices, and a ``correct_index`` int pointing inside ``options``.
+    ``explanation`` is optional. Raises ValidationError so the admin form and
+    full_clean() surface a readable error.
+    """
+    if value is None:
+        return
+    if not isinstance(value, dict):
+        raise ValidationError("sample_question must be a JSON object.")
+    question = value.get("question")
+    if not isinstance(question, str) or not question.strip():
+        raise ValidationError("sample_question.question must be a non-empty string.")
+    options = value.get("options")
+    if not isinstance(options, list) or len(options) < 2:
+        raise ValidationError("sample_question.options must be a list of >= 2 choices.")
+    if not all(isinstance(opt, str) and opt.strip() for opt in options):
+        raise ValidationError("sample_question.options must all be non-empty strings.")
+    correct_index = value.get("correct_index")
+    if not isinstance(correct_index, int) or isinstance(correct_index, bool):
+        raise ValidationError("sample_question.correct_index must be an integer.")
+    if not (0 <= correct_index < len(options)):
+        raise ValidationError("sample_question.correct_index is out of range for options.")
+    explanation = value.get("explanation")
+    if explanation is not None and not isinstance(explanation, str):
+        raise ValidationError("sample_question.explanation must be a string when set.")
+
+
 class Lesson(models.Model):
     """
     The Lesson model represents an individual lesson within a course.
@@ -86,9 +117,19 @@ class Lesson(models.Model):
     # SEO: exposes this lesson at /learn/<slug> on web and via /api/public/lessons/<slug>/
     # so Google can index it and the iOS app can deep-link into it.
     is_public = models.BooleanField(default=False, db_index=True)
+    # Guest-taste teaser (UX Phase 3, plan §3.1). A single hand-whitelisted
+    # multiple-choice question shown after the public prose to convert readers.
+    # Shape: {"question": str, "options": [str, ...], "correct_index": int,
+    #         "explanation": str}. These are never drawn from the real quiz pool,
+    # so the correct answer is safe to expose for client-side checking.
+    sample_question = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
+
+    def clean(self):
+        super().clean()
+        validate_sample_question(self.sample_question)
 
     def save(self, *args, **kwargs):
         if not self.slug:

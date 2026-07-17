@@ -557,11 +557,15 @@ const OnboardingQuestionnaire: React.FC = () => {
           {/* Header */}
           <header className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
+              {/* Endowed-progress framing (UX plan 2.2): account creation counts
+                  as step 1, so the first question reads "Step 2 of 7". English
+                  literal pending i18n keys (repo test forbids unknown t() keys).
+                  The progress bar below is intentionally NOT offset — the
+                  backend seeds progress_percentage separately. */}
               <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-                {t("onboarding.questionOf", {
-                  current: currentQuestionNumberDisplay,
-                  total: totalQuestionsDisplay,
-                })}
+                {`Step ${currentQuestionNumberDisplay + 1} of ${
+                  totalQuestionsDisplay + 1
+                }`}
               </p>
               <div className="flex items-center gap-2">
                 <GlassButton

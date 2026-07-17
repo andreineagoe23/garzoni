@@ -1,5 +1,5 @@
 import type { MascotType } from "@garzoni/core";
-import { hash01 } from "../journey/journeyLayout";
+import { hash01 } from "@garzoni/core";
 
 /**
  * Scene recipes for All Topics path cards — each card header is a tiny

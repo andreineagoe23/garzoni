@@ -178,6 +178,60 @@ function formatCurrencyAmount(amount: number, currencyCode?: string): string {
   }
 }
 
+/** Trial length in days from StoreKit intro period (WEEK×1 → 7, MONTH×1 → 30). */
+function introTrialDays(intro: PurchasesIntroPrice): number {
+  const n = intro.periodNumberOfUnits ?? 0;
+  const unit = String(intro.periodUnit ?? "DAY").toUpperCase();
+  if (unit === "WEEK") return n * 7;
+  if (unit === "MONTH") return n * 30;
+  if (unit === "YEAR") return n * 365;
+  return n;
+}
+
+/** Blinkist-style trial timeline: shows exactly what happens on which day so
+ * starting a trial feels safe (reminder before charge is real — CIO
+ * send_trial_ending_reminder fires 2 days before trial end). */
+function TrialTimeline({ intro }: { intro: PurchasesIntroPrice }) {
+  const { t } = useTranslation("common");
+  const days = introTrialDays(intro);
+  if (days < 3) return null;
+  const rows = [
+    {
+      icon: "lock-open-variant-outline",
+      label: t("subscriptions.trialTimeline.today"),
+    },
+    {
+      icon: "bell-ring-outline",
+      label: t("subscriptions.trialTimeline.reminder", { day: days - 2 }),
+    },
+    {
+      icon: "star-circle-outline",
+      label: t("subscriptions.trialTimeline.charged", { day: days }),
+    },
+  ] as const;
+  return (
+    <View style={styles.trialTimeline}>
+      {rows.map((row, i) => (
+        <View key={row.icon} style={styles.trialTimelineRow}>
+          <MaterialCommunityIcons
+            name={row.icon}
+            size={15}
+            color={i === 0 ? D.goldWarm : D.muted}
+          />
+          <Text
+            style={[
+              styles.trialTimelineText,
+              i === 0 && styles.trialTimelineTextNow,
+            ]}
+          >
+            {row.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /** Label for a paid intro offer (store-configured discount), e.g. "first year" or "first 3 months". */
 function formatIntroOfferLabel(intro: PurchasesIntroPrice): string {
   const n = (intro.periodNumberOfUnits ?? 0) * Math.max(intro.cycles ?? 1, 1);
@@ -379,6 +433,9 @@ function TierCard({
           </View>
         ))}
       </View>
+
+      {/* Trial timeline (free trials only) — reduce risk before the ask */}
+      {showTrial && intro && !isCurrent && <TrialTimeline intro={intro} />}
 
       {/* CTA */}
       <Pressable
@@ -696,9 +753,11 @@ export default function SubscriptionsScreen() {
     onboarding?: string | string[];
     recommended?: string | string[];
     goal?: string | string[];
+    from?: string | string[];
   }>();
 
   const modeParam = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+  const fromParam = Array.isArray(params.from) ? params.from[0] : params.from;
   const onboardingParam = Array.isArray(params.onboarding)
     ? params.onboarding[0]
     : params.onboarding;
@@ -729,8 +788,12 @@ export default function SubscriptionsScreen() {
     pricingViewSentRef.current = true;
     trackEvent("pricing_view", {
       source: isPaywall ? "onboarding_paywall" : "in_app",
+      // Paywall placement experiment arm (3.5): "post_first_lesson" when the
+      // paywall was deferred until after the first lesson, else "onboarding".
+      placement:
+        fromParam === "post_first_lesson" ? "post_first_lesson" : "onboarding",
     });
-  }, [isPaywall]);
+  }, [isPaywall, fromParam]);
 
   const [cycle, setCycle] = useState<Cycle>("yearly");
   const [exitIntentVisible, setExitIntentVisible] = useState(false);
@@ -1563,6 +1626,29 @@ const styles = StyleSheet.create({
     fontSize: typography.xs,
     fontWeight: "700",
     color: D.goldWarm,
+  },
+  trialTimeline: {
+    marginHorizontal: 16,
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: "rgba(230,200,122,0.06)",
+    gap: 6,
+  },
+  trialTimelineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  trialTimelineText: {
+    fontSize: typography.xs,
+    color: D.muted,
+    flexShrink: 1,
+  },
+  trialTimelineTextNow: {
+    color: D.goldWarm,
+    fontWeight: "700",
   },
   currentBadge: {
     alignSelf: "flex-start",

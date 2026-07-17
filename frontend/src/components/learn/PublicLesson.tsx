@@ -2,7 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import apiClient from "services/httpClient";
+import { recordFunnelEvent } from "services/analyticsService";
 import SeoHead from "components/seo/SeoHead";
+
+/**
+ * Optional interactive "sample question" attached to a public lesson (UX plan
+ * 3.1 — reciprocity before signup). The backend whitelists one question per
+ * public lesson; the field may be absent, in which case no card renders.
+ */
+type SampleQuestion = {
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+};
 
 type PublicLessonResponse = {
   slug: string;
@@ -12,6 +25,7 @@ type PublicLessonResponse = {
   image_url: string;
   updated_at: string | null;
   course: { id: number; title: string };
+  sample_question?: SampleQuestion | null;
   sections: Array<{
     id: number;
     order: number;
@@ -22,6 +36,157 @@ type PublicLessonResponse = {
     source_url: string;
   }>;
 };
+
+/** True only when the payload is a usable, well-formed sample question. */
+function isValidSampleQuestion(q: unknown): q is SampleQuestion {
+  if (!q || typeof q !== "object") return false;
+  const c = q as Partial<SampleQuestion>;
+  return (
+    typeof c.question === "string" &&
+    c.question.trim().length > 0 &&
+    Array.isArray(c.options) &&
+    c.options.length >= 2 &&
+    c.options.every((o) => typeof o === "string") &&
+    typeof c.correct_index === "number" &&
+    c.correct_index >= 0 &&
+    c.correct_index < c.options.length
+  );
+}
+
+/**
+ * Interactive "Try it" quiz card. One attempt: options lock after the first
+ * answer, then feedback + explanation + a reciprocity nudge to sign up.
+ */
+function SampleQuestionCard({
+  question,
+  lessonSlug,
+}: {
+  question: SampleQuestion;
+  lessonSlug: string;
+}) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const answered = selected !== null;
+  const isCorrect = answered && selected === question.correct_index;
+
+  const handleAnswer = (index: number) => {
+    if (answered) return;
+    setSelected(index);
+    Promise.resolve(
+      recordFunnelEvent("sample_question_answered", {
+        metadata: {
+          correct: index === question.correct_index,
+          lesson_slug: lessonSlug,
+        },
+      })
+    ).catch(() => {});
+  };
+
+  const optionStyle = (index: number): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      display: "block",
+      width: "100%",
+      textAlign: "left",
+      padding: "0.75rem 1rem",
+      marginTop: "0.5rem",
+      borderRadius: 10,
+      border: "1px solid #2a3a4a",
+      background: "transparent",
+      color: "inherit",
+      font: "inherit",
+      cursor: answered ? "default" : "pointer",
+      transition: "border-color 0.15s, background 0.15s",
+    };
+    if (!answered) return base;
+    if (index === question.correct_index) {
+      return {
+        ...base,
+        borderColor: "#22c55e",
+        background: "rgba(34,197,94,0.12)",
+      };
+    }
+    if (index === selected) {
+      return {
+        ...base,
+        borderColor: "#ef4444",
+        background: "rgba(239,68,68,0.1)",
+      };
+    }
+    return { ...base, opacity: 0.6 };
+  };
+
+  return (
+    <section
+      style={{
+        marginTop: "2.5rem",
+        padding: "1.5rem",
+        border: "1px solid #2a3a4a",
+        borderRadius: 12,
+      }}
+      aria-label="Try it — sample question"
+    >
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: 0.6,
+          textTransform: "uppercase",
+          color: "#22c55e",
+        }}
+      >
+        Try it
+      </p>
+      <h2 style={{ marginTop: "0.5rem" }}>{question.question}</h2>
+      <div role="group" aria-label="Answer options">
+        {question.options.map((option, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => handleAnswer(index)}
+            disabled={answered}
+            aria-pressed={selected === index}
+            style={optionStyle(index)}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+      {answered ? (
+        <div style={{ marginTop: "1.25rem" }}>
+          <p
+            style={{
+              fontWeight: 700,
+              color: isCorrect ? "#22c55e" : "#ef4444",
+            }}
+          >
+            {isCorrect ? "Correct!" : "Not quite."}
+          </p>
+          {question.explanation ? (
+            <p style={{ lineHeight: 1.6 }}>{question.explanation}</p>
+          ) : null}
+          <p style={{ marginTop: "1rem", fontWeight: 600 }}>
+            You’d have earned 10 XP — create a free account to keep it.
+          </p>
+          <Link
+            to="/register"
+            style={{
+              display: "inline-block",
+              marginTop: "0.5rem",
+              padding: "0.75rem 1.5rem",
+              background: "#22c55e",
+              color: "#fff",
+              borderRadius: 8,
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            Create a free account
+          </Link>
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 type RelatedLesson = {
   slug: string;
@@ -198,6 +363,12 @@ export default function PublicLesson() {
           <div dangerouslySetInnerHTML={{ __html: s.sanitizedText }} />
         </section>
       ))}
+      {isValidSampleQuestion(data.sample_question) ? (
+        <SampleQuestionCard
+          question={data.sample_question}
+          lessonSlug={data.slug}
+        />
+      ) : null}
       {sources.length > 0 ? (
         <section style={{ marginTop: "2.5rem" }}>
           <h2>Sources</h2>

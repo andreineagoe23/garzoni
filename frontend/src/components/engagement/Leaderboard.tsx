@@ -6,9 +6,11 @@ import React, {
   useState,
 } from "react";
 import cx from "classnames";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import toast from "react-hot-toast";
 import PageContainer from "components/common/PageContainer";
+import { EmptyState } from "components/dashboard/EmptyState";
 import FriendRequests from "components/profile/FriendRequest";
 import ReferralLink from "components/profile/ReferralLink";
 import Loader from "components/common/Loader";
@@ -73,6 +75,7 @@ function friendActionButtonClass(isFriend: boolean, pending: boolean) {
 const Leaderboards = () => {
   const locale = getLocale();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [globalLeaderboard, setGlobalLeaderboard] = useState<
     LeaderboardEntry[]
   >([]);
@@ -658,11 +661,13 @@ const Leaderboards = () => {
 
       <div className="space-y-4">
         {filteredLeaderboard.length === 0 ? (
-          <div className="app-card p-8 text-center">
-            <p className="text-sm text-content-muted">
-              {t("leaderboard.empty")}
-            </p>
-          </div>
+          <EmptyState
+            icon="🏆"
+            title={t("leaderboard.empty")}
+            description="Complete a lesson to earn XP and enter this week's leaderboard."
+            actionLabel="Start a lesson"
+            onAction={() => navigate("/personalized-path")}
+          />
         ) : (
           <>
             {renderPodium()}

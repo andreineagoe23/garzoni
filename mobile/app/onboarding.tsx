@@ -1,7 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  Alert,
   Animated,
   Pressable,
   SafeAreaView,
@@ -33,17 +32,16 @@ import {
   type QuestionnaireQuestion,
   type NextQuestionResponse,
 } from "@garzoni/core";
-import OnboardingIntroPager from "../src/components/onboarding/steps/OnboardingIntroPager";
 import OnboardingLoadingScreen from "../src/components/onboarding/steps/OnboardingLoadingScreen";
 import PlanReadyScreen, {
   type PlanReadyContinueOptions,
 } from "../src/components/onboarding/PlanReadyScreen";
+import PushPromptScreen from "../src/components/onboarding/PushPromptScreen";
 import QuestionnaireSingleChoice from "../src/components/onboarding/steps/QuestionnaireSingleChoice";
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
 import QuestionnaireNumberAnswer from "../src/components/onboarding/steps/QuestionnaireNumberAnswer";
 import { href } from "../src/navigation/href";
-import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
@@ -51,8 +49,6 @@ import {
   useResponsive,
   FOCUSED_CONTENT_MAX_WIDTH,
 } from "../src/utils/platform";
-
-const INTRO_STORAGE_KEY = "garzoni:onboarding_intro_v1";
 
 const DARK = {
   bg: brand.bgDark,
@@ -154,7 +150,7 @@ export default function OnboardingScreen() {
   const personalizedPathReason =
     String(reasonParam ?? "").toLowerCase() === "personalized_path";
   const [phase, setPhase] = useState<
-    "checking" | "intro" | "questionnaire" | "done" | "planReady" | "error"
+    "checking" | "questionnaire" | "done" | "planReady" | "pushPrompt" | "error"
   >("checking");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -183,18 +179,8 @@ export default function OnboardingScreen() {
     }
   };
 
-  const beginQuestionnaireAfterIntro = useCallback(async () => {
-    await AsyncStorage.setItem(INTRO_STORAGE_KEY, "1");
-    try {
-      await loadNextQuestion();
-      setPhase("questionnaire");
-    } catch {
-      setErrorMsg(t("onboarding.errorLoad"));
-      setPhase("error");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t]);
-
+  // The redundant intro pager (2.7) was removed: after auth, users go straight
+  // into the questionnaire — every remaining screen builds investment.
   useEffect(() => {
     void (async () => {
       try {
@@ -203,29 +189,10 @@ export default function OnboardingScreen() {
           router.replace("/(tabs)");
           return;
         }
-        if (
-          progress.status === "in_progress" ||
-          progress.status === "abandoned"
-        ) {
-          await AsyncStorage.setItem(INTRO_STORAGE_KEY, "1");
-          await loadNextQuestion();
-          setPhase("questionnaire");
-          return;
-        }
-        const introSeen = await AsyncStorage.getItem(INTRO_STORAGE_KEY);
-        if (introSeen !== "1") {
-          setPhase("intro");
-          return;
-        }
         await loadNextQuestion();
         setPhase("questionnaire");
       } catch {
         try {
-          const introSeen = await AsyncStorage.getItem(INTRO_STORAGE_KEY);
-          if (introSeen !== "1") {
-            setPhase("intro");
-            return;
-          }
           await loadNextQuestion();
           setPhase("questionnaire");
         } catch {
@@ -263,7 +230,6 @@ export default function OnboardingScreen() {
 
       if (questionData.is_last_question) {
         const result = await completeQuestionnaire();
-        await AsyncStorage.setItem(INTRO_STORAGE_KEY, "1");
         await queryClient.invalidateQueries({
           queryKey: queryKeys.questionnaireProgress(),
         });
@@ -306,35 +272,38 @@ export default function OnboardingScreen() {
     router.replace(`/subscriptions?${parts.join("&")}`);
   }, []);
 
-  // Runs the push pre-permission prompt, then routes to the personalized
+  // Plan-ready → custom push pre-permission screen (2.3) → personalized
   // paywall carrying the plan-ready recommended tier + primary goal.
+  const [planReadyOpts, setPlanReadyOpts] =
+    useState<PlanReadyContinueOptions | null>(null);
   const handlePlanReadyContinue = useCallback(
     (opts: PlanReadyContinueOptions) => {
-      Alert.alert(
-        t("onboarding.pushPrompt.title"),
-        t("onboarding.pushPrompt.body"),
-        [
-          {
-            text: t("onboarding.pushPrompt.notNow"),
-            style: "cancel",
-            onPress: () => {
-              void goToPaywall(opts);
-            },
-          },
-          {
-            text: t("onboarding.pushPrompt.enable"),
-            onPress: () => {
-              void (async () => {
-                await registerForPushAndSubmitToken();
-                await goToPaywall(opts);
-              })();
-            },
-          },
-        ],
-      );
+      setPlanReadyOpts(opts);
+      setPhase("pushPrompt");
     },
-    [goToPaywall, t],
+    [],
   );
+
+  // Paywall placement experiment (3.5). Default ("onboarding") is byte-for-byte
+  // today's flow: push prompt → personalized paywall. In the "post_first_lesson"
+  // arm the push prompt hands off straight to the first curated lesson and stows
+  // a flag; the first-lesson celebration then routes to the paywall (see
+  // LessonFlowScreen). If no curated lesson is available, fall back to Home.
+  const PENDING_POST_LESSON_PAYWALL_KEY = "garzoni:pending_post_lesson_paywall";
+  const handlePushPromptComplete = useCallback(() => {
+    const opts = planReadyOpts ?? undefined;
+    if (opts?.placement === "post_first_lesson") {
+      void AsyncStorage.setItem(PENDING_POST_LESSON_PAYWALL_KEY, "1");
+      const lessonId = opts.firstCuratedLessonId;
+      if (lessonId != null && Number.isFinite(Number(lessonId))) {
+        router.replace(`/flow/${lessonId}`);
+      } else {
+        router.replace("/(tabs)");
+      }
+      return;
+    }
+    goToPaywall(opts);
+  }, [planReadyOpts, goToPaywall]);
 
   if (phase === "checking") {
     return (
@@ -375,26 +344,6 @@ export default function OnboardingScreen() {
     );
   }
 
-  if (phase === "intro") {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.ambientTop} pointerEvents="none">
-          <Glow
-            width={460}
-            height={320}
-            color={DARK.primary}
-            opacity={0.18}
-            stopFar={0.55}
-          />
-        </View>
-        <OnboardingIntroPager
-          onDone={() => void beginQuestionnaireAfterIntro()}
-        />
-      </SafeAreaView>
-    );
-  }
-
   if (phase === "done" && completionRewards) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -413,6 +362,15 @@ export default function OnboardingScreen() {
       <SafeAreaView style={styles.safe}>
         <Stack.Screen options={{ headerShown: false }} />
         <PlanReadyScreen onContinue={handlePlanReadyContinue} />
+      </SafeAreaView>
+    );
+  }
+
+  if (phase === "pushPrompt") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <PushPromptScreen onComplete={handlePushPromptComplete} />
       </SafeAreaView>
     );
   }

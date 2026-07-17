@@ -378,11 +378,13 @@ def generate_coach_brief(*, user) -> Optional[str]:
         }
 
         try:
+            from onboarding.answers import primary_answer
             from onboarding.models import QuestionnaireProgress
 
             q = QuestionnaireProgress.objects.filter(user=user).first()
             if q and q.answers:
-                data["primary_goal"] = q.answers.get("primary_goal")
+                # May be a list (mobile multi-select); first element = primary.
+                data["primary_goal"] = primary_answer(q.answers.get("primary_goal"))
         except Exception:
             pass
 

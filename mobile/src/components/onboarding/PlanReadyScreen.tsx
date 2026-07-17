@@ -66,6 +66,10 @@ function Glow({
 export type PlanReadyContinueOptions = {
   recommendedTier: "plus" | "pro";
   goalLabel?: string;
+  /** Paywall placement experiment arm (3.5); undefined ⇒ "onboarding". */
+  placement?: "onboarding" | "post_first_lesson";
+  /** First curated lesson to open when the paywall is deferred to post-lesson. */
+  firstCuratedLessonId?: number | null;
 };
 
 type Props = {
@@ -121,12 +125,21 @@ export default function PlanReadyScreen({ onContinue }: Props) {
     ]).start();
   }, [summaryQuery.isLoading, fade, fadeY]);
 
+  const placement = summary?.paywall_placement ?? "onboarding";
+  const firstCuratedLessonId = summary?.curated_lessons?.[0]?.id ?? null;
+
   const handleContinue = () => {
     trackEvent("plan_ready_continue", {
       recommended_tier: recommendedTier,
       goal: primaryGoal ?? null,
+      placement,
     });
-    onContinue({ recommendedTier, goalLabel: primaryGoal });
+    onContinue({
+      recommendedTier,
+      goalLabel: primaryGoal,
+      placement,
+      firstCuratedLessonId,
+    });
   };
 
   if (summaryQuery.isLoading) {

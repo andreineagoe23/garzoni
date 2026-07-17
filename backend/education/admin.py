@@ -237,6 +237,19 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
             },
         ),
         (
+            "Guest-taste sample question (public lessons only)",
+            {
+                "classes": ("collapse",),
+                "description": (
+                    "One hand-whitelisted teaser question shown after the public "
+                    'prose. JSON shape: {"question": "...", "options": '
+                    '["A", "B", ...], "correct_index": 1, "explanation": '
+                    '"..."}. Never use a real quiz question here.'
+                ),
+                "fields": ("sample_question",),
+            },
+        ),
+        (
             "Legacy lesson content (editable but superseded by lesson sections)",
             {
                 "classes": ("collapse",),

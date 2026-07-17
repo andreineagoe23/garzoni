@@ -14,6 +14,8 @@ import calendar
 import logging
 from datetime import date
 
+from onboarding.answers import answer_values, primary_answer
+
 logger = logging.getLogger(__name__)
 
 
@@ -125,9 +127,9 @@ def build_stated_goals(profile, answers):
         source.extend(goal_types)
     if not source:
         for key in ("primary_goal", "biggest_challenge"):
-            value = answers.get(key)
-            if value:
-                source.append(value)
+            # multiple_choice answers may be a list (mobile multi-select) or a
+            # scalar (web); keep the selection order — first is the primary goal.
+            source.extend(answer_values(answers.get(key)))
 
     goals = []
     seen = set()
@@ -144,7 +146,7 @@ def resolve_timeframe(profile, answers):
     """Resolved timeframe string (profile first, then questionnaire), or None."""
     value = str(getattr(profile, "timeframe", "") or "").strip().lower()
     if not value:
-        value = str(answers.get("time_horizon") or "").strip().lower()
+        value = str(primary_answer(answers.get("time_horizon")) or "").strip().lower()
     return value or None
 
 
@@ -271,4 +273,13 @@ def build_plan_summary(user, profile, answers, today=None):
         "curated_lessons": curated_lessons,
         "projected_outcome": projected_outcome,
         "recommended_tier": recommended_tier,
+        # Paywall placement experiment flag (plan §3.5); env-driven, default "onboarding".
+        "paywall_placement": paywall_placement(),
     }
+
+
+def paywall_placement() -> str:
+    """Env-driven paywall placement flag ("onboarding" | "post_first_lesson")."""
+    from django.conf import settings
+
+    return getattr(settings, "UX_PAYWALL_PLACEMENT", "onboarding")

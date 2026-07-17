@@ -36,6 +36,12 @@ export const ANALYTICS_EVENTS = [
   "questionnaire_completed",
   "plan_ready_view",
   "plan_ready_continue",
+  "register_step_view",
+  "register_step_continue",
+  "push_prompt_shown",
+  "push_prompt_accepted",
+  "push_prompt_declined",
+  "first_lesson_celebration_view",
   "exit_intent_shown",
   "exit_intent_accepted",
   "exit_intent_declined",
@@ -54,6 +60,9 @@ export const ANALYTICS_EVENTS = [
   "budget_envelope_created",
   "budget_account_link_started",
   "budget_account_link_completed",
+  "demo_lesson_started",
+  "demo_lesson_completed",
+  "journey_view",
 ] as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

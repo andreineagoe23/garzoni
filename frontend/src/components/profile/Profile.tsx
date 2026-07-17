@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AvatarSelector from "./AvatarSelector";
+import ProfileCompletenessRing from "./ProfileCompletenessRing";
+import { EmptyState } from "components/dashboard/EmptyState";
 import Chatbot from "components/widgets/Chatbot";
 import PageContainer from "components/common/PageContainer";
 import StatBadge from "components/common/StatBadge";
@@ -348,6 +350,31 @@ function Profile() {
       .filter((feature) => feature.name && feature.enabled !== false);
   }, [entitlements?.features]);
 
+  // Profile completeness (UX plan 3.3) — read defensively from the profile
+  // payload; the field lives either top-level or nested under user_data.
+  const completeness = useMemo(() => {
+    const payload = (profilePayload || authProfile) as
+      | (typeof authProfile & {
+          profile_completeness?: number | null;
+          completeness_next?: string | null;
+          user_data?: {
+            profile_completeness?: number | null;
+            completeness_next?: string | null;
+          };
+        })
+      | null
+      | undefined;
+    if (!payload)
+      return { value: null as number | null, next: null as string | null };
+    const value =
+      payload.profile_completeness ??
+      payload.user_data?.profile_completeness ??
+      null;
+    const next =
+      payload.completeness_next ?? payload.user_data?.completeness_next ?? null;
+    return { value, next };
+  }, [profilePayload, authProfile]);
+
   if (isLoading) {
     return (
       <PageContainer maxWidth="5xl" layout="centered">
@@ -412,6 +439,12 @@ function Profile() {
                 : t("profile.actions.subscription")}
             </button>
           </div>
+
+          <ProfileCompletenessRing
+            completeness={completeness.value}
+            nextKey={completeness.next}
+            className="w-full max-w-md"
+          />
         </section>
 
         <section className="space-y-6">
@@ -595,9 +628,17 @@ function Profile() {
             </div>
           </header>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {badgesToRender.length > 0 ? (
-              badgesToRender.map((userBadge) => (
+          {badgesToRender.length === 0 ? (
+            <EmptyState
+              icon="🏅"
+              title={t("profile.achievements.empty")}
+              description="Complete a lesson to earn your first badge."
+              actionLabel="Start a lesson"
+              onAction={() => navigate("/personalized-path")}
+            />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {badgesToRender.map((userBadge) => (
                 <GlassCard
                   key={userBadge.badge.id}
                   padding="md"
@@ -637,13 +678,9 @@ function Profile() {
                     </p>
                   )}
                 </GlassCard>
-              ))
-            ) : (
-              <p className="text-sm text-content-muted">
-                {t("profile.achievements.empty")}
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="space-y-6">

@@ -24,6 +24,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   authLogoWhiteRectangularUrl,
   garzoniDemoVideoUrl,
@@ -546,6 +547,7 @@ const welcomeStyles = StyleSheet.create({
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
 export default function WelcomeScreen() {
+  const { t } = useTranslation("common");
   const { width } = useWindowDimensions();
   const { isTablet, gutter } = useResponsive();
   const horizontalPad = HEADER_PAD_H + (isTablet ? gutter : 0);
@@ -742,6 +744,18 @@ export default function WelcomeScreen() {
           <View style={s.ctaHighlight} pointerEvents="none" />
           <Text style={s.ctaLabel}>{slide.cta}</Text>
         </Pressable>
+        {/* Reciprocity before signup (3.1): a free bundled demo lesson, offered
+            prominently on the first slide. router.push keeps the carousel on the
+            back stack so "close" returns here. */}
+        {idx === 0 ? (
+          <Pressable
+            onPress={() => router.push("/demo-lesson")}
+            style={s.tryLessonBtn}
+            accessibilityRole="button"
+          >
+            <Text style={s.tryLessonLabel}>{t("demoLesson.entryCta")}</Text>
+          </Pressable>
+        ) : null}
         <Pressable onPress={() => void markSeenAndGo("/login")} hitSlop={10}>
           <Text style={s.loginLink}>
             Already have an account?{" "}
@@ -947,6 +961,21 @@ const s = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     letterSpacing: 0.3,
+  },
+  tryLessonBtn: {
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    borderColor: C.primaryBright,
+    backgroundColor: C.ghost,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tryLessonLabel: {
+    color: C.text,
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
   loginLink: { textAlign: "center", fontSize: 13, color: C.muted },
 

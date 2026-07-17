@@ -10,6 +10,8 @@ type LessonItem = {
   image_url: string;
   course: { id: number; title: string };
   path: { id: number | null; title: string };
+  /** Present when the lesson exposes an interactive sample question (UX 3.1). */
+  has_sample_question?: boolean;
 };
 
 type LessonListResponse = {
@@ -123,6 +125,24 @@ export default function LearnIndex() {
                 >
                   <h3 style={{ marginTop: 0 }}>
                     <Link to={`/learn/${lesson.slug}`}>{lesson.title}</Link>
+                    {lesson.has_sample_question ? (
+                      <span
+                        style={{
+                          marginLeft: 8,
+                          padding: "2px 8px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: 0.4,
+                          textTransform: "uppercase",
+                          verticalAlign: "middle",
+                          borderRadius: 999,
+                          background: "rgba(34,197,94,0.15)",
+                          color: "#22c55e",
+                        }}
+                      >
+                        Try it
+                      </span>
+                    ) : null}
                   </h3>
                   {lesson.short_description ? (
                     <p style={{ opacity: 0.8, lineHeight: 1.6 }}>

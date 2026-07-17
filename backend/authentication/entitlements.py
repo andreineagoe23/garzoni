@@ -374,37 +374,49 @@ def allowed_plan_tiers(user_plan: Optional[str]) -> list:
     return [plan for plan, value in PLAN_ORDER.items() if value <= rank]
 
 
+def get_plan_from_profile(profile) -> str:
+    """Core plan-resolution logic, given a UserProfile instance directly.
+
+    Prefer this over ``get_user_plan(user)`` when you already hold a
+    freshly-queried profile object — ``user.profile`` is a cached reverse
+    descriptor that can silently go stale within a single process/request
+    once anything mutates a *different* Python instance of the same row (e.g.
+    a signal caching the profile at creation time, then billing code loading
+    and saving its own instance later in the same request/test).
+    """
+    if not profile:
+        return "starter"
+
+    # A paid tier (plus/pro) is only ever granted when a verified billing
+    # webhook has flipped has_paid/is_premium. subscription_plan_id alone is
+    # NOT trusted — it can be stale or (historically) client-set, and on its
+    # own must never unlock paid entitlements.
+    paid = bool(getattr(profile, "has_paid", False) or getattr(profile, "is_premium", False))
+    if not paid:
+        return "starter"
+
+    raw_plan = getattr(profile, "subscription_plan_id", None)
+    if not raw_plan:
+        raw_plan = getattr(profile, "subscription_plan", None)
+        if raw_plan and not isinstance(raw_plan, str):
+            raw_plan = getattr(raw_plan, "plan_id", None)
+    plan = normalize_plan_id(raw_plan) if raw_plan not in (None, "") else "starter"
+    if plan in ("plus", "pro"):
+        return plan
+
+    # Paid but the stored plan is missing/starter — infer from billing data,
+    # defaulting to the lowest paid tier rather than locking a payer out.
+    from finance.plan_resolution import resolve_plan_id_from_profile_stripe
+
+    inferred = resolve_plan_id_from_profile_stripe(profile)
+    if inferred in ("plus", "pro"):
+        return inferred
+    return "plus"
+
+
 def get_user_plan(user) -> str:
     try:
-        profile = getattr(user, "profile", None)
-        if not profile:
-            return "starter"
-
-        # A paid tier (plus/pro) is only ever granted when a verified billing
-        # webhook has flipped has_paid/is_premium. subscription_plan_id alone is
-        # NOT trusted — it can be stale or (historically) client-set, and on its
-        # own must never unlock paid entitlements.
-        paid = bool(getattr(profile, "has_paid", False) or getattr(profile, "is_premium", False))
-        if not paid:
-            return "starter"
-
-        raw_plan = getattr(profile, "subscription_plan_id", None)
-        if not raw_plan:
-            raw_plan = getattr(profile, "subscription_plan", None)
-            if raw_plan and not isinstance(raw_plan, str):
-                raw_plan = getattr(raw_plan, "plan_id", None)
-        plan = normalize_plan_id(raw_plan) if raw_plan not in (None, "") else "starter"
-        if plan in ("plus", "pro"):
-            return plan
-
-        # Paid but the stored plan is missing/starter — infer from billing data,
-        # defaulting to the lowest paid tier rather than locking a payer out.
-        from finance.plan_resolution import resolve_plan_id_from_profile_stripe
-
-        inferred = resolve_plan_id_from_profile_stripe(profile)
-        if inferred in ("plus", "pro"):
-            return inferred
-        return "plus"
+        return get_plan_from_profile(getattr(user, "profile", None))
     except Exception:
         pass
     return "starter"

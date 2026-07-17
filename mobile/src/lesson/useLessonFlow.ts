@@ -73,6 +73,11 @@ export function useLessonFlow(
     name: string;
     xp: number;
   } | null>(null);
+  // Set once, on the completion that stamped first_lesson_at server-side;
+  // drives the one-time "first lesson ever" celebration variant.
+  const [firstLessonCelebration, setFirstLessonCelebration] = useState<{
+    bonusXp: number;
+  } | null>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentIndexRef = useRef(0);
 
@@ -322,6 +327,14 @@ export function useLessonFlow(
           xp: completedNow.reduce((sum, m) => sum + (m.points_reward ?? 0), 0),
         });
       }
+      // First-ever lesson (UX Phase 2, plan §2.6): server detects it once and
+      // grants the bonus; hold it for the course-complete celebration screen.
+      if (data?.data?.is_first_lesson) {
+        setFirstLessonCelebration({
+          bonusXp: data.data.first_lesson_bonus_xp ?? 0,
+        });
+        trackEvent("first_lesson_celebration_view", { course_id: courseId });
+      }
       markProgressStale();
     },
   });
@@ -371,6 +384,7 @@ export function useLessonFlow(
     setCourseComplete,
     missionCompletedNow,
     setMissionCompletedNow,
+    firstLessonCelebration,
     goNext,
     goPrev,
     handleCompleteCurrent,

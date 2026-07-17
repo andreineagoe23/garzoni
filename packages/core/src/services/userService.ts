@@ -361,6 +361,10 @@ export type CompleteLessonResponse = {
   missions?: MissionDelta[];
   /** Missions this specific action finished (server-detected transition). */
   missions_completed_now?: MissionDelta[];
+  /** True when this completion set the user's first_lesson_at (first lesson ever). */
+  is_first_lesson?: boolean;
+  /** One-time bonus XP granted with the first lesson; null/absent when none. */
+  first_lesson_bonus_xp?: number | null;
 };
 
 export const completeLesson = (lessonId: string | number) =>

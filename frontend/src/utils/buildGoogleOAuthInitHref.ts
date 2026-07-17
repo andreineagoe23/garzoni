@@ -18,8 +18,19 @@ function resolveAbsoluteApiRoot(pageOrigin: string): string {
  *
  * Always returns an absolute https? URL so the browser never treats `v1.*` state as a path
  * on the current site (can happen if the API base were wrongly relative).
+ *
+ * Tap-to-consent (mobile parity): when `options.consent` is set, the state
+ * payload also carries `accept_terms: true` / `age_confirmed: true`, mirroring
+ * the mobile GoogleSignInButton pattern. The backend's redirect callback
+ * already records consent server-side for new users (views_google_oauth.py)
+ * and its state parser ignores unknown keys, so this is an explicit,
+ * forward-compatible signal — the button tap itself is the consent action
+ * (a caption under the button states the terms).
  */
-export function buildGoogleOAuthInitHref(nextPath: string): string {
+export function buildGoogleOAuthInitHref(
+  nextPath: string,
+  options?: { consent?: boolean }
+): string {
   const pageOrigin =
     typeof window !== "undefined"
       ? window.location.origin
@@ -28,7 +39,14 @@ export function buildGoogleOAuthInitHref(nextPath: string): string {
   const apiSlash = apiRoot.endsWith("/") ? apiRoot : `${apiRoot}/`;
   const initUrl = new URL("auth/google/", apiSlash);
 
-  const payload = { next: nextPath, origin: pageOrigin };
+  const payload: Record<string, unknown> = {
+    next: nextPath,
+    origin: pageOrigin,
+  };
+  if (options?.consent) {
+    payload.accept_terms = true;
+    payload.age_confirmed = true;
+  }
   const b64 = btoa(JSON.stringify(payload))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")

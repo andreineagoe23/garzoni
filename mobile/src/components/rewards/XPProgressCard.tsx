@@ -1,26 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { getUserLevel, type UserLevel } from "@garzoni/core";
+import { getXpTier, getNextXpTier } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { ProgressBar } from "../ui";
 import { spacing, typography } from "../../theme/tokens";
-
-const THRESHOLDS: Record<UserLevel, { next: number | null }> = {
-  beginner: { next: 750 },
-  intermediate: { next: 2500 },
-  advanced: { next: null },
-};
-
-function progressInBand(points: number, level: UserLevel): number {
-  if (level === "beginner") {
-    return Math.min(1, points / 750);
-  }
-  if (level === "intermediate") {
-    return Math.min(1, (points - 750) / (2500 - 750));
-  }
-  return 1;
-}
 
 type Props = {
   points: number;
@@ -29,11 +13,15 @@ type Props = {
 export default function XPProgressCard({ points }: Props) {
   const c = useThemeColors();
   const { t } = useTranslation("common");
-  const level = getUserLevel(points);
-  const meta = THRESHOLDS[level];
-  const tierLabel = t(`rewards.xpCard.tiers.${level}`);
-  const pct = progressInBand(points, level);
-  const next = meta.next;
+  // Open-ended prestige: past 2500 XP the goal gradient keeps going (Advanced
+  // II, III …), so there is always a next tier to climb toward — no dead-end.
+  const tier = getXpTier(points);
+  const nextTier = getNextXpTier(points);
+  const tierLabel = t(`rewards.xpCard.tiers.${tier.key}`);
+  const nextLabel = t(`rewards.xpCard.tiers.${nextTier.key}`);
+  const band = Math.max(1, tier.next - tier.floor);
+  const pct = Math.min(1, Math.max(0, (points - tier.floor) / band));
+  const remaining = Math.max(0, tier.next - points);
 
   return (
     <GlassCard padding="md" style={{ borderColor: `${c.accent}55` }}>
@@ -48,15 +36,12 @@ export default function XPProgressCard({ points }: Props) {
         <Text style={[styles.level, { color: c.textMuted }]}>
           {t("rewards.xpCard.level", { label: tierLabel })}
         </Text>
-        {next != null && points < next ? (
-          <Text style={[styles.next, { color: c.textMuted }]}>
-            {t("rewards.xpCard.xpToNext", { count: next - points })}
-          </Text>
-        ) : level === "advanced" ? (
-          <Text style={[styles.next, { color: c.textMuted }]}>
-            {t("rewards.xpCard.maxTier")}
-          </Text>
-        ) : null}
+        <Text style={[styles.next, { color: c.textMuted }]}>
+          {t("rewards.xpCard.xpToTier", {
+            count: remaining,
+            tier: nextLabel,
+          })}
+        </Text>
       </View>
       <ProgressBar
         value={pct}

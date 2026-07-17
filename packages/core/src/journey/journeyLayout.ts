@@ -1,9 +1,9 @@
-import {
-  getCourseMetrics,
-  type PersonalizedPathCourse,
-  type PersonalizedPathCourseProgress,
-  type PersonalizedPathMetrics,
-} from "@garzoni/core";
+import { getCourseMetrics } from "../lib/personalizedPath";
+import type {
+  PersonalizedPathCourseProgress,
+  PersonalizedPathMetrics,
+} from "../lib/personalizedPath";
+import type { PersonalizedPathCourse } from "../types/api";
 
 /**
  * Pure layout math for the personalized-path journey map.

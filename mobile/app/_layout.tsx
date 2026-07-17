@@ -56,6 +56,7 @@ installGlobalInterFont();
 const PUBLIC_ROOT_SEGMENTS = new Set([
   "(auth)",
   "welcome",
+  "demo-lesson",
   "legal",
   "password-reset",
 ]);
@@ -213,6 +214,10 @@ function ThemedRoot() {
               <Stack.Screen
                 name="welcome"
                 options={{ headerShown: false, gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="demo-lesson"
+                options={{ headerShown: false }}
               />
               <Stack.Screen name="scan" options={{ headerShown: false }} />
               <Stack.Screen name="legal" options={{ headerShown: false }} />

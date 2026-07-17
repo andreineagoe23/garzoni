@@ -486,6 +486,89 @@ class RegisterConsentTests(APITestCase):
         self.assertEqual(profile.signup_platform, "android")
 
 
+class SlimRegistrationTests(APITestCase):
+    """UX Phase 2 (plan §2.1): email+password+consents-only signup."""
+
+    def _payload(self, **over):
+        base = {
+            "email": "jane.doe+app@example.com",
+            "password": "StrongPass123",
+            "accept_terms": True,
+            "age_confirmed": True,
+            "client_type": "mobile",
+        }
+        base.update(over)
+        return base
+
+    def test_register_without_username_or_names_succeeds(self):
+        resp = self.client.post(reverse("register-secure"), self._payload(), format="json")
+        self.assertEqual(resp.status_code, 201)
+        user = User.objects.get(email="jane.doe+app@example.com")
+        self.assertEqual(user.username, "janedoeapp")
+        self.assertEqual(user.first_name, "")
+
+    def test_auto_username_dedupes_with_suffix(self):
+        User.objects.create_user(
+            username="janedoeapp", email="taken@example.com", password="StrongPass123"
+        )
+        resp = self.client.post(reverse("register-secure"), self._payload(), format="json")
+        self.assertEqual(resp.status_code, 201)
+        user = User.objects.get(email="jane.doe+app@example.com")
+        self.assertEqual(user.username, "janedoeapp2")
+
+    def test_explicit_username_still_respected(self):
+        resp = self.client.post(
+            reverse("register-secure"), self._payload(username="chosen"), format="json"
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(User.objects.filter(username="chosen").exists())
+
+    def test_unslugifiable_local_part_falls_back_to_user(self):
+        # "___" slugifies to empty → generator falls back to "user".
+        resp = self.client.post(
+            reverse("register-secure"), self._payload(email="___@example.com"), format="json"
+        )
+        self.assertEqual(resp.status_code, 201)
+        user = User.objects.get(email="___@example.com")
+        self.assertEqual(user.username, "user")
+
+
+class EmailLoginTests(APITestCase):
+    """UX Phase 2 (plan §2.1): login accepts email as the identifier."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="realname", email="Login@Example.com", password="StrongPass123"
+        )
+
+    def _login(self, identifier, password="StrongPass123"):
+        return self.client.post(
+            reverse("login-secure"),
+            {"username": identifier, "password": password, "client_type": "mobile"},
+            format="json",
+        )
+
+    def test_login_with_email_succeeds(self):
+        resp = self._login("login@example.com")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_login_with_email_wrong_password_uniform_error(self):
+        resp = self._login("login@example.com", password="nope")
+        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp.data.get("code"), "invalid_credentials")
+
+    def test_login_with_username_still_works(self):
+        resp = self._login("realname")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_duplicate_emails_fail_closed(self):
+        User.objects.create_user(
+            username="dupe", email="login@example.com", password="OtherPass123"
+        )
+        resp = self._login("login@example.com")
+        self.assertEqual(resp.status_code, 401)
+
+
 class LoginHardeningTests(APITestCase):
     def test_inactive_user_cannot_login(self):
         user = User.objects.create_user(

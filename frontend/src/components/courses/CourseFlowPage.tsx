@@ -227,6 +227,11 @@ function CourseFlowPage() {
     (number | string)[]
   >([]);
   const [courseComplete, setCourseComplete] = useState(false);
+  // One-time "first lesson ever" celebration variant (UX plan §2.6); set from
+  // the completion response that stamped first_lesson_at server-side.
+  const [firstLessonCelebration, setFirstLessonCelebration] = useState<{
+    bonusXp: number;
+  } | null>(null);
   const [checkpointOpen, setCheckpointOpen] = useState(false);
   const [checkpointQuizzes, setCheckpointQuizzes] = useState<
     CheckpointQuizRow[]
@@ -535,7 +540,17 @@ function CourseFlowPage() {
     // lesson_completed funnel event is emitted server-side in
     // _complete_lesson_for_user (authoritative, correctly platform-attributed),
     // so it is not duplicated here.
-    onSuccess: () => {
+    onSuccess: (response) => {
+      // First-ever lesson (UX plan §2.6): server detects it exactly once and
+      // grants the bonus XP; hold it for the completion screen's variant.
+      if (response?.data?.is_first_lesson) {
+        setFirstLessonCelebration({
+          bonusXp: response.data.first_lesson_bonus_xp ?? 0,
+        });
+        recordFunnelEvent("first_lesson_celebration_view", {
+          metadata: { course_id: courseIdNumber },
+        });
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.progressSummary() });
       queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       queryClient.invalidateQueries({ queryKey: queryKeys.missions() });
@@ -1631,10 +1646,16 @@ function CourseFlowPage() {
                 </span>
               </div>
               <h1 className="app-display mt-4 text-4xl text-content-primary">
-                {t("courses.flow.courseComplete")}
+                {firstLessonCelebration
+                  ? t("courses.flow.firstLessonTitle")
+                  : t("courses.flow.courseComplete")}
               </h1>
               <p className="mt-2 text-sm text-content-muted">
-                {t("courses.flow.courseCompleteSubtitle")}
+                {firstLessonCelebration
+                  ? t("courses.flow.firstLessonSubtitle", {
+                      bonus: firstLessonCelebration.bonusXp,
+                    })
+                  : t("courses.flow.courseCompleteSubtitle")}
               </p>
               {(() => {
                 const cta = COURSE_TO_TOOL_CTA[courseIdNumber];

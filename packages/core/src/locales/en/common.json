@@ -153,6 +153,13 @@
       "enableAdmin": "Enable Admin"
     },
     "signInProfilePrompt": "Sign in on the Profile tab to see your dashboard.",
+    "climbCard": {
+      "eyebrow": "The Climb",
+      "percentClimbed": "{{percent}}% climbed",
+      "next": "Next: {{title}}",
+      "summit": "Summit",
+      "cta": "Continue the climb"
+    },
     "consistencyTitle": "Your consistency",
     "statusSummary": {
       "coursesCompleted": "Courses Completed",
@@ -282,6 +289,49 @@
       "body": "After you verify your email and complete your first lesson, you and your friend will both receive 50% off any plan (first month or yearly) — redeem on the web at checkout.",
       "cta": "Start with your invite",
       "dismiss": "Maybe later"
+    }
+  },
+  "demoLesson": {
+    "entryCta": "Try a lesson",
+    "eyebrow": "Free sample lesson",
+    "stepLabel": "Step {{current}} of {{total}}",
+    "xpBadge": "{{xp}} XP",
+    "checkAnswer": "Check answer",
+    "continue": "Continue",
+    "finish": "Finish",
+    "correct": "Nice — that's right",
+    "incorrect": "Not quite",
+    "info1": {
+      "title": "The 50/30/20 rule",
+      "body": "A simple way to split your take-home pay — the money that actually lands in your account after tax. Half goes to needs, a third to wants, and the rest to your future: 50% needs, 30% wants, 20% savings and debt.\n\nNeeds are the things you can't skip — rent, food, bills, getting to work. Wants are the nice-to-haves like eating out, subscriptions, or a weekend away. The last 20% is what quietly builds your safety net.\n\nBest of all, there's no spreadsheet and no tracking every coffee. You just keep each bucket roughly in its lane, and the budget mostly takes care of itself."
+    },
+    "q1": {
+      "prompt": "In the 50/30/20 rule, what does the 50% cover?",
+      "options": [
+        "Needs — rent, food, bills",
+        "Wants — dining out, trips",
+        "Savings and paying off debt"
+      ],
+      "explanation": "The 50% slice covers essentials: housing, groceries, utilities and transport."
+    },
+    "info2": {
+      "title": "Why the 20% matters most",
+      "body": "That 20% is the slice most people cut first — and it's the one that changes everything. It's how you cover a surprise bill without reaching for a credit card, and how you clear debt that's quietly charging you interest every month.\n\nThe trick is to pay yourself first: set up an automatic transfer on payday, before the money has a chance to disappear. Even £50 a week turns into more than £2,500 a year without you thinking about it.\n\nStart small — aim for one month of essentials as an emergency fund, then keep going. Small, automatic, and a little boring is exactly what real financial security looks like."
+    },
+    "q2": {
+      "prompt": "You take home £2,000 a month. How much should go to savings and debt?",
+      "options": [
+        "£100",
+        "£400",
+        "£1,000"
+      ],
+      "explanation": "20% of £2,000 is £400 — that's your monthly target for savings and paying down debt."
+    },
+    "done": {
+      "title": "Nice — you just earned {{xp}} XP",
+      "subtitle": "Create a free account to keep it and start your streak.",
+      "createAccount": "Create free account",
+      "login": "Log in"
     }
   },
   "analytics": {
@@ -1549,7 +1599,7 @@
       "place3": "Third place"
     },
     "points": "{{points}} points",
-    "empty": "No users found for the current selection.",
+    "empty": "No one on the board yet — finish a lesson today and claim your spot for this week.",
     "friendStatus": {
       "alreadyFriends": "Already friends",
       "pending": "Request pending",
@@ -1592,12 +1642,12 @@
     },
     "badges": {
       "title": "Recent Badges",
-      "empty": "No badges earned yet.",
+      "empty": "No badges yet — they're just getting started.",
       "more": "+{{count}} more"
     },
     "activity": {
       "title": "Activity (last 30 days)",
-      "empty": "No recent activity."
+      "empty": "No activity in the last 30 days."
     },
     "actions": {
       "challenge": "Challenge to duel",
@@ -1743,11 +1793,22 @@
       "title": "Your XP",
       "level": "Level: {{label}}",
       "xpToNext": "{{count}} XP to next tier",
+      "xpToTier": "{{count}} XP to {{tier}}",
       "maxTier": "Max tier",
       "tiers": {
         "beginner": "Beginner",
         "intermediate": "Intermediate",
-        "advanced": "Advanced"
+        "advanced": "Advanced",
+        "advanced-ii": "Advanced II",
+        "advanced-iii": "Advanced III",
+        "advanced-iv": "Advanced IV",
+        "advanced-v": "Advanced V",
+        "advanced-vi": "Advanced VI",
+        "advanced-vii": "Advanced VII",
+        "advanced-viii": "Advanced VIII",
+        "advanced-ix": "Advanced IX",
+        "advanced-x": "Advanced X",
+        "advanced-x+": "Advanced X+"
       }
     },
     "refreshNote": "Coins refresh automatically after each purchase or donation.",
@@ -1959,11 +2020,11 @@
       "earnedAchievement": "Earned achievement",
       "locked": "Locked",
       "earnedOn": "Earned {{date}}",
-      "empty": "No badges earned yet"
+      "empty": "No badges yet — your first lesson unlocks one. Start learning!"
     },
     "activity": {
       "title": "Recent Activity",
-      "empty": "No recent activity",
+      "empty": "No activity yet — complete a lesson and it'll show up here.",
       "showing": "Showing the 3 most recent activities of {{total}} total."
     },
     "friendRequests": {
@@ -2184,7 +2245,8 @@
       "emailRequired": "Please enter your email address.",
       "emailInvalid": "Enter a valid email address.",
       "passwordMinLength": "Use at least 8 characters.",
-      "passwordMismatch": "Passwords do not match."
+      "passwordMismatch": "Passwords do not match.",
+      "emailOrUsernameRequired": "Please enter your email or username."
     },
     "recaptcha": {
       "verifying": "Verifying you're human...",
@@ -2209,7 +2271,9 @@
       "networkError": "Could not reach server. Check that the backend is running and CORS is configured.",
       "unexpectedError": "An unexpected error occurred. Please try again.",
       "showPassword": "Show password",
-      "hidePassword": "Hide password"
+      "hidePassword": "Hide password",
+      "emailOrUsername": "Email or username",
+      "emailOrUsernamePlaceholder": "you@example.com"
     },
     "register": {
       "title": "Create Account",
@@ -2248,7 +2312,13 @@
       "agreePrefix": "I agree to the",
       "termsLink": "Terms of Service",
       "agreeJoin": " and",
-      "privacyLink": "Privacy Policy"
+      "privacyLink": "Privacy Policy",
+      "stepIndicator": "Step {{current}} of {{total}}",
+      "continueStep": "Continue",
+      "backStep": "Back",
+      "step2Title": "What should we call you?",
+      "step2Hint": "Optional — you can add this later in your profile.",
+      "skipNames": "Skip for now"
     },
     "forgotPassword": {
       "title": "Forgot Password",
@@ -2403,7 +2473,12 @@
     "paywallPackageMultiMonth": "Multi-month access",
     "paywallPackageCustom": "Subscription",
     "paywallSubscribe": "Continue",
-    "agreeToTerms": "By subscribing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
+    "agreeToTerms": "By subscribing you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+    "trialTimeline": {
+      "today": "Today — full access unlocked",
+      "reminder": "Day {{day}} — we remind you before your trial ends",
+      "charged": "Day {{day}} — subscription starts"
+    }
   },
   "onboarding": {
     "changeLaterHint": "You can change this anytime in Settings",
@@ -2485,24 +2560,6 @@
     "introButtonStart": "Get started",
     "introButtonBack": "Back",
     "introSkip": "Skip",
-    "introSlides": {
-      "welcome": {
-        "title": "Welcome to Garzoni",
-        "body": "Build real money skills with bite-sized lessons, quizzes, and practice."
-      },
-      "personalize": {
-        "title": "Tailored for you",
-        "body": "Answer a few questions so we can match content to your goals and level."
-      },
-      "earn": {
-        "title": "Earn as you learn",
-        "body": "Collect XP, coins, and badges while you progress."
-      },
-      "plans": {
-        "title": "Plans when you're ready",
-        "body": "Starter is free so you can begin right away. Plus unlocks your personalized learning path and expanded lessons. Pro adds the full financial toolkit and deeper analytics when you want to go further."
-      }
-    },
     "completionOverlay": {
       "title": "You're all set!",
       "subtitle": "We've personalised your learning path based on your goals.",
@@ -2514,7 +2571,12 @@
       "title": "Stay on track?",
       "body": "Turn on reminders for streaks, missions, and learning nudges. You can change this anytime in Profile.",
       "enable": "Enable notifications",
-      "notNow": "Not now"
+      "notNow": "Not now",
+      "eyebrow": "One last thing",
+      "cta": "Remind me",
+      "mockTitle": "Don't lose your streak",
+      "mockBody": "One short lesson keeps your streak alive — 5 minutes.",
+      "mockTime": "now"
     },
     "planReady": {
       "eyebrow": "YOUR PERSONAL PLAN",

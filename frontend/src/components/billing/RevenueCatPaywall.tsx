@@ -42,6 +42,9 @@ import {
   RC_OFFERING_PRO,
 } from "services/revenueCatService";
 import { GlassButton, GlassCard } from "components/ui";
+import TrialTimeline, {
+  getPackageTrialDays,
+} from "components/billing/TrialTimeline";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -408,6 +411,11 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                   </ul>
 
                   <div className="mt-auto flex flex-col gap-1.5">
+                    {/* Blinkist-pattern trial transparency (plan §2.4) */}
+                    <TrialTimeline
+                      trialDays={getPackageTrialDays(plan.pkg)}
+                      className="mb-1"
+                    />
                     <GlassButton
                       variant={plan.isBestValue ? "primary" : "ghost"}
                       className="w-full"

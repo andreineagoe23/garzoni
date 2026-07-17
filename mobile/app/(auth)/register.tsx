@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link, router } from "expo-router";
 import { registerSecure } from "@garzoni/core";
@@ -9,6 +9,7 @@ import { formatAuthRequestError } from "../../src/auth/authErrorMessage";
 import { consumePendingReferralCode } from "../../src/auth/pendingReferral";
 import AuthBackendBanner from "../../src/components/AuthBackendBanner";
 import { AuthSocialSection } from "../../src/components/AuthSocialSection";
+import { trackEvent } from "../../src/lib/analytics";
 import AuthDarkShell, {
   DARK,
   DarkCta,
@@ -48,13 +49,12 @@ function extractTokens(payload: TokenResponseLike): {
   return { access, refresh };
 }
 
-type FieldKey =
-  | "username"
-  | "email"
-  | "password"
-  | "confirmPassword"
-  | "first_name"
-  | "last_name";
+// Two-step signup: step 1 = credentials + consents, step 2 = optional names.
+// Confirm-password was dropped in favor of the show-password toggle; the
+// backend auto-generates the username, so none is collected or sent.
+type Step = 1 | 2;
+
+type FieldKey = "email" | "password" | "first_name" | "last_name";
 
 function ConsentRow({
   checked,
@@ -80,31 +80,53 @@ function ConsentRow({
   );
 }
 
+function StepDots({ step }: { step: Step }) {
+  const { t } = useTranslation("common");
+  return (
+    <View
+      style={styles.dotsRow}
+      accessibilityLabel={t("auth.register.stepIndicator", {
+        current: step,
+        total: 2,
+      })}
+    >
+      {([1, 2] as const).map((i) => (
+        <View
+          key={i}
+          style={[styles.dot, step === i ? styles.dotActive : null]}
+        />
+      ))}
+    </View>
+  );
+}
+
 export default function RegisterScreen() {
   const { t } = useTranslation("common");
   const { applyTokens } = useAuthSession();
+  const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState({
-    username: "",
     email: "",
     password: "",
-    confirmPassword: "",
     first_name: "",
     last_name: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const canSubmit = acceptTerms && ageConfirmed;
+  const canContinue = acceptTerms && ageConfirmed;
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<FieldKey, string>>
   >({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
-  const confirmRef = useRef<TextInput>(null);
   const lastRef = useRef<TextInput>(null);
+
+  // Per-step funnel visibility (signup completion rate instrumentation).
+  useEffect(() => {
+    trackEvent("register_step_view", { step });
+  }, [step]);
 
   const update = (key: FieldKey, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -115,42 +137,48 @@ export default function RegisterScreen() {
     });
   };
 
-  const validate = (): boolean => {
+  const validateStepOne = (): boolean => {
     const errs: Partial<Record<FieldKey, string>> = {};
-    if (!form.username.trim())
-      errs.username = t("auth.validation.usernameRequired");
     if (!form.email.trim()) errs.email = t("auth.validation.emailRequired");
     else if (!/\S+@\S+\.\S+/.test(form.email.trim()))
       errs.email = t("auth.validation.emailInvalid");
     if (!form.password) errs.password = t("auth.validation.passwordRequired");
     else if (form.password.length < 8)
       errs.password = t("auth.validation.passwordMinLength");
-    if (form.password !== form.confirmPassword)
-      errs.confirmPassword = t("auth.validation.passwordMismatch");
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const onSubmit = async () => {
+  const onContinue = () => {
     setError("");
-    if (!canSubmit) {
+    if (!canContinue) {
       setError(t("auth.register.acceptToContinue"));
       return;
     }
-    if (!validate()) return;
+    if (!validateStepOne()) return;
+    trackEvent("register_step_continue", { step: 1 });
+    setStep(2);
+  };
+
+  const onSubmit = async (skipNames: boolean) => {
+    setError("");
     setLoading(true);
+    trackEvent("register_step_continue", { step: 2, skipped_names: skipNames });
     try {
       const referralCode = await consumePendingReferralCode();
+      const firstName = skipNames ? "" : form.first_name.trim();
+      const lastName = skipNames ? "" : form.last_name.trim();
+      // No username: the backend auto-generates one from the email local-part.
+      // Names go up only when provided.
       const { data } = await registerSecure({
-        username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
         client_type: "mobile",
         platform: "mobile",
         accept_terms: true,
         age_confirmed: true,
+        ...(firstName ? { first_name: firstName } : {}),
+        ...(lastName ? { last_name: lastName } : {}),
         ...(referralCode ? { referral_code: referralCode } : {}),
       });
       const { access, refresh } = extractTokens(data as TokenResponseLike);
@@ -179,6 +207,9 @@ export default function RegisterScreen() {
         } else {
           setError(t("auth.register.registerFailed"));
         }
+        // Server-side rejections (e.g. email already in use) concern step-1
+        // fields — bring the user back where they can fix them.
+        setStep(1);
       }
     } finally {
       setLoading(false);
@@ -188,178 +219,193 @@ export default function RegisterScreen() {
   return (
     <AuthDarkShell
       eyebrow={t("auth.register.title")}
-      title={t("auth.register.subtitle")}
+      title={
+        step === 1 ? t("auth.register.subtitle") : t("auth.register.step2Title")
+      }
+      subtitle={step === 2 ? t("auth.register.step2Hint") : undefined}
     >
       <AuthBackendBanner />
       <DarkErrorBanner message={error} />
 
-      <View style={styles.nameRow}>
-        <View style={styles.nameField}>
+      <StepDots step={step} />
+
+      {step === 1 ? (
+        <>
           <DarkField
-            label={t("auth.register.firstName")}
-            placeholder={t("auth.register.firstNamePlaceholder")}
+            label={t("auth.register.email")}
+            placeholder={t("auth.register.emailPlaceholder")}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoCorrect={false}
             returnKeyType="next"
-            value={form.first_name}
-            onChangeText={(v) => update("first_name", v)}
-            onSubmitEditing={() => lastRef.current?.focus()}
+            value={form.email}
+            error={fieldErrors.email}
+            onChangeText={(v) => update("email", v)}
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
-        </View>
-        <View style={styles.nameField}>
+
           <DarkField
-            ref={lastRef}
-            label={t("auth.register.lastName")}
-            placeholder={t("auth.register.lastNamePlaceholder")}
-            returnKeyType="next"
-            value={form.last_name}
-            onChangeText={(v) => update("last_name", v)}
-            onSubmitEditing={() => emailRef.current?.focus()}
+            ref={passwordRef}
+            label={t("auth.register.password")}
+            placeholder={t("auth.register.passwordPlaceholder")}
+            secureTextEntry={!showPassword}
+            textContentType="newPassword"
+            autoComplete="password-new"
+            autoCapitalize="none"
+            autoCorrect={false}
+            passwordRules="minlength: 8;"
+            returnKeyType="done"
+            value={form.password}
+            error={fieldErrors.password}
+            onChangeText={(v) => update("password", v)}
+            onSubmitEditing={onContinue}
+            rightSlot={
+              <EyeButton
+                visible={showPassword}
+                onToggle={() => setShowPassword((v) => !v)}
+                showLabel={t("auth.login.showPassword")}
+                hideLabel={t("auth.login.hidePassword")}
+              />
+            }
           />
-        </View>
-      </View>
 
-      <DarkField
-        label={t("auth.register.username")}
-        placeholder={t("auth.register.usernamePlaceholder")}
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="next"
-        value={form.username}
-        error={fieldErrors.username}
-        onChangeText={(v) => update("username", v)}
-        onSubmitEditing={() => emailRef.current?.focus()}
-      />
+          <ConsentRow
+            checked={acceptTerms}
+            onToggle={() => setAcceptTerms((v) => !v)}
+          >
+            <Text style={styles.consentText}>
+              {t("auth.register.agreePrefix")}{" "}
+              <Text
+                style={styles.consentLink}
+                onPress={() => router.push("/legal/terms")}
+              >
+                {t("auth.register.termsLink")}
+              </Text>
+              {t("auth.register.agreeJoin")}{" "}
+              <Text
+                style={styles.consentLink}
+                onPress={() => router.push("/legal/privacy")}
+              >
+                {t("auth.register.privacyLink")}
+              </Text>
+              .
+            </Text>
+          </ConsentRow>
 
-      <DarkField
-        ref={emailRef}
-        label={t("auth.register.email")}
-        placeholder={t("auth.register.emailPlaceholder")}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        returnKeyType="next"
-        value={form.email}
-        error={fieldErrors.email}
-        onChangeText={(v) => update("email", v)}
-        onSubmitEditing={() => passwordRef.current?.focus()}
-      />
+          <ConsentRow
+            checked={ageConfirmed}
+            onToggle={() => setAgeConfirmed((v) => !v)}
+          >
+            <Text style={styles.consentText}>
+              {t("auth.register.ageConfirm")}
+            </Text>
+          </ConsentRow>
 
-      <DarkField
-        ref={passwordRef}
-        label={t("auth.register.password")}
-        placeholder={t("auth.register.passwordPlaceholder")}
-        secureTextEntry={!showPassword}
-        textContentType="newPassword"
-        autoComplete="password-new"
-        autoCapitalize="none"
-        autoCorrect={false}
-        passwordRules="minlength: 8;"
-        returnKeyType="next"
-        value={form.password}
-        error={fieldErrors.password}
-        onChangeText={(v) => update("password", v)}
-        onSubmitEditing={() => confirmRef.current?.focus()}
-        rightSlot={
-          <EyeButton
-            visible={showPassword}
-            onToggle={() => setShowPassword((v) => !v)}
-            showLabel={t("auth.login.showPassword")}
-            hideLabel={t("auth.login.hidePassword")}
+          <DarkCta
+            label={t("auth.register.continueStep")}
+            disabled={!canContinue}
+            onPress={onContinue}
           />
-        }
-      />
 
-      <DarkField
-        ref={confirmRef}
-        label={t("auth.register.confirmPassword")}
-        placeholder={t("auth.register.confirmPasswordPlaceholder")}
-        secureTextEntry
-        textContentType="newPassword"
-        autoComplete="password-new"
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="done"
-        value={form.confirmPassword}
-        error={fieldErrors.confirmPassword}
-        onChangeText={(v) => update("confirmPassword", v)}
-        onSubmitEditing={() => void onSubmit()}
-      />
+          <DarkDivider label={t("auth.orContinueWith")} />
 
-      <ConsentRow
-        checked={acceptTerms}
-        onToggle={() => setAcceptTerms((v) => !v)}
-      >
-        <Text style={styles.consentText}>
-          {t("auth.register.agreePrefix")}{" "}
-          <Text
-            style={styles.consentLink}
-            onPress={() => router.push("/legal/terms")}
-          >
-            {t("auth.register.termsLink")}
+          {/* Social sign-in is tap-to-consent (like the login screen): tapping
+              the button accepts Terms/Privacy + 16+, with the notice below as
+              the legal basis. The checkboxes above only gate the email form. */}
+          <AuthSocialSection
+            consent={{ accept_terms: true, age_confirmed: true }}
+            onSuccess={async (access, refresh, meta) => {
+              await applyTokens(access, refresh);
+              replaceAfterSocialAuth(meta?.next);
+            }}
+            onError={(m) => setError(m)}
+          />
+
+          <Text style={styles.socialTerms}>
+            {t("auth.socialTermsPrefix")}{" "}
+            <Text
+              style={styles.socialTermsLink}
+              onPress={() => router.push("/legal/terms")}
+            >
+              {t("auth.register.termsLink")}
+            </Text>
+            {t("auth.register.agreeJoin")}{" "}
+            <Text
+              style={styles.socialTermsLink}
+              onPress={() => router.push("/legal/privacy")}
+            >
+              {t("auth.register.privacyLink")}
+            </Text>
+            .
           </Text>
-          {t("auth.register.agreeJoin")}{" "}
-          <Text
-            style={styles.consentLink}
-            onPress={() => router.push("/legal/privacy")}
+
+          <View style={styles.bottomRow}>
+            <Text style={styles.bottomText}>
+              {t("auth.register.hasAccount")}{" "}
+            </Text>
+            <Link href="/login" style={styles.bottomLink}>
+              {t("auth.register.loginHere")}
+            </Link>
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={styles.nameRow}>
+            <View style={styles.nameField}>
+              <DarkField
+                label={t("auth.register.firstName")}
+                placeholder={t("auth.register.firstNamePlaceholder")}
+                returnKeyType="next"
+                autoFocus
+                value={form.first_name}
+                onChangeText={(v) => update("first_name", v)}
+                onSubmitEditing={() => lastRef.current?.focus()}
+              />
+            </View>
+            <View style={styles.nameField}>
+              <DarkField
+                ref={lastRef}
+                label={t("auth.register.lastName")}
+                placeholder={t("auth.register.lastNamePlaceholder")}
+                returnKeyType="done"
+                value={form.last_name}
+                onChangeText={(v) => update("last_name", v)}
+                onSubmitEditing={() => void onSubmit(false)}
+              />
+            </View>
+          </View>
+
+          <DarkCta
+            label={
+              loading
+                ? t("auth.register.submitting")
+                : t("auth.register.submit")
+            }
+            loading={loading}
+            onPress={() => void onSubmit(false)}
+          />
+
+          <Pressable
+            onPress={() => void onSubmit(true)}
+            disabled={loading}
+            accessibilityRole="button"
+            style={styles.skipBtn}
+            hitSlop={8}
           >
-            {t("auth.register.privacyLink")}
-          </Text>
-          .
-        </Text>
-      </ConsentRow>
+            <Text style={styles.skipLabel}>{t("auth.register.skipNames")}</Text>
+          </Pressable>
 
-      <ConsentRow
-        checked={ageConfirmed}
-        onToggle={() => setAgeConfirmed((v) => !v)}
-      >
-        <Text style={styles.consentText}>{t("auth.register.ageConfirm")}</Text>
-      </ConsentRow>
-
-      <DarkCta
-        label={
-          loading ? t("auth.register.submitting") : t("auth.register.submit")
-        }
-        loading={loading}
-        disabled={!canSubmit}
-        onPress={() => void onSubmit()}
-      />
-
-      <DarkDivider label={t("auth.orContinueWith")} />
-
-      {/* Social sign-in is tap-to-consent (like the login screen): tapping the
-          button accepts Terms/Privacy + 16+, with the notice below as the legal
-          basis. The checkboxes above only gate the email/password form. */}
-      <AuthSocialSection
-        consent={{ accept_terms: true, age_confirmed: true }}
-        onSuccess={async (access, refresh, meta) => {
-          await applyTokens(access, refresh);
-          replaceAfterSocialAuth(meta?.next);
-        }}
-        onError={(m) => setError(m)}
-      />
-
-      <Text style={styles.socialTerms}>
-        {t("auth.socialTermsPrefix")}{" "}
-        <Text
-          style={styles.socialTermsLink}
-          onPress={() => router.push("/legal/terms")}
-        >
-          {t("auth.register.termsLink")}
-        </Text>
-        {t("auth.register.agreeJoin")}{" "}
-        <Text
-          style={styles.socialTermsLink}
-          onPress={() => router.push("/legal/privacy")}
-        >
-          {t("auth.register.privacyLink")}
-        </Text>
-        .
-      </Text>
-
-      <View style={styles.bottomRow}>
-        <Text style={styles.bottomText}>{t("auth.register.hasAccount")} </Text>
-        <Link href="/login" style={styles.bottomLink}>
-          {t("auth.register.loginHere")}
-        </Link>
-      </View>
+          <Pressable
+            onPress={() => setStep(1)}
+            disabled={loading}
+            accessibilityRole="button"
+            style={styles.backBtn}
+            hitSlop={8}
+          >
+            <Text style={styles.backLabel}>{t("auth.register.backStep")}</Text>
+          </Pressable>
+        </>
+      )}
     </AuthDarkShell>
   );
 }
@@ -367,6 +413,22 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   nameRow: { flexDirection: "row", gap: 12 },
   nameField: { flex: 1 },
+  dotsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: DARK.ghost,
+  },
+  dotActive: {
+    width: 22,
+    backgroundColor: DARK.primaryBright,
+  },
   bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -399,6 +461,18 @@ const styles = StyleSheet.create({
   consentTextWrap: { flex: 1 },
   consentText: { fontSize: 13, color: DARK.muted, lineHeight: 19 },
   consentLink: { color: DARK.primaryBright, fontWeight: "600" },
+  skipBtn: {
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  skipLabel: { color: DARK.muted, fontSize: 14, fontWeight: "500" },
+  backBtn: {
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backLabel: { color: DARK.faint, fontSize: 13, fontWeight: "500" },
   socialTerms: {
     fontSize: 12,
     lineHeight: 17,

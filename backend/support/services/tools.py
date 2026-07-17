@@ -241,12 +241,14 @@ def _get_financial_profile(user: User) -> Dict:
                 data[field] = val
 
         try:
+            from onboarding.answers import answer_values, primary_answer
             from onboarding.models import QuestionnaireProgress
 
             q = QuestionnaireProgress.objects.filter(user=user).first()
             if q and q.answers:
-                data["onboarding_goals"] = q.answers.get("primary_goal")
-                data["biggest_challenge"] = q.answers.get("biggest_challenge")
+                # Multi-select safe: list on mobile, scalar on web.
+                data["onboarding_goals"] = answer_values(q.answers.get("primary_goal")) or None
+                data["biggest_challenge"] = primary_answer(q.answers.get("biggest_challenge"))
         except Exception:
             pass
 
