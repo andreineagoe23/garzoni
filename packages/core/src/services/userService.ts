@@ -313,8 +313,14 @@ export const postSubscriptionCheckout = (body: {
   );
 };
 
+export type ActivePromo = {
+  id: string;
+  percent_off: number;
+  ends_on: string;
+};
+
 export const fetchSubscriptionPlans = () =>
-  apiClient.get<{ plans?: unknown[] }>("/plans/");
+  apiClient.get<{ plans?: unknown[]; promo?: ActivePromo | null }>("/plans/");
 
 export type BadgeCatalogItem = {
   id: number;

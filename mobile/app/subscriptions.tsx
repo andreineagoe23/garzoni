@@ -25,8 +25,10 @@ import {
   fetchEntitlements,
   fetchPersonalizedPath,
   fetchProfile,
+  fetchSubscriptionPlans,
   queryKeys,
   staleTimes,
+  type ActivePromo,
   type Entitlements,
 } from "@garzoni/core";
 import GlassCard from "../src/components/ui/GlassCard";
@@ -304,6 +306,41 @@ function CycleToggle({
           </Pressable>
         );
       })}
+    </View>
+  );
+}
+
+/** Format a promo end date as "31 August" using the device locale. */
+function formatPromoEndDate(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      day: "numeric",
+      month: "long",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+/** Prominent, top-of-page promo banner so the active discount is obvious on
+ * arrival — not only once the user reaches a plan card's store-intro price. */
+function PromoHero({ promo }: { promo: ActivePromo }) {
+  const { t } = useTranslation("common");
+  return (
+    <View style={styles.promoHero}>
+      <View style={styles.promoHeroIcon}>
+        <MaterialCommunityIcons name="sale" size={22} color={D.bg} />
+      </View>
+      <View style={styles.promoHeroText}>
+        <Text style={styles.promoHeroTitle}>
+          {t("subscriptions.promoBanner", { percent: promo.percent_off })}
+        </Text>
+        <Text style={styles.promoHeroSub}>
+          {t("subscriptions.promoBannerEnds", {
+            date: formatPromoEndDate(promo.ends_on),
+          })}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -824,6 +861,15 @@ export default function SubscriptionsScreen() {
     enabled: Boolean(accessToken),
   });
 
+  // Active promo (e.g. summer 60% off). Public/no-auth so it also renders on
+  // the onboarding paywall before login. Drives the top-of-page PromoHero.
+  const plansQ = useQuery({
+    queryKey: ["subscription-plans-promo"],
+    queryFn: () => fetchSubscriptionPlans().then((r) => r.data),
+    staleTime: 5 * 60_000,
+  });
+  const activePromo = plansQ.data?.promo ?? null;
+
   const currentPlan = planFromEntitlements(entQ.data);
   const currentInterval = intervalFromEntitlements(entQ.data);
 
@@ -1253,6 +1299,12 @@ export default function SubscriptionsScreen() {
             {/* Status chip */}
             <StatusChip plan={currentPlan} interval={currentInterval} />
 
+            {/* Active promo — prominent, above the plans so the discount is
+                obvious the moment the page loads. */}
+            {activePromo && currentPlan === "starter" && (
+              <PromoHero promo={activePromo} />
+            )}
+
             {/* No-RC warning */}
             {!rcNative ? (
               <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
@@ -1482,6 +1534,48 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontSize: 12,
+    color: D.muted,
+  },
+
+  // Promo hero
+  promoHero: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 18,
+    backgroundColor: "rgba(230,200,122,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(230,200,122,0.5)",
+    marginBottom: 22,
+  },
+  promoHeroIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: D.gold,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: D.goldWarm,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  promoHeroText: {
+    flex: 1,
+    gap: 2,
+  },
+  promoHeroTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: D.goldWarm,
+    letterSpacing: -0.2,
+  },
+  promoHeroSub: {
+    fontSize: 12,
+    fontWeight: "500",
     color: D.muted,
   },
 
