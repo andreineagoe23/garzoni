@@ -77,6 +77,8 @@ export default function ShakeFeedbackModal({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={onDismiss}
     >

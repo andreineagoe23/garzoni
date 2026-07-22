@@ -212,7 +212,7 @@ export default function PersonalCfoCoachScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.flex, { backgroundColor: D.bg }]}
-      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={keyboardOffset}
     >
       <View style={styles.customHeader}>

@@ -623,7 +623,7 @@ export default function ChatScreen() {
       />
       <KeyboardAvoidingView
         style={[styles.flex, { backgroundColor: colors.bg }]}
-        behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={keyboardOffset}
       >
         <ScrollView

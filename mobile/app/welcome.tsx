@@ -37,6 +37,7 @@ import {
   useResponsive,
   FOCUSED_CONTENT_MAX_WIDTH,
 } from "../src/utils/platform";
+import { AppPressable } from "../src/components/ui";
 
 const C = {
   bg: brand.bgDark,
@@ -548,8 +549,15 @@ const welcomeStyles = StyleSheet.create({
 // ─── Screen ─────────────────────────────────────────────────────────────────
 export default function WelcomeScreen() {
   const { t } = useTranslation("common");
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { isTablet, gutter } = useResponsive();
+  // Baseline layout was tuned for a ~812dp-tall iPhone. Android ships varying
+  // default Display Size / density, so the same DP art overflows short/zoomed
+  // screens. Shrink the hero art (and headline) to fit available height; caps
+  // at 1 so tall screens stay byte-identical to the original design.
+  const heroScale = Math.min(1, Math.max(0.72, (height - 300) / 512));
+  const compact = height < 760;
+  const heroSlotHeight = Math.round(320 * heroScale);
   const horizontalPad = HEADER_PAD_H + (isTablet ? gutter : 0);
   // On tablet, center the interactive column so the CTA/copy don't stretch
   // edge-to-edge. On phone this is undefined → full-width (unchanged).
@@ -690,10 +698,39 @@ export default function WelcomeScreen() {
                 colCap,
               ]}
             >
-              <View style={s.heroSlot}>{renderHero(item.id)}</View>
+              <View
+                style={[
+                  s.heroSlot,
+                  // Only bound/clip when actually scaling down. On tall screens
+                  // (heroScale === 1) keep the original min-height box so iOS is
+                  // byte-identical.
+                  heroScale < 1 && {
+                    height: heroSlotHeight,
+                    minHeight: 0,
+                    overflow: "hidden",
+                  },
+                ]}
+              >
+                <View
+                  style={
+                    heroScale < 1
+                      ? { transform: [{ scale: heroScale }] }
+                      : undefined
+                  }
+                >
+                  {renderHero(item.id)}
+                </View>
+              </View>
               <View style={s.copyBlock}>
                 <Text style={s.eyebrow}>{item.eyebrow.toUpperCase()}</Text>
-                <Text style={s.headline}>{item.headline}</Text>
+                <Text
+                  style={[
+                    s.headline,
+                    compact && { fontSize: 28, lineHeight: 32 },
+                  ]}
+                >
+                  {item.headline}
+                </Text>
                 <Text style={s.sub}>{item.sub}</Text>
               </View>
             </View>
@@ -727,8 +764,10 @@ export default function WelcomeScreen() {
           colCap,
         ]}
       >
-        <Pressable
+        <AppPressable
           onPress={onContinue}
+          haptic="light"
+          rippleColor="rgba(255,255,255,0.25)"
           style={s.cta}
           accessibilityRole="button"
         >
@@ -743,18 +782,19 @@ export default function WelcomeScreen() {
           </Svg>
           <View style={s.ctaHighlight} pointerEvents="none" />
           <Text style={s.ctaLabel}>{slide.cta}</Text>
-        </Pressable>
+        </AppPressable>
         {/* Reciprocity before signup (3.1): a free bundled demo lesson, offered
             prominently on the first slide. router.push keeps the carousel on the
             back stack so "close" returns here. */}
         {idx === 0 ? (
-          <Pressable
+          <AppPressable
             onPress={() => router.push("/demo-lesson")}
+            haptic="light"
             style={s.tryLessonBtn}
             accessibilityRole="button"
           >
             <Text style={s.tryLessonLabel}>{t("demoLesson.entryCta")}</Text>
-          </Pressable>
+          </AppPressable>
         ) : null}
         <Pressable onPress={() => void markSeenAndGo("/login")} hitSlop={10}>
           <Text style={s.loginLink}>
@@ -771,6 +811,7 @@ export default function WelcomeScreen() {
         animationType="fade"
         onRequestClose={closeDemo}
         statusBarTranslucent
+        navigationBarTranslucent
       >
         <View style={s.demoBackdrop}>
           <VideoView
@@ -970,6 +1011,7 @@ const s = StyleSheet.create({
     backgroundColor: C.ghost,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   tryLessonLabel: {
     color: C.text,

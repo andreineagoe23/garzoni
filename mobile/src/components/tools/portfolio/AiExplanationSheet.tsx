@@ -57,6 +57,7 @@ export function AiExplanationSheet({
       animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       {/* Backdrop */}
       <Pressable style={styles.backdrop} onPress={onClose}>

@@ -163,6 +163,7 @@ export function QuoteSheet({
       animationType="none"
       onRequestClose={dismissKeyboardAndClose}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <Pressable style={styles.backdrop} onPress={dismissKeyboardAndClose}>
         <View style={[styles.backdropFill, { backgroundColor: c.overlay }]} />

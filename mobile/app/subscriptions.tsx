@@ -742,6 +742,8 @@ function ExitIntentSheet({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="slide"
       onRequestClose={onDecline}
     >
@@ -1644,6 +1646,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: D.primaryBright,
     shadowOpacity: 0.4,
+    // Android ignores shadowOpacity; raise elevation so the recommended tier
+    // still visibly lifts above the others.
+    elevation: 10,
   },
   recommendedWrap: {
     alignItems: "center",

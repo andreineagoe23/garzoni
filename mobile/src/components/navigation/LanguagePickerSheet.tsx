@@ -34,6 +34,7 @@ export function LanguagePickerSheet({
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
+      navigationBarTranslucent
       presentationStyle="overFullScreen"
     >
       <Pressable style={styles.backdrop} onPress={onClose}>

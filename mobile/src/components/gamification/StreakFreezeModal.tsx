@@ -89,6 +89,8 @@ export default function StreakFreezeModal({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={onDismiss}
     >

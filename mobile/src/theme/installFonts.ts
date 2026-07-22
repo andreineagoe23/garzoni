@@ -23,6 +23,15 @@ import {
  * Inter faces must be loaded in `app/_layout.tsx` via `@expo-google-fonts/inter`.
  */
 
+/**
+ * Global cap on the OS "Font size" accessibility multiplier. Android OEMs ship
+ * different default font sizes (and a separate Display Size zoom), so uncapped
+ * scaling makes the same screen look different on every phone and overflows
+ * fixed-height layouts. We still honour large-font users up to this factor, but
+ * refuse to blow the layout apart beyond it. iOS uses the same cap for parity.
+ */
+export const MAX_FONT_SCALE = 1.25;
+
 type Weight = TextStyle["fontWeight"];
 
 function interFamily(weight: Weight, italic: boolean): string {
@@ -84,14 +93,25 @@ export function installGlobalInterFont(): void {
       if (Platform.OS === "android" && flat.includeFontPadding === undefined) {
         patch.includeFontPadding = false;
       }
-      if (Object.keys(patch).length === 0) {
+      // Clamp OS font scaling globally unless a call site sets its own cap.
+      // This is a prop (not a style), so apply it even when no style patch is
+      // needed. `maxFontSizeMultiplier: 0` means "unlimited" in RN, so treat
+      // only `undefined` as "not set".
+      const capFontScale =
+        (props as { maxFontSizeMultiplier?: number }).maxFontSizeMultiplier ===
+        undefined;
+
+      if (Object.keys(patch).length === 0 && !capFontScale) {
         return originalRender.call(this, props, ref);
       }
 
-      const nextProps = {
+      const nextProps: Record<string, unknown> = {
         ...props,
         style: [(props as { style?: unknown }).style, patch],
       };
+      if (capFontScale) {
+        nextProps.maxFontSizeMultiplier = MAX_FONT_SCALE;
+      }
       return originalRender.call(this, nextProps, ref);
     };
   }

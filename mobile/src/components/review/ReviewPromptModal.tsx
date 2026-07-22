@@ -131,6 +131,7 @@ export default function ReviewPromptModal() {
       transparent
       animationType="fade"
       statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={dismiss}
     >
       <View style={{ flex: 1 }}>

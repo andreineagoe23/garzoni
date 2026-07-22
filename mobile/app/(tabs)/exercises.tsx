@@ -1080,6 +1080,8 @@ function ExercisesInner() {
       <Modal
         visible={categoryPickerOpen}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="slide"
         onRequestClose={() => setCategoryPickerOpen(false)}
       >
@@ -1145,6 +1147,8 @@ function ExercisesInner() {
       <Modal
         visible={typePickerOpen}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="slide"
         onRequestClose={() => setTypePickerOpen(false)}
       >
@@ -1194,6 +1198,8 @@ function ExercisesInner() {
       <Modal
         visible={readyVisible && !isListPending && filteredList.length > 0}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="fade"
         onRequestClose={() => setReadyVisible(false)}
       >
@@ -1240,6 +1246,8 @@ function ExercisesInner() {
       <Modal
         visible={summaryVisible}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="slide"
         onRequestClose={dismissSummary}
       >

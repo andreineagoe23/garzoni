@@ -188,6 +188,7 @@ export function GoalFormSheet({
         onClose();
       }}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <Pressable
         style={styles.backdropTap}

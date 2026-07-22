@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Animated, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../theme/tokens";
 import { Button } from "../ui";

@@ -90,6 +90,7 @@ export function InputSheet({
         onClose();
       }}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <Pressable
         style={styles.backdrop}

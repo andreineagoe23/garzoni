@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text } from "react-native";
-import * as Haptics from "expo-haptics";
+import { StyleSheet, Text } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../theme/tokens";
+import AppPressable from "./AppPressable";
 
 type Props = {
   label: string;
@@ -21,11 +21,10 @@ export default function Chip({
   const c = useThemeColors();
   const accent = accentColor ?? c.primary;
   return (
-    <Pressable
-      onPress={() => {
-        if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress?.();
-      }}
+    <AppPressable
+      onPress={onPress}
+      haptic={haptic ? "light" : "none"}
+      rippleColor={active ? "rgba(255,255,255,0.22)" : `${accent}33`}
       style={[
         styles.chip,
         {
@@ -41,7 +40,7 @@ export default function Chip({
       >
         {label}
       </Text>
-    </Pressable>
+    </AppPressable>
   );
 }
 
@@ -53,6 +52,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   label: {
     fontSize: typography.sm,

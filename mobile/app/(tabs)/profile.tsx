@@ -881,6 +881,8 @@ function ProfileInner() {
       <Modal
         visible={deleteFlow !== "hidden"}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="fade"
         onRequestClose={closeDeleteFlow}
       >

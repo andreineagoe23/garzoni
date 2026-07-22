@@ -17,5 +17,6 @@ export { default as KeyboardAwareScrollView } from "./KeyboardAwareScrollView";
 export { useFormKeyboardPadding } from "../../hooks/useFormKeyboardPadding";
 export { default as SelectMenu } from "./SelectMenu";
 export { default as HapticPressable, useHapticTap } from "./HapticPressable";
+export { default as AppPressable } from "./AppPressable";
 export { default as Chip } from "./Chip";
 export { default as LoadingSpinner } from "./LoadingSpinner";

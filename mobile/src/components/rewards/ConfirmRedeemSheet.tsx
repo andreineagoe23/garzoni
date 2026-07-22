@@ -40,6 +40,8 @@ export default function ConfirmRedeemSheet({
     <Modal
       visible={item != null}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="slide"
       onRequestClose={onCancel}
     >

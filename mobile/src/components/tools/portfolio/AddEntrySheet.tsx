@@ -416,6 +416,7 @@ export function AddEntrySheet({
       animationType="none"
       onRequestClose={dismissAndClose}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       {/* Backdrop */}
       <Pressable style={styles.backdrop} onPress={dismissAndClose}>

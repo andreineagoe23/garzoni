@@ -227,6 +227,8 @@ export default function LessonCheckpointModal({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={submitting ? undefined : onDone}
     >

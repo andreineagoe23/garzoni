@@ -1119,6 +1119,8 @@ export default function LessonFlowScreen({
       <Modal
         visible={readingSettingsOpen}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="fade"
         onRequestClose={() => setReadingSettingsOpen(false)}
       >
@@ -1156,6 +1158,8 @@ export default function LessonFlowScreen({
       <Modal
         visible={outOfHeartsVisible}
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="fade"
         onRequestClose={() => {
           setRefillCapReached(false);

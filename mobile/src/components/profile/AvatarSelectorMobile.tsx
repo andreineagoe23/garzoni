@@ -192,6 +192,8 @@ export default function AvatarSelectorMobile({
       visible={visible}
       animationType="slide"
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>

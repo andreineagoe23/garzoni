@@ -25,6 +25,7 @@ export default function PlusBottomSheet({ visible, onClose }: Props) {
       animationType="slide"
       onRequestClose={onClose}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <Pressable style={styles.backdrop} onPress={onClose} />
       <View

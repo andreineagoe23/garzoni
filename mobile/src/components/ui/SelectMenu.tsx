@@ -104,6 +104,7 @@ export default function SelectMenu({
         animationType="fade"
         onRequestClose={() => setOpen(false)}
         statusBarTranslucent
+        navigationBarTranslucent
       >
         <Pressable
           style={styles.backdrop}

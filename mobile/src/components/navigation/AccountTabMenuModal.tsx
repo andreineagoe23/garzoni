@@ -74,6 +74,7 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
       animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable

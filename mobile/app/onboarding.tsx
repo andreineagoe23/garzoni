@@ -45,6 +45,7 @@ import { href } from "../src/navigation/href";
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../src/components/ui/KeyboardAwareScrollView";
+import AppPressable from "../src/components/ui/AppPressable";
 import {
   useResponsive,
   FOCUSED_CONTENT_MAX_WIDTH,
@@ -475,9 +476,11 @@ export default function OnboardingScreen() {
             {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
             <View style={styles.actions}>
-              <Pressable
+              <AppPressable
                 onPress={() => void handleSubmit()}
                 disabled={submitDisabled}
+                haptic="light"
+                rippleColor="rgba(255,255,255,0.25)"
                 style={[styles.cta, submitDisabled && styles.ctaDisabled]}
                 accessibilityRole="button"
               >
@@ -489,7 +492,7 @@ export default function OnboardingScreen() {
                     {isLast ? t("onboarding.finish") : t("onboarding.continue")}
                   </Text>
                 )}
-              </Pressable>
+              </AppPressable>
               {!question.required ? (
                 <Pressable
                   onPress={() => {
