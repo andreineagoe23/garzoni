@@ -1,12 +1,71 @@
-import { readFileSync, mkdirSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, mkdirSync, writeFileSync, existsSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
+import { createHash } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, "..", "dist");
 const OUT = join(DIST, "__prerendered");
 const PORT = 4173;
+
+/**
+ * How many routes to render at once. Rendering was strictly sequential, which
+ * made this script the longest pole in the Vercel build: ~56 routes × (page
+ * load + up to 8s waiting for an <h1> + 500ms settle), one after another.
+ *
+ * Each worker owns its own Chrome page against the same browser, so the cost is
+ * memory, not correctness. 5 is conservative for the Vercel build container;
+ * override with PRERENDER_CONCURRENCY if it ever OOMs (1 restores the old
+ * behaviour exactly).
+ */
+const CONCURRENCY = Math.max(1, Number(process.env.PRERENDER_CONCURRENCY) || 5);
+
+/**
+ * Snapshot cache, reused across builds.
+ *
+ * Vercel restores `node_modules/.cache` between builds, so a rebuild that does
+ * not change lesson content can copy the previous snapshot instead of driving
+ * Chrome again. Keyed on both the *content* fingerprint (from the public API)
+ * and a *shell* fingerprint (a hash of the freshly built index.html, which
+ * carries the hashed asset filenames) — if the bundle changes, every snapshot
+ * is re-rendered, because a stale snapshot would reference assets that no
+ * longer exist.
+ *
+ * That means a normal code push still re-renders everything; the cache pays off
+ * on redeploys that don't change the bundle (manual redeploy, env-var change,
+ * content-only publish).
+ */
+const CACHE_DIR = join(
+  __dirname,
+  "..",
+  "node_modules",
+  ".cache",
+  "garzoni-prerender"
+);
+const CACHE_MANIFEST = join(CACHE_DIR, "manifest.json");
+
+const sha1 = (value) =>
+  createHash("sha1").update(String(value)).digest("hex").slice(0, 16);
+
+/**
+ * Run `worker` over `items` with at most `limit` in flight. Results are not
+ * collected — each worker reports its own outcome — so a single failure never
+ * rejects the pool.
+ */
+async function mapPool(items, limit, worker) {
+  const queue = [...items];
+  const runners = Array.from({ length: Math.min(limit, queue.length) }, () =>
+    (async () => {
+      for (;;) {
+        const item = queue.shift();
+        if (item === undefined) return;
+        await worker(item);
+      }
+    })()
+  );
+  await Promise.all(runners);
+}
 
 // Data-driven pages (lessons/guides) fetch their content from the backend at
 // runtime. During prerender the SPA runs inside headless Chrome on
@@ -127,6 +186,60 @@ const ERROR_MARKERS = ["Guide not found", "Lesson not found"];
 
 function isErrorSnapshot(html) {
   return ERROR_MARKERS.some((marker) => html.includes(marker));
+}
+
+function cacheFile(routePath) {
+  const safePath = routePath === "/" ? "/index" : routePath;
+  return join(CACHE_DIR, "snapshots", `${safePath}.html`);
+}
+
+function writeCacheFile(routePath, html) {
+  try {
+    const file = cacheFile(routePath);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, html, "utf-8");
+  } catch {
+    // The cache is an optimisation; a build must never fail because of it.
+  }
+}
+
+/**
+ * Hash of the freshly built index.html. It embeds the content-hashed asset
+ * filenames, so any bundle change changes this — which is exactly when every
+ * cached snapshot must be discarded (a stale snapshot would reference JS/CSS
+ * that no longer exists in dist/).
+ */
+function shellHash() {
+  try {
+    return sha1(readFileSync(join(DIST, "index.html"), "utf-8"));
+  } catch {
+    return "no-shell";
+  }
+}
+
+function loadSnapshotCache() {
+  const shell = shellHash();
+  try {
+    const manifest = JSON.parse(readFileSync(CACHE_MANIFEST, "utf-8"));
+    if (manifest.shell === shell && manifest.routes) {
+      return { shell, routes: manifest.routes };
+    }
+    // Bundle changed — drop the whole snapshot cache rather than serve
+    // snapshots pointing at assets this build no longer contains.
+    rmSync(join(CACHE_DIR, "snapshots"), { recursive: true, force: true });
+  } catch {
+    // No usable cache.
+  }
+  return { shell, routes: {} };
+}
+
+function saveSnapshotCache(cache) {
+  try {
+    mkdirSync(CACHE_DIR, { recursive: true });
+    writeFileSync(CACHE_MANIFEST, JSON.stringify(cache), "utf-8");
+  } catch {
+    // Optimisation only.
+  }
 }
 
 function saveHtml(routePath, html) {
@@ -287,41 +400,32 @@ async function launchBrowser() {
   });
 }
 
-async function fetchPublicLessonSlugs() {
+/**
+ * Fetch a public content list, returning the full objects rather than just
+ * slugs — the rest of the object (title, updated_at, …) is what the snapshot
+ * cache fingerprints against to decide whether a page needs re-rendering.
+ */
+async function fetchPublicList(path, label) {
   try {
     const apiBase =
       process.env.VITE_API_URL || "https://garzoni-production.up.railway.app";
-    const res = await fetch(`${apiBase}/api/public/lessons/`);
+    const res = await fetch(`${apiBase}/api/public/${path}/`);
     if (!res.ok) return [];
     const data = await res.json();
-    if (Array.isArray(data)) return data.map((l) => l.slug);
-    if (data.results) return data.results.map((l) => l.slug);
-    return [];
+    const items = Array.isArray(data) ? data : (data.results ?? []);
+    return items.filter((item) => item && item.slug);
   } catch {
     console.log(
-      "  ⚠ Could not fetch public lesson slugs (API may not have list endpoint yet)"
+      `  ⚠ Could not fetch ${label} (API may not have the endpoint yet)`
     );
     return [];
   }
 }
 
-async function fetchPublishedArticleSlugs() {
-  try {
-    const apiBase =
-      process.env.VITE_API_URL || "https://garzoni-production.up.railway.app";
-    const res = await fetch(`${apiBase}/api/public/articles/`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (Array.isArray(data)) return data.map((a) => a.slug);
-    if (data.results) return data.results.map((a) => a.slug);
-    return [];
-  } catch {
-    console.log(
-      "  ⚠ Could not fetch published article slugs (API may not have the endpoint yet)"
-    );
-    return [];
-  }
-}
+const fetchPublicLessons = () =>
+  fetchPublicList("lessons", "public lesson slugs");
+const fetchPublishedArticles = () =>
+  fetchPublicList("articles", "published article slugs");
 
 /** Crude but dependency-free HTML → plain text for the LLM corpus. */
 function htmlToText(html) {
@@ -447,16 +551,26 @@ async function main() {
 
   const server = await serveDist();
 
+  // Content fingerprints per route, used by the snapshot cache below. Static
+  // routes are app-driven and carry no content fingerprint, so they ride on the
+  // shell hash alone.
+  const fingerprints = new Map();
   const routes = [...STATIC_ROUTES];
 
-  const lessonSlugs = await fetchPublicLessonSlugs();
-  for (const slug of lessonSlugs) {
-    routes.push(`/learn/${slug}`);
+  const lessons = await fetchPublicLessons();
+  const lessonSlugs = lessons.map((l) => l.slug);
+  for (const lesson of lessons) {
+    const route = `/learn/${lesson.slug}`;
+    routes.push(route);
+    fingerprints.set(route, sha1(JSON.stringify(lesson)));
   }
 
-  const articleSlugs = await fetchPublishedArticleSlugs();
-  for (const slug of articleSlugs) {
-    routes.push(`/guides/${slug}`);
+  const articles = await fetchPublishedArticles();
+  const articleSlugs = articles.map((a) => a.slug);
+  for (const article of articles) {
+    const route = `/guides/${article.slug}`;
+    routes.push(route);
+    fingerprints.set(route, sha1(JSON.stringify(article)));
   }
 
   // Empty slug lists on a production build mean the API was unreachable or
@@ -475,10 +589,33 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Rendering ${routes.length} routes...\n`);
+  const cache = loadSnapshotCache();
+  const nextCache = { shell: cache.shell, routes: {} };
+
+  const cached = [];
+  const toRender = [];
+  for (const route of routes) {
+    const fingerprint = fingerprints.get(route);
+    const entry = fingerprint ? cache.routes[route] : undefined;
+    if (entry && entry.fp === fingerprint && existsSync(cacheFile(route))) {
+      cached.push(route);
+    } else {
+      toRender.push(route);
+    }
+  }
+
+  for (const route of cached) {
+    saveHtml(route, readFileSync(cacheFile(route), "utf-8"));
+    nextCache.routes[route] = cache.routes[route];
+  }
+
+  console.log(
+    `Rendering ${toRender.length} routes (${cached.length} reused from cache), ` +
+      `${CONCURRENCY} at a time...\n`
+  );
 
   let skipped = 0;
-  for (const route of routes) {
+  await mapPool(toRender, CONCURRENCY, async (route) => {
     try {
       let html = await renderRoute(browser, route);
       // A not-found render for a route we know exists (its slug came from the
@@ -500,18 +637,25 @@ async function main() {
           `  ⚠ ${route}: still error after retries — skipping save`
         );
         skipped++;
-        continue;
+        return;
       }
       saveHtml(route, html);
+      const fingerprint = fingerprints.get(route);
+      if (fingerprint) {
+        writeCacheFile(route, html);
+        nextCache.routes[route] = { fp: fingerprint };
+      }
     } catch (err) {
       console.error(`  ✗ ${route}: ${err.message}`);
     }
-  }
+  });
   if (skipped > 0) {
     console.log(
       `\n⚠ Skipped ${skipped} route(s) that rendered an error state.`
     );
   }
+
+  saveSnapshotCache(nextCache);
 
   await browser.close();
   server.close();
