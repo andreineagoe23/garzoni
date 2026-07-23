@@ -159,11 +159,95 @@ def should_send_email(user: User, template: CioTemplate) -> PolicyResult:
     return PolicyResult(True, "ok_default")
 
 
+# Push category → the preference that governs it, and the Android channel it is
+# filed under. Categories reuse the existing per-topic preferences rather than
+# duplicating them: a user who turns "Streak alerts" off means it for both
+# channels, and a second parallel set of switches would only invite the two to
+# disagree.
+#
+# Deliberately narrow. `reminders`, `weekly_digest` and `marketing` are also
+# flipped to False server-side by the Customer.io bounce webhook, so mapping
+# every category here would mean a *hard-bounced email address* silently killing
+# that user's push — cutting the only channel still reachable for them. Only the
+# two topics a user sets on purpose are mapped; `billing` is operational and is
+# governed by the master switch alone.
+PUSH_CATEGORY_PREF = {
+    "streak": "streak_alerts",
+    "marketing": "marketing",
+}
+
+PUSH_CATEGORY_CHANNEL = {
+    "streak": "streak",
+    "marketing": "marketing",
+    "reminder": "lessons",
+    "digest": "lessons",
+    "billing": "billing",
+    "transactional": "billing",
+}
+
+
+def push_channel_for_category(category: str) -> str:
+    """Android channel id for a push category (see mobile ensureAndroidNotificationChannels)."""
+    return PUSH_CATEGORY_CHANNEL.get(category, "default")
+
+
+def within_frequency_cap(user: User) -> PolicyResult:
+    """
+    Cap non-operational messages per user per rolling day.
+
+    Several journeys (streak alert, coach nudge, re-engage, weekly digest) can
+    independently decide the same person is worth contacting on the same day.
+    Nothing coordinated them, so a lapsed user could collect four nudges in an
+    evening — the fastest way to earn an uninstall. Operational mail (receipts,
+    password resets) never passes through here.
+
+    Counted in the cache, not the DB: an approximate cap that degrades to
+    "allow" if Redis is down is the right failure mode for a courtesy limit.
+    """
+    from django.conf import settings as dj_settings
+    from django.core.cache import cache
+    from django.utils import timezone as dj_timezone
+
+    limit = int(getattr(dj_settings, "NOTIFICATION_DAILY_CAP", 2) or 0)
+    if limit <= 0:
+        return PolicyResult(True, "cap_disabled")
+    key = f"notif_cap:{user.pk}:{dj_timezone.localdate().isoformat()}"
+    try:
+        sent = cache.get(key) or 0
+        if int(sent) >= limit:
+            return PolicyResult(False, "daily_cap_reached")
+    except Exception:
+        return PolicyResult(True, "cap_unavailable")
+    return PolicyResult(True, "ok")
+
+
+def record_capped_send(user: User) -> None:
+    """Count one capped send against today's allowance."""
+    from django.core.cache import cache
+    from django.utils import timezone as dj_timezone
+
+    key = f"notif_cap:{user.pk}:{dj_timezone.localdate().isoformat()}"
+    try:
+        # add() then incr() so the first write establishes the 36h TTL.
+        cache.add(key, 0, timeout=60 * 60 * 36)
+        cache.incr(key)
+    except Exception:
+        pass
+
+
 def should_send_push(user: User, category: str) -> PolicyResult:
-    """Push policy: master switch on UserEmailPreference.push_notifications."""
+    """
+    Push policy: master switch on `push_notifications`, then the per-topic
+    preference for the categories in PUSH_CATEGORY_PREF. Everything else —
+    operational/transactional push (receipts, payment failures, billing) —
+    honours the master switch alone.
+    """
     prefs = _prefs(user)
-    if prefs and not getattr(prefs, "push_notifications", True):
+    if not prefs:
+        return PolicyResult(True, "ok")
+    if not getattr(prefs, "push_notifications", True):
         return PolicyResult(False, "push_master_off")
-    if prefs and not prefs.marketing and category == "marketing":
-        return PolicyResult(False, "marketing_push_off")
+    pref_field = PUSH_CATEGORY_PREF.get(category)
+    if pref_field and not getattr(prefs, pref_field, True):
+        return PolicyResult(False, f"{pref_field}_off")
     return PolicyResult(True, "ok")

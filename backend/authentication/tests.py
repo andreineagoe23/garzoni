@@ -507,14 +507,17 @@ class SlimRegistrationTests(APITestCase):
         self.assertEqual(user.username, "janedoeapp")
         self.assertEqual(user.first_name, "")
 
-    def test_auto_username_dedupes_with_suffix(self):
+    def test_auto_username_dedupes_on_collision(self):
+        """A taken base gets a random suffix, not a sequential probe — the probe
+        was check-then-insert and 500d when two signups raced on the same base."""
         User.objects.create_user(
             username="janedoeapp", email="taken@example.com", password="StrongPass123"
         )
         resp = self.client.post(reverse("register-secure"), self._payload(), format="json")
         self.assertEqual(resp.status_code, 201)
         user = User.objects.get(email="jane.doe+app@example.com")
-        self.assertEqual(user.username, "janedoeapp2")
+        self.assertNotEqual(user.username, "janedoeapp")
+        self.assertTrue(user.username.startswith("janedoeapp"))
 
     def test_explicit_username_still_respected(self):
         resp = self.client.post(

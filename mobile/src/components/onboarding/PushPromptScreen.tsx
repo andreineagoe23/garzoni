@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { brand } from "../../theme/brand";
 import LoadingSpinner from "../ui/LoadingSpinner";
@@ -79,6 +80,10 @@ type Props = {
 export default function PushPromptScreen({ onComplete }: Props) {
   const { t } = useTranslation("common");
   const [requesting, setRequesting] = useState(false);
+  // The standalone /push-prompt route renders this with no wrapper, so it owns
+  // its own insets: on Android 3-button navigation the CTA sat under the system
+  // bar, and the headline under the status bar.
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     trackEvent("push_prompt_shown", { source: "onboarding" });
@@ -137,7 +142,7 @@ export default function PushPromptScreen({ onComplete }: Props) {
         <Glow width={340} height={240} color={C.goldWarm} opacity={0.06} />
       </View>
 
-      <View style={s.content}>
+      <View style={[s.content, { paddingTop: insets.top + 48 }]}>
         <Text style={s.eyebrow}>{t("onboarding.pushPrompt.eyebrow")}</Text>
         <Text style={s.headline}>{t("onboarding.pushPrompt.title")}</Text>
         <Text style={s.subhead}>{t("onboarding.pushPrompt.body")}</Text>
@@ -171,7 +176,9 @@ export default function PushPromptScreen({ onComplete }: Props) {
         </Animated.View>
       </View>
 
-      <View style={s.ctaWrap}>
+      <View
+        style={[s.ctaWrap, { paddingBottom: Math.max(36, insets.bottom + 16) }]}
+      >
         <Pressable
           onPress={() => void handleAccept()}
           disabled={requesting}

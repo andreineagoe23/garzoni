@@ -576,6 +576,15 @@ else:
     CIO_TRANSACTIONAL_ENABLED = env_bool("CIO_TRANSACTIONAL_ENABLED", False)
 CIO_JOURNEY_EVENTS_ENABLED = env_bool("CIO_JOURNEY_EVENTS_ENABLED", False)
 CIO_REMINDERS_VIA_JOURNEYS = env_bool("CIO_REMINDERS_VIA_JOURNEYS", False)
+# Max non-operational messages (nudges, digests, re-engagement) per user per day.
+# Several independent journeys can decide the same lapsed user is worth a nudge on
+# the same evening; nothing else coordinates them. 0 disables the cap.
+# Parsed defensively: this runs at import, so a typo in the Railway variable would
+# otherwise take down web, worker, beat *and* the entrypoint's `manage.py migrate`.
+try:
+    NOTIFICATION_DAILY_CAP = int(os.getenv("NOTIFICATION_DAILY_CAP", "2") or 0)
+except ValueError:
+    NOTIFICATION_DAILY_CAP = 2
 # Loose Railway-style map; override entirely via CIO_TRANSACTIONAL_TRIGGERS_JSON when CIO ids change.
 _DEFAULT_CIO_TRANSACTIONAL_TRIGGERS_JSON = (
     "{password-reset:3,welcome:4,subscription-cancelled:5,trial-ending:6,renewal-reminder:7,"

@@ -15,6 +15,7 @@ from notifications.customer_io import (
 from notifications.enums import CioTemplate
 from notifications.expo_push import send_expo_push
 from notifications.identity import customer_io_person_id
+from notifications.policy import push_channel_for_category
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,12 @@ class TransactionalMessages:
         return ok, err
 
     def send_push(
-        self, template: CioTemplate, user: User, data: dict[str, Any]
+        self,
+        template: CioTemplate,
+        user: User,
+        data: dict[str, Any],
+        *,
+        category: str = "",
     ) -> tuple[bool, str | None]:
         # Prefer Expo direct push when the user has a registered token — CIO App API
         # returns 200 even when no native device is in the Journeys device table,
@@ -83,7 +89,15 @@ class TransactionalMessages:
             deeplink = data.get("deeplink", "garzoni:///(tabs)/learn")
             extra = {k: v for k, v in data.items() if k not in ("title", "message", "body")}
             push_data = {"deeplink": deeplink, **extra}
-            ok, err = send_expo_push(expo_token, title, body, push_data, user_id=user.pk)
+            ok, err = send_expo_push(
+                expo_token,
+                title,
+                body,
+                push_data,
+                user_id=user.pk,
+                purpose=template.value,
+                channel_id=push_channel_for_category(category),
+            )
             if ok:
                 return True, None
             logger.warning(

@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+// react-native's SafeAreaView is a no-op on Android; with edgeToEdgeEnabled the
+// header would sit under the status bar. Commit e591d3ca made this swap for the
+// other full-screen routes and missed this one.
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { brand } from "../src/theme/brand";
@@ -141,7 +144,12 @@ export default function DemoLessonScreen() {
   }, [step.kind, correctCount]);
 
   const leave = async (dest: "/register" | "/login") => {
-    await setWelcomeSeen();
+    // Only "seen" once the user is heading to sign in — someone who taps
+    // "Create free account" and backs out would otherwise be routed past the
+    // welcome screen to /login forever, having never actually seen it.
+    if (dest === "/login") {
+      await setWelcomeSeen();
+    }
     router.replace(dest);
   };
 

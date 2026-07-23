@@ -342,14 +342,20 @@ class PlanSummaryEndpointTest(APITestCase):
         self.assertEqual(data["timeframe"], "6_months")
         self.assertEqual(data["risk_comfort"], "medium")
 
-        # First 3 lessons of the personalized path, id/title/topic only
+        # First 3 lessons of the personalized path. `course_id` rides along
+        # because the lesson-flow route is keyed by course, not lesson.
         self.assertEqual(len(data["curated_lessons"]), 3)
         self.assertEqual(
             data["curated_lessons"][0],
-            {"id": lessons[0].id, "title": "Lesson 1", "topic": "Budgeting"},
+            {
+                "id": lessons[0].id,
+                "title": "Lesson 1",
+                "topic": "Budgeting",
+                "course_id": lessons[0].course_id,
+            },
         )
         for item in data["curated_lessons"]:
-            self.assertEqual(set(item.keys()), {"id", "title", "topic"})
+            self.assertEqual(set(item.keys()), {"id", "title", "topic", "course_id"})
 
         # Projected outcome anchored on the primary goal (debt)
         self.assertIsNotNone(data["projected_outcome"])

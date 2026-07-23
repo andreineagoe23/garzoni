@@ -37,6 +37,7 @@ import PlanReadyScreen, {
   type PlanReadyContinueOptions,
 } from "../src/components/onboarding/PlanReadyScreen";
 import PushPromptScreen from "../src/components/onboarding/PushPromptScreen";
+import { markAskedForPush } from "../src/bootstrap/pushPromptState";
 import QuestionnaireSingleChoice from "../src/components/onboarding/steps/QuestionnaireSingleChoice";
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
@@ -292,12 +293,23 @@ export default function OnboardingScreen() {
   // LessonFlowScreen). If no curated lesson is available, fall back to Home.
   const PENDING_POST_LESSON_PAYWALL_KEY = "garzoni:pending_post_lesson_paywall";
   const handlePushPromptComplete = useCallback(() => {
+    // Record the ask so the standalone /push-prompt route (for web-first users)
+    // never re-primes someone who already answered here.
+    void markAskedForPush();
     const opts = planReadyOpts ?? undefined;
     if (opts?.placement === "post_first_lesson") {
       void AsyncStorage.setItem(PENDING_POST_LESSON_PAYWALL_KEY, "1");
+      // /flow/[id] is keyed by *course* id and takes the lesson as a query
+      // param; passing the lesson id as the route param opened the wrong course
+      // (or the "Invalid course." state).
+      const courseId = opts.firstCuratedCourseId;
       const lessonId = opts.firstCuratedLessonId;
-      if (lessonId != null && Number.isFinite(Number(lessonId))) {
-        router.replace(`/flow/${lessonId}`);
+      if (courseId != null && Number.isFinite(Number(courseId))) {
+        router.replace(
+          lessonId != null && Number.isFinite(Number(lessonId))
+            ? `/flow/${courseId}?lessonId=${lessonId}`
+            : `/flow/${courseId}`,
+        );
       } else {
         router.replace("/(tabs)");
       }

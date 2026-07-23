@@ -84,7 +84,9 @@
     "checkpointLoadTitle": "Couldn't load review",
     "checkpointLoadFailed": "We couldn’t load the quick review questions. You can keep going — try again later from the lesson.",
     "firstLessonTitle": "First lesson done!",
-    "firstLessonSubtitle": "Day 1 of your streak starts now 🔥 +{{bonus}} bonus XP"
+    "firstLessonSubtitle": "Day 1 of your streak starts now 🔥 +{{bonus}} bonus XP",
+    "testWhatYouLearned": "Test what you learned",
+    "refillFailed": "Couldn't refill hearts. Check your connection and try again."
   },
   "quiz": {
     "loading": "Loading quiz...",

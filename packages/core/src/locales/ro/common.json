@@ -3,7 +3,12 @@
     "dismiss": "Poate mai târziu",
     "skipForNow": "Sari peste — explorează gratuit",
     "close": "Închide",
-    "loadTimeout": "Încărcarea durează prea mult. Verifică conexiunea."
+    "loadTimeout": "Încărcarea durează prea mult. Verifică conexiunea.",
+    "cancel": "Anulează",
+    "today": "astăzi",
+    "yesterday": "ieri",
+    "justNow": "acum",
+    "daysAgo": "acum {{count}} zile"
   },
   "gamification": {
     "ledger": {
@@ -40,7 +45,9 @@
     "freeLessons": "Lecții gratuite",
     "guides": "Ghiduri",
     "login": "Autentificare",
-    "signUp": "Înscrie-te gratuit"
+    "signUp": "Înscrie-te gratuit",
+    "leaderboard": "Clasament",
+    "navigateSection": "Navighează"
   },
   "language": {
     "label": "Limbă",
@@ -281,6 +288,14 @@
     "primaryCta": {
       "getStarted": "Începe",
       "continueReason": "Continuă-ți călătoria de învățare"
+    },
+    "journey": {
+      "eyebrow": "Continuă-ți traseul",
+      "cta": "Continuă",
+      "loadingTitle": "Îți căutăm următorul pas...",
+      "loadingSubtitle": "Garzoni verifică lecțiile, recapitulările și exercițiile tale.",
+      "fallbackTitle": "Alege următorul subiect",
+      "fallbackSubtitle": "Explorează biblioteca de cursuri și începe să înveți."
     }
   },
   "welcome": {
@@ -2186,15 +2201,17 @@
       },
       "emailTypes": {
         "reminders": "Memento-uri generale",
-        "weeklyDigest": "Digest săptămânal",
+        "weeklyDigest": "Rezumat săptămânal",
         "streakAlerts": "Alerte de serie",
-        "billingAlerts": "Alerte de facturare",
-        "marketing": "Emailuri de marketing"
+        "billingAlerts": "Plăți și abonament",
+        "marketing": "Oferte și noutăți"
       },
       "lessonSounds": "Sunete lecție",
       "soundsHint": "Redă clopoței discreți pentru răspunsuri",
       "animations": "Animații",
-      "animationsHint": "Activează mascotele și confetti"
+      "animationsHint": "Activează mascotele și confetti",
+      "notificationTypes": "Despre ce te anunțăm",
+      "typesHint": "Se aplică și pentru email, și pentru notificări push. Dezactivezi un subiect și se oprește pe toate canalele."
     },
     "password": {
       "title": "Schimbă parola",
@@ -2233,6 +2250,13 @@
       "themeDark": "Întunecat",
       "themeSystem": "Sistem",
       "rateApp": "Evaluează Garzoni"
+    },
+    "push": {
+      "blockedTitle": "Notificările sunt oprite din setările sistemului",
+      "blockedBody": "Garzoni nu mai poate cere permisiunea de aici. Activează notificările pentru Garzoni din setările telefonului, apoi revino.",
+      "openSettings": "Deschide setările",
+      "failedTitle": "Nu am putut activa notificările",
+      "failedBody": "A apărut o problemă la înregistrarea acestui dispozitiv. Verifică conexiunea și încearcă din nou."
     }
   },
   "auth": {
@@ -3530,5 +3554,23 @@
   },
   "coachBrief": {
     "title": "Rezumatul tău săptămânal de coaching"
+  },
+  "journey": {
+    "modeJourney": "Traseu",
+    "modeList": "Listă",
+    "headerKicker": "ASCENSIUNEA",
+    "summit": "Vârf",
+    "summitMeta": "{{percent}}% urcat · ~{{minutes}} min până sus",
+    "basecamp": "Tabăra de bază",
+    "detours": "Ocolișuri — competențe de consolidat",
+    "rechart": "Recalculează traseul",
+    "locate": "Sari la cursul curent",
+    "continuePill": "CONTINUĂ",
+    "unlockRoute": "Deceațează traseul",
+    "fogUpsell": "O parte din traseu este în ceață. Treci la Plus ca să deblochezi toată ascensiunea.",
+    "tooltipStart": "Începe",
+    "tooltipContinue": "Continuă",
+    "tooltipReview": "Recapitulează",
+    "tooltipUnlock": "Deblochează cu Plus"
   }
 }

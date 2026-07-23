@@ -20,23 +20,69 @@ Notifications.setNotificationHandler({
   }),
 });
 
-let androidChannelEnsured = false;
+let androidChannelsEnsured = false;
+
 /**
- * Android 8+ requires a notification channel before any notification can be
- * shown. Channel id must match the one declared for `customerio-reactnative`
- * in app.json so CIO pushes inherit the same importance / sound.
+ * Android 8+ files every notification into a channel, and the user mutes
+ * *channels*, not apps. A single "default" channel means turning off marketing
+ * also turns off streak reminders and billing alerts — so the categories are
+ * split, and the backend picks the channel per push category
+ * (notifications/policy.py::push_channel_for_category).
+ *
+ * `default` stays for anything unlabelled, including older server builds.
  */
-async function ensureAndroidNotificationChannel(): Promise<void> {
-  if (Platform.OS !== "android" || androidChannelEnsured) return;
+const ANDROID_CHANNELS: {
+  id: string;
+  name: string;
+  description: string;
+  importance: number;
+}[] = [
+  {
+    id: "streak",
+    name: "Streak reminders",
+    description: "Nudges to keep your daily streak alive.",
+    importance: Notifications.AndroidImportance.HIGH,
+  },
+  {
+    id: "lessons",
+    name: "Lessons & progress",
+    description: "New lessons, weekly progress, and coaching nudges.",
+    importance: Notifications.AndroidImportance.DEFAULT,
+  },
+  {
+    id: "billing",
+    name: "Billing & account",
+    description: "Payments, renewals, and subscription changes.",
+    importance: Notifications.AndroidImportance.HIGH,
+  },
+  {
+    id: "marketing",
+    name: "Offers & announcements",
+    description: "Occasional news and offers.",
+    importance: Notifications.AndroidImportance.LOW,
+  },
+  {
+    id: "default",
+    name: "General",
+    description: "Everything else.",
+    importance: Notifications.AndroidImportance.DEFAULT,
+  },
+];
+
+export async function ensureAndroidNotificationChannels(): Promise<void> {
+  if (Platform.OS !== "android" || androidChannelsEnsured) return;
   try {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "Default",
-      importance: Notifications.AndroidImportance.MAX,
-      sound: "default",
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#01696f",
-    });
-    androidChannelEnsured = true;
+    for (const channel of ANDROID_CHANNELS) {
+      await Notifications.setNotificationChannelAsync(channel.id, {
+        name: channel.name,
+        description: channel.description,
+        importance: channel.importance,
+        sound: "default",
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#01696f",
+      });
+    }
+    androidChannelsEnsured = true;
   } catch (e) {
     if (__DEV__) {
       console.warn("[push] setNotificationChannelAsync failed", e);
@@ -119,6 +165,15 @@ export function setupNotificationResponseHandlers(): void {
   }
 }
 
+/** Device IANA timezone, e.g. "Europe/Bucharest". Empty when unavailable. */
+function resolveDeviceTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  } catch {
+    return "";
+  }
+}
+
 function resolveEasProjectId(): string | undefined {
   const extra = Constants.expoConfig?.extra as
     { eas?: { projectId?: string } } | undefined;
@@ -149,7 +204,35 @@ export async function reregisterPushIfPermitted(): Promise<void> {
   }
 }
 
-export async function registerForPushAndSubmitToken(): Promise<{
+/**
+ * Current OS-level permission status, without prompting. Callers use this to
+ * tell "user has never been asked" apart from "user denied and the OS will
+ * never show the dialog again" — the latter needs a trip to system settings.
+ */
+export async function getPushPermissionStatus(): Promise<
+  "granted" | "denied" | "undetermined"
+> {
+  if (Platform.OS === "web") return "denied";
+  try {
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    if (status === "granted") return "granted";
+    if (status === "undetermined" || canAskAgain) return "undetermined";
+    return "denied";
+  } catch {
+    return "undetermined";
+  }
+}
+
+export async function registerForPushAndSubmitToken(
+  /**
+   * Whether this call may raise the OS permission dialog. iOS grants exactly one
+   * dialog per install, so it must be spent from a primed context — the
+   * onboarding PushPromptScreen or the Settings toggle. Background callers
+   * (the 24h re-registration in usePushNotifications) pass `false`: they should
+   * refresh the token of an already-granted device, never ask cold.
+   */
+  { prompt = true }: { prompt?: boolean } = {},
+): Promise<{
   ok: boolean;
   message: string;
 }> {
@@ -157,11 +240,14 @@ export async function registerForPushAndSubmitToken(): Promise<{
     return { ok: false, message: "Push is not available on web." };
   }
 
-  await ensureAndroidNotificationChannel();
+  await ensureAndroidNotificationChannels();
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   let finalStatus = existing;
   if (existing !== "granted") {
+    if (!prompt) {
+      return { ok: false, message: "Notification permission not granted yet." };
+    }
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
@@ -178,7 +264,9 @@ export async function registerForPushAndSubmitToken(): Promise<{
     if (!token) {
       return { ok: false, message: "Could not read Expo push token." };
     }
-    await submitExpoPushToken(token);
+    // Device timezone travels with the token so the backend can nudge in the
+    // user's evening instead of the server's (see UserProfile.timezone_name).
+    await submitExpoPushToken(token, resolveDeviceTimeZone());
 
     const access = await tokenStorage.getAccess();
     if (access) {

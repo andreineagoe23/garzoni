@@ -3,7 +3,12 @@
     "dismiss": "Maybe later",
     "skipForNow": "Skip for now — keep exploring for free",
     "close": "Close",
-    "loadTimeout": "Taking too long to load. Check your connection."
+    "loadTimeout": "Taking too long to load. Check your connection.",
+    "cancel": "Cancel",
+    "today": "today",
+    "yesterday": "yesterday",
+    "justNow": "now",
+    "daysAgo": "{{count}} days ago"
   },
   "gamification": {
     "ledger": {
@@ -40,7 +45,9 @@
     "freeLessons": "Free Lessons",
     "guides": "Guides",
     "login": "Log in",
-    "signUp": "Sign up free"
+    "signUp": "Sign up free",
+    "leaderboard": "Leaderboard",
+    "navigateSection": "Navigate"
   },
   "language": {
     "label": "Language",
@@ -281,6 +288,14 @@
     "primaryCta": {
       "getStarted": "Get Started",
       "continueReason": "Continue your learning journey"
+    },
+    "journey": {
+      "eyebrow": "Continue your journey",
+      "cta": "Continue",
+      "loadingTitle": "Finding your next step...",
+      "loadingSubtitle": "Garzoni is checking your lessons, reviews, and practice.",
+      "fallbackTitle": "Choose your next topic",
+      "fallbackSubtitle": "Browse the course library and start learning."
     }
   },
   "welcome": {
@@ -2188,13 +2203,15 @@
         "reminders": "General reminders",
         "weeklyDigest": "Weekly digest",
         "streakAlerts": "Streak alerts",
-        "billingAlerts": "Billing alerts",
-        "marketing": "Marketing emails"
+        "billingAlerts": "Billing & subscription",
+        "marketing": "Offers & announcements"
       },
       "lessonSounds": "Lesson Sounds",
       "soundsHint": "Play subtle chimes for answers",
       "animations": "Animations",
-      "animationsHint": "Enable mascot and confetti animations"
+      "animationsHint": "Enable mascot and confetti animations",
+      "notificationTypes": "What you hear about",
+      "typesHint": "Applies to both email and push. Turn a topic off and it stops on every channel."
     },
     "password": {
       "title": "Change Password",
@@ -2233,6 +2250,13 @@
       "themeDark": "Dark",
       "themeSystem": "System",
       "rateApp": "Rate Garzoni"
+    },
+    "push": {
+      "blockedTitle": "Notifications are off in system settings",
+      "blockedBody": "Garzoni can't ask again from here. Turn notifications on for Garzoni in your device settings, then come back.",
+      "openSettings": "Open settings",
+      "failedTitle": "Couldn't turn on notifications",
+      "failedBody": "Something went wrong registering this device. Check your connection and try again."
     }
   },
   "auth": {
@@ -3530,5 +3554,23 @@
   },
   "coachBrief": {
     "title": "Your Weekly Coach Brief"
+  },
+  "journey": {
+    "modeJourney": "Journey",
+    "modeList": "List",
+    "headerKicker": "THE CLIMB",
+    "summit": "Summit",
+    "summitMeta": "{{percent}}% climbed · ~{{minutes}} min to the top",
+    "basecamp": "Basecamp",
+    "detours": "Detours — skills to reinforce",
+    "rechart": "Re-chart route",
+    "locate": "Jump to current course",
+    "continuePill": "CONTINUE",
+    "unlockRoute": "Unfog route",
+    "fogUpsell": "Part of your route is under fog. Upgrade to unlock the full climb.",
+    "tooltipStart": "Start",
+    "tooltipContinue": "Continue",
+    "tooltipReview": "Review",
+    "tooltipUnlock": "Unlock with Plus"
   }
 }

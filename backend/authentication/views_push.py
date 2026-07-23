@@ -47,7 +47,14 @@ class ExpoPushTokenView(APIView):
         profile = request.user.profile
         old_token = profile.expo_push_token
         profile.expo_push_token = token or None
-        profile.save(update_fields=["expo_push_token"])
+        updated = ["expo_push_token"]
+        # Devices report their IANA zone here so evening nudges can be scheduled in
+        # the user's own evening rather than the server's.
+        tz = str(request.data.get("timezone") or "").strip()[:64]
+        if tz and tz != profile.timezone_name:
+            profile.timezone_name = tz
+            updated.append("timezone_name")
+        profile.save(update_fields=updated)
         if old_token != profile.expo_push_token:
             logger.info(
                 "push_token.changed user_id=%s cleared=%s",

@@ -344,10 +344,21 @@ def build_profile_payload(user, profile: UserProfile):
         ("first_lesson", 20, bool(getattr(profile, "first_lesson_at", None))),
         ("name", 10, bool((user.first_name or "").strip())),
         ("avatar", 10, bool((profile.profile_avatar or "").strip())),
-        ("notifications", 10, bool((getattr(profile, "expo_push_token", "") or "").strip())),
         ("tool", 10, has_used_tool),
     ]
-    profile_completeness = sum(weight for _, weight, earned in completeness_items if earned)
+    # "Turn on notifications" is only reachable from the mobile app — a web-only
+    # user has no Expo token and never can, so scoring it capped them at 90% and
+    # nudged them forever toward something they could not do. Only count it once
+    # the account has actually been seen on a device.
+    if (getattr(profile, "last_seen_platform", "") or "") in ("ios", "android"):
+        completeness_items.append(
+            ("notifications", 10, bool((getattr(profile, "expo_push_token", "") or "").strip()))
+        )
+    # Normalised against the items that actually apply, so dropping the
+    # mobile-only item still lets a web user reach 100%.
+    total_weight = sum(weight for _, weight, _ in completeness_items) or 1
+    earned_weight = sum(weight for _, weight, earned in completeness_items if earned)
+    profile_completeness = round(earned_weight * 100 / total_weight)
     # Highest-value missing item drives the "complete your profile" next step.
     completeness_next = next(
         (key for key, _, earned in sorted(completeness_items, key=lambda i: -i[1]) if not earned),

@@ -77,9 +77,11 @@ app.conf.beat_schedule = {
     # spam users complained about. Do not re-enable without per-user rate limiting
     # AND an honest CIO unsubscribe sync (see notifications/policy.py).
     # Streak-at-risk evening sweep — fires CIO STREAK_ABOUT_TO_EXPIRE event for Journeys.
+    # Hourly, not daily: the task itself picks the users for whom it is ~7pm in
+    # their own timezone, so nobody gets an evening nudge at breakfast.
     "emit-streak-about-to-expire": {
         "task": "education.tasks.emit_streak_about_to_expire",
-        "schedule": crontab(hour=19, minute=0),
+        "schedule": crontab(minute=0),
     },
     # Portfolio live prices — refresh every 30 min during market hours
     "update-portfolio-prices": {
@@ -103,5 +105,16 @@ app.conf.beat_schedule = {
     "finalize-due-duels": {
         "task": "gamification.tasks.finalize_due_duels",
         "schedule": crontab(minute="*/5"),
+    },
+    # Expo delivery receipts — the only place a revoked APNs key or a dead device
+    # is ever reported. Without this, push can fail 100% while every layer logs
+    # success. Runs often enough that a broken credential surfaces same-day.
+    "poll-expo-push-receipts": {
+        "task": "notifications.tasks.poll_expo_push_receipts",
+        "schedule": crontab(minute="*/20"),
+    },
+    "prune-push-tickets": {
+        "task": "notifications.tasks.prune_push_tickets",
+        "schedule": crontab(hour=4, minute=30),
     },
 }

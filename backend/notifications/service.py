@@ -17,9 +17,11 @@ from notifications.idempotency import idempotency_already_sent, record_idempoten
 from notifications.message_data import flatten_context_for_cio
 from notifications.policy import (
     NotificationCategory,
+    record_capped_send,
     resolve_channels,
     should_send_email,
     should_send_push,
+    within_frequency_cap,
 )
 from notifications.profile_sync import NotificationProfileSync
 from notifications.transactional import TransactionalMessages
@@ -424,15 +426,23 @@ class NotificationService:
         if idempotency_key and idempotency_already_sent(idempotency_key):
             return "skipped_duplicate"
 
+        cap = within_frequency_cap(user)
+        if not cap.allowed:
+            logger.info("marketing_nudge_capped user=%s reason=%s", user.pk, cap.reason)
+            return f"skipped_cap:{cap.reason}"
+
         decision = resolve_channels(user, NotificationCategory.MARKETING)
         push_attempted = False
         if decision.push:
             push_policy = should_send_push(user, push_category)
             if push_policy.allowed:
                 push_attempted = True
-                ok, err = self.transactional.send_push(push_template, user, push_data)
+                ok, err = self.transactional.send_push(
+                    push_template, user, push_data, category=push_category
+                )
                 if ok:
                     _record_successful_idempotency(idempotency_key, purpose, "sent_push")
+                    record_capped_send(user)
                     return "sent_push"
                 logger.info(
                     "marketing_push_failed user=%s template=%s err=%s — falling back to email",
@@ -460,6 +470,8 @@ class NotificationService:
             ok, err = self.transactional.send(email_template, user, data)
             out = _outcome_from_cio(ok, err)
             _record_successful_idempotency(idempotency_key, purpose, out)
+            if ok:
+                record_capped_send(user)
             return out
         if smtp_template and smtp_subject and smtp_configured():
             ctx = {**(smtp_context or {}), **data}
@@ -472,6 +484,7 @@ class NotificationService:
                 to_emails=[user.email],
             )
             _record_successful_idempotency(idempotency_key, purpose, "sent_smtp")
+            record_capped_send(user)
             return "sent_smtp"
         return "skipped_no_channel"
 
@@ -493,7 +506,9 @@ class NotificationService:
         push_policy = should_send_push(user, push_category)
         if not push_policy.allowed:
             return f"skipped_policy:{push_policy.reason}"
-        ok, err = self.transactional.send_push(push_template, user, push_data)
+        ok, err = self.transactional.send_push(
+            push_template, user, push_data, category=push_category
+        )
         if ok:
             return "sent_push"
         return f"cio_failed:{err}"

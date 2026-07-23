@@ -494,12 +494,36 @@ export const decrementHearts = (amount = 1) =>
   apiClient.post("/user/hearts/decrement/", { amount });
 export const grantHearts = (amount = 1) =>
   apiClient.post("/user/hearts/grant/", { amount });
-export const refillHearts = () => apiClient.post("/user/hearts/refill/", {});
+/**
+ * Instant heart refill. Free users have a daily cap; when it is hit the server
+ * still answers **200** with `refill_capped: true` and the unchanged hearts
+ * payload rather than a 4xx — clients released before the cap existed call this
+ * without a `.catch()`, and a rejected promise left their refill button dead
+ * with no message. Branch on `refill_capped`, not on the status code.
+ */
+export type RefillHeartsResponse = {
+  hearts?: number;
+  max_hearts?: number;
+  next_heart_in_seconds?: number | null;
+  refill_capped?: boolean;
+  upgrade_hint?: boolean;
+  refill_daily_cap?: number;
+  refills_used_today?: number;
+  detail?: string;
+};
 
-/** Register Expo push token for the signed-in user (mobile notifications). */
-export const submitExpoPushToken = (expoPushToken: string) =>
+export const refillHearts = () =>
+  apiClient.post<RefillHeartsResponse>("/user/hearts/refill/", {});
+
+/**
+ * Register Expo push token for the signed-in user (mobile notifications).
+ * `timeZone` is the device's IANA zone; the backend uses it to schedule evening
+ * nudges in the user's own evening rather than the server's.
+ */
+export const submitExpoPushToken = (expoPushToken: string, timeZone?: string) =>
   apiClient.post<{ ok: boolean }>("/auth/push-token/", {
     expo_push_token: expoPushToken,
+    ...(timeZone ? { timezone: timeZone } : {}),
   });
 
 /** Clear Expo push token server-side so notifications can be disabled. */
@@ -578,16 +602,38 @@ export type UserSettingsPayload = {
   profile?: Record<string, unknown>;
 };
 
+export type UserSettingsResponse = {
+  dark_mode?: boolean;
+  sound_enabled?: boolean;
+  animations_enabled?: boolean;
+  /** Mirror of `email_preferences.push_notifications`; older builds only had the nested one. */
+  push_notifications?: boolean;
+  email_reminder_preference?: string;
+  email_preferences?: Record<string, unknown>;
+  profile?: Record<string, unknown>;
+};
+
 export const fetchUserSettings = () =>
-  apiClient.get<{
-    dark_mode?: boolean;
-    sound_enabled?: boolean;
-    animations_enabled?: boolean;
-    push_notifications?: boolean;
-    email_reminder_preference?: string;
-    email_preferences?: Record<string, unknown>;
-    profile?: Record<string, unknown>;
-  }>("/user/settings/");
+  apiClient.get<UserSettingsResponse>("/user/settings/");
+
+/**
+ * Read the push master switch out of a settings response.
+ *
+ * The value lives under `email_preferences.push_notifications`; the top-level
+ * key is a newer mirror. Clients that only read the top level saw `undefined`
+ * and treated push as enabled for everyone, which is why disabling it never
+ * took effect. Defaults to enabled when neither key is present.
+ */
+export function resolvePushEnabled(
+  settings: UserSettingsResponse | null | undefined,
+): boolean {
+  if (!settings) return true;
+  if (typeof settings.push_notifications === "boolean") {
+    return settings.push_notifications;
+  }
+  const nested = settings.email_preferences?.push_notifications;
+  return typeof nested === "boolean" ? nested : true;
+}
 
 export type ReferralSummary = {
   referral_code: string;

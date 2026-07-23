@@ -99,12 +99,34 @@ def decay_course_mastery():
     return {"changed": changed, "coach_nudges": nudges}
 
 
+STREAK_NUDGE_LOCAL_HOUR = 19
+
+
+def _local_now_for(profile):
+    """`now` in the profile's own timezone, falling back to server local time."""
+    tz_name = (getattr(profile, "timezone_name", "") or "").strip()
+    if tz_name:
+        try:
+            from zoneinfo import ZoneInfo
+
+            return timezone.now().astimezone(ZoneInfo(tz_name))
+        except Exception:
+            pass
+    return timezone.localtime()
+
+
 @shared_task
 def emit_streak_about_to_expire():
     """
-    Daily evening sweep: emit `streak_about_to_expire` for users whose streak
-    is at risk (last lesson was yesterday and no activity today). CIO Journey
-    picks this up and sends push-first.
+    Evening sweep: emit `streak_about_to_expire` for users whose streak is at
+    risk (last lesson was yesterday and no activity today). CIO Journey picks
+    this up and sends push-first.
+
+    Runs hourly and picks only the users for whom it is currently ~7pm *locally*.
+    Firing once a day on server time meant a user in Los Angeles got their
+    "save your streak" nudge at 11am and one in Auckland got it at 6am — long
+    before or after the moment the message is about. Profiles with no reported
+    timezone keep the old server-time behaviour.
     """
     from authentication.models import UserProfile
     from notifications.enums import CioEventName
@@ -115,18 +137,35 @@ def emit_streak_about_to_expire():
 
     today = timezone.localdate()
     yesterday = today - timedelta(days=1)
+    # Candidate window spans both server-local dates. `last_completed_date` is
+    # stored as a *server* (Europe/London) date while the send gate is the user's
+    # *local* hour, and for anything west of about UTC-4 the user's 7pm already
+    # falls on the next London day. Filtering on `yesterday` alone therefore
+    # nudged Americas users who had practised hours earlier and skipped the ones
+    # genuinely at risk. Widen here, then compare against the user's own
+    # yesterday below.
     profiles = (
         UserProfile.objects.filter(
             streak__gt=0,
-            last_completed_date=yesterday,
+            last_completed_date__in=(yesterday, today),
         )
         .select_related("user")
-        .only("user", "streak", "last_completed_date")
+        .only("user", "streak", "last_completed_date", "timezone_name")
     )
     publisher = NotificationEvents()
     sent = 0
+    skipped_hour = 0
     for profile in profiles.iterator():
-        cache_key = f"streak_expire_emit:{profile.user_id}:{today.isoformat()}"
+        local_now = _local_now_for(profile)
+        if local_now.hour != STREAK_NUDGE_LOCAL_HOUR:
+            skipped_hour += 1
+            continue
+        local_today = local_now.date()
+        if profile.last_completed_date != local_today - timedelta(days=1):
+            continue
+        # Dedupe on the user's own date so one nudge per local day, not per
+        # server day.
+        cache_key = f"streak_expire_emit:{profile.user_id}:{local_today.isoformat()}"
         if not cache.add(cache_key, True, timeout=90_000):
             continue
         ok, _ = publisher.track(
@@ -137,8 +176,10 @@ def emit_streak_about_to_expire():
         )
         if ok:
             sent += 1
-    logger.info("streak_about_to_expire_emitted count=%s", sent)
-    return {"sent": sent}
+    logger.info(
+        "streak_about_to_expire_emitted count=%s skipped_wrong_local_hour=%s", sent, skipped_hour
+    )
+    return {"sent": sent, "skipped_hour": skipped_hour}
 
 
 @shared_task(

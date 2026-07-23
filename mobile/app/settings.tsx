@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { registerForPushAndSubmitToken } from "../src/bootstrap/pushNotificationsMobile";
 import {
+  getPushPermissionStatus,
+  registerForPushAndSubmitToken,
+} from "../src/bootstrap/pushNotificationsMobile";
+import {
+  Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +23,7 @@ import {
   fetchUserSettings,
   patchUserSettings,
   queryKeys,
+  resolvePushEnabled,
   staleTimes,
   SUPPORTED_LANGUAGES,
   i18n,
@@ -92,9 +98,7 @@ export default function SettingsScreen() {
       billing_alerts: Boolean(p?.billing_alerts ?? true),
       marketing: Boolean(p?.marketing ?? false),
     });
-    setPushOn(
-      Boolean((d as Record<string, unknown>)?.push_notifications !== false),
-    );
+    setPushOn(resolvePushEnabled(d));
   }, [settingsQ.data]);
 
   useEffect(() => {
@@ -128,17 +132,36 @@ export default function SettingsScreen() {
         const result = await registerForPushAndSubmitToken();
         if (result.ok) {
           setPushOn(true);
-          patchPrefs({ push_notifications: true } as Parameters<
-            typeof patchUserSettings
-          >[0]);
+          patchPrefs({ push_notifications: true });
         } else {
+          // Once iOS/Android has recorded a denial the OS dialog never shows
+          // again — requestPermissionsAsync resolves "denied" instantly. Flipping
+          // the switch back with no explanation is what made re-enabling look
+          // broken; send the user to the system settings page instead.
           setPushOn(false);
+          const status = await getPushPermissionStatus();
+          if (status === "denied") {
+            Alert.alert(
+              t("settings.push.blockedTitle"),
+              t("settings.push.blockedBody"),
+              [
+                { text: t("common.cancel"), style: "cancel" },
+                {
+                  text: t("settings.push.openSettings"),
+                  onPress: () => void Linking.openSettings(),
+                },
+              ],
+            );
+          } else {
+            Alert.alert(
+              t("settings.push.failedTitle"),
+              result.message || t("settings.push.failedBody"),
+            );
+          }
         }
       } else {
         setPushOn(false);
-        patchPrefs({ push_notifications: false } as Parameters<
-          typeof patchUserSettings
-        >[0]);
+        patchPrefs({ push_notifications: false });
         try {
           await clearExpoPushToken();
         } catch {
@@ -151,7 +174,7 @@ export default function SettingsScreen() {
       }
       setPushBusy(false);
     },
-    [patchPrefs],
+    [patchPrefs, t],
   );
 
   const persistEmailBlock = useCallback(
@@ -246,6 +269,21 @@ export default function SettingsScreen() {
             ))}
           </View>
 
+          {/* These switches gate email *and* push for each topic — the backend
+              reads the same preference for both channels (see
+              notifications/policy.py::PUSH_CATEGORY_PREF), so a user who turns
+              "Streak alerts" off means it everywhere. */}
+          <Text
+            style={[
+              styles.fieldLabel,
+              { color: c.text, marginTop: spacing.md },
+            ]}
+          >
+            {t("settings.preferences.notificationTypes")}
+          </Text>
+          <Text style={[styles.cardLead, { color: c.textMuted }]}>
+            {t("settings.preferences.typesHint")}
+          </Text>
           <EmailToggleRow
             label={t("settings.preferences.emailTypes.reminders")}
             value={emailPrefs.reminders}

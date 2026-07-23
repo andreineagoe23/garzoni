@@ -278,11 +278,17 @@ class HeartsRefillDailyCapTest(APITestCase):
             response = self._drain_and_refill()
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # 4th instant refill of the day is blocked
+        # 4th instant refill of the day is blocked. Reported as 200 + a flag, not
+        # 4xx: clients shipped before the cap call this without a `.catch()`, and
+        # a rejected promise leaves their refill button dead with no message.
         response = self._drain_and_refill()
-        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data.get("refill_capped"))
         self.assertTrue(response.data.get("upgrade_hint"))
         self.assertIn("detail", response.data)
+        # And the cap really held — no hearts were granted.
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.hearts, 0)
 
     def test_full_refill_is_noop_and_does_not_consume_cap(self):
         # Already full -> no-op, no cap consumed

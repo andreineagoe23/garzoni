@@ -167,12 +167,45 @@ def sync_profile_login_analytics(sender, request, user, **kwargs):
             update_last_seen_platform(user, platform)
 
 
+@receiver(pre_save, sender=UserEmailPreference)
+def snapshot_marketing_opt_in(sender, instance, **kwargs):
+    """Remember the stored `marketing` value so post_save can spot an off→on flip."""
+    instance._marketing_was = None
+    if not instance.pk:
+        return
+    try:
+        instance._marketing_was = (
+            UserEmailPreference.objects.filter(pk=instance.pk)
+            .values_list("marketing", flat=True)
+            .first()
+        )
+    except Exception:  # pragma: no cover - defensive, never block a save
+        instance._marketing_was = None
+
+
 @receiver(post_save, sender=UserEmailPreference)
 def resync_cio_on_pref_change(sender, instance, created, **kwargs):
     """Propagate opt-in/frequency changes to Customer.io as profile traits."""
     user_id = getattr(instance, "user_id", None)
     if not user_id:
         return
+
+    # Opting back into marketing must clear the CIO-side `unsubscribed` flag as
+    # well. Profile traits never carry it (a blanket write would resurrect
+    # bounce-suppressed addresses on every sync), so without this explicit flip
+    # anyone who ever hit "unsubscribe" stayed unreachable forever — re-ticking
+    # the box in Settings looked like it worked but changed nothing in CIO.
+    if getattr(instance, "_marketing_was", None) is False and instance.marketing:
+        try:
+            from notifications.tasks import safe_enqueue_resubscribe_customer_in_cio
+
+            transaction.on_commit(lambda: safe_enqueue_resubscribe_customer_in_cio(str(user_id)))
+        except Exception:
+            logger.warning(
+                "safe_enqueue_resubscribe_customer_in_cio failed for user_id=%s",
+                user_id,
+                exc_info=True,
+            )
 
     def _enqueue():
         def _dispatch():

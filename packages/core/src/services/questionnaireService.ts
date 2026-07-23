@@ -113,6 +113,11 @@ export interface PlanSummaryLesson {
   id: number;
   title: string;
   topic?: string;
+  /**
+   * Course the lesson belongs to. The lesson-flow route is keyed by *course*,
+   * so deep-linking must use this, not `id`.
+   */
+  course_id?: number;
 }
 
 export interface PlanSummaryOutcome {

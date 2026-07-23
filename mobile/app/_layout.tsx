@@ -47,10 +47,16 @@ import {
 } from "@expo-google-fonts/inter";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 import { installGlobalInterFont } from "../src/theme/installFonts";
+import { ensureAndroidNotificationChannels } from "../src/bootstrap/pushNotificationsMobile";
 
 // Patch RN Text/TextInput once at module load so all text renders in Inter,
 // mapping each fontWeight to the matching Inter face (see installFonts.ts).
 installGlobalInterFont();
+
+// Android drops any notification posted to a channel that does not exist, and
+// locally scheduled reminders can fire long before push registration next runs.
+// Creating the channels at boot decouples them from the 24h re-registration gate.
+void ensureAndroidNotificationChannels();
 
 /** Root route segments reachable without a session (pre-auth + legal/reset). */
 const PUBLIC_ROOT_SEGMENTS = new Set([
@@ -178,6 +184,10 @@ function ThemedRoot() {
               <Stack.Screen name="quiz" options={{ headerShown: false }} />
               <Stack.Screen
                 name="onboarding"
+                options={{ headerShown: false, gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="push-prompt"
                 options={{ headerShown: false, gestureEnabled: false }}
               />
               <Stack.Screen

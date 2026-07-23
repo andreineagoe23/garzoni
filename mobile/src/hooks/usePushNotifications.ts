@@ -2,7 +2,12 @@ import { useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserSettings, queryKeys, staleTimes } from "@garzoni/core";
+import {
+  fetchUserSettings,
+  queryKeys,
+  resolvePushEnabled,
+  staleTimes,
+} from "@garzoni/core";
 import {
   registerForPushAndSubmitToken,
   setupNotificationResponseHandlers,
@@ -55,17 +60,27 @@ export function usePushNotifications(isAuthenticated: boolean) {
     staleTime: staleTimes.profile,
   });
 
-  const pushAllowed = settingsQ.data?.push_notifications !== false;
+  // The switch lives under `email_preferences.push_notifications`; reading the
+  // top-level key alone always yielded `undefined` (→ "allowed"), so a user who
+  // disabled push kept getting their token re-registered every 24h.
+  const pushAllowed = resolvePushEnabled(settingsQ.data);
 
   useEffect(() => {
-    if (!isAuthenticated || !pushAllowed) return;
+    if (!isAuthenticated) return;
 
-    // Deep-link routing for notification taps. Idempotent; safe to call here.
+    // Deep-link routing for notification taps. Idempotent, and independent of
+    // the push preference — locally scheduled reminders and notifications that
+    // arrived before the user opted out still need to route on tap.
     setupNotificationResponseHandlers();
+
+    if (!pushAllowed) return;
 
     async function tryRegister() {
       if (!(await shouldReregister())) return;
-      const result = await registerForPushAndSubmitToken();
+      // Never prompt from here: this runs on every foreground and would burn the
+      // one-shot iOS dialog cold, before the onboarding priming screen gets to
+      // make the case for it.
+      const result = await registerForPushAndSubmitToken({ prompt: false });
       if (result.ok) {
         await markRegistered();
         registeredRef.current = true;

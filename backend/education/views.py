@@ -1755,7 +1755,12 @@ def _handle_first_lesson_completion(user) -> bool:
     from education.models import LessonCompletion
 
     try:
-        if LessonCompletion.objects.filter(user_progress__user=user).count() != 1:
+        # `<= 1` rather than `== 1`: two near-simultaneous first completions both
+        # observe 2 and neither would grant the bonus. `mark_first_lesson` and
+        # `grant_reward` are both idempotent, so the worst case here is doing the
+        # work twice, versus silently skipping it. `[:2]` also avoids counting
+        # the whole table.
+        if len(LessonCompletion.objects.filter(user_progress__user=user)[:2]) > 1:
             return False
     except Exception:
         logger.warning("first-lesson check failed user_id=%s", user.id, exc_info=True)

@@ -12,6 +12,9 @@ import {
 } from "../src/auth/firstRunFlags";
 import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
+import { href } from "../src/navigation/href";
+import { getPushPermissionStatus } from "../src/bootstrap/pushNotificationsMobile";
+import { hasAskedForPush } from "../src/bootstrap/pushPromptState";
 
 const { width: SW } = Dimensions.get("window");
 const LOGO = require("../assets/garzoni-logo-square-no-bg.png");
@@ -28,6 +31,23 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 type OnboardingStatus = "pending" | "done" | "needs_onboarding";
 type WelcomeStatus = "pending" | "seen" | "unseen";
 type PlanStatus = "pending" | "chosen" | "not_chosen";
+type PushPromptStatus = "pending" | "not_needed" | "needed";
+
+/**
+ * Users who signed up on the web and later installed the app skip mobile
+ * onboarding entirely, so they never saw the push priming screen. Show it once,
+ * and only when the OS has not made up its mind yet — a granted or hard-denied
+ * permission has nothing left to prime.
+ */
+async function resolvePushPromptStatus(): Promise<PushPromptStatus> {
+  try {
+    if (await hasAskedForPush()) return "not_needed";
+    const status = await getPushPermissionStatus();
+    return status === "undetermined" ? "needed" : "not_needed";
+  } catch {
+    return "not_needed";
+  }
+}
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
@@ -35,6 +55,8 @@ export default function Index() {
   const [onboardingStatus, setOnboardingStatus] =
     useState<OnboardingStatus>("pending");
   const [planStatus, setPlanStatus] = useState<PlanStatus>("pending");
+  const [pushPromptStatus, setPushPromptStatus] =
+    useState<PushPromptStatus>("pending");
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -58,12 +80,24 @@ export default function Index() {
           setWelcomeStatus(seen ? "seen" : "unseen");
           setOnboardingStatus("done");
           setPlanStatus("chosen");
+          setPushPromptStatus("not_needed");
         }
       })();
       return () => {
         cancelled = true;
       };
     }
+
+    void (async () => {
+      // This gates the splash for every authenticated cold start, so it gets the
+      // same timeout treatment as the other boot probes — a hung native
+      // permissions call must never strand the user on the loading screen.
+      const pushPrompt = await withTimeout(
+        resolvePushPromptStatus(),
+        3000,
+      ).catch<PushPromptStatus>(() => "not_needed");
+      if (!cancelled) setPushPromptStatus(pushPrompt);
+    })();
 
     void (async () => {
       try {
@@ -113,7 +147,9 @@ export default function Index() {
     !hydrated ||
     (!accessToken && welcomeStatus === "pending") ||
     (accessToken &&
-      (onboardingStatus === "pending" || planStatus === "pending"))
+      (onboardingStatus === "pending" ||
+        planStatus === "pending" ||
+        pushPromptStatus === "pending"))
   ) {
     return (
       <Animated.View style={[styles.root, { opacity: fadeAnim }]}>
@@ -181,6 +217,10 @@ export default function Index() {
 
   if (planStatus === "not_chosen") {
     return <Redirect href="/subscriptions?onboarding=true" />;
+  }
+
+  if (pushPromptStatus === "needed") {
+    return <Redirect href={href("/push-prompt")} />;
   }
 
   return <Redirect href="/(tabs)" />;

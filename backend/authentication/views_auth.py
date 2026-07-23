@@ -354,16 +354,20 @@ class LoginSecureView(APIView):
             #    hash), closing the user-enumeration side channel;
             #  - returns one uniform error for missing user / wrong password /
             #    inactive, so the response body can't be used to enumerate users.
-            user = authenticate(request, username=username, password=password)
-            if user is None and "@" in username:
-                # Slim login (UX Phase 2, plan §2.1): accept email as the login
-                # identifier. Username auth failed and the identifier looks like
-                # an email — resolve it to the account's username and retry
-                # through the same auth backend (keeps is_active / timing /
-                # uniform-error behavior).
+            # Slim login (UX Phase 2, plan §2.1): accept email as the login
+            # identifier. Resolve it to the account's username *before*
+            # authenticating rather than authenticating twice — the failed first
+            # attempt fired `user_login_failed`, so django-axes recorded an
+            # AccessAttempt against (ip, <email>) on every *successful* email
+            # login. That key is never reset (success resets the username key), so
+            # it accumulated junk rows, and ModelBackend's dummy hash on the miss
+            # meant two full PBKDF2 runs per login.
+            login_name = username
+            if "@" in username:
                 email_user = _resolve_user_by_email(username)
                 if email_user is not None:
-                    user = authenticate(request, username=email_user.username, password=password)
+                    login_name = email_user.username
+            user = authenticate(request, username=login_name, password=password)
             if user is None:
                 logger.warning("Invalid credentials for username: %s", mask_identifier(username))
                 return Response(

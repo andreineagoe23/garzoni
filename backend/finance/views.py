@@ -3415,6 +3415,10 @@ class FunnelEventIngestView(APIView):
         "exit_intent_accepted",
         "exit_intent_declined",
         "promo_web_fullprice_click",
+        # Web promo CTA that sends the user to the app store to claim the offer.
+        # Missing from this set, it 400d silently (recordFunnelEvent swallows the
+        # error), so the primary promo CTA was unmeasured.
+        "promo_app_redirect",
         # Signup + activation funnel (UX Phase 2)
         "register_step_view",
         "register_step_continue",

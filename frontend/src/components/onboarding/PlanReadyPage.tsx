@@ -15,41 +15,10 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GlassCard, GlassButton } from "components/ui";
 import Loader from "components/common/Loader";
-import apiClient from "services/httpClient";
+import { fetchPlanSummary, type PlanSummary } from "@garzoni/core";
 import { recordFunnelEvent } from "services/analyticsService";
 
-// TODO(i18n): copy below is hardcoded English pending translation keys in
-// packages/core (owned by another agent). See task report.
-
 const DASHBOARD_ROUTE = "/all-topics";
-
-interface StatedGoal {
-  key: string;
-  label: string;
-}
-
-interface CuratedLesson {
-  id: number;
-  title: string;
-  topic?: string;
-}
-
-interface ProjectedOutcome {
-  text: string;
-  target_date?: string;
-}
-
-interface PlanSummary {
-  stated_goals?: StatedGoal[];
-  timeframe?: string;
-  risk_comfort?: string;
-  curated_lessons?: CuratedLesson[];
-  projected_outcome?: ProjectedOutcome | null;
-  recommended_tier?: string;
-}
-
-const fetchPlanSummary = (): Promise<PlanSummary> =>
-  apiClient.get<PlanSummary>("/onboarding/plan-summary/").then((r) => r.data);
 
 const PlanReadyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -89,6 +58,16 @@ const PlanReadyPage: React.FC = () => {
         recommended_tier: recommendedTier ?? null,
       })
     ).catch(() => {});
+    // Honour the paywall-placement experiment arm (UX 3.5). Mobile already
+    // defers the paywall until after the first lesson; web ignoring the flag
+    // meant the arms diverged by platform and the experiment could not be read.
+    if (summary?.paywall_placement === "post_first_lesson") {
+      // Straight into learning; the paywall comes after the first lesson.
+      // Deliberately not deep-linking a curated lesson — the web course route is
+      // keyed by path/course id, not lesson id.
+      navigate(DASHBOARD_ROUTE);
+      return;
+    }
     const params = new URLSearchParams({ from: "plan_ready" });
     if (recommendedTier) params.set("recommended", recommendedTier);
     navigate(`/subscriptions?${params.toString()}`);

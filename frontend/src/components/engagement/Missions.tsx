@@ -13,7 +13,7 @@ import { useAuth } from "contexts/AuthContext";
 import type { Mission, UserProfile } from "types/api";
 import { GlassCard } from "components/ui";
 import toast from "react-hot-toast";
-import { getUserLevel } from "utils/userLevel";
+import { getUserLevel } from "@garzoni/core";
 import {
   getOfflineQueue,
   removeFromQueue,

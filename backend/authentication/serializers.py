@@ -1,5 +1,7 @@
 # authentication/serializers.py
 import logging
+import secrets
+import uuid
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -32,12 +34,19 @@ def generate_username_from_email(email: str) -> str:
     local_part = (email or "").split("@", 1)[0]
     base = slugify(local_part).replace("-", "") or "user"
     base = base[:_AUTO_USERNAME_MAX_BASE_LENGTH]
-    candidate = base
-    suffix = 1
-    while User.objects.filter(username__iexact=candidate).exists():
-        suffix += 1
-        candidate = f"{base}{suffix}"
-    return candidate
+    if not User.objects.filter(username__iexact=base).exists():
+        return base
+    # Contended base ("user", "info", "admin" — every address whose local part
+    # slugifies to nothing lands on "user"). A sequential probe is both O(n)
+    # queries and check-then-insert: two concurrent signups resolve the same
+    # candidate and the second INSERT raises IntegrityError. A random suffix is
+    # one query and collides only by chance; retry a few times, then give up and
+    # let the unique constraint speak.
+    for _ in range(5):
+        candidate = f"{base}{secrets.token_hex(2)}"[: _AUTO_USERNAME_MAX_BASE_LENGTH + 4]
+        if not User.objects.filter(username__iexact=candidate).exists():
+            return candidate
+    return f"{base}{uuid.uuid4().hex[:8]}"
 
 
 # Serializer for user registration, including optional referral code handling.

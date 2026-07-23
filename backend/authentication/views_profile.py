@@ -100,6 +100,11 @@ class UserSettingsView(generics.GenericAPIView):
                 "dark_mode": user_profile.dark_mode,
                 "sound_enabled": user_profile.sound_enabled,
                 "animations_enabled": user_profile.animations_enabled,
+                # Mirrored at the top level as well: the mobile push toggle and
+                # usePushNotifications read `push_notifications` here, not nested
+                # under email_preferences. Without the mirror the master switch
+                # always resolved to "on" client-side.
+                "push_notifications": email_prefs.push_notifications,
                 "email_preferences": UserEmailPreferenceSerializer(email_prefs).data,
                 "profile": {
                     **user_display_dict(request.user, include_email=True),
@@ -150,6 +155,27 @@ class UserSettingsView(generics.GenericAPIView):
                     "marketing": False,
                 },
             )
+            # Mobile sends the push master switch at the top level
+            # (`{"push_notifications": false}`); it used to be dropped silently
+            # here, so disabling push never persisted and the toggle snapped
+            # back on the next refetch. Fold it into the nested payload.
+            top_level_push = request.data.get("push_notifications")
+            if top_level_push is not None:
+                # `bool("false")` is True — parse the string forms too, since form
+                # posts and some clients send them.
+                if isinstance(top_level_push, str):
+                    parsed_push = top_level_push.strip().lower() not in (
+                        "false",
+                        "0",
+                        "no",
+                        "",
+                    )
+                else:
+                    parsed_push = bool(top_level_push)
+                merged = dict(email_preferences_payload or {})
+                merged.setdefault("push_notifications", parsed_push)
+                email_preferences_payload = merged
+
             if email_preferences_payload:
                 email_serializer = UserEmailPreferenceSerializer(
                     email_prefs, data=email_preferences_payload, partial=True
@@ -183,6 +209,7 @@ class UserSettingsView(generics.GenericAPIView):
                     "email_reminder_preference": user_profile.email_reminder_preference,
                     "sound_enabled": user_profile.sound_enabled,
                     "animations_enabled": user_profile.animations_enabled,
+                    "push_notifications": email_prefs.push_notifications,
                     "email_preferences": UserEmailPreferenceSerializer(email_prefs).data,
                 }
             )

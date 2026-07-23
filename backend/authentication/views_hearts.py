@@ -16,10 +16,17 @@ from authentication.services.hearts import (
 from authentication.throttles import HeartsGrantRateThrottle, HeartsRefillRateThrottle
 
 
-# Free (starter) users get a small number of *instant* refills per day so the
-# hearts scarcity mechanic has teeth; Plus/Pro are effectively unlimited (still
-# bounded by the outer HeartsRefillRateThrottle). Overridable via settings.
-FREE_REFILL_DAILY_CAP = getattr(settings, "HEARTS_FREE_REFILL_DAILY_CAP", 3)
+def _free_refill_daily_cap() -> int:
+    """
+    Free (starter) users get a small number of *instant* refills per day so the
+    hearts scarcity mechanic has teeth; Plus/Pro are effectively unlimited (still
+    bounded by the outer HeartsRefillRateThrottle).
+
+    Read per call, not at import: as a module constant the setting could not be
+    changed at runtime, `override_settings` was inert in tests, and the env var
+    was unusable as a kill switch.
+    """
+    return int(getattr(settings, "HEARTS_FREE_REFILL_DAILY_CAP", 3))
 
 
 def _refill_cap_cache_key(user_id, day):
@@ -147,20 +154,30 @@ class UserHeartsRefillView(APIView):
             # what gives the scarcity mechanic teeth and the upgrade CTA a payoff.
             is_premium = _profile_is_premium(profile)
             if not is_premium:
+                cap = _free_refill_daily_cap()
                 used_today = _refills_used_today(request.user.pk, now)
-                if used_today >= FREE_REFILL_DAILY_CAP:
-                    return Response(
+                if used_today >= cap:
+                    # 200, not 429. Clients shipped before this cap existed call
+                    # this endpoint as `refill().then(closeModal)` with no
+                    # `.catch()`, so a 4xx rejects unhandled and the button just
+                    # does nothing — no message, modal stuck open — until the user
+                    # updates. Returning the normal hearts payload plus a flag
+                    # lets old clients degrade to "modal closes, nothing changed"
+                    # while current clients branch on `refill_capped`.
+                    payload = hearts_payload(profile, now=now)
+                    payload.update(
                         {
+                            "refill_capped": True,
                             "detail": (
                                 "You've used all your free heart refills for today. "
                                 "Upgrade to Plus for faster, unlimited refills."
                             ),
                             "upgrade_hint": True,
-                            "refill_daily_cap": FREE_REFILL_DAILY_CAP,
+                            "refill_daily_cap": cap,
                             "refills_used_today": used_today,
-                        },
-                        status=429,
+                        }
                     )
+                    return Response(payload)
 
             profile.hearts = max_hearts
             profile.hearts_last_refill_at = now

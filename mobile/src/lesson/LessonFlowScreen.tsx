@@ -1188,12 +1188,20 @@ export default function LessonFlowScreen({
                 onPress={() =>
                   void (async () => {
                     try {
-                      await refillHeartsSafe();
+                      // The daily cap comes back as 200 + `refill_capped` so
+                      // pre-cap clients degrade gracefully; the 429/403 branch
+                      // stays for servers not yet on that behaviour.
+                      const result = await refillHeartsSafe();
+                      if (
+                        (result as { refill_capped?: boolean } | null)
+                          ?.refill_capped
+                      ) {
+                        setRefillCapReached(true);
+                        return;
+                      }
                       setRefillCapReached(false);
                       setOutOfHeartsVisible(false);
                     } catch (e) {
-                      // Backend returns 429/403 + { upgrade_hint: true } once the
-                      // free daily refill cap is hit — surface the upgrade path.
                       const resp = (
                         e as {
                           response?: {

@@ -105,10 +105,13 @@ export function installGlobalInterFont(): void {
         return originalRender.call(this, props, ref);
       }
 
-      const nextProps: Record<string, unknown> = {
-        ...props,
-        style: [(props as { style?: unknown }).style, patch],
-      };
+      const nextProps: Record<string, unknown> = { ...props };
+      // Only rewrap the style when there is actually something to merge — the
+      // font-scale cap alone reaches here with an empty patch, and wrapping
+      // allocated a new array on every Text render.
+      if (Object.keys(patch).length > 0) {
+        nextProps.style = [(props as { style?: unknown }).style, patch];
+      }
       if (capFontScale) {
         nextProps.maxFontSizeMultiplier = MAX_FONT_SCALE;
       }

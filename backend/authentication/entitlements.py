@@ -318,13 +318,16 @@ PROMO_CAMPAIGN = {
     "percent_off": 60,
     "starts_on": date(2026, 7, 11),
     "ends_on": date(2026, 8, 31),
+    # Yearly only. The monthly entries (£2.79 / £3.19) were advertised for weeks
+    # with no store offer behind them anywhere — Play has no offer on
+    # plus-monthly/pro-monthly, RevenueCat Web Billing has none on any product,
+    # and the App Store intro offers are on the yearly products. Quoting a price
+    # nothing can charge is worse than quoting none.
     "prices": {
         ("plus", "yearly"): 23.99,
         ("pro", "yearly"): 27.99,
-        ("plus", "monthly"): 2.79,
-        ("pro", "monthly"): 3.19,
     },
-    "duration_labels": {"yearly": "first year", "monthly": "first 3 months"},
+    "duration_labels": {"yearly": "first year"},
 }
 
 

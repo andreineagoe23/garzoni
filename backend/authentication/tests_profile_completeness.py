@@ -1,8 +1,11 @@
 """profile_completeness meter math (UX Phase 3, plan §3.3).
 
-Weights: questionnaire 40, first lesson 20, name 10, avatar 10,
-notifications (push token) 10, any tool used 10. A fresh post-quiz user lands
-~40-50 and never 0; completeness_next names the highest-value missing item.
+Weights: questionnaire 40, first lesson 20, name 10, avatar 10, any tool used 10,
+plus notifications (push token) 10 for accounts seen on a device. The score is a
+percentage of the items that *apply*, so a web-only user — who can never hold an
+Expo token — can still reach 100 instead of being capped at 90 and nudged forever
+toward something they cannot do. completeness_next names the highest-value
+missing item.
 """
 
 from django.contrib.auth import get_user_model
@@ -39,10 +42,11 @@ class ProfileCompletenessTests(TestCase):
         self.assertEqual(payload["profile_completeness"], 0)
         self.assertEqual(payload["completeness_next"], "questionnaire")
 
-    def test_fresh_post_quiz_user_lands_40(self):
+    def test_fresh_post_quiz_user_lands_mid_range(self):
         self._complete_questionnaire()
         payload = self._payload()
-        self.assertEqual(payload["profile_completeness"], 40)
+        # 40 of the 90 points that apply to a web-only account.
+        self.assertEqual(payload["profile_completeness"], 44)
         # Highest-value missing item after the questionnaire is the first lesson.
         self.assertEqual(payload["completeness_next"], "first_lesson")
 
@@ -52,12 +56,39 @@ class ProfileCompletenessTests(TestCase):
         self.user.save(update_fields=["first_name"])
         self.profile.first_lesson_at = timezone.now()
         self.profile.profile_avatar = "https://cdn.example.com/a.png"
-        self.profile.expo_push_token = "ExponentPushToken[abc]"
-        self.profile.save(update_fields=["first_lesson_at", "profile_avatar", "expo_push_token"])
+        self.profile.save(update_fields=["first_lesson_at", "profile_avatar"])
         payload = self._payload()
-        # 40 + 20 + 10 + 10 + 10 = 90; only "any tool used" (10) is missing.
-        self.assertEqual(payload["profile_completeness"], 90)
+        # 80 of the 90 points that apply; only "any tool used" (10) is missing.
+        self.assertEqual(payload["profile_completeness"], 89)
         self.assertEqual(payload["completeness_next"], "tool")
+
+    def test_web_only_account_can_reach_100(self):
+        """The push-token item is mobile-only; scoring it against a web user
+        capped them at 90% forever."""
+        from finance.models import FunnelEvent
+
+        self._complete_questionnaire()
+        self.user.first_name = "Ada"
+        self.user.save(update_fields=["first_name"])
+        self.profile.first_lesson_at = timezone.now()
+        self.profile.profile_avatar = "https://cdn.example.com/a.png"
+        self.profile.save(update_fields=["first_lesson_at", "profile_avatar"])
+        FunnelEvent.objects.create(user=self.user, event_type="tool_open")
+
+        payload = self._payload()
+
+        self.assertEqual(payload["profile_completeness"], 100)
+        self.assertIsNone(payload["completeness_next"])
+
+    def test_mobile_account_is_scored_on_notifications(self):
+        self._complete_questionnaire()
+        self.profile.last_seen_platform = "ios"
+        self.profile.save(update_fields=["last_seen_platform"])
+
+        payload = self._payload()
+
+        # 40 of 100 now that the mobile-only item counts.
+        self.assertEqual(payload["profile_completeness"], 40)
 
     def test_mirrored_into_user_data(self):
         self._complete_questionnaire()

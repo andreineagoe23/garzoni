@@ -242,6 +242,53 @@ def suppress_customer_in_cio(self, customer_id: str, email: str | None = None) -
     return "ok" if ok else f"failed:{err}"
 
 
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=30,
+    retry_kwargs={"max_retries": 3},
+)
+def resubscribe_customer_in_cio(self, customer_id: str) -> str:
+    """
+    Clear ``unsubscribed`` on a Customer.io profile after the user opts back into
+    marketing from Settings or the preferences centre.
+
+    Counterpart to :func:`suppress_customer_in_cio`. Profile identify never carries
+    ``unsubscribed`` (writing it on every sync would undo bounce suppression), so
+    re-subscription has to be an explicit, one-shot flip on the off→on transition.
+    """
+    pid = (customer_id or "").strip()
+    if not pid:
+        return "skipped_no_id"
+    from notifications.customer_io import identify_person
+
+    ok, err = identify_person(pid, {"unsubscribed": False})
+    logger.info("cio_resubscribe id=%s ok=%s err=%s", pid, ok, err)
+    return "ok" if ok else f"failed:{err}"
+
+
+def safe_enqueue_resubscribe_customer_in_cio(customer_id: str) -> None:
+    """Queue the re-subscribe without failing the caller if Celery/Redis is down."""
+    cid = (str(customer_id) if customer_id is not None else "").strip()
+    if not cid:
+        return
+    try:
+        resubscribe_customer_in_cio.delay(cid)
+        return
+    except Exception:
+        logger.warning(
+            "resubscribe_customer_in_cio.delay failed id=%s — broker may be down, running inline",
+            cid,
+            exc_info=True,
+        )
+    try:
+        from notifications.customer_io import identify_person
+
+        identify_person(cid, {"unsubscribed": False})
+    except Exception:
+        logger.warning("inline CIO resubscribe raised id=%s", cid, exc_info=True)
+
+
 def safe_enqueue_suppress_customer_in_cio(customer_id: str, email: str | None = None) -> None:
     """Queue CIO suppression without failing the caller (e.g. a webhook) if Celery/Redis
     is down — falls back to an inline identify so the bounce is still suppressed."""
@@ -263,6 +310,133 @@ def safe_enqueue_suppress_customer_in_cio(customer_id: str, email: str | None = 
         identify_person(cid, {"unsubscribed": True})
     except Exception:
         logger.warning("inline CIO suppress raised id=%s", cid, exc_info=True)
+
+
+# ---------------------------------------------------------------------------
+# Expo delivery receipts
+# ---------------------------------------------------------------------------
+
+# Expo keeps receipts for ~24h. Give APNs/FCM a few minutes to report before
+# asking, and stop asking once the receipt can no longer exist.
+RECEIPT_MIN_AGE_SECONDS = 15 * 60
+RECEIPT_MAX_AGE_HOURS = 24
+RECEIPT_BATCH_SIZE = 300
+
+
+@shared_task(bind=True, max_retries=1)
+def poll_expo_push_receipts(self) -> dict:
+    """
+    Ask Expo what actually happened to the pushes we sent.
+
+    A ticket from `/push/send` only means "queued". Every real failure mode —
+    a revoked APNs key (`InvalidCredentials`), a wrong FCM sender
+    (`MismatchSenderId`), an uninstalled app (`DeviceNotRegistered`) — is
+    reported here and nowhere else. Run it on a schedule so a dead credential
+    shows up in hours instead of being invisible until someone notices they
+    have not had a notification in months.
+    """
+    from django.utils import timezone as dj_timezone
+
+    from notifications.expo_push import (
+        FATAL_RECEIPT_ERRORS,
+        _clear_stale_expo_token,
+        fetch_expo_receipts,
+    )
+    from notifications.models import PushTicket
+
+    now = dj_timezone.now()
+    from datetime import timedelta
+
+    pending = list(
+        PushTicket.objects.filter(
+            status=PushTicket.STATUS_PENDING,
+            created_at__lte=now - timedelta(seconds=RECEIPT_MIN_AGE_SECONDS),
+            created_at__gte=now - timedelta(hours=RECEIPT_MAX_AGE_HOURS),
+        ).order_by("created_at")[:RECEIPT_BATCH_SIZE]
+    )
+
+    # Anything older than the retention window will never get a receipt.
+    expired = PushTicket.objects.filter(
+        status=PushTicket.STATUS_PENDING,
+        created_at__lt=now - timedelta(hours=RECEIPT_MAX_AGE_HOURS),
+    ).update(status=PushTicket.STATUS_EXPIRED, checked_at=now)
+
+    if not pending:
+        return {"checked": 0, "ok": 0, "errors": 0, "expired": expired}
+
+    by_id = {t.ticket_id: t for t in pending}
+    receipts, err = fetch_expo_receipts(list(by_id.keys()))
+    if err:
+        logger.warning("expo_receipts_fetch_failed err=%s", err)
+        return {"checked": 0, "ok": 0, "errors": 0, "expired": expired, "fetch_error": err}
+
+    ok_count = 0
+    error_count = 0
+    fatal_codes: dict[str, int] = {}
+
+    for tid, receipt in receipts.items():
+        ticket = by_id.get(tid)
+        if ticket is None or not isinstance(receipt, dict):
+            continue
+        ticket.checked_at = now
+        if receipt.get("status") == "ok":
+            ticket.status = PushTicket.STATUS_OK
+            ok_count += 1
+            ticket.save(update_fields=["status", "checked_at"])
+            continue
+
+        details = receipt.get("details") or {}
+        code = str(details.get("error") or "") if isinstance(details, dict) else ""
+        ticket.status = PushTicket.STATUS_ERROR
+        ticket.error_code = code[:64]
+        ticket.detail = str(receipt.get("message") or "")[:1000]
+        ticket.save(update_fields=["status", "error_code", "detail", "checked_at"])
+        error_count += 1
+
+        if code == "DeviceNotRegistered" and ticket.token:
+            # Guard the empty token: an unfiltered clear would match every profile
+            # whose token is "" and null them all in one statement.
+            _clear_stale_expo_token(ticket.token, user_id=ticket.user_id)
+        elif code in FATAL_RECEIPT_ERRORS:
+            fatal_codes[code] = fatal_codes.get(code, 0) + 1
+
+    if fatal_codes:
+        # Sender-side breakage: not one user's problem, the whole channel's.
+        logger.error(
+            "expo_push_credentials_broken codes=%s — push is failing at the gateway for "
+            "every device. Check `eas credentials` (iOS push key still present in Apple "
+            "Developer?) and the FCM server key.",
+            fatal_codes,
+        )
+
+    logger.info(
+        "expo_receipts_polled checked=%s ok=%s errors=%s expired=%s",
+        len(receipts),
+        ok_count,
+        error_count,
+        expired,
+    )
+    return {
+        "checked": len(receipts),
+        "ok": ok_count,
+        "errors": error_count,
+        "expired": expired,
+        "fatal": fatal_codes,
+    }
+
+
+@shared_task
+def prune_push_tickets(days: int = 7) -> int:
+    """Drop resolved tickets older than `days`; the table is a diagnostic buffer."""
+    from datetime import timedelta
+
+    from django.utils import timezone as dj_timezone
+
+    from notifications.models import PushTicket
+
+    cutoff = dj_timezone.now() - timedelta(days=days)
+    deleted, _ = PushTicket.objects.filter(created_at__lt=cutoff).delete()
+    return deleted
 
 
 # ---------------------------------------------------------------------------

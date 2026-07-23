@@ -98,6 +98,10 @@ class UserProfile(models.Model):
     investing_experience = models.CharField(max_length=32, blank=True, default="")
     # Expo / mobile push (lesson reminders, streak alerts); updated via POST /api/auth/push-token/
     expo_push_token = models.CharField(max_length=200, blank=True, null=True)
+    # IANA zone reported by the device (e.g. "Europe/Bucharest"), sent alongside the
+    # push token. Evening nudges are worthless if they land at 04:00 local, so the
+    # streak sweep runs hourly and only picks users whose *local* hour matches.
+    timezone_name = models.CharField(max_length=64, blank=True, default="")
     # Sign in with Apple: stable subject from Apple identity token (`sub` claim)
     apple_sub = models.CharField(
         max_length=255,
@@ -264,6 +268,15 @@ class UserProfile(models.Model):
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
         db_table = "core_userprofile"
+        indexes = [
+            # The streak-at-risk sweep runs hourly now (once per local-evening
+            # timezone) instead of once a day, so its candidate query went from
+            # one sequential scan of this table per day to 24.
+            models.Index(
+                fields=["last_completed_date", "streak"],
+                name="userprofile_streak_idx",
+            ),
+        ]
 
 
 class UserEmailPreference(models.Model):

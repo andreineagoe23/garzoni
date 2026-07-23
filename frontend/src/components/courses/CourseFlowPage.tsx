@@ -2155,8 +2155,20 @@ function CourseFlowPage() {
                 type="button"
                 onClick={async () => {
                   try {
-                    await refillHeartsSafe();
+                    // The free daily cap comes back as 200 + `refill_capped`
+                    // (not a 4xx, so older clients don't hang on an unhandled
+                    // rejection). Tell the user instead of silently closing.
+                    const result = await refillHeartsSafe();
+                    if (
+                      (result as { refill_capped?: boolean } | null)
+                        ?.refill_capped
+                    ) {
+                      toast.error(t("courses.flow.refillCapReached"));
+                      return;
+                    }
                     toast.success(t("courses.flow.heartsRefilled"));
+                  } catch {
+                    toast.error(t("courses.flow.refillFailed"));
                   } finally {
                     setOutOfHeartsModalOpen(false);
                   }

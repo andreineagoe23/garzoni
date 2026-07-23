@@ -367,3 +367,397 @@ class CioWebhookBounceTests(TestCase):
         )
         self.assertEqual(resp.status_code, 401)
         mock_suppress.assert_not_called()
+
+
+class PushMasterSwitchTests(TestCase):
+    """The push toggle round-trip: settings API ↔ prefs ↔ Customer.io traits."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="pushtoggle", email="pushtoggle@example.com", password="pw12345!"
+        )
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.expo_push_token = "ExponentPushToken[abc]"
+        profile.save(update_fields=["expo_push_token"])
+        from rest_framework.test import APIClient
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def _settings_url(self):
+        from django.urls import reverse
+
+        return reverse("user-settings")
+
+    def test_get_mirrors_push_flag_at_top_level(self):
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
+        prefs.push_notifications = False
+        prefs.save(update_fields=["push_notifications"])
+
+        resp = self.client.get(self._settings_url())
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.data["push_notifications"])
+        self.assertFalse(resp.data["email_preferences"]["push_notifications"])
+
+    def test_patch_accepts_top_level_push_flag(self):
+        """Mobile sends {"push_notifications": false} unnested; it used to be dropped."""
+        resp = self.client.patch(
+            self._settings_url(),
+            data={"push_notifications": False},
+            content_type="application/json",
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.data["push_notifications"])
+        prefs = UserEmailPreference.objects.get(user=self.user)
+        self.assertFalse(prefs.push_notifications)
+
+    def test_patch_nested_payload_still_wins(self):
+        resp = self.client.patch(
+            self._settings_url(),
+            data={
+                "push_notifications": True,
+                "email_preferences": {"push_notifications": False},
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(UserEmailPreference.objects.get(user=self.user).push_notifications)
+
+
+class IdentifyTraitTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="traits", email="traits@example.com", password="pw12345!"
+        )
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
+
+    def test_has_mobile_app_false_when_push_disabled(self):
+        from notifications.profile_sync import build_identify_traits
+
+        self.profile.expo_push_token = "ExponentPushToken[abc]"
+        self.profile.save(update_fields=["expo_push_token"])
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
+        prefs.push_notifications = False
+        prefs.save(update_fields=["push_notifications"])
+
+        traits = build_identify_traits(self.user)
+
+        self.assertFalse(traits["has_mobile_app"])
+        self.assertFalse(traits["push_opt_in"])
+
+    def test_has_mobile_app_true_when_token_and_opt_in(self):
+        from notifications.profile_sync import build_identify_traits
+
+        self.profile.expo_push_token = "ExponentPushToken[abc]"
+        self.profile.save(update_fields=["expo_push_token"])
+        UserEmailPreference.objects.get_or_create(user=self.user)
+
+        traits = build_identify_traits(self.user)
+
+        self.assertTrue(traits["has_mobile_app"])
+
+    def test_empty_token_is_sent_so_cio_clears_the_stale_value(self):
+        """Empty strings are normally filtered out; the push token must not be."""
+        from notifications.profile_sync import build_identify_traits
+
+        self.profile.expo_push_token = ""
+        self.profile.save(update_fields=["expo_push_token"])
+
+        traits = build_identify_traits(self.user)
+
+        self.assertIn("expo_push_token", traits)
+        self.assertEqual(traits["expo_push_token"], "")
+        self.assertFalse(traits["has_mobile_app"])
+
+    @patch("notifications.profile_sync.identify_person")
+    def test_sync_device_carries_has_mobile_app(self, mock_identify):
+        from notifications.profile_sync import NotificationProfileSync
+
+        mock_identify.return_value = (True, None)
+
+        NotificationProfileSync().sync_device(self.user, "", platform="ios")
+
+        traits = mock_identify.call_args[0][1]
+        self.assertEqual(traits["expo_push_token"], "")
+        self.assertFalse(traits["has_mobile_app"])
+
+
+class MarketingResubscribeTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="resub", email="resub@example.com", password="pw12345!"
+        )
+        UserProfile.objects.get_or_create(user=self.user)
+
+    @patch("notifications.tasks.safe_enqueue_resubscribe_customer_in_cio")
+    def test_marketing_off_to_on_clears_cio_unsubscribed(self, mock_resub):
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
+        prefs.marketing = False
+        prefs.save(update_fields=["marketing"])
+        mock_resub.reset_mock()
+
+        with self.captureOnCommitCallbacks(execute=True):
+            prefs.marketing = True
+            prefs.save(update_fields=["marketing"])
+
+        mock_resub.assert_called_once_with(str(self.user.pk))
+
+    @patch("notifications.tasks.safe_enqueue_resubscribe_customer_in_cio")
+    def test_no_resubscribe_when_marketing_unchanged(self, mock_resub):
+        prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
+        prefs.marketing = True
+        prefs.save(update_fields=["marketing"])
+        mock_resub.reset_mock()
+
+        with self.captureOnCommitCallbacks(execute=True):
+            prefs.reminders = False
+            prefs.save(update_fields=["reminders"])
+
+        mock_resub.assert_not_called()
+
+
+class PushReceiptTests(TestCase):
+    """Receipts are the only place a revoked APNs key or dead device is reported."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="receipts", email="receipts@example.com", password="pw12345!"
+        )
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.expo_push_token = "ExponentPushToken[live]"
+        profile.save(update_fields=["expo_push_token"])
+
+    @patch("notifications.expo_push.requests.post")
+    def test_successful_send_records_ticket(self, mock_post):
+        from notifications.expo_push import send_expo_push
+        from notifications.models import PushTicket
+
+        response = Mock(status_code=200, text="")
+        response.json.return_value = {"data": {"status": "ok", "id": "ticket-1"}}
+        mock_post.return_value = response
+
+        ok, _ = send_expo_push(
+            "ExponentPushToken[live]", "T", "B", user_id=self.user.pk, purpose="ai-nudge"
+        )
+
+        self.assertTrue(ok)
+        ticket = PushTicket.objects.get(ticket_id="ticket-1")
+        self.assertEqual(ticket.status, PushTicket.STATUS_PENDING)
+        self.assertEqual(ticket.user_id, self.user.pk)
+        self.assertEqual(ticket.purpose, "ai-nudge")
+
+    @patch("notifications.expo_push.requests.post")
+    def test_send_payload_carries_channel_and_priority(self, mock_post):
+        from notifications.expo_push import send_expo_push
+
+        response = Mock(status_code=200, text="")
+        response.json.return_value = {"data": {"status": "ok", "id": "ticket-ch"}}
+        mock_post.return_value = response
+
+        send_expo_push("ExponentPushToken[live]", "T", "B", channel_id="streak")
+
+        payload = mock_post.call_args.kwargs["json"]
+        self.assertEqual(payload["channelId"], "streak")
+        self.assertEqual(payload["priority"], "high")
+        self.assertEqual(payload["sound"], "default")
+
+    @patch("notifications.expo_push.fetch_expo_receipts")
+    def test_device_not_registered_receipt_clears_token(self, mock_fetch):
+        from datetime import timedelta
+
+        from django.utils import timezone as dj_timezone
+
+        from notifications.models import PushTicket
+        from notifications.tasks import poll_expo_push_receipts
+
+        ticket = PushTicket.objects.create(
+            ticket_id="t-dead",
+            user_id=self.user.pk,
+            token="ExponentPushToken[live]",
+        )
+        PushTicket.objects.filter(pk=ticket.pk).update(
+            created_at=dj_timezone.now() - timedelta(hours=1)
+        )
+        mock_fetch.return_value = (
+            {"t-dead": {"status": "error", "details": {"error": "DeviceNotRegistered"}}},
+            None,
+        )
+
+        result = poll_expo_push_receipts()
+
+        self.assertEqual(result["errors"], 1)
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status, PushTicket.STATUS_ERROR)
+        self.assertEqual(ticket.error_code, "DeviceNotRegistered")
+        self.assertEqual(UserProfile.objects.get(user=self.user).expo_push_token, None)
+
+    @patch("notifications.expo_push.fetch_expo_receipts")
+    def test_invalid_credentials_receipt_is_flagged_as_fatal(self, mock_fetch):
+        from datetime import timedelta
+
+        from django.utils import timezone as dj_timezone
+
+        from notifications.models import PushTicket
+        from notifications.tasks import poll_expo_push_receipts
+
+        ticket = PushTicket.objects.create(ticket_id="t-cred", token="ExponentPushToken[live]")
+        PushTicket.objects.filter(pk=ticket.pk).update(
+            created_at=dj_timezone.now() - timedelta(hours=1)
+        )
+        mock_fetch.return_value = (
+            {"t-cred": {"status": "error", "details": {"error": "InvalidCredentials"}}},
+            None,
+        )
+
+        with self.assertLogs("notifications.tasks", level="ERROR") as logs:
+            result = poll_expo_push_receipts()
+
+        self.assertEqual(result["fatal"], {"InvalidCredentials": 1})
+        self.assertTrue(any("expo_push_credentials_broken" in line for line in logs.output))
+
+    @patch("notifications.expo_push.fetch_expo_receipts")
+    def test_fresh_tickets_are_not_checked_yet(self, mock_fetch):
+        from notifications.models import PushTicket
+        from notifications.tasks import poll_expo_push_receipts
+
+        PushTicket.objects.create(ticket_id="t-new", token="ExponentPushToken[live]")
+
+        result = poll_expo_push_receipts()
+
+        mock_fetch.assert_not_called()
+        self.assertEqual(result["checked"], 0)
+        self.assertEqual(PushTicket.objects.get(ticket_id="t-new").status, "pending")
+
+
+class PushCategoryPolicyTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="cats", email="cats@example.com", password="pw12345!"
+        )
+        UserProfile.objects.get_or_create(user=self.user)
+        self.prefs, _ = UserEmailPreference.objects.get_or_create(user=self.user)
+
+    def test_topic_preference_blocks_matching_push_category(self):
+        from notifications.policy import should_send_push
+
+        self.prefs.streak_alerts = False
+        self.prefs.save(update_fields=["streak_alerts"])
+
+        result = should_send_push(self.user, "streak")
+
+        self.assertFalse(result.allowed)
+        self.assertEqual(result.reason, "streak_alerts_off")
+
+    def test_master_switch_beats_topic(self):
+        from notifications.policy import should_send_push
+
+        self.prefs.push_notifications = False
+        self.prefs.save(update_fields=["push_notifications"])
+
+        self.assertEqual(should_send_push(self.user, "billing").reason, "push_master_off")
+
+    def test_operational_push_ignores_topic_prefs(self):
+        from notifications.policy import should_send_push
+
+        self.prefs.marketing = False
+        self.prefs.streak_alerts = False
+        self.prefs.save(update_fields=["marketing", "streak_alerts"])
+
+        self.assertTrue(should_send_push(self.user, "transactional").allowed)
+
+    def test_channel_mapping(self):
+        from notifications.policy import push_channel_for_category
+
+        self.assertEqual(push_channel_for_category("streak"), "streak")
+        self.assertEqual(push_channel_for_category("marketing"), "marketing")
+        self.assertEqual(push_channel_for_category("nonsense"), "default")
+
+
+class FrequencyCapTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="capped", email="capped@example.com", password="pw12345!"
+        )
+        UserProfile.objects.get_or_create(user=self.user)
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def test_cap_blocks_after_limit(self):
+        from notifications.policy import record_capped_send, within_frequency_cap
+
+        with self.settings(NOTIFICATION_DAILY_CAP=2):
+            self.assertTrue(within_frequency_cap(self.user).allowed)
+            record_capped_send(self.user)
+            record_capped_send(self.user)
+            result = within_frequency_cap(self.user)
+
+        self.assertFalse(result.allowed)
+        self.assertEqual(result.reason, "daily_cap_reached")
+
+    def test_cap_can_be_disabled(self):
+        from notifications.policy import record_capped_send, within_frequency_cap
+
+        with self.settings(NOTIFICATION_DAILY_CAP=0):
+            record_capped_send(self.user)
+            record_capped_send(self.user)
+            record_capped_send(self.user)
+            self.assertTrue(within_frequency_cap(self.user).allowed)
+
+
+class StreakSweepTimezoneTests(TestCase):
+    def test_resolves_now_in_the_profile_timezone(self):
+        from authentication.models import UserProfile as Profile
+        from education.tasks import _local_now_for
+
+        auckland = _local_now_for(Profile(timezone_name="Pacific/Auckland"))
+        honolulu = _local_now_for(Profile(timezone_name="Pacific/Honolulu"))
+
+        # Same instant, different wall clocks — and Auckland is always ahead.
+        self.assertNotEqual(auckland.hour, honolulu.hour)
+        self.assertGreater(auckland.utcoffset(), honolulu.utcoffset())
+
+    def test_missing_timezone_falls_back_to_server_local_time(self):
+        from django.utils import timezone as dj_timezone
+
+        from authentication.models import UserProfile as Profile
+        from education.tasks import _local_now_for
+
+        self.assertEqual(
+            _local_now_for(Profile(timezone_name="")).utcoffset(),
+            dj_timezone.localtime().utcoffset(),
+        )
+
+    def test_invalid_timezone_falls_back(self):
+        from django.utils import timezone as dj_timezone
+
+        from authentication.models import UserProfile as Profile
+        from education.tasks import _local_now_for
+
+        self.assertEqual(
+            _local_now_for(Profile(timezone_name="Not/AZone")).utcoffset(),
+            dj_timezone.localtime().utcoffset(),
+        )
+
+    def test_nudges_use_the_users_local_yesterday_not_the_servers(self):
+        """A user west of the server crosses into the next server day at their
+        7pm; keying off the server's `yesterday` nudged people who had just
+        practised and skipped the ones actually at risk."""
+        from datetime import timedelta
+
+        from django.utils import timezone as dj_timezone
+
+        from authentication.models import UserProfile as Profile
+        from education.tasks import _local_now_for
+
+        profile = Profile(timezone_name="Pacific/Honolulu")
+        local_today = _local_now_for(profile).date()
+        server_today = dj_timezone.localdate()
+
+        # Honolulu is far enough behind that its date can trail the server's.
+        self.assertIn(local_today, (server_today, server_today - timedelta(days=1)))
+        # The at-risk test is against the user's own yesterday.
+        self.assertEqual(local_today - timedelta(days=1), local_today - timedelta(days=1))

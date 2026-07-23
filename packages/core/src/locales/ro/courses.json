@@ -84,7 +84,9 @@
     "checkpointLoadTitle": "Nu s-a putut încărca recapitularea",
     "checkpointLoadFailed": "Nu am putut încărca întrebările de recapitulare. Poți continua — încearcă din nou mai târziu din lecție.",
     "firstLessonTitle": "Prima lecție terminată!",
-    "firstLessonSubtitle": "Ziua 1 a seriei tale începe acum 🔥 +{{bonus}} XP bonus"
+    "firstLessonSubtitle": "Ziua 1 a seriei tale începe acum 🔥 +{{bonus}} XP bonus",
+    "testWhatYouLearned": "Testează ce ai învățat",
+    "refillFailed": "Nu am putut reîncărca inimile. Verifică conexiunea și încearcă din nou."
   },
   "quiz": {
     "loading": "Se încarcă quiz-ul...",

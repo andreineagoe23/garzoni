@@ -29,6 +29,19 @@ type LandingPlan = {
 };
 type LandingPromo = { id: string; percent_off: number; ends_on: string };
 
+/**
+ * Whether the landing page may render promotional pricing.
+ *
+ * Off: the summer promo is a *store-side* introductory offer, claimable in the
+ * iOS/Android app only. RevenueCat Web Billing has no intro offers on any of the
+ * four web products, so web checkout charges full price. This page rendered the
+ * promo price with no "first year" / "in the app" qualifier and a CTA straight
+ * into web checkout — advertising a price the site cannot honour. /subscriptions
+ * keeps the promo: it carries the app-only hint, a store CTA, and an explicit
+ * full-price web path. Flip back on once RC Web Billing has matching offers.
+ */
+const LANDING_PROMO_PRICING_ENABLED = false;
+
 type TierPricing = {
   monthly: number;
   yearly: number;
@@ -235,7 +248,7 @@ function Welcome() {
       if (!Number.isFinite(monthlyPrice) || !Number.isFinite(yearlyPrice)) {
         return FALLBACK_PRICING[planId];
       }
-      const promoActive = !!pricingPromo;
+      const promoActive = LANDING_PROMO_PRICING_ENABLED && !!pricingPromo;
       return {
         monthly: monthlyPrice,
         yearly: yearlyPrice,

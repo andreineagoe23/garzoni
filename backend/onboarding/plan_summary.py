@@ -245,7 +245,18 @@ def build_curated_lessons(user, profile, limit=3):
             for row in (
                 Lesson.objects.filter(course_id=course.id).order_by("id").values("id", "title")
             ):
-                lessons.append({"id": row["id"], "title": row["title"], "topic": topic})
+                # `course_id` travels with the lesson because the lesson-flow
+                # route is keyed by *course*: clients that only had `id` were
+                # deep-linking a lesson id into it and landing on the wrong
+                # course (or "Invalid course.").
+                lessons.append(
+                    {
+                        "id": row["id"],
+                        "title": row["title"],
+                        "topic": topic,
+                        "course_id": course.id,
+                    }
+                )
                 if len(lessons) >= limit:
                     return lessons
         return lessons

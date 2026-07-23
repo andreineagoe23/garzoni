@@ -416,7 +416,7 @@ function Register() {
                       components={{
                         terms: (
                           <a
-                            href="/legal/terms"
+                            href="/terms-of-service"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="underline"
@@ -426,7 +426,7 @@ function Register() {
                         ),
                         privacy: (
                           <a
-                            href="/legal/privacy"
+                            href="/privacy-policy"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="underline"
@@ -526,7 +526,7 @@ function Register() {
                   <p className="text-center text-[11px] text-content-muted">
                     By continuing you agree to our{" "}
                     <a
-                      href="/legal/terms"
+                      href="/terms-of-service"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline"
@@ -535,7 +535,7 @@ function Register() {
                     </a>{" "}
                     &amp;{" "}
                     <a
-                      href="/legal/privacy"
+                      href="/privacy-policy"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline"

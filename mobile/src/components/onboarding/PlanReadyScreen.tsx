@@ -70,6 +70,8 @@ export type PlanReadyContinueOptions = {
   placement?: "onboarding" | "post_first_lesson";
   /** First curated lesson to open when the paywall is deferred to post-lesson. */
   firstCuratedLessonId?: number | null;
+  /** Course of the first curated lesson — the flow route is keyed by course. */
+  firstCuratedCourseId?: number | null;
 };
 
 type Props = {
@@ -127,6 +129,7 @@ export default function PlanReadyScreen({ onContinue }: Props) {
 
   const placement = summary?.paywall_placement ?? "onboarding";
   const firstCuratedLessonId = summary?.curated_lessons?.[0]?.id ?? null;
+  const firstCuratedCourseId = summary?.curated_lessons?.[0]?.course_id ?? null;
 
   const handleContinue = () => {
     trackEvent("plan_ready_continue", {
@@ -139,6 +142,7 @@ export default function PlanReadyScreen({ onContinue }: Props) {
       goalLabel: primaryGoal,
       placement,
       firstCuratedLessonId,
+      firstCuratedCourseId,
     });
   };
 

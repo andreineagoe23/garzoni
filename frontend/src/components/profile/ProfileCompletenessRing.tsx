@@ -6,8 +6,7 @@
  * to the profile payload. Both are read defensively — when absent, or once the
  * profile is 100% complete, the component renders nothing.
  *
- * Copy is hardcoded English by design (the repo i18n test forbids unknown
- * t() keys; same precedent as FirstWeekChecklist).
+ * Copy is hardcoded English (no translated keys exist for these hints yet).
  */
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,8 +18,11 @@ const NEXT_ITEM: Record<string, { hint: string; to: string }> = {
     to: "/personalized-path",
   },
   avatar: { hint: "Add a profile photo", to: "/profile" },
-  names: { hint: "Add your name", to: "/profile" },
-  notifications: { hint: "Turn on notifications", to: "/profile" },
+  // Backend emits "name" (services/profile.py), not "names" — the mismatch made
+  // the highest-value nudge fall through to the generic no-CTA branch.
+  name: { hint: "Add your name", to: "/profile" },
+  // The push toggle lives in Settings, not on the page you are already on.
+  notifications: { hint: "Turn on notifications", to: "/settings" },
   tool: { hint: "Try one AI tool", to: "/tools" },
   questionnaire: { hint: "Finish your questionnaire", to: "/onboarding" },
 };

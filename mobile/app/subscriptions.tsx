@@ -1236,6 +1236,16 @@ export default function SubscriptionsScreen() {
   const plusPkg = pickPackage(plusPkgs ?? undefined, cycle);
   const proPkg = pickPackage(proPkgs ?? undefined, cycle);
 
+  // The banner comes from the backend promo window; the actual discount only
+  // exists if the store has a paid introductory offer on the product. Those are
+  // configured per-store and per-product, so the two can disagree — and a
+  // "60% off" banner over full-price cards is both a support burden and an
+  // App Review 3.1.1 misleading-pricing risk. Show it only when a real
+  // discounted intro price is visible on at least one package.
+  const storePromoLive =
+    (plusPkg?.product.introPrice?.price ?? 0) > 0 ||
+    (proPkg?.product.introPrice?.price ?? 0) > 0;
+
   // Compute real savings % from Plus packages (monthly vs annual/12).
   const savingsPct = useMemo<number | null>(() => {
     if (!plusPkgs?.length) return null;
@@ -1303,7 +1313,7 @@ export default function SubscriptionsScreen() {
 
             {/* Active promo — prominent, above the plans so the discount is
                 obvious the moment the page loads. */}
-            {activePromo && currentPlan === "starter" && (
+            {activePromo && currentPlan === "starter" && storePromoLive && (
               <PromoHero promo={activePromo} />
             )}
 

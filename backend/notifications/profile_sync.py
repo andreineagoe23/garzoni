@@ -15,6 +15,13 @@ from notifications.identity import customer_io_person_id
 logger = logging.getLogger(__name__)
 
 
+# Traits that must reach Customer.io even when empty. The generic filter below
+# drops empty strings so a partial identify never blanks a good value — but for
+# the push token that is exactly wrong: clearing the token locally then dropping
+# it from the payload left a dead ExponentPushToken on the CIO profile forever.
+_ALWAYS_SEND_TRAITS = frozenset({"expo_push_token"})
+
+
 def build_identify_traits(user: User) -> dict[str, Any]:
     profile = UserProfile.objects.filter(user=user).select_related("user").first()
     prefs = UserEmailPreference.objects.filter(user=user).first()
@@ -31,13 +38,19 @@ def build_identify_traits(user: User) -> dict[str, Any]:
         "workspace": "garzoni",
         "created_at": int(user.date_joined.timestamp()) if user.date_joined else None,
     }
+    push_opt_in = bool(getattr(prefs, "push_notifications", True)) if prefs else True
     if profile:
         traits["subscription_status"] = profile.subscription_status or ""
         traits["is_premium"] = bool(profile.is_premium)
         traits["is_paying_customer"] = bool(profile.is_premium and profile.has_paid)
         traits["subscription_plan_id"] = profile.subscription_plan_id or ""
         traits["expo_push_token"] = profile.expo_push_token or ""
-        traits["has_mobile_app"] = bool((profile.expo_push_token or "").strip())
+        # `has_mobile_app` is the gate every CIO journey uses to pick push over
+        # email ("Has Mobile App?" conditional branch, `has_mobile_app eq true`).
+        # It must therefore mean "push is deliverable AND wanted", not merely
+        # "a token exists" — otherwise a user who turned push off in Settings
+        # keeps getting routed down the push branch instead of the email one.
+        traits["has_mobile_app"] = bool((profile.expo_push_token or "").strip()) and push_opt_in
         traits["email_reminder_preference"] = profile.email_reminder_preference or "none"
         if profile.last_login_date:
             traits["last_login_date"] = profile.last_login_date.isoformat()
@@ -65,7 +78,7 @@ def build_identify_traits(user: User) -> dict[str, Any]:
         traits["billing_alerts_opt_in"] = bool(prefs.billing_alerts)
         traits["streak_alerts_opt_in"] = bool(prefs.streak_alerts)
         traits["reminder_frequency"] = prefs.reminder_frequency or "weekly"
-        traits["push_opt_in"] = bool(getattr(prefs, "push_notifications", True))
+        traits["push_opt_in"] = push_opt_in
     if profile is not None:
         if profile.onboarding_completed_at:
             traits["onboarding_completed"] = True
@@ -107,13 +120,13 @@ def build_identify_traits(user: User) -> dict[str, Any]:
                 pass
     traits["last_seen_at"] = int(timezone.now().timestamp())
 
-    def _keep(_k: str, v: Any) -> bool:
+    def _keep(k: str, v: Any) -> bool:
         if v is None:
             return False
         if isinstance(v, bool):
             return True
         if v == "":
-            return False
+            return k in _ALWAYS_SEND_TRAITS
         return True
 
     return {k: v for k, v in traits.items() if _keep(k, v)}
@@ -139,10 +152,18 @@ class NotificationProfileSync:
     def sync_device(
         self, user: User, token: str | None, platform: str | None = None
     ) -> tuple[bool, str | None]:
-        """Push device state via traits (Expo token on profile)."""
+        """Push device state via traits (Expo token on profile).
+
+        `has_mobile_app` travels with the token: it is the branch condition every
+        journey uses, so writing the token without it leaves CIO routing on a
+        stale gate (token present but `has_mobile_app=false`, or vice versa).
+        """
         pid = customer_io_person_id(user)
+        prefs = UserEmailPreference.objects.filter(user=user).first()
+        push_opt_in = bool(getattr(prefs, "push_notifications", True)) if prefs else True
         traits: dict[str, Any] = {
             "expo_push_token": token or "",
+            "has_mobile_app": bool((token or "").strip()) and push_opt_in,
         }
         if platform:
             traits["push_platform"] = platform
