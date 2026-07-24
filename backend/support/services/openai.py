@@ -41,7 +41,7 @@ _MAX_HISTORY_MESSAGES = 40
 def _get_openai_client():
     from openai import OpenAI
 
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
+    return OpenAI(api_key=settings.OPENAI_API_KEY, timeout=60.0)
 
 
 def _model_for_user(user) -> str:
@@ -223,7 +223,8 @@ class OpenAIService:
                     if challenge:
                         parts.append(f"Biggest challenge: {challenge}.")
             except Exception:
-                pass
+                # Best-effort context enrichment — chat still works without it.
+                logger.debug("education_context onboarding lookup failed", exc_info=True)
 
         except Exception as exc:
             logger.debug("education_context_error: %s", exc)

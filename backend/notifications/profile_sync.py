@@ -117,7 +117,8 @@ def build_identify_traits(user: User) -> dict[str, Any]:
                 traits["preferences_url"] = f"{api_base}/email/preferences/?token={token}"
                 traits["unsubscribe_url"] = f"{api_base}/email/unsubscribe/?token={token}"
             except Exception:
-                pass
+                # Best-effort CIO trait — templates fall back to /settings if absent.
+                logger.debug("unsubscribe token URL build failed", exc_info=True)
     traits["last_seen_at"] = int(timezone.now().timestamp())
 
     def _keep(k: str, v: Any) -> bool:

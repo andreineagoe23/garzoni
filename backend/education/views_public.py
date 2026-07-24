@@ -88,7 +88,7 @@ def public_lesson_detail(request, slug: str):
         }
 
     response = Response(payload)
-    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    response["Cache-Control"] = "public, s-maxage=600, stale-while-revalidate=300"
     return response
 
 
@@ -141,7 +141,7 @@ def public_lesson_list(request):
         )
 
     response = Response({"count": len(items), "results": items})
-    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    response["Cache-Control"] = "public, s-maxage=600, stale-while-revalidate=300"
     return response
 
 
@@ -165,7 +165,7 @@ def public_article_list(request):
     articles = Article.objects.filter(is_published=True)
     items = [_article_card(a) for a in articles]
     response = Response({"count": len(items), "results": items})
-    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    response["Cache-Control"] = "public, s-maxage=600, stale-while-revalidate=300"
     return response
 
 
@@ -210,7 +210,7 @@ def public_article_detail(request, slug: str):
         ],
     }
     response = Response(payload)
-    response["Cache-Control"] = "public, max-age=3600, s-maxage=86400"
+    response["Cache-Control"] = "public, s-maxage=600, stale-while-revalidate=300"
     return response
 
 

@@ -465,7 +465,7 @@ def send_ai_nudge_task(self, user_pk: int) -> str:
         if prefs and not prefs.marketing:
             return "skipped_marketing_off"
     except Exception:
-        pass
+        logger.warning("marketing preference check failed for user_pk=%s", user_pk, exc_info=True)
 
     try:
         from education.services.ai_tutor import generate_push_nudge

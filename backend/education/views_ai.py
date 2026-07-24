@@ -74,7 +74,11 @@ class ExerciseExplainView(APIView):
                     if skill_tags:
                         skill = skill_tags[0] if isinstance(skill_tags, list) else str(skill_tags)
             except Exception:
-                pass
+                logger.warning(
+                    "exercise skill_tags lookup failed for exercise_id=%s",
+                    exercise_id,
+                    exc_info=True,
+                )
 
         # Resolve proficiency
         proficiency = 50
@@ -86,7 +90,7 @@ class ExerciseExplainView(APIView):
                 if m:
                     proficiency = m.proficiency
             except Exception:
-                pass
+                logger.warning("mastery lookup failed for skill=%s", skill, exc_info=True)
 
         try:
             from education.services.ai_tutor import generate_exercise_explanation

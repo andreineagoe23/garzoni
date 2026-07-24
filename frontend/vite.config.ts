@@ -26,8 +26,13 @@ function manualChunks(id: string): string | undefined {
   if (id.includes("html2canvas")) return "vendor-html2canvas";
   if (id.includes("recharts")) return "vendor-charts";
   if (id.includes("framer-motion")) return "vendor-motion";
-  if (id.includes("@revenuecat/purchases-js") || id.includes("revenuecat"))
-    return "vendor-revenuecat";
+  // @revenuecat/purchases-js is intentionally NOT bucketed here: revenueCatService.ts
+  // only reaches it via a dynamic import(), so Rollup already isolates it into its
+  // own async-only chunk. Naming it via manualChunks caused Rollup to co-locate
+  // Vite's shared dynamic-import preload helper inside that chunk, which in turn
+  // forced a static (eager) import of it from the entry chunk — defeating the
+  // whole point of lazy-loading the 170KB SDK on every first page load. Leave
+  // this one to Rollup's default per-module async chunk naming.
   if (id.includes("react-router")) return "vendor-react";
   if (id.includes("react-dom")) return "vendor-react";
   if (id.includes("/node_modules/react/")) return "vendor-react";

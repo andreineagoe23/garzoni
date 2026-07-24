@@ -4,6 +4,7 @@ from gunicorn.glogging import Logger
 
 bind = "0.0.0.0:8000"
 worker_class = "gthread"
+timeout = 60
 graceful_timeout = 30
 keepalive = 5
 max_requests = 1000

@@ -56,7 +56,7 @@ const RevenueCatCustomerCenter: React.FC<RevenueCatCustomerCenterProps> = ({
     setLoading(true);
     try {
       // Ensure SDK is initialized (idempotent if already configured).
-      configureRevenueCat(userId);
+      await configureRevenueCat(userId);
       await rcShowCustomerCenter();
       onClose?.();
     } catch (err) {

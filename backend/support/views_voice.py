@@ -64,7 +64,7 @@ class VoiceTutorView(APIView):
         try:
             from openai import OpenAI
 
-            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            client = OpenAI(api_key=settings.OPENAI_API_KEY, timeout=30.0)
 
             # 1. Transcribe
             suffix = _detect_suffix(audio_file.name or "audio.m4a")

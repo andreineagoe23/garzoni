@@ -74,7 +74,7 @@ const SubscriptionManager = () => {
     setRcRestoring(true);
     setRcRestoreMsg("");
     try {
-      configureRevenueCat(rcAppUserId);
+      await configureRevenueCat(rcAppUserId);
       const customerInfo = await rcRestorePurchases();
       if (rcIsEntitled(customerInfo)) {
         setRcRestoreMsg("Subscription restored successfully.");

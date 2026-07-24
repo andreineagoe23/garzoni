@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { router, Stack, usePathname, useSegments } from "expo-router";
 import { LinkPreviewContextProvider } from "expo-router/build/link/preview/LinkPreviewContext";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { View, StyleSheet, Text, Platform, Dimensions } from "react-native";
 import * as NavigationBar from "expo-navigation-bar";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -27,6 +27,10 @@ import {
 } from "../src/bootstrap/i18nMobile";
 import { initCustomerIoMobile } from "../src/bootstrap/customerIoMobile";
 import { initStorageMobile } from "../src/bootstrap/storageMobile";
+import {
+  initQueryPersistMobile,
+  queryPersistOptions,
+} from "../src/bootstrap/queryPersistMobile";
 import { initAnalyticsMobile } from "../src/bootstrap/analyticsMobile";
 import OfflineBanner from "../src/components/common/OfflineBanner";
 import { RootErrorBoundary } from "../src/components/common/RootErrorBoundary";
@@ -265,6 +269,7 @@ function RootLayout() {
       try {
         initStorageMobile();
         initI18nMobile();
+        initQueryPersistMobile();
         await hydrateI18nLanguageMobile();
         initHttpClientMobile();
         initAnalyticsMobile();
@@ -294,7 +299,14 @@ function RootLayout() {
     <RootErrorBoundary>
       <I18nextProvider i18n={i18n}>
         <View style={styles.root}>
-          <QueryClientProvider client={queryClient}>
+          {/* Restore is async and does not block first paint — screens render
+              immediately from an empty cache and swap in persisted data as
+              soon as AsyncStorage resolves, then refetch per each query's
+              own staleTime like normal. */}
+          <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={queryPersistOptions}
+          >
             <ThemeProvider>
               <AuthProvider>
                 <SafeAreaProvider>
@@ -302,7 +314,7 @@ function RootLayout() {
                 </SafeAreaProvider>
               </AuthProvider>
             </ThemeProvider>
-          </QueryClientProvider>
+          </PersistQueryClientProvider>
         </View>
       </I18nextProvider>
     </RootErrorBoundary>

@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -8,6 +10,8 @@ from gamification.services.mission_cycles import (
     get_or_create_current_mission_completion,
     invalidate_mission_pool_cache,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=Mission)
@@ -115,7 +119,8 @@ if LessonCompletion is not None:
                 mark_first_lesson(user, when=timezone.now())
                 safe_enqueue_sync_user_to_customer_io(user.id)
         except Exception:
-            pass
+            # Best-effort CIO trait refresh — first-lesson sync can be retried later.
+            logger.debug("first_lesson CIO sync failed for user_id=%s", user.id, exc_info=True)
 
 
 if ExerciseCompletion is not None:

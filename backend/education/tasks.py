@@ -111,7 +111,11 @@ def _local_now_for(profile):
 
             return timezone.now().astimezone(ZoneInfo(tz_name))
         except Exception:
-            pass
+            logger.warning(
+                "invalid profile timezone_name=%r, falling back to server time",
+                tz_name,
+                exc_info=True,
+            )
     return timezone.localtime()
 
 

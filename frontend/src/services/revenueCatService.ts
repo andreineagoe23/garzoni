@@ -12,12 +12,15 @@
  * API key: VITE_REVENUECAT_API_KEY (test_* for sandbox, live key for prod)
  */
 
-import {
+// Type-only import: erased at build time, so this does NOT pull the SDK
+// (170KB gz) into the entry bundle. The runtime SDK is loaded lazily via
+// `rc()` below, inside the functions that actually need it — the SDK then
+// only ships in its own chunk on /subscriptions or paywall interaction.
+import type {
   Purchases,
-  type CustomerInfo,
-  type Offerings,
-  type Package,
-  LogLevel,
+  CustomerInfo,
+  Offerings,
+  Package,
 } from "@revenuecat/purchases-js";
 
 // ─── Constants (keep aligned with mobile `subscriptionRuntime.ts`) ──────────
@@ -51,6 +54,20 @@ export const RC_PACKAGE_IDS = {
   yearly: "$rc_annual",
   lifetime: "$rc_lifetime",
 } as const;
+
+// ─── Lazy SDK loader ──────────────────────────────────────────────────────────
+
+/**
+ * Dynamically import the RevenueCat Web SDK on first use, caching the module
+ * so repeat calls don't re-fetch it. Keeps `@revenuecat/purchases-js` out of
+ * the entry graph — it lands in its own `vendor-revenuecat` chunk, fetched
+ * only when a paywall / subscriptions flow actually runs.
+ */
+let _rcModule: typeof import("@revenuecat/purchases-js") | null = null;
+async function rc(): Promise<typeof import("@revenuecat/purchases-js")> {
+  _rcModule ??= await import("@revenuecat/purchases-js");
+  return _rcModule;
+}
 
 // ─── Singleton ────────────────────────────────────────────────────────────────
 
@@ -87,7 +104,9 @@ export function isValidAppUserId(
  * @throws when `appUserID` is not the numeric Django user PK — binding a
  *         purchase to a placeholder id loses the payment (see above).
  */
-export function configureRevenueCat(appUserID: string): Purchases {
+export async function configureRevenueCat(
+  appUserID: string
+): Promise<Purchases> {
   const apiKey = import.meta.env.VITE_REVENUECAT_API_KEY?.trim();
   if (!apiKey) {
     throw new Error(
@@ -109,6 +128,8 @@ export function configureRevenueCat(appUserID: string): Purchases {
   if (_instance && _configuredUserId === appUserID) {
     return _instance;
   }
+
+  const { Purchases, LogLevel } = await rc();
 
   // In development, emit verbose SDK logs to the browser console.
   if (import.meta.env.DEV) {

@@ -418,7 +418,7 @@ def generate_ai_narrative(user, ctx: DashboardContext) -> Optional[str]:
     try:
         from openai import OpenAI
 
-        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        client = OpenAI(api_key=settings.OPENAI_API_KEY, timeout=30.0)
         system = (
             "You are the user's Personal CFO. Write a concise, supportive paragraph "
             "(120-180 words) that synthesizes their net worth, savings rate, goals "

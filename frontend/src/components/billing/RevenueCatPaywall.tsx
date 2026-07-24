@@ -153,7 +153,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         return;
       }
       try {
-        configureRevenueCat(userId);
+        await configureRevenueCat(userId);
 
         // Clash guard: if this account is already subscribed (commonly via the
         // App Store / Play Store), never show a buy button — a second purchase

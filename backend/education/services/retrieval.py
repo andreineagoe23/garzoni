@@ -37,7 +37,7 @@ def _embed(text: str) -> Optional[List[float]]:
     try:
         from openai import OpenAI
 
-        client = OpenAI(api_key=key)
+        client = OpenAI(api_key=key, timeout=30.0)
         resp = client.embeddings.create(
             model=_EMBEDDING_MODEL,
             input=text[:8000],

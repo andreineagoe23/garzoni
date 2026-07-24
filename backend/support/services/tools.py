@@ -250,7 +250,8 @@ def _get_financial_profile(user: User) -> Dict:
                 data["onboarding_goals"] = answer_values(q.answers.get("primary_goal")) or None
                 data["biggest_challenge"] = primary_answer(q.answers.get("biggest_challenge"))
         except Exception:
-            pass
+            # Best-effort enrichment — financial profile tool still returns base fields.
+            logger.debug("financial_profile onboarding lookup failed", exc_info=True)
 
         return data or {"note": "No financial profile data found"}
     except Exception as exc:

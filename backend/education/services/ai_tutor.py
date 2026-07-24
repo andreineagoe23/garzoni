@@ -386,7 +386,8 @@ def generate_coach_brief(*, user) -> Optional[str]:
                 # May be a list (mobile multi-select); first element = primary.
                 data["primary_goal"] = primary_answer(q.answers.get("primary_goal"))
         except Exception:
-            pass
+            # Best-effort context enrichment — coach brief still works without it.
+            logger.debug("coach_brief primary_goal lookup failed", exc_info=True)
 
         return _post(
             [
@@ -417,7 +418,8 @@ def generate_push_nudge(*, user) -> Optional[str]:
 
             plan = get_user_plan(user)
         except Exception:
-            pass
+            # Best-effort personalization — nudge still generates without plan context.
+            logger.debug("push_nudge plan lookup failed", exc_info=True)
 
         context = {
             "streak": streak,

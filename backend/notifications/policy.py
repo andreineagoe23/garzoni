@@ -232,7 +232,8 @@ def record_capped_send(user: User) -> None:
         cache.add(key, 0, timeout=60 * 60 * 36)
         cache.incr(key)
     except Exception:
-        pass
+        # Best-effort cache write — worst case the daily cap under-counts.
+        logger.debug("record_capped_send cache write failed for user_id=%s", user.pk, exc_info=True)
 
 
 def should_send_push(user: User, category: str) -> PolicyResult:

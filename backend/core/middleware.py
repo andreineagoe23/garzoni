@@ -1,6 +1,9 @@
+import logging
 import uuid
 
 from core.logging import clear_request_id, set_request_id
+
+logger = logging.getLogger(__name__)
 
 
 class RequestIdMiddleware:
@@ -27,13 +30,16 @@ class RequestIdMiddleware:
 
             sentry_sdk.set_tag("request_id", rid)
         except Exception:
-            pass
+            # Best-effort: sentry_sdk may be absent (dev/test envs) or unconfigured.
+            logger.debug("sentry_sdk request_id tag failed", exc_info=True)
         try:
             response = self.get_response(request)
             try:
                 response[self.response_header] = rid
             except Exception:
-                pass
+                logger.debug(
+                    "failed to set %s response header", self.response_header, exc_info=True
+                )
             return response
         finally:
             clear_request_id()

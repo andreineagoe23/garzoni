@@ -1117,7 +1117,9 @@ def _course_skill_keys(course: Course | None) -> set[str]:
         if course.path and course.path.title:
             keys.add(_canonical_skill_key(course.path.title))
     except Exception:
-        pass
+        logger.warning(
+            "course_skill_keys path lookup failed for course_id=%s", course.id, exc_info=True
+        )
     return {key for key in keys if key}
 
 
@@ -1303,7 +1305,9 @@ def _lesson_skill_tags(lesson: Lesson, section_categories: list[str] | None = No
         if path_title:
             tags.add(_normalize_skill_key(str(path_title)))
     except Exception:
-        pass
+        logger.warning(
+            "lesson_skill_tags path lookup failed for lesson_id=%s", lesson.id, exc_info=True
+        )
     for category in section_categories or []:
         if category:
             tags.add(_normalize_skill_key(str(category)))
@@ -1338,7 +1342,7 @@ def _quiz_skill_tags(quiz: Quiz) -> set[str]:
         if path_title:
             tags.add(_normalize_skill_key(str(path_title)))
     except Exception:
-        pass
+        logger.warning("quiz_skill_tags path lookup failed for quiz_id=%s", quiz.id, exc_info=True)
     return tags
 
 
@@ -1558,7 +1562,9 @@ def _extract_section_skill(section: LessonSection) -> str:
         if path_title:
             return str(path_title).strip()
     except Exception:
-        pass
+        logger.warning(
+            "section_skill path lookup failed for section_id=%s", section.id, exc_info=True
+        )
 
     if section.title:
         return str(section.title).strip()
@@ -2885,7 +2891,9 @@ class PersonalizedPathView(APIView):
                 for pp in PathPlan.objects.filter(user=user, course_id__in=course_ids):
                     path_plan_reasons[pp.course_id] = pp.reason
             except Exception:
-                pass
+                logger.warning(
+                    "path_plan_reasons lookup failed for user_id=%s", user.id, exc_info=True
+                )
             sections_total_map = progress_calc.published_section_totals(course_ids)
             progress_by_course = {}
             for progress in UserProgress.objects.filter(

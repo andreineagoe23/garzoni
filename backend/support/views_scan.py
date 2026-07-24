@@ -72,7 +72,7 @@ class ReceiptScanView(APIView):
             import json
             from openai import OpenAI
 
-            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            client = OpenAI(api_key=settings.OPENAI_API_KEY, timeout=30.0)
 
             image_data = base64.b64encode(image_file.read()).decode("utf-8")
             data_url = f"data:{content_type};base64,{image_data}"

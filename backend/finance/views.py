@@ -963,7 +963,7 @@ def _extract_image_url(item, description: str, link: str) -> str | None:
             if media_content is not None and media_content.get("url"):
                 return _resolve_image_url(media_content.get("url"), link)
         except Exception:
-            pass
+            logger.debug("news feed image extraction failed for ns=%s", ns_uri, exc_info=True)
     # Enclosure (image/*)
     enclosure = item.find("enclosure")
     if enclosure is not None:
@@ -2073,7 +2073,11 @@ class StripeWebhookView(APIView):
                                         else getattr(sub_obj.customer, "id", None)
                                     )
                                 except Exception:
-                                    pass
+                                    logger.warning(
+                                        "stripe webhook subscription attr extraction failed for user_id=%s",
+                                        user_id,
+                                        exc_info=True,
+                                    )
                             with transaction.atomic():
                                 (
                                     user_profile,

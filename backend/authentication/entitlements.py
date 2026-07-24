@@ -1,9 +1,12 @@
+import logging
 from dataclasses import dataclass
 from datetime import date
 from typing import Dict, Optional, Tuple
 
 from django.core.cache import cache
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -421,7 +424,9 @@ def get_user_plan(user) -> str:
     try:
         return get_plan_from_profile(getattr(user, "profile", None))
     except Exception:
-        pass
+        logger.warning(
+            "get_user_plan failed for user_id=%s", getattr(user, "id", None), exc_info=True
+        )
     return "starter"
 
 
