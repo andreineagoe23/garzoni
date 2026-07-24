@@ -1,9 +1,42 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import {
+  defaultShouldDehydrateQuery,
+  type Query,
+  type QueryKey,
+} from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { queryClient } from "@garzoni/core";
 
 const DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * AsyncStorage is NOT encrypted, so query-key roots holding personal financial
+ * data, PII, or account/billing state are kept OUT of the persisted snapshot.
+ * Content and progress queries (courses, lessons, leaderboard, progressSummary)
+ * still persist so cold starts paint instantly — only sensitive reads are excluded.
+ *
+ * Keep in sync with the sensitive keys in packages/core/src/lib/reactQuery.ts
+ * (queryKeys). When adding a query that returns money figures, PII, or
+ * entitlement/account state, add its root here.
+ */
+const SENSITIVE_QUERY_KEY_ROOTS = new Set<string>([
+  "profile",
+  "userSettings",
+  "entitlements",
+  "hearts",
+  "portfolioDashboard",
+  "savingsBalance",
+  "coachBrief",
+  "smartResume",
+  "supportEntries",
+  "referral-summary",
+]);
+
+function isSensitiveQueryKey(queryKey: QueryKey): boolean {
+  const root = queryKey[0];
+  return typeof root === "string" && SENSITIVE_QUERY_KEY_ROOTS.has(root);
+}
 
 let initialized = false;
 
@@ -47,4 +80,10 @@ export const queryPersistOptions = {
   persister: queryPersister,
   maxAge: DAY,
   buster: Constants.expoConfig?.version ?? "v1",
+  dehydrateOptions: {
+    // Keep default behaviour (only successful queries) AND drop sensitive ones
+    // so financial/PII/account data never lands in unencrypted AsyncStorage.
+    shouldDehydrateQuery: (query: Query) =>
+      defaultShouldDehydrateQuery(query) && !isSensitiveQueryKey(query.queryKey),
+  },
 };
