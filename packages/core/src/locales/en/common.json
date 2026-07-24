@@ -3308,7 +3308,8 @@
     "related": "Related",
     "lastUpdated": "Last updated: {{date}}",
     "dates": {
-      "feb7_2026": "February 7, 2026"
+      "feb7_2026": "February 7, 2026",
+      "jul24_2026": "July 24, 2026"
     },
     "privacy": {
       "title": "Privacy Policy",
@@ -3430,7 +3431,17 @@
         },
         "retention": {
           "title": "8. Data retention",
-          "body": "We keep personal data only as long as needed for service delivery, legal obligations, dispute resolution, and security. Retention periods vary by data type."
+          "body": "We keep personal data only for as long as necessary for the purposes described in this policy. Our retention periods by data type are:",
+          "items": {
+            "account": "Account and profile data (name, email, username, avatar): kept while your account is active. When you delete your account, we erase or anonymise this data within 30 days, unless we must keep certain records to meet legal obligations.",
+            "activity": "Learning progress, XP, streaks and in-app activity: kept while your account is active and deleted when you delete your account.",
+            "payments": "Payment and transaction records: retained for up to 7 years to meet accounting, tax and legal obligations. Payments are processed by our providers (Apple, Google, Stripe, RevenueCat); we do not store full card details.",
+            "ai": "AI tutor conversations and text you submit to AI features: retained for up to 12 months to provide and improve the feature, then deleted or anonymised.",
+            "media": "Camera inputs (receipt and statement scans) and microphone inputs (voice tutor): processed to generate your insights and not retained after processing; any results derived from them are stored under your account until you delete them.",
+            "logs": "Technical, usage and diagnostic data (device identifiers, logs, analytics, crash reports): retained for up to 14 months, after which it is deleted or aggregated into statistics that no longer identify you.",
+            "support": "Support communications: kept for up to 24 months after your request is resolved."
+          },
+          "closing": "You can request deletion of your data at any time (see Your rights below). After deletion, data may persist in secure backups for a short period before those backups are overwritten on a rolling schedule."
         },
         "rights": {
           "title": "9. Your rights",

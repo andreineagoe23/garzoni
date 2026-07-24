@@ -18,7 +18,7 @@ const PrivacyPolicy = () => {
       </Helmet>
       <LegalPageLayout
         lastUpdated={t("legal.lastUpdated", {
-          date: t("legal.dates.feb7_2026"),
+          date: t("legal.dates.jul24_2026"),
         })}
         title={t("legal.privacy.title")}
         intro={t("legal.privacy.intro")}
@@ -171,6 +171,16 @@ const PrivacyPolicy = () => {
 
         <h2>{t("legal.privacy.sections.retention.title")}</h2>
         <p>{t("legal.privacy.sections.retention.body")}</p>
+        <ul>
+          <li>{t("legal.privacy.sections.retention.items.account")}</li>
+          <li>{t("legal.privacy.sections.retention.items.activity")}</li>
+          <li>{t("legal.privacy.sections.retention.items.payments")}</li>
+          <li>{t("legal.privacy.sections.retention.items.ai")}</li>
+          <li>{t("legal.privacy.sections.retention.items.media")}</li>
+          <li>{t("legal.privacy.sections.retention.items.logs")}</li>
+          <li>{t("legal.privacy.sections.retention.items.support")}</li>
+        </ul>
+        <p>{t("legal.privacy.sections.retention.closing")}</p>
 
         <h2>{t("legal.privacy.sections.rights.title")}</h2>
         <p>{t("legal.privacy.sections.rights.body")}</p>

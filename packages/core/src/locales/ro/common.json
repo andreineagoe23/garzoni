@@ -3308,7 +3308,8 @@
     "related": "Legături",
     "lastUpdated": "Ultima actualizare: {{date}}",
     "dates": {
-      "feb7_2026": "7 februarie 2026"
+      "feb7_2026": "7 februarie 2026",
+      "jul24_2026": "24 iulie 2026"
     },
     "privacy": {
       "title": "Politica de confidențialitate",
@@ -3430,7 +3431,17 @@
         },
         "retention": {
           "title": "8. Păstrarea datelor",
-          "body": "Păstrăm datele personale doar atât timp cât este necesar pentru furnizarea serviciului, obligații legale, soluționarea disputelor și securitate. Perioadele de păstrare variază în funcție de tipul de date."
+          "body": "Păstrăm datele personale doar atât timp cât este necesar pentru scopurile descrise în această politică. Perioadele noastre de păstrare, în funcție de tipul de date, sunt:",
+          "items": {
+            "account": "Datele de cont și de profil (nume, e-mail, nume de utilizator, avatar): păstrate cât timp contul tău este activ. Când îți ștergi contul, ștergem sau anonimizăm aceste date în termen de 30 de zile, cu excepția cazurilor în care trebuie să păstrăm anumite înregistrări pentru obligații legale.",
+            "activity": "Progresul de învățare, XP, seriile și activitatea din aplicație: păstrate cât timp contul tău este activ și șterse când îți ștergi contul.",
+            "payments": "Înregistrările de plată și tranzacții: păstrate până la 7 ani pentru a respecta obligațiile contabile, fiscale și legale. Plățile sunt procesate de furnizorii noștri (Apple, Google, Stripe, RevenueCat); nu stocăm datele complete ale cardului.",
+            "ai": "Conversațiile cu tutorele AI și textul pe care îl trimiți funcțiilor AI: păstrate până la 12 luni pentru a furniza și îmbunătăți funcția, apoi șterse sau anonimizate.",
+            "media": "Datele de la cameră (scanări de bonuri și extrase) și de la microfon (tutorele vocal): procesate pentru a genera informațiile tale și nepăstrate după procesare; rezultatele derivate din acestea sunt stocate în contul tău până când le ștergi.",
+            "logs": "Datele tehnice, de utilizare și de diagnosticare (identificatori de dispozitiv, jurnale, analize, rapoarte de eroare): păstrate până la 14 luni, după care sunt șterse sau agregate în statistici care nu te mai identifică.",
+            "support": "Comunicările de asistență: păstrate până la 24 de luni după soluționarea solicitării tale."
+          },
+          "closing": "Poți solicita ștergerea datelor tale în orice moment (vezi Drepturile tale mai jos). După ștergere, datele pot persista în copii de rezervă securizate pentru o scurtă perioadă, înainte ca acele copii să fie suprascrise conform unui program periodic."
         },
         "rights": {
           "title": "9. Drepturile tale",
