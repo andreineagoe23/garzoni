@@ -260,12 +260,18 @@ module.exports = ({ config }) => ({
           ],
         },
         android: {
-          // AndroidX core 1.17 requires compiling against API 36+. Keep target SDK separate.
+          // AndroidX core 1.17 requires compiling against API 36+. Play now
+          // requires targetSdk 36 (Android 16) for updates from 31 Aug 2026.
           compileSdkVersion: 36,
-          targetSdkVersion: 35,
+          targetSdkVersion: 36,
           minSdkVersion: 24,
-          enableProguardInReleaseBuilds: isProductionBuildProfile,
-          enableShrinkResources: isProductionBuildProfile,
+          // R8 code shrinking + resource shrinking for release (Play "R8
+          // optimisation" recommendation). Note: the old key names were
+          // `enableProguardInReleaseBuilds` / `enableShrinkResources` — the
+          // latter is NOT a recognized option, so resource shrinking was
+          // silently ignored before. These are the current names.
+          enableMinifyInReleaseBuilds: isProductionBuildProfile,
+          enableShrinkResourcesInReleaseBuilds: isProductionBuildProfile,
           ...(allowInsecureLocalHttp ? { usesCleartextTraffic: true } : {}),
         },
       },
