@@ -1,0 +1,51 @@
+name: Keep Backend Warm
+
+# Pings the Railway backend /health/ endpoint so the container does not cold-start
+# on the next real user after an idle period (Railway Hobby sleeps ~15m idle).
+# This both WAKES the container and VERIFIES it: a failed run (red X + GitHub
+# notification) doubles as basic uptime alerting, so no third-party monitor is needed.
+#
+# Notes:
+#  - GitHub cron is best-effort; scheduled runs can be delayed several minutes under
+#    load. That is fine for keep-warm. For hard SLA uptime, add an external monitor too.
+#  - Target URL defaults to the known Railway domain; override without editing this file
+#    by setting a repo variable HEALTH_PING_URL (Settings > Secrets and variables > Actions > Variables).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+# Newer scheduled run supersedes an in-flight one instead of piling up.
+concurrency:
+  group: keep-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    name: Ping backend health
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - name: Curl /health/ (wake + verify, with cold-start retries)
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_PING_URL || 'https://garzoni-production.up.railway.app/health/' }}
+        run: |
+          echo "Pinging $HEALTH_URL"
+          for attempt in 1 2 3 4 5; do
+            code="$(curl -sS -L -o /tmp/health.json -w '%{http_code}' --max-time 30 "$HEALTH_URL" || echo 000)"
+            echo "attempt $attempt -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "Backend healthy:"
+              cat /tmp/health.json 2>/dev/null || true
+              echo
+              exit 0
+            fi
+            # First attempt may hit a cold/booting container; wait and retry.
+            sleep 15
+          done
+          echo "::error::Backend health check did not return 200 after 5 attempts"
+          cat /tmp/health.json 2>/dev/null || true
+          exit 1
