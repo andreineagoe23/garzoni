@@ -70,7 +70,7 @@
         "backgroundColor": "#0b0f14"
       },
       "package": "app.garzoni.mobile",
-      "versionCode": 16,
+      "versionCode": 17,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
       "googleServicesFile": "./google-services.json",
