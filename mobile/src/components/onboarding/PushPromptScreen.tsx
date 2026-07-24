@@ -16,7 +16,9 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 import { registerForPushAndSubmitToken } from "../../bootstrap/pushNotificationsMobile";
 import { trackEvent } from "../../lib/analytics";
 
-const APP_ICON = require("../../../assets/garzoni-logo-square-no-bg.png");
+// White-background app icon — the transparent mark rendered near-invisible on
+// the dark mock tile, and this is what the real notification actually shows.
+const APP_ICON = require("../../../assets/icon.png");
 
 const C = {
   bg: brand.bgDark,
@@ -270,7 +272,7 @@ const s = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 9,
-    backgroundColor: C.surfaceRaised,
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",

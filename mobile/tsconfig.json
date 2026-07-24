@@ -2,7 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
+    // No `baseUrl` — deprecated in TS 6, removed in TS 7. These targets already
+    // resolve against this file's directory. Metro does its own aliasing in
+    // metro.config.js (`extraNodeModules` + `resolveRequest`), so bundling is
+    // unaffected by this file.
     "paths": {
       "@garzoni/core": ["../packages/core/src/index.ts"],
       "@garzoni/core/*": ["../packages/core/src/*"],

@@ -105,6 +105,18 @@
   },
   "dashboard": {
     "skipToContent": "Skip to content",
+    "firstWeek": {
+      "title": "Your first week",
+      "ariaLabel": "Your first week checklist",
+      "dismiss": "Dismiss checklist",
+      "progress": "{{done}} of {{total}} done",
+      "items": {
+        "built_plan": "Built your plan",
+        "first_lesson": "Complete your first lesson",
+        "try_tool": "Try one AI tool",
+        "start_streak": "Start your streak"
+      }
+    },
     "nav": {
       "allTopics": "All Topics",
       "personalizedPath": "Personalized Path",
@@ -144,8 +156,10 @@
       "title": "Pick up where you left off",
       "continueWith": "Continue with {{course}}",
       "continueLesson": "Continue lesson",
-      "startFirstLesson": "Start your first lesson and we'll remember your place.",
-      "browseTopics": "Continue"
+      "startFirstLesson": "Takes about 5 minutes. Next time we'll pick up from here.",
+      "browseTopics": "Continue",
+      "firstTitle": "Start your first lesson",
+      "firstCta": "Start learning"
     },
     "dailyGoal": {
       "label": "Daily goal",
@@ -165,7 +179,9 @@
       "percentClimbed": "{{percent}}% climbed",
       "next": "Next: {{title}}",
       "summit": "Summit",
-      "cta": "Continue the climb"
+      "cta": "Continue the climb",
+      "startTitle": "Build your personalized path",
+      "startEyebrow": "Not started yet"
     },
     "consistencyTitle": "Your consistency",
     "statusSummary": {
@@ -218,7 +234,10 @@
       "context": {
         "lastPracticed": "Last practiced {{days}}d ago",
         "lastPracticedToday": "Practiced today",
-        "lastPracticedYesterday": "Practiced yesterday"
+        "lastPracticedYesterday": "Practiced yesterday",
+        "compactDays": "{{days}}d ago",
+        "compactToday": "Today",
+        "compactYesterday": "Yesterday"
       },
       "action": {
         "reviewNow": "Review now",
@@ -335,11 +354,7 @@
     },
     "q2": {
       "prompt": "You take home £2,000 a month. How much should go to savings and debt?",
-      "options": [
-        "£100",
-        "£400",
-        "£1,000"
-      ],
+      "options": ["£100", "£400", "£1,000"],
       "explanation": "20% of £2,000 is £400 — that's your monthly target for savings and paying down debt."
     },
     "done": {
@@ -462,6 +477,42 @@
     "loadError": "Could not load analytics. Try refreshing."
   },
   "billing": {
+    "rcPaywall": {
+      "unlockTitle": "Unlock {{plan}}",
+      "unlockSubtitle": "Get unlimited access to all courses, exercises, and premium features.",
+      "planYearly": "Yearly",
+      "planMonthly": "Monthly",
+      "planLifetime": "Lifetime",
+      "bestValue": "Best value",
+      "lifetimeNote": "Pay once, own forever",
+      "perkCourses": "All premium courses",
+      "perkTutor": "Unlimited AI tutor",
+      "perkExercises": "Advanced exercises",
+      "perkPriority": "Priority support",
+      "openingCheckout": "Opening checkout…",
+      "choosePlan": "Choose {{label}} ›",
+      "noCommitment": "No commitment — cancel anytime",
+      "restoring": "Restoring…",
+      "restore": "Restore purchases",
+      "legal": "Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your account settings.",
+      "activeTitle": "Garzoni {{plan}} active",
+      "activeManagedElsewhere": "You're already subscribed. This plan is billed through {{store}}, so manage or change it there to avoid being charged twice.",
+      "activeSimple": "Your subscription is active.",
+      "activeContinue": "Continue",
+      "otherPlatform": "another platform",
+      "errAccount": "We couldn't confirm your account. Please sign in again before subscribing.",
+      "errNoPlans": "No plans available at the moment. Please try again later.",
+      "errLoad": "Unable to load plans. Please check your connection and try again.",
+      "errEntitlementPending": "Purchase completed but entitlement not yet active. Please restore purchases or contact support.",
+      "errPurchase": "Purchase failed. Please try again.",
+      "errNoSubscription": "No active subscription found for this account.",
+      "errRestore": "Restore failed. Please try again.",
+      "exitAria": "Try monthly instead",
+      "exitTitle": "Not ready for a year?",
+      "exitBody": "Try monthly instead — {{price}}. Cancel anytime.",
+      "exitAccept": "Start monthly — {{price}} ›",
+      "exitDecline": "No thanks"
+    },
     "subscriptionManagement": "Subscription Management",
     "manageSubtitle": "Manage your subscription and billing",
     "currentPlan": "Current Plan",
@@ -547,6 +598,21 @@
     "restoreSuccessTitle": "Restored",
     "restoreSuccessBody": "Your purchases have been restored.",
     "restoreFailed": "Could not restore purchases. Please try again."
+  },
+  "learnIndex": {
+    "breadcrumbHome": "Home",
+    "breadcrumbLessons": "Lessons",
+    "title": "Free Personal Finance Lessons",
+    "intro": "Learn money the way you learn a language — in short, practical lessons. Garzoni covers budgeting, saving, investing, credit, debt, and taxes, all free to read. No jargon, no sales pitch.",
+    "loading": "Loading lessons…",
+    "empty": "New lessons are coming soon.",
+    "emptyCta": "Create a free account to start learning today.",
+    "fallbackCourseTitle": "Lessons",
+    "sampleQuestionBadge": "Try it",
+    "readLesson": "Read lesson →",
+    "deeperTitle": "Ready to go deeper?",
+    "deeperBody": "Sign up free to unlock the full learning path, quizzes, daily streaks, and Garzoni's AI-powered financial coach.",
+    "deeperCta": "Create a free account"
   },
   "learn": {
     "lockedPathNeedsPlan": "This path needs a higher plan. View plans to unlock courses.",
@@ -1615,6 +1681,15 @@
     },
     "points": "{{points}} points",
     "empty": "No one on the board yet — finish a lesson today and claim your spot for this week.",
+    "emptyDescription": "Complete a lesson to earn XP and enter this week's leaderboard.",
+    "emptyAction": "Start a lesson",
+    "skills": {
+      "xp": "XP",
+      "Budgeting": "Budgeting",
+      "Saving": "Saving",
+      "Investing": "Investing",
+      "Markets": "Markets"
+    },
     "friendStatus": {
       "alreadyFriends": "Already friends",
       "pending": "Request pending",
@@ -2035,7 +2110,9 @@
       "earnedAchievement": "Earned achievement",
       "locked": "Locked",
       "earnedOn": "Earned {{date}}",
-      "empty": "No badges yet — your first lesson unlocks one. Start learning!"
+      "empty": "No badges yet — your first lesson unlocks one. Start learning!",
+      "emptyDescription": "Complete a lesson to earn your first badge.",
+      "emptyAction": "Start a lesson"
     },
     "activity": {
       "title": "Recent Activity",
@@ -2391,6 +2468,125 @@
   },
   "subscriptions": {
     "choosePlan": "Build Your Path",
+    "mobilePaywall": {
+      "titleChoose": "Choose your plan",
+      "titleManage": "Manage Plan",
+      "eyebrow": "Subscription",
+      "headlineLead": "Pick the plan that ",
+      "headlineEmphasis": "moves you forward",
+      "headlineTail": ".",
+      "cycleYearly": "Yearly",
+      "cycleMonthly": "Monthly",
+      "statusFreePlan": "Free plan",
+      "statusOnThe": "You're on the ",
+      "statusOn": "You're on ",
+      "statusPlanSuffix": " plan",
+      "statusInterval": "{{plan}} · {{interval}}",
+      "rcUnavailableTitle": "In-app purchases unavailable",
+      "rcUnavailableBody": "Rebuild the native app to enable subscriptions.",
+      "recommended": "RECOMMENDED",
+      "currentBadge": "Current",
+      "ctaCurrentPlan": "Current plan",
+      "ctaStart": "Start {{plan}}",
+      "ctaStartAnnual": "Start {{plan}} — Annual",
+      "perMonth": "/ month",
+      "perMonthBilledAnnually": "/ month, billed annually",
+      "thenPerYear": " / year",
+      "thenPerMonth": " / month",
+      "introOfferDiscount": "{{percent}}% off {{period}}, then {{price}}{{suffix}}",
+      "introOffer": "{{period}}, then {{price}}{{suffix}}",
+      "introFirstOne": {
+        "day": "first day",
+        "week": "first week",
+        "month": "first month",
+        "year": "first year",
+        "period": "first period"
+      },
+      "introFirstMany": {
+        "day": "first {{count}} days",
+        "week": "first {{count}} weeks",
+        "month": "first {{count}} months",
+        "year": "first {{count}} years",
+        "period": "first {{count}} periods"
+      },
+      "trialOne": {
+        "day": "{{count}} day free trial",
+        "week": "{{count}} week free trial",
+        "month": "{{count}} month free trial",
+        "year": "{{count}} year free trial",
+        "period": "{{count}} period free trial"
+      },
+      "trialMany": {
+        "day": "{{count}} days free trial",
+        "week": "{{count}} weeks free trial",
+        "month": "{{count}} months free trial",
+        "year": "{{count}} years free trial",
+        "period": "{{count}} periods free trial"
+      },
+      "pricingUnavailable": "Pricing unavailable — check your connection and try again.",
+      "compareToggle": "Compare all features",
+      "compareFeature": "Feature",
+      "compareFree": "Free",
+      "comparePlus": "Plus",
+      "comparePro": "Pro",
+      "compareRows": {
+        "guidedLessons": "Guided lessons",
+        "streaksXp": "Daily streaks & XP",
+        "personalisedPath": "Personalised path",
+        "unlimitedCalculators": "Unlimited calculators",
+        "advancedSimulations": "Advanced simulations",
+        "priorityAi": "Priority AI guidance",
+        "earlyAccess": "Early access to new tools"
+      },
+      "tiers": {
+        "plusTagline": "A personalised path",
+        "plusPerk1": "Personalised learning path",
+        "plusPerk2": "Unlimited calculators",
+        "plusPerk3": "Progress insights & reminders",
+        "proTagline": "The full toolkit",
+        "proPerk1": "Everything in Plus",
+        "proPerk2": "Advanced simulations & analytics",
+        "proPerk3": "Early access to new tools",
+        "proPerk4": "Priority AI guidance"
+      },
+      "restorePurchases": "Restore purchases",
+      "manageSubscription": "Manage subscription",
+      "redeemCode": "Redeem code",
+      "skipForNow": "Skip for now",
+      "legalIos": "Subscriptions renew automatically. Cancel anytime in your Apple ID settings. Payment charged to your Apple ID on confirmation.",
+      "termsOfUse": "Terms of Use",
+      "privacyPolicy": "Privacy Policy",
+      "overlay": {
+        "activatingTier": "Activating Garzoni {{tier}}…",
+        "activating": "Activating your subscription…",
+        "activatingBody": "Syncing your Garzoni account — this only takes a few seconds.",
+        "successTitle": "You're all set",
+        "successTier": "Welcome to Garzoni {{tier}}. Your new tools are unlocked.",
+        "success": "Welcome — your new tools are unlocked.",
+        "errorTitle": "Almost there",
+        "errorBody": "We couldn't activate your subscription. Please retry.",
+        "retry": "Retry",
+        "close": "Close",
+        "restoringTitle": "Restoring purchases…",
+        "restoringBody": "Checking your Apple ID for active subscriptions."
+      },
+      "errors": {
+        "identityMissing": "We couldn't link your account for this purchase. Please restart the app and try again.",
+        "crossPlatform": "You already have an active subscription billed through {{store}}. Manage or change it there — buying here would charge you twice.",
+        "backendLag": "Your purchase went through, but we couldn't activate it yet. Tap retry below.",
+        "generic": "Please try again.",
+        "retryNoLuck": "Still no luck. Tap Restore Purchases or contact support if this persists.",
+        "retryFailed": "Retry failed. Please try Restore Purchases.",
+        "redeemPending": "If your code was accepted, wait a moment and tap Restore purchases — or try again shortly."
+      },
+      "restore": {
+        "restoredTitle": "Restored",
+        "restoredBody": "Welcome back to Garzoni {{tier}}.",
+        "nothingTitle": "Nothing to restore",
+        "nothingBody": "We couldn't find an active subscription on this Apple ID.",
+        "failedTitle": "Restore failed"
+      }
+    },
     "intro": "Start free — no credit card needed. Upgrade to Plus or Pro when you're ready to unlock your personalized learning path and the full suite of tools.",
     "paywallHeadlineGoal": "Unlock the path built for {{goal}}",
     "noCommitment": "No commitment — cancel anytime",

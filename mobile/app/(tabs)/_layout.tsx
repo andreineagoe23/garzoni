@@ -21,6 +21,10 @@ const TAB_ICON: Record<
   learn: { active: navIcons.learnFilled, inactive: navIcons.learn },
   exercises: { active: navIcons.exercisesFilled, inactive: navIcons.exercises },
   tools: { active: navIcons.toolsFilled, inactive: navIcons.tools },
+  leaderboard: {
+    active: navIcons.leaderboardFilled,
+    inactive: navIcons.leaderboard,
+  },
 };
 
 export default function TabsLayout() {
@@ -95,17 +99,22 @@ export default function TabsLayout() {
           options={{ title: t("nav.dashboard", { defaultValue: "Home" }) }}
         />
         <Tabs.Screen
+          name="tools"
+          options={{ title: t("nav.tools", { defaultValue: "Tools" }) }}
+        />
+        <Tabs.Screen
           name="learn"
           options={{ title: t("nav.learn", { defaultValue: "Learn" }) }}
         />
         <Tabs.Screen
-          name="exercises"
-          options={{ title: t("nav.exercises", { defaultValue: "Exercises" }) }}
+          name="leaderboard"
+          options={{
+            title: t("nav.leaderboard", { defaultValue: "Leaderboard" }),
+          }}
         />
-        <Tabs.Screen
-          name="tools"
-          options={{ title: t("nav.tools", { defaultValue: "Tools" }) }}
-        />
+        {/* Practice hub keeps its route (missions, weak-skill drills, lesson
+            hand-offs all deep-link into it) but no longer holds a tab slot. */}
+        <Tabs.Screen name="exercises" options={{ href: null }} />
         <Tabs.Screen name="profile" options={{ href: null }} />
         <Tabs.Screen
           name="account-menu"

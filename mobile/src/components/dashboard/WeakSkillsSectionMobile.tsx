@@ -23,6 +23,9 @@ function daysSince(iso?: string | null): number | null {
   return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
 }
 
+/** Home is a glance surface — three cards is already a full screen of scrolling. */
+const MAX_SKILLS = 3;
+
 type PillKind = "due" | "overdue" | "declining" | "improving" | null;
 
 function pillFor(skill: DashboardWeakSkill): {
@@ -154,28 +157,38 @@ export default function WeakSkillsSectionMobile({
       padding="md"
       style={{ marginTop: spacing.lg, borderColor: c.border }}
     >
-      <Text style={[styles.h2, { color: c.text }]}>
+      {/* Heading only — the section is scannable, the explainer sentence was
+          just more text between the user and the three cards. */}
+      <Text style={[styles.h2Tight, { color: c.text }]}>
         {t("dashboard.weakSkills.areasToImprove")}
       </Text>
-      <Text style={[styles.focus, { color: c.textMuted }]}>
-        {t("dashboard.weakSkills.focusOnSkills")}
-      </Text>
       <View style={gridStyle}>
-        {weakestSkills.map((skill) => {
+        {weakestSkills.slice(0, MAX_SKILLS).map((skill) => {
           const pill = pillFor(skill);
-          const { ctaLabel, preview } = weakSkillNextStepLabels(
-            t,
-            skill.next_step,
-          );
+          const { ctaLabel } = weakSkillNextStepLabels(t, skill.next_step);
           const displayTitle = skill.course_title || skill.skill;
           const isTutorOnly = skill.next_step?.type === "tutor";
-          const primaryLabel = isTutorOnly
-            ? t("dashboard.weakSkills.action.askTutorAbout", {
-                skill: displayTitle,
-              })
-            : ctaLabel;
+          const primaryLabel = ctaLabel;
           const isDue = skill.next_step?.type === "review";
           const lastPracticedDays = daysSince(skill.last_reviewed);
+          const levelText = skill.level_band
+            ? masteryLevelLabel(t, skill.level_band)
+            : skill.level_label;
+          const practicedText =
+            lastPracticedDays == null
+              ? null
+              : lastPracticedDays === 0
+                ? t("dashboard.weakSkills.context.compactToday")
+                : lastPracticedDays === 1
+                  ? t("dashboard.weakSkills.context.compactYesterday")
+                  : t("dashboard.weakSkills.context.compactDays", {
+                      days: lastPracticedDays,
+                    });
+          // One meta line instead of three stacked ones (level / next-step
+          // preview / last practiced). The CTA already says what happens next.
+          const metaText = [levelText, practicedText]
+            .filter(Boolean)
+            .join(" · ");
           const pillBg =
             pill.kind === "due" || pill.kind === "overdue"
               ? c.errorBg
@@ -245,27 +258,12 @@ export default function WeakSkillsSectionMobile({
                   ]}
                 />
               </View>
-              {skill.level_band || skill.level_label ? (
-                <Text style={[styles.levelLabel, { color: c.textMuted }]}>
-                  {skill.level_band
-                    ? masteryLevelLabel(t, skill.level_band)
-                    : skill.level_label}
-                </Text>
-              ) : null}
-              {preview ? (
-                <Text style={[styles.context, { color: c.textMuted }]}>
-                  {preview}
-                </Text>
-              ) : null}
-              {lastPracticedDays != null ? (
-                <Text style={[styles.context, { color: c.textMuted }]}>
-                  {lastPracticedDays === 0
-                    ? t("dashboard.weakSkills.context.lastPracticedToday")
-                    : lastPracticedDays === 1
-                      ? t("dashboard.weakSkills.context.lastPracticedYesterday")
-                      : t("dashboard.weakSkills.context.lastPracticed", {
-                          days: lastPracticedDays,
-                        })}
+              {metaText ? (
+                <Text
+                  style={[styles.meta, { color: c.textMuted }]}
+                  numberOfLines={1}
+                >
+                  {metaText}
                 </Text>
               ) : null}
               <View style={styles.actions}>
@@ -302,6 +300,11 @@ const styles = StyleSheet.create({
   },
   desc: { fontSize: typography.sm, lineHeight: 20 },
   h2: { fontSize: typography.md, fontWeight: "800", marginBottom: spacing.sm },
+  h2Tight: {
+    fontSize: typography.md,
+    fontWeight: "800",
+    marginBottom: spacing.md,
+  },
   focus: { fontSize: typography.sm, marginBottom: spacing.md },
   grid: { gap: spacing.md },
   gridRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" },
@@ -342,5 +345,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   context: { fontSize: typography.xs },
+  meta: { fontSize: typography.xs, fontWeight: "600" },
   actions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
 });

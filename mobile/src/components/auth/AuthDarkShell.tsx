@@ -94,6 +94,12 @@ type ShellProps = {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  /**
+   * Pinned to the bottom of the scrollable area — for passive chrome like a step
+   * indicator. It rides above the keyboard inset rather than sitting behind the
+   * keyboard, because it lives inside the scroll content container.
+   */
+  footer?: ReactNode;
 };
 
 export default function AuthDarkShell({
@@ -101,6 +107,7 @@ export default function AuthDarkShell({
   title,
   subtitle,
   children,
+  footer,
 }: ShellProps) {
   const { top } = useSafeAreaInsets();
   return (
@@ -132,15 +139,19 @@ export default function AuthDarkShell({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={s.header}>
-            {eyebrow ? (
-              <Text style={s.eyebrow}>{eyebrow.toUpperCase()}</Text>
-            ) : null}
-            <Text style={s.title}>{title}</Text>
-            {subtitle ? <Text style={s.subtitle}>{subtitle}</Text> : null}
+          <View style={s.centerBlock}>
+            <View style={s.header}>
+              {eyebrow ? (
+                <Text style={s.eyebrow}>{eyebrow.toUpperCase()}</Text>
+              ) : null}
+              <Text style={s.title}>{title}</Text>
+              {subtitle ? <Text style={s.subtitle}>{subtitle}</Text> : null}
+            </View>
+
+            <View style={s.form}>{children}</View>
           </View>
 
-          <View style={s.form}>{children}</View>
+          {footer ? <View style={s.footer}>{footer}</View> : null}
         </KeyboardAwareScrollView>
       </View>
     </View>
@@ -275,6 +286,20 @@ const s = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
   },
+
+  // Takes the slack and centres the header+form in it, matching forgot-password.
+  // `flexShrink: 0` matters: with plain `flex: 1` a tall step (register step 1)
+  // would be squashed to fit instead of overflowing into a scroll. Growing but
+  // never shrinking means short steps centre and tall steps scroll as before.
+  centerBlock: {
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: "auto",
+    justifyContent: "center",
+  },
+  // Sits after the centred block, so it lands at the bottom of the scroll
+  // content — which is above the keyboard inset, not behind the keyboard.
+  footer: { paddingTop: 24 },
 
   header: { marginBottom: 28 },
   eyebrow: {

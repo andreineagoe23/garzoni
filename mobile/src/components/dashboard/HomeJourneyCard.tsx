@@ -76,7 +76,8 @@ export default function HomeJourneyCard() {
     );
   }, [layout.nodes, personalizedQuery.data?.meta?.overall_completion]);
 
-  if (!hasCourses) return null;
+  // Don't flash an empty-state card while the path request is still in flight.
+  if (personalizedQuery.isLoading) return null;
 
   const currentNode =
     layout.currentIndex >= 0 ? layout.nodes[layout.currentIndex] : null;
@@ -84,7 +85,12 @@ export default function HomeJourneyCard() {
     currentNode?.course.title ?? t("dashboard.climbCard.summit");
 
   const openJourney = () => {
-    trackEvent("journey_view", { source: "home_card" });
+    trackEvent("journey_view", {
+      source: "home_card",
+      state: hasCourses ? "in_progress" : "empty",
+    });
+    // Same destination either way — Learn's personalized view builds the path
+    // when there isn't one yet.
     router.push(href("/(tabs)/learn?view=personalized"));
   };
 
@@ -112,19 +118,25 @@ export default function HomeJourneyCard() {
       <View style={styles.copy}>
         <Text style={styles.eyebrow} numberOfLines={1}>
           {t("dashboard.climbCard.eyebrow").toUpperCase()} ·{" "}
-          {t("dashboard.climbCard.percentClimbed", { percent })}
+          {hasCourses
+            ? t("dashboard.climbCard.percentClimbed", { percent })
+            : t("dashboard.climbCard.startEyebrow")}
         </Text>
         <Text style={styles.title} numberOfLines={1}>
-          {t("dashboard.climbCard.next", { title: nextTitle })}
+          {hasCourses
+            ? t("dashboard.climbCard.next", { title: nextTitle })
+            : t("dashboard.climbCard.startTitle")}
         </Text>
-        <View style={styles.track}>
-          <View
-            style={[
-              styles.fill,
-              { width: `${Math.max(2, Math.min(100, percent))}%` },
-            ]}
-          />
-        </View>
+        {hasCourses ? (
+          <View style={styles.track}>
+            <View
+              style={[
+                styles.fill,
+                { width: `${Math.max(2, Math.min(100, percent))}%` },
+              ]}
+            />
+          </View>
+        ) : null}
       </View>
       <MaterialCommunityIcons name="chevron-right" size={22} color="#ffffff" />
     </Pressable>

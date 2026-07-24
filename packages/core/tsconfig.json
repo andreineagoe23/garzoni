@@ -2,16 +2,17 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "baseUrl": "src",
     "types": ["node"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
+    // No `baseUrl` — deprecated in TS 6, removed in TS 7. It was `"src"`, so the
+    // targets below carry that prefix explicitly and resolve against this file.
     "paths": {
-      "services/*": ["services/*"],
-      "constants/*": ["constants/*"],
-      "types/*": ["types/*"],
-      "stores/*": ["stores/*"],
-      "lib/*": ["lib/*"],
-      "hooks/*": ["hooks/*"]
+      "services/*": ["./src/services/*"],
+      "constants/*": ["./src/constants/*"],
+      "types/*": ["./src/types/*"],
+      "stores/*": ["./src/stores/*"],
+      "lib/*": ["./src/lib/*"],
+      "hooks/*": ["./src/hooks/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "src/**/*.json"]

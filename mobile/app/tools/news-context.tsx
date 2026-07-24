@@ -59,9 +59,7 @@ export default function NewsContextScreen() {
     <>
       <Stack.Screen
         options={{
-          title: t("tools.groups.understand-world.tools.news-context.title", {
-            defaultValue: "News Context",
-          }),
+          title: t("tools.entries.news-context.title"),
           headerShown: true,
         }}
       />

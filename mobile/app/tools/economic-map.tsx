@@ -40,9 +40,7 @@ export default function EconomicMapScreen() {
     <>
       <Stack.Screen
         options={{
-          title: t("tools.groups.understand-world.tools.economic-map.title", {
-            defaultValue: "Economic Map",
-          }),
+          title: t("tools.entries.economic-map.title"),
           headerShown: true,
         }}
       />

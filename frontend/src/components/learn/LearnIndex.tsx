@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import SeoHead from "components/seo/SeoHead";
 
@@ -19,6 +20,9 @@ type LessonListResponse = {
   results: LessonItem[];
 };
 
+// Crawler-facing only (JSON-LD FAQPage via SeoHead, never rendered). The
+// canonical for /learn is the English page and carries no hreflang, so these
+// and the SeoHead strings below stay English regardless of the UI language.
 const FAQ_ITEMS = [
   {
     question: "Are Garzoni's lessons free?",
@@ -38,6 +42,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function LearnIndex() {
+  const { t } = useTranslation();
   const [data, setData] = useState<LessonListResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,12 +67,12 @@ export default function LearnIndex() {
   const grouped = useMemo(() => {
     const map = new Map<string, LessonItem[]>();
     for (const lesson of data?.results ?? []) {
-      const key = lesson.course.title || "Lessons";
+      const key = lesson.course.title || t("learnIndex.fallbackCourseTitle");
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(lesson);
     }
     return Array.from(map.entries());
-  }, [data]);
+  }, [data, t]);
 
   return (
     <main style={{ padding: "2rem", maxWidth: 1000, margin: "0 auto" }}>
@@ -83,23 +88,21 @@ export default function LearnIndex() {
       />
 
       <nav aria-label="Breadcrumb" style={{ fontSize: 14, opacity: 0.7 }}>
-        <Link to="/">Home</Link> › <span>Lessons</span>
+        <Link to="/">{t("learnIndex.breadcrumbHome")}</Link> ›{" "}
+        <span>{t("learnIndex.breadcrumbLessons")}</span>
       </nav>
 
-      <h1>Free Personal Finance Lessons</h1>
+      <h1>{t("learnIndex.title")}</h1>
       <p style={{ fontSize: 18, lineHeight: 1.7, maxWidth: 720 }}>
-        Learn money the way you learn a language — in short, practical lessons.
-        Garzoni covers budgeting, saving, investing, credit, debt, and taxes,
-        all free to read. No jargon, no sales pitch.
+        {t("learnIndex.intro")}
       </p>
 
       {loading ? (
-        <p>Loading lessons…</p>
+        <p>{t("learnIndex.loading")}</p>
       ) : grouped.length === 0 ? (
         <p>
-          New lessons are coming soon.{" "}
-          <Link to="/register">Create a free account</Link> to start learning
-          today.
+          {t("learnIndex.empty")}{" "}
+          <Link to="/register">{t("learnIndex.emptyCta")}</Link>
         </p>
       ) : (
         grouped.map(([courseTitle, lessons]) => (
@@ -140,7 +143,7 @@ export default function LearnIndex() {
                           color: "#22c55e",
                         }}
                       >
-                        Try it
+                        {t("learnIndex.sampleQuestionBadge")}
                       </span>
                     ) : null}
                   </h3>
@@ -149,7 +152,9 @@ export default function LearnIndex() {
                       {lesson.short_description}
                     </p>
                   ) : null}
-                  <Link to={`/learn/${lesson.slug}`}>Read lesson →</Link>
+                  <Link to={`/learn/${lesson.slug}`}>
+                    {t("learnIndex.readLesson")}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -165,11 +170,8 @@ export default function LearnIndex() {
           borderRadius: 12,
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Ready to go deeper?</h2>
-        <p>
-          Sign up free to unlock the full learning path, quizzes, daily streaks,
-          and Garzoni's AI-powered financial coach.
-        </p>
+        <h2 style={{ marginTop: 0 }}>{t("learnIndex.deeperTitle")}</h2>
+        <p>{t("learnIndex.deeperBody")}</p>
         <Link
           to="/register"
           style={{
@@ -182,7 +184,7 @@ export default function LearnIndex() {
             fontWeight: 600,
           }}
         >
-          Create a free account
+          {t("learnIndex.deeperCta")}
         </Link>
       </aside>
     </main>

@@ -2,8 +2,11 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
+    // No `baseUrl` — deprecated in TS 6, removed in TS 7. Without it these
+    // targets resolve against this file's directory, which is what `baseUrl: "."`
+    // meant here anyway. Runtime resolution is unaffected: Vite aliases come from
+    // `resolve.alias` in vite.config.ts, not from this file.
     "paths": {
       "@garzoni/core/lib/createMutation": [
         "../packages/core/src/lib/createMutation.ts"
@@ -15,25 +18,25 @@
       "@garzoni/core/locales/en": ["../packages/core/src/locales/en/index.ts"],
       "@garzoni/core/locales/ro": ["../packages/core/src/locales/ro/index.ts"],
       "@garzoni/core": ["../packages/core/src/index.ts"],
-      "App": ["src/App.tsx"],
-      "routes/*": ["src/routes/*"],
-      "bootstrap/*": ["src/bootstrap/*"],
-      "sentry": ["src/sentry.ts"],
-      "reportWebVitals": ["src/reportWebVitals.ts"],
-      "serviceWorkerRegistration": ["src/serviceWorkerRegistration.ts"],
-      "contexts/*": ["src/contexts/*"],
-      "components/*": ["src/components/*"],
-      "services/revenueCatService": ["src/services/revenueCatService.ts"],
+      "App": ["./src/App.tsx"],
+      "routes/*": ["./src/routes/*"],
+      "bootstrap/*": ["./src/bootstrap/*"],
+      "sentry": ["./src/sentry.ts"],
+      "reportWebVitals": ["./src/reportWebVitals.ts"],
+      "serviceWorkerRegistration": ["./src/serviceWorkerRegistration.ts"],
+      "contexts/*": ["./src/contexts/*"],
+      "components/*": ["./src/components/*"],
+      "services/revenueCatService": ["./src/services/revenueCatService.ts"],
       "services/*": ["../packages/core/src/services/*"],
-      "constants/*": ["src/constants/*", "../packages/core/src/constants/*"],
-      "utils/*": ["src/utils/*"],
-      "lib/*": ["src/lib/*"],
+      "constants/*": ["./src/constants/*", "../packages/core/src/constants/*"],
+      "utils/*": ["./src/utils/*"],
+      "lib/*": ["./src/lib/*"],
       "types/*": ["../packages/core/src/types/*"],
-      "assets/*": ["src/assets/*"],
-      "hooks/*": ["src/hooks/*"],
+      "assets/*": ["./src/assets/*"],
+      "hooks/*": ["./src/hooks/*"],
       "stores/*": ["../packages/core/src/stores/*"],
-      "styles/*": ["src/styles/*"],
-      "i18n": ["src/i18n.ts"]
+      "styles/*": ["./src/styles/*"],
+      "i18n": ["./src/i18n.ts"]
     }
   },
   "include": ["src", "vite.config.ts"],

@@ -254,7 +254,9 @@ function StepRow({
           marginLeft: 36,
           maxHeight: detailHeight.interpolate({
             inputRange: [0, 1],
-            outputRange: [0, 36],
+            // Headroom for 3 wrapped lines at the font-scale cap — the view still
+            // sizes to its content, this only bounds the reveal animation.
+            outputRange: [0, 72],
           }),
           opacity: detailOpacity,
           overflow: "hidden",
@@ -375,7 +377,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
           transform: [{ translateY: fadeUpY }],
           width: "100%",
           alignItems: "center",
-          paddingTop: spacing.xxxxl + spacing.xl,
+          paddingHorizontal: spacing.xl,
         }}
       >
         {/* Logo */}
@@ -387,7 +389,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
         />
 
         {/* Steps */}
-        <View style={[s.stepsContainer, { marginTop: spacing.xxxl }]}>
+        <View style={[s.stepsContainer, { marginTop: spacing.xxl }]}>
           {steps.map((step, i) => (
             <StepRow
               key={i}
@@ -570,11 +572,15 @@ const s = StyleSheet.create({
     backgroundColor: C.bg,
     position: "relative",
     overflow: "hidden",
+    // Loading phase has no bottom CTA, so the block is centred in the viewport
+    // instead of hanging off the top with dead space beneath it.
+    justifyContent: "center",
   },
 
   ambientTop: {
+    // Follows the now-centred block instead of hugging the status bar.
     position: "absolute",
-    top: -80,
+    top: "15%",
     alignSelf: "center",
   },
   ambientMid: {
@@ -589,9 +595,11 @@ const s = StyleSheet.create({
     height: 44,
   },
 
-  // Steps — fixed width centered block, content left-aligned
+  // Steps — centred block capped at 340, content left-aligned. Width is fluid so
+  // detail copy still fits (and wraps) at the 1.25 font-scale cap.
   stepsContainer: {
-    width: 320,
+    width: "100%",
+    maxWidth: 340,
     alignSelf: "center",
   },
   stepRow: {
@@ -621,9 +629,10 @@ const s = StyleSheet.create({
     marginTop: 5,
   },
 
-  // Progress — same fixed width as steps
+  // Progress — same width rules as steps
   progressSection: {
-    width: 320,
+    width: "100%",
+    maxWidth: 340,
     alignSelf: "center",
     marginTop: spacing.xl + spacing.sm,
   },

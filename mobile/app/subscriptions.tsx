@@ -76,44 +76,76 @@ const DISPLAY_FONT: string = Platform.OS === "ios" ? "Georgia" : "serif";
 
 // ─── Plan data ────────────────────────────────────────────────────────────────
 
+// `name` is the brand tier and stays untranslated; everything else is a locale
+// key resolved at render time (see `subscriptions.mobilePaywall.tiers`).
 const PLAN_DATA = {
   plus: {
     id: "plus" as const,
     name: "Plus",
-    tagline: "A personalised path",
-    perks: [
-      "Personalised learning path",
-      "Unlimited calculators",
-      "Progress insights & reminders",
+    taglineKey: "subscriptions.mobilePaywall.tiers.plusTagline",
+    perkKeys: [
+      "subscriptions.mobilePaywall.tiers.plusPerk1",
+      "subscriptions.mobilePaywall.tiers.plusPerk2",
+      "subscriptions.mobilePaywall.tiers.plusPerk3",
     ],
   },
   pro: {
     id: "pro" as const,
     name: "Pro",
-    tagline: "The full toolkit",
-    perks: [
-      "Everything in Plus",
-      "Advanced simulations & analytics",
-      "Early access to new tools",
-      "Priority AI guidance",
+    taglineKey: "subscriptions.mobilePaywall.tiers.proTagline",
+    perkKeys: [
+      "subscriptions.mobilePaywall.tiers.proPerk1",
+      "subscriptions.mobilePaywall.tiers.proPerk2",
+      "subscriptions.mobilePaywall.tiers.proPerk3",
+      "subscriptions.mobilePaywall.tiers.proPerk4",
     ],
   },
 };
 
 const COMPARE_ROWS: {
-  label: string;
+  labelKey: string;
   starter: boolean;
   plus: boolean;
   pro: boolean;
 }[] = [
-  { label: "Guided lessons", starter: true, plus: true, pro: true },
-  { label: "Daily streaks & XP", starter: true, plus: true, pro: true },
-  { label: "Personalised path", starter: false, plus: true, pro: true },
-  { label: "Unlimited calculators", starter: false, plus: true, pro: true },
-  { label: "Advanced simulations", starter: false, plus: false, pro: true },
-  { label: "Priority AI guidance", starter: false, plus: false, pro: true },
   {
-    label: "Early access to new tools",
+    labelKey: "subscriptions.mobilePaywall.compareRows.guidedLessons",
+    starter: true,
+    plus: true,
+    pro: true,
+  },
+  {
+    labelKey: "subscriptions.mobilePaywall.compareRows.streaksXp",
+    starter: true,
+    plus: true,
+    pro: true,
+  },
+  {
+    labelKey: "subscriptions.mobilePaywall.compareRows.personalisedPath",
+    starter: false,
+    plus: true,
+    pro: true,
+  },
+  {
+    labelKey: "subscriptions.mobilePaywall.compareRows.unlimitedCalculators",
+    starter: false,
+    plus: true,
+    pro: true,
+  },
+  {
+    labelKey: "subscriptions.mobilePaywall.compareRows.advancedSimulations",
+    starter: false,
+    plus: false,
+    pro: true,
+  },
+  {
+    labelKey: "subscriptions.mobilePaywall.compareRows.priorityAi",
+    starter: false,
+    plus: false,
+    pro: true,
+  },
+  {
+    labelKey: "subscriptions.mobilePaywall.compareRows.earlyAccess",
     starter: false,
     plus: false,
     pro: true,
@@ -154,18 +186,28 @@ function intervalFromEntitlements(ent?: Entitlements | null): Cycle | null {
   return null;
 }
 
+/** Minimal shape of react-i18next's `t` — avoids importing i18next types here. */
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+/** StoreKit `periodUnit` → the locale sub-key used for that unit's copy. */
+function introPeriodUnitKey(intro: PurchasesIntroPrice, fallback: string) {
+  const unit = String(intro.periodUnit ?? fallback).toUpperCase();
+  if (unit === "DAY") return "day";
+  if (unit === "WEEK") return "week";
+  if (unit === "MONTH") return "month";
+  if (unit === "YEAR") return "year";
+  return "period";
+}
+
 /** Uses StoreKit intro `periodUnit` — avoids showing "1 day" when Apple reports a 1-week trial as WEEK × 1. */
-function formatIntroTrialLabel(intro: PurchasesIntroPrice): string {
+function formatIntroTrialLabel(
+  intro: PurchasesIntroPrice,
+  t: Translate,
+): string {
   const n = intro.periodNumberOfUnits ?? 0;
-  const unit = String(intro.periodUnit ?? "DAY").toUpperCase();
-  const plural = n === 1 ? "" : "s";
-  let unitWord: string;
-  if (unit === "DAY") unitWord = `day${plural}`;
-  else if (unit === "WEEK") unitWord = `week${plural}`;
-  else if (unit === "MONTH") unitWord = `month${plural}`;
-  else if (unit === "YEAR") unitWord = `year${plural}`;
-  else unitWord = `period${plural}`;
-  return `${n} ${unitWord} free trial`;
+  const unitKey = introPeriodUnitKey(intro, "DAY");
+  const group = n === 1 ? "trialOne" : "trialMany";
+  return t(`subscriptions.mobilePaywall.${group}.${unitKey}`, { count: n });
 }
 
 /** Format a numeric amount as currency, matching the store's currency code. */
@@ -235,11 +277,14 @@ function TrialTimeline({ intro }: { intro: PurchasesIntroPrice }) {
 }
 
 /** Label for a paid intro offer (store-configured discount), e.g. "first year" or "first 3 months". */
-function formatIntroOfferLabel(intro: PurchasesIntroPrice): string {
+function formatIntroOfferLabel(
+  intro: PurchasesIntroPrice,
+  t: Translate,
+): string {
   const n = (intro.periodNumberOfUnits ?? 0) * Math.max(intro.cycles ?? 1, 1);
-  const unit = String(intro.periodUnit ?? "MONTH").toLowerCase();
-  if (n <= 1) return `first ${unit}`;
-  return `first ${n} ${unit}s`;
+  const unitKey = introPeriodUnitKey(intro, "MONTH");
+  const group = n <= 1 ? "introFirstOne" : "introFirstMany";
+  return t(`subscriptions.mobilePaywall.${group}.${unitKey}`, { count: n });
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -269,6 +314,7 @@ function CycleToggle({
   onChange: (v: Cycle) => void;
   savingsPct: number | null;
 }) {
+  const { t } = useTranslation("common");
   return (
     <View style={styles.cycleWrap}>
       {(["monthly", "yearly"] as const).map((k) => {
@@ -282,7 +328,9 @@ function CycleToggle({
             <Text
               style={[styles.cycleLabel, { color: active ? D.text : D.muted }]}
             >
-              {k === "yearly" ? "Yearly" : "Monthly"}
+              {k === "yearly"
+                ? t("subscriptions.mobilePaywall.cycleYearly")
+                : t("subscriptions.mobilePaywall.cycleMonthly")}
             </Text>
             {k === "yearly" && savingsPct !== null && (
               <View
@@ -366,7 +414,10 @@ function TierCard({
   const isPro = plan.id === "pro";
   const accent = isPro ? D.goldWarm : D.primaryBright;
   const price = pkg?.product.priceString ?? "—";
-  const per = cycle === "yearly" ? "/ month, billed annually" : "/ month";
+  const per =
+    cycle === "yearly"
+      ? t("subscriptions.mobilePaywall.perMonthBilledAnnually")
+      : t("subscriptions.mobilePaywall.perMonth");
   const intro = pkg?.product.introPrice;
   const showTrial = Boolean(intro && intro.price === 0);
   // Store-configured discounted intro price (e.g. 60%-off promo) — free trials excluded.
@@ -377,8 +428,10 @@ function TierCard({
       : null;
   const disabled = !pkg || isCurrent;
   const ctaLabel = isCurrent
-    ? "Current plan"
-    : `Start ${plan.name}${cycle === "yearly" ? " — Annual" : ""}`;
+    ? t("subscriptions.mobilePaywall.ctaCurrentPlan")
+    : cycle === "yearly"
+      ? t("subscriptions.mobilePaywall.ctaStartAnnual", { plan: plan.name })
+      : t("subscriptions.mobilePaywall.ctaStart", { plan: plan.name });
   // Per-week contrast framing under the yearly price (annual total / 52).
   const weeklyLabel =
     cycle === "yearly" && pkg && pkg.product.price > 0
@@ -402,7 +455,9 @@ function TierCard({
       {recommended && (
         <View style={styles.recommendedWrap}>
           <View style={styles.recommendedBadge}>
-            <Text style={styles.recommendedText}>RECOMMENDED</Text>
+            <Text style={styles.recommendedText}>
+              {t("subscriptions.mobilePaywall.recommended")}
+            </Text>
           </View>
         </View>
       )}
@@ -418,7 +473,7 @@ function TierCard({
           </Text>
         </View>
         <Text style={[styles.tierTagline, { fontFamily: DISPLAY_FONT }]}>
-          {plan.tagline}
+          {t(plan.taglineKey)}
         </Text>
         {paidIntro && discountPct != null && discountPct > 0 && (
           <View style={styles.promoBadge}>
@@ -427,12 +482,16 @@ function TierCard({
         )}
         {showTrial && intro && (
           <View style={styles.trialBadge}>
-            <Text style={styles.trialText}>{formatIntroTrialLabel(intro)}</Text>
+            <Text style={styles.trialText}>
+              {formatIntroTrialLabel(intro, t)}
+            </Text>
           </View>
         )}
         {isCurrent && (
           <View style={styles.currentBadge}>
-            <Text style={styles.currentBadgeText}>Current</Text>
+            <Text style={styles.currentBadgeText}>
+              {t("subscriptions.mobilePaywall.currentBadge")}
+            </Text>
           </View>
         )}
       </View>
@@ -446,9 +505,22 @@ function TierCard({
       </View>
       {paidIntro ? (
         <Text style={[styles.pricePer, { color: accent }]}>
-          {discountPct != null && discountPct > 0 ? `${discountPct}% off ` : ""}
-          {formatIntroOfferLabel(paidIntro)}, then {price}
-          {cycle === "yearly" ? " / year" : " / month"}
+          {(() => {
+            const params = {
+              period: formatIntroOfferLabel(paidIntro, t),
+              price,
+              suffix:
+                cycle === "yearly"
+                  ? t("subscriptions.mobilePaywall.thenPerYear")
+                  : t("subscriptions.mobilePaywall.thenPerMonth"),
+            };
+            return discountPct != null && discountPct > 0
+              ? t("subscriptions.mobilePaywall.introOfferDiscount", {
+                  ...params,
+                  percent: discountPct,
+                })
+              : t("subscriptions.mobilePaywall.introOffer", params);
+          })()}
         </Text>
       ) : (
         <Text style={styles.pricePer}>{per}</Text>
@@ -459,14 +531,14 @@ function TierCard({
 
       {/* Perks */}
       <View style={styles.perkList}>
-        {plan.perks.map((p) => (
-          <View key={p} style={styles.perkRow}>
+        {plan.perkKeys.map((perkKey) => (
+          <View key={perkKey} style={styles.perkRow}>
             <MaterialCommunityIcons
               name="check-circle"
               size={15}
               color={accent}
             />
-            <Text style={styles.perkText}>{p}</Text>
+            <Text style={styles.perkText}>{t(perkKey)}</Text>
           </View>
         ))}
       </View>
@@ -500,7 +572,7 @@ function TierCard({
       )}
       {!pkg && !loading && !isCurrent && (
         <Text style={styles.pkgUnavailableText}>
-          Pricing unavailable — check your connection and try again.
+          {t("subscriptions.mobilePaywall.pricingUnavailable")}
         </Text>
       )}
     </View>
@@ -508,6 +580,7 @@ function TierCard({
 }
 
 function CompareMatrix() {
+  const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const heightAnim = useRef(new Animated.Value(0)).current;
   const EXPANDED_HEIGHT = COMPARE_ROWS.length * 44 + 56;
@@ -537,7 +610,9 @@ function CompareMatrix() {
         onPress={() => setOpen((v) => !v)}
         style={styles.compareToggleRow}
       >
-        <Text style={styles.compareToggleLabel}>Compare all features</Text>
+        <Text style={styles.compareToggleLabel}>
+          {t("subscriptions.mobilePaywall.compareToggle")}
+        </Text>
         <MaterialCommunityIcons
           name={open ? "chevron-up" : "chevron-down"}
           size={18}
@@ -549,23 +624,29 @@ function CompareMatrix() {
         <View style={styles.compareInner}>
           {/* Column headers */}
           <View style={styles.compareHeaderRow}>
-            <Text style={[styles.compareColLabel, { flex: 2 }]}>Feature</Text>
-            <Text style={styles.compareColLabel}>Free</Text>
-            <Text style={styles.compareColLabel}>Plus</Text>
+            <Text style={[styles.compareColLabel, { flex: 2 }]}>
+              {t("subscriptions.mobilePaywall.compareFeature")}
+            </Text>
+            <Text style={styles.compareColLabel}>
+              {t("subscriptions.mobilePaywall.compareFree")}
+            </Text>
+            <Text style={styles.compareColLabel}>
+              {t("subscriptions.mobilePaywall.comparePlus")}
+            </Text>
             <Text style={[styles.compareColLabel, { color: D.goldWarm }]}>
-              Pro
+              {t("subscriptions.mobilePaywall.comparePro")}
             </Text>
           </View>
           {COMPARE_ROWS.map((row, i) => (
             <View
-              key={row.label}
+              key={row.labelKey}
               style={[
                 styles.compareRow,
                 i < COMPARE_ROWS.length - 1 && styles.compareRowBorder,
               ]}
             >
               <Text style={[styles.compareFeature, { flex: 2 }]}>
-                {row.label}
+                {t(row.labelKey)}
               </Text>
               <View style={styles.compareCell}>
                 <CellMark ok={row.starter} />
@@ -591,10 +672,20 @@ function StatusChip({
   plan: Tier | "starter";
   interval: Cycle | null;
 }) {
+  const { t } = useTranslation("common");
+  const planName = plan === "plus" ? "Plus" : "Pro";
   const label =
     plan === "starter"
-      ? "Free plan"
-      : `${plan === "plus" ? "Plus" : "Pro"}${interval ? ` · ${interval === "yearly" ? "Yearly" : "Monthly"}` : ""}`;
+      ? t("subscriptions.mobilePaywall.statusFreePlan")
+      : interval
+        ? t("subscriptions.mobilePaywall.statusInterval", {
+            plan: planName,
+            interval:
+              interval === "yearly"
+                ? t("subscriptions.mobilePaywall.cycleYearly")
+                : t("subscriptions.mobilePaywall.cycleMonthly"),
+          })
+        : planName;
   const dotColor =
     plan === "pro" ? D.goldWarm : plan === "plus" ? D.primaryBright : D.faint;
 
@@ -602,9 +693,12 @@ function StatusChip({
     <View style={styles.statusChipWrap}>
       <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
       <Text style={styles.statusChipText}>
-        {plan === "starter" ? "You're on the " : "You're on "}
+        {plan === "starter"
+          ? t("subscriptions.mobilePaywall.statusOnThe")
+          : t("subscriptions.mobilePaywall.statusOn")}
         <Text style={{ color: D.text, fontWeight: "500" }}>{label}</Text>
-        {plan !== "starter" && " plan"}
+        {plan !== "starter" &&
+          t("subscriptions.mobilePaywall.statusPlanSuffix")}
       </Text>
     </View>
   );
@@ -619,20 +713,27 @@ function UtilityLinks({
   onManageStore: () => void;
   onRedeemCode: () => void;
 }) {
+  const { t } = useTranslation("common");
   return (
     <View style={styles.utilityWrap}>
       <Pressable onPress={onRestore}>
-        <Text style={styles.utilityLink}>Restore purchases</Text>
+        <Text style={styles.utilityLink}>
+          {t("subscriptions.mobilePaywall.restorePurchases")}
+        </Text>
       </Pressable>
       <Text style={styles.utilityDot}>·</Text>
       <Pressable onPress={onManageStore}>
-        <Text style={styles.utilityLink}>Manage subscription</Text>
+        <Text style={styles.utilityLink}>
+          {t("subscriptions.mobilePaywall.manageSubscription")}
+        </Text>
       </Pressable>
       {Platform.OS === "ios" && (
         <>
           <Text style={styles.utilityDot}>·</Text>
           <Pressable onPress={onRedeemCode}>
-            <Text style={styles.utilityLink}>Redeem code</Text>
+            <Text style={styles.utilityLink}>
+              {t("subscriptions.mobilePaywall.redeemCode")}
+            </Text>
           </Pressable>
         </>
       )}
@@ -655,6 +756,7 @@ function PurchaseProgressOverlay({
   onRetry: () => void;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation("common");
   const tierLabel = tier === "pro" ? "Pro" : tier === "plus" ? "Plus" : null;
   const accent = tier === "pro" ? D.goldWarm : D.primaryBright;
 
@@ -666,11 +768,13 @@ function PurchaseProgressOverlay({
             <LoadingSpinner size="lg" color={accent} />
             <Text style={styles.overlayTitle}>
               {tierLabel
-                ? `Activating Garzoni ${tierLabel}…`
-                : "Activating your subscription…"}
+                ? t("subscriptions.mobilePaywall.overlay.activatingTier", {
+                    tier: tierLabel,
+                  })
+                : t("subscriptions.mobilePaywall.overlay.activating")}
             </Text>
             <Text style={styles.overlayBody}>
-              Syncing your Garzoni account — this only takes a few seconds.
+              {t("subscriptions.mobilePaywall.overlay.activatingBody")}
             </Text>
           </>
         )}
@@ -681,12 +785,14 @@ function PurchaseProgressOverlay({
               <MaterialCommunityIcons name="check" size={36} color="#fff" />
             </View>
             <Text style={[styles.overlayTitle, { color: accent }]}>
-              You're all set
+              {t("subscriptions.mobilePaywall.overlay.successTitle")}
             </Text>
             <Text style={styles.overlayBody}>
               {tierLabel
-                ? `Welcome to Garzoni ${tierLabel}. Your new tools are unlocked.`
-                : "Welcome — your new tools are unlocked."}
+                ? t("subscriptions.mobilePaywall.overlay.successTier", {
+                    tier: tierLabel,
+                  })
+                : t("subscriptions.mobilePaywall.overlay.success")}
             </Text>
           </>
         )}
@@ -701,22 +807,28 @@ function PurchaseProgressOverlay({
             >
               <MaterialCommunityIcons name="alert" size={32} color="#fff" />
             </View>
-            <Text style={styles.overlayTitle}>Almost there</Text>
+            <Text style={styles.overlayTitle}>
+              {t("subscriptions.mobilePaywall.overlay.errorTitle")}
+            </Text>
             <Text style={styles.overlayBody}>
-              {error ?? "We couldn't activate your subscription. Please retry."}
+              {error ?? t("subscriptions.mobilePaywall.overlay.errorBody")}
             </Text>
             <View style={styles.overlayBtnRow}>
               <Pressable
                 style={[styles.overlayBtn, styles.overlayBtnPrimary]}
                 onPress={onRetry}
               >
-                <Text style={styles.overlayBtnPrimaryText}>Retry</Text>
+                <Text style={styles.overlayBtnPrimaryText}>
+                  {t("subscriptions.mobilePaywall.overlay.retry")}
+                </Text>
               </Pressable>
               <Pressable
                 style={[styles.overlayBtn, styles.overlayBtnSecondary]}
                 onPress={onDismiss}
               >
-                <Text style={styles.overlayBtnSecondaryText}>Close</Text>
+                <Text style={styles.overlayBtnSecondaryText}>
+                  {t("subscriptions.mobilePaywall.overlay.close")}
+                </Text>
               </Pressable>
             </View>
           </>
@@ -936,7 +1048,7 @@ export default function SubscriptionsScreen() {
           // Authenticated but no resolvable PK — an anonymous purchase here
           // would be unrecoverable by the backend. Refuse instead.
           setPurchaseError(
-            "We couldn't link your account for this purchase. Please restart the app and try again.",
+            t("subscriptions.mobilePaywall.errors.identityMissing"),
           );
           setPurchaseStep("error");
           return;
@@ -961,8 +1073,9 @@ export default function SubscriptionsScreen() {
           const otherStore = crossPlatformBlockStore(existing);
           if (otherStore) {
             setPurchaseError(
-              `You already have an active subscription billed through ${otherStore}. ` +
-                `Manage or change it there — buying here would charge you twice.`,
+              t("subscriptions.mobilePaywall.errors.crossPlatform", {
+                store: otherStore,
+              }),
             );
             setPurchasingTier(null);
             setPurchaseStep("error");
@@ -1000,9 +1113,7 @@ export default function SubscriptionsScreen() {
           }, 1400);
         } else {
           // Apple confirmed but backend didn't catch up — surface a retry
-          setPurchaseError(
-            "Your purchase went through, but we couldn't activate it yet. Tap retry below.",
-          );
+          setPurchaseError(t("subscriptions.mobilePaywall.errors.backendLag"));
           setPurchaseStep("error");
         }
       } catch (e: unknown) {
@@ -1026,7 +1137,9 @@ export default function SubscriptionsScreen() {
           });
           return;
         }
-        setPurchaseError(err.message ?? "Please try again.");
+        setPurchaseError(
+          err.message ?? t("subscriptions.mobilePaywall.errors.generic"),
+        );
         setPurchaseStep("error");
         trackEvent("checkout_failed", {
           tier,
@@ -1036,7 +1149,7 @@ export default function SubscriptionsScreen() {
         });
       }
     },
-    [isPaywall, queryClient, backendUserId, accessToken],
+    [isPaywall, queryClient, backendUserId, accessToken, t],
   );
 
   const onRetrySync = useCallback(async () => {
@@ -1060,16 +1173,14 @@ export default function SubscriptionsScreen() {
           else router.back();
         }, 1400);
       } else {
-        setPurchaseError(
-          "Still no luck. Tap Restore Purchases or contact support if this persists.",
-        );
+        setPurchaseError(t("subscriptions.mobilePaywall.errors.retryNoLuck"));
         setPurchaseStep("error");
       }
     } catch {
-      setPurchaseError("Retry failed. Please try Restore Purchases.");
+      setPurchaseError(t("subscriptions.mobilePaywall.errors.retryFailed"));
       setPurchaseStep("error");
     }
-  }, [isPaywall, queryClient]);
+  }, [isPaywall, queryClient, t]);
 
   const dismissPurchaseOverlay = useCallback(() => {
     setPurchaseStep("idle");
@@ -1128,24 +1239,27 @@ export default function SubscriptionsScreen() {
       });
       if (entitlements && planRank(entitlements.plan) >= 1) {
         Alert.alert(
-          "Restored",
-          `Welcome back to Garzoni ${entitlements.plan === "pro" ? "Pro" : "Plus"}.`,
+          t("subscriptions.mobilePaywall.restore.restoredTitle"),
+          t("subscriptions.mobilePaywall.restore.restoredBody", {
+            tier: entitlements.plan === "pro" ? "Pro" : "Plus",
+          }),
         );
       } else {
         Alert.alert(
-          "Nothing to restore",
-          "We couldn't find an active subscription on this Apple ID.",
+          t("subscriptions.mobilePaywall.restore.nothingTitle"),
+          t("subscriptions.mobilePaywall.restore.nothingBody"),
         );
       }
     } catch (e: unknown) {
       Alert.alert(
-        "Restore failed",
-        (e as { message?: string }).message ?? "Please try again.",
+        t("subscriptions.mobilePaywall.restore.failedTitle"),
+        (e as { message?: string }).message ??
+          t("subscriptions.mobilePaywall.errors.generic"),
       );
     } finally {
       setRestoring(false);
     }
-  }, [queryClient, backendUserId]);
+  }, [queryClient, backendUserId, t]);
 
   const onManageStore = useCallback(async () => {
     const url =
@@ -1226,12 +1340,10 @@ export default function SubscriptionsScreen() {
       setPurchaseStep("success");
       setTimeout(navigate, 1400);
     } else {
-      setPurchaseError(
-        "If your code was accepted, wait a moment and tap Restore purchases — or try again shortly.",
-      );
+      setPurchaseError(t("subscriptions.mobilePaywall.errors.redeemPending"));
       setPurchaseStep("error");
     }
-  }, [isPaywall, backendUserId, queryClient]);
+  }, [isPaywall, backendUserId, queryClient, t]);
 
   const plusPkg = pickPackage(plusPkgs ?? undefined, cycle);
   const proPkg = pickPackage(proPkgs ?? undefined, cycle);
@@ -1266,8 +1378,8 @@ export default function SubscriptionsScreen() {
         options={{
           title:
             isPaywall || currentPlan === "starter"
-              ? "Choose your plan"
-              : "Manage Plan",
+              ? t("subscriptions.mobilePaywall.titleChoose")
+              : t("subscriptions.mobilePaywall.titleManage"),
           headerShown: !isPaywall,
           headerStyle: { backgroundColor: D.bg },
           gestureEnabled: !isPaywall,
@@ -1286,7 +1398,9 @@ export default function SubscriptionsScreen() {
         >
           <View style={styles.innerContent}>
             {/* Eyebrow */}
-            <Text style={styles.eyebrow}>Subscription</Text>
+            <Text style={styles.eyebrow}>
+              {t("subscriptions.mobilePaywall.eyebrow")}
+            </Text>
 
             {/* Editorial headline — goal-referencing in the personalized paywall */}
             {isPaywall && goalLabel ? (
@@ -1295,16 +1409,16 @@ export default function SubscriptionsScreen() {
               </Text>
             ) : (
               <Text style={styles.headline}>
-                Pick the plan that{" "}
+                {t("subscriptions.mobilePaywall.headlineLead")}
                 <Text
                   style={[
                     styles.headlineEmphasis,
                     { fontFamily: DISPLAY_FONT },
                   ]}
                 >
-                  moves you forward
+                  {t("subscriptions.mobilePaywall.headlineEmphasis")}
                 </Text>
-                .
+                {t("subscriptions.mobilePaywall.headlineTail")}
               </Text>
             )}
 
@@ -1321,10 +1435,10 @@ export default function SubscriptionsScreen() {
             {!rcNative ? (
               <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
                 <Text style={[styles.cardTitle, { color: c.text }]}>
-                  In-app purchases unavailable
+                  {t("subscriptions.mobilePaywall.rcUnavailableTitle")}
                 </Text>
                 <Text style={[styles.cardBody, { color: c.textMuted }]}>
-                  Rebuild the native app to enable subscriptions.
+                  {t("subscriptions.mobilePaywall.rcUnavailableBody")}
                 </Text>
               </GlassCard>
             ) : (
@@ -1395,7 +1509,9 @@ export default function SubscriptionsScreen() {
                   accessibilityRole="button"
                   hitSlop={12}
                 >
-                  <Text style={styles.skipText}>Skip for now</Text>
+                  <Text style={styles.skipText}>
+                    {t("subscriptions.mobilePaywall.skipForNow")}
+                  </Text>
                 </Pressable>
               </View>
             )}
@@ -1407,7 +1523,9 @@ export default function SubscriptionsScreen() {
                   onPress={() => void onRestore()}
                   accessibilityRole="button"
                 >
-                  <Text style={styles.utilityLink}>Restore purchases</Text>
+                  <Text style={styles.utilityLink}>
+                    {t("subscriptions.mobilePaywall.restorePurchases")}
+                  </Text>
                 </Pressable>
                 {Platform.OS === "ios" && (
                   <>
@@ -1416,7 +1534,9 @@ export default function SubscriptionsScreen() {
                       onPress={() => void onRedeemCode()}
                       accessibilityRole="button"
                     >
-                      <Text style={styles.utilityLink}>Redeem code</Text>
+                      <Text style={styles.utilityLink}>
+                        {t("subscriptions.mobilePaywall.redeemCode")}
+                      </Text>
                     </Pressable>
                   </>
                 )}
@@ -1427,23 +1547,25 @@ export default function SubscriptionsScreen() {
             {Platform.OS === "ios" && (
               <>
                 <Text style={styles.legal}>
-                  Subscriptions renew automatically. Cancel anytime in your
-                  Apple ID settings. Payment charged to your Apple ID on
-                  confirmation.
+                  {t("subscriptions.mobilePaywall.legalIos")}
                 </Text>
                 <View style={styles.legalLinks}>
                   <Pressable
                     onPress={() => router.push("/legal/terms")}
                     accessibilityRole="link"
                   >
-                    <Text style={styles.legalLink}>Terms of Use</Text>
+                    <Text style={styles.legalLink}>
+                      {t("subscriptions.mobilePaywall.termsOfUse")}
+                    </Text>
                   </Pressable>
                   <Text style={styles.utilityDot}>·</Text>
                   <Pressable
                     onPress={() => router.push("/legal/privacy")}
                     accessibilityRole="link"
                   >
-                    <Text style={styles.legalLink}>Privacy Policy</Text>
+                    <Text style={styles.legalLink}>
+                      {t("subscriptions.mobilePaywall.privacyPolicy")}
+                    </Text>
                   </Pressable>
                 </View>
               </>
@@ -1474,9 +1596,11 @@ export default function SubscriptionsScreen() {
           <View style={styles.overlayBackdrop} pointerEvents="auto">
             <View style={styles.overlayCard}>
               <LoadingSpinner size="lg" color={D.primaryBright} />
-              <Text style={styles.overlayTitle}>Restoring purchases…</Text>
+              <Text style={styles.overlayTitle}>
+                {t("subscriptions.mobilePaywall.overlay.restoringTitle")}
+              </Text>
               <Text style={styles.overlayBody}>
-                Checking your Apple ID for active subscriptions.
+                {t("subscriptions.mobilePaywall.overlay.restoringBody")}
               </Text>
             </View>
           </View>

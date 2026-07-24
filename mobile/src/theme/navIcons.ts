@@ -13,6 +13,7 @@ export const navIcons = {
   profile: "person-circle-outline",
   profileFilled: "person-circle",
   leaderboard: "trophy-outline",
+  leaderboardFilled: "trophy",
   rewards: "gift-outline",
   tools: "construct-outline",
   toolsFilled: "construct",

@@ -109,8 +109,9 @@ export default function DashboardResumeRow({
             color={c.primary}
           />
           <View style={styles.copy}>
+            {/* No progress yet — "pick up where you left off" is a lie on day one. */}
             <Text style={[styles.title, { color: c.text }]}>
-              {t("dashboard.resume.title")}
+              {t("dashboard.resume.firstTitle")}
             </Text>
             <Text style={[styles.body, { color: c.textMuted }]}>
               {t("dashboard.resume.startFirstLesson")}
@@ -129,7 +130,7 @@ export default function DashboardResumeRow({
             }
           }}
         >
-          {t("dashboard.resume.browseTopics")}
+          {t("dashboard.resume.firstCta")}
         </GlassButton>
         {renderWeakSkillCta()}
       </View>

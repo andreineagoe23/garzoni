@@ -13,11 +13,9 @@
  *
  * Dismissal is persisted in localStorage (per user) — dismissed = gone for
  * good, no reappear logic by design. Hidden entirely once all 4 are done.
- *
- * Copy is intentionally hardcoded English pending i18n keys in packages/core
- * (the repo i18n test forbids unknown t() keys).
  */
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { recordFunnelEvent } from "services/analyticsService";
 
@@ -60,6 +58,7 @@ const FirstWeekChecklist: React.FC<FirstWeekChecklistProps> = ({
   onStartLesson,
   onOpenTools,
 }) => {
+  const { t } = useTranslation();
   const storageKey = dismissalKey(userId);
   const [dismissed, setDismissed] = useState<boolean>(() => {
     try {
@@ -97,24 +96,24 @@ const FirstWeekChecklist: React.FC<FirstWeekChecklistProps> = ({
   const items: ChecklistItem[] = [
     {
       key: "built_plan",
-      label: "Built your plan",
+      label: t("dashboard.firstWeek.items.built_plan"),
       done: questionnaireCompleted,
     },
     {
       key: "first_lesson",
-      label: "Complete your first lesson",
+      label: t("dashboard.firstWeek.items.first_lesson"),
       done: firstLessonDone,
       action: () => trackAndGo("first_lesson", onStartLesson),
     },
     {
       key: "try_tool",
-      label: "Try one AI tool",
+      label: t("dashboard.firstWeek.items.try_tool"),
       done: toolDone,
       action: () => trackAndGo("try_tool", onOpenTools),
     },
     {
       key: "start_streak",
-      label: "Start your streak",
+      label: t("dashboard.firstWeek.items.start_streak"),
       done: streakDone,
       // A streak starts by completing a lesson — same destination.
       action: () => trackAndGo("start_streak", onStartLesson),
@@ -138,12 +137,12 @@ const FirstWeekChecklist: React.FC<FirstWeekChecklistProps> = ({
   return (
     <div
       className="app-card relative mt-6 min-w-0 p-4 sm:p-5"
-      aria-label="Your first week checklist"
+      aria-label={t("dashboard.firstWeek.ariaLabel")}
     >
       <button
         type="button"
         onClick={handleDismiss}
-        aria-label="Dismiss checklist"
+        aria-label={t("dashboard.firstWeek.dismiss")}
         className="absolute right-3 top-3 rounded-full p-1 text-content-muted transition hover:bg-black/5 hover:text-content-primary dark:hover:bg-white/10"
       >
         <GarzoniIcon name="xmark" size={16} />
@@ -151,10 +150,13 @@ const FirstWeekChecklist: React.FC<FirstWeekChecklistProps> = ({
       <div className="flex flex-col gap-3">
         <div>
           <p className="text-sm font-semibold text-content-primary">
-            Your first week
+            {t("dashboard.firstWeek.title")}
           </p>
           <p className="text-xs text-content-muted">
-            {`${doneCount} of ${items.length} done`}
+            {t("dashboard.firstWeek.progress", {
+              done: doneCount,
+              total: items.length,
+            })}
           </p>
         </div>
         <ul className="space-y-2">

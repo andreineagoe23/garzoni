@@ -19,6 +19,10 @@ export default function XPProgressCard({ points }: Props) {
   const nextTier = getNextXpTier(points);
   const tierLabel = t(`rewards.xpCard.tiers.${tier.key}`);
   const nextLabel = t(`rewards.xpCard.tiers.${nextTier.key}`);
+  // Past Advanced X the label stops incrementing, so the next tier shares this
+  // tier's key — "2500 XP to Advanced X+" while already Advanced X+. Fall back
+  // to the tier-less phrasing; the bar and the goal gradient are unchanged.
+  const nextIsSameLabel = nextTier.key === tier.key;
   const band = Math.max(1, tier.next - tier.floor);
   const pct = Math.min(1, Math.max(0, (points - tier.floor) / band));
   const remaining = Math.max(0, tier.next - points);
@@ -37,10 +41,12 @@ export default function XPProgressCard({ points }: Props) {
           {t("rewards.xpCard.level", { label: tierLabel })}
         </Text>
         <Text style={[styles.next, { color: c.textMuted }]}>
-          {t("rewards.xpCard.xpToTier", {
-            count: remaining,
-            tier: nextLabel,
-          })}
+          {nextIsSameLabel
+            ? t("rewards.xpCard.xpToNext", { count: remaining })
+            : t("rewards.xpCard.xpToTier", {
+                count: remaining,
+                tier: nextLabel,
+              })}
         </Text>
       </View>
       <ProgressBar

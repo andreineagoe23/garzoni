@@ -15,7 +15,7 @@ import {
   type UserProfile,
 } from "@garzoni/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,18 +28,21 @@ import {
   TextInput,
   View,
 } from "react-native";
-import LeaderboardFriendRequestsCard from "../src/components/leaderboard/LeaderboardFriendRequestsCard";
-import LeaderboardPodium from "../src/components/leaderboard/LeaderboardPodium";
-import LeaderboardReferralCard from "../src/components/leaderboard/LeaderboardReferralCard";
-import LeaderboardRow from "../src/components/leaderboard/LeaderboardRow";
-import LeaderboardSelfBar from "../src/components/leaderboard/LeaderboardSelfBar";
-import LeaderboardSearchResults from "../src/components/leaderboard/LeaderboardSearchResults";
-import LeaderboardSuggestionsCard from "../src/components/leaderboard/LeaderboardSuggestionsCard";
-import { useThemeColors } from "../src/theme/ThemeContext";
-import { useScreenGutter } from "../src/utils/platform";
-import GlassCard from "../src/components/ui/GlassCard";
-import Skeleton from "../src/components/ui/Skeleton";
-import { spacing, typography, radius } from "../src/theme/tokens";
+import LeaderboardFriendRequestsCard from "../../src/components/leaderboard/LeaderboardFriendRequestsCard";
+import LeaderboardPodium from "../../src/components/leaderboard/LeaderboardPodium";
+import LeaderboardReferralCard from "../../src/components/leaderboard/LeaderboardReferralCard";
+import LeaderboardRow from "../../src/components/leaderboard/LeaderboardRow";
+import LeaderboardSelfBar from "../../src/components/leaderboard/LeaderboardSelfBar";
+import LeaderboardSearchResults from "../../src/components/leaderboard/LeaderboardSearchResults";
+import LeaderboardSuggestionsCard from "../../src/components/leaderboard/LeaderboardSuggestionsCard";
+import { useThemeColors } from "../../src/theme/ThemeContext";
+import { useScreenGutter } from "../../src/utils/platform";
+import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
+import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
+import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
+import GlassCard from "../../src/components/ui/GlassCard";
+import Skeleton from "../../src/components/ui/Skeleton";
+import { spacing, typography, radius } from "../../src/theme/tokens";
 
 const LIST_PAGE_SIZE = 25;
 const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"];
@@ -568,14 +571,13 @@ export default function LeaderboardScreen() {
     pageLoading || filteredLeaderboard.length === 0 ? [] : visibleRemainder;
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: headerTitle,
-          headerShown: true,
-        }}
+    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      <TabScreenHeader
+        title={t("nav.leaderboard", { defaultValue: "Leaderboard" })}
+        left={<HeaderAvatarButton />}
+        right={<HeaderRightButtons />}
       />
-      <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      <View style={{ flex: 1 }}>
         <FlatList
           data={flatData}
           keyExtractor={(item, i) => String(item.user?.id ?? `row-${i}`)}
@@ -665,7 +667,7 @@ export default function LeaderboardScreen() {
           />
         ) : null}
       </View>
-    </>
+    </View>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Link, router } from "expo-router";
 import { registerSecure } from "@garzoni/core";
@@ -49,36 +49,12 @@ function extractTokens(payload: TokenResponseLike): {
   return { access, refresh };
 }
 
-// Two-step signup: step 1 = credentials + consents, step 2 = optional names.
+// Two-step signup: step 1 = credentials, step 2 = optional names.
 // Confirm-password was dropped in favor of the show-password toggle; the
 // backend auto-generates the username, so none is collected or sent.
 type Step = 1 | 2;
 
 type FieldKey = "email" | "password" | "first_name" | "last_name";
-
-function ConsentRow({
-  checked,
-  onToggle,
-  children,
-}: {
-  checked: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Pressable
-      onPress={onToggle}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked }}
-      style={styles.consentRow}
-    >
-      <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-        {checked ? <Text style={styles.checkboxMark}>✓</Text> : null}
-      </View>
-      <View style={styles.consentTextWrap}>{children}</View>
-    </Pressable>
-  );
-}
 
 function StepDots({ step }: { step: Step }) {
   const { t } = useTranslation("common");
@@ -111,9 +87,6 @@ export default function RegisterScreen() {
     last_name: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const canContinue = acceptTerms && ageConfirmed;
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<FieldKey, string>>
   >({});
@@ -151,10 +124,6 @@ export default function RegisterScreen() {
 
   const onContinue = () => {
     setError("");
-    if (!canContinue) {
-      setError(t("auth.register.acceptToContinue"));
-      return;
-    }
     if (!validateStepOne()) return;
     trackEvent("register_step_continue", { step: 1 });
     setStep(2);
@@ -223,11 +192,10 @@ export default function RegisterScreen() {
         step === 1 ? t("auth.register.subtitle") : t("auth.register.step2Title")
       }
       subtitle={step === 2 ? t("auth.register.step2Hint") : undefined}
+      footer={<StepDots step={step} />}
     >
       <AuthBackendBanner />
       <DarkErrorBanner message={error} />
-
-      <StepDots step={step} />
 
       {step === 1 ? (
         <>
@@ -269,49 +237,13 @@ export default function RegisterScreen() {
             }
           />
 
-          <ConsentRow
-            checked={acceptTerms}
-            onToggle={() => setAcceptTerms((v) => !v)}
-          >
-            <Text style={styles.consentText}>
-              {t("auth.register.agreePrefix")}{" "}
-              <Text
-                style={styles.consentLink}
-                onPress={() => router.push("/legal/terms")}
-              >
-                {t("auth.register.termsLink")}
-              </Text>
-              {t("auth.register.agreeJoin")}{" "}
-              <Text
-                style={styles.consentLink}
-                onPress={() => router.push("/legal/privacy")}
-              >
-                {t("auth.register.privacyLink")}
-              </Text>
-              .
-            </Text>
-          </ConsentRow>
-
-          <ConsentRow
-            checked={ageConfirmed}
-            onToggle={() => setAgeConfirmed((v) => !v)}
-          >
-            <Text style={styles.consentText}>
-              {t("auth.register.ageConfirm")}
-            </Text>
-          </ConsentRow>
-
           <DarkCta
             label={t("auth.register.continueStep")}
-            disabled={!canContinue}
             onPress={onContinue}
           />
 
           <DarkDivider label={t("auth.orContinueWith")} />
 
-          {/* Social sign-in is tap-to-consent (like the login screen): tapping
-              the button accepts Terms/Privacy + 16+, with the notice below as
-              the legal basis. The checkboxes above only gate the email form. */}
           <AuthSocialSection
             consent={{ accept_terms: true, age_confirmed: true }}
             onSuccess={async (access, refresh, meta) => {
@@ -321,17 +253,22 @@ export default function RegisterScreen() {
             onError={(m) => setError(m)}
           />
 
-          <Text style={styles.socialTerms}>
+          {/* One notice covering every path — email sign-up and social sign-in
+              are both tap-to-consent. Same copy and same position as the login
+              screen (after the social block, above the footer link), so the two
+              auth screens read identically. `registerSecure` and the social
+              buttons send the same accept_terms/age_confirmed pair regardless. */}
+          <Text style={styles.consentNotice}>
             {t("auth.socialTermsPrefix")}{" "}
             <Text
-              style={styles.socialTermsLink}
+              style={styles.consentNoticeLink}
               onPress={() => router.push("/legal/terms")}
             >
               {t("auth.register.termsLink")}
             </Text>
             {t("auth.register.agreeJoin")}{" "}
             <Text
-              style={styles.socialTermsLink}
+              style={styles.consentNoticeLink}
               onPress={() => router.push("/legal/privacy")}
             >
               {t("auth.register.privacyLink")}
@@ -385,25 +322,31 @@ export default function RegisterScreen() {
             onPress={() => void onSubmit(false)}
           />
 
-          <Pressable
-            onPress={() => void onSubmit(true)}
-            disabled={loading}
-            accessibilityRole="button"
-            style={styles.skipBtn}
-            hitSlop={8}
-          >
-            <Text style={styles.skipLabel}>{t("auth.register.skipNames")}</Text>
-          </Pressable>
+          <View style={styles.secondaryRow}>
+            <Pressable
+              onPress={() => setStep(1)}
+              disabled={loading}
+              accessibilityRole="button"
+              style={styles.secondaryBtn}
+              hitSlop={8}
+            >
+              <Text style={styles.backLabel}>
+                {t("auth.register.backStep")}
+              </Text>
+            </Pressable>
 
-          <Pressable
-            onPress={() => setStep(1)}
-            disabled={loading}
-            accessibilityRole="button"
-            style={styles.backBtn}
-            hitSlop={8}
-          >
-            <Text style={styles.backLabel}>{t("auth.register.backStep")}</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => void onSubmit(true)}
+              disabled={loading}
+              accessibilityRole="button"
+              style={styles.secondaryBtn}
+              hitSlop={8}
+            >
+              <Text style={styles.skipLabel}>
+                {t("auth.register.skipNames")}
+              </Text>
+            </Pressable>
+          </View>
         </>
       )}
     </AuthDarkShell>
@@ -413,11 +356,11 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   nameRow: { flexDirection: "row", gap: 12 },
   nameField: { flex: 1 },
+  // Rendered as the shell's footer; spacing comes from `s.footer` there.
   dotsRow: {
     flexDirection: "row",
     justifyContent: "center",
     gap: 8,
-    marginBottom: 6,
   },
   dot: {
     width: 8,
@@ -437,48 +380,24 @@ const styles = StyleSheet.create({
   },
   bottomText: { fontSize: 13, color: DARK.muted },
   bottomLink: { fontSize: 13, color: DARK.primaryBright, fontWeight: "600" },
-  consentRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    paddingVertical: 6,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: DARK.muted,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 1,
-  },
-  checkboxChecked: {
-    backgroundColor: DARK.primaryBright,
-    borderColor: DARK.primaryBright,
-  },
-  checkboxMark: { color: "#04110a", fontSize: 14, fontWeight: "800" },
-  consentTextWrap: { flex: 1 },
-  consentText: { fontSize: 13, color: DARK.muted, lineHeight: 19 },
-  consentLink: { color: DARK.primaryBright, fontWeight: "600" },
-  skipBtn: {
+  // Back sits left of Skip on one row. Equal flex rather than a centred pair so
+  // each keeps a full-height tap target instead of two small adjacent ones.
+  secondaryRow: { flexDirection: "row", gap: 12 },
+  secondaryBtn: {
+    flex: 1,
     height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
   skipLabel: { color: DARK.muted, fontSize: 14, fontWeight: "500" },
-  backBtn: {
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  backLabel: { color: DARK.faint, fontSize: 13, fontWeight: "500" },
-  socialTerms: {
+  backLabel: { color: DARK.faint, fontSize: 14, fontWeight: "500" },
+  // Mirrors `socialTerms` on the login screen — keep the two in step.
+  consentNotice: {
     fontSize: 12,
     lineHeight: 17,
     color: DARK.muted,
     textAlign: "center",
     marginTop: 12,
   },
-  socialTermsLink: { color: DARK.primaryBright, fontWeight: "600" },
+  consentNoticeLink: { color: DARK.primaryBright, fontWeight: "600" },
 });

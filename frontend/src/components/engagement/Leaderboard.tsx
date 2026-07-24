@@ -42,7 +42,9 @@ type SentRequest = {
 };
 
 const LIST_PAGE_SIZE = 25;
-const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"];
+/** API filter values — sent verbatim as the `skill` query param, never localised.
+ *  Display copy lives under `leaderboard.skills.<value>`. */
+const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"] as const;
 
 const podiumHighlight = [
   "border-[#e6c87a]/50 bg-gradient-to-b from-[#e6c87a]/15 via-[#e6c87a]/5 to-transparent shadow-lg shadow-[#e6c87a]/10",
@@ -574,7 +576,7 @@ const Leaderboards = () => {
                 : "border-[color:var(--color-border-default)] text-content-muted"
             )}
           >
-            XP
+            {t("leaderboard.skills.xp")}
           </button>
           {SKILL_TABS.map((skill) => (
             <button
@@ -588,7 +590,7 @@ const Leaderboards = () => {
                   : "border-[color:var(--color-border-default)] text-content-muted"
               )}
             >
-              {skill}
+              {t(`leaderboard.skills.${skill}`)}
             </button>
           ))}
         </div>
@@ -664,8 +666,8 @@ const Leaderboards = () => {
           <EmptyState
             icon="🏆"
             title={t("leaderboard.empty")}
-            description="Complete a lesson to earn XP and enter this week's leaderboard."
-            actionLabel="Start a lesson"
+            description={t("leaderboard.emptyDescription")}
+            actionLabel={t("leaderboard.emptyAction")}
             onAction={() => navigate("/personalized-path")}
           />
         ) : (

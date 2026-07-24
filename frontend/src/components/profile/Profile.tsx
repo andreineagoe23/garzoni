@@ -632,8 +632,8 @@ function Profile() {
             <EmptyState
               icon="🏅"
               title={t("profile.achievements.empty")}
-              description="Complete a lesson to earn your first badge."
-              actionLabel="Start a lesson"
+              description={t("profile.achievements.emptyDescription")}
+              actionLabel={t("profile.achievements.emptyAction")}
               onAction={() => navigate("/personalized-path")}
             />
           ) : (

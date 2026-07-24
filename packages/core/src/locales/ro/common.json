@@ -105,6 +105,18 @@
   },
   "dashboard": {
     "skipToContent": "Sari la conținut",
+    "firstWeek": {
+      "title": "Prima ta săptămână",
+      "ariaLabel": "Lista pentru prima ta săptămână",
+      "dismiss": "Închide lista",
+      "progress": "{{done}} din {{total}} finalizate",
+      "items": {
+        "built_plan": "Ți-ai construit planul",
+        "first_lesson": "Termină prima lecție",
+        "try_tool": "Încearcă un instrument AI",
+        "start_streak": "Începe-ți seria"
+      }
+    },
     "nav": {
       "allTopics": "Toate subiectele",
       "personalizedPath": "Traseu personalizat",
@@ -144,8 +156,10 @@
       "title": "Reia de unde ai rămas",
       "continueWith": "Continuă cu {{course}}",
       "continueLesson": "Continuă lecția",
-      "startFirstLesson": "Începe prima lecție și îți vom păstra locul.",
-      "browseTopics": "Continuă"
+      "startFirstLesson": "Durează cam 5 minute. Data viitoare continuăm de aici.",
+      "browseTopics": "Continuă",
+      "firstTitle": "Începe prima lecție",
+      "firstCta": "Începe să înveți"
     },
     "dailyGoal": {
       "label": "Obiectiv zilnic",
@@ -165,7 +179,9 @@
       "percentClimbed": "{{percent}}% urcat",
       "next": "Urmează: {{title}}",
       "summit": "Vârf",
-      "cta": "Continuă ascensiunea"
+      "cta": "Continuă ascensiunea",
+      "startTitle": "Creează-ți traseul personalizat",
+      "startEyebrow": "Neînceput"
     },
     "consistencyTitle": "Consecvența ta",
     "statusSummary": {
@@ -218,7 +234,10 @@
       "context": {
         "lastPracticed": "Ultima exersare acum {{days}}z",
         "lastPracticedToday": "Exersat azi",
-        "lastPracticedYesterday": "Exersat ieri"
+        "lastPracticedYesterday": "Exersat ieri",
+        "compactDays": "acum {{days}}z",
+        "compactToday": "Azi",
+        "compactYesterday": "Ieri"
       },
       "action": {
         "reviewNow": "Revizuiește acum",
@@ -335,11 +354,7 @@
     },
     "q2": {
       "prompt": "Ai un venit net de 2.000 £ pe lună. Cât ar trebui să meargă spre economii și datorii?",
-      "options": [
-        "100 £",
-        "400 £",
-        "1.000 £"
-      ],
+      "options": ["100 £", "400 £", "1.000 £"],
       "explanation": "20% din 2.000 £ înseamnă 400 £ — ținta ta lunară pentru economii și achitarea datoriilor."
     },
     "done": {
@@ -462,6 +477,42 @@
     "loadError": "Nu s-au putut încărca analiticele. Reîncearcă."
   },
   "billing": {
+    "rcPaywall": {
+      "unlockTitle": "Deblochează {{plan}}",
+      "unlockSubtitle": "Obții acces nelimitat la toate cursurile, exercițiile și funcțiile premium.",
+      "planYearly": "Anual",
+      "planMonthly": "Lunar",
+      "planLifetime": "Pe viață",
+      "bestValue": "Cea mai bună ofertă",
+      "lifetimeNote": "Plătești o dată, îl ai pentru totdeauna",
+      "perkCourses": "Toate cursurile premium",
+      "perkTutor": "Tutore AI nelimitat",
+      "perkExercises": "Exerciții avansate",
+      "perkPriority": "Suport prioritar",
+      "openingCheckout": "Se deschide plata…",
+      "choosePlan": "Alege {{label}} ›",
+      "noCommitment": "Fără obligații — anulezi oricând",
+      "restoring": "Se restaurează…",
+      "restore": "Restaurează achizițiile",
+      "legal": "Abonamentele se reînnoiesc automat dacă nu sunt anulate cu cel puțin 24 de ore înainte de finalul perioadei curente. Poți gestiona sau anula oricând din setările contului.",
+      "activeTitle": "Garzoni {{plan}} este activ",
+      "activeManagedElsewhere": "Ai deja un abonament. Acest plan este facturat prin {{store}}, așa că gestionează-l sau schimbă-l acolo ca să nu fii taxat de două ori.",
+      "activeSimple": "Abonamentul tău este activ.",
+      "activeContinue": "Continuă",
+      "otherPlatform": "altă platformă",
+      "errAccount": "Nu am putut confirma contul tău. Te rugăm să te autentifici din nou înainte de a te abona.",
+      "errNoPlans": "Nu există planuri disponibile momentan. Te rugăm să încerci din nou mai târziu.",
+      "errLoad": "Nu am putut încărca planurile. Verifică-ți conexiunea și încearcă din nou.",
+      "errEntitlementPending": "Achiziția s-a finalizat, dar accesul nu este încă activ. Te rugăm să restaurezi achizițiile sau să contactezi suportul.",
+      "errPurchase": "Achiziția a eșuat. Te rugăm să încerci din nou.",
+      "errNoSubscription": "Nu am găsit niciun abonament activ pentru acest cont.",
+      "errRestore": "Restaurarea a eșuat. Te rugăm să încerci din nou.",
+      "exitAria": "Încearcă varianta lunară",
+      "exitTitle": "Nu ești pregătit pentru un an?",
+      "exitBody": "Încearcă varianta lunară — {{price}}. Anulezi oricând.",
+      "exitAccept": "Începe lunar — {{price}} ›",
+      "exitDecline": "Nu, mulțumesc"
+    },
     "subscriptionManagement": "Gestionare abonament",
     "manageSubtitle": "Gestionează abonamentul și facturarea",
     "currentPlan": "Plan curent",
@@ -547,6 +598,21 @@
     "restoreSuccessTitle": "Restaurat",
     "restoreSuccessBody": "Achizițiile tale au fost restaurate.",
     "restoreFailed": "Nu am putut restaura achizițiile. Te rugăm să încerci din nou."
+  },
+  "learnIndex": {
+    "breadcrumbHome": "Acasă",
+    "breadcrumbLessons": "Lecții",
+    "title": "Lecții gratuite de finanțe personale",
+    "intro": "Învață despre bani așa cum înveți o limbă străină — în lecții scurte și practice. Garzoni acoperă bugetarea, economisirea, investițiile, creditul, datoriile și taxele, toate gratuit. Fără jargon, fără reclame.",
+    "loading": "Se încarcă lecțiile…",
+    "empty": "Lecții noi vor apărea în curând.",
+    "emptyCta": "Creează un cont gratuit ca să începi să înveți azi.",
+    "fallbackCourseTitle": "Lecții",
+    "sampleQuestionBadge": "Încearcă",
+    "readLesson": "Citește lecția →",
+    "deeperTitle": "Vrei să mergi mai departe?",
+    "deeperBody": "Înscrie-te gratuit ca să deblochezi traseul complet de învățare, testele, seriile zilnice și antrenorul financiar Garzoni cu AI.",
+    "deeperCta": "Creează un cont gratuit"
   },
   "learn": {
     "lockedPathNeedsPlan": "Acest traseu necesită un plan superior. Vezi planurile pentru a debloca cursurile.",
@@ -1615,6 +1681,15 @@
     },
     "points": "{{points}} puncte",
     "empty": "Nimeni în clasament încă — termină o lecție azi și prinde-ți locul pentru săptămâna asta.",
+    "emptyDescription": "Termină o lecție ca să câștigi XP și să intri în clasamentul acestei săptămâni.",
+    "emptyAction": "Începe o lecție",
+    "skills": {
+      "xp": "XP",
+      "Budgeting": "Bugetare",
+      "Saving": "Economisire",
+      "Investing": "Investiții",
+      "Markets": "Piețe"
+    },
     "friendStatus": {
       "alreadyFriends": "Deja prieteni",
       "pending": "Cerere în așteptare",
@@ -2035,7 +2110,9 @@
       "earnedAchievement": "Realizare obținută",
       "locked": "Blocat",
       "earnedOn": "Obținut {{date}}",
-      "empty": "Nicio insignă încă — prima ta lecție deblochează una. Începe să înveți!"
+      "empty": "Nicio insignă încă — prima ta lecție deblochează una. Începe să înveți!",
+      "emptyDescription": "Termină o lecție ca să câștigi prima insignă.",
+      "emptyAction": "Începe o lecție"
     },
     "activity": {
       "title": "Activitate recentă",
@@ -2391,6 +2468,125 @@
   },
   "subscriptions": {
     "choosePlan": "Alege planul tău",
+    "mobilePaywall": {
+      "titleChoose": "Alege-ți planul",
+      "titleManage": "Gestionează planul",
+      "eyebrow": "Abonament",
+      "headlineLead": "Alege planul care ",
+      "headlineEmphasis": "te duce mai departe",
+      "headlineTail": ".",
+      "cycleYearly": "Anual",
+      "cycleMonthly": "Lunar",
+      "statusFreePlan": "Planul gratuit",
+      "statusOnThe": "Ești pe ",
+      "statusOn": "Ești pe ",
+      "statusPlanSuffix": "",
+      "statusInterval": "{{plan}} · {{interval}}",
+      "rcUnavailableTitle": "Achizițiile în aplicație nu sunt disponibile",
+      "rcUnavailableBody": "Reconstruiește aplicația nativă pentru a activa abonamentele.",
+      "recommended": "RECOMANDAT",
+      "currentBadge": "Curent",
+      "ctaCurrentPlan": "Planul curent",
+      "ctaStart": "Începe {{plan}}",
+      "ctaStartAnnual": "Începe {{plan}} — Anual",
+      "perMonth": "/ lună",
+      "perMonthBilledAnnually": "/ lună, facturat anual",
+      "thenPerYear": " / an",
+      "thenPerMonth": " / lună",
+      "introOfferDiscount": "{{percent}}% reducere {{period}}, apoi {{price}}{{suffix}}",
+      "introOffer": "{{period}}, apoi {{price}}{{suffix}}",
+      "introFirstOne": {
+        "day": "prima zi",
+        "week": "prima săptămână",
+        "month": "prima lună",
+        "year": "primul an",
+        "period": "prima perioadă"
+      },
+      "introFirstMany": {
+        "day": "primele {{count}} zile",
+        "week": "primele {{count}} săptămâni",
+        "month": "primele {{count}} luni",
+        "year": "primii {{count}} ani",
+        "period": "primele {{count}} perioade"
+      },
+      "trialOne": {
+        "day": "probă gratuită de {{count}} zi",
+        "week": "probă gratuită de {{count}} săptămână",
+        "month": "probă gratuită de {{count}} lună",
+        "year": "probă gratuită de {{count}} an",
+        "period": "probă gratuită de {{count}} perioadă"
+      },
+      "trialMany": {
+        "day": "probă gratuită de {{count}} zile",
+        "week": "probă gratuită de {{count}} săptămâni",
+        "month": "probă gratuită de {{count}} luni",
+        "year": "probă gratuită de {{count}} ani",
+        "period": "probă gratuită de {{count}} perioade"
+      },
+      "pricingUnavailable": "Prețurile nu sunt disponibile — verifică-ți conexiunea și încearcă din nou.",
+      "compareToggle": "Compară toate funcțiile",
+      "compareFeature": "Funcție",
+      "compareFree": "Gratuit",
+      "comparePlus": "Plus",
+      "comparePro": "Pro",
+      "compareRows": {
+        "guidedLessons": "Lecții ghidate",
+        "streaksXp": "Serii zilnice și XP",
+        "personalisedPath": "Traseu personalizat",
+        "unlimitedCalculators": "Calculatoare nelimitate",
+        "advancedSimulations": "Simulări avansate",
+        "priorityAi": "Îndrumare AI prioritară",
+        "earlyAccess": "Acces timpuriu la instrumente noi"
+      },
+      "tiers": {
+        "plusTagline": "Un traseu personalizat",
+        "plusPerk1": "Traseu de învățare personalizat",
+        "plusPerk2": "Calculatoare nelimitate",
+        "plusPerk3": "Statistici de progres și memento-uri",
+        "proTagline": "Setul complet de instrumente",
+        "proPerk1": "Tot ce include Plus",
+        "proPerk2": "Simulări și analize avansate",
+        "proPerk3": "Acces timpuriu la instrumente noi",
+        "proPerk4": "Îndrumare AI prioritară"
+      },
+      "restorePurchases": "Restaurează achizițiile",
+      "manageSubscription": "Gestionează abonamentul",
+      "redeemCode": "Folosește un cod",
+      "skipForNow": "Mai târziu",
+      "legalIos": "Abonamentele se reînnoiesc automat. Anulează oricând din setările Apple ID. Plata este debitată din contul Apple ID la confirmare.",
+      "termsOfUse": "Termeni de utilizare",
+      "privacyPolicy": "Politica de confidențialitate",
+      "overlay": {
+        "activatingTier": "Se activează Garzoni {{tier}}…",
+        "activating": "Se activează abonamentul tău…",
+        "activatingBody": "Îți sincronizăm contul Garzoni — durează doar câteva secunde.",
+        "successTitle": "Totul e gata",
+        "successTier": "Bine ai venit la Garzoni {{tier}}. Instrumentele tale noi sunt deblocate.",
+        "success": "Bine ai venit — instrumentele tale noi sunt deblocate.",
+        "errorTitle": "Aproape gata",
+        "errorBody": "Nu am putut activa abonamentul. Te rugăm să încerci din nou.",
+        "retry": "Reîncearcă",
+        "close": "Închide",
+        "restoringTitle": "Se restaurează achizițiile…",
+        "restoringBody": "Verificăm Apple ID-ul tău pentru abonamente active."
+      },
+      "errors": {
+        "identityMissing": "Nu am putut lega contul tău de această achiziție. Repornește aplicația și încearcă din nou.",
+        "crossPlatform": "Ai deja un abonament activ facturat prin {{store}}. Gestionează-l sau schimbă-l acolo — dacă cumperi aici vei fi taxat de două ori.",
+        "backendLag": "Achiziția a reușit, dar nu am putut-o activa încă. Apasă pe reîncearcă mai jos.",
+        "generic": "Te rugăm să încerci din nou.",
+        "retryNoLuck": "Tot nimic. Apasă pe Restaurează achizițiile sau contactează suportul dacă problema persistă.",
+        "retryFailed": "Reîncercarea a eșuat. Încearcă Restaurează achizițiile.",
+        "redeemPending": "Dacă a fost acceptat codul, așteaptă un moment și apasă pe Restaurează achizițiile — sau încearcă din nou în scurt timp."
+      },
+      "restore": {
+        "restoredTitle": "Restaurat",
+        "restoredBody": "Bine ai revenit la Garzoni {{tier}}.",
+        "nothingTitle": "Nimic de restaurat",
+        "nothingBody": "Nu am găsit niciun abonament activ pe acest Apple ID.",
+        "failedTitle": "Restaurarea a eșuat"
+      }
+    },
     "intro": "Starter este gratuit după onboarding. Plus și Pro deblochează traseul personalizat și funcțiile premium direct prin App Store sau Google Play.",
     "paywallHeadlineGoal": "Deblochează traseul creat pentru {{goal}}",
     "noCommitment": "Fără angajament — anulează oricând",

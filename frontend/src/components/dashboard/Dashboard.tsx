@@ -743,8 +743,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           <GarzoniIcon name="bookOpen" size={24} />
                         </span>
                         <div className="min-w-0 w-full sm:flex-1">
+                          {/* No progress yet — "pick up where you left off" is a lie on day one. */}
                           <p className="break-words text-sm font-semibold text-content-primary sm:text-base">
-                            {t("dashboard.resume.title")}
+                            {t("dashboard.resume.firstTitle")}
                           </p>
                           <p className="break-words text-[11px] text-content-muted sm:text-xs">
                             {t("dashboard.resume.startFirstLesson")}
@@ -766,9 +767,9 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                           }
                         }}
                         className="w-full self-center rounded-full bg-[color:var(--color-brand-primary)] px-3 py-1.5 text-center text-[11px] font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40 touch-manipulation sm:w-auto sm:self-auto sm:px-4 sm:py-2 sm:text-sm"
-                        aria-label={t("dashboard.resume.browseTopics")}
+                        aria-label={t("dashboard.resume.firstCta")}
                       >
-                        {t("dashboard.resume.browseTopics")}
+                        {t("dashboard.resume.firstCta")}
                       </button>
                     </div>
                   </div>

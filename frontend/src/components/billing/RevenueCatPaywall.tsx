@@ -61,7 +61,8 @@ interface RevenueCatPaywallProps {
 
 interface PlanCard {
   pkg: Package;
-  label: string;
+  /** Stable identity — never localised; `monthlyPlan` below matches on it. */
+  kind: "monthly" | "yearly" | "lifetime";
   price: string;
   period: string;
   isBestValue: boolean;
@@ -86,14 +87,13 @@ function sortedPlans(packages: Package[]): PlanCard[] {
       const bo = PACKAGE_SORT_ORDER[b.packageType as string] ?? 9;
       return ao - bo;
     })
-    .map((pkg) => {
+    .map((pkg): PlanCard => {
       const type = pkg.packageType as string;
       const isYearly = type === "ANNUAL" || type === "$rc_annual";
       const isLifetime = type === "LIFETIME" || type === "$rc_lifetime";
-      const label = isLifetime ? "Lifetime" : isYearly ? "Yearly" : "Monthly";
       return {
         pkg,
-        label,
+        kind: isLifetime ? "lifetime" : isYearly ? "yearly" : "monthly",
         price: formatRCPackagePrice(pkg),
         period: rcPackagePeriodLabel(pkg),
         isBestValue: isYearly,
@@ -123,10 +123,20 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
   // Exit-intent: intercept the first dismiss with a monthly downsell offer.
   const [showExitIntent, setShowExitIntent] = useState(false);
   const exitIntentUsedRef = useRef(false);
-  const monthlyPlan = plans.find((p) => p.label === "Monthly") ?? null;
+  const monthlyPlan = plans.find((p) => p.kind === "monthly") ?? null;
 
   const unlockHeadline =
     offeringIdentifier === RC_OFFERING_PRO ? "Garzoni Pro" : "Garzoni Plus";
+
+  const planLabel = useCallback(
+    (kind: PlanCard["kind"]) =>
+      kind === "lifetime"
+        ? t("billing.rcPaywall.planLifetime")
+        : kind === "yearly"
+          ? t("billing.rcPaywall.planYearly")
+          : t("billing.rcPaywall.planMonthly"),
+    [t]
+  );
 
   // ── Initialize SDK + fetch offerings ────────────────────────────────────────
   useEffect(() => {
@@ -138,9 +148,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
       if (!isValidAppUserId(userId)) {
         // Guard: a purchase bound to a non-numeric appUserID is charged but
         // never activates the user's plan. Refuse to render the storefront.
-        setError(
-          "We couldn't confirm your account. Please sign in again before subscribing."
-        );
+        setError(t("billing.rcPaywall.errAccount"));
         setLoading(false);
         return;
       }
@@ -171,7 +179,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           offerings.current;
 
         if (!offering || !offering.availablePackages.length) {
-          setError("No plans available at the moment. Please try again later.");
+          setError(t("billing.rcPaywall.errNoPlans"));
           return;
         }
 
@@ -180,9 +188,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         }
       } catch (err) {
         if (!cancelled) {
-          setError(
-            "Unable to load plans. Please check your connection and try again."
-          );
+          setError(t("billing.rcPaywall.errLoad"));
           console.error("[RevenueCat Paywall] init error:", err);
         }
       } finally {
@@ -194,7 +200,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [userId, offeringIdentifier]);
+  }, [userId, offeringIdentifier, t]);
 
   // ── Purchase ─────────────────────────────────────────────────────────────────
   const handlePurchase = useCallback(
@@ -206,10 +212,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         if (rcIsEntitled(customerInfo)) {
           onSuccess?.(customerInfo);
         } else {
-          setError(
-            "Purchase completed but entitlement not yet active. " +
-              "Please restore purchases or contact support."
-          );
+          setError(t("billing.rcPaywall.errEntitlementPending"));
         }
       } catch (err) {
         const rcErr = err as {
@@ -220,13 +223,13 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           // User closed Stripe Checkout — not an error.
           return;
         }
-        setError(rcErr?.message || "Purchase failed. Please try again.");
+        setError(rcErr?.message || t("billing.rcPaywall.errPurchase"));
         console.error("[RevenueCat Paywall] purchase error:", err);
       } finally {
         setPurchasing(null);
       }
     },
-    [onSuccess]
+    [onSuccess, t]
   );
 
   // ── Restore ──────────────────────────────────────────────────────────────────
@@ -240,16 +243,16 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         setAlreadyEntitled(true);
         onSuccess?.(customerInfo);
       } else {
-        setError("No active subscription found for this account.");
+        setError(t("billing.rcPaywall.errNoSubscription"));
       }
     } catch (err) {
       const rcErr = err as { message?: string };
-      setError(rcErr?.message || "Restore failed. Please try again.");
+      setError(rcErr?.message || t("billing.rcPaywall.errRestore"));
       console.error("[RevenueCat Paywall] restore error:", err);
     } finally {
       setRestoring(false);
     }
-  }, [onSuccess]);
+  }, [onSuccess, t]);
 
   // ── Exit-intent (monthly downsell before real dismiss) ──────────────────────
   const handleSkipClick = useCallback(() => {
@@ -303,29 +306,33 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
       : false;
     const storeLabel = entitledInfo
       ? rcStoreLabel(rcGetEntitlementStore(entitledInfo))
-      : "another platform";
+      : t("billing.rcPaywall.otherPlatform");
     return (
       <GlassCard padding="lg" className="space-y-4 text-center">
         <p className="text-3xl">✅</p>
         <h2 className="text-xl font-bold text-content-primary">
-          Garzoni {activePlan === "pro" ? "Pro" : "Plus"} active
+          {t("billing.rcPaywall.activeTitle", {
+            plan: activePlan === "pro" ? "Pro" : "Plus",
+          })}
         </h2>
         <p className="text-sm text-content-muted">
           {managedElsewhere
-            ? `You're already subscribed. This plan is billed through ${storeLabel}, so manage or change it there to avoid being charged twice.`
-            : "Your subscription is active."}
+            ? t("billing.rcPaywall.activeManagedElsewhere", {
+                store: storeLabel,
+              })
+            : t("billing.rcPaywall.activeSimple")}
         </p>
         {managedElsewhere && (
           <GlassButton
             variant="ghost"
             onClick={() => void rcShowCustomerCenter()}
           >
-            Manage subscription
+            {t("billing.manageSubscription")}
           </GlassButton>
         )}
         {onClose && (
           <GlassButton variant="primary" onClick={onClose}>
-            Continue
+            {t("billing.rcPaywall.activeContinue")}
           </GlassButton>
         )}
       </GlassCard>
@@ -338,11 +345,10 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
         {/* Header */}
         <div className="space-y-1 text-center">
           <h2 className="text-2xl font-bold text-content-primary">
-            Unlock {unlockHeadline}
+            {t("billing.rcPaywall.unlockTitle", { plan: unlockHeadline })}
           </h2>
           <p className="text-sm text-content-muted">
-            Get unlimited access to all courses, exercises, and premium
-            features.
+            {t("billing.rcPaywall.unlockSubtitle")}
           </p>
         </div>
 
@@ -363,6 +369,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           <div className="grid gap-4 md:grid-cols-3">
             {plans.map((plan) => {
               const isBusy = purchasing === plan.pkg.identifier;
+              const label = planLabel(plan.kind);
               return (
                 <div
                   key={plan.pkg.identifier}
@@ -376,13 +383,13 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                   {/* Best value badge */}
                   {plan.isBestValue && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[color:var(--color-brand-primary)] px-3 py-0.5 text-xs font-bold text-white shadow">
-                      Best value
+                      {t("billing.rcPaywall.bestValue")}
                     </span>
                   )}
 
                   <div className="space-y-1 pt-2">
                     <p className="text-lg font-semibold text-content-primary">
-                      {plan.label}
+                      {label}
                     </p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-extrabold text-content-primary">
@@ -396,17 +403,17 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                     </div>
                     {plan.isLifetime && (
                       <p className="text-xs text-content-muted">
-                        Pay once, own forever
+                        {t("billing.rcPaywall.lifetimeNote")}
                       </p>
                     )}
                   </div>
 
                   <ul className="space-y-1.5 text-sm text-content-primary">
-                    <li>✓ All premium courses</li>
-                    <li>✓ Unlimited AI tutor</li>
-                    <li>✓ Advanced exercises</li>
+                    <li>✓ {t("billing.rcPaywall.perkCourses")}</li>
+                    <li>✓ {t("billing.rcPaywall.perkTutor")}</li>
+                    <li>✓ {t("billing.rcPaywall.perkExercises")}</li>
                     {(plan.isBestValue || plan.isLifetime) && (
-                      <li>✓ Priority support</li>
+                      <li>✓ {t("billing.rcPaywall.perkPriority")}</li>
                     )}
                   </ul>
 
@@ -423,11 +430,13 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                       loading={isBusy}
                       onClick={() => void handlePurchase(plan)}
                     >
-                      {isBusy ? "Opening checkout…" : `Choose ${plan.label} ›`}
+                      {isBusy
+                        ? t("billing.rcPaywall.openingCheckout")
+                        : t("billing.rcPaywall.choosePlan", { label })}
                     </GlassButton>
                     {!plan.isLifetime && (
                       <p className="text-center text-[11px] text-content-muted">
-                        No commitment — cancel anytime
+                        {t("billing.rcPaywall.noCommitment")}
                       </p>
                     )}
                   </div>
@@ -455,7 +464,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
               disabled={Boolean(purchasing) || restoring}
               onClick={handleSkipClick}
             >
-              {t("common.skipForNow", "Skip for now — keep exploring for free")}
+              {t("common.skipForNow")}
             </GlassButton>
           </div>
         )}
@@ -469,15 +478,15 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
             loading={restoring}
             onClick={() => void handleRestore()}
           >
-            {restoring ? "Restoring…" : "Restore purchases"}
+            {restoring
+              ? t("billing.rcPaywall.restoring")
+              : t("billing.rcPaywall.restore")}
           </GlassButton>
         </div>
 
         {/* Legal */}
         <p className="text-center text-xs text-content-muted">
-          Subscriptions auto-renew unless cancelled at least 24 hours before the
-          end of the current period. Manage or cancel anytime in your account
-          settings.
+          {t("billing.rcPaywall.legal")}
         </p>
       </GlassCard>
 
@@ -487,7 +496,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Try monthly instead"
+          aria-label={t("billing.rcPaywall.exitAria")}
         >
           <GlassCard
             padding="lg"
@@ -495,12 +504,14 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
           >
             <div className="space-y-1">
               <h3 className="text-xl font-bold text-content-primary">
-                Not ready for a year?
+                {t("billing.rcPaywall.exitTitle")}
               </h3>
               <p className="text-sm text-content-muted">
-                Try monthly instead — {monthlyPlan.price}
-                {monthlyPlan.period ? ` ${monthlyPlan.period}` : ""}. Cancel
-                anytime.
+                {t("billing.rcPaywall.exitBody", {
+                  price: `${monthlyPlan.price}${
+                    monthlyPlan.period ? ` ${monthlyPlan.period}` : ""
+                  }`,
+                })}
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -511,9 +522,11 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                 loading={purchasing === monthlyPlan.pkg.identifier}
                 onClick={handleExitAccept}
               >
-                {`Start monthly — ${monthlyPlan.price}${
-                  monthlyPlan.period ? ` ${monthlyPlan.period}` : ""
-                } ›`}
+                {t("billing.rcPaywall.exitAccept", {
+                  price: `${monthlyPlan.price}${
+                    monthlyPlan.period ? ` ${monthlyPlan.period}` : ""
+                  }`,
+                })}
               </GlassButton>
               <GlassButton
                 variant="ghost"
@@ -521,7 +534,7 @@ const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
                 disabled={Boolean(purchasing) || restoring}
                 onClick={handleExitDecline}
               >
-                No thanks
+                {t("billing.rcPaywall.exitDecline")}
               </GlassButton>
             </div>
           </GlassCard>

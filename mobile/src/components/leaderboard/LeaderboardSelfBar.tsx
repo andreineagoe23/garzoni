@@ -1,5 +1,4 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography } from "../../theme/tokens";
@@ -23,14 +22,15 @@ export default function LeaderboardSelfBar({
   label = "You",
 }: Props) {
   const c = useThemeColors();
-  const insets = useSafeAreaInsets();
 
   return (
     <View
       style={[
         styles.wrap,
         {
-          paddingBottom: Math.max(insets.bottom, spacing.sm),
+          // Leaderboard is a tab screen now — the tab bar already owns the
+          // bottom inset, so adding it here would leave a dead band.
+          paddingBottom: spacing.sm,
           backgroundColor: c.bg,
           borderTopColor: c.border,
         },

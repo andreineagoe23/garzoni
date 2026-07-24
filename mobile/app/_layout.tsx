@@ -210,10 +210,6 @@ function ThemedRoot() {
                 options={{ headerShown: false }}
               />
               <Stack.Screen name="missions" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="leaderboard"
-                options={{ headerShown: false }}
-              />
               <Stack.Screen name="rewards" options={{ headerShown: false }} />
               <Stack.Screen name="settings" options={{ headerShown: false }} />
               <Stack.Screen name="support" options={{ headerShown: false }} />

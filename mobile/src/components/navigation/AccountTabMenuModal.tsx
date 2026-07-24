@@ -145,18 +145,20 @@ export default function AccountTabMenuModal({ visible, onClose }: Props) {
                 {t("nav.navigateSection", { defaultValue: "Navigate" })}
               </Text>
 
+              {/* Leaderboard owns a tab slot now; the practice hub lost its
+                  tab, so it takes this row instead. */}
               <Pressable
                 style={menuRowStyle}
-                onPress={() => go("/leaderboard")}
+                onPress={() => go("/(tabs)/exercises")}
                 accessibilityRole="button"
               >
                 <Ionicons
-                  name={navIcons.leaderboard as keyof typeof Ionicons.glyphMap}
+                  name={navIcons.exercises as keyof typeof Ionicons.glyphMap}
                   size={22}
                   color={c.primary}
                 />
                 <Text style={[styles.menuLabel, { color: c.text }]}>
-                  {t("nav.leaderboard", { defaultValue: "Leaderboard" })}
+                  {t("nav.exercises", { defaultValue: "Exercises" })}
                 </Text>
                 <Ionicons
                   name={
