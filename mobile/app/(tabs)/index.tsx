@@ -22,7 +22,14 @@ import {
   type Entitlements,
   type UserProfile,
 } from "@garzoni/core";
-import { ErrorState, ScreenScroll, Skeleton } from "../../src/components/ui";
+import {
+  Card,
+  ErrorState,
+  ScreenScroll,
+  Skeleton,
+  Stack,
+  useScreenPaddingX,
+} from "../../src/components/ui";
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import QuestionnaireReminderBanner from "../../src/components/dashboard/QuestionnaireReminderBanner";
 import DashboardResumeRow from "../../src/components/dashboard/DashboardResumeRow";
@@ -41,7 +48,7 @@ import { userIdFromAccessToken } from "../../src/auth/jwtClaims";
 import { useDashboardSkillExercisesNavigation } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import type { DashboardWeakSkill } from "../../src/hooks/useDashboardSkillExercisesNavigation";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography } from "../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../src/theme/tokens";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
@@ -158,6 +165,7 @@ function summaryFromHeatmapApiRow(
 
 function DashboardInner() {
   const c = useThemeColors();
+  const screenPaddingX = useScreenPaddingX();
   const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<string | null>(
     null,
   );
@@ -654,7 +662,10 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ScreenScroll
-          contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+          contentContainerStyle={[
+            styles.container,
+            { backgroundColor: c.bg, paddingHorizontal: screenPaddingX },
+          ]}
         >
           <Skeleton
             width="60%"
@@ -676,7 +687,10 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ScreenScroll
-          contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+          contentContainerStyle={[
+            styles.container,
+            { backgroundColor: c.bg, paddingHorizontal: screenPaddingX },
+          ]}
         >
           <Text style={[styles.greeting, { color: c.text }]}>
             {t("dashboard.header.welcomeBack")}
@@ -696,7 +710,10 @@ function DashboardInner() {
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         {headerBar}
         <ScreenScroll
-          contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+          contentContainerStyle={[
+            styles.container,
+            { backgroundColor: c.bg, paddingHorizontal: screenPaddingX },
+          ]}
         >
           <Skeleton
             width="60%"
@@ -751,7 +768,10 @@ function DashboardInner() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       {headerBar}
       <ScreenScroll
-        contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: c.bg, paddingHorizontal: screenPaddingX },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={pullRefreshing}
@@ -760,14 +780,13 @@ function DashboardInner() {
           />
         }
       >
-        <View style={styles.stack}>
+        {/* Stack owns the vertical rhythm — children must not add margins. */}
+        <Stack>
           {!questionnaireCompletedForUi ? (
-            <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
-              <QuestionnaireReminderBanner
-                hasPaid={hasPaid}
-                authReady={authReady && Boolean(accessToken)}
-              />
-            </View>
+            <QuestionnaireReminderBanner
+              hasPaid={hasPaid}
+              authReady={authReady && Boolean(accessToken)}
+            />
           ) : null}
 
           {questionnaireCompletedForUi ? <HomeJourneyCard /> : null}
@@ -793,12 +812,7 @@ function DashboardInner() {
             onAskTutor={handleAskTutorAboutSkill}
           />
 
-          <View
-            style={[
-              styles.heatmapCard,
-              { backgroundColor: c.surface, borderColor: c.border },
-            ]}
-          >
+          <Card>
             <Text style={[styles.sectionTitle, { color: c.text }]}>
               {t("dashboard.consistencyTitle", {
                 defaultValue: "Your consistency",
@@ -819,7 +833,7 @@ function DashboardInner() {
                 )
               }
             />
-          </View>
+          </Card>
 
           <StatusSummaryGrid
             coursesCompleted={summary.coursesCompleted}
@@ -843,28 +857,23 @@ function DashboardInner() {
           {/* AI Smart Resume nudge */}
           {smartResumeQuery.data?.action ? (
             <View
-              style={{
-                borderRadius: 14,
-                padding: 14,
-                backgroundColor: c.accent + "18",
-                borderWidth: 1,
-                borderColor: c.accent + "35",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-              }}
+              style={[
+                styles.smartResume,
+                {
+                  backgroundColor: c.accent + "18",
+                  borderColor: c.accent + "35",
+                },
+              ]}
             >
-              <Text style={{ fontSize: 18 }}>✨</Text>
-              <Text
-                style={{ flex: 1, fontSize: 13, color: c.text, lineHeight: 20 }}
-              >
+              <Text style={styles.smartResumeIcon}>✨</Text>
+              <Text style={[styles.smartResumeText, { color: c.text }]}>
                 {smartResumeQuery.data.action}
               </Text>
             </View>
           ) : null}
 
           <PrimaryCTAMobile primaryCTA={primaryCTA} />
-        </View>
+        </Stack>
       </ScreenScroll>
       <StreakFreezeModal
         visible={freezeModalVisible}
@@ -886,32 +895,37 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
-  },
-  stack: {
-    gap: spacing.lg,
   },
   greeting: {
     fontSize: typography.xl,
     fontWeight: "700",
     marginBottom: spacing.lg,
   },
-  heatmapCard: {
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
-  },
   sectionTitle: {
     fontSize: typography.base,
     fontWeight: "700",
-    marginBottom: 2,
+    marginBottom: spacing.xs,
   },
   sectionSub: {
     fontSize: typography.xs,
     marginBottom: spacing.md,
+  },
+  smartResume: {
+    borderRadius: radius.card,
+    padding: layout.cardPadding,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  smartResumeIcon: {
+    fontSize: typography.lg,
+  },
+  smartResumeText: {
+    flex: 1,
+    fontSize: typography.sm,
+    lineHeight: 20,
   },
 });

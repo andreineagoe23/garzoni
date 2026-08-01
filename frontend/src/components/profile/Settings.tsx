@@ -210,7 +210,7 @@ function Settings() {
   };
 
   return (
-    <PageContainer maxWidth="4xl" innerClassName="space-y-8">
+    <PageContainer maxWidth="4xl">
       {successMessage && (
         <GlassCard
           padding="md"

@@ -3102,7 +3102,7 @@ const ExercisePage = () => {
       )}
       {readyVisible && !loading && exercises.length > 0 && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
-          <div className="app-card w-full max-w-lg p-6 text-center">
+          <div className="app-card app-card--pad-lg w-full max-w-lg text-center">
             <p className="app-eyebrow mb-2">Ready?</p>
             <h2 className="app-display text-3xl text-content-primary">
               Start a 5-question practice session

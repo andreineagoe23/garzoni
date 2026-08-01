@@ -123,33 +123,6 @@
     color: var(--muted-text);
   }
 
-  // ========== Cards ==========
-  .card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 12px var(--shadow-color);
-
-    &-header {
-      background: rgba(29, 83, 48, 0.2);
-      border-bottom: 1px solid rgba(29, 83, 48, 0.3);
-      color: var(--text-color);
-    }
-
-    &-title {
-      color: var(--text-color);
-      letter-spacing: 0.5px;
-    }
-
-    &-text {
-      color: var(--text-color);
-    }
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px var(--shadow-color);
-    }
-  }
-
   // ========== Forms ==========
   .form-control,
   .form-select {

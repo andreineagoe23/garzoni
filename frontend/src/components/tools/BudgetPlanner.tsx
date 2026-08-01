@@ -167,7 +167,7 @@ const BudgetPlanner = () => {
 
   return (
     <section className="space-y-6 min-w-0 w-full">
-      <header className="app-card px-5 py-5 sm:px-6">
+      <header className="app-card app-card--pad">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-2xl space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -200,13 +200,13 @@ const BudgetPlanner = () => {
       </header>
 
       {error && (
-        <div className="app-card border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error)]/10 px-4 py-3 text-sm text-[color:var(--color-state-error)]">
+        <div className="app-card app-card--pad-sm border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)]">
           {error}
         </div>
       )}
 
       <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-        <div className="app-card px-4 py-4">
+        <div className="app-card app-card--pad-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("tools.budgetPlanner.totals.income")}
           </p>
@@ -219,7 +219,7 @@ const BudgetPlanner = () => {
                 })}
           </p>
         </div>
-        <div className="app-card px-4 py-4">
+        <div className="app-card app-card--pad-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("tools.budgetPlanner.totals.spent")}
           </p>
@@ -232,7 +232,7 @@ const BudgetPlanner = () => {
                 })}
           </p>
         </div>
-        <div className="app-card px-4 py-4">
+        <div className="app-card app-card--pad-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
             {t("tools.budgetPlanner.totals.netFlow")}
           </p>
@@ -260,7 +260,7 @@ const BudgetPlanner = () => {
         </div>
       </div>
 
-      <div className="app-card px-5 py-5 sm:px-6">
+      <div className="app-card app-card--pad">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-content-primary">
             {t("tools.budgetPlanner.envelopes.title")}
@@ -379,7 +379,7 @@ const BudgetPlanner = () => {
       </div>
 
       {summary?.by_category && summary.by_category.length > 0 && (
-        <div className="app-card px-5 py-5 sm:px-6">
+        <div className="app-card app-card--pad">
           <p className="text-sm font-semibold text-content-primary">
             {t("tools.budgetPlanner.byCategory.title")}
           </p>

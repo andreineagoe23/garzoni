@@ -983,7 +983,7 @@ function PortfolioAnalyzer() {
               Buy any stock or crypto with your $10,000 virtual cash. No real
               money — just learn how markets work.
             </p>
-            <div className="app-card-sm flex items-center justify-center gap-3 px-4 py-3">
+            <div className="app-card-sm app-card--pad-sm flex items-center justify-center gap-3">
               <span className="text-base">⚡</span>
               <span className="text-sm font-bold text-content-primary">
                 500 XP

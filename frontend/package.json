@@ -9,6 +9,7 @@
     "@fontsource/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@garzoni/core": "workspace:*",
+    "@garzoni/tokens": "workspace:*",
     "@revenuecat/purchases-js": "^1.30.0",
     "@sentry/react": "^10.36.0",
     "@tanstack/react-query": "^5.59.15",
@@ -44,6 +45,8 @@
     "zustand": "^4.5.5"
   },
   "scripts": {
+    "tokens": "node ../packages/tokens/scripts/gen-css.mjs",
+    "predev": "pnpm run tokens",
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite",
     "start": "pnpm run dev",
     "clean:cache": "node -e \"try{require('fs').rmSync('node_modules/.vite',{recursive:true,force:true});console.log('Vite cache cleared.');}catch(e){console.log(e.message);process.exit(1);}\"",
@@ -51,7 +54,7 @@
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "npx --yes prettier --write .",
     "format:check": "npx --yes prettier --check .",
-    "build": "pnpm exec tsc --noEmit && vite build && node scripts/prerender.mjs",
+    "build": "pnpm run tokens && pnpm exec tsc --noEmit && vite build && node scripts/prerender.mjs",
     "build:analyze": "cross-env ANALYZE=true pnpm exec tsc --noEmit && cross-env ANALYZE=true vite build",
     "type-check": "pnpm exec tsc --noEmit --skipLibCheck",
     "test": "vitest run",

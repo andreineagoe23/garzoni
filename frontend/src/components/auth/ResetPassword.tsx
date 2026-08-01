@@ -63,7 +63,7 @@ function ResetPassword() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(29,83,48,0.35),_transparent_55%)] pointer-events-none" />
 
       <div
-        className="app-card relative w-full max-w-lg px-6 py-10"
+        className="app-card app-card--pad-lg relative w-full max-w-lg"
         style={{
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",

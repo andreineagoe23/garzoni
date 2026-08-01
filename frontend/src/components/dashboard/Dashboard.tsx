@@ -680,7 +680,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               "completed" ? (
               <div className="mt-6">
                 {resume ? (
-                  <div className="app-card min-w-0 p-3 transition-all sm:p-4">
+                  <div className="app-card app-card--pad-sm min-w-0 transition-all">
                     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex w-full min-w-0 flex-col items-center gap-2 text-center sm:flex-1 sm:flex-row sm:items-center sm:gap-3 sm:text-left">
                         <span
@@ -733,7 +733,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="app-card min-w-0 p-3 transition-all sm:p-4">
+                  <div className="app-card app-card--pad-sm min-w-0 transition-all">
                     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex w-full min-w-0 flex-col items-center gap-2 text-center sm:flex-1 sm:flex-row sm:items-center sm:gap-3 sm:text-left">
                         <span

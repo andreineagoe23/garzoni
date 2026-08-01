@@ -1,6 +1,6 @@
 # Garzoni Brand
 
-This folder is the **single source of truth** for the Garzoni visual identity (logo + palette + font stack). Every other place in the monorepo — web (`frontend/`), mobile (`mobile/`), email templates (`backend/core/templates/emails/`), and the Customer.io dashboard — mirrors what lives here.
+This folder is the **single source of truth** for the Garzoni visual identity (logo + palette + font stack). _Spacing, radii and the type scale are not here_ — they live in `packages/tokens` and are consumed as code by both apps (see `docs/dev/spacing-contract.md`); the `--space-*` / `--radius-*` values in `kit/tokens.css` are documentation only. Every other place in the monorepo — web (`frontend/`), mobile (`mobile/`), email templates (`backend/core/templates/emails/`), and the Customer.io dashboard — mirrors what lives here.
 
 > **For exportable design tokens, the Canva brand kit, the full palette swatch sheet, the typography specimen, and the cleanup report**, see [`brand/kit/`](kit/). That folder also holds [`tokens.css`](kit/tokens.css) and [`tokens.json`](kit/tokens.json), the canonical machine-readable definitions.
 

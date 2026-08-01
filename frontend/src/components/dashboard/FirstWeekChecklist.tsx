@@ -136,7 +136,7 @@ const FirstWeekChecklist: React.FC<FirstWeekChecklistProps> = ({
 
   return (
     <div
-      className="app-card relative mt-6 min-w-0 p-4 sm:p-5"
+      className="app-card app-card--pad relative mt-6 min-w-0"
       aria-label={t("dashboard.firstWeek.ariaLabel")}
     >
       <button

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import PageContainer from "components/common/PageContainer";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -549,147 +550,146 @@ const OnboardingQuestionnaire: React.FC = () => {
 
   return (
     <>
-      <section
-        className="min-h-screen bg-gradient-to-br from-surface-page via-surface-page to-brand-primary/5 px-4 py-10"
+      <PageContainer
+        maxWidth="4xl"
+        className="bg-gradient-to-br from-surface-page via-surface-page to-brand-primary/5"
         aria-label={t("onboarding.aria")}
       >
-        <div className="mx-auto flex max-w-4xl flex-col gap-8">
-          {/* Header */}
-          <header className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              {/* Endowed-progress framing (UX plan 2.2): account creation counts
+        {/* Header */}
+        <header className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {/* Endowed-progress framing (UX plan 2.2): account creation counts
                   as step 1, so the first question reads "Step 2 of 7". English
                   literal pending i18n keys (repo test forbids unknown t() keys).
                   The progress bar below is intentionally NOT offset — the
                   backend seeds progress_percentage separately. */}
-              <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-                {`Step ${currentQuestionNumberDisplay + 1} of ${
-                  totalQuestionsDisplay + 1
-                }`}
-              </p>
-              <div className="flex items-center gap-2">
-                <GlassButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/all-topics")}
-                  aria-label={t("onboarding.goToAllTopics")}
-                >
-                  {t("onboarding.allTopics")}
-                </GlassButton>
-                <GlassButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSaveAndFinishLater}
-                  disabled={abandonMutation.isPending}
-                >
-                  {t("onboarding.saveAndFinishLater")}
-                </GlassButton>
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-content-primary">
-              {t("onboarding.tellUsAboutYourself")}
-            </h1>
-            <p className="text-sm text-content-muted">
-              {t("onboarding.answerFewQuestions")}
+            <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+              {`Step ${currentQuestionNumberDisplay + 1} of ${
+                totalQuestionsDisplay + 1
+              }`}
             </p>
-          </header>
-
-          {/* Progress Stepper */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-content-muted">
-              <span>{t("onboarding.progress")}</span>
-              <span>{computedProgressPercentage}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary)] to-[color:var(--color-brand-primary)]/80 transition-[width] duration-500 ease-out"
-                style={{ width: `${computedProgressPercentage}%` }}
-                role="progressbar"
-                aria-valuenow={computedProgressPercentage}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              />
-            </div>
-          </div>
-
-          {/* Section Summary Card (if available) */}
-          {sectionSummary && (
-            <GlassCard
-              padding="md"
-              className="border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5"
-            >
-              <h3 className="mb-3 text-sm font-semibold text-content-primary">
-                {sectionSummary.section_title} {t("onboarding.summary")}
-              </h3>
-              <div className="space-y-2">
-                {sectionSummary.answers.map((item, idx) => (
-                  <div key={idx} className="text-xs text-content-muted">
-                    <span className="font-medium">{item.question}:</span>{" "}
-                    {item.answer}
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
-          )}
-
-          {/* Question Card */}
-          <GlassCard padding="lg" className="relative z-10 space-y-6 md:px-10">
-            <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-content-primary">
-                {currentQuestion?.text ?? t("onboarding.noQuestionLoaded")}
-              </h2>
-              {currentQuestion?.description && (
-                <p className="text-sm text-content-muted">
-                  {currentQuestion.description}
-                </p>
-              )}
-            </div>
-
-            {renderQuestionInput(currentQuestion)}
-
-            <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
               <GlassButton
                 variant="ghost"
-                onClick={() => {
-                  // Go back to previous question (would need backend support)
-                  toast(t("onboarding.previousComingSoon"));
-                }}
-                disabled
+                size="sm"
+                onClick={() => navigate("/all-topics")}
+                aria-label={t("onboarding.goToAllTopics")}
               >
-                {t("onboarding.previous")}
+                {t("onboarding.allTopics")}
               </GlassButton>
+              <GlassButton
+                variant="ghost"
+                size="sm"
+                onClick={handleSaveAndFinishLater}
+                disabled={abandonMutation.isPending}
+              >
+                {t("onboarding.saveAndFinishLater")}
+              </GlassButton>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-content-primary">
+            {t("onboarding.tellUsAboutYourself")}
+          </h1>
+          <p className="text-sm text-content-muted">
+            {t("onboarding.answerFewQuestions")}
+          </p>
+        </header>
 
-              <div className="flex gap-3">
-                {!computedIsLastQuestion ? (
-                  <GlassButton
-                    variant="primary"
-                    onClick={handleNext}
-                    disabled={
-                      currentAnswer === null || saveAnswerMutation.isPending
-                    }
-                  >
-                    {saveAnswerMutation.isPending
-                      ? t("onboarding.saving")
-                      : t("onboarding.next")}
-                  </GlassButton>
-                ) : (
-                  <GlassButton
-                    variant="primary"
-                    onClick={handleComplete}
-                    disabled={
-                      currentAnswer === null || completeMutation.isPending
-                    }
-                  >
-                    {completeMutation.isPending
-                      ? t("onboarding.completing")
-                      : t("onboarding.complete")}
-                  </GlassButton>
-                )}
-              </div>
+        {/* Progress Stepper */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-content-muted">
+            <span>{t("onboarding.progress")}</span>
+            <span>{computedProgressPercentage}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--input-bg,#f3f4f6)] shadow-inner">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[color:var(--color-brand-primary)] to-[color:var(--color-brand-primary)]/80 transition-[width] duration-500 ease-out"
+              style={{ width: `${computedProgressPercentage}%` }}
+              role="progressbar"
+              aria-valuenow={computedProgressPercentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            />
+          </div>
+        </div>
+
+        {/* Section Summary Card (if available) */}
+        {sectionSummary && (
+          <GlassCard
+            padding="md"
+            className="border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5"
+          >
+            <h3 className="mb-3 text-sm font-semibold text-content-primary">
+              {sectionSummary.section_title} {t("onboarding.summary")}
+            </h3>
+            <div className="space-y-2">
+              {sectionSummary.answers.map((item, idx) => (
+                <div key={idx} className="text-xs text-content-muted">
+                  <span className="font-medium">{item.question}:</span>{" "}
+                  {item.answer}
+                </div>
+              ))}
             </div>
           </GlassCard>
-        </div>
-      </section>
+        )}
+
+        {/* Question Card */}
+        <GlassCard padding="lg" className="relative z-10 space-y-6 md:px-10">
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold text-content-primary">
+              {currentQuestion?.text ?? t("onboarding.noQuestionLoaded")}
+            </h2>
+            {currentQuestion?.description && (
+              <p className="text-sm text-content-muted">
+                {currentQuestion.description}
+              </p>
+            )}
+          </div>
+
+          {renderQuestionInput(currentQuestion)}
+
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <GlassButton
+              variant="ghost"
+              onClick={() => {
+                // Go back to previous question (would need backend support)
+                toast(t("onboarding.previousComingSoon"));
+              }}
+              disabled
+            >
+              {t("onboarding.previous")}
+            </GlassButton>
+
+            <div className="flex gap-3">
+              {!computedIsLastQuestion ? (
+                <GlassButton
+                  variant="primary"
+                  onClick={handleNext}
+                  disabled={
+                    currentAnswer === null || saveAnswerMutation.isPending
+                  }
+                >
+                  {saveAnswerMutation.isPending
+                    ? t("onboarding.saving")
+                    : t("onboarding.next")}
+                </GlassButton>
+              ) : (
+                <GlassButton
+                  variant="primary"
+                  onClick={handleComplete}
+                  disabled={
+                    currentAnswer === null || completeMutation.isPending
+                  }
+                >
+                  {completeMutation.isPending
+                    ? t("onboarding.completing")
+                    : t("onboarding.complete")}
+                </GlassButton>
+              )}
+            </div>
+          </div>
+        </GlassCard>
+      </PageContainer>
 
       {/* Completion Modal */}
       {showCompletionModal && completionRewards && (

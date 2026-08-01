@@ -25,6 +25,7 @@ export function FilterChips({ active, onChange }: Props) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroller}
       contentContainerStyle={styles.row}
     >
       {OPTIONS.map((opt) => {
@@ -68,6 +69,9 @@ export function FilterChips({ active, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // Horizontal ScrollViews default to `flexGrow: 1`; hug the content so this
+  // never steals leftover vertical space when dropped into a flex column.
+  scroller: { flexGrow: 0, flexShrink: 0 },
   row: {
     gap: spacing.sm,
     paddingHorizontal: spacing.xl,

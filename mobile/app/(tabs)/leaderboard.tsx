@@ -64,7 +64,7 @@ import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatar
 import { HeaderRightButtons } from "../../src/components/navigation/HeaderRightButtons";
 import GlassCard from "../../src/components/ui/GlassCard";
 import Skeleton from "../../src/components/ui/Skeleton";
-import { spacing, typography, radius } from "../../src/theme/tokens";
+import { layout, spacing, typography, radius } from "../../src/theme/tokens";
 
 const LIST_PAGE_SIZE = 25;
 const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"];
@@ -872,7 +872,7 @@ export default function LeaderboardScreen() {
             styles.content,
             {
               flexGrow: 1,
-              paddingHorizontal: spacing.md + gutter,
+              paddingHorizontal: layout.screenPaddingX + gutter,
               paddingBottom: pinnedSelf ? 100 : spacing.xxxl,
             },
           ]}
@@ -905,9 +905,11 @@ export default function LeaderboardScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: {
-    paddingHorizontal: spacing.md,
+    // Overridden per-render with the tablet gutter added; kept here so the
+    // base inset matches every other tab (and TabScreenHeader above it).
+    paddingHorizontal: layout.screenPaddingX,
     paddingTop: spacing.sm,
-    paddingBottom: 48,
+    paddingBottom: spacing.xxxxl,
   },
   // Single owner of the header's vertical rhythm — every direct child of the
   // header is spaced by this gap alone. paddingBottom separates the last
@@ -917,7 +919,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: typography.sm, marginTop: spacing.xs, lineHeight: 20 },
   tabBar: {
     flexDirection: "row",
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 4,
     gap: 4,
@@ -925,7 +927,7 @@ const styles = StyleSheet.create({
   tabBtn: {
     flex: 1,
     paddingVertical: spacing.sm,
-    borderRadius: 999,
+    borderRadius: radius.full,
     justifyContent: "center",
   },
   timeRow: {
@@ -936,11 +938,11 @@ const styles = StyleSheet.create({
   timeChip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
   },
   search: {
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
@@ -948,7 +950,6 @@ const styles = StyleSheet.create({
   },
   busy: {
     textAlign: "center",
-    marginBottom: spacing.sm,
     fontSize: typography.sm,
   },
   loader: {
@@ -981,7 +982,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xl,
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
     justifyContent: "center",

@@ -34,7 +34,13 @@ import {
 import MascotWithMessage from "../../src/components/common/MascotWithMessage";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import {
+  layout,
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../src/theme/tokens";
 import { useScreenGutter } from "../../src/utils/platform";
 import { NotificationFeedbackType } from "expo-haptics";
 import { safeNotificationAsync } from "../../src/utils/safeHaptics";
@@ -381,7 +387,7 @@ export default function QuizScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
       >
         <Animated.View entering={FadeIn.duration(280)}>

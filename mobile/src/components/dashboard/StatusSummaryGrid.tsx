@@ -251,9 +251,9 @@ export default function StatusSummaryGrid({
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    marginTop: spacing.lg,
-  },
+  // No vertical margin: the parent <Stack> owns the rhythm (RN does not
+  // collapse margins, so a margin here would stack on top of the gap).
+  wrap: {},
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",

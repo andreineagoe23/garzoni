@@ -11,7 +11,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import { calcRealityCheck } from "../../../src/types/reality-check";
 import type {
@@ -160,7 +160,7 @@ export default function RealityCheckScreen() {
         style={[styles.root, { backgroundColor: c.bg }]}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
         refreshControl={
           <RefreshControl

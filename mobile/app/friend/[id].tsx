@@ -27,7 +27,7 @@ import {
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { ErrorState, Skeleton } from "../../src/components/ui";
 import GlassCard from "../../src/components/ui/GlassCard";
-import { spacing, typography, radius } from "../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../src/theme/tokens";
 import { useScreenGutter } from "../../src/utils/platform";
 import { leaderboardAvatarUri } from "../../src/components/leaderboard/leaderboardAvatarUri";
 
@@ -154,7 +154,7 @@ export default function FriendProfileScreen() {
         style={{ flex: 1, backgroundColor: c.bg }}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
       >
         {profileQuery.isPending ? (

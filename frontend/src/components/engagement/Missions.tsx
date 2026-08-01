@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import apiClient from "services/httpClient";
+import PageContainer from "components/common/PageContainer";
 import Loader from "components/common/Loader";
 import StatBadge from "components/common/StatBadge";
 import MascotWithMessage from "components/common/MascotWithMessage";
@@ -548,272 +549,308 @@ function Missions() {
   // on every parent state change.
 
   return (
-    <section className="min-h-screen bg-surface-page px-4 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <header className="space-y-2 text-center lg:text-left">
-          <h1 className="text-3xl font-bold text-content-primary">
-            {t("missions.header.title")}
-          </h1>
-          <p className="text-sm text-content-muted">
-            {t("missions.header.subtitle")}
-          </p>
-        </header>
+    <PageContainer maxWidth="6xl">
+      <header className="space-y-2 text-center lg:text-left">
+        <h1 className="text-3xl font-bold text-content-primary">
+          {t("missions.header.title")}
+        </h1>
+        <p className="text-sm text-content-muted">
+          {t("missions.header.subtitle")}
+        </p>
+      </header>
 
-        <GlassCard padding="md" className="">
-          <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
-            {/* Left: compact "at a glance" mini-card */}
-            <div className="flex-1 rounded-xl border border-[color:var(--color-border-default)]  px-4 py-3 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-content-muted">
-                {t("missions.summary.title")}
-              </p>
+      <GlassCard padding="md" className="">
+        <div className="flex flex-col gap-3 md:flex-row md:items-stretch md:justify-between">
+          {/* Left: compact "at a glance" mini-card */}
+          <div className="flex-1 rounded-xl border border-[color:var(--color-border-default)]  px-4 py-3 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-content-muted">
+              {t("missions.summary.title")}
+            </p>
 
-              <div className="mt-2 space-y-1">
-                <p className="text-base font-semibold text-content-primary">
-                  {t("missions.summary.remaining", {
-                    count: missionsRemaining,
-                  })}
-                </p>
-                <p className="text-sm text-content-muted">
-                  {t("missions.summary.xp", {
-                    earned: activeXpEarned,
-                    remaining: activeXpRemaining,
-                  })}
-                </p>
-              </div>
-
-              {isOffline && (
-                <p
-                  className="mt-2 text-xs text-amber-600"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <GarzoniIcon
-                    name="warning"
-                    size={14}
-                    className="mr-2 inline-block text-amber-500"
-                  />
-                  {t("missions.summary.offline")}
-                </p>
-              )}
-
-              {adaptiveSuggestions && (
-                <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--color-brand-primary)] leading-tight">
-                  <GarzoniIcon
-                    name="lightbulb"
-                    size={14}
-                    className="mr-2 inline-block text-[color:var(--color-brand-primary)]"
-                  />
-                  {t("missions.summary.suggestedSavings", {
-                    amount: adaptiveSuggestions.suggestedSavingsTarget,
-                    level: userLevel,
-                  })}
-                </div>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm md:text-right">
-              <StatBadge
-                label={t("missions.summary.streak")}
-                value={t("missions.summary.streakDays", { count: streakCount })}
-                className=" px-4 py-3 shadow-sm"
-              />
-              <StatBadge
-                label={
-                  missionScope === "daily"
-                    ? t("missions.summary.totalXp")
-                    : t("missions.summary.totalXpWeekly")
-                }
-                value={`${formatNumber(activeXpEarned)} / ${formatNumber(activeXpTotal)}`}
-                unit="XP"
-                className=" px-4 py-3 shadow-sm"
-              />
-            </div>
-          </div>
-          {streakItems.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {streakItems.map((item, index) => (
-                <div
-                  key={`${item.type}-${index}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]"
-                  role="status"
-                  aria-label={t("missions.streakItemAria", {
-                    type: item.type,
-                    quantity: item.quantity,
-                  })}
-                >
-                  {item.type === "streak_freeze" ? (
-                    <GarzoniIcon
-                      name="snowflake"
-                      size={14}
-                      className="inline-block text-[color:var(--color-brand-primary)]"
-                    />
-                  ) : (
-                    <GarzoniIcon
-                      name="bolt"
-                      size={14}
-                      className="inline-block text-[color:var(--color-brand-primary)]"
-                    />
-                  )}
-                  {item.quantity}x
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="sr-only" aria-live="polite" aria-atomic="true">
-            {celebrationMessage}
-          </div>
-        </GlassCard>
-
-        {wagersData && (
-          <StreakWagerCard
-            active={wagersData.active}
-            history={wagersData.history}
-            stakeRewardTable={wagersData.stake_reward_table}
-            eligible={wagersData.eligible}
-            ineligibleReason={wagersData.ineligible_reason}
-            busy={wagerBusy}
-            onOpen={(targetDays) => void handleOpenWager(targetDays)}
-            onCancel={(wagerId) => void handleCancelWager(wagerId)}
-            t={t}
-          />
-        )}
-
-        {Object.values(errors).length > 0 && (
-          <GlassCard
-            padding="md"
-            className="border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)] shadow-[color:var(--color-state-error)]/20"
-          >
-            <ul className="space-y-1">
-              {Object.entries(errors).map(([key, message]) => (
-                <li key={key}>{message}</li>
-              ))}
-            </ul>
-          </GlassCard>
-        )}
-
-        {!missionsLoading && !noMissionsAvailable && (
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setMissionScope("daily")}
-              disabled={dailyMissions.length === 0}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                missionScope === "daily"
-                  ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
-                  : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
-              }`}
-            >
-              {t("missions.tab.dailyWithCount", {
-                done: dailyCompletedCount,
-                total: dailyMissions.length,
-              })}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMissionScope("weekly")}
-              disabled={weeklyMissions.length === 0}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                missionScope === "weekly"
-                  ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
-                  : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
-              }`}
-            >
-              {t("missions.tab.weeklyWithCount", {
-                done: weeklyCompletedCount,
-                total: weeklyMissions.length,
-              })}
-            </button>
-            {multiStepMissions.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setMissionScope("quests")}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  missionScope === "quests"
-                    ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
-                    : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
-                }`}
-              >
-                {t("missions.tab.questsWithCount", {
-                  count: multiStepMissions.length,
+            <div className="mt-2 space-y-1">
+              <p className="text-base font-semibold text-content-primary">
+                {t("missions.summary.remaining", {
+                  count: missionsRemaining,
                 })}
-              </button>
+              </p>
+              <p className="text-sm text-content-muted">
+                {t("missions.summary.xp", {
+                  earned: activeXpEarned,
+                  remaining: activeXpRemaining,
+                })}
+              </p>
+            </div>
+
+            {isOffline && (
+              <p
+                className="mt-2 text-xs text-amber-600"
+                role="status"
+                aria-live="polite"
+              >
+                <GarzoniIcon
+                  name="warning"
+                  size={14}
+                  className="mr-2 inline-block text-amber-500"
+                />
+                {t("missions.summary.offline")}
+              </p>
+            )}
+
+            {adaptiveSuggestions && (
+              <div className="mt-2 inline-flex max-w-full items-start rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-[11px] font-semibold text-[color:var(--color-brand-primary)] leading-tight">
+                <GarzoniIcon
+                  name="lightbulb"
+                  size={14}
+                  className="mr-2 inline-block text-[color:var(--color-brand-primary)]"
+                />
+                {t("missions.summary.suggestedSavings", {
+                  amount: adaptiveSuggestions.suggestedSavingsTarget,
+                  level: userLevel,
+                })}
+              </div>
             )}
           </div>
-        )}
-
-        {missionsLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader message={t("missions.loading")} />
+          <div className="grid grid-cols-2 gap-3 text-sm md:text-right">
+            <StatBadge
+              label={t("missions.summary.streak")}
+              value={t("missions.summary.streakDays", { count: streakCount })}
+              className=" px-4 py-3 shadow-sm"
+            />
+            <StatBadge
+              label={
+                missionScope === "daily"
+                  ? t("missions.summary.totalXp")
+                  : t("missions.summary.totalXpWeekly")
+              }
+              value={`${formatNumber(activeXpEarned)} / ${formatNumber(activeXpTotal)}`}
+              unit="XP"
+              className=" px-4 py-3 shadow-sm"
+            />
           </div>
-        ) : noMissionsAvailable ? (
-          <GlassCard padding="md" className="">
-            <p className="text-base font-semibold text-content-primary">
-              {t("missions.empty.title")}
-            </p>
-            <p className="mt-1 text-sm text-content-muted">
-              {t("missions.empty.body")}
-            </p>
-          </GlassCard>
-        ) : (
-          <>
-            {missionScope === "quests" ? (
-              <div className="grid gap-4">
-                {multiStepMissions.map((mission) => {
-                  const steps = mission.steps || [];
-                  const done = steps.filter((step) => step.completed).length;
-                  return (
-                    <GlassCard key={mission.id} padding="lg" className="">
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <p className="app-eyebrow mb-1">Story mission</p>
-                          <h2 className="text-xl font-semibold text-content-primary">
-                            {mission.name}
-                          </h2>
-                          <p className="mt-1 text-sm text-content-muted">
-                            {mission.description}
-                          </p>
-                        </div>
-                        <span className="shrink-0 rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
-                          {done}/{steps.length} steps
-                        </span>
-                      </div>
-                      <div className="mt-4 grid gap-2">
-                        {steps.map((step, index) => (
-                          <div
-                            key={step.id || index}
-                            className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-border-default)] px-4 py-3"
-                          >
-                            <div>
-                              <p className="text-sm font-semibold text-content-primary">
-                                {step.title}
-                              </p>
-                              <p className="text-xs uppercase tracking-wide text-content-muted">
-                                {step.type}
-                              </p>
-                            </div>
-                            <span
-                              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-                                step.completed
-                                  ? "bg-emerald-500/10 text-emerald-600"
-                                  : "bg-surface-page text-content-muted"
-                              }`}
-                            >
-                              {step.completed ? "Done" : "Next"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </GlassCard>
-                  );
+        </div>
+        {streakItems.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {streakItems.map((item, index) => (
+              <div
+                key={`${item.type}-${index}`}
+                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]"
+                role="status"
+                aria-label={t("missions.streakItemAria", {
+                  type: item.type,
+                  quantity: item.quantity,
                 })}
+              >
+                {item.type === "streak_freeze" ? (
+                  <GarzoniIcon
+                    name="snowflake"
+                    size={14}
+                    className="inline-block text-[color:var(--color-brand-primary)]"
+                  />
+                ) : (
+                  <GarzoniIcon
+                    name="bolt"
+                    size={14}
+                    className="inline-block text-[color:var(--color-brand-primary)]"
+                  />
+                )}
+                {item.quantity}x
               </div>
-            ) : missionScope === "daily" ? (
-              <div className="grid gap-6 md:grid-cols-2">
-                {dailyMissions.length > 0 ? (
-                  dailyMissions.map((mission, index) => (
-                    <React.Fragment key={`daily-${mission.id}-${index}`}>
+            ))}
+          </div>
+        )}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {celebrationMessage}
+        </div>
+      </GlassCard>
+
+      {wagersData && (
+        <StreakWagerCard
+          active={wagersData.active}
+          history={wagersData.history}
+          stakeRewardTable={wagersData.stake_reward_table}
+          eligible={wagersData.eligible}
+          ineligibleReason={wagersData.ineligible_reason}
+          busy={wagerBusy}
+          onOpen={(targetDays) => void handleOpenWager(targetDays)}
+          onCancel={(wagerId) => void handleCancelWager(wagerId)}
+          t={t}
+        />
+      )}
+
+      {Object.values(errors).length > 0 && (
+        <GlassCard
+          padding="md"
+          className="border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)] shadow-[color:var(--color-state-error)]/20"
+        >
+          <ul className="space-y-1">
+            {Object.entries(errors).map(([key, message]) => (
+              <li key={key}>{message}</li>
+            ))}
+          </ul>
+        </GlassCard>
+      )}
+
+      {!missionsLoading && !noMissionsAvailable && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setMissionScope("daily")}
+            disabled={dailyMissions.length === 0}
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+              missionScope === "daily"
+                ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
+                : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
+            }`}
+          >
+            {t("missions.tab.dailyWithCount", {
+              done: dailyCompletedCount,
+              total: dailyMissions.length,
+            })}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMissionScope("weekly")}
+            disabled={weeklyMissions.length === 0}
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+              missionScope === "weekly"
+                ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
+                : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
+            }`}
+          >
+            {t("missions.tab.weeklyWithCount", {
+              done: weeklyCompletedCount,
+              total: weeklyMissions.length,
+            })}
+          </button>
+          {multiStepMissions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMissionScope("quests")}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                missionScope === "quests"
+                  ? "border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)]/15 text-[color:var(--color-brand-primary)]"
+                  : "border-[color:var(--color-border-default)]  text-content-muted hover:bg-[color:var(--color-surface-card)]"
+              }`}
+            >
+              {t("missions.tab.questsWithCount", {
+                count: multiStepMissions.length,
+              })}
+            </button>
+          )}
+        </div>
+      )}
+
+      {missionsLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader message={t("missions.loading")} />
+        </div>
+      ) : noMissionsAvailable ? (
+        <GlassCard padding="md" className="">
+          <p className="text-base font-semibold text-content-primary">
+            {t("missions.empty.title")}
+          </p>
+          <p className="mt-1 text-sm text-content-muted">
+            {t("missions.empty.body")}
+          </p>
+        </GlassCard>
+      ) : (
+        <>
+          {missionScope === "quests" ? (
+            <div className="grid gap-4">
+              {multiStepMissions.map((mission) => {
+                const steps = mission.steps || [];
+                const done = steps.filter((step) => step.completed).length;
+                return (
+                  <GlassCard key={mission.id} padding="lg" className="">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="app-eyebrow mb-1">Story mission</p>
+                        <h2 className="text-xl font-semibold text-content-primary">
+                          {mission.name}
+                        </h2>
+                        <p className="mt-1 text-sm text-content-muted">
+                          {mission.description}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full border border-[color:var(--color-brand-primary)]/30 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-primary)]">
+                        {done}/{steps.length} steps
+                      </span>
+                    </div>
+                    <div className="mt-4 grid gap-2">
+                      {steps.map((step, index) => (
+                        <div
+                          key={step.id || index}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-border-default)] px-4 py-3"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-content-primary">
+                              {step.title}
+                            </p>
+                            <p className="text-xs uppercase tracking-wide text-content-muted">
+                              {step.type}
+                            </p>
+                          </div>
+                          <span
+                            className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
+                              step.completed
+                                ? "bg-emerald-500/10 text-emerald-600"
+                                : "bg-surface-page text-content-muted"
+                            }`}
+                          >
+                            {step.completed ? "Done" : "Next"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
+          ) : missionScope === "daily" ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              {dailyMissions.length > 0 ? (
+                dailyMissions.map((mission, index) => (
+                  <React.Fragment key={`daily-${mission.id}-${index}`}>
+                    <MissionCard
+                      mission={mission}
+                      isDaily
+                      t={t}
+                      canSwap={canSwap}
+                      onSwap={handleMissionSwap}
+                      showSavingsMenu={showSavingsMenu}
+                      setShowSavingsMenu={setShowSavingsMenu}
+                      virtualBalance={virtualBalance}
+                      currentFact={currentFact}
+                      onMarkFactRead={markFactRead}
+                      onLoadFact={loadNewFact}
+                      savingsAmount={savingsAmount}
+                      setSavingsAmount={setSavingsAmount}
+                      onSavingsSubmit={handleSavingsSubmit}
+                      getLessonRequirement={getLessonRequirement}
+                      purposeStatement={purposeStatement}
+                    />
+                  </React.Fragment>
+                ))
+              ) : (
+                <GlassCard padding="md" className="md:col-span-2">
+                  <p className="text-sm text-content-muted">
+                    {t("missions.empty.body")}
+                  </p>
+                </GlassCard>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-content-primary">
+                {t("missions.weekly.title")}
+              </h2>
+              {weeklyMissions.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {weeklyMissions.map((mission, index) => (
+                    <React.Fragment key={`weekly-${mission.id}-${index}`}>
                       <MissionCard
                         mission={mission}
-                        isDaily
+                        isDaily={false}
                         t={t}
                         canSwap={canSwap}
                         onSwap={handleMissionSwap}
@@ -830,97 +867,59 @@ function Missions() {
                         purposeStatement={purposeStatement}
                       />
                     </React.Fragment>
-                  ))
-                ) : (
-                  <GlassCard padding="md" className="md:col-span-2">
-                    <p className="text-sm text-content-muted">
-                      {t("missions.empty.body")}
-                    </p>
-                  </GlassCard>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-content-primary">
-                  {t("missions.weekly.title")}
-                </h2>
-                {weeklyMissions.length > 0 ? (
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {weeklyMissions.map((mission, index) => (
-                      <React.Fragment key={`weekly-${mission.id}-${index}`}>
-                        <MissionCard
-                          mission={mission}
-                          isDaily={false}
-                          t={t}
-                          canSwap={canSwap}
-                          onSwap={handleMissionSwap}
-                          showSavingsMenu={showSavingsMenu}
-                          setShowSavingsMenu={setShowSavingsMenu}
-                          virtualBalance={virtualBalance}
-                          currentFact={currentFact}
-                          onMarkFactRead={markFactRead}
-                          onLoadFact={loadNewFact}
-                          savingsAmount={savingsAmount}
-                          setSavingsAmount={setSavingsAmount}
-                          onSavingsSubmit={handleSavingsSubmit}
-                          getLessonRequirement={getLessonRequirement}
-                          purposeStatement={purposeStatement}
-                        />
-                      </React.Fragment>
-                    ))}
-                  </div>
-                ) : (
-                  <GlassCard padding="md">
-                    <p className="text-sm text-content-muted">
-                      {t("missions.weekly.noneAvailable")}
-                    </p>
-                  </GlassCard>
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <GlassCard padding="md">
+                  <p className="text-sm text-content-muted">
+                    {t("missions.weekly.noneAvailable")}
+                  </p>
+                </GlassCard>
+              )}
+            </div>
+          )}
 
-            {missionScope === "daily" && allDailyCompleted && (
-              <GlassCard padding="lg" className="">
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                    <div className="flex shrink-0 flex-col items-center gap-2">
-                      <MascotWithMessage
-                        mood="celebrate"
-                        situation="missions_wrapup_all_done"
-                        rotateMessages
-                        rotationKey={dailyXpEarned}
-                        mascotClassName="h-20 w-20 object-contain"
-                        className="mt-0"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-content-muted">
-                        {t("missions.wrapup.title")}
-                      </p>
-                      <p className="text-xl font-semibold text-[color:var(--accent)]">
-                        {t("missions.wrapup.earned", {
-                          xp: dailyXpEarned,
-                        })}
-                      </p>
-                      <p className="text-sm text-content-muted">
-                        {t("missions.wrapup.streakReview", {
-                          count: streakCount,
-                          days: streakCount,
-                          review: reviewDue,
-                        })}
-                      </p>
-                    </div>
+          {missionScope === "daily" && allDailyCompleted && (
+            <GlassCard padding="lg" className="">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div className="flex shrink-0 flex-col items-center gap-2">
+                    <MascotWithMessage
+                      mood="celebrate"
+                      situation="missions_wrapup_all_done"
+                      rotateMessages
+                      rotationKey={dailyXpEarned}
+                      mascotClassName="h-20 w-20 object-contain"
+                      className="mt-0"
+                    />
                   </div>
-                  <div className="rounded-2xl border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-4 py-3 text-sm text-[color:var(--color-brand-primary)]">
-                    {t("missions.wrapup.cta")}
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-content-muted">
+                      {t("missions.wrapup.title")}
+                    </p>
+                    <p className="text-xl font-semibold text-[color:var(--accent)]">
+                      {t("missions.wrapup.earned", {
+                        xp: dailyXpEarned,
+                      })}
+                    </p>
+                    <p className="text-sm text-content-muted">
+                      {t("missions.wrapup.streakReview", {
+                        count: streakCount,
+                        days: streakCount,
+                        review: reviewDue,
+                      })}
+                    </p>
                   </div>
                 </div>
-              </GlassCard>
-            )}
-          </>
-        )}
-      </div>
-    </section>
+                <div className="rounded-2xl border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-4 py-3 text-sm text-[color:var(--color-brand-primary)]">
+                  {t("missions.wrapup.cta")}
+                </div>
+              </div>
+            </GlassCard>
+          )}
+        </>
+      )}
+    </PageContainer>
   );
 }
 

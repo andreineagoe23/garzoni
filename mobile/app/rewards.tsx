@@ -222,6 +222,8 @@ export default function RewardsScreen() {
             />
           }
           renderItem={({ item }) => (
+            // `alignItems: stretch` (the row default) + flex:1 on the card
+            // chain makes both cells in a row the same height.
             <View style={{ flex: 1, maxWidth: "48%" }}>
               <RewardCard
                 item={item}

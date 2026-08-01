@@ -29,7 +29,13 @@ import {
 } from "../../src/components/ui";
 import type { ThemeColors } from "../../src/theme/palettes";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography, radius, shadows } from "../../src/theme/tokens";
+import {
+  layout,
+  radius,
+  shadows,
+  spacing,
+  typography,
+} from "../../src/theme/tokens";
 import { useScreenGutter } from "../../src/utils/platform";
 
 type LessonRow = {
@@ -199,7 +205,7 @@ export default function CourseDetailScreen() {
         keyExtractor={(item, i) => String(item.id ?? i)}
         contentContainerStyle={[
           styles.container,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
         refreshControl={
           <RefreshControl

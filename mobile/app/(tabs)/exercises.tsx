@@ -46,7 +46,7 @@ import ExerciseSkillIntentBanner, {
 import { href } from "../../src/navigation/href";
 import { useAuthSession } from "../../src/auth/AuthContext";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../src/theme/tokens";
 import { useResponsive } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
@@ -139,7 +139,7 @@ function ExercisesInner() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { isTablet, gutter } = useResponsive();
-  const horizontalPad = spacing.xl + (isTablet ? gutter : 0);
+  const horizontalPad = layout.screenPaddingX + (isTablet ? gutter : 0);
   const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const { hydrated, accessToken } = useAuthSession();

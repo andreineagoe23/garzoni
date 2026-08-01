@@ -184,7 +184,7 @@ const NextStepsEngine = () => {
 
   return (
     <section className="space-y-6 min-w-0 w-full">
-      <div className="app-card overflow-hidden px-4 py-5 sm:px-6 sm:py-6">
+      <div className="app-card app-card--pad-lg overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -235,7 +235,7 @@ const NextStepsEngine = () => {
                 });
               }
             }}
-            className="app-card block min-w-0 px-4 py-4 text-left transition hover:-translate-y-0.5"
+            className="app-card app-card--pad-sm block min-w-0 text-left transition hover:-translate-y-0.5"
           >
             <p className="text-sm font-semibold text-content-primary">
               {item.label}

@@ -11,7 +11,7 @@ import {
   staleTimes,
 } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { radius, spacing, typography } from "../../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import { href } from "../../../src/navigation/href";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
@@ -294,7 +294,7 @@ export default function PersonalCfoScreen() {
           style={[styles.root, { backgroundColor: c.bg }]}
           contentContainerStyle={[
             styles.content,
-            { paddingHorizontal: spacing.xl + gutter },
+            { paddingHorizontal: layout.screenPaddingX + gutter },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -315,7 +315,7 @@ export default function PersonalCfoScreen() {
         style={[styles.root, { backgroundColor: c.bg }]}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
         showsVerticalScrollIndicator={false}
       >

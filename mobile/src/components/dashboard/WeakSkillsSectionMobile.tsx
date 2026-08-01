@@ -82,7 +82,7 @@ export default function WeakSkillsSectionMobile({
 
   if (masteryError) {
     return (
-      <View style={{ marginTop: spacing.lg }}>
+      <View>
         <ErrorState
           message={`${t("dashboard.weakSkills.failedLoadSkills")}: ${t("dashboard.weakSkills.couldNotFetchSkills")}`}
           onRetry={refetchMastery}
@@ -94,7 +94,7 @@ export default function WeakSkillsSectionMobile({
   if (weakestSkills.length === 0) {
     if (!hasAnyMasteryData) {
       return (
-        <GlassCard padding="lg" style={{ marginTop: spacing.lg }}>
+        <GlassCard padding="lg">
           <Text style={[styles.sectionTitle, { color: c.text }]}>
             {t("dashboard.weakSkills.skillInsights")}
           </Text>
@@ -106,7 +106,7 @@ export default function WeakSkillsSectionMobile({
     }
     // All skills strong — invert sort and show top 3 strongest.
     return (
-      <GlassCard padding="lg" style={{ marginTop: spacing.lg }}>
+      <GlassCard padding="lg">
         <Text style={[styles.h2, { color: c.text }]}>
           {t("dashboard.weakSkills.strongest.title")}
         </Text>
@@ -153,10 +153,7 @@ export default function WeakSkillsSectionMobile({
   }
 
   return (
-    <GlassCard
-      padding="md"
-      style={{ marginTop: spacing.lg, borderColor: c.border }}
-    >
+    <GlassCard padding="md" style={{ borderColor: c.border }}>
       {/* Heading only — the section is scannable, the explainer sentence was
           just more text between the user and the three cards. */}
       <Text style={[styles.h2Tight, { color: c.text }]}>

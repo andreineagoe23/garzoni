@@ -9,7 +9,7 @@ type FactCardProps = {
 function FactCard({ fact, onMarkRead }: FactCardProps) {
   const { t } = useTranslation();
   return (
-    <div className="app-card p-4">
+    <div className="app-card app-card--pad-sm">
       {fact ? (
         <div className="space-y-3">
           <p className="app-eyebrow text-content-muted">{fact.category}</p>

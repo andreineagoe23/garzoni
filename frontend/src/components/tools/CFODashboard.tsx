@@ -233,7 +233,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
 
   if (loading) {
     return (
-      <div className="app-card px-5 py-6 text-sm text-content-muted">
+      <div className="app-card app-card--pad-lg text-sm text-content-muted">
         {t("tools.cfoDashboard.loading")}
       </div>
     );
@@ -241,7 +241,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
 
   if (error) {
     return (
-      <div className="app-card px-5 py-6">
+      <div className="app-card app-card--pad-lg">
         <p className="text-sm text-content-muted">{error}</p>
         <button
           type="button"
@@ -265,7 +265,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
 
   return (
     <section className="space-y-5 min-w-0 w-full">
-      <header className="app-card overflow-hidden px-5 py-6 sm:px-8 sm:py-7">
+      <header className="app-card app-card--pad-lg overflow-hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -352,7 +352,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
         </div>
       </header>
 
-      <section className="app-card px-5 py-5 sm:px-6">
+      <section className="app-card app-card--pad">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -383,7 +383,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
       </section>
 
       {hasGoals && (
-        <section className="app-card px-5 py-5 sm:px-6">
+        <section className="app-card app-card--pad">
           <h3 className="text-base font-semibold text-content-primary">
             {t("tools.cfoDashboard.goals.title")}
           </h3>
@@ -402,7 +402,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
       )}
 
       {hasPortfolio && (
-        <section className="app-card px-5 py-5 sm:px-6">
+        <section className="app-card app-card--pad">
           <h3 className="text-base font-semibold text-content-primary">
             {t("tools.cfoDashboard.portfolio.title")}
           </h3>
@@ -509,7 +509,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
       )}
 
       {hasSpending && (
-        <section className="app-card px-5 py-5 sm:px-6">
+        <section className="app-card app-card--pad">
           <h3 className="text-base font-semibold text-content-primary">
             {t("tools.cfoDashboard.spending.title")}
           </h3>
@@ -566,7 +566,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
         </section>
       )}
 
-      <section className="app-card px-5 py-5 sm:px-6">
+      <section className="app-card app-card--pad">
         <h3 className="text-base font-semibold text-content-primary">
           {t("tools.cfoDashboard.projections.title")}
         </h3>

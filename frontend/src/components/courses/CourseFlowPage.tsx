@@ -1714,7 +1714,7 @@ function CourseFlowPage() {
       >
         <div className="mx-auto w-full max-w-5xl px-4 pb-28 pt-6 sm:px-6 sm:pt-10 lg:pb-24">
           {courseComplete && (
-            <div className="app-card px-6 py-8 text-center">
+            <div className="app-card app-card--pad-lg text-center">
               <div className="flex flex-col items-center gap-2">
                 <span className="app-eyebrow">
                   {t("courses.flow.courseCompleteMascot")}

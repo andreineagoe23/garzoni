@@ -66,6 +66,11 @@ export default function BadgeGrid({ catalog, earned }: Props) {
   );
 }
 
+// Reserve two lines for the name so a one-word badge and a wrapping one
+// produce identically sized cells (the grid used to ladder otherwise).
+const NAME_LINE_HEIGHT = 15;
+const NAME_LINES = 2;
+
 const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
@@ -79,6 +84,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   img: { width: 48, height: 48, marginBottom: spacing.xs },
-  name: { fontSize: typography.xs, fontWeight: "600", textAlign: "center" },
+  name: {
+    fontSize: typography.xs,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: NAME_LINE_HEIGHT,
+    minHeight: NAME_LINE_HEIGHT * NAME_LINES,
+  },
   empty: { fontSize: typography.sm, textAlign: "center" },
 });

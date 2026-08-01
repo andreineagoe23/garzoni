@@ -70,12 +70,12 @@ function CoursePage() {
       />
 
       {isLoading ? (
-        <div className="app-card p-4 flex items-center gap-3 text-content-muted">
+        <div className="app-card app-card--pad-sm flex items-center gap-3 text-content-muted">
           <Skeleton className="h-5 w-5 rounded-full" />
           <Skeleton className="h-4 w-48" />
         </div>
       ) : error ? (
-        <div className="app-card p-4 border-[color:var(--color-state-error)]/40 text-sm text-[color:var(--color-state-error)]">
+        <div className="app-card app-card--pad-sm border-[color:var(--color-state-error)]/40 text-sm text-[color:var(--color-state-error)]">
           <div className="flex flex-col gap-3">
             <div>{errorMessage}</div>
             {accessDenied && (

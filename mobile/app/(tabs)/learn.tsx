@@ -51,7 +51,7 @@ import {
 } from "../../src/lib/pathProgress";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import type { ThemeColors } from "../../src/theme/palettes";
-import { spacing, typography, radius } from "../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../src/theme/tokens";
 import { useResponsive } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
@@ -201,7 +201,7 @@ function LearnInner() {
   const c = useThemeColors();
   const styles = useMemo(() => createLearnStyles(c), [c]);
   const { isTablet, gutter } = useResponsive();
-  const screenPad = spacing.xl + (isTablet ? gutter : 0);
+  const screenPad = layout.screenPaddingX + (isTablet ? gutter : 0);
   const listContentStyle = useMemo(
     () => [styles.listContent, { paddingHorizontal: screenPad }],
     [styles.listContent, screenPad],

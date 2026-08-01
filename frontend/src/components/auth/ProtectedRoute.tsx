@@ -12,7 +12,7 @@ const ProtectedRoute = ({
   if (!isInitialized) {
     return (
       <div className="app-page flex items-center justify-center px-6">
-        <div className="app-card flex flex-col items-center gap-4 px-8 py-10 text-center">
+        <div className="app-card app-card--pad-lg flex flex-col items-center gap-4 text-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#2a7347] border-t-transparent" />
           <div>
             <p className="text-base font-semibold text-content-primary">

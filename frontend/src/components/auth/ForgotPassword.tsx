@@ -51,7 +51,7 @@ function ForgotPassword() {
         <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-brand-primary)]/20 via-transparent to-transparent" />
         <div className="relative w-full max-w-lg px-6 py-12 sm:px-10">
           <div
-            className="app-card flex flex-col items-center px-6 py-10"
+            className="app-card app-card--pad-lg flex flex-col items-center"
             style={{
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",

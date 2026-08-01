@@ -19,7 +19,7 @@ $primary: #1d5330; // mirrors --brand-green
 $accent: #ffd700; // mirrors --brand-gold
 $secondary: #2e7d32;
 $danger: #dc2626;
-$success: #2a7347; // brand green (was #4caf50 Material — see brand/kit/cleanup-report.md §4)
+$success: #2a7347; // brand green (was #4caf50 Material)
 $dark: #1a1a1a;
 $light: #f8f9fa;
 
@@ -152,7 +152,7 @@ $container-max-widths: (
   --bs-body-color: var(--text-color);
   --bs-border-color: var(--border-color);
 
-  // Semantic tokens (usage contract: docs/ui-color-audit/token-usage-contract.md)
+  // Semantic tokens (spacing/layout contract: docs/dev/spacing-contract.md)
   --color-surface-page: var(--bg-color);
   --color-surface-card: var(--card-bg);
   --color-surface-elevated: #fafaf8;

@@ -84,7 +84,7 @@ const MissionCard = ({
 
   return (
     <div
-      className="app-card relative flex min-h-[260px] flex-col overflow-hidden p-6"
+      className="app-card app-card--pad-lg relative flex min-h-[260px] flex-col overflow-hidden"
       role="article"
       aria-labelledby={`mission-title-${mission.id}`}
     >

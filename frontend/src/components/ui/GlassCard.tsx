@@ -1,6 +1,6 @@
 import React from "react";
 
-type GlassCardPadding = "none" | "sm" | "md" | "lg" | "xl";
+export type GlassCardPadding = "none" | "sm" | "md" | "lg" | "xl";
 
 type GlassCardProps = React.HTMLAttributes<HTMLDivElement> & {
   hover?: boolean;
@@ -15,12 +15,16 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
   ) => {
     const baseStyles = "app-card relative overflow-hidden transition-all";
 
-    const paddingStyles = {
+    // One card padding vocabulary — the same three densities `.app-card`
+    // exposes, which in turn come from packages/tokens (so these match the
+    // mobile `Card`/`GlassCard` scale). `xl` keeps a roomier hero density for
+    // the few marketing-ish surfaces that need it.
+    const paddingStyles: Record<GlassCardPadding, string> = {
       none: "",
-      sm: "p-4",
-      md: "p-6",
-      lg: "px-6 py-8",
-      xl: "px-8 py-10",
+      sm: "app-card--pad-sm",
+      md: "app-card--pad",
+      lg: "app-card--pad-lg",
+      xl: "p-8",
     };
 
     const hoverStyles = hover ? "hover:shadow-xl hover:shadow-black/12" : "";

@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
-import { spacing, typography } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import { shouldShowFriendRequestsCard } from "./leaderboardFriendRequestsVisibility";
 
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     minWidth: 36,
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
-    borderRadius: 999,
+    borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   msg: {
     marginTop: spacing.md,
     padding: spacing.md,
-    borderRadius: 10,
+    borderRadius: radius.md,
     borderWidth: 1,
   },
   center: { paddingVertical: spacing.xl, alignItems: "center" },
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.lg,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderStyle: "dashed",
     gap: spacing.md,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: typography.sm, textAlign: "center" },
   reqRow: {
     padding: spacing.md,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: spacing.md,
     gap: spacing.md,
@@ -249,12 +249,12 @@ const styles = StyleSheet.create({
   acceptBtn: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: 10,
+    borderRadius: radius.md,
   },
   declineBtn: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: 10,
+    borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
   },
   btnText: { fontSize: typography.sm, fontWeight: "700" },

@@ -10,9 +10,13 @@
 @use "base/recaptcha";
 
 // Layout primitives
-@use "layout/grid";
-@use "layout/sidebar";
-@use "layout/header";
+//
+// `layout/grid`, `layout/sidebar` and `layout/header` were removed: their
+// classes were referenced by zero components, and `_grid.scss` additionally
+// redefined `.gap-3/.gap-4/.gap-5` from the Bootstrap-style `$spacers` map.
+// Because this file loads after Tailwind, those three silently overrode
+// Tailwind's own utilities app-wide (gap-3 16px instead of 12px, gap-4 24px
+// instead of 16px, gap-5 48px instead of 20px).
 @use "layout/app-layout";
 
 // Theme overrides — light first, dark overrides on top

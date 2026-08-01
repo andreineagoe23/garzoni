@@ -17,6 +17,6 @@ Set `VITE_BACKEND_URL` to your API base if not same-origin (e.g. `http://localho
 ## Key docs
 
 - Styling guide & tokens: `docs/frontend-styling.md`
-- Color token contract: `docs/ui-color-audit/token-usage-contract.md`
+- Spacing/layout contract: `docs/dev/spacing-contract.md`
 - Architecture: `docs/architecture.md`
 - Route inventory: `docs/ui-color-audit/route-inventory.md`

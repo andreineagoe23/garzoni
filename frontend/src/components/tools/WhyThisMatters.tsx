@@ -11,7 +11,7 @@ export default function WhyThisMatters({ toolSlug }: Props) {
   if (!hook) return null;
 
   return (
-    <div className="app-card border border-[color:var(--color-brand-primary)]/15 bg-[color:var(--color-brand-primary)]/5 p-4">
+    <div className="app-card app-card--pad-sm border border-[color:var(--color-brand-primary)]/15 bg-[color:var(--color-brand-primary)]/5">
       <p className="app-eyebrow mb-1">{hook.title}</p>
       <p className="text-sm text-content-muted">{hook.explainer}</p>
       <div className="mt-3 flex flex-wrap gap-2">

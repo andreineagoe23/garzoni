@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Stack } from "expo-router";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import {
+  layout,
   radius,
   shadows,
   spacing,
@@ -123,7 +124,7 @@ export default function SavingsGoalsScreen() {
           basePaddingBottom={spacing.xxxxl}
           contentContainerStyle={[
             styles.content,
-            { paddingHorizontal: spacing.xl + gutter },
+            { paddingHorizontal: layout.screenPaddingX + gutter },
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}

@@ -13,7 +13,7 @@ import * as Haptics from "expo-haptics";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import { DEMO_STEPS } from "../../../src/types/next-steps";
 import type {
@@ -121,7 +121,7 @@ export default function NextStepsScreen() {
         style={[styles.root, { backgroundColor: c.bg }]}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
         refreshControl={
           <RefreshControl

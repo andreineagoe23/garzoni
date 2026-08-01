@@ -30,7 +30,7 @@ import {
   normalizeLanguage,
 } from "@garzoni/core";
 import { useTheme, useThemeColors } from "../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../src/theme/tokens";
 import { useScreenGutter } from "../src/utils/platform";
 import { useTranslation } from "react-i18next";
 import GlassCard from "../src/components/ui/GlassCard";
@@ -237,7 +237,10 @@ export default function SettingsScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { backgroundColor: c.bg, paddingHorizontal: spacing.xl + gutter },
+          {
+            backgroundColor: c.bg,
+            paddingHorizontal: layout.screenPaddingX + gutter,
+          },
         ]}
       >
         <Text style={[styles.section, { color: c.textFaint }]}>

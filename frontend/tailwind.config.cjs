@@ -56,6 +56,21 @@ module.exports = {
       ringColor: {
         focus: "var(--color-ring-focus)",
       },
+      // Semantic spacing aliases on top of Tailwind's stock numeric scale, which
+      // already matches the token steps (p-4=16, p-5=20, p-6=24). These resolve
+      // to the generated custom properties in packages/tokens/dist/tokens.css,
+      // so `p-card` cannot drift from the mobile card padding.
+      spacing: {
+        page: "var(--layout-screen-padding-x)",
+        stack: "var(--layout-stack-gap)",
+        section: "var(--layout-section-gap)",
+        card: "var(--layout-card-padding)",
+        "card-sm": "var(--layout-card-padding-sm)",
+        "card-lg": "var(--layout-card-padding-lg)",
+      },
+      borderRadius: {
+        card: "var(--radius-card)",
+      },
     },
   },
   plugins: [],

@@ -18,6 +18,7 @@
       "@garzoni/core/locales/en": ["../packages/core/src/locales/en/index.ts"],
       "@garzoni/core/locales/ro": ["../packages/core/src/locales/ro/index.ts"],
       "@garzoni/core": ["../packages/core/src/index.ts"],
+      "@garzoni/tokens": ["../packages/tokens/src/index.ts"],
       "App": ["./src/App.tsx"],
       "routes/*": ["./src/routes/*"],
       "bootstrap/*": ["./src/bootstrap/*"],

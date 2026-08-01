@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
-import { spacing, typography } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
 import { leaderboardAvatarUri } from "./leaderboardAvatarUri";
 import {
   leaderboardPointsLabel,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   rankBadge: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.card,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -200,15 +200,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: { fontSize: typography.base, fontWeight: "700", flexShrink: 1 },
-  youPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  youPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full },
   youPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
-  duelPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  duelPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full },
   duelPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
   points: { fontSize: typography.sm, marginTop: 2 },
   friendBtn: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderRadius: 999,
+    borderRadius: radius.full,
     maxWidth: 120,
   },
   friendBtnText: {

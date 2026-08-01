@@ -22,7 +22,7 @@ import {
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import GlassCard from "../../../src/components/ui/GlassCard";
 import { Skeleton } from "../../../src/components/ui";
-import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import { leaderboardAvatarUri } from "../../../src/components/leaderboard/leaderboardAvatarUri";
 
@@ -89,7 +89,7 @@ export default function NewDuelScreen() {
         style={{ flex: 1, backgroundColor: c.bg }}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
       >
         {profileQuery.isPending ? (

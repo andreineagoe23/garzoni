@@ -27,6 +27,7 @@ are dashboard-only and cannot be automated.
 > list for that duration and territory; you cannot type an arbitrary number.
 > Take the nearest point to 40% of list and move on — exact parity does not
 > matter any more:
+>
 > - the mobile paywall computes the badge from the real store prices
 >   (`app/subscriptions.tsx` derives `discountPct` from `introPrice`), so it
 >   always states the true discount;
@@ -130,13 +131,13 @@ these offers.
 
 ## 6a. Verified state as of 2026-07-22 (via RevenueCat API)
 
-| Surface | State |
-| ------- | ----- |
-| Play `plus-yearly` | ✅ offer `summer60-plus-yearly`, P1Y phase, `relative_discount: 0.6` |
-| Play `pro-yearly` | ✅ offer `summer60-pro-yearly`, same shape |
-| Play `plus-monthly` / `pro-monthly` | ❌ no offers configured |
-| RC Web Billing — all 4 Stripe products | ❌ no intro offers (`list-product-offers` empty) |
-| App Store `plus_yearly_v3` | ⚠️ intro offer present, duration ONE_YEAR, start 2026-07-11 — **price not exposed by the RC API** |
+| Surface                                | State                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Play `plus-yearly`                     | ✅ offer `summer60-plus-yearly`, P1Y phase, `relative_discount: 0.6`                              |
+| Play `pro-yearly`                      | ✅ offer `summer60-pro-yearly`, same shape                                                        |
+| Play `plus-monthly` / `pro-monthly`    | ❌ no offers configured                                                                           |
+| RC Web Billing — all 4 Stripe products | ❌ no intro offers (`list-product-offers` empty)                                                  |
+| App Store `plus_yearly_v3`             | ⚠️ intro offer present, duration ONE_YEAR, start 2026-07-11 — **price not exposed by the RC API** |
 
 **Verify in App Store Connect before sending.** RC reports a 1-year introductory
 offer but not its price. If it was saved as a free trial rather than Pay Up Front

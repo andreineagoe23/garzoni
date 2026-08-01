@@ -66,11 +66,7 @@ function FeedbackHubPage() {
   };
 
   return (
-    <PageContainer
-      maxWidth="4xl"
-      layout="none"
-      innerClassName="flex flex-col gap-8"
-    >
+    <PageContainer maxWidth="4xl">
       <header className="space-y-3 text-center lg:text-left">
         <h1 className="text-3xl font-bold text-content-primary">
           {t("feedback.title")}

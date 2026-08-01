@@ -26,11 +26,12 @@ Defined in `tailwind.config.cjs` and backed by CSS variables from `_variables.sc
 | `border-border`                         | `--color-border-default`   | Dividers, card borders                |
 | `ring-focus`                            | `--color-ring-focus`       | Focus rings                           |
 
-Full semantic contract: `docs/ui-color-audit/token-usage-contract.md`
+Spacing/layout contract: `docs/dev/spacing-contract.md`
 
 ## CSS variable source of truth
 
-**Single source:** `frontend/src/styles/scss/abstracts/_variables.scss` (`:root` block).  
+**Colours — single source:** `frontend/src/styles/scss/abstracts/_variables.scss` (`:root` block).  
+**Spacing / radius / type scale — single source:** `packages/tokens` (generated into `packages/tokens/tokens.css`). Do not add a spacing value to `_variables.scss`; see `docs/dev/spacing-contract.md`.  
 Dark overrides: `frontend/src/styles/scss/themes/_dark-mode.scss` (`[data-theme="dark"]`).  
 `index.css` does NOT define `:root` — only Tailwind imports, body defaults, landing theme, and scrollbar utils.
 
@@ -57,7 +58,7 @@ Use `PageContainer` (`frontend/src/components/common/PageContainer.tsx`) for all
 
 ```
 src/styles/scss/
-  abstracts/  _variables.scss   ← design tokens (single source of truth)
+  abstracts/  _variables.scss   ← colour tokens (spacing lives in packages/tokens)
               _mixins.scss      ← breakpoint helpers incl. @mixin media-laptop
   base/       _reset.scss, _typography.scss (use .section-heading not global h*)
   layout/     _app-layout.scss, _grid.scss, _header.scss, _sidebar.scss

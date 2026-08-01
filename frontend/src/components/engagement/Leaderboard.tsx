@@ -529,7 +529,7 @@ const Leaderboards = () => {
     return (
       <div
         className={cx(
-          "mb-8 flex flex-nowrap items-end justify-between gap-2 md:flex-wrap md:justify-center md:gap-6",
+          "flex flex-nowrap items-end justify-between gap-2 md:flex-wrap md:justify-center md:gap-6",
           podiumEntries.length === 1 && "md:justify-center"
         )}
       >
@@ -543,7 +543,7 @@ const Leaderboards = () => {
             <div
               key={entry.user.id}
               className={cx(
-                "app-card relative min-h-[160px] w-[31%] overflow-hidden border-2 p-2 transition hover:-translate-y-0.5 md:min-h-[260px] md:w-[220px] md:p-4",
+                "app-card app-card--pad-sm relative min-h-[160px] w-[31%] overflow-hidden border-2 transition hover:-translate-y-0.5 md:min-h-[260px] md:w-[220px]",
                 podiumHighlight[idxInTopThree] ?? podiumHighlight[2],
                 isYou &&
                   "ring-2 ring-[color:var(--color-brand-primary-hover)] ring-offset-2 ring-offset-transparent",
@@ -655,7 +655,7 @@ const Leaderboards = () => {
         )}
         <div
           className={cx(
-            "group relative flex flex-col gap-4 overflow-hidden border p-4 transition hover:-translate-y-1",
+            "app-card--pad-sm group relative flex flex-col gap-4 overflow-hidden border transition hover:-translate-y-1",
             highlight || "app-card-sm",
             isYou &&
               "ring-2 ring-[color:var(--color-brand-primary-hover)]/80 ring-offset-2 ring-offset-transparent",
@@ -740,11 +740,7 @@ const Leaderboards = () => {
   };
 
   return (
-    <PageContainer
-      maxWidth="7xl"
-      layout="none"
-      innerClassName="flex flex-col gap-10"
-    >
+    <PageContainer maxWidth="7xl">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="app-section-glow space-y-1 pb-2">
           <p className="app-eyebrow">{t("leaderboard.subtitle")}</p>
@@ -790,10 +786,10 @@ const Leaderboards = () => {
           with zero pending requests, pushing the actual leaderboard below the fold. */}
       {activeTab === "friends" && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <div className="app-card p-5">
+          <div className="app-card app-card--pad">
             <ReferralLink referralCode={referralCode} />
           </div>
-          <div className="app-card p-5">
+          <div className="app-card app-card--pad">
             <FriendRequests
               hideWhenEmpty
               onRequestsChange={setIncomingRequestCount}
@@ -804,7 +800,7 @@ const Leaderboards = () => {
 
       {activeTab === "leagues" && leagueAssigned && (
         <div
-          className="app-card p-5"
+          className="app-card app-card--pad"
           style={{
             borderColor: `${leagueTierColor(leagueAssigned.tier)}66`,
             backgroundColor: `${leagueTierColor(leagueAssigned.tier)}14`,
@@ -883,7 +879,7 @@ const Leaderboards = () => {
         !filteredLeaderboard.some(
           (entry) => entry.user.id === userRank.user.id
         ) && (
-          <div className="app-card p-4 border-[color:var(--color-brand-primary-hover)]/40">
+          <div className="app-card app-card--pad-sm border-[color:var(--color-brand-primary-hover)]/40">
             <div className="flex flex-wrap items-center gap-4">
               <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#2a7347] to-[#1d5330] text-lg font-bold text-white shadow-md shadow-[#1d5330]/30">
                 #{userRank.rank ?? "—"}
@@ -913,59 +909,71 @@ const Leaderboards = () => {
           </div>
         )}
 
-      <div className="space-y-4">
-        {filteredLeaderboard.length === 0 && activeTab === "leagues" ? (
-          <EmptyState
-            icon="🏆"
-            title={t("leaderboard.leagues.empty.title")}
-            description={t("leaderboard.leagues.empty.description")}
-            actionLabel={t("leaderboard.emptyAction")}
-            onAction={() => navigate("/personalized-path")}
-          />
-        ) : filteredLeaderboard.length === 0 ? (
-          <EmptyState
-            icon="🏆"
-            title={t("leaderboard.empty")}
-            description={t("leaderboard.emptyDescription")}
-            actionLabel={t("leaderboard.emptyAction")}
-            onAction={() => navigate("/personalized-path")}
-          />
-        ) : (
-          <>
-            {renderPodium()}
-            {visibleRemainder.map((entry, i) => {
-              if (activeTab !== "leagues") {
-                return renderListRow(entry, i, 3);
-              }
-              const rank = entry.rank ?? i + 1;
-              const zone = leaguePromotionZoneForRank(rank, leagueTotalMembers);
-              const prevEntry = i > 0 ? visibleRemainder[i - 1] : null;
-              const prevZone = prevEntry
-                ? leaguePromotionZoneForRank(
-                    prevEntry.rank ?? i,
-                    leagueTotalMembers
-                  )
-                : null;
-              const dividerFor =
-                (zone === "promote" || zone === "demote") && zone !== prevZone
-                  ? zone
+      {/* Podium is its own page section — PageContainer's gap owns the space
+          above and below it. Do not add margins here. */}
+      {renderPodium()}
+
+      {/* Skipped entirely when the podium already covers the whole list, so an
+          empty wrapper never eats a container gap slot. */}
+      {(filteredLeaderboard.length === 0 ||
+        visibleRemainder.length > 0 ||
+        hasMoreList) && (
+        <div className="space-y-4">
+          {filteredLeaderboard.length === 0 && activeTab === "leagues" ? (
+            <EmptyState
+              icon="🏆"
+              title={t("leaderboard.leagues.empty.title")}
+              description={t("leaderboard.leagues.empty.description")}
+              actionLabel={t("leaderboard.emptyAction")}
+              onAction={() => navigate("/personalized-path")}
+            />
+          ) : filteredLeaderboard.length === 0 ? (
+            <EmptyState
+              icon="🏆"
+              title={t("leaderboard.empty")}
+              description={t("leaderboard.emptyDescription")}
+              actionLabel={t("leaderboard.emptyAction")}
+              onAction={() => navigate("/personalized-path")}
+            />
+          ) : (
+            <>
+              {visibleRemainder.map((entry, i) => {
+                if (activeTab !== "leagues") {
+                  return renderListRow(entry, i, 3);
+                }
+                const rank = entry.rank ?? i + 1;
+                const zone = leaguePromotionZoneForRank(
+                  rank,
+                  leagueTotalMembers
+                );
+                const prevEntry = i > 0 ? visibleRemainder[i - 1] : null;
+                const prevZone = prevEntry
+                  ? leaguePromotionZoneForRank(
+                      prevEntry.rank ?? i,
+                      leagueTotalMembers
+                    )
                   : null;
-              return renderListRow(entry, i, 0, { zone, dividerFor });
-            })}
-            {hasMoreList && (
-              <div className="flex justify-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setListVisible((v) => v + LIST_PAGE_SIZE)}
-                  className="rounded-full border border-[#2a7347]/40 bg-[#1d5330]/10 px-6 py-2 text-sm font-semibold text-[color:var(--color-brand-primary-hover)] shadow-sm transition hover:bg-[#1d5330]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40"
-                >
-                  {t("leaderboard.loadMore")}
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+                const dividerFor =
+                  (zone === "promote" || zone === "demote") && zone !== prevZone
+                    ? zone
+                    : null;
+                return renderListRow(entry, i, 0, { zone, dividerFor });
+              })}
+              {hasMoreList && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setListVisible((v) => v + LIST_PAGE_SIZE)}
+                    className="rounded-full border border-[#2a7347]/40 bg-[#1d5330]/10 px-6 py-2 text-sm font-semibold text-[color:var(--color-brand-primary-hover)] shadow-sm transition hover:bg-[#1d5330]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2a7347]/40"
+                  >
+                    {t("leaderboard.loadMore")}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </PageContainer>
   );
 };

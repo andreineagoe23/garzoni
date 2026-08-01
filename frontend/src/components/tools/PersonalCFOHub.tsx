@@ -444,7 +444,7 @@ const PersonalCFOHub = () => {
           <span aria-hidden="true">→</span>
         </button>
       )}
-      <div className="app-card overflow-hidden px-5 py-6 sm:px-8 sm:py-7">
+      <div className="app-card app-card--pad-lg overflow-hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
@@ -490,11 +490,11 @@ const PersonalCFOHub = () => {
       </div>
 
       {summaryError ? (
-        <div className="app-card px-5 py-4 text-sm text-content-muted">
+        <div className="app-card app-card--pad text-sm text-content-muted">
           {summaryError}
         </div>
       ) : summary ? (
-        <div className="app-card px-5 py-5 sm:px-6">
+        <div className="app-card app-card--pad">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-content-muted">
               {t("tools.personalCfo.summary.title")}
@@ -541,7 +541,7 @@ const PersonalCFOHub = () => {
           )}
         </div>
       ) : summaryLoading ? (
-        <div className="app-card px-5 py-4 text-sm text-content-muted">
+        <div className="app-card app-card--pad text-sm text-content-muted">
           {t("tools.personalCfo.summary.loading")}
         </div>
       ) : null}
@@ -553,7 +553,7 @@ const PersonalCFOHub = () => {
           return (
             <div
               key={step.id}
-              className="app-card flex h-full flex-col gap-3 px-4 py-4 transition hover:-translate-y-0.5"
+              className="app-card app-card--pad-sm flex h-full flex-col gap-3 transition hover:-translate-y-0.5"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -636,7 +636,7 @@ const PersonalCFOHub = () => {
         })}
       </div>
 
-      <div className="app-card px-5 py-4 text-xs text-content-muted">
+      <div className="app-card app-card--pad text-xs text-content-muted">
         <p className="font-semibold text-content-primary">
           {t("tools.personalCfo.disclaimer.title")}
         </p>

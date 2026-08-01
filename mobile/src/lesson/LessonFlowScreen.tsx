@@ -60,7 +60,7 @@ import {
   fetchLessonCheckpointQuizzes,
   fetchQuizzesForCourse,
 } from "@garzoni/core";
-import { spacing, typography, radius, shadows } from "../theme/tokens";
+import { layout, radius, shadows, spacing, typography } from "../theme/tokens";
 import { useScreenGutter } from "../utils/platform";
 import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
@@ -1047,7 +1047,7 @@ export default function LessonFlowScreen({
           styles.content,
           {
             paddingBottom: spacing.xl + 56,
-            paddingHorizontal: spacing.xl + gutter,
+            paddingHorizontal: layout.screenPaddingX + gutter,
           },
         ]}
         keyboardShouldPersistTaps="handled"

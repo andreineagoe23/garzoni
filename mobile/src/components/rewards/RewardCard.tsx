@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
-import { spacing, typography } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
 import { getMediaBaseUrl } from "@garzoni/core";
 
 export type RewardItem = {
@@ -20,6 +20,18 @@ type Props = {
   isDonate?: boolean;
   onPress?: (item: RewardItem) => void;
 };
+
+/**
+ * Every card is the same size regardless of how long its title/description is:
+ * the image slot is always reserved (placeholder when there is no image), the
+ * title and description occupy a fixed number of lines, and the cost line is
+ * pinned to the bottom. Without this the grid rows ragged out per item.
+ */
+const IMAGE_HEIGHT = 120;
+const TITLE_LINE_HEIGHT = 20;
+const TITLE_LINES = 2;
+const DESC_LINE_HEIGHT = 18;
+const DESC_LINES = 2;
 
 export default function RewardCard({
   item,
@@ -41,17 +53,26 @@ export default function RewardCard({
     <Pressable
       onPress={onPress ? () => onPress(item) : undefined}
       disabled={!onPress}
+      style={styles.press}
     >
-      <GlassCard padding="md">
+      <GlassCard padding="md" style={styles.card}>
         {uri ? (
           <Image source={{ uri }} style={styles.img} contentFit="cover" />
-        ) : null}
-        <Text style={[styles.title, { color: c.text }]}>{title}</Text>
-        {item.description ? (
-          <Text style={[styles.desc, { color: c.textMuted }]} numberOfLines={3}>
-            {item.description}
-          </Text>
-        ) : null}
+        ) : (
+          <View style={[styles.img, { backgroundColor: c.surfaceOffset }]} />
+        )}
+        <Text
+          style={[styles.title, { color: c.text }]}
+          numberOfLines={TITLE_LINES}
+        >
+          {title}
+        </Text>
+        <Text
+          style={[styles.desc, { color: c.textMuted }]}
+          numberOfLines={DESC_LINES}
+        >
+          {item.description ?? ""}
+        </Text>
         <Text
           style={[styles.cost, { color: canAfford ? c.primary : c.textMuted }]}
         >
@@ -63,13 +84,31 @@ export default function RewardCard({
 }
 
 const styles = StyleSheet.create({
+  // flex: 1 all the way down so the card fills the grid cell the FlatList
+  // stretches for it, instead of hugging its own content.
+  press: { flex: 1 },
+  card: { flex: 1 },
   img: {
     width: "100%",
-    height: 120,
-    borderRadius: 12,
+    height: IMAGE_HEIGHT,
+    borderRadius: radius.lg,
     marginBottom: spacing.sm,
   },
-  title: { fontSize: typography.md, fontWeight: "700" },
-  desc: { fontSize: typography.sm, marginTop: 4 },
-  cost: { fontSize: typography.sm, fontWeight: "600", marginTop: spacing.sm },
+  title: {
+    fontSize: typography.md,
+    fontWeight: "700",
+    lineHeight: TITLE_LINE_HEIGHT,
+    minHeight: TITLE_LINE_HEIGHT * TITLE_LINES,
+  },
+  desc: {
+    fontSize: typography.sm,
+    lineHeight: DESC_LINE_HEIGHT,
+    minHeight: DESC_LINE_HEIGHT * DESC_LINES,
+    marginTop: spacing.xs,
+  },
+  cost: {
+    fontSize: typography.sm,
+    fontWeight: "600",
+    marginTop: spacing.sm,
+  },
 });

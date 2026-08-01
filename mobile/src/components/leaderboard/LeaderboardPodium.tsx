@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
-import { spacing } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
 import { leaderboardAvatarUri } from "./leaderboardAvatarUri";
 import {
   leaderboardPointsLabel,
@@ -182,7 +182,13 @@ const styles = StyleSheet.create({
   podiumRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    // `stretch`, NOT `flex-end`. The staircase comes from the per-card
+    // `marginTop` below; bottom-aligning cancelled it out visually and instead
+    // grew the row by the largest margin, leaving a dead 16px band above the
+    // podium that read as a gap under the search bar. Stretch keeps the bottoms
+    // flush AND makes all three cards the same height regardless of how long
+    // the usernames are.
+    alignItems: "stretch",
     gap: spacing.sm,
   },
   card: {
@@ -199,28 +205,28 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   username: {
-    fontSize: 11,
+    fontSize: typography.xs,
     fontWeight: "700",
     textAlign: "center",
     maxWidth: "100%",
   },
   youPill: {
-    marginTop: 4,
-    paddingHorizontal: 6,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 999,
+    borderRadius: radius.full,
   },
   youPillText: { fontSize: 9, fontWeight: "800", textTransform: "uppercase" },
-  points: { fontSize: 10, marginTop: 4, textAlign: "center" },
+  points: { fontSize: typography.xs, marginTop: spacing.xs, textAlign: "center" },
   friendBtn: {
     marginTop: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
-    borderRadius: 999,
+    borderRadius: radius.full,
     alignSelf: "stretch",
   },
   friendBtnText: {
-    fontSize: 10,
+    fontSize: typography.xs,
     fontWeight: "700",
     textAlign: "center",
   },

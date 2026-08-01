@@ -8,6 +8,7 @@
     // unaffected by this file.
     "paths": {
       "@garzoni/core": ["../packages/core/src/index.ts"],
+      "@garzoni/tokens": ["../packages/tokens/src/index.ts"],
       "@garzoni/core/*": ["../packages/core/src/*"],
       "services/*": ["../packages/core/src/services/*"],
       "constants/*": ["../packages/core/src/constants/*"],

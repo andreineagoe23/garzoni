@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
-import { spacing, typography } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
 import {
   leaderboardPointsLabel,
   type LeaderboardTimeFilter,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    borderRadius: 16,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,

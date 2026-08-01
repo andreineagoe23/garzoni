@@ -306,7 +306,7 @@ function Register() {
       <Header />
       <div className="auth-ambient relative flex min-h-dvh flex-col overflow-hidden bg-[#f4ede2] dark:bg-[#0b0f14]">
         <div className="relative z-10 flex flex-1 items-center justify-center px-6 pb-12 pt-[110px] sm:px-8 lg:px-10">
-          <div className="app-card w-full max-w-md p-8">
+          <div className="app-card app-card--pad-lg w-full max-w-md">
             <div className="space-y-3 text-center">
               <h2 className="app-display text-3xl text-content-primary">
                 {t("auth.register.title")}

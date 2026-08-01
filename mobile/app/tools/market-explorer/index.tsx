@@ -26,10 +26,11 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import {
-  spacing,
-  typography,
+  layout,
   radius,
   shadows,
+  spacing,
+  typography,
 } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import type {
@@ -388,7 +389,7 @@ export default function MarketExplorerScreen() {
           contentContainerStyle={[
             styles.listContent,
             {
-              paddingHorizontal: spacing.xl + gutter,
+              paddingHorizontal: layout.screenPaddingX + gutter,
               paddingBottom: spacing.xxxxl + keyboardPad,
             },
           ]}

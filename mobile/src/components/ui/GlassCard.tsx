@@ -8,9 +8,11 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../../theme/ThemeContext";
-import { radius, shadows, spacing } from "../../theme/tokens";
+import { radius, shadows } from "../../theme/tokens";
+import { CARD_PADDING, type CardPadding } from "./cardPadding";
 
-export type GlassCardPadding = "none" | "sm" | "md" | "lg" | "xl";
+/** Kept as an alias so existing imports keep working. */
+export type GlassCardPadding = CardPadding;
 
 type GlassCardProps = {
   children: ReactNode;
@@ -21,14 +23,6 @@ type GlassCardProps = {
   fillContent?: boolean;
   /** Override the solid fill colour (rarely needed) */
   fillOverlay?: string;
-};
-
-const paddingMap: Record<GlassCardPadding, number> = {
-  none: 0,
-  sm: spacing.lg,
-  md: spacing.xl,
-  lg: spacing.xxl,
-  xl: spacing.xxxl,
 };
 
 /**
@@ -46,7 +40,7 @@ export default function GlassCard({
   fillOverlay,
 }: GlassCardProps) {
   const { resolved, colors } = useTheme();
-  const p = paddingMap[padding];
+  const p = CARD_PADDING[padding];
 
   // Solid fill that matches the brand surface palette
   const solidFill =

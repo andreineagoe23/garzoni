@@ -73,7 +73,7 @@ const getSessionId = () => {
 
 const ToolLoadingSkeleton = () => (
   <div className="space-y-6">
-    <div className="app-card px-4 py-4 shadow-sm backdrop-blur-sm sm:px-6">
+    <div className="app-card app-card--pad-sm shadow-sm backdrop-blur-sm">
       <SkeletonGroup>
         <Skeleton className="h-5 w-48" rounded="lg" />
         <Skeleton className="h-4 w-80" />
@@ -134,7 +134,7 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
           <ChevronDown className="h-3 w-3 transition-transform duration-200 group-open:rotate-180" />
           {t("tools.detail.aboutTool")}
         </summary>
-        <div className="mt-3 space-y-3 app-card p-4 backdrop-blur-sm">
+        <div className="mt-3 space-y-3 app-card app-card--pad-sm backdrop-blur-sm">
           <div className="text-sm text-content-muted">
             <span className="font-semibold text-content-primary">
               {t("tools.detail.whoItsFor")}
@@ -175,7 +175,7 @@ const ToolView = ({ tool }: { tool: ToolDefinition }) => {
       </details>
 
       {isLocked ? (
-        <div className="app-card flex flex-col items-center gap-4 p-10 text-center">
+        <div className="app-card app-card--pad-lg flex flex-col items-center gap-4 text-center">
           <span className="text-3xl">✦</span>
           <p className="text-lg font-semibold text-content-primary">
             {t("billing.plusProOnly")}
@@ -379,12 +379,7 @@ const ToolsPage = () => {
   }
 
   return (
-    <PageContainer
-      maxWidth="7xl"
-      layout="none"
-      className="px-3 sm:px-6 lg:px-8"
-      innerClassName="space-y-6 w-full"
-    >
+    <PageContainer maxWidth="7xl" className="px-3 sm:px-6 lg:px-8">
       <ToolSignalStrip
         toolbar={signalStripToolbar}
         activeTool={activeTool}

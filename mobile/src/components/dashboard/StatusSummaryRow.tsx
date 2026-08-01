@@ -25,6 +25,7 @@ export default function StatusSummaryRow({
       horizontal
       nestedScrollEnabled
       showsHorizontalScrollIndicator={false}
+      style={styles.scroller}
       contentContainerStyle={styles.scroll}
     >
       <GlassCard padding="sm" style={styles.chip}>
@@ -50,6 +51,9 @@ export default function StatusSummaryRow({
 }
 
 const styles = StyleSheet.create({
+  // Horizontal ScrollViews default to `flexGrow: 1`; hug the content so this
+  // never steals leftover vertical space when dropped into a flex column.
+  scroller: { flexGrow: 0, flexShrink: 0 },
   scroll: { gap: spacing.sm, paddingVertical: 2 },
   chip: { minWidth: 100, marginRight: spacing.sm },
   heartsChip: { minWidth: 140 },

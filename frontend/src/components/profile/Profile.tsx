@@ -387,7 +387,7 @@ function Profile() {
   }
 
   return (
-    <PageContainer maxWidth="5xl" innerClassName="space-y-10">
+    <PageContainer maxWidth="5xl">
       <GlassCard padding="xl" className="space-y-12">
         <section className="flex flex-col items-center gap-6 text-center">
           <div className="relative">

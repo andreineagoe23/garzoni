@@ -10,6 +10,8 @@ import { defineConfig } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const coreSrc = path.resolve(__dirname, "../packages/core/src");
+const tokensSrc = path.resolve(__dirname, "../packages/tokens/src");
+const tokensRoot = path.resolve(__dirname, "../packages/tokens");
 
 const r = (...segments: string[]) => path.resolve(__dirname, ...segments);
 
@@ -68,6 +70,14 @@ export default defineConfig(({ mode }) => {
     {
       find: "@garzoni/core",
       replacement: path.join(coreSrc, "index.ts"),
+    },
+    {
+      find: "@garzoni/tokens/tokens.css",
+      replacement: path.join(tokensRoot, "tokens.css"),
+    },
+    {
+      find: "@garzoni/tokens",
+      replacement: path.join(tokensSrc, "index.ts"),
     },
   ];
 

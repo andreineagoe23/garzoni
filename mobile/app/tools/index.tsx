@@ -15,7 +15,7 @@ import {
   type ToolGroup,
 } from "../../src/components/tools/mobileToolsRegistry";
 import { useThemeColors } from "../../src/theme/ThemeContext";
-import { spacing, typography } from "../../src/theme/tokens";
+import { layout, spacing, typography } from "../../src/theme/tokens";
 import { gridItemWidth, useResponsive } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
 import { HeaderAvatarButton } from "../../src/components/navigation/HeaderAvatarButton";
@@ -44,7 +44,7 @@ export default function ToolsHubScreen() {
   const { t } = useTranslation("common");
   const router = useRouter();
   const { width, isTablet, gutter, gridColumns } = useResponsive();
-  const horizontalPad = spacing.xl + (isTablet ? gutter : 0);
+  const horizontalPad = layout.screenPaddingX + (isTablet ? gutter : 0);
   const availableWidth = width - horizontalPad * 2;
   // Phone: 2-up. Tablet: 3-up. Large tablet: 4-up.
   const columns = gridColumns(2, 3, 4);
@@ -107,6 +107,11 @@ export default function ToolsHubScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        // RN's ScrollView base style is `flexGrow: 1`, so a horizontal one
+        // inside a flex column steals the leftover vertical space and (with
+        // `alignItems: center` below) floats the chips in the middle of it.
+        // Hug the content instead and let the SectionList own the remainder.
+        style={styles.filterScroll}
         contentContainerStyle={[
           styles.filterRow,
           { paddingHorizontal: horizontalPad },
@@ -211,6 +216,10 @@ const styles = StyleSheet.create({
     fontSize: typography.xs,
     lineHeight: typography.xs + 6,
     marginTop: spacing.xs,
+  },
+  filterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
   },
   filterRow: {
     paddingVertical: spacing.md,

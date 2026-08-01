@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { fetchReferralSummary } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
-import { spacing, typography } from "../../theme/tokens";
+import { radius, spacing, typography } from "../../theme/tokens";
 
 type Props = {
   referralCode: string;
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   meta: { fontSize: typography.xs, marginTop: spacing.sm },
   codeBox: {
     marginTop: spacing.md,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
     gap: spacing.xs,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   fieldRow: {
     marginTop: spacing.sm,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
     gap: spacing.md,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderRadius: 10,
+    borderRadius: radius.md,
     alignItems: "center",
   },
   copyBtnText: { fontSize: typography.sm, fontWeight: "700" },

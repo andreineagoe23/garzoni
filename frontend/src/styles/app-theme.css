@@ -90,7 +90,27 @@
     0 8px 32px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
+}
+
+/* ── Card density ────────────────────────────────────────────────
+   The one padding vocabulary for cards. `.app-card` itself stays
+   padding-less (many cards lay out full-bleed children and pad those
+   instead); when a card does own its padding, pick one of these three
+   rather than inventing a `p-*` / `px-* py-*` pair.
+
+   These match `Card`/`GlassCard` `padding="sm" | "md" | "lg"` in the mobile
+   app because both read packages/tokens. See docs/dev/spacing-contract.md. */
+.app-card--pad-sm {
+  padding: var(--layout-card-padding-sm); /* 16px */
+}
+
+.app-card--pad {
+  padding: var(--layout-card-padding); /* 20px — default density */
+}
+
+.app-card--pad-lg {
+  padding: var(--layout-card-padding-lg); /* 24px */
 }
 
 [data-theme="dark"] .app-card {
@@ -100,7 +120,6 @@
     0 8px 32px rgba(0, 0, 0, 0.5),
     0 2px 8px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
 }
 
 .app-card-sm {
@@ -110,7 +129,7 @@
     0 4px 16px rgba(0, 0, 0, 0.07),
     0 1px 4px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 [data-theme="dark"] .app-card-sm {
@@ -130,7 +149,7 @@
     0 12px 40px rgba(0, 0, 0, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
 }
 
 [data-theme="dark"] .app-card-raised {
@@ -148,8 +167,8 @@
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: var(--radius-card);
+  padding: var(--layout-card-padding-sm);
 }
 
 [data-theme="dark"] .app-stat-tile {
@@ -168,8 +187,8 @@
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border-radius: 0 14px 14px 0;
-  padding: 16px 20px;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  padding: var(--space-lg) var(--space-xl);
   color: var(--color-text-primary, #1a1a1a);
   font-size: 15px;
   line-height: 1.6;

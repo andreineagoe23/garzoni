@@ -68,9 +68,10 @@ export default function PrimaryCTAMobile({ primaryCTA }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // No vertical margin: the parent <Stack> owns the rhythm (RN does not
+  // collapse margins, so a margin here would stack on top of the gap).
   wrap: {
-    marginTop: spacing.lg,
-    borderRadius: radius.xl,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.lg,
   },

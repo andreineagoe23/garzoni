@@ -11,6 +11,7 @@ const fs = require("fs");
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, "..");
 const coreSrc = path.join(workspaceRoot, "packages", "core", "src");
+const tokensSrc = path.join(workspaceRoot, "packages", "tokens", "src");
 
 const config = getDefaultConfig(projectRoot);
 
@@ -44,6 +45,7 @@ const mobileQueryString = path.resolve(
 
 config.resolver.extraNodeModules = {
   "@garzoni/core": coreSrc,
+  "@garzoni/tokens": tokensSrc,
   react: mobileReact,
   "react-dom": mobileReactDom,
   "query-string": mobileQueryString,

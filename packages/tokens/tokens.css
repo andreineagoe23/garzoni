@@ -1,0 +1,42 @@
+/*
+ * GENERATED FILE — do not edit.
+ * Source: packages/tokens/src/index.ts
+ * Regenerate: pnpm -F @garzoni/tokens build:css
+ */
+:root {
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-xxl: 24px;
+  --space-xxxl: 32px;
+  --space-xxxxl: 48px;
+
+  /* Semantic layout */
+  --layout-screen-padding-x: 20px;
+  --layout-stack-gap: 16px;
+  --layout-section-gap: 32px;
+  --layout-card-padding: 20px;
+  --layout-card-padding-sm: 16px;
+  --layout-card-padding-lg: 24px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-card: 20px;
+  --radius-full: 9999px;
+
+  /* Type scale */
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-xxl: 28px;
+  --font-size-hero: 34px;
+}

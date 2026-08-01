@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: radius.full,
   },
   addBtnText: { fontSize: 10, fontWeight: "800" },
 });

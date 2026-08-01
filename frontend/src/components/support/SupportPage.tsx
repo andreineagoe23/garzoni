@@ -127,11 +127,7 @@ function SupportPage() {
   };
 
   return (
-    <PageContainer
-      maxWidth="5xl"
-      layout="none"
-      innerClassName="flex flex-col gap-8"
-    >
+    <PageContainer maxWidth="5xl">
       <header className="space-y-3 lg:text-left">
         <p className="app-eyebrow text-content-muted">
           {t("support.header.kicker")}

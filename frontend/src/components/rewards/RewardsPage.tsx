@@ -60,11 +60,7 @@ function RewardsPage() {
   };
 
   return (
-    <PageContainer
-      maxWidth="6xl"
-      layout="none"
-      innerClassName="flex flex-col gap-8"
-    >
+    <PageContainer maxWidth="6xl">
       <GlassCard
         ref={shareCardRef}
         padding="md"

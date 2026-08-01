@@ -10,6 +10,7 @@
  * Rendered at /plan-ready (protected route).
  */
 import React, { useEffect, useRef } from "react";
+import PageContainer from "components/common/PageContainer";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -94,100 +95,99 @@ const PlanReadyPage: React.FC = () => {
         <title>Your plan is ready | Garzoni</title>
         <meta name="robots" content="noindex" />
       </Helmet>
-      <section
-        className="min-h-screen bg-gradient-to-br from-surface-page via-surface-page to-brand-primary/5 px-4 py-10"
+      <PageContainer
+        maxWidth="max-w-2xl"
+        className="bg-gradient-to-br from-surface-page via-surface-page to-brand-primary/5"
         aria-label="Your plan is ready"
       >
-        <div className="mx-auto flex max-w-2xl flex-col gap-8">
-          {/* Celebratory header */}
-          <header className="space-y-3 text-center">
-            <p className="text-4xl" aria-hidden="true">
-              🎉
-            </p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
-              Personalized for you
-            </p>
-            <h1 className="text-3xl font-bold text-content-primary sm:text-4xl">
-              Your plan is ready
-            </h1>
-            <p className="text-sm text-content-muted">
-              {hasPersonalization
-                ? "Here's what your answers unlocked — built around your goals."
-                : "We've built a learning path around your goals. Let's get started."}
-            </p>
-          </header>
+        {/* Celebratory header */}
+        <header className="space-y-3 text-center">
+          <p className="text-4xl" aria-hidden="true">
+            🎉
+          </p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
+            Personalized for you
+          </p>
+          <h1 className="text-3xl font-bold text-content-primary sm:text-4xl">
+            Your plan is ready
+          </h1>
+          <p className="text-sm text-content-muted">
+            {hasPersonalization
+              ? "Here's what your answers unlocked — built around your goals."
+              : "We've built a learning path around your goals. Let's get started."}
+          </p>
+        </header>
 
-          {/* Stated goals as chips */}
-          {goals.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {goals.map((goal) => (
-                <span
-                  key={goal.key}
-                  className="inline-flex items-center rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-brand-primary)]/10 px-3 py-1.5 text-sm font-semibold text-[color:var(--color-brand-primary-hover)]"
-                >
-                  {goal.label}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Mini path preview — 3 curated lessons as numbered steps */}
-          {lessons.length > 0 && (
-            <GlassCard padding="lg" className="space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-content-muted">
-                Your first steps
-              </h2>
-              <ol className="space-y-3">
-                {lessons.map((lesson, index) => (
-                  <li key={lesson.id} className="flex items-start gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] text-sm font-bold text-white">
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-content-primary">
-                        {lesson.title}
-                      </p>
-                      {lesson.topic && (
-                        <p className="text-xs text-content-muted">
-                          {lesson.topic}
-                        </p>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </GlassCard>
-          )}
-
-          {/* Projected outcome — the emotional anchor line */}
-          {outcomeText && (
-            <div className="rounded-2xl border border-[color:var(--gold,#E6C87A)]/40 bg-[color:var(--gold,#E6C87A)]/10 px-5 py-4 text-center">
-              <p className="text-base font-semibold text-content-primary">
-                {outcomeText}
-              </p>
-            </div>
-          )}
-
-          {/* CTAs */}
-          <div className="flex flex-col items-center gap-4">
-            <GlassButton
-              variant="primary"
-              size="lg"
-              className="w-full max-w-sm"
-              onClick={handleContinue}
-            >
-              See my plan options →
-            </GlassButton>
-            <button
-              type="button"
-              onClick={handleContinueFree}
-              className="text-sm font-medium text-content-muted underline-offset-2 transition hover:text-content-primary hover:underline"
-            >
-              Continue free
-            </button>
+        {/* Stated goals as chips */}
+        {goals.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {goals.map((goal) => (
+              <span
+                key={goal.key}
+                className="inline-flex items-center rounded-full border border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-brand-primary)]/10 px-3 py-1.5 text-sm font-semibold text-[color:var(--color-brand-primary-hover)]"
+              >
+                {goal.label}
+              </span>
+            ))}
           </div>
+        )}
+
+        {/* Mini path preview — 3 curated lessons as numbered steps */}
+        {lessons.length > 0 && (
+          <GlassCard padding="lg" className="space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-content-muted">
+              Your first steps
+            </h2>
+            <ol className="space-y-3">
+              {lessons.map((lesson, index) => (
+                <li key={lesson.id} className="flex items-start gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] text-sm font-bold text-white">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-content-primary">
+                      {lesson.title}
+                    </p>
+                    {lesson.topic && (
+                      <p className="text-xs text-content-muted">
+                        {lesson.topic}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </GlassCard>
+        )}
+
+        {/* Projected outcome — the emotional anchor line */}
+        {outcomeText && (
+          <div className="rounded-2xl border border-[color:var(--gold,#E6C87A)]/40 bg-[color:var(--gold,#E6C87A)]/10 px-5 py-4 text-center">
+            <p className="text-base font-semibold text-content-primary">
+              {outcomeText}
+            </p>
+          </div>
+        )}
+
+        {/* CTAs */}
+        <div className="flex flex-col items-center gap-4">
+          <GlassButton
+            variant="primary"
+            size="lg"
+            className="w-full max-w-sm"
+            onClick={handleContinue}
+          >
+            See my plan options →
+          </GlassButton>
+          <button
+            type="button"
+            onClick={handleContinueFree}
+            className="text-sm font-medium text-content-muted underline-offset-2 transition hover:text-content-primary hover:underline"
+          >
+            Continue free
+          </button>
         </div>
-      </section>
+      </PageContainer>
     </>
   );
 };

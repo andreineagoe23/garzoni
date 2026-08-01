@@ -1,15 +1,15 @@
 # Mobile UI token contract
 
-**Goal:** Keep the Expo app visually aligned with the web app (`frontend`) and the shared semantic rules in [token-usage-contract.md](./ui-color-audit/token-usage-contract.md).
+**Goal:** Keep the Expo app visually aligned with the web app (`frontend`) and the shared semantic rules in [spacing-contract.md](./spacing-contract.md).
 
 ## Source of truth
 
-| Layer                       | Location                                                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime colors (light/dark) | [`mobile/src/theme/palettes.ts`](../mobile/src/theme/palettes.ts) — mirrors web SCSS tokens                                                             |
-| Theme hook                  | [`mobile/src/theme/ThemeContext.tsx`](../mobile/src/theme/ThemeContext.tsx) — `useThemeColors()`, `useTheme()`                                          |
-| Layout scale                | [`mobile/src/theme/tokens.ts`](../mobile/src/theme/tokens.ts) — `spacing`, `radius`, `typography`, `shadows`                                            |
-| Glass surfaces              | [`mobile/src/components/ui/GlassCard.tsx`](../mobile/src/components/ui/GlassCard.tsx), [`GlassButton.tsx`](../mobile/src/components/ui/GlassButton.tsx) |
+| Layer                       | Location                                                                                                                                                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime colors (light/dark) | [`mobile/src/theme/palettes.ts`](../mobile/src/theme/palettes.ts) — mirrors web SCSS tokens                                                                                                                                                        |
+| Theme hook                  | [`mobile/src/theme/ThemeContext.tsx`](../mobile/src/theme/ThemeContext.tsx) — `useThemeColors()`, `useTheme()`                                                                                                                                     |
+| Layout scale                | [`packages/tokens/src/index.ts`](../../packages/tokens/src/index.ts) — `spacing`, `radius`, `typography`, `layout`, `shadows`. `mobile/src/theme/tokens.ts` re-exports it; import from there, and see [spacing-contract.md](./spacing-contract.md) |
+| Glass surfaces              | [`mobile/src/components/ui/GlassCard.tsx`](../mobile/src/components/ui/GlassCard.tsx), [`GlassButton.tsx`](../mobile/src/components/ui/GlassButton.tsx)                                                                                            |
 
 ## Rules
 

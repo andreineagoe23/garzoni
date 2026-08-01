@@ -19,7 +19,7 @@ const DailyGoalCard = ({
 }: DailyGoalCardProps) => {
   const { t } = useTranslation();
   return (
-    <div className={`app-card p-4 ${noMarginTop ? "" : "mt-6"}`}>
+    <div className={`app-card app-card--pad-sm ${noMarginTop ? "" : "mt-6"}`}>
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="app-icon-tile">

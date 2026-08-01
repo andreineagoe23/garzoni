@@ -96,6 +96,7 @@ export default function KPIScrollRow({ children }: RowProps) {
       decelerationRate="fast"
       snapToInterval={CARD_WIDTH + spacing.md}
       snapToAlignment="start"
+      style={styles.scroller}
       contentContainerStyle={styles.row}
     >
       {children}
@@ -104,6 +105,9 @@ export default function KPIScrollRow({ children }: RowProps) {
 }
 
 const styles = StyleSheet.create({
+  // Horizontal ScrollViews default to `flexGrow: 1`; hug the content so this
+  // never steals leftover vertical space when dropped into a flex column.
+  scroller: { flexGrow: 0, flexShrink: 0 },
   row: {
     flexDirection: "row",
     gap: spacing.md,

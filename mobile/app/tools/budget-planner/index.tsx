@@ -17,7 +17,7 @@ import {
   staleTimes,
 } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { radius, spacing, typography } from "../../../src/theme/tokens";
+import { layout, radius, spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import { href } from "../../../src/navigation/href";
 import { logDevError } from "../../../src/lib/logDevError";
@@ -167,7 +167,7 @@ export default function BudgetPlannerScreen() {
         style={[styles.root, { backgroundColor: c.bg }]}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: spacing.xl + gutter },
+          { paddingHorizontal: layout.screenPaddingX + gutter },
         ]}
         showsVerticalScrollIndicator={false}
       >
