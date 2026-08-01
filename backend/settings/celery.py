@@ -106,6 +106,17 @@ app.conf.beat_schedule = {
         "task": "gamification.tasks.finalize_due_duels",
         "schedule": crontab(minute="*/5"),
     },
+    # Resolve streak wagers past their deadline (win/loss payout)
+    "resolve-streak-wagers": {
+        "task": "gamification.tasks.resolve_wagers_task",
+        "schedule": crontab(hour=0, minute=30),
+    },
+    # Close the weekly Leagues cohorts just before the Monday 00:00 cycle
+    # rollover (weekly_cycle_id() is still last week's key at 23:55 Sunday).
+    "close-leagues-week": {
+        "task": "gamification.tasks.close_leagues_week",
+        "schedule": crontab(hour=23, minute=55, day_of_week=0),
+    },
     # Expo delivery receipts — the only place a revoked APNs key or a dead device
     # is ever reported. Without this, push can fail 100% while every layer logs
     # success. Runs often enough that a broken credential surfaces same-day.

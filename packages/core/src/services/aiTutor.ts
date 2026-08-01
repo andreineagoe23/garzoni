@@ -78,8 +78,28 @@ export async function requestAiTutorPayload(
 }
 
 /**
+ * Thrown by `explainExercise` when the `ai_explain` entitlement is exhausted
+ * (free-tier daily cap) or requires an upgrade. Callers should catch this
+ * specifically and fall back to `requestAiTutorHint` — never show an upsell
+ * mid-lesson for this signal.
+ */
+export class ExerciseExplainQuotaError extends Error {
+  readonly status: number;
+  constructor(status: number) {
+    super("exercise_explain_quota_exceeded");
+    this.name = "ExerciseExplainQuotaError";
+    this.status = status;
+  }
+}
+
+/**
  * Fetch an AI Socratic explanation for a wrong exercise answer.
  * Calls POST /api/exercises/explain/
+ *
+ * Resolves `null` on generic/network failures (existing callers already
+ * treat that as "silently show nothing"). Throws `ExerciseExplainQuotaError`
+ * specifically when the entitlement is exhausted (402/429) so callers that
+ * care can fall back to the static hint tiers instead.
  */
 export async function explainExercise(params: {
   exerciseQuestion: string;
@@ -104,26 +124,28 @@ export async function explainExercise(params: {
       explanation: String(d.explanation),
       practice_question: d.practice_question ?? null,
     };
-  } catch {
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response
+      ?.status;
+    if (status === 402 || status === 429) {
+      throw new ExerciseExplainQuotaError(status);
+    }
     return null;
   }
 }
 
 /**
  * Fetch a progressive hint for an exercise from the backend hint endpoint.
- * Calls POST /api/education/exercises/{exerciseId}/hint/
+ * Calls POST /api/exercises/{exerciseId}/hint/ (ExerciseViewSet.hint action).
  */
 export async function requestAiTutorHint(
-  exerciseId: number,
+  exerciseId: number | string,
   attemptNumber: number,
   userAnswerSoFar?: unknown,
 ): Promise<string> {
-  const response = await apiClient.post(
-    `/education/exercises/${exerciseId}/hint/`,
-    {
-      attempt_number: attemptNumber,
-      user_answer_so_far: userAnswerSoFar ?? null,
-    },
-  );
+  const response = await apiClient.post(`/exercises/${exerciseId}/hint/`, {
+    attempt_number: attemptNumber,
+    user_answer_so_far: userAnswerSoFar ?? null,
+  });
   return String(response?.data?.hint || "").trim();
 }

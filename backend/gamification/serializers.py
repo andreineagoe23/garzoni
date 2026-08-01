@@ -74,11 +74,18 @@ class LeaderboardSerializer(serializers.ModelSerializer):
     """
 
     user = serializers.SerializerMethodField()
+    xp_window = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
-        fields = ["user", "points"]
+        fields = ["user", "points", "xp_window"]
 
     def get_user(self, obj):
         d = user_display_dict(obj.user, include_id=True, include_email=True)
         return {**d, "profile_avatar": obj.profile_avatar}
+
+    def get_xp_window(self, obj):
+        # Windowed XP (week/month) is attached by the view as a plain
+        # attribute since it isn't a UserProfile model field; all-time
+        # requests fall back to lifetime points.
+        return getattr(obj, "xp_window", obj.points)

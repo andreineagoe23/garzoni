@@ -1647,6 +1647,54 @@
       "completePath": "Vezi traseul tău"
     }
   },
+  "wagers": {
+    "title": "Pariu pe serie",
+    "subtitle": "Pariază XP că îți vei menține seria activă — îl câștigi înapoi la 1,5× plus monede, sau îl pierzi dacă seria se întrerupe.",
+    "eligibility": {
+      "activeExists": "Ai deja un pariu pe serie activ.",
+      "streakTooLow": "Menține mai întâi o serie de învățare activă pentru a debloca pariurile pe serie.",
+      "insufficientPoints": "Ai nevoie de mai mult XP înainte de a putea deschide un pariu."
+    },
+    "active": {
+      "badge": "Activ",
+      "stakeLine": "Pariat {{stake}} XP · câștigi {{reward}} XP + {{coins}} monede",
+      "daysLeft": "Mai sunt {{count}} de zile",
+      "daysLeft_one": "Mai e {{count}} zi",
+      "daysLeft_few": "Mai sunt {{count}} zile",
+      "daysLeft_other": "Mai sunt {{count}} de zile",
+      "endsToday": "Se termină azi",
+      "cancel": "Anulează pariul",
+      "cancelConfirmTitle": "Anulezi acest pariu?",
+      "cancelConfirmBody": "Vei primi înapoi integral miza de {{stake}} XP. Poți face asta doar azi.",
+      "cancelWindowClosed": "Se poate anula doar în ziua în care a fost deschis."
+    },
+    "open": {
+      "days": "{{count}} de zile",
+      "days_one": "{{count}} zi",
+      "days_few": "{{count}} zile",
+      "days_other": "{{count}} de zile",
+      "stakeXp": "{{stake}} XP",
+      "rewardLine": "Câștigi {{reward}} XP + {{coins}} monede",
+      "cta": "Începe pariul",
+      "confirmTitle": "Pariezi {{stake}} XP pentru {{count}} zile?",
+      "confirmBody": "Menține-ți seria activă până la {{date}} și primești înapoi {{stake}} XP la 1,5× (+{{reward}} XP) plus {{coins}} monede. Dacă seria se întrerupe, pierzi miza de {{stake}} XP — fără rambursare după astăzi.",
+      "confirmConfirm": "Da, pariez",
+      "confirmCancel": "Nu acum"
+    },
+    "history": {
+      "won": "Câștigat +{{reward}} XP",
+      "lost": "Pierdut {{stake}} XP",
+      "cancelled": "Anulat"
+    },
+    "toast": {
+      "opened": "Pariu început — succes!",
+      "cancelled": "Pariu anulat, XP rambursat."
+    },
+    "errors": {
+      "open": "Nu s-a putut deschide pariul. Încearcă din nou.",
+      "cancel": "Nu s-a putut anula pariul. Încearcă din nou."
+    }
+  },
   "leaderboard": {
     "time": {
       "allTime": "Tot timpul",
@@ -1660,12 +1708,15 @@
     "loading": "Se încarcă datele clasamentului...",
     "title": {
       "global": "Clasament global",
-      "friends": "Clasament prieteni"
+      "friends": "Clasament prieteni",
+      "leagues": "Liga săptămânală"
     },
     "subtitle": "Urmărește progresul, sărbătorește reușitele și conectează-te cu comunitatea.",
     "tabs": {
       "global": "Global",
-      "friends": "Prieteni"
+      "friends": "Prieteni",
+      "friendsCount": "Prieteni ({{count}})",
+      "leagues": "Ligi"
     },
     "searchPlaceholder": "Caută utilizatori...",
     "searchAriaLabel": "Caută în clasament",
@@ -1680,6 +1731,10 @@
       "place3": "Locul 3"
     },
     "points": "{{points}} puncte",
+    "pointsWindow": {
+      "week": "{{points}} XP săptămâna aceasta",
+      "month": "{{points}} XP luna aceasta"
+    },
     "empty": "Nimeni în clasament încă — termină o lecție azi și prinde-ți locul pentru săptămâna asta.",
     "emptyDescription": "Termină o lecție ca să câștigi XP și să intri în clasamentul acestei săptămâni.",
     "emptyAction": "Începe o lecție",
@@ -1689,6 +1744,26 @@
       "Saving": "Economisire",
       "Investing": "Investiții",
       "Markets": "Piețe"
+    },
+    "leagues": {
+      "tierName": {
+        "bronze": "Liga Bronz",
+        "silver": "Liga Argint",
+        "gold": "Liga Aur",
+        "diamond": "Liga Diamant"
+      },
+      "cycleLabel": "Săptămâna {{cycle}}",
+      "zone": {
+        "promoteDivider": "Zonă de promovare — primii 5 urcă",
+        "demoteDivider": "Zonă de retrogradare — ultimii 5 coboară",
+        "explanation": "Termină în primii 5 ca să urci o ligă, sau în ultimii 5 și vei coborî."
+      },
+      "notEnoughPlayers": "Nu sunt suficienți jucători săptămâna asta — toată lumea își păstrează liga de data asta.",
+      "empty": {
+        "title": "Încă nu ai intrat în liga acestei săptămâni",
+        "description": "Câștigă XP terminând o lecție sau o misiune azi și vei fi plasat într-o ligă cu alți cursanți."
+      },
+      "loadFailed": "Nu s-a putut încărca clasamentul ligii tale. Te rugăm să încerci din nou."
     },
     "friendStatus": {
       "alreadyFriends": "Deja prieteni",

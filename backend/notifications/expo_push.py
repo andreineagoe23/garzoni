@@ -75,6 +75,7 @@ def send_expo_push(
     user_id: int | None = None,
     purpose: str = "",
     channel_id: str = "default",
+    badge: int | None = None,
 ) -> tuple[bool, str | None]:
     """POST to Expo push API. Returns (ok, error_message).
 
@@ -101,6 +102,10 @@ def send_expo_push(
     }
     if data:
         payload["data"] = data
+    # `badge` is iOS-only in Expo's push API (ignored by Android/FCM); omit the key
+    # entirely rather than sending `badge: null`, which some Expo versions reject.
+    if badge is not None:
+        payload["badge"] = badge
 
     try:
         r = requests.post(

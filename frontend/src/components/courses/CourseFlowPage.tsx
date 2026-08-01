@@ -43,6 +43,7 @@ import ScenarioSimulationExercise from "components/exercises/ScenarioSimulationE
 import MascotWithMessage from "components/common/MascotWithMessage";
 import type { MascotSituation } from "hooks/useMascotMessage";
 import type { LessonSection } from "./lessonEditorTypes";
+import { heartsPracticeDisplayState } from "./heartsPracticeStatus";
 
 const LessonSectionEditorPanel = React.lazy(
   () => import("./LessonSectionEditorPanel")
@@ -54,6 +55,9 @@ import { COURSE_TO_TOOL_CTA } from "components/tools/lessonMapping";
 import LessonCheckpointQuizModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointQuizModal";
+import LessonAIHelpModal, {
+  type LessonAIHelpContext,
+} from "./LessonAIHelpModal";
 import {
   buildSkillPracticeHref,
   getToolPracticeCtaForSkill,
@@ -251,12 +255,13 @@ function CourseFlowPage() {
     outOfHeartsUntilTs,
     lastSeenServerHeartsTs,
     decrementHeart,
-    grantHeartsSafe,
     refillHeartsSafe,
     decrementHeartsMutation,
     grantHeartsMutation,
     refillHeartsMutation,
+    heartsPracticeQuery,
   } = useHearts({ enabled: heartsEnabled, refetchIntervalMs: 30_000 });
+  const heartsPractice = heartsPracticeDisplayState(heartsPracticeQuery.data);
 
   const isHeartsMutating =
     decrementHeartsMutation.isPending ||
@@ -1029,6 +1034,34 @@ function CourseFlowPage() {
     [navigate, pathIdNumber, persistFlowIndex]
   );
 
+  // Real AI intervention on repeat wrong answers: tracks CONSECUTIVE wrong
+  // attempts on the current exercise (resets on exercise change or a correct
+  // answer). On the 2nd consecutive wrong attempt we show an in-context
+  // "rescue" modal instead of immediately spending a heart — the heart
+  // decrement for that attempt is deferred until the modal is dismissed, so
+  // it reads as a rescue rather than a consolation prize.
+  const wrongStreakRef = useRef<{ index: number | null; count: number }>({
+    index: null,
+    count: 0,
+  });
+  const pendingHeartDecrementRef = useRef(false);
+  const [aiHelpOpen, setAiHelpOpen] = useState(false);
+  const [aiHelpContext, setAiHelpContext] =
+    useState<LessonAIHelpContext | null>(null);
+
+  useEffect(() => {
+    wrongStreakRef.current = { index: currentIndex, count: 0 };
+  }, [currentIndex]);
+
+  const handleAiHelpDismiss = useCallback(() => {
+    setAiHelpOpen(false);
+    setAiHelpContext(null);
+    if (pendingHeartDecrementRef.current) {
+      pendingHeartDecrementRef.current = false;
+      decrementHeart();
+    }
+  }, [decrementHeart]);
+
   const attemptMascotTimeoutRef = useRef<number | null>(null);
   const mascotHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -1089,12 +1122,54 @@ function CourseFlowPage() {
 
   const handleAttempt = useCallback(
     ({ correct }: { correct: boolean }) => {
-      if (!adminMode && heartsEnabled && !correct) {
-        decrementHeart();
-      }
       pulseAttemptMascot(correct);
+
+      const prevStreak = wrongStreakRef.current;
+      const sameExercise = prevStreak.index === currentIndex;
+      const nextCount = correct ? 0 : (sameExercise ? prevStreak.count : 0) + 1;
+      wrongStreakRef.current = { index: currentIndex, count: nextCount };
+
+      if (correct) return;
+
+      // Mirrors the original gating: only spend/rescue a heart when hearts
+      // are actually in play for this learner.
+      const heartAtStake = !adminMode && heartsEnabled;
+      if (!heartAtStake) return;
+
+      const shouldTriggerAiHelp = nextCount === 2;
+      const section =
+        currentItem?.kind === "section" ? currentItem.section : null;
+
+      if (shouldTriggerAiHelp && section?.exercise_data) {
+        const data = section.exercise_data;
+        const question =
+          typeof data.question === "string" ? data.question : null;
+        if (question) {
+          setAiHelpContext({
+            question,
+            exerciseType: section.exercise_type,
+            correctAnswer: data.correctAnswer,
+            skill: typeof data.skill === "string" ? data.skill : null,
+            exerciseId: section.id,
+          });
+          setAiHelpOpen(true);
+          // Defer this attempt's heart loss until the learner dismisses the
+          // rescue modal — see handleAiHelpDismiss.
+          pendingHeartDecrementRef.current = true;
+          return;
+        }
+      }
+
+      decrementHeart();
     },
-    [adminMode, decrementHeart, heartsEnabled, pulseAttemptMascot]
+    [
+      adminMode,
+      currentIndex,
+      currentItem,
+      decrementHeart,
+      heartsEnabled,
+      pulseAttemptMascot,
+    ]
   );
 
   useEffect(() => {
@@ -1894,7 +1969,8 @@ function CourseFlowPage() {
                     completeLessonMutation.isPending ||
                     completeSectionMutation.isPending ||
                     checkpointOpen ||
-                    checkpointFetching
+                    checkpointFetching ||
+                    aiHelpOpen
                   }
                   onClick={() => {
                     const isExercise =
@@ -1993,7 +2069,8 @@ function CourseFlowPage() {
                 completeLessonMutation.isPending ||
                 completeSectionMutation.isPending ||
                 checkpointOpen ||
-                checkpointFetching
+                checkpointFetching ||
+                aiHelpOpen
               }
               onClick={() => {
                 const isExercise =
@@ -2138,19 +2215,32 @@ function CourseFlowPage() {
             <div className="mt-6 flex flex-col gap-3">
               <button
                 type="button"
-                onClick={async () => {
-                  try {
-                    await grantHeartsSafe(1);
-                    toast.success(t("courses.flow.practiceCompleteHeart"));
-                  } finally {
-                    setOutOfHeartsModalOpen(false);
-                  }
+                onClick={() => {
+                  setOutOfHeartsModalOpen(false);
+                  // Server-verified: correct answers to review-queue
+                  // exercises earn the heart back (see hearts_practice.py).
+                  // This just routes there and displays progress.
+                  navigate("/exercises");
                 }}
-                disabled={isHeartsMutating}
-                className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-brand-primary)] bg-surface-card px-5 py-2 text-sm font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white"
+                disabled={heartsPractice.kind === "capReached"}
+                className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-brand-primary)] bg-surface-card px-5 py-2 text-sm font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t("courses.flow.practiseHeart")}
               </button>
+              <p
+                className={`-mt-1 text-center text-xs ${
+                  heartsPractice.kind === "capReached"
+                    ? "font-semibold text-content-muted"
+                    : "text-content-muted"
+                }`}
+              >
+                {heartsPractice.kind === "capReached"
+                  ? t("courses.flow.practiceHeartsCapReached")
+                  : t("courses.flow.practiceHeartsProgress", {
+                      correctSoFar: heartsPractice.correctSoFar,
+                      correctNeeded: heartsPractice.correctNeeded,
+                    })}
+              </p>
               <button
                 type="button"
                 onClick={async () => {
@@ -2199,6 +2289,12 @@ function CourseFlowPage() {
           setCheckpointQuizzes([]);
           handleNavigateForward();
         }}
+      />
+
+      <LessonAIHelpModal
+        open={aiHelpOpen}
+        context={aiHelpContext}
+        onDismiss={handleAiHelpDismiss}
       />
     </div>
   );

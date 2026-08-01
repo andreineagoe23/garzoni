@@ -239,6 +239,7 @@ def reset_inactive_streaks(self):
                                 "customer_name": name,
                                 "body": f"Your {previous_streak}-day streak has ended, {name}. Start a new one today!",
                             },
+                            badge=1,
                         )
 
 

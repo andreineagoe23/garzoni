@@ -76,6 +76,7 @@ class TransactionalMessages:
         data: dict[str, Any],
         *,
         category: str = "",
+        badge: int | None = None,
     ) -> tuple[bool, str | None]:
         # Prefer Expo direct push when the user has a registered token — CIO App API
         # returns 200 even when no native device is in the Journeys device table,
@@ -97,6 +98,7 @@ class TransactionalMessages:
                 user_id=user.pk,
                 purpose=template.value,
                 channel_id=push_channel_for_category(category),
+                badge=badge,
             )
             if ok:
                 return True, None

@@ -44,7 +44,7 @@ export default function LeaderboardSearchResults({ query }: Props) {
   }
 
   return (
-    <View style={{ gap: spacing.sm, marginBottom: spacing.lg }}>
+    <View style={{ gap: spacing.sm }}>
       {data.map((u: UserSearchResult) => {
         const uri = leaderboardAvatarUri(u.profile_avatar ?? null);
         return (

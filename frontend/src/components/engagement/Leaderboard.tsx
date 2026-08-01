@@ -20,6 +20,12 @@ import { DEFAULT_AVATAR_URL } from "constants/defaultAvatar";
 import { formatNumber, getLocale } from "utils/format";
 import { safeInternalPath } from "utils/safeInternalPath";
 import { useTranslation } from "react-i18next";
+import {
+  fetchLeagueCurrent,
+  type LeagueCurrentResponse,
+  type LeagueStandingRow,
+  type LeagueTier,
+} from "@garzoni/core";
 
 type LeaderboardUser = {
   id: number;
@@ -30,8 +36,88 @@ type LeaderboardUser = {
 type LeaderboardEntry = {
   user: LeaderboardUser;
   points: number;
+  /**
+   * Windowed XP for the requested time_filter (week/month); equals lifetime
+   * `points` on all-time requests. Absent on the skill-filtered payload.
+   */
+  xp_window?: number;
   rank?: number;
 };
+
+type TimeFilterValue = "week" | "month" | "all-time";
+
+type FilterChip =
+  | { kind: "time"; value: "all-time" | "month" | "week"; label: string }
+  | { kind: "skill"; value: string; label: string };
+
+/**
+ * Windowed XP for week/month, otherwise lifetime points — matches the
+ * server's xp_window semantics (equal to points on all-time).
+ */
+function resolveDisplayXp(
+  entry: Pick<LeaderboardEntry, "points" | "xp_window">,
+  timeFilter: TimeFilterValue
+): number {
+  if (timeFilter === "week" || timeFilter === "month") {
+    return entry.xp_window ?? entry.points ?? 0;
+  }
+  return entry.points ?? 0;
+}
+
+/** Maps one league standings row onto the shared LeaderboardEntry shape so
+ * the existing podium/list rendering can be reused instead of forked. */
+function leagueRowToLeaderboardEntry(row: LeagueStandingRow): LeaderboardEntry {
+  return {
+    user: { id: row.user_id, username: row.username, profile_avatar: null },
+    points: row.weekly_xp,
+    xp_window: row.weekly_xp,
+    rank: row.rank,
+  };
+}
+
+type LeaguePromotionZone = "promote" | "hold" | "demote";
+
+// Client-side mirror of the promotion/demotion boundary computed by
+// gamification.services.leagues._close_one_league on the backend — display
+// only, the backend remains the source of truth at week close. Duplicated
+// (rather than shared) from the mobile equivalent in
+// mobile/src/components/leaderboard/leaguePromotionZone.ts, same convention
+// as resolveDisplayXp above.
+const LEAGUE_MIN_COHORT_FOR_PROMOTION = 10;
+const LEAGUE_PROMOTE_COUNT = 5;
+const LEAGUE_DEMOTE_COUNT = 5;
+
+function leaguePromotionZoneForRank(
+  rank: number,
+  totalMembers: number
+): LeaguePromotionZone {
+  if (totalMembers < LEAGUE_MIN_COHORT_FOR_PROMOTION) return "hold";
+  const promoteN = Math.min(LEAGUE_PROMOTE_COUNT, totalMembers);
+  const demoteN = Math.min(LEAGUE_DEMOTE_COUNT, totalMembers - promoteN);
+  if (rank <= promoteN) return "promote";
+  if (rank > totalMembers - demoteN) return "demote";
+  return "hold";
+}
+
+function isCohortEligibleForPromotion(totalMembers: number): boolean {
+  return totalMembers >= LEAGUE_MIN_COHORT_FOR_PROMOTION;
+}
+
+const LEAGUE_TIER_COLORS: Record<LeagueTier, string> = {
+  bronze: "#cd7f32",
+  silver: "#a3acb8",
+  gold: "#e6c87a",
+  diamond: "#63b3ed",
+};
+
+function leagueTierColor(tier: string): string {
+  return LEAGUE_TIER_COLORS[tier as LeagueTier] ?? LEAGUE_TIER_COLORS.bronze;
+}
+
+function leagueTierNameKey(tier: string): string {
+  const known = tier in LEAGUE_TIER_COLORS ? tier : "bronze";
+  return `leaderboard.leagues.tierName.${known}`;
+}
 
 type Friend = {
   id: number;
@@ -91,14 +177,48 @@ const Leaderboards = () => {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [referralCode, setReferralCode] = useState("");
-  const [activeTab, setActiveTab] = useState<"global" | "friends">("global");
+  const [activeTab, setActiveTab] = useState<"global" | "friends" | "leagues">(
+    "global"
+  );
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState("all-time");
   const [userRank, setUserRank] = useState<LeaderboardEntry | null>(null);
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [incomingRequestCount, setIncomingRequestCount] = useState(0);
   const [listVisible, setListVisible] = useState(LIST_PAGE_SIZE);
+  // Never hardcoded — the Leagues tab exists only once this response
+  // confirms the backend has leagues enabled. Defaults to null (hidden)
+  // until the fetch resolves, and stays hidden on a fetch failure too —
+  // we never want to flash a tab that immediately disappears.
+  const [leagueCurrent, setLeagueCurrent] =
+    useState<LeagueCurrentResponse | null>(null);
   const { loadProfile, user, profile } = useAuth();
+
+  const leaguesEnabled = leagueCurrent?.enabled === true;
+  const tabs = useMemo(
+    () =>
+      leaguesEnabled
+        ? (["global", "friends", "leagues"] as const)
+        : (["global", "friends"] as const),
+    [leaguesEnabled]
+  );
+  useEffect(() => {
+    if (activeTab === "leagues" && !leaguesEnabled) setActiveTab("global");
+  }, [activeTab, leaguesEnabled]);
+
+  const leagueStandings: LeagueStandingRow[] = useMemo(
+    () =>
+      leagueCurrent?.enabled === true && leagueCurrent.assigned
+        ? leagueCurrent.standings
+        : [],
+    [leagueCurrent]
+  );
+  const leagueTotalMembers = leagueStandings.length;
+  const leagueAssigned =
+    leagueCurrent?.enabled === true && leagueCurrent.assigned
+      ? leagueCurrent
+      : null;
 
   const currentUserId = useMemo(() => {
     const id = profile?.id ?? user?.id;
@@ -107,14 +227,69 @@ const Leaderboards = () => {
     return Number.isFinite(n) ? n : null;
   }, [profile?.id, user?.id]);
 
-  const timeFilterOptions = useMemo(
+  // The backend treats time_filter and skill as mutually exclusive —
+  // `?skill=` returns early and ignores time_filter — and the friends board
+  // never carries a window at all. Single source of truth for "does the
+  // currently-visible data represent a window".
+  const effectiveTimeFilter: TimeFilterValue =
+    activeTab === "global" && !activeSkill
+      ? (timeFilter as TimeFilterValue)
+      : "all-time";
+
+  const pointsLabel = useCallback(
+    (entry: Pick<LeaderboardEntry, "points" | "xp_window">) => {
+      const xp = resolveDisplayXp(entry, effectiveTimeFilter);
+      if (effectiveTimeFilter === "week" || effectiveTimeFilter === "month") {
+        return t(`leaderboard.pointsWindow.${effectiveTimeFilter}`, {
+          points: formatNumber(xp, locale),
+        });
+      }
+      return t("leaderboard.points", { points: formatNumber(xp, locale) });
+    },
+    [effectiveTimeFilter, locale, t]
+  );
+
+  // League rows always read as "this cycle's" XP, regardless of the global
+  // tab's time_filter selection (which doesn't apply to leagues at all).
+  const leaguePointsLabel = useCallback(
+    (entry: Pick<LeaderboardEntry, "points" | "xp_window">) =>
+      t("leaderboard.pointsWindow.week", {
+        points: formatNumber(entry.xp_window ?? entry.points ?? 0, locale),
+      }),
+    [locale, t]
+  );
+
+  // Single combined row: time-window chips and skill chips are mutually
+  // exclusive on the backend, so they live in one row with exactly one
+  // active chip, instead of a dropdown + a separate button row that
+  // implied you could combine them.
+  const filterChips: FilterChip[] = useMemo(
     () => [
-      { value: "all-time", label: t("leaderboard.time.allTime") },
-      { value: "month", label: t("leaderboard.time.thisMonth") },
-      { value: "week", label: t("leaderboard.time.thisWeek") },
+      { kind: "time", value: "all-time", label: t("leaderboard.time.allTime") },
+      { kind: "time", value: "month", label: t("leaderboard.time.thisMonth") },
+      { kind: "time", value: "week", label: t("leaderboard.time.thisWeek") },
+      ...SKILL_TABS.map((skill): FilterChip => ({
+        kind: "skill",
+        value: skill,
+        label: t(`leaderboard.skills.${skill}`),
+      })),
     ],
     [t]
   );
+
+  const isChipActive = (chip: FilterChip) =>
+    chip.kind === "time"
+      ? !activeSkill && timeFilter === chip.value
+      : activeSkill === chip.value;
+
+  const onChipClick = (chip: FilterChip) => {
+    if (chip.kind === "time") {
+      setActiveSkill(null);
+      setTimeFilter(chip.value);
+    } else {
+      setActiveSkill(chip.value);
+    }
+  };
 
   const fetchGlobalLeaderboard = useCallback(async () => {
     const res = await apiClient.get("/leaderboard/", {
@@ -126,6 +301,13 @@ const Leaderboards = () => {
     return res.data as LeaderboardEntry[];
   }, [activeSkill, timeFilter]);
 
+  const fetchUserRank = useCallback(async () => {
+    const res = await apiClient.get("/leaderboard/rank/", {
+      params: { time_filter: effectiveTimeFilter },
+    });
+    return res.data as LeaderboardEntry;
+  }, [effectiveTimeFilter]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -134,13 +316,13 @@ const Leaderboards = () => {
         setError("");
         const [
           friendsResponse,
-          rankResponse,
           profilePayload,
           sentRes,
           friendsRes,
+          incomingRes,
+          leagueRes,
         ] = await Promise.all([
           apiClient.get("/leaderboard/friends/"),
-          apiClient.get("/leaderboard/rank/"),
           loadProfile(),
           apiClient
             .get("/friend-requests/get_sent_requests/")
@@ -148,10 +330,16 @@ const Leaderboards = () => {
           apiClient
             .get("/friend-requests/get_friends/")
             .catch(() => ({ data: [] as Friend[] })),
+          apiClient
+            .get("/friend-requests/")
+            .catch(() => ({ data: [] as { id: number }[] })),
+          fetchLeagueCurrent()
+            .then((r) => r.data)
+            .catch(() => ({ enabled: false }) as LeagueCurrentResponse),
         ]);
         if (cancelled) return;
         setFriendsLeaderboard(friendsResponse.data);
-        setUserRank(rankResponse.data);
+        setLeagueCurrent(leagueRes);
         const resolvedReferralCode =
           (typeof profilePayload?.referral_code === "string" &&
             profilePayload.referral_code) ||
@@ -166,6 +354,9 @@ const Leaderboards = () => {
         setReferralCode(resolvedReferralCode);
         setSentRequests(sentRes.data);
         setFriends(friendsRes.data);
+        setIncomingRequestCount(
+          Array.isArray(incomingRes.data) ? incomingRes.data.length : 0
+        );
         setStableReady(true);
       } catch (err: unknown) {
         console.error("Error fetching leaderboard (stable) data:", err);
@@ -187,8 +378,14 @@ const Leaderboards = () => {
     (async () => {
       if (globalLoadedOnce.current) setGlobalBusy(true);
       try {
-        const data = await fetchGlobalLeaderboard();
-        if (!cancelled) setGlobalLeaderboard(data);
+        const [data, rank] = await Promise.all([
+          fetchGlobalLeaderboard(),
+          fetchUserRank(),
+        ]);
+        if (!cancelled) {
+          setGlobalLeaderboard(data);
+          setUserRank(rank);
+        }
       } catch (err: unknown) {
         console.error("Error fetching global leaderboard:", err);
         const detail = (err as { response?: { data?: { detail?: string } } })
@@ -205,7 +402,7 @@ const Leaderboards = () => {
     return () => {
       cancelled = true;
     };
-  }, [fetchGlobalLeaderboard, t]);
+  }, [fetchGlobalLeaderboard, fetchUserRank, t]);
 
   const sendFriendRequest = async (receiverId: number) => {
     try {
@@ -247,27 +444,44 @@ const Leaderboards = () => {
 
   const filteredLeaderboard = useMemo(() => {
     const source =
-      activeTab === "global" ? globalLeaderboard : friendsLeaderboard;
+      activeTab === "global"
+        ? globalLeaderboard
+        : activeTab === "leagues"
+          ? leagueStandings.map(leagueRowToLeaderboardEntry)
+          : friendsLeaderboard;
     const query = searchQuery.trim().toLowerCase();
     if (!query) return source;
     return source.filter((userData) =>
       userData.user.username.toLowerCase().includes(query)
     );
-  }, [activeTab, globalLeaderboard, friendsLeaderboard, searchQuery]);
+  }, [
+    activeTab,
+    globalLeaderboard,
+    friendsLeaderboard,
+    leagueStandings,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     setListVisible(LIST_PAGE_SIZE);
   }, [searchQuery, activeTab, timeFilter, activeSkill]);
 
+  // Leagues skips the top-3 podium: the promotion/demotion zone framing
+  // needs every row (including the top 5) rendered as an ordinary list row
+  // with its zone stripe, not a medal card.
   const podiumEntries = useMemo(
-    () => filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
-    [filteredLeaderboard]
+    () =>
+      activeTab === "leagues"
+        ? []
+        : filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
+    [filteredLeaderboard, activeTab]
   );
 
   const listRemainder = useMemo(() => {
+    if (activeTab === "leagues") return filteredLeaderboard;
     if (filteredLeaderboard.length <= 3) return [];
     return filteredLeaderboard.slice(3);
-  }, [filteredLeaderboard]);
+  }, [filteredLeaderboard, activeTab]);
 
   const visibleRemainder = useMemo(
     () => listRemainder.slice(0, listVisible),
@@ -392,9 +606,7 @@ const Leaderboards = () => {
                     )}
                   </p>
                   <p className="text-[10px] text-content-muted md:text-sm">
-                    {t("leaderboard.points", {
-                      points: formatNumber(entry.points || 0, locale),
-                    })}
+                    {pointsLabel(entry)}
                   </p>
                 </div>
               </div>
@@ -408,7 +620,11 @@ const Leaderboards = () => {
   const renderListRow = (
     entry: LeaderboardEntry,
     listIndex: number,
-    rankOffset: number
+    rankOffset: number,
+    zoneInfo?: {
+      zone: LeaguePromotionZone;
+      dividerFor: "promote" | "demote" | null;
+    }
   ) => {
     const position = rankForEntry(entry, rankOffset + listIndex + 1);
     const isFriend = isAlreadyFriend(entry.user.id);
@@ -419,85 +635,107 @@ const Leaderboards = () => {
       highlightIdx >= 0 && highlightIdx < listHighlightClasses.length
         ? listHighlightClasses[highlightIdx]
         : "";
+    const isLeagueRow = activeTab === "leagues";
 
     return (
-      <div
-        key={entry.user.id}
-        className={cx(
-          "group relative flex flex-col gap-4 overflow-hidden border p-4 transition hover:-translate-y-1",
-          highlight || "app-card-sm",
-          isYou &&
-            "ring-2 ring-[color:var(--color-brand-primary-hover)]/80 ring-offset-2 ring-offset-transparent"
+      <React.Fragment key={entry.user.id}>
+        {zoneInfo?.dividerFor && (
+          <p
+            className={cx(
+              "px-1 text-xs font-extrabold uppercase tracking-wide",
+              zoneInfo.dividerFor === "promote"
+                ? "text-[color:var(--color-state-success)]"
+                : "text-[color:var(--color-state-error)]"
+            )}
+          >
+            {zoneInfo.dividerFor === "promote"
+              ? t("leaderboard.leagues.zone.promoteDivider")
+              : t("leaderboard.leagues.zone.demoteDivider")}
+          </p>
         )}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#2a7347]/4 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-4">
-            <span
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] text-sm font-semibold text-[color:var(--accent,#111827)]"
-              aria-label={t("leaderboard.rankShort", { rank: position })}
-            >
-              #{position}
-            </span>
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <img
-                src={entry.user.profile_avatar || DEFAULT_AVATAR_URL}
-                alt=""
-                className="h-12 w-12 shrink-0 rounded-full border border-[color:var(--color-border-default)] object-cover shadow-sm"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = DEFAULT_AVATAR_URL;
-                }}
-              />
-              <div className="min-w-0">
-                <p className="flex flex-wrap items-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
-                  <span className="truncate">{entry.user.username}</span>
-                  {isYou && (
-                    <span className="shrink-0 rounded-full bg-[color:#2a7347]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
-                      {t("leaderboard.youBadge")}
-                    </span>
-                  )}
-                </p>
-                <p className="text-sm text-content-muted">
-                  {t("leaderboard.points", {
-                    points: formatNumber(entry.points || 0, locale),
-                  })}
-                </p>
+        <div
+          className={cx(
+            "group relative flex flex-col gap-4 overflow-hidden border p-4 transition hover:-translate-y-1",
+            highlight || "app-card-sm",
+            isYou &&
+              "ring-2 ring-[color:var(--color-brand-primary-hover)]/80 ring-offset-2 ring-offset-transparent",
+            isLeagueRow &&
+              zoneInfo?.zone === "promote" &&
+              "border-l-4 border-l-[color:var(--color-state-success)]",
+            isLeagueRow &&
+              zoneInfo?.zone === "demote" &&
+              "border-l-4 border-l-[color:var(--color-state-error)]"
+          )}
+        >
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#2a7347]/4 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="relative">
+            <div className="flex flex-wrap items-center gap-4">
+              <span
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--input-bg,#f3f4f6)] text-sm font-semibold text-[color:var(--accent,#111827)]"
+                aria-label={t("leaderboard.rankShort", { rank: position })}
+              >
+                #{position}
+              </span>
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <img
+                  src={entry.user.profile_avatar || DEFAULT_AVATAR_URL}
+                  alt=""
+                  className="h-12 w-12 shrink-0 rounded-full border border-[color:var(--color-border-default)] object-cover shadow-sm"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_AVATAR_URL;
+                  }}
+                />
+                <div className="min-w-0">
+                  <p className="flex flex-wrap items-center gap-2 text-base font-semibold text-[color:var(--accent,#111827)]">
+                    <span className="truncate">{entry.user.username}</span>
+                    {isYou && (
+                      <span className="shrink-0 rounded-full bg-[color:#2a7347]/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
+                        {t("leaderboard.youBadge")}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-sm text-content-muted">
+                    {isLeagueRow
+                      ? leaguePointsLabel(entry)
+                      : pointsLabel(entry)}
+                  </p>
+                </div>
               </div>
-            </div>
-            {activeTab === "global" && !isYou && (
-              <button
-                type="button"
-                onClick={() => startDuel(entry.user.id)}
-                className="inline-flex items-center justify-center rounded-full border border-[#2a7347]/30 px-4 py-2 text-xs font-semibold text-[#2a7347] transition hover:bg-[#2a7347]/10"
-              >
-                Duel
-              </button>
-            )}
-            {activeTab === "global" && !isYou && (
-              <button
-                type="button"
-                title={
-                  isFriend
-                    ? t("leaderboard.friendStatus.alreadyFriends")
+              {activeTab === "global" && !isYou && (
+                <button
+                  type="button"
+                  onClick={() => startDuel(entry.user.id)}
+                  className="inline-flex items-center justify-center rounded-full border border-[#2a7347]/30 px-4 py-2 text-xs font-semibold text-[#2a7347] transition hover:bg-[#2a7347]/10"
+                >
+                  Duel
+                </button>
+              )}
+              {activeTab === "global" && !isYou && (
+                <button
+                  type="button"
+                  title={
+                    isFriend
+                      ? t("leaderboard.friendStatus.alreadyFriends")
+                      : pending
+                        ? t("leaderboard.friendStatus.pending")
+                        : t("leaderboard.friendStatus.addFriend")
+                  }
+                  onClick={() => sendFriendRequest(entry.user.id)}
+                  disabled={isFriend || pending}
+                  className={friendActionButtonClass(isFriend, pending)}
+                >
+                  {isFriend
+                    ? t("leaderboard.friendStatus.friends")
                     : pending
-                      ? t("leaderboard.friendStatus.pending")
-                      : t("leaderboard.friendStatus.addFriend")
-                }
-                onClick={() => sendFriendRequest(entry.user.id)}
-                disabled={isFriend || pending}
-                className={friendActionButtonClass(isFriend, pending)}
-              >
-                {isFriend
-                  ? t("leaderboard.friendStatus.friends")
-                  : pending
-                    ? t("leaderboard.friendStatus.pendingShort")
-                    : t("leaderboard.friendStatus.addFriendShort")}
-              </button>
-            )}
+                      ? t("leaderboard.friendStatus.pendingShort")
+                      : t("leaderboard.friendStatus.addFriendShort")}
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </React.Fragment>
     );
   };
 
@@ -507,31 +745,24 @@ const Leaderboards = () => {
       layout="none"
       innerClassName="flex flex-col gap-10"
     >
-      <header className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="app-card p-5">
-          <ReferralLink referralCode={referralCode} />
-        </div>
-        <div className="app-card p-5">
-          <FriendRequests />
-        </div>
-      </header>
-
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="app-section-glow space-y-1 pb-2">
           <p className="app-eyebrow">{t("leaderboard.subtitle")}</p>
           <h1 className="app-display text-4xl text-content-primary">
             {activeTab === "global"
               ? t("leaderboard.title.global")
-              : t("leaderboard.title.friends")}
+              : activeTab === "leagues"
+                ? t("leaderboard.title.leagues")
+                : t("leaderboard.title.friends")}
           </h1>
         </div>
         <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
           <div className="flex overflow-hidden rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] p-1 text-sm shadow-sm">
-            {["global", "friends"].map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab}
                 type="button"
-                onClick={() => setActiveTab(tab as "global" | "friends")}
+                onClick={() => setActiveTab(tab)}
                 className={cx(
                   "relative z-10 inline-flex flex-1 touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40",
                   activeTab === tab
@@ -541,56 +772,78 @@ const Leaderboards = () => {
               >
                 {tab === "global"
                   ? t("leaderboard.tabs.global")
-                  : t("leaderboard.tabs.friends")}
+                  : tab === "leagues"
+                    ? t("leaderboard.tabs.leagues")
+                    : incomingRequestCount > 0
+                      ? t("leaderboard.tabs.friendsCount", {
+                          count: incomingRequestCount,
+                        })
+                      : t("leaderboard.tabs.friends")}
               </button>
             ))}
           </div>
-          {activeTab === "global" && (
-            <div className="relative">
-              <select
-                value={timeFilter}
-                onChange={(event) => setTimeFilter(event.target.value)}
-                disabled={globalBusy}
-                className="w-full rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-4 py-2 text-sm font-medium text-content-muted shadow-sm focus:border-[#2a7347]/60 focus:outline-none focus:ring-2 focus:ring-[#2a7347]/40 disabled:opacity-60"
-              >
-                {timeFilterOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </div>
 
+      {/* Friend requests + referral live below the tab bar, Friends-tab only —
+          previously they rendered above the title/tab bar on every tab, even
+          with zero pending requests, pushing the actual leaderboard below the fold. */}
+      {activeTab === "friends" && (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="app-card p-5">
+            <ReferralLink referralCode={referralCode} />
+          </div>
+          <div className="app-card p-5">
+            <FriendRequests
+              hideWhenEmpty
+              onRequestsChange={setIncomingRequestCount}
+            />
+          </div>
+        </div>
+      )}
+
+      {activeTab === "leagues" && leagueAssigned && (
+        <div
+          className="app-card p-5"
+          style={{
+            borderColor: `${leagueTierColor(leagueAssigned.tier)}66`,
+            backgroundColor: `${leagueTierColor(leagueAssigned.tier)}14`,
+          }}
+        >
+          <p className="text-lg font-bold text-content-primary">
+            {t(leagueTierNameKey(leagueAssigned.tier))}
+          </p>
+          <p className="mt-1 text-xs text-content-muted">
+            {t("leaderboard.leagues.cycleLabel", {
+              cycle: leagueAssigned.cycle_id,
+            })}
+          </p>
+          <p className="mt-2 text-sm text-content-muted">
+            {isCohortEligibleForPromotion(leagueTotalMembers)
+              ? t("leaderboard.leagues.zone.explanation")
+              : t("leaderboard.leagues.notEnoughPlayers")}
+          </p>
+        </div>
+      )}
+
+      {/* Single combined row: time-window chips and skill chips are mutually
+          exclusive on the backend, so only one chip is ever active. */}
       {activeTab === "global" && (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveSkill(null)}
-            className={cx(
-              "rounded-full border px-3 py-1.5 text-xs font-semibold",
-              !activeSkill
-                ? "border-[#2a7347] bg-[#2a7347]/10 text-[#2a7347]"
-                : "border-[color:var(--color-border-default)] text-content-muted"
-            )}
-          >
-            {t("leaderboard.skills.xp")}
-          </button>
-          {SKILL_TABS.map((skill) => (
+          {filterChips.map((chip) => (
             <button
-              key={skill}
+              key={`${chip.kind}-${chip.value}`}
               type="button"
-              onClick={() => setActiveSkill(skill)}
+              disabled={chip.kind === "time" && globalBusy}
+              onClick={() => onChipClick(chip)}
               className={cx(
-                "rounded-full border px-3 py-1.5 text-xs font-semibold",
-                activeSkill === skill
+                "rounded-full border px-3 py-1.5 text-xs font-semibold disabled:opacity-60",
+                isChipActive(chip)
                   ? "border-[#2a7347] bg-[#2a7347]/10 text-[#2a7347]"
                   : "border-[color:var(--color-border-default)] text-content-muted"
               )}
             >
-              {t(`leaderboard.skills.${skill}`)}
+              {chip.label}
             </button>
           ))}
         </div>
@@ -625,7 +878,8 @@ const Leaderboards = () => {
         </p>
       )}
 
-      {userRank &&
+      {activeTab !== "leagues" &&
+        userRank &&
         !filteredLeaderboard.some(
           (entry) => entry.user.id === userRank.user.id
         ) && (
@@ -651,9 +905,7 @@ const Leaderboards = () => {
                     })}
                   </p>
                   <p className="text-[color:#2a7347]">
-                    {t("leaderboard.points", {
-                      points: userRank.points,
-                    })}
+                    {pointsLabel(userRank)}
                   </p>
                 </div>
               </div>
@@ -662,7 +914,15 @@ const Leaderboards = () => {
         )}
 
       <div className="space-y-4">
-        {filteredLeaderboard.length === 0 ? (
+        {filteredLeaderboard.length === 0 && activeTab === "leagues" ? (
+          <EmptyState
+            icon="🏆"
+            title={t("leaderboard.leagues.empty.title")}
+            description={t("leaderboard.leagues.empty.description")}
+            actionLabel={t("leaderboard.emptyAction")}
+            onAction={() => navigate("/personalized-path")}
+          />
+        ) : filteredLeaderboard.length === 0 ? (
           <EmptyState
             icon="🏆"
             title={t("leaderboard.empty")}
@@ -673,7 +933,25 @@ const Leaderboards = () => {
         ) : (
           <>
             {renderPodium()}
-            {visibleRemainder.map((entry, i) => renderListRow(entry, i, 3))}
+            {visibleRemainder.map((entry, i) => {
+              if (activeTab !== "leagues") {
+                return renderListRow(entry, i, 3);
+              }
+              const rank = entry.rank ?? i + 1;
+              const zone = leaguePromotionZoneForRank(rank, leagueTotalMembers);
+              const prevEntry = i > 0 ? visibleRemainder[i - 1] : null;
+              const prevZone = prevEntry
+                ? leaguePromotionZoneForRank(
+                    prevEntry.rank ?? i,
+                    leagueTotalMembers
+                  )
+                : null;
+              const dividerFor =
+                (zone === "promote" || zone === "demote") && zone !== prevZone
+                  ? zone
+                  : null;
+              return renderListRow(entry, i, 0, { zone, dividerFor });
+            })}
             {hasMoreList && (
               <div className="flex justify-center pt-2">
                 <button

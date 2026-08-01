@@ -101,6 +101,20 @@ class HeartsRefillRateThrottle(UserRateThrottle):
         return getattr(settings, "HEARTS_REFILL_THROTTLE_RATE", "30/day")
 
 
+class HeartsPracticeRateThrottle(UserRateThrottle):
+    """Limit polling of the practice-to-earn-hearts progress endpoint."""
+
+    scope = "hearts_practice"
+
+    def allow_request(self, request, view):
+        if _in_unit_tests():
+            return True
+        return super().allow_request(request, view)
+
+    def get_rate(self):
+        return getattr(settings, "HEARTS_PRACTICE_THROTTLE_RATE", "120/day")
+
+
 class FunnelEventRateThrottle(AnonRateThrottle):
     """Throttle anonymous funnel event ingestion."""
 

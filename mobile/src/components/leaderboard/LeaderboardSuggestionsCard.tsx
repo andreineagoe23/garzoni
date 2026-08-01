@@ -112,7 +112,6 @@ export default function LeaderboardSuggestionsCard() {
 const styles = StyleSheet.create({
   card: {
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: spacing.lg,
   },
   title: { fontSize: typography.sm, fontWeight: "800" },
   item: { width: 84, alignItems: "center", gap: 6 },

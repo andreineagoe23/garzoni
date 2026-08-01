@@ -16,6 +16,10 @@ from .views import (
     MissionGenerationView,
     MissionAnalyticsView,
     AsyncDuelView,
+    StreakWagerView,
+    StreakWagerCancelView,
+    LeagueCurrentView,
+    LeagueHistoryView,
 )
 from .views_duels import (
     DuelListCreateView,
@@ -43,12 +47,20 @@ urlpatterns = [
     path("missions/generate/", MissionGenerationView.as_view(), name="mission-generate"),
     path("missions/analytics/", MissionAnalyticsView.as_view(), name="mission-analytics"),
     path("streak-items/", StreakItemView.as_view(), name="streak-items"),
+    path("streak-wagers/", StreakWagerView.as_view(), name="streak-wagers"),
+    path(
+        "streak-wagers/<int:wager_id>/cancel/",
+        StreakWagerCancelView.as_view(),
+        name="streak-wagers-cancel",
+    ),
     path("leaderboard/", LeaderboardViewSet.as_view(), name="leaderboard"),
     path("leaderboard/duel/", AsyncDuelView.as_view(), name="leaderboard-duel"),
     path("leaderboard/rank/", UserRankView.as_view(), name="user-rank"),
     path("recent-activity/", RecentActivityView.as_view(), name="recent-activity"),
     path("reward-ledger/", RewardLedgerFeedView.as_view(), name="reward-ledger"),
     path("weekly-recap/", WeeklyRecapView.as_view(), name="weekly-recap"),
+    path("leagues/current/", LeagueCurrentView.as_view(), name="leagues-current"),
+    path("leagues/history/", LeagueHistoryView.as_view(), name="leagues-history"),
     # Persistent XP-race duels (multi-day challenges)
     path("duels/", DuelListCreateView.as_view(), name="duels-list-create"),
     path("duels/history/", DuelHistoryView.as_view(), name="duels-history"),

@@ -12,7 +12,7 @@ import random
 from datetime import timedelta
 from django.conf import settings as dj_settings
 from django.utils import timezone
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Avg, F, Q, Sum
 from django.core.cache import cache
 import json
@@ -27,6 +27,7 @@ from gamification.models import (
     MultiStepMission,
     MultiStepMissionProgress,
     StreakItem,
+    StreakWager,
     MissionPerformance,
     RewardLedgerEntry,
 )
@@ -39,6 +40,11 @@ from gamification.serializers import (
 from authentication.models import UserProfile
 
 from gamification.services.ledger_labels import describe_ledger_event
+from gamification.services.leaderboards import (
+    rank_in_window,
+    weekly_xp_leaderboard,
+    xp_in_window,
+)
 from gamification.services.mission_cycles import (
     _stable_seed,
     daily_cycle_id,
@@ -52,6 +58,17 @@ from gamification.services.missions import (
     complete_mission as complete_mission_service,
     swap_mission as swap_mission_service,
 )
+from gamification.services.wagers import (
+    DEFAULT_TARGET_DAYS,
+    MIN_STAKE_POINTS,
+    STAKE_POINTS_BY_TARGET_DAYS,
+    WagerError,
+    cancel_wager,
+    compute_stake,
+    open_wager,
+    stake_reward_table,
+)
+from gamification.services.leagues import current_standings, league_history
 from education.models import (
     LessonCompletion,
     QuizCompletion,
@@ -430,23 +447,23 @@ class LeaderboardViewSet(APIView):
                     )
                 return Response(payload)
 
-            # Apply time-based filtering
-            if time_filter == "week":
-                one_week_ago = timezone.now().date() - timedelta(days=7)
-                top_profiles = (
-                    UserProfile.objects.filter(last_completed_date__gte=one_week_ago)
-                    .select_related("user")
-                    .order_by("-points")[:10]
-                )
-            elif time_filter == "month":
-                one_month_ago = timezone.now().date() - timedelta(days=30)
-                top_profiles = (
-                    UserProfile.objects.filter(last_completed_date__gte=one_month_ago)
-                    .select_related("user")
-                    .order_by("-points")[:10]
-                )
+            # Apply time-based filtering. "week"/"month" are windowed XP from
+            # the reward ledger (see gamification.services.leaderboards);
+            # anything else falls back to the original all-time behaviour,
+            # ordered by lifetime UserProfile.points.
+            if time_filter in ("week", "month"):
+                rows = weekly_xp_leaderboard(time_filter, limit=10)
+                top_profiles = []
+                for row in rows:
+                    profile = row.profile
+                    profile.xp_window = row.xp
+                    top_profiles.append(profile)
             else:  # all-time
-                top_profiles = UserProfile.objects.select_related("user").order_by("-points")[:10]
+                top_profiles = list(
+                    UserProfile.objects.select_related("user").order_by("-points")[:10]
+                )
+                for profile in top_profiles:
+                    profile.xp_window = profile.points
 
             serializer = LeaderboardSerializer(
                 top_profiles, many=True, context={"request": request}
@@ -465,16 +482,33 @@ class UserRankView(APIView):
     def get(self, request):
         """Handle GET requests to fetch the current user's rank."""
         try:
+            time_filter = request.query_params.get("time_filter", "all-time")
             user_profile = request.user.profile
-            higher_ranked_users = UserProfile.objects.filter(points__gt=user_profile.points).count()
 
-            # User's rank is the count of users with more points + 1
-            rank = higher_ranked_users + 1
+            if time_filter in ("week", "month"):
+                # Windowed XP rank from the reward ledger.
+                xp_window = xp_in_window(request.user, time_filter)
+                rank = rank_in_window(request.user, time_filter)
+            else:  # all-time -- identical behaviour, just a 60s per-user cache
+                cache_key = (
+                    f"user_rank_alltime:v1:{connection.settings_dict.get('NAME', 'default')}"
+                    f":{request.user.id}"
+                )
+                rank = cache.get(cache_key)
+                if rank is None:
+                    higher_ranked_users = UserProfile.objects.filter(
+                        points__gt=user_profile.points
+                    ).count()
+                    # User's rank is the count of users with more points + 1
+                    rank = higher_ranked_users + 1
+                    cache.set(cache_key, rank, 60)
+                xp_window = user_profile.points
 
             return Response(
                 {
                     "rank": rank,
                     "points": user_profile.points,
+                    "xp_window": xp_window,
                     "user": {
                         **user_display_dict(request.user, include_id=True),
                         "profile_avatar": user_profile.profile_avatar,
@@ -993,3 +1027,177 @@ class MissionAnalyticsView(APIView):
                 "skill_improvements": skill_improvements,
             }
         )
+
+
+def _serialize_wager(wager: StreakWager) -> dict:
+    return {
+        "id": wager.id,
+        "stake_points": wager.stake_points,
+        "reward_points": wager.reward_points,
+        "reward_coins": str(wager.reward_coins),
+        "target_days": wager.target_days,
+        "streak_at_start": wager.streak_at_start,
+        "started_on": wager.started_on.isoformat(),
+        "deadline_on": wager.deadline_on.isoformat(),
+        "status": wager.status,
+        "resolved_at": wager.resolved_at.isoformat() if wager.resolved_at else None,
+        "can_cancel": (
+            wager.status == StreakWager.STATUS_ACTIVE and wager.started_on == timezone.localdate()
+        ),
+    }
+
+
+class StreakWagerView(APIView):
+    """Commitment device: stake XP that you'll keep your streak alive."""
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle]
+
+    def get(self, request):
+        user = request.user
+        profile = user.profile
+
+        active = (
+            StreakWager.objects.filter(user=user, status=StreakWager.STATUS_ACTIVE)
+            .order_by("-created_at")
+            .first()
+        )
+        history = list(
+            StreakWager.objects.filter(user=user)
+            .exclude(status=StreakWager.STATUS_ACTIVE)
+            .order_by("-created_at")[:20]
+        )
+
+        eligible = active is None and int(profile.streak or 0) >= 1
+        ineligible_reason = None
+        if active is not None:
+            ineligible_reason = "active_exists"
+        elif int(profile.streak or 0) < 1:
+            ineligible_reason = "streak_too_low"
+        elif compute_stake(profile.points, DEFAULT_TARGET_DAYS) < MIN_STAKE_POINTS:
+            eligible = False
+            ineligible_reason = "insufficient_points"
+
+        return Response(
+            {
+                "active": _serialize_wager(active) if active else None,
+                "history": [_serialize_wager(w) for w in history],
+                "eligible": eligible,
+                "ineligible_reason": ineligible_reason,
+                "current_points": int(profile.points or 0),
+                "current_streak": int(profile.streak or 0),
+                "stake_reward_table": stake_reward_table(),
+            }
+        )
+
+    def post(self, request):
+        try:
+            target_days = int(request.data.get("target_days", DEFAULT_TARGET_DAYS))
+        except (TypeError, ValueError):
+            return Response(
+                {"error": "target_days must be an integer.", "code": "invalid_target_days"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if target_days not in STAKE_POINTS_BY_TARGET_DAYS:
+            return Response(
+                {
+                    "error": "Unsupported target_days.",
+                    "code": "invalid_target_days",
+                    "allowed": sorted(STAKE_POINTS_BY_TARGET_DAYS.keys()),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            wager = open_wager(request.user, target_days=target_days)
+        except WagerError as exc:
+            return Response(
+                {"error": str(exc), "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(_serialize_wager(wager), status=status.HTTP_201_CREATED)
+
+
+class StreakWagerCancelView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle]
+
+    def post(self, request, wager_id: int):
+        try:
+            wager = cancel_wager(request.user, wager_id)
+        except WagerError as exc:
+            return Response(
+                {"error": str(exc), "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(_serialize_wager(wager))
+
+
+class LeagueCurrentView(APIView):
+    """The caller's current weekly league cohort, ordered standings, and own rank.
+
+    Returns a 200 with an explanatory payload (never a 500) when leagues are
+    disabled or the user hasn't been lazily assigned into a cohort yet —
+    "not assigned" happens for anyone who hasn't earned XP this week, which
+    is expected and not an error state.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            standings = current_standings(request.user)
+        except Exception:
+            logger.exception(
+                "LeagueCurrentView: current_standings failed", extra={"user_id": request.user.id}
+            )
+            return Response({"enabled": True, "assigned": False, "error": "unavailable"})
+
+        if not standings.enabled:
+            return Response({"enabled": False})
+
+        if not standings.assigned:
+            return Response({"enabled": True, "assigned": False, "cycle_id": standings.cycle_id})
+
+        return Response(
+            {
+                "enabled": True,
+                "assigned": True,
+                "tier": standings.tier,
+                "cycle_id": standings.cycle_id,
+                "league_id": standings.league_id,
+                "own_rank": standings.own_rank,
+                "standings": [
+                    {
+                        "user_id": row.user_id,
+                        "username": row.username,
+                        "weekly_xp": row.weekly_xp,
+                        "rank": row.rank,
+                        "is_self": row.is_self,
+                    }
+                    for row in standings.members
+                ],
+            }
+        )
+
+
+class LeagueHistoryView(APIView):
+    """Past league memberships for the caller, most recent cycle first."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not getattr(dj_settings, "LEAGUES_ENABLED", False):
+            return Response({"enabled": False, "history": []})
+
+        try:
+            history = league_history(request.user)
+        except Exception:
+            logger.exception(
+                "LeagueHistoryView: league_history failed", extra={"user_id": request.user.id}
+            )
+            return Response({"enabled": True, "history": [], "error": "unavailable"})
+
+        return Response({"enabled": True, "history": history})

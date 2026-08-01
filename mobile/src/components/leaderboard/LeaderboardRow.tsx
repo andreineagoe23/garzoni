@@ -5,6 +5,10 @@ import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
 import { leaderboardAvatarUri } from "./leaderboardAvatarUri";
+import {
+  leaderboardPointsLabel,
+  type LeaderboardTimeFilter,
+} from "./leaderboardPointsLabel";
 
 type Props = {
   entry: LeaderboardEntry;
@@ -19,6 +23,8 @@ type Props = {
   t: (key: string, opts?: Record<string, unknown>) => string;
   formatPoints: (n: number) => string;
   duelStatus?: "pending" | "active" | null;
+  /** Defaults to "all-time" — pass the active tab's filter to surface windowed XP. */
+  timeFilter?: LeaderboardTimeFilter;
 };
 
 export default function LeaderboardRow({
@@ -34,6 +40,7 @@ export default function LeaderboardRow({
   t,
   formatPoints,
   duelStatus,
+  timeFilter = "all-time",
 }: Props) {
   const c = useThemeColors();
   const uri = leaderboardAvatarUri(entry.user?.profile_avatar ?? null);
@@ -109,9 +116,7 @@ export default function LeaderboardRow({
               ) : null}
             </View>
             <Text style={[styles.points, { color: c.textMuted }]}>
-              {t("leaderboard.points", {
-                points: formatPoints(entry.points ?? 0),
-              })}
+              {leaderboardPointsLabel(t, formatPoints, entry, timeFilter)}
             </Text>
           </View>
           {onPrimaryPress && !showFriendButton ? (

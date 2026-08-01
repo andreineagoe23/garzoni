@@ -33,6 +33,9 @@
     "outOfHeartsModalSubtitle": "Make a quick choice: practise to earn a heart, refill now, or wait for regeneration.",
     "nextHeartIn": "Next heart in",
     "practiseHeart": "Practise (+1 heart)",
+    "practiceHeartsHint": "Answer review questions correctly to earn a heart back.",
+    "practiceHeartsProgress": "{{correctSoFar}}/{{correctNeeded}} correct answers",
+    "practiceHeartsCapReached": "You've hit today's practice-heart limit. Come back tomorrow.",
     "refillHearts": "Refill hearts",
     "upgradeHeartsCta": "Plus refills hearts 2× faster — Upgrade",
     "refillCapReached": "You've used today's free refills",
@@ -86,7 +89,13 @@
     "firstLessonTitle": "First lesson done!",
     "firstLessonSubtitle": "Day 1 of your streak starts now 🔥 +{{bonus}} bonus XP",
     "testWhatYouLearned": "Test what you learned",
-    "refillFailed": "Couldn't refill hearts. Check your connection and try again."
+    "refillFailed": "Couldn't refill hearts. Check your connection and try again.",
+    "aiHelpTitle": "Let's break this down",
+    "aiHelpSubtitle": "Garzoni noticed you're stuck — here's a hand before you lose a heart.",
+    "aiHelpHintLabel": "Hint",
+    "aiHelpGenericHint": "Take another look at the prompt — one detail is key.",
+    "aiHelpContinue": "Got it, continue",
+    "aiHelpDismissAria": "Close this help and continue the exercise"
   },
   "quiz": {
     "loading": "Loading quiz...",

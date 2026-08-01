@@ -47,6 +47,7 @@ from .views_hearts import (
     UserHeartsDecrementView,
     UserHeartsGrantView,
     UserHeartsRefillView,
+    UserHeartsPracticeProgressView,
 )
 from .views_push import ExpoPushTokenView
 from .views_revenuecat import RevenueCatWebhookView
@@ -146,6 +147,11 @@ urlpatterns = [
     ),
     path("user/hearts/grant/", UserHeartsGrantView.as_view(), name="user-hearts-grant"),
     path("user/hearts/refill/", UserHeartsRefillView.as_view(), name="user-hearts-refill"),
+    path(
+        "user/hearts/practice/",
+        UserHeartsPracticeProgressView.as_view(),
+        name="user-hearts-practice",
+    ),
     # Include router URLs for ViewSet endpoints
     path("", include(router.urls)),
 ]

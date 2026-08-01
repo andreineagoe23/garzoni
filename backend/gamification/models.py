@@ -435,6 +435,12 @@ class RewardLedgerEntry(models.Model):
                 name="reward_ledger_user_event_uniq",
             ),
         ]
+        # Windowed XP (weekly/monthly leaderboards, leagues) aggregates this table
+        # by user over a created_at range; without these it is a sequential scan.
+        indexes = [
+            models.Index(fields=["user", "-created_at"], name="reward_ledger_usr_dt_idx"),
+            models.Index(fields=["created_at"], name="reward_ledger_created_idx"),
+        ]
 
     def __str__(self):
         return f"{self.user_id}:{self.event_key}"
@@ -462,6 +468,57 @@ class StreakItem(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.get_item_type_display()} x{self.quantity}"
+
+
+class StreakWager(models.Model):
+    """
+    A commitment device: the user stakes XP (points) betting they will keep
+    their learning streak alive (grow it by `target_days`) before `deadline_on`.
+    Staking uses non-redeemable XP, never coins — coins (UserProfile.earned_money)
+    are redeemable for real shop goods/charity via finance.Reward/UserPurchase, so
+    letting a finance-literacy app (used by under-18s) let users gamble real-value
+    currency would be a consumer-protection problem. See gamification/services/wagers.py
+    for the stake/reward table and anti-abuse caps.
+    """
+
+    STATUS_ACTIVE = "active"
+    STATUS_WON = "won"
+    STATUS_LOST = "lost"
+    STATUS_CANCELLED = "cancelled"
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_WON, "Won"),
+        (STATUS_LOST, "Lost"),
+        (STATUS_CANCELLED, "Cancelled"),
+    ]
+
+    user = models.ForeignKey(User, related_name="streak_wagers", on_delete=models.CASCADE)
+    stake_points = models.IntegerField()
+    reward_points = models.IntegerField()
+    reward_coins = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    target_days = models.IntegerField(default=7)
+    streak_at_start = models.IntegerField()
+    started_on = models.DateField()
+    deadline_on = models.DateField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "core_streakwager"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=models.Q(status="active"),
+                name="streakwager_one_active_per_user",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["status", "deadline_on"], name="streakwager_status_dl_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}:{self.stake_points}xp->{self.target_days}d ({self.status})"
 
 
 class MissionPerformance(models.Model):
@@ -566,6 +623,111 @@ class Duel(models.Model):
     @property
     def is_final(self) -> bool:
         return self.status in self.FINAL_STATUSES
+
+
+class League(models.Model):
+    """
+    A weekly cohort of users within one skill tier. Cohorts are created lazily
+    (see gamification.services.leagues) as users are first assigned into a
+    tier for a given cycle — there is no eager "create 4 leagues every Monday"
+    job. ``index`` distinguishes multiple simultaneous cohorts of the same
+    tier in the same cycle (once one cohort fills to LEAGUE_COHORT_SIZE, a new
+    one with the next index is opened).
+    """
+
+    TIER_BRONZE = "bronze"
+    TIER_SILVER = "silver"
+    TIER_GOLD = "gold"
+    TIER_DIAMOND = "diamond"
+    TIER_CHOICES = [
+        (TIER_BRONZE, "Bronze"),
+        (TIER_SILVER, "Silver"),
+        (TIER_GOLD, "Gold"),
+        (TIER_DIAMOND, "Diamond"),
+    ]
+    # Ascending order, lowest to highest. Promotion/demotion and the
+    # cold-start merge target both walk this list.
+    TIER_ORDER = [TIER_BRONZE, TIER_SILVER, TIER_GOLD, TIER_DIAMOND]
+
+    tier = models.CharField(max_length=10, choices=TIER_CHOICES)
+    # "YYYY-Www" — same scheme as gamification.services.mission_cycles.weekly_cycle_id().
+    # Do not invent a second week-key format.
+    cycle_id = models.CharField(max_length=40, db_index=True)
+    index = models.IntegerField(
+        default=0, help_text="Which cohort within the tier/cycle (0-based)."
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "core_league"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tier", "cycle_id", "index"],
+                name="league_tier_cycle_index_uniq",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["cycle_id", "tier"], name="league_cycle_tier_idx"),
+        ]
+
+    def __str__(self):
+        return f"League({self.tier}, {self.cycle_id}, #{self.index})"
+
+
+class LeagueMember(models.Model):
+    """
+    A user's membership in one League for one weekly cycle. ``weekly_xp`` is
+    denormalized (bumped via an F() update from
+    gamification.services.leagues.record_league_xp on every reward grant) so
+    standings never require aggregating RewardLedgerEntry at read time.
+
+    ``cycle_id`` is denormalized off ``league.cycle_id`` purely so a DB
+    constraint can enforce "one league per user per cycle" — expressing that
+    via the league FK alone would need a cross-table constraint, which
+    Postgres/SQLite unique constraints can't do.
+    """
+
+    OUTCOME_PROMOTED = "promoted"
+    OUTCOME_HELD = "held"
+    OUTCOME_DEMOTED = "demoted"
+    OUTCOME_CHOICES = [
+        (OUTCOME_PROMOTED, "Promoted"),
+        (OUTCOME_HELD, "Held"),
+        (OUTCOME_DEMOTED, "Demoted"),
+    ]
+
+    league = models.ForeignKey(League, related_name="members", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="league_memberships", on_delete=models.CASCADE)
+    cycle_id = models.CharField(max_length=40, db_index=True)
+    weekly_xp = models.IntegerField(default=0)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    final_rank = models.IntegerField(null=True, blank=True)
+    outcome = models.CharField(max_length=10, choices=OUTCOME_CHOICES, null=True, blank=True)
+
+    class Meta:
+        db_table = "core_leaguemember"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["league", "user"], name="leaguemember_league_user_uniq"
+            ),
+            # The DB-level guarantee that a user is never in two leagues (even
+            # two different tiers) in the same cycle_id.
+            models.UniqueConstraint(
+                fields=["user", "cycle_id"], name="leaguemember_user_cycle_uniq"
+            ),
+        ]
+        indexes = [
+            # Standings query: all members of one league ordered by weekly_xp desc.
+            models.Index(fields=["league", "-weekly_xp"], name="leaguemember_standings_idx"),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.league_id and not self.cycle_id:
+            self.cycle_id = self.league.cycle_id
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}@{self.league_id}:{self.weekly_xp}xp"
 
 
 # Celery implementations live in gamification.tasks; names are registered as

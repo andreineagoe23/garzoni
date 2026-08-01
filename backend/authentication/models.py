@@ -147,6 +147,24 @@ class UserProfile(models.Model):
         UserProfile.objects.filter(pk=self.pk).update(points=models.F("points") + points)
         self.refresh_from_db(fields=["points"])
 
+    def spend_points(self, amount: int) -> bool:
+        """
+        Debit `amount` points via a single conditional UPDATE (points >= amount),
+        floored at 0. Returns True iff the debit applied. Safe under concurrency:
+        two concurrent spends racing for the same balance can't both succeed and
+        drive points negative, because the WHERE clause is evaluated atomically
+        by the database for each UPDATE, not read-then-compared in Python.
+        """
+        amount = int(amount or 0)
+        if amount <= 0:
+            return False
+        updated = UserProfile.objects.filter(pk=self.pk, points__gte=amount).update(
+            points=models.F("points") - amount
+        )
+        if updated:
+            self.refresh_from_db(fields=["points"])
+        return bool(updated)
+
     def _try_bridge_one_gap_day_with_freeze(self, today) -> bool:
         """
         If the profile is more than one calendar day behind `today`, consume one

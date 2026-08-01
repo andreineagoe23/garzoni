@@ -30,10 +30,15 @@ export const queryKeys = {
   financeFact: () => ["financeFact"] as const,
   savingsBalance: () => ["savingsBalance"] as const,
   streakItems: () => ["streakItems"] as const,
+  streakWagers: () => ["streakWagers"] as const,
+  heartsPracticeProgress: () => ["heartsPracticeProgress"] as const,
   leaderboardGlobal: (timeFilter: string, skill?: string | null) =>
     ["leaderboardGlobal", timeFilter, skill || "global"] as const,
   leaderboardFriends: () => ["leaderboardFriends"] as const,
-  leaderboardRank: () => ["leaderboardRank"] as const,
+  leaderboardRank: (timeFilter: string = "all-time") =>
+    ["leaderboardRank", timeFilter] as const,
+  leagueCurrent: () => ["leagueCurrent"] as const,
+  leagueHistory: () => ["leagueHistory"] as const,
   friendRequestsIncoming: () => ["friendRequestsIncoming"] as const,
   friendRequestsSent: () => ["friendRequestsSent"] as const,
   friendsList: () => ["friendsList"] as const,

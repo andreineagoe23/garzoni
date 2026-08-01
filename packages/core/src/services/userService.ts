@@ -134,6 +134,11 @@ export type LeaderboardEntry = {
     profile_avatar?: string | null;
   };
   points?: number;
+  /**
+   * Windowed XP for the requested time_filter (week/month); equals lifetime
+   * `points` on all-time requests. Absent on the skill-filtered payload.
+   */
+  xp_window?: number;
   rank?: number;
 };
 
@@ -148,8 +153,61 @@ export const fetchLeaderboardGlobal = (
 export const fetchLeaderboardFriends = () =>
   apiClient.get<LeaderboardEntry[]>("/leaderboard/friends/");
 
-export const fetchLeaderboardRank = () =>
-  apiClient.get<LeaderboardEntry>("/leaderboard/rank/");
+export const fetchLeaderboardRank = (timeFilter = "all-time") =>
+  apiClient.get<LeaderboardEntry>("/leaderboard/rank/", {
+    params: { time_filter: timeFilter },
+  });
+
+export type LeagueTier = "bronze" | "silver" | "gold" | "diamond";
+export type LeagueOutcome = "promoted" | "held" | "demoted";
+
+export type LeagueStandingRow = {
+  user_id: number;
+  username: string;
+  weekly_xp: number;
+  rank: number;
+  is_self: boolean;
+};
+
+/** GET /leagues/current/ — always 200, never 404/500 for the expected states. */
+export type LeagueCurrentResponse =
+  | { enabled: false }
+  | {
+      enabled: true;
+      assigned: false;
+      cycle_id?: string;
+      error?: string;
+    }
+  | {
+      enabled: true;
+      assigned: true;
+      tier: LeagueTier;
+      cycle_id: string;
+      league_id: number;
+      own_rank: number | null;
+      standings: LeagueStandingRow[];
+    };
+
+export const fetchLeagueCurrent = () =>
+  apiClient.get<LeagueCurrentResponse>("/leagues/current/");
+
+export type LeagueHistoryEntry = {
+  league_id: number;
+  tier: LeagueTier;
+  cycle_id: string;
+  weekly_xp: number;
+  final_rank: number;
+  outcome: LeagueOutcome;
+};
+
+export type LeagueHistoryResponse = {
+  enabled: boolean;
+  history: LeagueHistoryEntry[];
+  error?: string;
+};
+
+export const fetchLeagueHistory = () =>
+  apiClient.get<LeagueHistoryResponse>("/leagues/history/");
 
 /** Incoming pending requests for the current user (receiver). */
 export type FriendRequestIncoming = {
@@ -488,6 +546,56 @@ export const swapMission = (missionId: number) =>
     mission_id: missionId,
   });
 
+// Streak Wagers — stake XP (never coins) betting the streak survives
+// `target_days` more days. See backend/gamification/services/wagers.py for
+// the full rules (stake/reward table, anti-abuse caps, same-day cancel).
+export type StreakWagerStatus = "active" | "won" | "lost" | "cancelled";
+
+export type StreakWagerDto = {
+  id: number;
+  stake_points: number;
+  reward_points: number;
+  /** Decimal serialized as a string by DRF, e.g. "2.00". */
+  reward_coins: string;
+  target_days: number;
+  streak_at_start: number;
+  started_on: string; // "YYYY-MM-DD"
+  deadline_on: string; // "YYYY-MM-DD"
+  status: StreakWagerStatus;
+  resolved_at: string | null;
+  /** Same-day-only cancellation window, already evaluated server-side. */
+  can_cancel: boolean;
+};
+
+export type StakeRewardRow = {
+  target_days: number;
+  stake_points: number;
+  reward_points: number;
+  reward_coins: string;
+};
+
+export type StreakWagerIneligibleReason =
+  "active_exists" | "streak_too_low" | "insufficient_points" | null;
+
+export type StreakWagersResponse = {
+  active: StreakWagerDto | null;
+  history: StreakWagerDto[];
+  eligible: boolean;
+  ineligible_reason: StreakWagerIneligibleReason;
+  current_points: number;
+  current_streak: number;
+  stake_reward_table: StakeRewardRow[];
+};
+
+export const fetchStreakWagers = () =>
+  apiClient.get<StreakWagersResponse>("/streak-wagers/");
+
+export const postStreakWagerOpen = (target_days: number) =>
+  apiClient.post<StreakWagerDto>("/streak-wagers/", { target_days });
+
+export const postStreakWagerCancel = (wagerId: number | string) =>
+  apiClient.post<StreakWagerDto>(`/streak-wagers/${wagerId}/cancel/`);
+
 // Hearts (lives) system
 export const fetchHearts = () => apiClient.get("/user/hearts/");
 export const decrementHearts = (amount = 1) =>
@@ -514,6 +622,23 @@ export type RefillHeartsResponse = {
 
 export const refillHearts = () =>
   apiClient.post<RefillHeartsResponse>("/user/hearts/refill/", {});
+
+/**
+ * Practice-to-earn-hearts: read-only progress snapshot (never grants anything
+ * itself — the actual +1 heart is granted server-side, from a correct
+ * review-queue answer, by authentication.services.hearts.record_correct_review_answer_for_hearts).
+ * Backend route is POST (not GET) because it also doubles as the trigger to
+ * refresh the cache-backed counters; the client only ever displays the result.
+ */
+export type HeartsPracticeProgress = {
+  correct_needed: number;
+  correct_so_far: number;
+  granted_today: number;
+  daily_cap: number;
+};
+
+export const fetchHeartsPracticeProgress = () =>
+  apiClient.post<HeartsPracticeProgress>("/user/hearts/practice/");
 
 /**
  * Register Expo push token for the signed-in user (mobile notifications).

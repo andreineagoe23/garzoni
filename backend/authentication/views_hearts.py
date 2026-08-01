@@ -10,10 +10,16 @@ from authentication.models import UserProfile
 from authentication.entitlements import get_plan_from_profile, plan_allows
 from authentication.services.hearts import (
     apply_hearts_regen,
+    grant_single_heart_if_empty,
     hearts_constants,
     hearts_payload,
+    hearts_practice_progress,
 )
-from authentication.throttles import HeartsGrantRateThrottle, HeartsRefillRateThrottle
+from authentication.throttles import (
+    HeartsGrantRateThrottle,
+    HeartsPracticeRateThrottle,
+    HeartsRefillRateThrottle,
+)
 
 
 def _free_refill_daily_cap() -> int:
@@ -120,7 +126,6 @@ class UserHeartsGrantView(APIView):
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             now = timezone.now()
             profile = apply_hearts_regen(profile, now=now)
-            max_hearts, _ = hearts_constants(profile)
             hearts = int(profile.hearts or 0)
             if hearts > 0:
                 return Response(
@@ -128,10 +133,8 @@ class UserHeartsGrantView(APIView):
                     status=400,
                 )
 
-            profile.hearts = min(max_hearts, hearts + amount)
-            if profile.hearts >= max_hearts:
-                profile.hearts_last_refill_at = now
-            profile.save(update_fields=["hearts", "hearts_last_refill_at"])
+            # amount is clamped to 1 above, so this always grants exactly one heart.
+            grant_single_heart_if_empty(profile, now=now)
             return Response(hearts_payload(profile, now=now))
 
 
@@ -187,3 +190,20 @@ class UserHeartsRefillView(APIView):
                 _record_refill(request.user.pk, now)
 
             return Response(hearts_payload(profile, now=now))
+
+
+class UserHeartsPracticeProgressView(APIView):
+    """
+    Progress toward the practice-to-earn-hearts mechanic (see
+    authentication.services.hearts.record_correct_review_answer_for_hearts,
+    which is invoked server-side from ExerciseViewSet.submit on every correct
+    review-queue answer). Read-only: this endpoint reports the cache-backed
+    counters so the client's out-of-hearts modal can show "answer N more
+    correctly to earn a heart back" — it never grants anything itself.
+    """
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [HeartsPracticeRateThrottle]
+
+    def post(self, request):
+        return Response(hearts_practice_progress(request.user.id))

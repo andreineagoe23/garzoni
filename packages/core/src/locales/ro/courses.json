@@ -33,6 +33,9 @@
     "outOfHeartsModalSubtitle": "Alege: exersează pentru o inimă, reîncarcă acum sau așteaptă regenerarea.",
     "nextHeartIn": "Următoarea inimă în",
     "practiseHeart": "Exersează (+1 inimă)",
+    "practiceHeartsHint": "Răspunde corect la întrebările de recapitulare pentru a recâștiga o inimă.",
+    "practiceHeartsProgress": "{{correctSoFar}}/{{correctNeeded}} răspunsuri corecte",
+    "practiceHeartsCapReached": "Ai atins limita zilnică de inimi câștigate prin exersare. Revino mâine.",
     "refillHearts": "Reîncarcă inimile",
     "upgradeHeartsCta": "Plus reîncarcă inimile de 2× mai rapid — Upgrade",
     "refillCapReached": "Ai folosit reîncărcările gratuite de azi",
@@ -86,7 +89,13 @@
     "firstLessonTitle": "Prima lecție terminată!",
     "firstLessonSubtitle": "Ziua 1 a seriei tale începe acum 🔥 +{{bonus}} XP bonus",
     "testWhatYouLearned": "Testează ce ai învățat",
-    "refillFailed": "Nu am putut reîncărca inimile. Verifică conexiunea și încearcă din nou."
+    "refillFailed": "Nu am putut reîncărca inimile. Verifică conexiunea și încearcă din nou.",
+    "aiHelpTitle": "Hai să lămurim asta",
+    "aiHelpSubtitle": "Garzoni a observat că te-ai blocat — iată un ajutor înainte să pierzi o inimă.",
+    "aiHelpHintLabel": "Indiciu",
+    "aiHelpGenericHint": "Mai citește o dată cerința — un detaliu contează.",
+    "aiHelpContinue": "Am înțeles, continuă",
+    "aiHelpDismissAria": "Închide acest ajutor și continuă exercițiul"
   },
   "quiz": {
     "loading": "Se încarcă quiz-ul...",

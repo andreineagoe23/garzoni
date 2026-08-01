@@ -19,7 +19,6 @@ const MultipleChoiceExercise = ({
     correctAnswer,
     explanation,
     learn_more_url,
-    skill,
   } = data || {};
   const { t } = useTranslation();
   const { settings } = useAuth();
@@ -27,43 +26,12 @@ const MultipleChoiceExercise = ({
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState(null);
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
-  const [practiceQuestion, setPracticeQuestion] = useState<{
-    question: string;
-    choices?: string[];
-    correct_answer?: string;
-  } | null>(null);
-  const [loadingExplain, setLoadingExplain] = useState(false);
 
   useEffect(() => {
     setSelectedAnswer(null);
     setFeedback("");
     setFeedbackType(null);
-    setAiExplanation(null);
-    setPracticeQuestion(null);
   }, [exerciseId, isCompleted]);
-
-  const fetchAiExplanation = async (userAnswer: string) => {
-    setLoadingExplain(true);
-    try {
-      const res = await apiClient.post("/exercises/explain/", {
-        exercise_question: question,
-        exercise_type: "multiple_choice",
-        correct_answer: options[correctAnswer] ?? correctAnswer,
-        user_answer: userAnswer,
-        skill: skill || null,
-        exercise_id: exerciseId,
-      });
-      setAiExplanation(res.data?.explanation || null);
-      if (res.data?.practice_question) {
-        setPracticeQuestion(res.data.practice_question);
-      }
-    } catch {
-      // Silently fail — static feedback still shown
-    } finally {
-      setLoadingExplain(false);
-    }
-  };
 
   const handleSubmit = async () => {
     if (disabled) return;
@@ -91,8 +59,10 @@ const MultipleChoiceExercise = ({
         correct: false,
       });
       onAttempt?.({ correct: false });
-      // Fetch AI explanation asynchronously — does not block UI
-      fetchAiExplanation(options[selectedAnswer] ?? String(selectedAnswer));
+      // Real AI intervention (explain endpoint + rescue modal) on the 2nd
+      // consecutive wrong attempt now lives in CourseFlowPage's
+      // handleAttempt, driven by the `onAttempt` callback above — this
+      // widget only reports correctness, it does not fetch on its own.
     }
   };
 
@@ -103,8 +73,6 @@ const MultipleChoiceExercise = ({
       setSelectedAnswer(null);
       setFeedback("");
       setFeedbackType(null);
-      setAiExplanation(null);
-      setPracticeQuestion(null);
     } catch (error) {
       console.error("Error resetting exercise:", error);
     }
@@ -192,56 +160,6 @@ const MultipleChoiceExercise = ({
           {feedback}
           {feedbackType === "error" && explanation && (
             <p className="mt-2 text-xs text-content-muted">{explanation}</p>
-          )}
-
-          {/* AI Explanation block */}
-          {feedbackType === "error" && (
-            <div className="mt-3 space-y-2">
-              {loadingExplain && (
-                <div className="flex items-center gap-2 text-xs text-content-muted">
-                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  {t(
-                    "exercises.explanation.loading",
-                    "Garzoni is explaining..."
-                  )}
-                </div>
-              )}
-              {aiExplanation && (
-                <div
-                  className="rounded-xl border border-[color:#2a7347]/25 bg-[color:#2a7347]/8 px-3.5 py-3"
-                  aria-live="polite"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[color:#2a7347]/70 mb-1">
-                    {t("exercises.explanation.title", "Garzoni explains")}
-                  </p>
-                  <p className="text-xs leading-relaxed text-content-primary">
-                    {aiExplanation}
-                  </p>
-                </div>
-              )}
-              {practiceQuestion && (
-                <div className="rounded-xl border border-[color:#1d5330]/25 bg-surface-elevated px-3.5 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[color:#2a7347]/70 mb-1.5">
-                    {t(
-                      "exercises.explanation.tryThis",
-                      "Try a similar question"
-                    )}
-                  </p>
-                  <p className="text-xs font-medium text-content-primary">
-                    {practiceQuestion.question}
-                  </p>
-                  {Array.isArray(practiceQuestion.choices) && (
-                    <ul className="mt-2 space-y-1">
-                      {practiceQuestion.choices.map((c: string, i: number) => (
-                        <li key={i} className="text-xs text-content-muted">
-                          {String.fromCharCode(65 + i)}. {c}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-            </div>
           )}
 
           {feedbackType === "error" && learn_more_url && (

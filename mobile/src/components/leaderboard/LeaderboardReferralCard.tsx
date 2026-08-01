@@ -70,7 +70,7 @@ export default function LeaderboardReferralCard({ referralCode }: Props) {
   }, [baseUrl]);
 
   return (
-    <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
+    <GlassCard padding="md">
       <Text style={[styles.title, { color: c.text }]}>
         {t("profile.referral.title")}
       </Text>

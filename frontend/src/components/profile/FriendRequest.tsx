@@ -4,19 +4,36 @@ import apiClient from "services/httpClient";
 import { GlassCard } from "components/ui";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 
-const FriendRequests = () => {
+type Props = {
+  /**
+   * When true, render nothing once the request count is known to be zero
+   * (loading/error states still render). Used on the Leaderboard page,
+   * where a persistent empty-state card was pushing content below the
+   * fold for the majority of users. Defaults to false so the Profile page
+   * keeps showing its empty state.
+   */
+  hideWhenEmpty?: boolean;
+  /** Notified whenever the pending-request count changes (fetch or respond). */
+  onRequestsChange?: (count: number) => void;
+};
+
+const FriendRequests = ({ hideWhenEmpty = false, onRequestsChange }: Props) => {
   const { t } = useTranslation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [hasError, setHasError] = useState(false);
   const fetchRequests = async () => {
     try {
       setLoading(true);
       const response = await apiClient.get("/friend-requests/");
       setRequests(response.data);
+      setHasError(false);
+      onRequestsChange?.(response.data.length);
     } catch (error) {
       console.error("Error fetching requests:", error);
       setMessage(t("profile.friendRequests.loadFailed"));
+      setHasError(true);
     } finally {
       setLoading(false);
     }
@@ -30,7 +47,11 @@ const FriendRequests = () => {
   const respondToRequest = async (requestId, action) => {
     try {
       await apiClient.put(`/friend-requests/${requestId}/`, { action });
-      setRequests((prev) => prev.filter((request) => request.id !== requestId));
+      setRequests((prev) => {
+        const next = prev.filter((request) => request.id !== requestId);
+        onRequestsChange?.(next.length);
+        return next;
+      });
       setMessage(
         action === "accept"
           ? t("profile.friendRequests.accepted")
@@ -48,6 +69,12 @@ const FriendRequests = () => {
       );
     }
   };
+
+  // Mirrors the mobile card's rule: hide once we know the count is zero
+  // (query settled). Errors still render so failures aren't swallowed.
+  if (hideWhenEmpty && !loading && !hasError && requests.length === 0) {
+    return null;
+  }
 
   return (
     <GlassCard padding="md" className="transition-colors">

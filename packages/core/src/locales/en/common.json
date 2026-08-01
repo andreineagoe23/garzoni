@@ -1647,6 +1647,54 @@
       "completePath": "View your path"
     }
   },
+  "wagers": {
+    "title": "Streak Wager",
+    "subtitle": "Stake XP that you'll keep your streak alive — win it back at 1.5× plus coins, or forfeit it if your streak breaks.",
+    "eligibility": {
+      "activeExists": "You already have an active streak wager.",
+      "streakTooLow": "Keep a learning streak going first to unlock streak wagers.",
+      "insufficientPoints": "You need more XP before you can open a wager."
+    },
+    "active": {
+      "badge": "Active",
+      "stakeLine": "Staked {{stake}} XP · win {{reward}} XP + {{coins}} coins",
+      "daysLeft": "{{count}} days left",
+      "daysLeft_one": "{{count}} day left",
+      "daysLeft_few": "{{count}} days left",
+      "daysLeft_other": "{{count}} days left",
+      "endsToday": "Ends today",
+      "cancel": "Cancel wager",
+      "cancelConfirmTitle": "Cancel this wager?",
+      "cancelConfirmBody": "You'll get your {{stake}} XP stake back in full. This can only be done today.",
+      "cancelWindowClosed": "Cancellable only on the day it was opened."
+    },
+    "open": {
+      "days": "{{count}} days",
+      "days_one": "{{count}} day",
+      "days_few": "{{count}} days",
+      "days_other": "{{count}} days",
+      "stakeXp": "{{stake}} XP",
+      "rewardLine": "Win {{reward}} XP + {{coins}} coins",
+      "cta": "Start wager",
+      "confirmTitle": "Stake {{stake}} XP for {{count}} days?",
+      "confirmBody": "Keep your streak alive until {{date}} and you'll get {{stake}} XP back at 1.5× (+{{reward}} XP) plus {{coins}} coins. If your streak breaks first, you lose the {{stake}} XP stake — no refund after today.",
+      "confirmConfirm": "Yes, stake it",
+      "confirmCancel": "Not now"
+    },
+    "history": {
+      "won": "Won +{{reward}} XP",
+      "lost": "Lost {{stake}} XP",
+      "cancelled": "Cancelled"
+    },
+    "toast": {
+      "opened": "Wager started — good luck!",
+      "cancelled": "Wager cancelled, XP refunded."
+    },
+    "errors": {
+      "open": "Couldn't open wager. Please try again.",
+      "cancel": "Couldn't cancel wager. Please try again."
+    }
+  },
   "leaderboard": {
     "time": {
       "allTime": "All Time",
@@ -1660,12 +1708,15 @@
     "loading": "Loading leaderboard data...",
     "title": {
       "global": "Global Leaderboard",
-      "friends": "Friends Leaderboard"
+      "friends": "Friends Leaderboard",
+      "leagues": "Weekly League"
     },
     "subtitle": "Track progress, celebrate wins, and connect with the community.",
     "tabs": {
       "global": "Global",
-      "friends": "Friends"
+      "friends": "Friends",
+      "friendsCount": "Friends ({{count}})",
+      "leagues": "Leagues"
     },
     "searchPlaceholder": "Search users...",
     "searchAriaLabel": "Search leaderboard",
@@ -1680,6 +1731,10 @@
       "place3": "Third place"
     },
     "points": "{{points}} points",
+    "pointsWindow": {
+      "week": "{{points}} XP this week",
+      "month": "{{points}} XP this month"
+    },
     "empty": "No one on the board yet — finish a lesson today and claim your spot for this week.",
     "emptyDescription": "Complete a lesson to earn XP and enter this week's leaderboard.",
     "emptyAction": "Start a lesson",
@@ -1689,6 +1744,26 @@
       "Saving": "Saving",
       "Investing": "Investing",
       "Markets": "Markets"
+    },
+    "leagues": {
+      "tierName": {
+        "bronze": "Bronze League",
+        "silver": "Silver League",
+        "gold": "Gold League",
+        "diamond": "Diamond League"
+      },
+      "cycleLabel": "Week {{cycle}}",
+      "zone": {
+        "promoteDivider": "Promotion zone — top 5 move up",
+        "demoteDivider": "Demotion zone — bottom 5 move down",
+        "explanation": "Finish in the top 5 to move up a league, or the bottom 5 and you'll drop down."
+      },
+      "notEnoughPlayers": "Not enough players this week — everyone holds their tier this time.",
+      "empty": {
+        "title": "You haven't joined this week's league yet",
+        "description": "Earn XP by completing a lesson or mission today and you'll be placed in a league with other learners."
+      },
+      "loadFailed": "Couldn't load your league standings. Please try again."
     },
     "friendStatus": {
       "alreadyFriends": "Already friends",

@@ -13,6 +13,7 @@ import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing, typography } from "../../theme/tokens";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { shouldShowFriendRequestsCard } from "./leaderboardFriendRequestsVisibility";
 
 export default function LeaderboardFriendRequestsCard() {
   const { t } = useTranslation("common");
@@ -65,8 +66,20 @@ export default function LeaderboardFriendRequestsCard() {
   const requests = requestsQuery.data ?? [];
   const loading = requestsQuery.isPending;
 
+  // Zero pending requests is the common case — don't force the leaderboard
+  // below a full card + empty-state box for it. Once we know the count is
+  // zero (query settled, no error), hide entirely; loading/error states
+  // still render so failures aren't swallowed silently.
+  if (
+    !loading &&
+    !requestsQuery.isError &&
+    !shouldShowFriendRequestsCard(requests.length)
+  ) {
+    return null;
+  }
+
   return (
-    <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
+    <GlassCard padding="md">
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.title, { color: c.text }]}>

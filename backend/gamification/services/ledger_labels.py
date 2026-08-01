@@ -51,6 +51,27 @@ def describe_ledger_event(event_key: str, points: int, coins: Decimal) -> dict[s
             title="Streak freeze used",
             label_key="gamification.ledger.streak_freeze_used",
         )
+    if key.startswith("streak_wager_open:"):
+        # event_key = "streak_wager_open:<wager_id>:<stake_points>" — the debit
+        # itself is applied via UserProfile.spend_points (not a ledger row, since
+        # the ledger stays grants-only), so the staked amount is carried in the
+        # key for feed display instead of in `points`/`coins` (both 0 here).
+        parts = key.split(":")
+        stake = parts[2] if len(parts) > 2 else "0"
+        return base(
+            type_="streak_wager",
+            action="opened",
+            title=f"Streak wager placed: {stake} XP staked",
+            label_key="gamification.ledger.streak_wager_opened",
+            detail=stake,
+        )
+    if key.startswith("streak_wager_win:"):
+        return base(
+            type_="streak_wager",
+            action="won",
+            title="Streak wager won",
+            label_key="gamification.ledger.streak_wager_won",
+        )
     if key.startswith("mission_manual:"):
         return base(
             type_="mission",

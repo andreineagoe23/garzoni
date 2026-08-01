@@ -247,6 +247,10 @@ class AppleIdentityAuthView(APIView):
             profile.signup_platform = resolve_request_platform(request) or "ios"
             profile.save(update_fields=["signup_platform"])
 
+            from authentication.services.activation import grant_new_user_activation_bonus
+
+            grant_new_user_activation_bonus(user)
+
         from authentication.services.referrals import apply_referral_for_new_user
 
         apply_referral_for_new_user(

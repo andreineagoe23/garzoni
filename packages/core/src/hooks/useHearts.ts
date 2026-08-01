@@ -8,6 +8,7 @@ import {
 import {
   decrementHearts,
   fetchHearts,
+  fetchHeartsPracticeProgress,
   grantHearts,
   refillHearts,
 } from "services/userService";
@@ -200,6 +201,18 @@ export function useHearts({
     ? (heartsQuery.data?.next_heart_in_seconds ?? null)
     : null;
 
+  // Practice-to-earn-hearts progress: only meaningful (and only fetched)
+  // while the user is actually at 0 hearts — this is a read-only snapshot of
+  // server-tracked counters, never a grant. See fetchHeartsPracticeProgress.
+  const heartsPracticeQuery = useQuery({
+    queryKey: queryKeys.heartsPracticeProgress(),
+    queryFn: () =>
+      fetchHeartsPracticeProgress().then((response) => response.data),
+    enabled: Boolean(enabled) && hearts <= 0,
+    staleTime: 10_000,
+    refetchOnWindowFocus: Boolean(enabled) && hearts <= 0,
+  });
+
   return {
     heartsQuery,
     refetchHearts: heartsQuery.refetch,
@@ -211,6 +224,10 @@ export function useHearts({
     setOutOfHeartsModalOpen,
     outOfHeartsUntilTs,
     lastSeenServerHeartsTs,
+
+    // Practice-to-earn-hearts (read-only)
+    heartsPracticeQuery,
+    refetchHeartsPractice: heartsPracticeQuery.refetch,
 
     // Safe actions
     decrementHeart,

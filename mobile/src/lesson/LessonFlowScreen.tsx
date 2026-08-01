@@ -47,6 +47,15 @@ import RewardClaimModal from "../components/engagement/RewardClaimModal";
 import LessonCheckpointModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointModal";
+import LessonAIHelpSheet, {
+  type LessonAIHelpContext,
+} from "./LessonAIHelpSheet";
+import {
+  INITIAL_WRONG_STREAK_STATE,
+  nextWrongStreakState,
+  type WrongStreakState,
+} from "./wrongStreakTracker";
+import { heartsPracticeDisplayState } from "./heartsPracticeStatus";
 import {
   fetchLessonCheckpointQuizzes,
   fetchQuizzesForCourse,
@@ -230,6 +239,21 @@ export function createLessonFlowStyles(c: ThemeColors) {
       textAlign: "center",
       marginBottom: spacing.md,
     },
+    heartsPracticeText: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+      textAlign: "center",
+      marginTop: -spacing.xs,
+      marginBottom: spacing.sm,
+    },
+    heartsPracticeCapText: {
+      fontSize: typography.sm,
+      color: c.textFaint,
+      fontWeight: "600",
+      textAlign: "center",
+      marginTop: -spacing.xs,
+      marginBottom: spacing.sm,
+    },
     heartsUpgradeCta: {
       width: "100%",
       marginTop: spacing.md,
@@ -298,7 +322,9 @@ export default function LessonFlowScreen({
     outOfHeartsUntilTs,
     refillHeartsSafe,
     nextHeartInSecondsRaw,
+    heartsPracticeQuery,
   } = useHearts({ enabled: true, refetchIntervalMs: 30_000 });
+  const heartsPractice = heartsPracticeDisplayState(heartsPracticeQuery.data);
   const showHeartsUi = useShowHeartsMobile();
 
   const personalizedPathQuery = useQuery({
@@ -442,6 +468,18 @@ export default function LessonFlowScreen({
   const [checkpointVisible, setCheckpointVisible] = useState(false);
   const [checkpointRows, setCheckpointRows] = useState<CheckpointQuizRow[]>([]);
   const [checkpointBusy, setCheckpointBusy] = useState(false);
+
+  // Real AI intervention on repeat wrong answers: tracks CONSECUTIVE wrong
+  // attempts on the current exercise (resets on exercise change or a correct
+  // answer). On the 2nd consecutive wrong attempt we show an in-context
+  // "rescue" sheet instead of immediately spending a heart — the heart
+  // decrement for that attempt is deferred until the sheet is dismissed, so
+  // it reads as a rescue rather than a consolation prize.
+  const wrongStreakRef = useRef<WrongStreakState>(INITIAL_WRONG_STREAK_STATE);
+  const pendingHeartDecrementRef = useRef(false);
+  const [aiHelpVisible, setAiHelpVisible] = useState(false);
+  const [aiHelpContext, setAiHelpContext] =
+    useState<LessonAIHelpContext | null>(null);
 
   const resolveCheckpointLessonId = useCallback(
     (
@@ -625,6 +663,20 @@ export default function LessonFlowScreen({
     return null;
   }, [hearts, nextHeartInSecondsRaw]);
 
+  // Reset the consecutive-wrong streak whenever the exercise changes.
+  useEffect(() => {
+    wrongStreakRef.current = { index: currentIndex, count: 0 };
+  }, [currentIndex]);
+
+  const handleAiHelpDismiss = useCallback(() => {
+    setAiHelpVisible(false);
+    setAiHelpContext(null);
+    if (pendingHeartDecrementRef.current) {
+      pendingHeartDecrementRef.current = false;
+      decrementHeart();
+    }
+  }, [decrementHeart]);
+
   const handleAttempt = useCallback(
     ({ correct }: { correct: boolean }) => {
       if (transientLessonTimerRef.current) {
@@ -638,11 +690,45 @@ export default function LessonFlowScreen({
         setTransientLessonSituation(null);
         transientLessonTimerRef.current = null;
       }, 3500);
-      if (!correct) {
-        decrementHeart();
+
+      const { state, shouldTriggerAiHelp } = nextWrongStreakState(
+        wrongStreakRef.current,
+        currentIndex,
+        correct,
+      );
+      wrongStreakRef.current = state;
+
+      if (correct) {
+        return;
       }
+
+      if (shouldTriggerAiHelp && isExerciseItem(currentItem)) {
+        const data = (currentItem.section.exercise_data ?? {}) as Record<
+          string,
+          unknown
+        >;
+        const question =
+          typeof data.question === "string" ? data.question : null;
+        if (question) {
+          setAiHelpContext({
+            question,
+            exerciseType: currentItem.section.exercise_type,
+            correctAnswer: data.correctAnswer,
+            skill: typeof data.skill === "string" ? data.skill : null,
+            exerciseId:
+              catalogExerciseIdFromData(data) ?? currentItem.section.id,
+          });
+          setAiHelpVisible(true);
+          // Defer this attempt's heart loss until the learner dismisses the
+          // rescue sheet — see handleAiHelpDismiss.
+          pendingHeartDecrementRef.current = true;
+          return;
+        }
+      }
+
+      decrementHeart();
     },
-    [decrementHeart],
+    [decrementHeart, currentIndex, currentItem],
   );
 
   const onExerciseComplete = useCallback(async () => {
@@ -1099,14 +1185,19 @@ export default function LessonFlowScreen({
         <Pressable
           onPress={() => void handleContinuePress()}
           disabled={
-            continueBusy || !currentItem || checkpointVisible || checkpointBusy
+            continueBusy ||
+            !currentItem ||
+            checkpointVisible ||
+            checkpointBusy ||
+            aiHelpVisible
           }
           style={[
             styles.continueBtn,
             (continueBusy ||
               !currentItem ||
               checkpointVisible ||
-              checkpointBusy) &&
+              checkpointBusy ||
+              aiHelpVisible) &&
               styles.continueBtnDisabled,
           ]}
         >
@@ -1225,14 +1316,32 @@ export default function LessonFlowScreen({
               </Button>
               <Button
                 variant="secondary"
+                disabled={heartsPractice.kind === "capReached"}
                 onPress={() => {
                   setRefillCapReached(false);
                   setOutOfHeartsVisible(false);
-                  router.push("/(tabs)/learn");
+                  // Server-verified: correct answers to review-queue
+                  // exercises earn the heart back (see hearts_practice.py).
+                  // The client only routes there and displays progress.
+                  router.push("/(tabs)/exercises");
                 }}
               >
                 {t("courses.flow.practiseHeart")}
               </Button>
+              <Text
+                style={
+                  heartsPractice.kind === "capReached"
+                    ? styles.heartsPracticeCapText
+                    : styles.heartsPracticeText
+                }
+              >
+                {heartsPractice.kind === "capReached"
+                  ? t("courses.flow.practiceHeartsCapReached")
+                  : t("courses.flow.practiceHeartsProgress", {
+                      correctSoFar: heartsPractice.correctSoFar,
+                      correctNeeded: heartsPractice.correctNeeded,
+                    })}
+              </Text>
               <Button
                 onPress={() => {
                   setRefillCapReached(false);
@@ -1268,6 +1377,12 @@ export default function LessonFlowScreen({
         quizzes={checkpointRows}
         courseId={courseId}
         onDone={finishCheckpointModal}
+      />
+
+      <LessonAIHelpSheet
+        visible={aiHelpVisible}
+        context={aiHelpContext}
+        onDismiss={handleAiHelpDismiss}
       />
 
       <RewardClaimModal

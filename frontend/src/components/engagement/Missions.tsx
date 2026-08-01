@@ -23,8 +23,14 @@ import { useTranslation } from "react-i18next";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 import { formatNumber } from "utils/format";
 import MissionCard from "./MissionCard";
+import StreakWagerCard from "./StreakWagerCard";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient, queryKeys, staleTimes } from "lib/reactQuery";
+import {
+  fetchStreakWagers,
+  postStreakWagerCancel,
+  postStreakWagerOpen,
+} from "services/userService";
 
 function Missions() {
   type FinanceFact = { id: number; text: string; category?: string };
@@ -58,6 +64,7 @@ function Missions() {
     suggestedSavingsTarget: number;
     learningStyle: string;
   } | null>(null);
+  const [wagerBusy, setWagerBusy] = useState(false);
 
   const { data: profilePayload } = useQuery({
     queryKey: queryKeys.profile(),
@@ -79,6 +86,65 @@ function Missions() {
     refetchIntervalInBackground: true,
   });
   const multiStepMissions = missionsResponse?.data?.multi_step_missions || [];
+
+  const { data: wagersResponse, refetch: refetchWagers } = useQuery({
+    queryKey: queryKeys.streakWagers(),
+    queryFn: () => fetchStreakWagers(),
+    staleTime: 30_000,
+  });
+  const wagersData = wagersResponse?.data;
+
+  const handleOpenWager = useCallback(
+    async (targetDays: number) => {
+      if (isOffline) {
+        toast.error(t("missions.swap.offlineBlocked"));
+        return;
+      }
+      setWagerBusy(true);
+      try {
+        await postStreakWagerOpen(targetDays);
+        toast.success(t("wagers.toast.opened"));
+        await refetchWagers();
+        void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      } catch (error) {
+        const err = error as {
+          response?: { data?: { error?: string; message?: string } };
+        };
+        toast.error(
+          err.response?.data?.error ||
+            err.response?.data?.message ||
+            t("wagers.errors.open")
+        );
+      } finally {
+        setWagerBusy(false);
+      }
+    },
+    [isOffline, refetchWagers, t]
+  );
+
+  const handleCancelWager = useCallback(
+    async (wagerId: number) => {
+      setWagerBusy(true);
+      try {
+        await postStreakWagerCancel(wagerId);
+        toast.success(t("wagers.toast.cancelled"));
+        await refetchWagers();
+        void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      } catch (error) {
+        const err = error as {
+          response?: { data?: { error?: string; message?: string } };
+        };
+        toast.error(
+          err.response?.data?.error ||
+            err.response?.data?.message ||
+            t("wagers.errors.cancel")
+        );
+      } finally {
+        setWagerBusy(false);
+      }
+    },
+    [refetchWagers, t]
+  );
 
   const fetchSavingsBalance = useCallback(async () => {
     try {
@@ -596,6 +662,20 @@ function Missions() {
             {celebrationMessage}
           </div>
         </GlassCard>
+
+        {wagersData && (
+          <StreakWagerCard
+            active={wagersData.active}
+            history={wagersData.history}
+            stakeRewardTable={wagersData.stake_reward_table}
+            eligible={wagersData.eligible}
+            ineligibleReason={wagersData.ineligible_reason}
+            busy={wagerBusy}
+            onOpen={(targetDays) => void handleOpenWager(targetDays)}
+            onCancel={(wagerId) => void handleCancelWager(wagerId)}
+            t={t}
+          />
+        )}
 
         {Object.values(errors).length > 0 && (
           <GlassCard

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { AppState, type AppStateStatus } from "react-native";
+import { AppState, Platform, type AppStateStatus } from "react-native";
+import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -73,9 +74,8 @@ export function usePushNotifications(isAuthenticated: boolean) {
     // arrived before the user opted out still need to route on tap.
     setupNotificationResponseHandlers();
 
-    if (!pushAllowed) return;
-
     async function tryRegister() {
+      if (!pushAllowed) return;
       if (!(await shouldReregister())) return;
       // Never prompt from here: this runs on every foreground and would burn the
       // one-shot iOS dialog cold, before the onboarding priming screen gets to
@@ -87,10 +87,22 @@ export function usePushNotifications(isAuthenticated: boolean) {
       }
     }
 
+    // Badge count is an app-icon-wide unread indicator, not tied to the push
+    // preference — clear it whenever the user brings the app to the
+    // foreground so it never sticks around after they've seen the app.
+    // Reuses this same foreground listener rather than adding a second one.
+    function clearBadge() {
+      if (Platform.OS === "web") return;
+      void Notifications.setBadgeCountAsync(0);
+    }
+
     void tryRegister();
+    clearBadge();
 
     const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
-      if (state === "active") void tryRegister();
+      if (state !== "active") return;
+      void tryRegister();
+      clearBadge();
     });
 
     return () => sub.remove();

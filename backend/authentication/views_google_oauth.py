@@ -365,6 +365,10 @@ class GoogleOAuthCallbackView(APIView):
 
             apply_referral_for_new_user(user, True, request.GET.get("ref"))
 
+            from authentication.services.activation import grant_new_user_activation_bonus
+
+            grant_new_user_activation_bonus(user)
+
         refresh = RefreshToken.for_user(user)
         access_jwt = str(refresh.access_token)
 
@@ -537,6 +541,10 @@ class GoogleCredentialAuthView(APIView):
             profile = user.profile
             profile.signup_platform = resolve_request_platform(request)
             profile.save(update_fields=["signup_platform"])
+
+            from authentication.services.activation import grant_new_user_activation_bonus
+
+            grant_new_user_activation_bonus(user)
 
         from authentication.services.referrals import apply_referral_for_new_user
 

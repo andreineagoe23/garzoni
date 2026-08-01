@@ -1,9 +1,11 @@
 import {
   fetchActiveDuels,
   fetchFriendsList,
+  fetchIncomingFriendRequests,
   fetchLeaderboardFriends,
   fetchLeaderboardGlobal,
   fetchLeaderboardRank,
+  fetchLeagueCurrent,
   fetchProfile,
   fetchSentFriendRequests,
   queryKeys,
@@ -12,6 +14,7 @@ import {
   type FriendRequestSent,
   type FriendUserBrief,
   type LeaderboardEntry,
+  type LeagueStandingRow,
   type UserProfile,
 } from "@garzoni/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,6 +26,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -35,6 +39,24 @@ import LeaderboardRow from "../../src/components/leaderboard/LeaderboardRow";
 import LeaderboardSelfBar from "../../src/components/leaderboard/LeaderboardSelfBar";
 import LeaderboardSearchResults from "../../src/components/leaderboard/LeaderboardSearchResults";
 import LeaderboardSuggestionsCard from "../../src/components/leaderboard/LeaderboardSuggestionsCard";
+import LeagueZoneRow from "../../src/components/leaderboard/LeagueZoneRow";
+import {
+  leaderboardPointsLabel,
+  type LeaderboardTimeFilter,
+} from "../../src/components/leaderboard/leaderboardPointsLabel";
+import { shouldShowFriendRequestsCard } from "../../src/components/leaderboard/leaderboardFriendRequestsVisibility";
+import {
+  isCohortEligibleForPromotion,
+  leaguePromotionZoneForRank,
+} from "../../src/components/leaderboard/leaguePromotionZone";
+import {
+  leagueTierColor,
+  leagueTierNameKey,
+} from "../../src/components/leaderboard/leagueTierMeta";
+import {
+  deriveLeagueViewState,
+  isLeaguesEnabled,
+} from "../../src/components/leaderboard/leagueViewState";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { useScreenGutter } from "../../src/utils/platform";
 import TabScreenHeader from "../../src/components/navigation/TabScreenHeader";
@@ -46,6 +68,25 @@ import { spacing, typography, radius } from "../../src/theme/tokens";
 
 const LIST_PAGE_SIZE = 25;
 const SKILL_TABS = ["Budgeting", "Saving", "Investing", "Markets"];
+
+type TabKey = "global" | "friends" | "leagues";
+const BASE_TAB_KEYS: readonly TabKey[] = ["global", "friends"] as const;
+
+/** Maps one league standings row onto the shared LeaderboardEntry shape so
+ * LeaderboardRow/LeaderboardSelfBar/LeaderboardPodium can be reused as-is
+ * instead of forked for the leagues tab. */
+function leagueRowToLeaderboardEntry(row: LeagueStandingRow): LeaderboardEntry {
+  return {
+    user: { id: row.user_id, username: row.username, profile_avatar: null },
+    points: row.weekly_xp,
+    xp_window: row.weekly_xp,
+    rank: row.rank,
+  };
+}
+
+type FilterChip =
+  | { kind: "time"; value: "all-time" | "month" | "week"; label: string }
+  | { kind: "skill"; value: string; label: string };
 
 function referralCodeFromProfile(profile: UserProfile | undefined): string {
   if (!profile) return "";
@@ -70,12 +111,21 @@ export default function LeaderboardScreen() {
   const { t, i18n } = useTranslation("common");
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<"global" | "friends">("global");
+  const [activeTab, setActiveTab] = useState<TabKey>("global");
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState("all-time");
   const [searchQuery, setSearchQuery] = useState("");
   const [listVisible, setListVisible] = useState(LIST_PAGE_SIZE);
   const [pullRefreshing, setPullRefreshing] = useState(false);
+
+  // The backend treats time_filter and skill as mutually exclusive —
+  // `?skill=` returns early and ignores time_filter entirely — and the
+  // friends board never carries a window at all. This is the single source
+  // of truth for "does the currently-visible data represent a window".
+  const effectiveTimeFilter: LeaderboardTimeFilter =
+    activeTab === "global" && !activeSkill
+      ? (timeFilter as LeaderboardTimeFilter)
+      : "all-time";
 
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(),
@@ -96,9 +146,18 @@ export default function LeaderboardScreen() {
     staleTime: staleTimes.progressSummary,
   });
 
+  // Always fetched (not gated to the leagues tab) — this response is also
+  // what decides whether the Leagues tab is shown at all.
+  const leagueCurrentQuery = useQuery({
+    queryKey: queryKeys.leagueCurrent(),
+    queryFn: () => fetchLeagueCurrent().then((r) => r.data),
+    staleTime: staleTimes.progressSummary,
+  });
+
   const rankQuery = useQuery({
-    queryKey: queryKeys.leaderboardRank(),
-    queryFn: () => fetchLeaderboardRank().then((r) => r.data),
+    queryKey: queryKeys.leaderboardRank(effectiveTimeFilter),
+    queryFn: () =>
+      fetchLeaderboardRank(effectiveTimeFilter).then((r) => r.data),
     staleTime: staleTimes.profile,
   });
 
@@ -113,6 +172,16 @@ export default function LeaderboardScreen() {
     queryFn: () => fetchFriendsList().then((r) => r.data),
     staleTime: 60_000,
   });
+
+  // Lightweight query for the tab badge + card-visibility gate. Same query
+  // key as the one inside LeaderboardFriendRequestsCard, so react-query
+  // dedupes the network request and shares the cache between the two.
+  const incomingRequestsQuery = useQuery({
+    queryKey: queryKeys.friendRequestsIncoming(),
+    queryFn: () => fetchIncomingFriendRequests().then((r) => r.data),
+    staleTime: 60_000,
+  });
+  const incomingCount = incomingRequestsQuery.data?.length ?? 0;
 
   const activeDuelsQuery = useQuery({
     queryKey: queryKeys.duelsActive(),
@@ -131,10 +200,39 @@ export default function LeaderboardScreen() {
     [profile],
   );
 
+  // Derived purely from the /leagues/current/ response — never hardcoded —
+  // so the tab disappears entirely when the backend reports leagues disabled,
+  // and the bar otherwise keeps working exactly as it does today.
+  const leaguesEnabled = isLeaguesEnabled(leagueCurrentQuery.data);
+  const tabKeys = useMemo<readonly TabKey[]>(
+    () => (leaguesEnabled ? [...BASE_TAB_KEYS, "leagues"] : BASE_TAB_KEYS),
+    [leaguesEnabled],
+  );
+  useEffect(() => {
+    if (activeTab === "leagues" && !leaguesEnabled) setActiveTab("global");
+  }, [activeTab, leaguesEnabled]);
+
+  const leagueViewState = deriveLeagueViewState({
+    isPending: leagueCurrentQuery.isPending,
+    isError: leagueCurrentQuery.isError,
+    data: leagueCurrentQuery.data,
+  });
+  const leagueData = leagueCurrentQuery.data;
+  const leagueStandings = useMemo(
+    () =>
+      leagueData?.enabled === true && leagueData.assigned
+        ? leagueData.standings
+        : [],
+    [leagueData],
+  );
+  const leagueTotalMembers = leagueStandings.length;
+
   const sourceList = useMemo(() => {
     if (activeTab === "global") return globalQuery.data ?? [];
+    if (activeTab === "leagues")
+      return leagueStandings.map(leagueRowToLeaderboardEntry);
     return friendsBoardQuery.data ?? [];
-  }, [activeTab, globalQuery.data, friendsBoardQuery.data]);
+  }, [activeTab, globalQuery.data, friendsBoardQuery.data, leagueStandings]);
 
   const filteredLeaderboard = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -148,16 +246,20 @@ export default function LeaderboardScreen() {
     setListVisible(LIST_PAGE_SIZE);
   }, [searchQuery, activeTab, timeFilter, activeSkill]);
 
+  // Leagues, like friends, skips the top-3 podium: the promotion/demotion
+  // zone framing needs the top of the list rendered as ordinary rows (with
+  // their zone stripe), not medal cards.
   const podiumEntries = useMemo(
     () =>
-      activeTab === "friends"
+      activeTab === "friends" || activeTab === "leagues"
         ? []
         : filteredLeaderboard.slice(0, Math.min(3, filteredLeaderboard.length)),
     [filteredLeaderboard, activeTab],
   );
 
   const listRemainder = useMemo(() => {
-    if (activeTab === "friends") return filteredLeaderboard;
+    if (activeTab === "friends" || activeTab === "leagues")
+      return filteredLeaderboard;
     if (filteredLeaderboard.length <= 3) return [];
     return filteredLeaderboard.slice(3);
   }, [filteredLeaderboard, activeTab]);
@@ -238,6 +340,7 @@ export default function LeaderboardScreen() {
         profileQuery.refetch(),
         globalQuery.refetch(),
         friendsBoardQuery.refetch(),
+        leagueCurrentQuery.refetch(),
         rankQuery.refetch(),
         sentQuery.refetch(),
         friendsListQuery.refetch(),
@@ -252,6 +355,7 @@ export default function LeaderboardScreen() {
     profileQuery,
     globalQuery,
     friendsBoardQuery,
+    leagueCurrentQuery,
     rankQuery,
     sentQuery,
     friendsListQuery,
@@ -260,28 +364,60 @@ export default function LeaderboardScreen() {
   ]);
 
   const userRank = rankQuery.data;
+  // The global-leaderboard rank card doesn't apply to the leagues tab (a
+  // league rank is a different metric — this cycle's cohort position, not
+  // lifetime/windowed XP rank), so it's suppressed there.
   const showOutOfListRank =
+    activeTab !== "leagues" &&
     userRank &&
     !filteredLeaderboard.some((e) => e.user?.id === userRank.user?.id);
 
-  const timeOptions = useMemo(
+  // Single combined row: time-window chips and skill chips are mutually
+  // exclusive on the backend, so they live in one horizontally scrolling
+  // row with exactly one active chip, instead of two independently-live
+  // rows that implied you could combine them.
+  const filterChips: FilterChip[] = useMemo(
     () => [
-      { value: "all-time", label: t("leaderboard.time.allTime") },
-      { value: "month", label: t("leaderboard.time.thisMonth") },
-      { value: "week", label: t("leaderboard.time.thisWeek") },
+      { kind: "time", value: "all-time", label: t("leaderboard.time.allTime") },
+      { kind: "time", value: "month", label: t("leaderboard.time.thisMonth") },
+      { kind: "time", value: "week", label: t("leaderboard.time.thisWeek") },
+      ...SKILL_TABS.map((skill): FilterChip => ({
+        kind: "skill",
+        value: skill,
+        label: t(`leaderboard.skills.${skill}`),
+      })),
     ],
     [t],
   );
+
+  const isChipActive = useCallback(
+    (chip: FilterChip) =>
+      chip.kind === "time"
+        ? !activeSkill && timeFilter === chip.value
+        : activeSkill === chip.value,
+    [activeSkill, timeFilter],
+  );
+
+  const onChipPress = useCallback((chip: FilterChip) => {
+    if (chip.kind === "time") {
+      setActiveSkill(null);
+      setTimeFilter(chip.value);
+    } else {
+      setActiveSkill(chip.value);
+    }
+  }, []);
 
   const pageLoading =
     (activeTab === "global" && globalQuery.isPending && !globalQuery.data) ||
     (activeTab === "friends" &&
       friendsBoardQuery.isPending &&
-      !friendsBoardQuery.data);
+      !friendsBoardQuery.data) ||
+    (activeTab === "leagues" && leagueViewState === "loading");
 
   const loadError =
     (activeTab === "global" && globalQuery.isError) ||
-    (activeTab === "friends" && friendsBoardQuery.isError);
+    (activeTab === "friends" && friendsBoardQuery.isError) ||
+    (activeTab === "leagues" && leagueViewState === "error");
 
   const rankForEntry = (entry: LeaderboardEntry, fallbackRank: number) =>
     entry.rank ?? fallbackRank;
@@ -308,17 +444,23 @@ export default function LeaderboardScreen() {
   const headerTitle =
     activeTab === "global"
       ? t("leaderboard.title.global")
-      : t("leaderboard.title.friends");
+      : activeTab === "leagues"
+        ? t("leaderboard.title.leagues")
+        : t("leaderboard.title.friends");
 
+  // Vertical rhythm is owned ENTIRELY by styles.headerStack's `gap`. Blocks in
+  // here are conditional per tab, so when each block carried its own
+  // marginTop/marginBottom the totals silently differed between tabs (tight on
+  // Friends, lg on Leagues, md on Global). Do not reintroduce vertical margins
+  // on these children — RN does not collapse margins, so they stack on the gap.
   const listHeader = (
-    <>
-      <LeaderboardReferralCard referralCode={referralCode} />
-      <LeaderboardFriendRequestsCard />
-
-      <Text style={[styles.h1, { color: c.text }]}>{headerTitle}</Text>
-      <Text style={[styles.subtitle, { color: c.textMuted }]}>
-        {t("leaderboard.subtitle")}
-      </Text>
+    <View style={styles.headerStack}>
+      <View>
+        <Text style={[styles.h1, { color: c.text }]}>{headerTitle}</Text>
+        <Text style={[styles.subtitle, { color: c.textMuted }]}>
+          {t("leaderboard.subtitle")}
+        </Text>
+      </View>
 
       <View
         style={[
@@ -326,7 +468,7 @@ export default function LeaderboardScreen() {
           { borderColor: c.border, backgroundColor: c.surface },
         ]}
       >
-        {(["global", "friends"] as const).map((tab) => (
+        {tabKeys.map((tab) => (
           <Pressable
             key={tab}
             onPress={() => setActiveTab(tab)}
@@ -347,88 +489,108 @@ export default function LeaderboardScreen() {
             >
               {tab === "global"
                 ? t("leaderboard.tabs.global")
-                : t("leaderboard.tabs.friends")}
+                : tab === "leagues"
+                  ? t("leaderboard.tabs.leagues")
+                  : incomingCount > 0
+                    ? t("leaderboard.tabs.friendsCount", {
+                        count: incomingCount,
+                      })
+                    : t("leaderboard.tabs.friends")}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      {activeTab === "global" ? (
-        <View style={styles.timeRow}>
-          {timeOptions.map((opt) => (
-            <Pressable
-              key={opt.value}
-              onPress={() => setTimeFilter(opt.value)}
-              style={[
-                styles.timeChip,
-                {
-                  borderColor: c.border,
-                  backgroundColor:
-                    timeFilter === opt.value ? c.primarySoft : c.surface,
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  fontSize: typography.xs,
-                  fontWeight: "700",
-                  color: c.text,
-                }}
-              >
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+      {/* Friend requests + referral live below the tab bar, Friends-tab only —
+          previously they rendered above the title/tab bar on every tab, even
+          with zero pending requests, pushing the actual leaderboard below the fold. */}
+      {activeTab === "friends" ? (
+        <>
+          <LeaderboardReferralCard referralCode={referralCode} />
+          {shouldShowFriendRequestsCard(incomingCount) ? (
+            <LeaderboardFriendRequestsCard />
+          ) : null}
+        </>
+      ) : null}
+
+      {activeTab === "leagues" &&
+      leagueViewState === "active" &&
+      leagueData?.enabled === true &&
+      leagueData.assigned ? (
+        <GlassCard
+          padding="md"
+          style={{
+            borderColor: `${leagueTierColor(leagueData.tier)}66`,
+            backgroundColor: `${leagueTierColor(leagueData.tier)}14`,
+          }}
+        >
+          <Text
+            style={{
+              color: c.text,
+              fontWeight: "800",
+              fontSize: typography.md,
+            }}
+          >
+            {t(leagueTierNameKey(leagueData.tier))}
+          </Text>
+          <Text
+            style={{
+              color: c.textMuted,
+              marginTop: 2,
+              fontSize: typography.xs,
+            }}
+          >
+            {t("leaderboard.leagues.cycleLabel", {
+              cycle: leagueData.cycle_id,
+            })}
+          </Text>
+          <Text
+            style={{
+              color: c.textMuted,
+              marginTop: spacing.sm,
+              fontSize: typography.sm,
+            }}
+          >
+            {isCohortEligibleForPromotion(leagueTotalMembers)
+              ? t("leaderboard.leagues.zone.explanation")
+              : t("leaderboard.leagues.notEnoughPlayers")}
+          </Text>
+        </GlassCard>
       ) : null}
 
       {activeTab === "global" ? (
-        <View style={styles.timeRow}>
-          <Pressable
-            onPress={() => setActiveSkill(null)}
-            style={[
-              styles.timeChip,
-              {
-                borderColor: !activeSkill ? c.primary : c.border,
-                backgroundColor: !activeSkill ? c.primarySoft : c.surface,
-              },
-            ]}
-          >
-            <Text
-              style={{
-                fontSize: typography.xs,
-                fontWeight: "800",
-                color: c.text,
-              }}
-            >
-              XP
-            </Text>
-          </Pressable>
-          {SKILL_TABS.map((skill) => (
-            <Pressable
-              key={skill}
-              onPress={() => setActiveSkill(skill)}
-              style={[
-                styles.timeChip,
-                {
-                  borderColor: activeSkill === skill ? c.primary : c.border,
-                  backgroundColor:
-                    activeSkill === skill ? c.primarySoft : c.surface,
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  fontSize: typography.xs,
-                  fontWeight: "800",
-                  color: c.text,
-                }}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.timeRow}
+        >
+          {filterChips.map((chip) => {
+            const active = isChipActive(chip);
+            return (
+              <Pressable
+                key={`${chip.kind}-${chip.value}`}
+                onPress={() => onChipPress(chip)}
+                style={[
+                  styles.timeChip,
+                  {
+                    borderColor: active ? c.primary : c.border,
+                    backgroundColor: active ? c.primarySoft : c.surface,
+                  },
+                ]}
               >
-                {skill}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+                <Text
+                  style={{
+                    fontSize: typography.xs,
+                    fontWeight: "700",
+                    color: c.text,
+                  }}
+                >
+                  {chip.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       ) : null}
 
       <TextInput
@@ -456,12 +618,11 @@ export default function LeaderboardScreen() {
       ) : null}
 
       {loadError ? (
-        <GlassCard
-          padding="md"
-          style={{ borderColor: `${c.error}55`, marginBottom: spacing.md }}
-        >
+        <GlassCard padding="md" style={{ borderColor: `${c.error}55` }}>
           <Text style={{ color: c.error, fontSize: typography.sm }}>
-            {t("leaderboard.errors.loadFailed")}
+            {activeTab === "leagues"
+              ? t("leaderboard.leagues.loadFailed")
+              : t("leaderboard.errors.loadFailed")}
           </Text>
         </GlassCard>
       ) : null}
@@ -476,7 +637,6 @@ export default function LeaderboardScreen() {
         <GlassCard
           padding="md"
           style={{
-            marginBottom: spacing.lg,
             borderColor: `${c.accent}66`,
             backgroundColor: `${c.accent}12`,
           }}
@@ -504,9 +664,12 @@ export default function LeaderboardScreen() {
               <Text
                 style={{ color: c.accent, marginTop: 4, fontWeight: "600" }}
               >
-                {t("leaderboard.points", {
-                  points: formatPoints(userRank.points ?? 0),
-                })}
+                {leaderboardPointsLabel(
+                  t,
+                  formatPoints,
+                  userRank,
+                  effectiveTimeFilter,
+                )}
               </Text>
             </View>
           </View>
@@ -530,9 +693,10 @@ export default function LeaderboardScreen() {
               : router.push(`/friend/${uid}`)
           }
           busy={sendMut.isPending}
+          timeFilter={effectiveTimeFilter}
         />
       ) : null}
-    </>
+    </View>
   );
 
   const listEmpty = pageLoading ? (
@@ -553,6 +717,32 @@ export default function LeaderboardScreen() {
         {t("leaderboard.loading")}
       </Text>
     </View>
+  ) : filteredLeaderboard.length === 0 &&
+    !loadError &&
+    activeTab === "leagues" &&
+    leagueViewState === "unassigned" ? (
+    <GlassCard padding="lg">
+      <Text
+        style={{
+          color: c.text,
+          textAlign: "center",
+          fontWeight: "700",
+          fontSize: typography.base,
+        }}
+      >
+        {t("leaderboard.leagues.empty.title")}
+      </Text>
+      <Text
+        style={{
+          color: c.textMuted,
+          textAlign: "center",
+          fontSize: typography.sm,
+          marginTop: spacing.xs,
+        }}
+      >
+        {t("leaderboard.leagues.empty.description")}
+      </Text>
+    </GlassCard>
   ) : filteredLeaderboard.length === 0 && !loadError ? (
     <GlassCard padding="lg">
       <Text
@@ -582,7 +772,8 @@ export default function LeaderboardScreen() {
           data={flatData}
           keyExtractor={(item, i) => String(item.user?.id ?? `row-${i}`)}
           renderItem={({ item, index }) => {
-            const positionOffset = activeTab === "friends" ? 0 : 3;
+            const positionOffset =
+              activeTab === "friends" || activeTab === "leagues" ? 0 : 3;
             const position = rankForEntry(item, positionOffset + index + 1);
             const uid = item.user?.id;
             const isYou = currentUserId !== null && uid === currentUserId;
@@ -591,7 +782,7 @@ export default function LeaderboardScreen() {
               activeTab === "friends" && uid != null && !isYou
                 ? (duelStatusByUserId.get(uid) ?? null)
                 : null;
-            return (
+            const row = (
               <LeaderboardRow
                 entry={item}
                 position={position}
@@ -613,7 +804,45 @@ export default function LeaderboardScreen() {
                 t={t}
                 formatPoints={formatPoints}
                 duelStatus={duelStatus}
+                timeFilter={
+                  activeTab === "leagues" ? "week" : effectiveTimeFilter
+                }
               />
+            );
+
+            if (activeTab !== "leagues") return row;
+
+            // Zone is derived from the row's actual league rank (not the
+            // possibly search-filtered `position`) against the full cohort
+            // size, mirroring backend/gamification/services/leagues.py's
+            // promotion/demotion boundary.
+            const rank = item.rank ?? position;
+            const zone = leaguePromotionZoneForRank(rank, leagueTotalMembers);
+            const prevItem = index > 0 ? visibleRemainder[index - 1] : null;
+            const prevZone = prevItem
+              ? leaguePromotionZoneForRank(
+                  prevItem.rank ?? position,
+                  leagueTotalMembers,
+                )
+              : null;
+            const dividerFor =
+              (zone === "promote" || zone === "demote") && zone !== prevZone
+                ? zone
+                : null;
+            return (
+              <LeagueZoneRow
+                zone={zone}
+                dividerFor={dividerFor}
+                dividerLabel={
+                  dividerFor === "promote"
+                    ? t("leaderboard.leagues.zone.promoteDivider")
+                    : dividerFor === "demote"
+                      ? t("leaderboard.leagues.zone.demoteDivider")
+                      : undefined
+                }
+              >
+                {row}
+              </LeagueZoneRow>
             );
           }}
           ListHeaderComponent={listHeader}
@@ -661,6 +890,8 @@ export default function LeaderboardScreen() {
             entry={pinnedSelf.entry}
             rank={pinnedSelf.rank}
             formatPoints={formatPoints}
+            t={t}
+            timeFilter={activeTab === "leagues" ? "week" : effectiveTimeFilter}
             onPress={() => {
               router.push("/(tabs)/profile");
             }}
@@ -678,11 +909,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: 48,
   },
+  // Single owner of the header's vertical rhythm — every direct child of the
+  // header is spaced by this gap alone. paddingBottom separates the last
+  // header block from the first list row regardless of which tab is active.
+  headerStack: { gap: spacing.lg, paddingBottom: spacing.lg },
   h1: { fontSize: typography.xl, fontWeight: "800", marginTop: spacing.sm },
   subtitle: { fontSize: typography.sm, marginTop: spacing.xs, lineHeight: 20 },
   tabBar: {
     flexDirection: "row",
-    marginTop: spacing.lg,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 4,
@@ -696,9 +930,8 @@ const styles = StyleSheet.create({
   },
   timeRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.sm,
-    marginTop: spacing.md,
+    paddingRight: spacing.md,
   },
   timeChip: {
     paddingHorizontal: spacing.md,
@@ -707,8 +940,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   search: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.lg,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.lg,

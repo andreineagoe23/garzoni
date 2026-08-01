@@ -206,6 +206,17 @@ BADGE_EVAL_SYNC = env_bool("BADGE_EVAL_SYNC", DEBUG)
 # pool per user. Kill switch for the C1 rollout.
 MISSIONS_LAZY_ASSIGNMENT = env_bool("MISSIONS_LAZY_ASSIGNMENT", True)
 
+# Weekly Leagues (Duolingo-style cohorts). Kill switch — everything in
+# gamification/services/leagues.py (assignment, XP bump, weekly close, API)
+# is a no-op while this is False. Default on now that the client is wired up;
+# the cold-start merge in services/leagues.py (LEAGUE_MIN_COHORT_SIZE) covers
+# the low-DAU/tiny-cohort case, so this no longer needs to stay off by default.
+LEAGUES_ENABLED = env_bool("LEAGUES_ENABLED", True)
+# Ceiling on members per league cohort before a new cohort (same tier/cycle,
+# next index) is opened. See LEAGUE_MIN_COHORT_SIZE in services/leagues.py
+# for the cold-start floor below which tiers get merged instead.
+LEAGUE_COHORT_SIZE = int(os.getenv("LEAGUE_COHORT_SIZE", "30"))
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",

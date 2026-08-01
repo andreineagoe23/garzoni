@@ -2,6 +2,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { LeaderboardEntry } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { spacing, typography } from "../../theme/tokens";
+import {
+  leaderboardPointsLabel,
+  type LeaderboardTimeFilter,
+} from "./leaderboardPointsLabel";
 
 type Props = {
   entry: LeaderboardEntry;
@@ -9,6 +13,9 @@ type Props = {
   formatPoints: (n: number) => string;
   onPress?: () => void;
   label?: string;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+  /** Defaults to "all-time" — pass the active tab's filter to surface windowed XP. */
+  timeFilter?: LeaderboardTimeFilter;
 };
 
 /**
@@ -20,6 +27,8 @@ export default function LeaderboardSelfBar({
   formatPoints,
   onPress,
   label = "You",
+  t,
+  timeFilter = "all-time",
 }: Props) {
   const c = useThemeColors();
 
@@ -56,7 +65,7 @@ export default function LeaderboardSelfBar({
             {label} · {entry.user?.username ?? "—"}
           </Text>
           <Text style={[styles.pts, { color: c.textMuted }]}>
-            {formatPoints(entry.points ?? 0)} pts
+            {leaderboardPointsLabel(t, formatPoints, entry, timeFilter)}
           </Text>
         </View>
         {onPress ? (

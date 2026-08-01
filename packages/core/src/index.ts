@@ -40,6 +40,7 @@ export {
   requestAiTutorPayload,
   requestAiTutorHint,
   explainExercise,
+  ExerciseExplainQuotaError,
 } from "./services/aiTutor";
 export type {
   AiTutorLink,

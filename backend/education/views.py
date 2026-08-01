@@ -2180,7 +2180,40 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             course=mastery_course,
         )
         mastery_before = mastery.proficiency
+        # "Came from the review queue" mirrors _review_queue_payload's own filter
+        # exactly (due_at__lte=now, course__isnull=False, legacy=False) — submit()
+        # has no explicit "this came from /review-queue/" flag from the client, so
+        # this is the closest defensible signal: this IS the same Mastery row (and
+        # the same predicate) that endpoint uses to decide what's due. Must be read
+        # before .bump() below, which mutates due_at. Uses a fresh timestamp (not
+        # the `now` captured at the top of the request) because a brand-new
+        # Mastery's due_at defaults to its own creation time, which can land a
+        # hair after the request's earlier `now` and falsely read as "not due".
+        review_check_time = timezone.now()
+        was_due_for_review = (
+            is_correct
+            and mastery.course_id is not None
+            and not mastery.legacy
+            and mastery.due_at <= review_check_time
+        )
         mastery.bump(is_correct, confidence, hints_used=hints_used, attempts=progress.attempts)
+
+        if was_due_for_review:
+            # Practice-to-earn hearts (server-verified): only counts while the
+            # user is actually at 0 hearts, checked and locked inside the service
+            # itself. Never let this block the exercise-submit response.
+            try:
+                from authentication.services.hearts import (
+                    record_correct_review_answer_for_hearts,
+                )
+
+                record_correct_review_answer_for_hearts(request.user, now=now)
+            except Exception:
+                logger.exception(
+                    "hearts_practice_grant_failed user_id=%s exercise_id=%s",
+                    request.user.id,
+                    exercise.id,
+                )
 
         xp_delta = (
             0

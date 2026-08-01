@@ -5,10 +5,13 @@ import {
   fetchProfile,
   fetchSavingsBalance,
   fetchStreakItems,
+  fetchStreakWagers,
   getUserLevel,
   markFinanceFactRead,
   mergeMissionDeltas,
   postSavingsDeposit,
+  postStreakWagerCancel,
+  postStreakWagerOpen,
   queryKeys,
   staleTimes,
   swapMission,
@@ -32,6 +35,7 @@ import {
 import Toast from "react-native-toast-message";
 import MissionCard from "../src/components/engagement/MissionCard";
 import AnimatedMissionCard from "../src/components/engagement/AnimatedMissionCard";
+import StreakWagerCard from "../src/components/engagement/StreakWagerCard";
 import RewardClaimModal from "../src/components/engagement/RewardClaimModal";
 import MascotWithMessage from "../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../src/components/common/TabErrorBoundary";
@@ -83,6 +87,7 @@ export default function MissionsScreen() {
     name: string;
     xp: number;
   } | null>(null);
+  const [wagerBusy, setWagerBusy] = useState(false);
 
   const savingsMenuInitializedRef = useRef(false);
   const completedMissionsRef = useRef(new Set<string | number>());
@@ -114,6 +119,12 @@ export default function MissionsScreen() {
     queryKey: queryKeys.streakItems(),
     queryFn: () => fetchStreakItems().then((r) => r.data.items ?? []),
     staleTime: 60_000,
+  });
+
+  const wagersQuery = useQuery({
+    queryKey: queryKeys.streakWagers(),
+    queryFn: () => fetchStreakWagers().then((r) => r.data),
+    staleTime: 30_000,
   });
 
   const factQuery = useQuery({
@@ -469,6 +480,61 @@ export default function MissionsScreen() {
     [isOffline, performSwap, t],
   );
 
+  const handleOpenWager = useCallback(
+    async (targetDays: number) => {
+      if (isOffline) {
+        Toast.show({ type: "info", text1: t("missions.swap.offlineBlocked") });
+        return;
+      }
+      setWagerBusy(true);
+      try {
+        await postStreakWagerOpen(targetDays);
+        void Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
+        Toast.show({ type: "success", text1: t("wagers.toast.opened") });
+        await wagersQuery.refetch();
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      } catch (e: unknown) {
+        const err = e as {
+          response?: { data?: { error?: string; message?: string } };
+        };
+        const msg =
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          t("wagers.errors.open");
+        Toast.show({ type: "error", text1: String(msg) });
+      } finally {
+        setWagerBusy(false);
+      }
+    },
+    [isOffline, queryClient, t, wagersQuery],
+  );
+
+  const handleCancelWager = useCallback(
+    async (wagerId: number) => {
+      setWagerBusy(true);
+      try {
+        await postStreakWagerCancel(wagerId);
+        Toast.show({ type: "success", text1: t("wagers.toast.cancelled") });
+        await wagersQuery.refetch();
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      } catch (e: unknown) {
+        const err = e as {
+          response?: { data?: { error?: string; message?: string } };
+        };
+        const msg =
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          t("wagers.errors.cancel");
+        Toast.show({ type: "error", text1: String(msg) });
+      } finally {
+        setWagerBusy(false);
+      }
+    },
+    [queryClient, t, wagersQuery],
+  );
+
   const onRefresh = useCallback(async () => {
     setPullRefreshing(true);
     try {
@@ -477,12 +543,20 @@ export default function MissionsScreen() {
         factQuery.refetch(),
         savingsQuery.refetch(),
         streakItemsQuery.refetch(),
+        wagersQuery.refetch(),
         profileQuery.refetch(),
       ]);
     } finally {
       setPullRefreshing(false);
     }
-  }, [missionsQuery, factQuery, savingsQuery, streakItemsQuery, profileQuery]);
+  }, [
+    missionsQuery,
+    factQuery,
+    savingsQuery,
+    streakItemsQuery,
+    wagersQuery,
+    profileQuery,
+  ]);
 
   const errorMessages = Object.values(errors).filter(Boolean);
   const swapAllowed = canSwap && !isOffline;
@@ -635,6 +709,20 @@ export default function MissionsScreen() {
               </View>
             ) : null}
           </GlassCard>
+
+          {wagersQuery.data ? (
+            <StreakWagerCard
+              active={wagersQuery.data.active}
+              history={wagersQuery.data.history}
+              stakeRewardTable={wagersQuery.data.stake_reward_table}
+              eligible={wagersQuery.data.eligible}
+              ineligibleReason={wagersQuery.data.ineligible_reason}
+              busy={wagerBusy}
+              onOpen={(targetDays) => void handleOpenWager(targetDays)}
+              onCancel={(wagerId) => void handleCancelWager(wagerId)}
+              t={t}
+            />
+          ) : null}
 
           {errorMessages.length > 0 ? (
             <GlassCard

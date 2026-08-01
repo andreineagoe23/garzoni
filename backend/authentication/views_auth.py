@@ -491,6 +491,13 @@ class RegisterSecureView(generics.CreateAPIView):
             mask_identifier(user.username),
         )
 
+        # Welcome bonus + day-1 streak seed so the first dashboard view isn't a
+        # cold zero state (the pre-auth demo lesson already gave them content
+        # progress, but nothing server-side to show for it yet). Never raises.
+        from authentication.services.activation import grant_new_user_activation_bonus
+
+        grant_new_user_activation_bonus(user)
+
         response = Response(
             {
                 "access": access_token,

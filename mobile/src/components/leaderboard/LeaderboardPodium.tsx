@@ -6,6 +6,10 @@ import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import { spacing } from "../../theme/tokens";
 import { leaderboardAvatarUri } from "./leaderboardAvatarUri";
+import {
+  leaderboardPointsLabel,
+  type LeaderboardTimeFilter,
+} from "./leaderboardPointsLabel";
 
 // Gold / Silver / Bronze — medal colours intentionally distinct from brand green
 const PODIUM_BORDER = [
@@ -24,6 +28,8 @@ type Props = {
   onAddFriend?: (userId: number) => void;
   onPressEntry?: (userId: number, isYou: boolean) => void;
   busy?: boolean;
+  /** Defaults to "all-time" — pass the active tab's filter to surface windowed XP. */
+  timeFilter?: LeaderboardTimeFilter;
 };
 
 function rankForEntry(entry: LeaderboardEntry, fallbackRank: number) {
@@ -40,6 +46,7 @@ export default function LeaderboardPodium({
   onAddFriend,
   onPressEntry,
   busy,
+  timeFilter = "all-time",
 }: Props) {
   const c = useThemeColors();
 
@@ -108,9 +115,7 @@ export default function LeaderboardPodium({
                 </View>
               ) : null}
               <Text style={[styles.points, { color: c.textMuted }]}>
-                {t("leaderboard.points", {
-                  points: formatPoints(entry.points ?? 0),
-                })}
+                {leaderboardPointsLabel(t, formatPoints, entry, timeFilter)}
               </Text>
             </Pressable>
             {!isYou && uid != null && onAddFriend
@@ -179,7 +184,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     gap: spacing.sm,
-    marginBottom: spacing.lg,
   },
   card: {
     flex: 1,

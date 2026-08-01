@@ -149,6 +149,41 @@ def evaluate_badges_task(user_id: int) -> None:
         logger.exception("evaluate_badges_task failed user_id=%s", user_id)
 
 
+@shared_task(name="gamification.tasks.resolve_wagers_task")
+def resolve_wagers_task():
+    """Resolve every streak wager past its deadline (win/loss payout). Idempotent."""
+    from gamification.services.wagers import resolve_wagers
+
+    result = resolve_wagers()
+    logger.info(
+        "resolve_wagers_task considered=%s won=%s lost=%s skipped=%s",
+        result["considered"],
+        result["won"],
+        result["lost"],
+        result["skipped"],
+    )
+    return result
+
+
+@shared_task(name="gamification.tasks.close_leagues_week")
+def close_leagues_week():
+    """Weekly league settlement: rank, promote/demote/hold, and pay out every
+    league of the closing cycle. No-op when LEAGUES_ENABLED is false. Idempotent."""
+    if not getattr(settings, "LEAGUES_ENABLED", False):
+        return {"enabled": False, "leagues_closed": 0, "members_processed": 0}
+
+    from gamification.services.leagues import close_week
+
+    result = close_week()
+    logger.info(
+        "close_leagues_week cycle_id=%s leagues_closed=%s members_processed=%s",
+        result.get("cycle_id"),
+        result.get("leagues_closed"),
+        result.get("members_processed"),
+    )
+    return result
+
+
 @shared_task(name="gamification.tasks.finalize_due_duels")
 def finalize_due_duels():
     """Score and award duels whose `ends_at` has passed; expire pending duels older than 24h."""

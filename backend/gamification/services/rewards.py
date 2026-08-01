@@ -190,6 +190,10 @@ def grant_reward(
                     points=points,
                     coins=coins_dec,
                 )
+                if points:
+                    from gamification.services.leagues import record_league_xp
+
+                    record_league_xp(user, points)
             profile = user.profile
             if points:
                 profile.add_points(points)
