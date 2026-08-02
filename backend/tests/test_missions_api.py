@@ -277,3 +277,122 @@ class MissionsLazyAssignmentTest(APITestCase):
         self.assertIn(outside.id, rows)
         self.assertEqual(rows[outside.id]["progress"], 50)
         self.assertEqual(len(response.data["daily_missions"]), 4)
+
+
+class ReviewQueueMissionProgressTest(APITestCase):
+    """`clear_review_queue` missions used to have no trigger at all: nothing
+    called update_progress for that goal type, so every user carried a
+    permanently-0% mission. Clearing a due review item must advance them."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="review-mission-user",
+            password="unit-test-password!",
+        )
+        self.client.force_authenticate(user=self.user)
+        self.mission = Mission.objects.create(
+            name="Clear your reviews",
+            description="Clear the review queue",
+            points_reward=25,
+            mission_type="daily",
+            goal_type="clear_review_queue",
+            goal_reference={"target_count": 1},
+        )
+
+    def test_correct_review_answer_advances_review_queue_mission(self):
+        from django.urls import reverse
+
+        from education.models import Course, Exercise, Path
+
+        path = Path.objects.create(title="Review Path", description="")
+        Course.objects.create(title="Review Skill", description="", path=path, is_active=True)
+        exercise = Exercise.objects.create(
+            type="numeric",
+            question="What is 2+2?",
+            exercise_data={},
+            correct_answer=4,
+            category="Review Skill",
+            is_published=True,
+        )
+
+        # No row exists yet — the trigger has to materialize it lazily.
+        self.assertFalse(
+            MissionCompletion.objects.filter(user=self.user, mission=self.mission).exists()
+        )
+
+        response = self.client.post(
+            reverse("exercise-submit", kwargs={"pk": exercise.pk}),
+            {"user_answer": 4},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["correct"])
+
+        completion = MissionCompletion.objects.get(user=self.user, mission=self.mission)
+        self.assertEqual(completion.progress, 100)
+        self.assertEqual(completion.status, "completed")
+        self.assertEqual(completion.xp_awarded, 25)
+
+
+class MultiStepQuestRewardTest(APITestCase):
+    """Finishing a quest advertised `points_reward` / `badge_name` in the API
+    payload but granted neither — the last step paid nothing."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="quest-reward-user",
+            password="unit-test-password!",
+        )
+
+    def test_final_step_grants_xp_and_badge_once(self):
+        from gamification.models import (
+            Badge,
+            MultiStepMission,
+            MultiStepMissionProgress,
+            RewardLedgerEntry,
+            UserBadge,
+        )
+
+        Badge.objects.get_or_create(
+            name="Market Ready",
+            defaults={
+                "description": "Quest badge",
+                "criteria_type": "missions_completed",
+                "threshold": 1,
+            },
+        )
+        mission = MultiStepMission.objects.create(
+            name="The Investor's Week",
+            slug="investors-week-test",
+            description="",
+            points_reward=200,
+            badge_name="Market Ready",
+            steps=[{"id": "a"}, {"id": "b"}],
+        )
+        progress = MultiStepMissionProgress.objects.create(user=self.user, mission=mission)
+
+        progress.mark_step_complete("a")
+        self.assertEqual(progress.status, "in_progress")
+        self.assertEqual(RewardLedgerEntry.objects.filter(user=self.user).count(), 0)
+
+        progress.mark_step_complete("b")
+        self.assertEqual(progress.status, "completed")
+        entries = RewardLedgerEntry.objects.filter(
+            user=self.user,
+            event_key=f"multistep_mission_complete:{self.user.id}:{mission.id}",
+        )
+        self.assertEqual(entries.count(), 1)
+        self.assertEqual(entries.first().points, 200)
+        self.assertTrue(
+            UserBadge.objects.filter(user=self.user, badge__name="Market Ready").exists()
+        )
+
+        # Re-running the last step must not pay twice.
+        progress.mark_step_complete("b")
+        self.assertEqual(
+            RewardLedgerEntry.objects.filter(
+                user=self.user,
+                event_key=f"multistep_mission_complete:{self.user.id}:{mission.id}",
+            ).count(),
+            1,
+        )

@@ -24,6 +24,7 @@ type StatusSummaryProps = {
   reviewQueueData?: unknown;
   reviewTopSkill?: string | null;
   onOpenReviews?: () => void;
+  onOpenMissions?: () => void;
   locale?: string;
 };
 
@@ -42,6 +43,7 @@ const StatusSummary = ({
   reviewQueueData,
   reviewTopSkill,
   onOpenReviews,
+  onOpenMissions,
   locale,
 }: StatusSummaryProps) => {
   const { t } = useTranslation();
@@ -127,7 +129,14 @@ const StatusSummary = ({
           className="sm:col-span-2 lg:col-span-1"
         />
       ) : (
-        <div className="app-stat-tile">
+        // Mobile's equivalent tile has always been tappable; on web it was a
+        // dead number with the missions board one click away.
+        <button
+          type="button"
+          onClick={onOpenMissions}
+          disabled={!onOpenMissions}
+          className="app-stat-tile text-left transition enabled:hover:border-[color:var(--color-brand-primary)]/40 disabled:cursor-default"
+        >
           <div className="flex items-center gap-2 text-sm font-medium text-content-muted">
             <GarzoniIcon
               name="rocket"
@@ -141,7 +150,7 @@ const StatusSummary = ({
           <p className="mt-2 text-2xl font-bold text-[color:var(--color-text-primary,#e5e7eb)]">
             {formatNumber(activeMissionsCount, locale)}
           </p>
-        </div>
+        </button>
       )}
 
       <div className="app-stat-tile">

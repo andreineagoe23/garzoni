@@ -1583,7 +1583,13 @@
       "label": "Progres",
       "aria": "Progres misiune: {{value}}%",
       "completed": "Finalizat!",
-      "levelTarget": "Țintă în funcție de nivel: {{lessons}} lecție{{plural}}. Estimat completate azi: {{completed}}."
+      "levelTarget": "Țintă în funcție de nivel: {{lessons}} lecție{{plural}}. Estimat completate azi: {{completed}}.",
+      "fraction": {
+        "lessons": "{{current}} din {{total}} lecții",
+        "facts": "{{current}} din {{total}} fapte",
+        "savings": "£{{current}} din £{{total}} economisiți",
+        "reviews": "{{current}} din {{total}} recapitulări"
+      }
     },
     "badge": {
       "daily": "Zilnic",
@@ -1601,11 +1607,13 @@
       "confirmBody": "Ai un singur swap pe zi. Nu se poate anula.",
       "confirm": "Schimbă",
       "cancel": "Anulează",
-      "offlineBlocked": "Ești offline — reconectează-te pentru a schimba misiunile."
+      "offlineBlocked": "Ești offline — reconectează-te pentru a schimba misiunile.",
+      "short": "Schimbă"
     },
     "header": {
       "title": "Misiuni zilnice",
-      "subtitle": "Finalizează provocări focusate pentru a câștiga recompense și a-ți întări obiceiurile financiare."
+      "subtitle": "Finalizează provocări focusate pentru a câștiga recompense și a-ți întări obiceiurile financiare.",
+      "short": "Misiuni"
     },
     "summary": {
       "title": "Progres pe scurt",
@@ -1631,7 +1639,9 @@
       "streakReview_few": "Serie: {{days}} zile · Recapitulări restante: {{review}}",
       "streakReview_other": "Serie: {{days}} de zile · Recapitulări restante: {{review}}",
       "cta": "Continuă! Misiunile săptămânale și recapitulările vor crește stăpânirea.",
-      "mascotMessage": "Progresul constant câștigă. Bravo pentru azi!"
+      "mascotMessage": "Progresul constant câștigă. Bravo pentru azi!",
+      "compact": "Gata pe azi — {{xp}} XP acumulate",
+      "ctaWeekly": "Începe o misiune săptămânală"
     },
     "weekly": {
       "title": "Misiuni săptămânale",
@@ -1644,7 +1654,31 @@
     "cta": {
       "completeLesson": "Continuă lecțiile",
       "review": "Deschide recapitulările",
-      "completePath": "Vezi traseul tău"
+      "completePath": "Vezi traseul tău",
+      "addSavings": "Adaugă economii",
+      "readFact": "Citește un fapt"
+    },
+    "reset": {
+      "dailyPrefix": "Se resetează în",
+      "weeklyPrefix": "Set nou în",
+      "days": "{{days}}z {{hours}}h",
+      "hours": "{{hours}}h {{minutes}}m",
+      "minutes": "{{minutes}}m"
+    },
+    "strip": {
+      "done": "{{done}}/{{total}} finalizate",
+      "xpLeft": "{{xp}} XP rămase",
+      "xpAllDone": "{{xp}} XP acumulate"
+    },
+    "action": {
+      "savingsTitle": "Borcanul de economii",
+      "factTitle": "Fapt financiar"
+    },
+    "xpPill": "+{{xp}} XP",
+    "quests": {
+      "eyebrow": "Misiune narativă",
+      "steps": "{{done}}/{{total}} pași",
+      "reward": "+{{xp}} XP la finalizare"
     }
   },
   "wagers": {
@@ -1979,7 +2013,13 @@
     "refreshNote": "Monedele se reîmprospătează automat după fiecare achiziție sau donație.",
     "downloadLimit": "Limita de descărcări atinsă",
     "shareButton": "Partajează cardul de realizare",
-    "confirmAction": "Apasă din nou pentru confirmare"
+    "confirmAction": "Apasă din nou pentru confirmare",
+    "badges": {
+      "title": "Insigne",
+      "count": "{{earned}} din {{total}} deblocate",
+      "empty": "Nicio insignă de afișat încă.",
+      "lockedHint": "Blocată"
+    }
   },
   "support": {
     "header": {

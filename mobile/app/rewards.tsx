@@ -126,7 +126,7 @@ export default function RewardsScreen() {
       </Text>
       <XPProgressCard points={points} />
       <View style={{ marginTop: spacing.md }}>
-        <Text style={[styles.sectionTitle, { color: c.text }]}>Badges</Text>
+        {/* The card owns its own heading + unlocked count now. */}
         <BadgeGrid
           catalog={badgesCatalogQuery.data ?? []}
           earned={userBadgesQuery.data ?? []}

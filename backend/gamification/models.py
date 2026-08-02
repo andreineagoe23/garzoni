@@ -236,12 +236,46 @@ class MultiStepMissionProgress(models.Model):
             steps.append(step_id)
             self.completed_steps = steps
         total_steps = len(self.mission.steps or [])
+        was_completed = self.status == "completed"
         if total_steps and len(steps) >= total_steps:
             self.status = "completed"
             self.completed_at = self.completed_at or timezone.now()
         elif steps:
             self.status = "in_progress"
         self.save(update_fields=["completed_steps", "status", "completed_at", "updated_at"])
+
+        if self.status == "completed" and not was_completed:
+            self._grant_completion_reward()
+
+    def _grant_completion_reward(self):
+        """Pay out the quest's XP and badge on the last step.
+
+        The payload advertises `points_reward` / `badge_name` to the client, but
+        nothing ever granted them — finished quests paid nothing. Keyed on
+        (user, mission) so the reward ledger makes repeats a no-op.
+        """
+        from decimal import Decimal
+
+        from gamification.services.rewards import grant_reward
+
+        points = int(self.mission.points_reward or 0)
+        if points > 0:
+            grant_reward(
+                self.user,
+                f"multistep_mission_complete:{self.user_id}:{self.mission_id}",
+                points=points,
+                coins=Decimal("0"),
+                bump_streak="none",
+                evaluate_badges=True,
+            )
+
+        badge_name = (self.mission.badge_name or "").strip()
+        if badge_name:
+            try:
+                badge = Badge.objects.get(name=badge_name)
+            except Badge.DoesNotExist:
+                return
+            UserBadge.objects.get_or_create(user=self.user, badge=badge)
 
     class Meta:
         verbose_name_plural = "Multi-step mission progress"

@@ -1,253 +1,131 @@
 import React from "react";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
-import type { Mission } from "@garzoni/core";
-import CoinStack from "./CoinStack";
-import FactCard from "./FactCard";
-
-type Fact = Record<string, unknown>;
+import type { Mission, MissionActionKind } from "@garzoni/core";
+import { getMissionPresentation } from "@garzoni/core";
 
 type MissionCardProps = {
   mission: Mission;
   isDaily: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
   canSwap: boolean;
+  /** Level-aware fallback when the mission carries no `required_lessons`. */
+  lessonRequirement: number;
   onSwap: (missionId: string | number) => void;
-  showSavingsMenu: boolean;
-  setShowSavingsMenu: React.Dispatch<React.SetStateAction<boolean>>;
-  virtualBalance: number;
-  currentFact: Fact | null | undefined;
-  onMarkFactRead: () => void;
-  onLoadFact: () => void;
-  savingsAmount: string;
-  setSavingsAmount: React.Dispatch<React.SetStateAction<string>>;
-  onSavingsSubmit: (event: React.FormEvent) => void;
-  getLessonRequirement: (mission: Mission) => number;
-  purposeStatement: (mission: Mission) => string;
+  /** Route CTAs navigate; savings/fact CTAs open the page-level action modal. */
+  onAction: (mission: Mission, kind: MissionActionKind) => void;
 };
 
+/**
+ * One mission = one action row: icon, name, progress fraction, XP, one CTA.
+ * Description is clamped to a single line and the long-form "why this matters"
+ * copy is gone — the board is a to-do list, not an article.
+ */
 const MissionCard = ({
   mission,
   isDaily,
   t,
   canSwap,
+  lessonRequirement,
   onSwap,
-  showSavingsMenu,
-  setShowSavingsMenu,
-  virtualBalance,
-  currentFact,
-  onMarkFactRead,
-  onLoadFact,
-  savingsAmount,
-  setSavingsAmount,
-  onSavingsSubmit,
-  getLessonRequirement,
-  purposeStatement,
+  onAction,
 }: MissionCardProps) => {
-  const progressPercent = Math.min(100, Math.round(mission.progress ?? 0));
   const isCompleted = mission.status === "completed";
+  const presentation = getMissionPresentation(mission, {
+    isDaily,
+    lessonRequirement,
+  });
+  const { percent, iconName, actionKind, ctaLabelKey } = presentation;
+  const xp = mission.points_reward ?? 0;
+  const titleId = `mission-title-${mission.id}`;
 
-  const progressLabel =
-    mission.goal_type === "read_fact" && !isDaily
-      ? t("missions.progress.factsCount", {
-          count: Math.floor(mission.progress / 20),
-        })
-      : t("missions.progress.percent", {
-          value: progressPercent,
-        });
-
-  const progressDetail =
-    mission.goal_type === "read_fact" && isDaily
-      ? t("missions.progress.readOneFact")
-      : mission.goal_type === "read_fact"
-        ? t("missions.progress.factsRemaining", {
-            count: 5 - Math.floor(mission.progress / 20),
-          })
-        : mission.goal_type === "complete_lesson"
-          ? t("missions.progress.lessonTarget", {
-              value: progressPercent,
-              lessons: getLessonRequirement(mission),
-            })
-          : t("missions.progress.complete", {
-              value: progressPercent,
-            });
-
-  const completedLessons =
-    mission.goal_type === "complete_lesson"
-      ? Math.min(
-          getLessonRequirement(mission),
-          Math.round(
-            (Math.max(mission.progress, 0) / 100) *
-              getLessonRequirement(mission)
-          )
-        )
-      : null;
+  if (isCompleted) {
+    return (
+      <div
+        className="app-card app-card--pad-sm flex items-center gap-3 opacity-80"
+        role="article"
+        aria-labelledby={titleId}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+          <GarzoniIcon name="check" size={16} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p
+            id={titleId}
+            className="truncate text-sm font-semibold text-content-muted"
+          >
+            {mission.name}
+          </p>
+          <p className="text-xs text-content-muted">
+            {t("missions.progress.completed")}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600">
+          {t("missions.xpPill", { xp })}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className="app-card app-card--pad-lg relative flex min-h-[260px] flex-col overflow-hidden"
+      className="app-card app-card--pad-sm flex flex-wrap items-center gap-x-4 gap-y-3"
       role="article"
-      aria-labelledby={`mission-title-${mission.id}`}
+      aria-labelledby={titleId}
     >
-      <div className="relative">
-        <header className="space-y-3 border-b border-border pb-4">
-          <div className="flex items-center justify-between gap-4">
-            <h3
-              id={`mission-title-${mission.id}`}
-              className="app-display text-lg text-content-primary"
-            >
-              {mission.name}
-            </h3>
-            <span className="rounded-full bg-[color:var(--color-brand-primary)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-brand-primary)]">
-              {isDaily ? t("missions.badge.daily") : t("missions.badge.weekly")}
-            </span>
-          </div>
-          <p className="text-sm text-content-muted">{mission.description}</p>
-          <p className="text-xs font-semibold text-content-muted">
-            {t("missions.why")} {purposeStatement(mission)}
-          </p>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-content-muted">
-              <span>{t("missions.progress.label")}</span>
-              <span className="text-content-primary">{progressLabel}</span>
-            </div>
-            <div
-              className="app-progress-track"
-              role="progressbar"
-              aria-valuenow={progressPercent}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={t("missions.progress.aria", {
-                value: progressPercent,
-              })}
-            >
-              <div
-                className="app-progress-fill"
-                style={{
-                  width: `${progressPercent}%`,
-                  transition: "width 0.5s ease-out",
-                }}
-              />
-            </div>
-            <p className="text-xs text-content-muted">
-              {isCompleted ? (
-                <span className="inline-flex items-center gap-2">
-                  <GarzoniIcon
-                    name="sparkles"
-                    size={14}
-                    className="text-[color:var(--color-brand-primary)]"
-                  />
-                  {t("missions.progress.completed")}
-                </span>
-              ) : (
-                progressDetail
-              )}
-            </p>
-            {completedLessons !== null && (
-              <p className="text-[0.7rem] text-content-muted">
-                {t("missions.progress.levelTarget", {
-                  lessons: getLessonRequirement(mission),
-                  plural: getLessonRequirement(mission) !== 1 ? "s" : "",
-                  completed: completedLessons,
-                })}
-              </p>
-            )}
-          </div>
-        </header>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]">
+        <GarzoniIcon name={iconName} size={18} />
+      </span>
 
-        {isCompleted ? (
-          <div className="mt-4 space-y-3 rounded-2xl border border-[color:var(--color-brand-primary-hover)]/40 bg-[color:var(--color-brand-primary-hover)]/10 px-4 py-3 text-xs text-[color:var(--color-brand-primary-hover)] shadow-inner shadow-[color:var(--color-brand-primary-hover)]/15">
-            <div className="flex items-center justify-between font-semibold">
-              <span>{t("missions.complete.title")}</span>
-              <span>+{mission.points_reward} XP</span>
-            </div>
-            <p className="text-content-muted">
-              {t("missions.complete.subtitle")}
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6 space-y-4">
-            {canSwap && isDaily && (
-              <button
-                type="button"
-                onClick={() => onSwap(mission.id)}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-primary)]/40 bg-[color:var(--color-brand-primary)]/10 px-4 py-2 text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
-                aria-label={t("missions.swap.aria", {
-                  name: mission.name,
-                })}
-              >
-                {t("missions.swap.label")}
-              </button>
-            )}
-            {mission.goal_type === "add_savings" && (
-              <div className="app-surface-subtle mt-2 space-y-4 rounded-2xl p-4">
-                <button
-                  type="button"
-                  onClick={() => setShowSavingsMenu((prev) => !prev)}
-                  className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
-                >
-                  {showSavingsMenu
-                    ? t("missions.savings.hideJar")
-                    : t("missions.savings.showJar")}
-                </button>
-                {showSavingsMenu && (
-                  <div className="space-y-4">
-                    <CoinStack
-                      balance={virtualBalance}
-                      coinUnit={isDaily ? 1 : 10}
-                      target={isDaily ? 10 : 100}
-                    />
-                    <p className="text-xs text-content-muted">
-                      {t("missions.savings.suggestedNote")}
-                    </p>
-                    <form
-                      onSubmit={onSavingsSubmit}
-                      className="flex flex-col gap-3 sm:flex-row"
-                    >
-                      <input
-                        type="number"
-                        value={savingsAmount}
-                        onChange={(event) =>
-                          setSavingsAmount(event.target.value)
-                        }
-                        placeholder={
-                          isDaily
-                            ? t("missions.savings.placeholderDaily")
-                            : t("missions.savings.placeholderWeekly")
-                        }
-                        className="app-input flex-1 rounded-full py-2"
-                        disabled={isDaily && isCompleted}
-                      />
-                      <button
-                        type="submit"
-                        disabled={isDaily && isCompleted}
-                        className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary-hover)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[color:var(--color-brand-primary-hover)]/30 transition hover:shadow-xl hover:shadow-[color:var(--color-brand-primary-hover)]/40 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary-hover)]/40 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {isDaily && isCompleted
-                          ? t("missions.savings.savedToday")
-                          : t("missions.savings.add")}
-                      </button>
-                    </form>
-                  </div>
-                )}
-              </div>
-            )}
+      <div className="min-w-0 flex-1 basis-48">
+        <div className="flex items-baseline gap-2">
+          <h3
+            id={titleId}
+            className="min-w-0 flex-1 truncate text-sm font-semibold text-content-primary"
+          >
+            {mission.name}
+          </h3>
+          <span className="shrink-0 text-xs font-semibold text-[color:var(--color-brand-primary)]">
+            {t("missions.xpPill", { xp })}
+          </span>
+        </div>
 
-            {mission.goal_type === "read_fact" && isDaily && (
-              <div className="space-y-3">
-                <FactCard fact={currentFact} onMarkRead={onMarkFactRead} />
-                {!currentFact && (
-                  <button
-                    type="button"
-                    onClick={onLoadFact}
-                    className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-[color:var(--color-brand-primary)] transition hover:bg-[color:var(--color-brand-primary)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
-                  >
-                    {t("missions.facts.tryAgain")}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        <div
+          className="app-progress-track mt-2"
+          role="progressbar"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("missions.progress.aria", { value: percent })}
+        >
+          <div className="app-progress-fill" style={{ width: `${percent}%` }} />
+        </div>
+
+        <p className="mt-1 truncate text-xs text-content-muted">
+          {t(presentation.progressKey, presentation.progressParams)}
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {ctaLabelKey ? (
+          <button
+            type="button"
+            onClick={() => onAction(mission, actionKind)}
+            className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
+          >
+            {t(ctaLabelKey)}
+          </button>
+        ) : null}
+        {canSwap && isDaily ? (
+          <button
+            type="button"
+            onClick={() => onSwap(mission.id)}
+            title={t("missions.swap.label")}
+            aria-label={t("missions.swap.aria", { name: mission.name })}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-border-default)] text-content-muted transition hover:border-[color:var(--color-brand-primary)]/40 hover:text-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-brand-primary)]/40"
+          >
+            <GarzoniIcon name="sync" size={13} />
+          </button>
+        ) : null}
       </div>
     </div>
   );

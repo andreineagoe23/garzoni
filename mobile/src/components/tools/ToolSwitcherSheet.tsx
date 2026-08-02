@@ -7,10 +7,12 @@ import {
   Text,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { href } from "../../navigation/href";
 import { useThemeColors } from "../../theme/ThemeContext";
+import { navIcons } from "../../theme/navIcons";
 import { radius, spacing, typography } from "../../theme/tokens";
 import { MOBILE_TOOLS, type ToolGroup } from "./mobileToolsRegistry";
 import { localizedToolSubtitle, localizedToolTitle } from "./toolI18n";
@@ -50,7 +52,13 @@ export default function ToolSwitcherSheet({ visible, onClose }: Props) {
 
   function navigate(route: string) {
     onClose();
-    router.push(href(`/(tabs)/tools/${route}`));
+    const target = href(`/(tabs)/tools/${route}`);
+    // Switching *between* tools swaps the screen rather than stacking it, so
+    // back still returns to whatever opened the tool (missions, dashboard)
+    // instead of walking through every tool the user browsed.
+    const inTool = pathname.split("/").filter(Boolean)[0] === "tools";
+    if (inTool) router.replace(target);
+    else router.push(target);
   }
 
   return (
@@ -125,9 +133,11 @@ export default function ToolSwitcherSheet({ visible, onClose }: Props) {
                         </Text>
                       </View>
                       {tool.plusOnly && (
-                        <Text style={[styles.plusBadge, { color: c.accent }]}>
-                          ✦
-                        </Text>
+                        <Ionicons
+                          name={navIcons.plusOnly}
+                          size={14}
+                          color={c.accent}
+                        />
                       )}
                       {isActive && (
                         <View
@@ -209,10 +219,6 @@ const styles = StyleSheet.create({
   toolSub: {
     fontSize: typography.xs,
     marginTop: 1,
-  },
-  plusBadge: {
-    fontSize: typography.xs,
-    fontWeight: "700",
   },
   activeDot: {
     width: 6,

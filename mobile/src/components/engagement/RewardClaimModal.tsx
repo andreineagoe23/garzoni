@@ -1,5 +1,5 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
+import { Modal, Pressable, StyleSheet, Text } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 import GlassButton from "../ui/GlassButton";
 import { useThemeColors } from "../../theme/ThemeContext";
@@ -39,8 +39,9 @@ export default function RewardClaimModal({
           onPress={(e) => e.stopPropagation()}
         >
           <Animated.View
-            entering={SlideInDown.springify().damping(18)}
-            exiting={SlideOutDown.duration(220)}
+            // Plain fade pop — the old spring slide overshot and read as a shake.
+            entering={FadeIn.duration(160)}
+            exiting={FadeOut.duration(140)}
             style={[
               styles.sheet,
               { backgroundColor: c.surface, borderColor: c.border },
@@ -67,8 +68,9 @@ export default function RewardClaimModal({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: "flex-end" },
-  sheetWrap: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  // Centred, like every other pop-up on the missions screen.
+  backdrop: { flex: 1, justifyContent: "center", alignItems: "center" },
+  sheetWrap: { width: "100%", maxWidth: 460, padding: spacing.lg },
   sheet: {
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,

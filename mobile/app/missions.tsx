@@ -1,5 +1,6 @@
 import NetInfo from "@react-native-community/netinfo";
 import {
+  countdownLabel,
   fetchFinanceFact,
   fetchMissions,
   fetchProfile,
@@ -9,35 +10,42 @@ import {
   getUserLevel,
   markFinanceFactRead,
   mergeMissionDeltas,
+  msUntilDailyReset,
+  msUntilWeeklyReset,
   postSavingsDeposit,
   postStreakWagerCancel,
   postStreakWagerOpen,
   queryKeys,
+  resolveQuestStepRoute,
   staleTimes,
   swapMission,
   type Mission,
+  type MissionActionKind,
   type MissionDelta,
+  type QuestStep,
   type StreakItemDto,
   type UserProfile,
 } from "@garzoni/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { Stack } from "expo-router";
+import { Stack, router, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
   Keyboard,
+  Pressable,
   RefreshControl,
   StyleSheet,
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import MissionCard from "../src/components/engagement/MissionCard";
+import MissionActionSheet from "../src/components/engagement/MissionActionSheet";
 import AnimatedMissionCard from "../src/components/engagement/AnimatedMissionCard";
 import StreakWagerCard from "../src/components/engagement/StreakWagerCard";
 import RewardClaimModal from "../src/components/engagement/RewardClaimModal";
-import MascotWithMessage from "../src/components/common/MascotWithMessage";
 import { TabErrorBoundary } from "../src/components/common/TabErrorBoundary";
 import {
   AppText,
@@ -49,23 +57,19 @@ import {
 } from "../src/components/ui";
 import GlassCard from "../src/components/ui/GlassCard";
 import { useThemeColors } from "../src/theme/ThemeContext";
-import { spacing, typography } from "../src/theme/tokens";
+import { spacing } from "../src/theme/tokens";
 
 type MissionsResponse = {
   daily_missions?: Mission[];
   weekly_missions?: Mission[];
-  multi_step_missions?: Array<{
+  multi_step_missions?: {
     id: string | number;
     name?: string;
     description?: string;
     status?: string;
-    steps?: Array<{
-      id?: string;
-      title?: string;
-      type?: string;
-      completed?: boolean;
-    }>;
-  }>;
+    points_reward?: number;
+    steps?: QuestStep[];
+  }[];
   can_swap?: boolean;
 };
 
@@ -74,7 +78,10 @@ export default function MissionsScreen() {
   const { t } = useTranslation("common");
   const queryClient = useQueryClient();
 
-  const [showSavingsMenu, setShowSavingsMenu] = useState(false);
+  const [actionSheet, setActionSheet] = useState<{
+    kind: MissionActionKind;
+    isDaily: boolean;
+  } | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [canSwap, setCanSwap] = useState(true);
@@ -88,6 +95,8 @@ export default function MissionsScreen() {
     xp: number;
   } | null>(null);
   const [wagerBusy, setWagerBusy] = useState(false);
+  // Re-render once a minute so the reset countdown stays honest.
+  const [now, setNow] = useState(() => Date.now());
 
   const savingsMenuInitializedRef = useRef(false);
   const completedMissionsRef = useRef(new Set<string | number>());
@@ -199,21 +208,6 @@ export default function MissionsScreen() {
     return getUserLevel(points);
   }, [profile]);
 
-  const adaptiveHints = useMemo(() => {
-    if (!profile) return null;
-    const rawPoints =
-      (profile.user_data?.points as number | undefined) ?? profile.points ?? 0;
-    const points = Number(rawPoints) || 0;
-    const level = getUserLevel(points);
-    const suggestedSavingsTarget =
-      level === "advanced" ? 50 : level === "intermediate" ? 25 : 10;
-    const learningStyle =
-      typeof profile.user_data?.learning_style === "string"
-        ? profile.user_data.learning_style
-        : "balanced";
-    return { suggestedSavingsTarget, learningStyle, level };
-  }, [profile]);
-
   const getLessonRequirement = useCallback(
     (mission: Mission) => {
       const ref = mission.goal_reference as
@@ -227,24 +221,13 @@ export default function MissionsScreen() {
     [userLevel],
   );
 
-  const purposeStatement = useCallback(
-    (mission: Mission) => {
-      if (mission.purpose_statement?.trim())
-        return mission.purpose_statement.trim();
-      switch (mission.goal_type) {
-        case "complete_lesson":
-          return t("missions.purpose.completeLesson");
-        case "add_savings":
-          return t("missions.purpose.addSavings");
-        case "read_fact":
-          return t("missions.purpose.readFact");
-        case "complete_path":
-          return t("missions.purpose.completePath");
-        default:
-          return t("missions.purpose.default");
-      }
+  const handleMissionAction = useCallback(
+    (_mission: Mission, kind: MissionActionKind) => {
+      if (kind !== "savings" && kind !== "fact") return;
+      // Only the active scope is rendered, so the tab tells us the cadence.
+      setActionSheet({ kind, isDaily: missionScope !== "weekly" });
     },
-    [t],
+    [missionScope],
   );
 
   const suggestedSavings = useMemo(() => {
@@ -256,7 +239,7 @@ export default function MissionsScreen() {
   }, [virtualBalance]);
 
   useEffect(() => {
-    if (!showSavingsMenu) {
+    if (actionSheet?.kind !== "savings") {
       savingsMenuInitializedRef.current = false;
       return;
     }
@@ -264,24 +247,48 @@ export default function MissionsScreen() {
       savingsMenuInitializedRef.current = true;
       setSavingsAmount(String(suggestedSavings));
     }
-  }, [showSavingsMenu, suggestedSavings]);
+  }, [actionSheet?.kind, suggestedSavings]);
 
-  const missionsRemaining = dailyMissions.filter(
-    (m) => m.status !== "completed",
-  ).length;
-  const dailyXpEarned = dailyMissions
-    .filter((m) => m.status === "completed")
-    .reduce((total, m) => total + (m.points_reward || 0), 0);
-  const dailyXpRemaining = dailyMissions
-    .filter((m) => m.status !== "completed")
-    .reduce((total, m) => total + (m.points_reward || 0), 0);
-  const dailyXpTotal = dailyXpEarned + dailyXpRemaining;
-  const allDailyCompleted = dailyMissions.length > 0 && missionsRemaining === 0;
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const xpFor = (list: Mission[], completed: boolean) =>
+    list
+      .filter((m) =>
+        completed ? m.status === "completed" : m.status !== "completed",
+      )
+      .reduce((total, m) => total + (m.points_reward || 0), 0);
+
+  const dailyXpEarned = xpFor(dailyMissions, true);
+  const allDailyCompleted =
+    dailyMissions.length > 0 &&
+    dailyMissions.every((m) => m.status === "completed");
+
+  // ── Scope-aware stats (the summary strip used to always show daily) ──
+  const isWeeklyScope = missionScope === "weekly";
+  const activeMissions = isWeeklyScope ? weeklyMissions : dailyMissions;
+  const activeCompletedCount = isWeeklyScope
+    ? weeklyCompletedCount
+    : dailyCompletedCount;
+  const activeXpEarned = xpFor(activeMissions, true);
+  const activeXpRemaining = xpFor(activeMissions, false);
+
+  const resetLabel = useMemo(() => {
+    const ms = isWeeklyScope
+      ? msUntilWeeklyReset(new Date(now))
+      : msUntilDailyReset(new Date(now));
+    const { key, params } = countdownLabel(ms);
+    const prefix = isWeeklyScope
+      ? t("missions.reset.weeklyPrefix")
+      : t("missions.reset.dailyPrefix");
+    return `${prefix} ${t(key, params)}`;
+  }, [isWeeklyScope, now, t]);
 
   const rawStreakCount =
     (profile?.user_data?.streak as number | undefined) ?? profile?.streak ?? 0;
   const streakCount = Number(rawStreakCount) || 0;
-  const reviewDue = profile?.reviews_due ?? 0;
 
   useEffect(() => {
     if (!missionsQuery.data) return;
@@ -361,6 +368,7 @@ export default function MissionsScreen() {
         return next;
       });
       bumpMissionProgress(["read_fact"], true);
+      setActionSheet(null);
       Toast.show({
         type: "success",
         text1: t("missions.toast.factRead"),
@@ -403,6 +411,7 @@ export default function MissionsScreen() {
       } else {
         bumpMissionProgress(["add_savings"]);
       }
+      setActionSheet(null);
       Toast.show({
         type: "success",
         text1: t("missions.toast.savingsAdded"),
@@ -580,13 +589,6 @@ export default function MissionsScreen() {
             />
           }
         >
-          <AppText variant="heading" style={[styles.title, { color: c.text }]}>
-            {t("missions.header.title")}
-          </AppText>
-          <AppText variant="body" muted style={styles.sub}>
-            {t("missions.header.subtitle")}
-          </AppText>
-
           <View style={styles.tabRow}>
             <Button
               variant={missionScope === "daily" ? "primary" : "ghost"}
@@ -623,106 +625,45 @@ export default function MissionsScreen() {
             ) : null}
           </View>
 
-          <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryLeft}>
-                <AppText variant="label" muted style={styles.summaryKicker}>
-                  {t("missions.summary.title")}
-                </AppText>
-                <AppText
-                  variant="heading"
-                  style={[styles.summaryMain, { color: c.text }]}
-                >
-                  {t("missions.summary.remaining", {
-                    count: missionsRemaining,
-                  })}
-                </AppText>
-                <AppText variant="caption" muted style={styles.summaryXp}>
-                  {t("missions.summary.xp", {
-                    earned: dailyXpEarned,
-                    remaining: dailyXpRemaining,
-                  })}
-                </AppText>
-                {isOffline ? (
-                  <AppText variant="caption" style={styles.offline}>
-                    {t("missions.summary.offline")}
-                  </AppText>
-                ) : null}
-                {adaptiveHints ? (
-                  <AppText
-                    variant="caption"
-                    style={[
-                      styles.hintChip,
-                      { color: c.primary, borderColor: `${c.primary}55` },
-                    ]}
-                  >
-                    {t("missions.summary.suggestedSavings", {
-                      amount: adaptiveHints.suggestedSavingsTarget,
-                      level: adaptiveHints.level,
-                    })}
-                  </AppText>
-                ) : null}
-              </View>
-              <View style={styles.statCol}>
-                <View style={[styles.statBox, { backgroundColor: c.surface }]}>
-                  <AppText variant="caption" muted style={styles.statLabel}>
-                    {t("missions.summary.streak")}
-                  </AppText>
-                  <AppText variant="label" accent style={styles.statValue}>
-                    {t("missions.summary.streakDays", { count: streakCount })}
-                  </AppText>
-                </View>
-                <View style={[styles.statBox, { backgroundColor: c.surface }]}>
-                  <AppText variant="caption" muted style={styles.statLabel}>
-                    {t("missions.summary.totalXp")}
-                  </AppText>
-                  <AppText
-                    variant="label"
-                    style={[styles.statValue, { color: c.text }]}
-                  >
-                    {dailyXpEarned} / {dailyXpTotal} XP
-                  </AppText>
-                </View>
-              </View>
-            </View>
-            {streakItems.length > 0 ? (
-              <View style={styles.streakWrap}>
-                {streakItems.map((item, index) => (
-                  <View
-                    key={`${item.type}-${index}`}
-                    style={[
-                      styles.streakPill,
-                      {
-                        borderColor: `${c.primary}55`,
-                        backgroundColor: `${c.primary}18`,
-                      },
-                    ]}
-                  >
-                    <AppText
-                      variant="caption"
-                      style={[styles.streakPillText, { color: c.primary }]}
-                    >
-                      {item.type} ×{item.quantity}
-                    </AppText>
-                  </View>
-                ))}
-              </View>
+          {/* Summary strip: the numbers that matter, one line. */}
+          <View style={styles.strip}>
+            <AppText
+              variant="caption"
+              style={{ color: c.text, fontWeight: "800" }}
+            >
+              {t("missions.strip.done", {
+                done: activeCompletedCount,
+                total: activeMissions.length,
+              })}
+            </AppText>
+            <AppText variant="caption" muted>
+              {activeXpRemaining > 0
+                ? t("missions.strip.xpLeft", { xp: activeXpRemaining })
+                : t("missions.strip.xpAllDone", { xp: activeXpEarned })}
+            </AppText>
+            {streakCount > 0 ? (
+              <AppText variant="caption" muted>
+                🔥 {t("missions.summary.streakDays", { count: streakCount })}
+              </AppText>
             ) : null}
-          </GlassCard>
-
-          {wagersQuery.data ? (
-            <StreakWagerCard
-              active={wagersQuery.data.active}
-              history={wagersQuery.data.history}
-              stakeRewardTable={wagersQuery.data.stake_reward_table}
-              eligible={wagersQuery.data.eligible}
-              ineligibleReason={wagersQuery.data.ineligible_reason}
-              busy={wagerBusy}
-              onOpen={(targetDays) => void handleOpenWager(targetDays)}
-              onCancel={(wagerId) => void handleCancelWager(wagerId)}
-              t={t}
-            />
-          ) : null}
+            <AppText variant="caption" style={{ color: c.primary }}>
+              {resetLabel}
+            </AppText>
+            {streakItems.map((item, index) => (
+              <AppText
+                key={`${item.type}-${index}`}
+                variant="caption"
+                style={{ color: c.primary }}
+              >
+                {item.type} ×{item.quantity}
+              </AppText>
+            ))}
+            {isOffline ? (
+              <AppText variant="caption" style={styles.offline}>
+                {t("missions.summary.offline")}
+              </AppText>
+            ) : null}
+          </View>
 
           {errorMessages.length > 0 ? (
             <GlassCard
@@ -742,54 +683,86 @@ export default function MissionsScreen() {
           ) : null}
 
           {missionScope === "quests" && multiStepMissions.length > 0 ? (
-            <View style={{ gap: spacing.md, marginBottom: spacing.lg }}>
+            <View style={{ gap: spacing.sm, marginBottom: spacing.lg }}>
               {multiStepMissions.map((mission) => {
                 const steps = mission.steps ?? [];
                 const done = steps.filter((step) => step.completed).length;
                 return (
-                  <GlassCard key={mission.id} padding="lg">
-                    <AppText variant="label" muted>
-                      Story mission
-                    </AppText>
-                    <AppText
-                      variant="heading"
-                      style={{ marginTop: spacing.xs }}
-                    >
-                      {mission.name}
-                    </AppText>
-                    {mission.description ? (
-                      <AppText muted style={{ marginTop: spacing.xs }}>
-                        {mission.description}
+                  <GlassCard key={mission.id} padding="md">
+                    <View style={styles.questHead}>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <AppText variant="caption" muted>
+                          {t("missions.quests.eyebrow")}
+                        </AppText>
+                        <AppText
+                          style={{ fontWeight: "800", color: c.text }}
+                          numberOfLines={1}
+                        >
+                          {mission.name}
+                        </AppText>
+                      </View>
+                      <AppText
+                        variant="caption"
+                        style={{ color: c.primary, fontWeight: "800" }}
+                      >
+                        {t("missions.quests.steps", {
+                          done,
+                          total: steps.length,
+                        })}
+                      </AppText>
+                    </View>
+                    {mission.points_reward ? (
+                      <AppText variant="caption" muted>
+                        {t("missions.quests.reward", {
+                          xp: mission.points_reward,
+                        })}
                       </AppText>
                     ) : null}
-                    <AppText
-                      style={{
-                        marginTop: spacing.sm,
-                        fontWeight: "800",
-                        color: c.primary,
-                      }}
-                    >
-                      {done}/{steps.length} steps
-                    </AppText>
-                    <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
-                      {steps.map((step, index) => (
-                        <View
-                          key={step.id ?? index}
-                          style={{
-                            borderWidth: StyleSheet.hairlineWidth,
-                            borderColor: c.border,
-                            borderRadius: 16,
-                            padding: spacing.md,
-                          }}
-                        >
-                          <AppText style={{ fontWeight: "800" }}>
-                            {step.title}
-                          </AppText>
-                          <AppText muted>
-                            {step.completed ? "Done" : step.type || "Step"}
-                          </AppText>
-                        </View>
-                      ))}
+                    <View style={{ gap: 2, marginTop: spacing.sm }}>
+                      {steps.map((step, index) => {
+                        const { mobile: route } = resolveQuestStepRoute(step);
+                        const row = (
+                          <View style={styles.questStep}>
+                            <Ionicons
+                              name={
+                                step.completed
+                                  ? "checkmark-circle"
+                                  : "ellipse-outline"
+                              }
+                              size={15}
+                              color={step.completed ? c.success : c.textMuted}
+                            />
+                            <AppText
+                              variant="caption"
+                              style={{
+                                flex: 1,
+                                color: step.completed ? c.textMuted : c.text,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {step.title}
+                            </AppText>
+                            {route && !step.completed ? (
+                              <Ionicons
+                                name="chevron-forward"
+                                size={14}
+                                color={c.textFaint}
+                              />
+                            ) : null}
+                          </View>
+                        );
+                        return route && !step.completed ? (
+                          <Pressable
+                            key={step.id ?? index}
+                            accessibilityRole="button"
+                            onPress={() => router.push(route as Href)}
+                          >
+                            {row}
+                          </Pressable>
+                        ) : (
+                          <View key={step.id ?? index}>{row}</View>
+                        );
+                      })}
                     </View>
                   </GlassCard>
                 );
@@ -818,70 +791,21 @@ export default function MissionsScreen() {
             />
           ) : (
             <>
-              {missionScope === "quests" ? null : missionScope === "daily" ? (
+              {missionScope === "quests" ? null : activeMissions.length > 0 ? (
                 <View style={styles.grid}>
-                  {dailyMissions.map((m, index) => (
+                  {activeMissions.map((m, index) => (
                     <AnimatedMissionCard
-                      key={`daily-${m.id}-${index}`}
+                      key={`${missionScope}-${m.id}-${index}`}
                       index={index}
                     >
                       <MissionCard
                         mission={m}
-                        isDaily
+                        isDaily={!isWeeklyScope}
                         t={t}
                         canSwap={swapAllowed}
+                        lessonRequirement={getLessonRequirement(m)}
                         onSwap={handleMissionSwap}
-                        showSavingsMenu={showSavingsMenu}
-                        onToggleSavingsMenu={() =>
-                          setShowSavingsMenu((p) => !p)
-                        }
-                        virtualBalance={virtualBalance}
-                        currentFact={currentFact}
-                        factLoading={factQuery.isFetching && !currentFact}
-                        onMarkFactRead={() => void markFactRead()}
-                        onLoadFact={loadNewFact}
-                        savingsAmount={savingsAmount}
-                        onSavingsAmountChange={setSavingsAmount}
-                        onSavingsSubmit={() => void handleSavingsSubmit()}
-                        getLessonRequirement={getLessonRequirement}
-                        purposeStatement={purposeStatement}
-                      />
-                    </AnimatedMissionCard>
-                  ))}
-                </View>
-              ) : weeklyMissions.length > 0 ? (
-                <View style={styles.grid}>
-                  <AppText
-                    variant="heading"
-                    style={[styles.sectionTitle, { color: c.text }]}
-                  >
-                    {t("missions.weekly.title")}
-                  </AppText>
-                  {weeklyMissions.map((m, index) => (
-                    <AnimatedMissionCard
-                      key={`weekly-${m.id}-${index}`}
-                      index={index}
-                    >
-                      <MissionCard
-                        mission={m}
-                        isDaily={false}
-                        t={t}
-                        canSwap={swapAllowed}
-                        onSwap={handleMissionSwap}
-                        showSavingsMenu={showSavingsMenu}
-                        onToggleSavingsMenu={() =>
-                          setShowSavingsMenu((p) => !p)
-                        }
-                        virtualBalance={virtualBalance}
-                        currentFact={currentFact}
-                        factLoading={factQuery.isFetching && !currentFact}
-                        onMarkFactRead={() => void markFactRead()}
-                        onLoadFact={loadNewFact}
-                        savingsAmount={savingsAmount}
-                        onSavingsAmountChange={setSavingsAmount}
-                        onSavingsSubmit={() => void handleSavingsSubmit()}
-                        getLessonRequirement={getLessonRequirement}
-                        purposeStatement={purposeStatement}
+                        onAction={handleMissionAction}
                       />
                     </AnimatedMissionCard>
                   ))}
@@ -892,64 +816,64 @@ export default function MissionsScreen() {
                   muted
                   style={{ marginBottom: spacing.lg }}
                 >
-                  {t("missions.weekly.title")}:{" "}
-                  {t("missions.weekly.noneAvailable")}
+                  {isWeeklyScope
+                    ? t("missions.weekly.noneAvailable")
+                    : t("missions.empty.body")}
                 </AppText>
               )}
 
               {missionScope === "daily" && allDailyCompleted ? (
-                <GlassCard padding="lg" style={{ marginBottom: spacing.lg }}>
-                  <View style={styles.wrapRow}>
-                    <View style={styles.wrapMascot}>
-                      <MascotWithMessage
-                        mood="celebrate"
-                        situation="missions_wrapup_all_done"
-                        rotationKey={dailyXpEarned}
-                        embedded
-                        mascotSize={80}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <AppText variant="label" muted style={styles.wrapKicker}>
-                        {t("missions.wrapup.title")}
-                      </AppText>
-                      <AppText
-                        variant="heading"
-                        accent
-                        style={styles.wrapTitle}
-                      >
-                        {t("missions.wrapup.earned", { xp: dailyXpEarned })}
-                      </AppText>
-                      <AppText variant="body" muted style={styles.wrapSub}>
-                        {t("missions.wrapup.streakReview", {
-                          count: streakCount,
-                          days: streakCount,
-                          review: reviewDue,
-                        })}
-                      </AppText>
-                    </View>
-                  </View>
-                  <View
-                    style={[
-                      styles.wrapCta,
-                      {
-                        borderColor: `${c.primary}55`,
-                        backgroundColor: `${c.primary}18`,
-                      },
-                    ]}
+                <GlassCard padding="md" style={{ marginBottom: spacing.lg }}>
+                  <AppText style={{ fontWeight: "800", color: c.text }}>
+                    {t("missions.wrapup.compact", { xp: dailyXpEarned })}
+                  </AppText>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    style={{ marginTop: spacing.md, alignSelf: "flex-start" }}
+                    onPress={() =>
+                      weeklyMissions.length > 0
+                        ? setMissionScope("weekly")
+                        : router.push("/(tabs)/exercises" as Href)
+                    }
                   >
-                    <AppText
-                      variant="caption"
-                      style={[styles.wrapCtaText, { color: c.primary }]}
-                    >
-                      {t("missions.wrapup.cta")}
-                    </AppText>
-                  </View>
+                    {weeklyMissions.length > 0
+                      ? t("missions.wrapup.ctaWeekly")
+                      : t("missions.cta.review")}
+                  </Button>
                 </GlassCard>
               ) : null}
             </>
           )}
+
+          {wagersQuery.data ? (
+            <StreakWagerCard
+              active={wagersQuery.data.active}
+              history={wagersQuery.data.history}
+              stakeRewardTable={wagersQuery.data.stake_reward_table}
+              eligible={wagersQuery.data.eligible}
+              ineligibleReason={wagersQuery.data.ineligible_reason}
+              busy={wagerBusy}
+              onOpen={(targetDays) => void handleOpenWager(targetDays)}
+              onCancel={(wagerId) => void handleCancelWager(wagerId)}
+              t={t}
+            />
+          ) : null}
         </ScreenScroll>
+        <MissionActionSheet
+          kind={actionSheet?.kind ?? null}
+          isDaily={actionSheet?.isDaily ?? true}
+          t={t}
+          onClose={() => setActionSheet(null)}
+          virtualBalance={virtualBalance}
+          savingsAmount={savingsAmount}
+          onSavingsAmountChange={setSavingsAmount}
+          onSavingsSubmit={() => void handleSavingsSubmit()}
+          currentFact={currentFact}
+          factLoading={factQuery.isFetching && !currentFact}
+          onMarkFactRead={() => void markFactRead()}
+          onLoadFact={loadNewFact}
+        />
         <RewardClaimModal
           visible={claimModal != null}
           missionName={claimModal?.name ?? ""}
@@ -963,89 +887,32 @@ export default function MissionsScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingBottom: spacing.lg },
-  title: { fontSize: typography.xl, fontWeight: "800" },
-  sub: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-  },
   tabRow: {
     flexDirection: "row",
     gap: spacing.sm,
     marginBottom: spacing.md,
     flexWrap: "wrap",
   },
-  summaryRow: { flexDirection: "column", gap: spacing.md },
-  summaryLeft: { flex: 1 },
-  summaryKicker: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
-  summaryMain: {
-    fontSize: typography.md,
-    fontWeight: "800",
-    marginTop: spacing.xs,
-  },
-  summaryXp: { marginTop: 4 },
-  offline: {
-    marginTop: spacing.sm,
-    color: "#d97706",
-    fontWeight: "600",
-  },
-  hintChip: {
-    marginTop: spacing.sm,
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  statCol: { flexDirection: "row", gap: spacing.sm },
-  statBox: { flex: 1, padding: spacing.md, borderRadius: 12 },
-  statLabel: { fontWeight: "700" },
-  statValue: { fontWeight: "800", marginTop: 4 },
-  streakWrap: {
+  strip: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm,
-    marginTop: spacing.md,
+    alignItems: "center",
+    columnGap: spacing.md,
+    rowGap: 4,
+    marginBottom: spacing.lg,
   },
-  streakPill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  streakPillText: { fontWeight: "700" },
+  offline: { color: "#d97706", fontWeight: "600" },
   grid: { gap: 0 },
-  sectionTitle: {
-    fontSize: typography.lg,
-    fontWeight: "800",
-    marginBottom: spacing.md,
-    marginTop: spacing.sm,
+  questHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  wrapRow: { flexDirection: "column", gap: spacing.md },
-  wrapMascot: { alignItems: "center" },
-  wrapKicker: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1,
-    textTransform: "uppercase",
+  questStep: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
   },
-  wrapTitle: {
-    fontSize: typography.lg,
-    fontWeight: "800",
-    marginTop: spacing.xs,
-  },
-  wrapSub: { marginTop: spacing.xs },
-  wrapCta: {
-    marginTop: spacing.lg,
-    padding: spacing.md,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  wrapCtaText: { fontWeight: "600" },
 });

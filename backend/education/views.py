@@ -2215,6 +2215,23 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                     exercise.id,
                 )
 
+            # Clearing a due item is the only thing that moves a
+            # `clear_review_queue` mission, and nothing used to call it — those
+            # missions sat at 0% for the life of the account. `update_progress`
+            # recomputes from the live due count, so this runs after .bump().
+            try:
+                review_missions = touch_assigned_completions(
+                    request.user, ["clear_review_queue"]
+                ).filter(status__in=["not_started", "in_progress"])
+                for mission_completion in review_missions:
+                    mission_completion.update_progress()
+            except Exception:
+                logger.exception(
+                    "review_mission_progress_failed user_id=%s exercise_id=%s",
+                    request.user.id,
+                    exercise.id,
+                )
+
         xp_delta = (
             0
             if already_completed and is_correct

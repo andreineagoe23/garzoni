@@ -1572,7 +1572,8 @@
       "confirmBody": "You get one swap per day. This can't be undone.",
       "confirm": "Swap",
       "cancel": "Cancel",
-      "offlineBlocked": "You're offline — reconnect to swap missions."
+      "offlineBlocked": "You're offline — reconnect to swap missions.",
+      "short": "Swap"
     },
     "missionFallback": "Mission",
     "purpose": {
@@ -1592,7 +1593,13 @@
       "label": "Progress",
       "aria": "Mission progress: {{value}}%",
       "completed": "Completed!",
-      "levelTarget": "Level-aware target: {{lessons}} lesson{{plural}}. Estimated completed today: {{completed}}."
+      "levelTarget": "Level-aware target: {{lessons}} lesson{{plural}}. Estimated completed today: {{completed}}.",
+      "fraction": {
+        "lessons": "{{current}} of {{total}} lessons",
+        "facts": "{{current}} of {{total}} facts",
+        "savings": "£{{current}} of £{{total}} saved",
+        "reviews": "{{current}} of {{total}} reviews"
+      }
     },
     "badge": {
       "daily": "Daily",
@@ -1605,7 +1612,8 @@
     },
     "header": {
       "title": "Daily Missions",
-      "subtitle": "Complete focused challenges to earn rewards and strengthen your financial habits."
+      "subtitle": "Complete focused challenges to earn rewards and strengthen your financial habits.",
+      "short": "Missions"
     },
     "summary": {
       "title": "Progress at a glance",
@@ -1631,7 +1639,9 @@
       "streakReview_few": "Streak: {{days}} days · Review due: {{review}}",
       "streakReview_other": "Streak: {{days}} days · Review due: {{review}}",
       "cta": "Keep going! Weekly missions and reviews will boost mastery next.",
-      "mascotMessage": "Steady progress wins. Great work today!"
+      "mascotMessage": "Steady progress wins. Great work today!",
+      "compact": "All done today — {{xp}} XP banked",
+      "ctaWeekly": "Start a weekly mission"
     },
     "weekly": {
       "title": "Weekly Missions",
@@ -1644,7 +1654,31 @@
     "cta": {
       "completeLesson": "Continue learning",
       "review": "Open review queue",
-      "completePath": "View your path"
+      "completePath": "View your path",
+      "addSavings": "Add savings",
+      "readFact": "Read a fact"
+    },
+    "reset": {
+      "dailyPrefix": "Resets in",
+      "weeklyPrefix": "New set in",
+      "days": "{{days}}d {{hours}}h",
+      "hours": "{{hours}}h {{minutes}}m",
+      "minutes": "{{minutes}}m"
+    },
+    "strip": {
+      "done": "{{done}}/{{total}} done",
+      "xpLeft": "{{xp}} XP left",
+      "xpAllDone": "{{xp}} XP banked"
+    },
+    "action": {
+      "savingsTitle": "Savings jar",
+      "factTitle": "Money fact"
+    },
+    "xpPill": "+{{xp}} XP",
+    "quests": {
+      "eyebrow": "Story mission",
+      "steps": "{{done}}/{{total}} steps",
+      "reward": "+{{xp}} XP on completion"
     }
   },
   "wagers": {
@@ -1979,7 +2013,13 @@
     "refreshNote": "Coins refresh automatically after each purchase or donation.",
     "downloadLimit": "Download limit reached",
     "shareButton": "Share achievement card",
-    "confirmAction": "Tap again to confirm"
+    "confirmAction": "Tap again to confirm",
+    "badges": {
+      "title": "Badges",
+      "count": "{{earned}} of {{total}} unlocked",
+      "empty": "No badges to show yet.",
+      "lockedHint": "Locked"
+    }
   },
   "support": {
     "header": {

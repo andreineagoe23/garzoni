@@ -1,379 +1,199 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router, type Href } from "expo-router";
-import type { FinanceFact, Mission } from "@garzoni/core";
+import { Ionicons } from "@expo/vector-icons";
+import type { Mission, MissionActionKind } from "@garzoni/core";
+import { getMissionPresentation } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassCard from "../ui/GlassCard";
 import ProgressBar from "../ui/ProgressBar";
 import { spacing, typography } from "../../theme/tokens";
-import FactCard from "./FactCard";
-import CoinStack from "./CoinStack";
+
+const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  bookOpen: "book-outline",
+  chartLine: "trending-up-outline",
+  target: "checkmark-done-outline",
+  lightbulb: "bulb-outline",
+  rocket: "rocket-outline",
+};
 
 export type MissionCardProps = {
   mission: Mission;
   isDaily: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
   canSwap: boolean;
+  /** Level-aware fallback when the mission carries no `required_lessons`. */
+  lessonRequirement: number;
   onSwap: (missionId: number) => void;
-  showSavingsMenu: boolean;
-  onToggleSavingsMenu: () => void;
-  virtualBalance: number;
-  currentFact: FinanceFact | null;
-  factLoading?: boolean;
-  onMarkFactRead: () => void;
-  onLoadFact: () => void;
-  savingsAmount: string;
-  onSavingsAmountChange: (value: string) => void;
-  onSavingsSubmit: () => void;
-  getLessonRequirement: (mission: Mission) => number;
-  purposeStatement: (mission: Mission) => string;
+  /** Savings/fact CTAs open the action sheet; route CTAs navigate. */
+  onAction: (mission: Mission, kind: MissionActionKind) => void;
 };
 
+/**
+ * One mission = one action row: icon, name, progress fraction, XP, one CTA.
+ * The savings jar and fact reader used to be embedded here, which is what made
+ * the board 260px per mission; they live in the action sheet now.
+ */
 export default function MissionCard({
   mission,
   isDaily,
   t,
   canSwap,
+  lessonRequirement,
   onSwap,
-  showSavingsMenu,
-  onToggleSavingsMenu,
-  virtualBalance,
-  currentFact,
-  factLoading,
-  onMarkFactRead,
-  onLoadFact,
-  savingsAmount,
-  onSavingsAmountChange,
-  onSavingsSubmit,
-  getLessonRequirement,
-  purposeStatement,
+  onAction,
 }: MissionCardProps) {
   const c = useThemeColors();
-  const progressPercent = Math.min(
-    100,
-    Math.round(Number(mission.progress ?? 0)),
-  );
   const isCompleted = mission.status === "completed";
+  const presentation = getMissionPresentation(mission, {
+    isDaily,
+    lessonRequirement,
+  });
   const title =
     mission.mission_name || mission.name || t("missions.missionFallback");
-  const mid = Number(mission.id);
+  const xp = mission.points_reward ?? 0;
 
-  const progressLabel =
-    mission.goal_type === "read_fact" && !isDaily
-      ? t("missions.progress.factsCount", {
-          count: Math.floor(progressPercent / 20),
-        })
-      : t("missions.progress.percent", { value: progressPercent });
-
-  const progressDetail =
-    mission.goal_type === "read_fact" && isDaily
-      ? t("missions.progress.readOneFact")
-      : mission.goal_type === "read_fact"
-        ? t("missions.progress.factsRemaining", {
-            count: 5 - Math.floor(progressPercent / 20),
-          })
-        : mission.goal_type === "complete_lesson"
-          ? t("missions.progress.lessonTarget", {
-              value: progressPercent,
-              lessons: getLessonRequirement(mission),
-            })
-          : t("missions.progress.complete", { value: progressPercent });
-
-  const completedLessons =
-    mission.goal_type === "complete_lesson"
-      ? Math.min(
-          getLessonRequirement(mission),
-          Math.round(
-            (Math.max(Number(mission.progress ?? 0), 0) / 100) *
-              getLessonRequirement(mission),
-          ),
-        )
-      : null;
-
-  const coinUnit = isDaily ? 1 : 10;
-  const target = isDaily ? 10 : 100;
-
-  // Route the user straight to the surface where this mission is earned —
-  // cards for these goal types were previously dead ends.
-  const missionCta: { label: string; route: Href } | null =
-    mission.goal_type === "complete_lesson" ||
-    mission.goal_type === "complete_path"
-      ? {
-          label:
-            mission.goal_type === "complete_path"
-              ? t("missions.cta.completePath")
-              : t("missions.cta.completeLesson"),
-          route: "/(tabs)/learn?view=personalized" as Href,
-        }
-      : mission.goal_type === "clear_review_queue"
-        ? {
-            label: t("missions.cta.review"),
-            route: "/(tabs)/exercises" as Href,
-          }
-        : null;
-
-  return (
-    <GlassCard
-      padding="lg"
-      style={{ marginBottom: spacing.md, minHeight: 240 }}
-    >
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: c.text }]} numberOfLines={2}>
-            {title}
-          </Text>
-          <View style={[styles.badge, { backgroundColor: `${c.primary}22` }]}>
-            <Text style={[styles.badgeText, { color: c.primary }]}>
-              {isDaily ? t("missions.badge.daily") : t("missions.badge.weekly")}
+  if (isCompleted) {
+    return (
+      <GlassCard padding="sm" style={styles.card}>
+        <View style={styles.row}>
+          <View style={[styles.iconTile, { backgroundColor: c.successBg }]}>
+            <Ionicons name="checkmark" size={16} color={c.success} />
+          </View>
+          <View style={styles.body}>
+            <Text
+              style={[styles.title, { color: c.textMuted }]}
+              numberOfLines={1}
+            >
+              {title}
+            </Text>
+            <Text style={[styles.detail, { color: c.textMuted }]}>
+              {t("missions.progress.completed")}
             </Text>
           </View>
-        </View>
-        {mission.description ? (
-          <Text style={[styles.desc, { color: c.textMuted }]} numberOfLines={6}>
-            {mission.description}
+          <Text style={[styles.xp, { color: c.success }]}>
+            {t("missions.xpPill", { xp })}
           </Text>
-        ) : null}
-        <Text style={[styles.why, { color: c.textMuted }]}>
-          {t("missions.why")} {purposeStatement(mission)}
-        </Text>
+        </View>
+      </GlassCard>
+    );
+  }
 
-        <View style={styles.progressBlock}>
-          <View style={styles.progressRow}>
-            <Text style={[styles.progressLabel, { color: c.textMuted }]}>
-              {t("missions.progress.label")}
+  return (
+    <GlassCard padding="sm" style={styles.card}>
+      <View style={styles.row}>
+        <View style={[styles.iconTile, { backgroundColor: `${c.primary}1a` }]}>
+          <Ionicons
+            name={ICONS[presentation.iconName] ?? "flag-outline"}
+            size={16}
+            color={c.primary}
+          />
+        </View>
+
+        <View style={styles.body}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>
+              {title}
             </Text>
-            <Text style={[styles.progressValue, { color: c.text }]}>
-              {progressLabel}
+            <Text style={[styles.xp, { color: c.primary }]}>
+              {t("missions.xpPill", { xp })}
             </Text>
           </View>
           <ProgressBar
-            value={progressPercent / 100}
+            value={presentation.percent / 100}
             color={c.primary}
+            height={6}
             style={{ marginTop: spacing.xs }}
           />
-          <Text style={[styles.progressDetail, { color: c.textMuted }]}>
-            {isCompleted ? t("missions.progress.completed") : progressDetail}
+          <Text
+            style={[styles.detail, { color: c.textMuted }]}
+            numberOfLines={1}
+          >
+            {t(presentation.progressKey, presentation.progressParams)}
           </Text>
-          {completedLessons !== null ? (
-            <Text style={[styles.levelTarget, { color: c.textFaint }]}>
-              {t("missions.progress.levelTarget", {
-                lessons: getLessonRequirement(mission),
-                plural: getLessonRequirement(mission) !== 1 ? "s" : "",
-                completed: completedLessons,
-              })}
-            </Text>
-          ) : null}
         </View>
       </View>
 
-      {isCompleted ? (
-        <View
-          style={[
-            styles.completeBox,
-            {
-              borderColor: c.primarySoft,
-              backgroundColor: c.successBg,
-            },
-          ]}
-        >
-          <View style={styles.completeRow}>
-            <Text style={[styles.completeTitle, { color: c.success }]}>
-              {t("missions.complete.title")}
+      <View style={styles.actions}>
+        {presentation.ctaLabelKey ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t(presentation.ctaLabelKey)}
+            onPress={() => {
+              if (
+                presentation.actionKind === "route" &&
+                presentation.mobileRoute
+              ) {
+                router.push(presentation.mobileRoute as Href);
+                return;
+              }
+              onAction(mission, presentation.actionKind);
+            }}
+            style={({ pressed }) => [
+              styles.cta,
+              { backgroundColor: c.primary, opacity: pressed ? 0.9 : 1 },
+            ]}
+          >
+            <Text style={[styles.ctaText, { color: c.textOnPrimary }]}>
+              {t(presentation.ctaLabelKey)}
             </Text>
-            <Text style={[styles.completeTitle, { color: c.success }]}>
-              +{mission.points_reward ?? 0} XP
-            </Text>
-          </View>
-          <Text style={[styles.completeSub, { color: c.success }]}>
-            {t("missions.complete.subtitle")}
-          </Text>
-        </View>
-      ) : (
-        <View style={{ marginTop: spacing.lg, gap: spacing.md }}>
-          {missionCta ? (
-            <Pressable
-              accessibilityLabel={missionCta.label}
-              onPress={() => router.push(missionCta.route)}
-              style={({ pressed }) => [
-                styles.primaryBtn,
-                { opacity: pressed ? 0.9 : 1, backgroundColor: c.primary },
-              ]}
-            >
-              <Text style={[styles.primaryBtnText, { color: c.textOnPrimary }]}>
-                {missionCta.label}
-              </Text>
-            </Pressable>
-          ) : null}
-          {canSwap && isDaily ? (
-            <Pressable
-              accessibilityLabel={t("missions.swap.aria", { name: title })}
-              onPress={() => onSwap(mid)}
-              style={({ pressed }) => [
-                styles.swapBtn,
-                {
-                  opacity: pressed ? 0.85 : 1,
-                  borderColor: `${c.primary}55`,
-                  backgroundColor: `${c.primary}18`,
-                },
-              ]}
-            >
-              <Text style={[styles.swapBtnText, { color: c.primary }]}>
-                {t("missions.swap.label")}
-              </Text>
-            </Pressable>
-          ) : null}
-
-          {mission.goal_type === "add_savings" ? (
-            <GlassCard padding="md" style={{ backgroundColor: `${c.bg}99` }}>
-              <Pressable
-                onPress={onToggleSavingsMenu}
-                style={({ pressed }) => [
-                  styles.primaryBtn,
-                  { opacity: pressed ? 0.9 : 1, backgroundColor: c.primary },
-                ]}
-              >
-                <Text
-                  style={[styles.primaryBtnText, { color: c.textOnPrimary }]}
-                >
-                  {showSavingsMenu
-                    ? t("missions.savings.hideJar")
-                    : t("missions.savings.showJar")}
-                </Text>
-              </Pressable>
-              {showSavingsMenu ? (
-                <View style={{ marginTop: spacing.md, gap: spacing.md }}>
-                  <CoinStack
-                    balance={virtualBalance}
-                    coinUnit={coinUnit}
-                    target={target}
-                    t={t}
-                  />
-                  <Text style={[styles.note, { color: c.textMuted }]}>
-                    {t("missions.savings.suggestedNote")}
-                  </Text>
-                  <View style={styles.formRow}>
-                    <TextInput
-                      value={savingsAmount}
-                      onChangeText={onSavingsAmountChange}
-                      placeholder={
-                        isDaily
-                          ? t("missions.savings.placeholderDaily")
-                          : t("missions.savings.placeholderWeekly")
-                      }
-                      placeholderTextColor={c.textFaint}
-                      keyboardType="decimal-pad"
-                      style={[
-                        styles.input,
-                        {
-                          borderColor: c.border,
-                          backgroundColor: c.inputBg,
-                          color: c.text,
-                        },
-                      ]}
-                    />
-                    <Pressable
-                      onPress={onSavingsSubmit}
-                      style={({ pressed }) => [
-                        styles.addBtn,
-                        {
-                          opacity: pressed ? 0.9 : 1,
-                          backgroundColor: c.primary,
-                        },
-                      ]}
-                    >
-                      <Text style={styles.addBtnText}>
-                        {t("missions.savings.add")}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              ) : null}
-            </GlassCard>
-          ) : null}
-
-          {mission.goal_type === "read_fact" && isDaily ? (
-            <FactCard
-              fact={currentFact}
-              loading={factLoading}
-              onMarkRead={onMarkFactRead}
-              onTryAgain={onLoadFact}
-              t={t}
-            />
-          ) : null}
-        </View>
-      )}
+          </Pressable>
+        ) : null}
+        {canSwap && isDaily ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("missions.swap.aria", { name: title })}
+            onPress={() => onSwap(Number(mission.id))}
+            style={({ pressed }) => [
+              styles.swap,
+              { borderColor: c.border, opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Ionicons name="swap-horizontal" size={14} color={c.textMuted} />
+          </Pressable>
+        ) : null}
+      </View>
     </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { gap: spacing.sm },
+  card: { marginBottom: spacing.sm },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  iconTile: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  body: { flex: 1, minWidth: 0 },
   titleRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: spacing.md,
-  },
-  title: { flex: 1, fontSize: typography.md, fontWeight: "700" },
-  badge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  badgeText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
-  desc: { fontSize: typography.sm, lineHeight: 20 },
-  why: { fontSize: typography.xs, fontWeight: "700", marginTop: spacing.xs },
-  progressBlock: { marginTop: spacing.md },
-  progressRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: spacing.sm,
   },
-  progressLabel: { fontSize: typography.xs, fontWeight: "700" },
-  progressValue: { fontSize: typography.xs, fontWeight: "700" },
-  progressDetail: { fontSize: typography.xs, marginTop: spacing.xs },
-  levelTarget: { fontSize: 10, marginTop: 4 },
-  completeBox: {
-    marginTop: spacing.md,
-    padding: spacing.md,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  completeRow: {
+  title: { flex: 1, fontSize: typography.sm, fontWeight: "700" },
+  xp: { fontSize: typography.xs, fontWeight: "800" },
+  detail: { fontSize: typography.xs, marginTop: 4 },
+  actions: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: spacing.xs,
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
-  completeTitle: { fontSize: typography.xs, fontWeight: "800" },
-  completeSub: { fontSize: typography.xs, lineHeight: 18 },
-  swapBtn: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  swapBtnText: { fontSize: typography.xs, fontWeight: "700" },
-  primaryBtn: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 999,
-  },
-  primaryBtnText: { fontSize: typography.xs, fontWeight: "700" },
-  note: { fontSize: typography.xs, lineHeight: 18 },
-  formRow: { flexDirection: "column", gap: spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    fontSize: typography.sm,
-  },
-  addBtn: {
-    paddingHorizontal: spacing.lg,
+  cta: {
+    flex: 1,
     paddingVertical: spacing.sm,
     borderRadius: 999,
     alignItems: "center",
   },
-  addBtnText: { color: "#fff", fontSize: typography.xs, fontWeight: "700" },
+  ctaText: { fontSize: typography.xs, fontWeight: "700" },
+  swap: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

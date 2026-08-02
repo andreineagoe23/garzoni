@@ -17,6 +17,10 @@ export const navIcons = {
   rewards: "gift-outline",
   tools: "construct-outline",
   toolsFilled: "construct",
+  /** Header control that opens the tool switcher (a grid of all tools). */
+  toolSwitcher: "grid-outline",
+  /** Plus-only marker on tool rows. */
+  plusOnly: "sparkles",
   support: "help-circle-outline",
   settings: "settings-outline",
   billing: "card-outline",

@@ -823,6 +823,7 @@ function Dashboard({ activePage: initialActivePage = "all-topics" }) {
               reviewQueueData={reviewQueueData}
               reviewTopSkill={reviewQueueData?.due?.[0]?.skill ?? null}
               onOpenReviews={() => navigate("/exercises")}
+              onOpenMissions={() => navigate("/missions")}
               locale={locale}
             />
 

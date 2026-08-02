@@ -169,6 +169,20 @@ export {
 export type { ResolvedMascotPresentation } from "./engagement/mascotPresentation";
 export { MOOD_TO_MASCOT } from "./engagement/mascotTypes";
 export { mergeMissionDeltas } from "./engagement/missionDeltas";
+export {
+  getMissionPresentation,
+  resolveQuestStepRoute,
+  msUntilDailyReset,
+  msUntilWeeklyReset,
+  countdownLabel,
+} from "./engagement/missionPresentation";
+export type {
+  MissionPresentation,
+  MissionActionKind,
+  QuestStep,
+  QuestStepRoute,
+  CountdownLabel,
+} from "./engagement/missionPresentation";
 export { useOnlineSync } from "./hooks/useOnlineSync";
 
 export type {
