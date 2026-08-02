@@ -76,6 +76,18 @@ export const MOBILE_TOOLS: MobileToolDef[] = [
     estimatedMinutes: 6,
   },
   {
+    // No `plusOnly`: analysing a statement is free on every plan. The paywall
+    // sits on *saving* the import, inside the screen itself.
+    id: "statement-import",
+    group: "understand-myself",
+    route: "statement-import",
+    title: "Statement Import",
+    subtitle: "Upload a bank CSV, see where money went",
+    icon: "FileText",
+    accentColor: "#7c2d12",
+    estimatedMinutes: 4,
+  },
+  {
     id: "savings-goals",
     group: "understand-myself",
     route: "savings-goals",

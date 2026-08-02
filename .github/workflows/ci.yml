@@ -95,10 +95,15 @@ jobs:
       # Version comes from root package.json "packageManager" (do not pin a different version here).
       - uses: pnpm/action-setup@v4
 
+      # Node version comes from .nvmrc. It must stay >= 22.18: the token
+      # generator (packages/tokens/scripts/gen-css.mjs) imports the TypeScript
+      # source directly and relies on Node's native type stripping, which is
+      # unflagged only from 22.18 onward. Node 20 fails with
+      # ERR_UNKNOWN_FILE_EXTENSION.
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install dependencies

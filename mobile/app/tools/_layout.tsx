@@ -44,6 +44,10 @@ export default function ToolsLayout() {
           options={{ title: "Budget & Spending" }}
         />
         <Stack.Screen
+          name="statement-import/index"
+          options={{ title: "Statement Import" }}
+        />
+        <Stack.Screen
           name="portfolio/index"
           options={{ title: "Portfolio Analyzer" }}
         />

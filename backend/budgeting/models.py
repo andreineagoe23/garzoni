@@ -63,6 +63,46 @@ class LinkedAccount(models.Model):
         return f"{self.display_name} ({self.provider})"
 
 
+class StatementImport(models.Model):
+    """One CSV statement upload, kept so an import can be reviewed or undone.
+
+    The uploaded file itself is never stored — only the parse outcome and the
+    counters needed to explain (and reverse) what it did to the user's data.
+    """
+
+    class Status(models.TextChoices):
+        COMPLETED = "completed", "Completed"
+        REVERTED = "reverted", "Reverted"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="statement_imports",
+    )
+    filename = models.CharField(max_length=128, blank=True)
+    dialect_slug = models.CharField(max_length=32, default="generic")
+    dialect_label = models.CharField(max_length=64, blank=True)
+    currency = models.CharField(max_length=8, default="")
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    created_count = models.PositiveIntegerField(default=0)
+    duplicate_count = models.PositiveIntegerField(default=0)
+    skipped_count = models.PositiveIntegerField(default=0)
+    total_income = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal("0"))
+    total_spent = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal("0"))
+    #: True when the import consumed one of the free-plan trial allowances.
+    was_trial = models.BooleanField(default=False)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.COMPLETED)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "-created_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.filename or 'statement'} ({self.created_count} tx)"
+
+
 class TransactionCategory(models.Model):
     """Internal category taxonomy used by Garzoni.
 
@@ -110,6 +150,13 @@ class Transaction(models.Model):
     )
     account = models.ForeignKey(
         LinkedAccount,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transactions",
+    )
+    statement_import = models.ForeignKey(
+        StatementImport,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

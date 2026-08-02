@@ -7,6 +7,7 @@ from budgeting.models import (
     LinkedAccount,
     ProviderWebhookEvent,
     SpendingAnomaly,
+    StatementImport,
     Transaction,
     TransactionCategory,
 )
@@ -42,6 +43,26 @@ class TransactionAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     list_filter = ("source", "is_pending")
     search_fields = ("description", "merchant_name", "user__email")
     date_hierarchy = "posted_at"
+
+
+@admin.register(StatementImport)
+class StatementImportAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    # Counters only — the uploaded file is never stored and the individual
+    # transactions live behind TransactionAdmin.
+    list_display = (
+        "id",
+        "user",
+        "dialect_label",
+        "period_start",
+        "period_end",
+        "created_count",
+        "was_trial",
+        "status",
+        "created_at",
+    )
+    list_filter = ("dialect_slug", "status", "was_trial")
+    search_fields = ("user__email",)
+    date_hierarchy = "created_at"
 
 
 @admin.register(TransactionCategory)

@@ -354,7 +354,11 @@
     },
     "q2": {
       "prompt": "Ai un venit net de 2.000 £ pe lună. Cât ar trebui să meargă spre economii și datorii?",
-      "options": ["100 £", "400 £", "1.000 £"],
+      "options": [
+        "100 £",
+        "400 £",
+        "1.000 £"
+      ],
       "explanation": "20% din 2.000 £ înseamnă 400 £ — ținta ta lunară pentru economii și achitarea datoriilor."
     },
     "done": {
@@ -956,6 +960,16 @@
         "sampleUseCase": "Estimează valoarea pip înainte să mergi mai adânc în concepte FX.",
         "whoItsFor": "Învățăcei care explorează mecanica forex, nu execuția live.",
         "questionItAnswers": "Care este valoarea pip pentru perechea și lotul meu?"
+      },
+      "statement-import": {
+        "title": "Import extras de cont",
+        "promise": "Încarcă un CSV de la bancă și vezi unde se duc banii cu adevărat.",
+        "description": "Citește exporturi de extras de la bănci din UK și România și îți defalcă cheltuielile.",
+        "mostUsefulFor": "Oricine vrea o defalcare reală a cheltuielilor fără să conecteze contul bancar.",
+        "whatItDoes": "Parcurge un extras CSV, categorisește fiecare tranzacție și găsește plățile recurente.",
+        "sampleUseCase": "Încarcă exportul Revolut de luna trecută și găsește abonamentele uitate.",
+        "whoItsFor": "Oricine e curios unde s-au dus banii luna trecută.",
+        "questionItAnswers": "Unde s-au dus banii mei, de fapt?"
       }
     },
     "personalCfo": {
@@ -1183,7 +1197,8 @@
         "createFailed": "Nu am putut adăuga plicul. Încearcă din nou.",
         "linkUnavailable": "Conectarea conturilor nu este disponibilă în regiunea ta.",
         "notEntitled": "Planificatorul de buget este inclus în Plus și Pro."
-      }
+      },
+      "importStatement": "Importă un extras"
     },
     "realityCheck": {
       "activityLabel": "Verificare fezabilitate obiectiv",
@@ -1522,6 +1537,85 @@
       "iframeTitle": "Calculator pip Forex",
       "fallback": "Calculator oferit de <provider>Investing.com</provider>. Dacă nu se încarcă mai sus, <open>deschide-l într-un tab nou</open>.",
       "activityLabel": "Ai vizualizat calculatorul Forex"
+    },
+    "statementImport": {
+      "eyebrow": "Analiză extras de cont",
+      "title": "Import extras de cont",
+      "subtitle": "Vezi exact unde s-au dus banii — fără să conectezi contul.",
+      "activityLabel": "Am analizat un extras",
+      "privacyNote": "Citit în memorie, niciodată salvat. Numerele de card și IBAN-urile sunt eliminate, iar numele comercianților nu ajung la AI.",
+      "dropzone": {
+        "title": "Trage aici fișierul CSV",
+        "titleMobile": "Încarcă extrasul de cont",
+        "hint": "Sau alege un fișier. Merge cu Revolut, Barclays, Banca Transilvania și majoritatea exporturilor CSV.",
+        "hintMobile": "Un export CSV de la Revolut, Barclays, Banca Transilvania și majoritatea băncilor.",
+        "choose": "Alege fișier",
+        "analyzing": "Citim extrasul tău…",
+        "footnote": "Analiza e gratuită. Fișierul nu este salvat niciodată."
+      },
+      "totals": {
+        "income": "Intrări",
+        "spent": "Ieșiri",
+        "net": "Rămas"
+      },
+      "summary": {
+        "title": "Citit ca export {{bank}}",
+        "range": "{{count}} tranzacții din {{start}} până în {{end}}"
+      },
+      "insights": {
+        "title": "Ce iese în evidență"
+      },
+      "categories": {
+        "title": "Unde s-au dus banii"
+      },
+      "merchants": {
+        "title": "Cei mai frecvenți comercianți"
+      },
+      "recurring": {
+        "title": "Plăți recurente",
+        "empty": "Nu am găsit plăți care se repetă în acest extras.",
+        "meta": "{{count}}× · {{category}}"
+      },
+      "sample": {
+        "title": "Cum am citit rândurile tale",
+        "date": "Data",
+        "merchant": "Comerciant",
+        "category": "Categorie",
+        "amount": "Sumă"
+      },
+      "save": {
+        "title": "Păstrează asta în bugetul tău",
+        "hintPaid": "Salvarea adaugă tranzacțiile în Budget Planner și Personal CFO, urmărite lună de lună.",
+        "hintFree": "Mai ai {{count}} salvări gratuite. Salvarea urmărește cheltuielile în timp și alimentează Personal CFO.",
+        "hintFree_one": "Mai ai {{count}} salvare gratuită. Salvarea urmărește cheltuielile în timp și alimentează Personal CFO.",
+        "hintLocked": "Ai folosit salvările gratuite. Treci la Plus ca să urmărești cheltuielile lună de lună.",
+        "cta": "Salvează în buget",
+        "saving": "Se salvează…",
+        "upgrade": "Upgrade pentru salvare",
+        "done": "Am salvat {{count}} tranzacții",
+        "done_one": "Am salvat {{count}} tranzacție",
+        "doneHint": "Alimentează acum plicurile de buget, alertele și Personal CFO.",
+        "openPlanner": "Deschide Budget Planner"
+      },
+      "history": {
+        "title": "Importuri salvate",
+        "meta": "{{count}} tranzacții · {{start}} → {{end}}",
+        "undo": "Anulează importul",
+        "reverted": "Anulat"
+      },
+      "errors": {
+        "parseFailed": "Nu am putut citi fișierul. Asigură-te că este un export CSV de la bancă.",
+        "tooLarge": "Fișierul este prea mare. Exportă un interval mai scurt și încearcă din nou.",
+        "throttled": "Prea multe încărcări acum. Încearcă din nou peste puțin timp.",
+        "deleteFailed": "Nu am putut anula importul. Încearcă din nou.",
+        "wrongType": "Alege un fișier .csv exportat de la bancă.",
+        "pickerUnavailable": "Selectarea fișierelor nu este disponibilă în această versiune. Actualizează aplicația (sau reconstruiește dev client-ul) și încearcă din nou."
+      },
+      "paste": {
+        "open": "Lipește textul în schimb",
+        "placeholder": "Lipește rândurile din extras, inclusiv linia de antet…",
+        "analyze": "Analizează"
+      }
     }
   },
   "missions": {

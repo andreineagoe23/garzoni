@@ -12,6 +12,7 @@ const SavingsCalculatorTool = React.lazy(
   () => import("./SavingsCalculatorTool")
 );
 const BudgetPlanner = React.lazy(() => import("./BudgetPlanner"));
+const StatementImport = React.lazy(() => import("./StatementImport"));
 
 export type ToolGroupId =
   "personal-cfo" | "understand-world" | "understand-myself" | "decide-next";
@@ -71,6 +72,29 @@ export const toolsRegistry: ToolDefinition[] = [
     keywords: ["budget", "spending", "cash flow", "envelopes", "transactions"],
     activityStorageKey: "garzoni:tools:activity:budget-planner",
     estimatedMinutes: 12,
+  },
+  {
+    // Deliberately has no `requiredPlan`: analysing a statement is the free
+    // hook, and the paywall lands on *saving* the import instead.
+    id: "statement-import",
+    group: "understand-myself",
+    route: "statement-import",
+    component: StatementImport,
+    learnPath: "/all-topics?topic=budgeting",
+    cardImage: "tools/budget_planner.png",
+    keywords: [
+      "statement",
+      "csv",
+      "import",
+      "bank",
+      "spending",
+      "transactions",
+      "revolut",
+      "barclays",
+      "banca transilvania",
+    ],
+    activityStorageKey: "garzoni:tools:activity:statement-import",
+    estimatedMinutes: 4,
   },
   {
     id: "savings-calculator",

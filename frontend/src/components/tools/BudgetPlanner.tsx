@@ -180,17 +180,25 @@ const BudgetPlanner = () => {
               {t("tools.budgetPlanner.subtitle")}
             </p>
           </div>
-          {providerStatus && providerStatus.enabled && (
-            <button
-              type="button"
-              onClick={handleStartLink}
-              className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--color-brand-primary-hover)]"
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/tools/statement-import"
+              className="rounded-full border border-[color:var(--color-border-default)] px-4 py-1.5 text-xs font-semibold text-content-primary transition hover:border-[color:var(--color-brand-primary)]"
             >
-              {accounts.length > 0
-                ? t("tools.budgetPlanner.relinkAccount")
-                : t("tools.budgetPlanner.linkAccount")}
-            </button>
-          )}
+              {t("tools.budgetPlanner.importStatement")}
+            </a>
+            {providerStatus && providerStatus.enabled && (
+              <button
+                type="button"
+                onClick={handleStartLink}
+                className="rounded-full bg-[color:var(--color-brand-primary)] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[color:var(--color-brand-primary-hover)]"
+              >
+                {accounts.length > 0
+                  ? t("tools.budgetPlanner.relinkAccount")
+                  : t("tools.budgetPlanner.linkAccount")}
+              </button>
+            )}
+          </div>
         </div>
         {providerStatus && !providerStatus.enabled && (
           <p className="mt-3 rounded-2xl border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)] px-3 py-2 text-xs text-content-muted">

@@ -38,7 +38,12 @@ export default function ToolWebScreen() {
         {!uri ? (
           <View style={styles.center}>
             <Text style={[styles.msg, { color: c.text }]}>
-              Set EXPO_PUBLIC_WEB_APP_URL in your build env to load tools.
+              {/* Landing here for a tool that has a native screen means the
+                  static route was not in the bundle — restart Metro with
+                  `--clear`. Saying so beats blaming the env var. */}
+              {toolSlug && !ALLOWED_TOOL_SLUGS.has(toolSlug)
+                ? `"${toolSlug}" isn't available in this build. Restart the dev server with --clear, or update the app.`
+                : "Set EXPO_PUBLIC_WEB_APP_URL in your build env to load tools."}
             </Text>
           </View>
         ) : (

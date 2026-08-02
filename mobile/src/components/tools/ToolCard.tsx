@@ -23,6 +23,7 @@ const ICON_MAP: Record<string, string> = {
   Newspaper: "📰",
   Briefcase: "💼",
   Wallet: "👛",
+  FileText: "🧾",
 };
 
 type Props = {

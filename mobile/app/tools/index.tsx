@@ -49,9 +49,9 @@ export default function ToolsHubScreen() {
   // Phone: 2-up. Tablet: 3-up. Large tablet: 4-up.
   const columns = gridColumns(2, 3, 4);
   const cardWidth = gridItemWidth(availableWidth, columns, spacing.md);
-  // Open on "My money" so the tab lands on personal finance, not everything at once.
-  const [activeFilter, setActiveFilter] =
-    useState<FilterOption>("understand-myself");
+  // Open on "All": the hub should show the full toolset first so nothing is
+  // hidden behind a filter the user did not choose.
+  const [activeFilter, setActiveFilter] = useState<FilterOption>("all");
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
 
   const entQuery = useQuery({

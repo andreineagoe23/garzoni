@@ -354,7 +354,11 @@
     },
     "q2": {
       "prompt": "You take home £2,000 a month. How much should go to savings and debt?",
-      "options": ["£100", "£400", "£1,000"],
+      "options": [
+        "£100",
+        "£400",
+        "£1,000"
+      ],
       "explanation": "20% of £2,000 is £400 — that's your monthly target for savings and paying down debt."
     },
     "done": {
@@ -956,6 +960,16 @@
         "sampleUseCase": "Estimate pip value before diving deeper into FX concepts.",
         "whoItsFor": "Learners exploring forex mechanics, not live trading execution.",
         "questionItAnswers": "What is the pip value for my pair and lot size?"
+      },
+      "statement-import": {
+        "title": "Statement Import",
+        "promise": "Upload a bank CSV and see where your money actually goes.",
+        "description": "Reads statement exports from UK and Romanian banks and breaks the spending down for you.",
+        "mostUsefulFor": "Anyone who wants a real spending breakdown without connecting a bank account.",
+        "whatItDoes": "Parses a CSV statement, categorises every transaction and finds recurring payments.",
+        "sampleUseCase": "Upload last month's Revolut export and find the subscriptions you forgot about.",
+        "whoItsFor": "Anyone curious where their money went last month.",
+        "questionItAnswers": "Where did my money actually go?"
       }
     },
     "personalCfo": {
@@ -1183,7 +1197,8 @@
         "createFailed": "We could not add this envelope. Please try again.",
         "linkUnavailable": "Account linking is unavailable in your region right now.",
         "notEntitled": "Budget Planner is included with Plus and Pro."
-      }
+      },
+      "importStatement": "Import a statement"
     },
     "realityCheck": {
       "activityLabel": "Checked goal feasibility",
@@ -1522,6 +1537,85 @@
       "iframeTitle": "Forex Pip Calculator",
       "fallback": "Calculator by <provider>Investing.com</provider>. If it doesn't load above, <open>open it in a new tab</open>.",
       "activityLabel": "Viewed forex calculator"
+    },
+    "statementImport": {
+      "eyebrow": "Statement analysis",
+      "title": "Statement Import",
+      "subtitle": "See exactly where your money went — no bank connection needed.",
+      "activityLabel": "Analysed a statement",
+      "privacyNote": "Read in memory, never stored. Card numbers and IBANs are stripped, and merchant names never reach the AI.",
+      "dropzone": {
+        "title": "Drop your statement CSV here",
+        "titleMobile": "Upload your bank statement",
+        "hint": "Or choose a file. Works with Revolut, Barclays, Banca Transilvania and most CSV exports.",
+        "hintMobile": "A CSV export from Revolut, Barclays, Banca Transilvania and most other banks.",
+        "choose": "Choose file",
+        "analyzing": "Reading your statement…",
+        "footnote": "Free to analyse. Your file is never stored."
+      },
+      "totals": {
+        "income": "Money in",
+        "spent": "Money out",
+        "net": "Left over"
+      },
+      "summary": {
+        "title": "Read as a {{bank}} export",
+        "range": "{{count}} transactions from {{start}} to {{end}}"
+      },
+      "insights": {
+        "title": "What stands out"
+      },
+      "categories": {
+        "title": "Where it went"
+      },
+      "merchants": {
+        "title": "Top merchants"
+      },
+      "recurring": {
+        "title": "Recurring payments",
+        "empty": "No repeating payments found in this statement.",
+        "meta": "{{count}}× · {{category}}"
+      },
+      "sample": {
+        "title": "How we read your rows",
+        "date": "Date",
+        "merchant": "Merchant",
+        "category": "Category",
+        "amount": "Amount"
+      },
+      "save": {
+        "title": "Keep this in your budget",
+        "hintPaid": "Saving adds these transactions to your Budget Planner and Personal CFO, tracked month over month.",
+        "hintFree": "You have {{count}} free saves left. Saving tracks this spending over time and feeds your Personal CFO.",
+        "hintFree_one": "You have {{count}} free save left. Saving tracks this spending over time and feeds your Personal CFO.",
+        "hintLocked": "You've used your free saves. Upgrade to keep tracking your spending month over month.",
+        "cta": "Save to my budget",
+        "saving": "Saving…",
+        "upgrade": "Upgrade to save",
+        "done": "Saved {{count}} transactions",
+        "done_one": "Saved {{count}} transaction",
+        "doneHint": "They now feed your budget envelopes, alerts and Personal CFO.",
+        "openPlanner": "Open Budget Planner"
+      },
+      "history": {
+        "title": "Saved imports",
+        "meta": "{{count}} transactions · {{start}} → {{end}}",
+        "undo": "Undo import",
+        "reverted": "Reverted"
+      },
+      "errors": {
+        "parseFailed": "We couldn't read that file. Make sure it's a CSV export from your bank.",
+        "tooLarge": "That file is too large. Export a shorter date range and try again.",
+        "throttled": "Too many uploads for now. Try again in a little while.",
+        "deleteFailed": "We couldn't undo that import. Please try again.",
+        "wrongType": "Pick a .csv file exported from your bank.",
+        "pickerUnavailable": "File picking isn't available in this build. Update the app (or rebuild the dev client) and try again."
+      },
+      "paste": {
+        "open": "Paste the text instead",
+        "placeholder": "Paste your statement rows, including the header line…",
+        "analyze": "Analyse"
+      }
     }
   },
   "missions": {

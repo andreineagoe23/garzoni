@@ -16,6 +16,12 @@ from budgeting.views import (
     SpendingSummaryView,
     TransactionViewSet,
 )
+from budgeting.views_statements import (
+    StatementAllowanceView,
+    StatementCommitView,
+    StatementImportViewSet,
+    StatementPreviewView,
+)
 
 router = DefaultRouter()
 router.register(
@@ -34,7 +40,30 @@ router.register(
     basename="budgeting-envelope",
 )
 
+router.register(
+    r"budgeting/statements",
+    StatementImportViewSet,
+    basename="budgeting-statement-import",
+)
+
 urlpatterns = [
+    # Declared before the router: the statements ViewSet owns
+    # ``budgeting/statements/<pk>/`` and would otherwise swallow these.
+    path(
+        "budgeting/statements/allowance/",
+        StatementAllowanceView.as_view(),
+        name="budgeting-statement-allowance",
+    ),
+    path(
+        "budgeting/statements/preview/",
+        StatementPreviewView.as_view(),
+        name="budgeting-statement-preview",
+    ),
+    path(
+        "budgeting/statements/commit/",
+        StatementCommitView.as_view(),
+        name="budgeting-statement-commit",
+    ),
     path("", include(router.urls)),
     path(
         "budgeting/spending-summary/",

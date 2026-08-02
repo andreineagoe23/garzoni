@@ -4,6 +4,7 @@ from budgeting.models import (
     BudgetEnvelope,
     LinkedAccount,
     SpendingAnomaly,
+    StatementImport,
     Transaction,
 )
 
@@ -79,6 +80,29 @@ class BudgetEnvelopeCreateSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("monthly_target must be non-negative")
         return value
+
+
+class StatementImportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatementImport
+        fields = [
+            "id",
+            "filename",
+            "dialect_slug",
+            "dialect_label",
+            "currency",
+            "period_start",
+            "period_end",
+            "created_count",
+            "duplicate_count",
+            "skipped_count",
+            "total_income",
+            "total_spent",
+            "was_trial",
+            "status",
+            "created_at",
+        ]
+        read_only_fields = fields
 
 
 class SpendingAnomalySerializer(serializers.ModelSerializer):

@@ -6,13 +6,29 @@
  * and `prebuild`). Commit the output — the diff is the audit trail.
  *
  * Node strips the TypeScript types natively (Node >= 22.18), so there is no
- * build tool in this path on purpose.
+ * build tool in this path on purpose. That is also why the repo pins Node via
+ * `.nvmrc` — on older Node this import fails with ERR_UNKNOWN_FILE_EXTENSION.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { layout, radius, spacing, typography } from "../src/index.ts";
+const MIN_NODE = [22, 18];
+const [major, minor] = process.versions.node.split(".").map(Number);
+if (major < MIN_NODE[0] || (major === MIN_NODE[0] && minor < MIN_NODE[1])) {
+  console.error(
+    `@garzoni/tokens: Node ${MIN_NODE.join(".")}+ is required (running ${process.versions.node}).\n` +
+      "This script imports src/index.ts directly and needs Node's native TypeScript\n" +
+      "stripping. Use the version in .nvmrc (`nvm use`)."
+  );
+  process.exit(1);
+}
+
+// Dynamic so the version guard above can report a readable error first — a
+// static import of a .ts file throws before any of this module's code runs.
+const { layout, radius, spacing, typography } = await import(
+  "../src/index.ts"
+);
 
 const here = dirname(fileURLToPath(import.meta.url));
 // Not `dist/` — the repo .gitignore excludes that, and this output is meant to
