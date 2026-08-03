@@ -1545,10 +1545,10 @@
       "activityLabel": "Analysed a statement",
       "privacyNote": "Read in memory, never stored. Card numbers and IBANs are stripped, and merchant names never reach the AI.",
       "dropzone": {
-        "title": "Drop your statement CSV here",
+        "title": "Drop your statement here",
         "titleMobile": "Upload your bank statement",
-        "hint": "Or choose a file. Works with Revolut, Barclays, Banca Transilvania and most CSV exports.",
-        "hintMobile": "A CSV export from Revolut, Barclays, Banca Transilvania and most other banks.",
+        "hint": "CSV, PDF, Excel or OFX/QIF from Revolut, Barclays, Banca Transilvania and most banks.",
+        "hintMobile": "CSV, PDF, Excel or OFX from Revolut, Barclays, Banca Transilvania and most banks.",
         "choose": "Choose file",
         "analyzing": "Reading your statement…",
         "footnote": "Free to analyse. Your file is never stored."
@@ -1608,13 +1608,19 @@
         "tooLarge": "That file is too large. Export a shorter date range and try again.",
         "throttled": "Too many uploads for now. Try again in a little while.",
         "deleteFailed": "We couldn't undo that import. Please try again.",
-        "wrongType": "Pick a .csv file exported from your bank.",
+        "wrongType": "Pick a statement file: CSV, PDF, Excel or OFX/QIF.",
         "pickerUnavailable": "File picking isn't available in this build. Update the app (or rebuild the dev client) and try again."
       },
       "paste": {
         "open": "Paste the text instead",
         "placeholder": "Paste your statement rows, including the header line…",
         "analyze": "Analyse"
+      },
+      "analysing": {
+        "title": "Reading your statement…",
+        "reading": "Pulling the transactions out of the file.",
+        "categorising": "Working out what each payment was for.",
+        "summarising": "Adding up the totals and spotting patterns."
       }
     }
   },

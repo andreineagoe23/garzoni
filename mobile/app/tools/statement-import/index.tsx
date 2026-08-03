@@ -29,7 +29,21 @@ import PlusBottomSheet from "../../../src/components/tools/PlusBottomSheet";
  * the other budgeting tools do.
  */
 
-const ALLOWED_EXTENSIONS = [".csv", ".tsv", ".txt"];
+// Barclays and most UK high-street banks only offer PDF beyond the last few
+// months, so PDF is first-class here, not a fallback.
+const ALLOWED_EXTENSIONS = [
+  ".csv",
+  ".tsv",
+  ".txt",
+  ".pdf",
+  ".xlsx",
+  ".ofx",
+  ".qfx",
+  ".qif",
+];
+
+/** Steps shown while the server parses. PDF parsing dominates the wait. */
+const ANALYSING_STEPS = ["reading", "categorising", "summarising"] as const;
 
 /**
  * `expo-document-picker` is a native module. A binary built before it was added
@@ -63,7 +77,11 @@ const PICKER_MIME_TYPES = [
   "text/plain",
   "text/tab-separated-values",
   "application/csv",
+  "application/pdf",
   "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/x-ofx",
+  "application/vnd.intu.qfx",
   "application/octet-stream",
 ];
 
@@ -158,6 +176,22 @@ export default function StatementImportScreen() {
   const [saved, setSaved] = useState<SavedImport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
+  const [analysingStep, setAnalysingStep] = useState(0);
+
+  // A PDF takes noticeably longer than a CSV, so the wait says what is
+  // happening rather than showing an unlabelled spinner.
+  useEffect(() => {
+    if (!analyzing) {
+      setAnalysingStep(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setAnalysingStep((step) =>
+        Math.min(step + 1, ANALYSING_STEPS.length - 1),
+      );
+    }, 1400);
+    return () => clearInterval(timer);
+  }, [analyzing]);
 
   const loadMeta = useCallback(async () => {
     try {
@@ -368,103 +402,130 @@ export default function StatementImportScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Upload is the whole screen until a statement is read. Kept to one
-            headline, one helper line and one button — every extra sentence
-            here is a sentence between the user and the result. */}
-        <View
-          style={[
-            styles.dropCard,
-            { borderColor: c.border, backgroundColor: c.surface },
-          ]}
-        >
-          <Text style={styles.dropIcon}>🧾</Text>
-          <Text style={[styles.dropTitle, { color: c.text }]}>
-            {t("tools.statementImport.dropzone.titleMobile")}
-          </Text>
-          <Text style={[styles.dropHint, { color: c.textMuted }]}>
-            {t("tools.statementImport.dropzone.hintMobile")}
-          </Text>
-          <Pressable
-            onPress={handlePick}
-            disabled={analyzing}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              {
-                backgroundColor: c.primary,
-                opacity: analyzing ? 0.6 : pressed ? 0.85 : 1,
-              },
+        {analyzing ? (
+          /* A PDF can take several seconds server-side. Replacing the upload
+             card outright (rather than spinning inside the button) makes it
+             obvious the app is working and stops a second tap. */
+          <View
+            style={[
+              styles.dropCard,
+              { borderColor: c.border, backgroundColor: c.surface },
+            ]}
+            accessibilityRole="progressbar"
+            accessibilityLabel={t("tools.statementImport.analysing.title")}
+          >
+            <ActivityIndicator size="large" color={c.primary} />
+            <Text style={[styles.dropTitle, { color: c.text }]}>
+              {t("tools.statementImport.analysing.title")}
+            </Text>
+            <Text style={[styles.dropHint, { color: c.textMuted }]}>
+              {t(
+                `tools.statementImport.analysing.${ANALYSING_STEPS[analysingStep]}`,
+              )}
+            </Text>
+            <View style={styles.stepRow}>
+              {ANALYSING_STEPS.map((step, index) => (
+                <View
+                  key={step}
+                  style={[
+                    styles.stepPip,
+                    {
+                      backgroundColor:
+                        index <= analysingStep ? c.primary : c.border,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.dropCard,
+              { borderColor: c.border, backgroundColor: c.surface },
             ]}
           >
-            {analyzing ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
+            <Text style={styles.dropIcon}>🧾</Text>
+            <Text style={[styles.dropTitle, { color: c.text }]}>
+              {t("tools.statementImport.dropzone.titleMobile")}
+            </Text>
+            <Text style={[styles.dropHint, { color: c.textMuted }]}>
+              {t("tools.statementImport.dropzone.hintMobile")}
+            </Text>
+            <Pressable
+              onPress={handlePick}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                { backgroundColor: c.primary, opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
               <Text style={styles.primaryBtnText}>
                 {t("tools.statementImport.dropzone.choose")}
               </Text>
-            )}
-          </Pressable>
-          <Text style={[styles.dropFree, { color: c.textMuted }]}>
-            {t("tools.statementImport.dropzone.footnote")}
-          </Text>
-
-          {/* Secondary escape hatch — and the only route on builds that
-              predate the native file picker. */}
-          {!pasteOpen ? (
-            <Pressable
-              onPress={() => setPasteOpen(true)}
-              accessibilityRole="button"
-              hitSlop={8}
-            >
-              <Text style={[styles.linkText, { color: c.primary }]}>
-                {t("tools.statementImport.paste.open")}
-              </Text>
             </Pressable>
-          ) : (
-            <View style={styles.pasteBlock}>
-              <TextInput
-                value={pastedText}
-                onChangeText={setPastedText}
-                placeholder={t("tools.statementImport.paste.placeholder")}
-                placeholderTextColor={c.textFaint}
-                multiline
-                autoCapitalize="none"
-                autoCorrect={false}
-                spellCheck={false}
-                textAlignVertical="top"
-                style={[
-                  styles.pasteInput,
-                  { borderColor: c.border, color: c.text },
-                ]}
-              />
+            <Text style={[styles.dropFree, { color: c.textMuted }]}>
+              {t("tools.statementImport.dropzone.footnote")}
+            </Text>
+
+            {/* Secondary escape hatch — and the only route on builds that
+              predate the native file picker. */}
+            {!pasteOpen ? (
               <Pressable
-                onPress={handleAnalyzePasted}
-                disabled={analyzing || !pastedText.trim()}
+                onPress={() => setPasteOpen(true)}
                 accessibilityRole="button"
-                style={({ pressed }) => [
-                  styles.primaryBtn,
-                  {
-                    backgroundColor: c.primary,
-                    opacity:
-                      analyzing || !pastedText.trim()
-                        ? 0.6
-                        : pressed
-                          ? 0.85
-                          : 1,
-                  },
-                ]}
+                hitSlop={8}
               >
-                {analyzing ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.primaryBtnText}>
-                    {t("tools.statementImport.paste.analyze")}
-                  </Text>
-                )}
+                <Text style={[styles.linkText, { color: c.primary }]}>
+                  {t("tools.statementImport.paste.open")}
+                </Text>
               </Pressable>
-            </View>
-          )}
-        </View>
+            ) : (
+              <View style={styles.pasteBlock}>
+                <TextInput
+                  value={pastedText}
+                  onChangeText={setPastedText}
+                  placeholder={t("tools.statementImport.paste.placeholder")}
+                  placeholderTextColor={c.textFaint}
+                  multiline
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textAlignVertical="top"
+                  style={[
+                    styles.pasteInput,
+                    { borderColor: c.border, color: c.text },
+                  ]}
+                />
+                <Pressable
+                  onPress={handleAnalyzePasted}
+                  disabled={!pastedText.trim()}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.primaryBtn,
+                    {
+                      backgroundColor: c.primary,
+                      opacity:
+                        analyzing || !pastedText.trim()
+                          ? 0.6
+                          : pressed
+                            ? 0.85
+                            : 1,
+                    },
+                  ]}
+                >
+                  {analyzing ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.primaryBtnText}>
+                      {t("tools.statementImport.paste.analyze")}
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
+            )}
+          </View>
+        )}
 
         {error && (
           <View style={[styles.errorCard, { borderColor: c.error }]}>
@@ -803,6 +864,8 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   dropIcon: { fontSize: 34 },
+  stepRow: { flexDirection: "row", gap: spacing.xs, marginTop: spacing.xs },
+  stepPip: { height: 4, width: 34, borderRadius: 2 },
   dropCard: {
     borderRadius: radius.card,
     borderWidth: 1,

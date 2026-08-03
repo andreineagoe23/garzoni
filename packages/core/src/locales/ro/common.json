@@ -1545,10 +1545,10 @@
       "activityLabel": "Am analizat un extras",
       "privacyNote": "Citit în memorie, niciodată salvat. Numerele de card și IBAN-urile sunt eliminate, iar numele comercianților nu ajung la AI.",
       "dropzone": {
-        "title": "Trage aici fișierul CSV",
+        "title": "Trage aici extrasul tău",
         "titleMobile": "Încarcă extrasul de cont",
-        "hint": "Sau alege un fișier. Merge cu Revolut, Barclays, Banca Transilvania și majoritatea exporturilor CSV.",
-        "hintMobile": "Un export CSV de la Revolut, Barclays, Banca Transilvania și majoritatea băncilor.",
+        "hint": "CSV, PDF, Excel sau OFX/QIF de la Revolut, Barclays, Banca Transilvania și majoritatea băncilor.",
+        "hintMobile": "CSV, PDF, Excel sau OFX de la Revolut, Barclays, Banca Transilvania și majoritatea băncilor.",
         "choose": "Alege fișier",
         "analyzing": "Citim extrasul tău…",
         "footnote": "Analiza e gratuită. Fișierul nu este salvat niciodată."
@@ -1608,13 +1608,19 @@
         "tooLarge": "Fișierul este prea mare. Exportă un interval mai scurt și încearcă din nou.",
         "throttled": "Prea multe încărcări acum. Încearcă din nou peste puțin timp.",
         "deleteFailed": "Nu am putut anula importul. Încearcă din nou.",
-        "wrongType": "Alege un fișier .csv exportat de la bancă.",
+        "wrongType": "Alege un fișier de extras: CSV, PDF, Excel sau OFX/QIF.",
         "pickerUnavailable": "Selectarea fișierelor nu este disponibilă în această versiune. Actualizează aplicația (sau reconstruiește dev client-ul) și încearcă din nou."
       },
       "paste": {
         "open": "Lipește textul în schimb",
         "placeholder": "Lipește rândurile din extras, inclusiv linia de antet…",
         "analyze": "Analizează"
+      },
+      "analysing": {
+        "title": "Îți citim extrasul…",
+        "reading": "Extragem tranzacțiile din fișier.",
+        "categorising": "Stabilim pentru ce a fost fiecare plată.",
+        "summarising": "Adunăm totalurile și căutăm tipare."
       }
     }
   },

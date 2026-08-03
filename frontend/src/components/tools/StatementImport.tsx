@@ -12,7 +12,26 @@ import { recordToolEvent } from "services/toolsAnalytics";
 import { formatCurrency, getLocale } from "utils/format";
 
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:statement-import";
-const MAX_CLIENT_BYTES = 5 * 1024 * 1024;
+const MAX_CLIENT_BYTES = 10 * 1024 * 1024;
+
+// Barclays and most UK high-street banks only offer PDF beyond the last few
+// months, so PDF has to be first-class here, not a fallback.
+const ACCEPTED_FILE_TYPES = [
+  ".csv",
+  ".tsv",
+  ".txt",
+  ".pdf",
+  ".xlsx",
+  ".ofx",
+  ".qfx",
+  ".qif",
+  "text/csv",
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+].join(",");
+
+/** Steps shown while the server parses. PDF parsing dominates the wait. */
+const ANALYSING_STEPS = ["reading", "categorising", "summarising"] as const;
 
 type Allowance = {
   plan: string;
@@ -132,6 +151,22 @@ const StatementImport = () => {
   const [error, setError] = useState<string | null>(null);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [analysingStep, setAnalysingStep] = useState(0);
+
+  // A PDF takes noticeably longer than a CSV, so the wait needs to say what is
+  // happening rather than showing an unlabelled spinner.
+  useEffect(() => {
+    if (!analyzing) {
+      setAnalysingStep(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setAnalysingStep((step) =>
+        Math.min(step + 1, ANALYSING_STEPS.length - 1)
+      );
+    }, 1400);
+    return () => window.clearInterval(timer);
+  }, [analyzing]);
 
   const loadMeta = useCallback(async () => {
     try {
@@ -300,53 +335,94 @@ const StatementImport = () => {
         </p>
       </header>
 
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        className={`app-card app-card--pad-lg flex flex-col items-center gap-3 border-2 border-dashed text-center transition ${
-          dragging
-            ? "border-[color:var(--color-brand-primary)]"
-            : "border-[color:var(--color-border-default)]"
-        }`}
-      >
-        <span className="text-3xl" aria-hidden="true">
-          ⇪
-        </span>
-        <p className="text-sm font-semibold text-content-primary">
-          {t("tools.statementImport.dropzone.title")}
-        </p>
-        <p className="max-w-md text-xs text-content-muted">
-          {t("tools.statementImport.dropzone.hint")}
-        </p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,.tsv,.txt,text/csv"
-          className="sr-only"
-          onChange={(e) => {
-            const selected = e.target.files?.[0];
-            if (selected) void handleAnalyze(selected);
-            e.target.value = "";
-          }}
-        />
-        <button
-          type="button"
-          disabled={analyzing}
-          onClick={() => fileInputRef.current?.click()}
-          className="app-cta-btn mt-1 !w-auto !h-auto px-5 py-2 text-sm disabled:opacity-60"
+      {analyzing ? (
+        <div
+          className="app-card app-card--pad-lg flex flex-col items-center gap-4 text-center"
+          role="status"
+          aria-live="polite"
         >
-          {analyzing
-            ? t("tools.statementImport.dropzone.analyzing")
-            : t("tools.statementImport.dropzone.choose")}
-        </button>
-        <p className="text-xs text-content-muted">
-          {t("tools.statementImport.dropzone.footnote")}
-        </p>
-      </div>
+          <span
+            className="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--color-border-default)] border-t-[color:var(--color-brand-primary)]"
+            aria-hidden="true"
+          />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-content-primary">
+              {t("tools.statementImport.analysing.title")}
+            </p>
+            <p className="text-xs text-content-muted">
+              {t(
+                `tools.statementImport.analysing.${ANALYSING_STEPS[analysingStep]}`
+              )}
+            </p>
+          </div>
+          <ol className="flex items-center gap-2" aria-hidden="true">
+            {ANALYSING_STEPS.map((step, index) => (
+              <li
+                key={step}
+                className={`h-1.5 w-10 rounded-full transition-colors ${
+                  index <= analysingStep
+                    ? "bg-[color:var(--color-brand-primary)]"
+                    : "bg-[color:var(--color-border-default)]"
+                }`}
+              />
+            ))}
+          </ol>
+          {/* Result-shaped skeleton so the layout does not jump when it lands. */}
+          <div className="mt-2 grid w-full gap-3 grid-cols-1 sm:grid-cols-3">
+            {[0, 1, 2].map((slot) => (
+              <div
+                key={slot}
+                className="h-16 animate-pulse rounded-2xl bg-[color:var(--color-border-default)]/40"
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          className={`app-card app-card--pad-lg flex flex-col items-center gap-3 border-2 border-dashed text-center transition ${
+            dragging
+              ? "border-[color:var(--color-brand-primary)]"
+              : "border-[color:var(--color-border-default)]"
+          }`}
+        >
+          <span className="text-3xl" aria-hidden="true">
+            ⇪
+          </span>
+          <p className="text-sm font-semibold text-content-primary">
+            {t("tools.statementImport.dropzone.title")}
+          </p>
+          <p className="max-w-md text-xs text-content-muted">
+            {t("tools.statementImport.dropzone.hint")}
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_FILE_TYPES}
+            className="sr-only"
+            onChange={(e) => {
+              const selected = e.target.files?.[0];
+              if (selected) void handleAnalyze(selected);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="app-cta-btn mt-1 !w-auto !h-auto px-5 py-2 text-sm"
+          >
+            {t("tools.statementImport.dropzone.choose")}
+          </button>
+          <p className="text-xs text-content-muted">
+            {t("tools.statementImport.dropzone.footnote")}
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="app-card app-card--pad-sm border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)]">

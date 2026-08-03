@@ -1,5 +1,5 @@
 """
-CSV statement import endpoints.
+Statement import endpoints.
 
 Three-step flow, deliberately stateless between steps:
 
@@ -13,6 +13,10 @@ Three-step flow, deliberately stateless between steps:
 The file is re-sent on commit rather than cached server-side: keeping raw
 statement bytes around between two requests is exactly the kind of storage this
 feature exists to avoid.
+
+Accepted formats: CSV/TSV, Excel (.xlsx), PDF, and OFX/QFX/QIF. Barclays and
+most UK high-street banks only offer PDF beyond the last few months, so PDF is
+not optional if the tool is meant to be usable.
 """
 
 from __future__ import annotations
@@ -48,7 +52,16 @@ from finance.utils import record_funnel_event
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_EXTENSIONS = (".csv", ".tsv", ".txt")
+ALLOWED_EXTENSIONS = (
+    ".csv",
+    ".tsv",
+    ".txt",
+    ".pdf",
+    ".xlsx",
+    ".ofx",
+    ".qfx",
+    ".qif",
+)
 
 
 def _safe_filename(name: str) -> str:
@@ -102,7 +115,9 @@ def _read_upload(request, allowance):
         return Response(
             {
                 "error": "unsupported_extension",
-                "message": "Upload a .csv file exported from your bank.",
+                "message": (
+                    "Upload a statement your bank exported: CSV, PDF, " "Excel, OFX/QFX or QIF."
+                ),
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
@@ -185,6 +200,7 @@ class StatementPreviewView(APIView):
             platform=resolve_request_platform(request),
             metadata={
                 "dialect": parsed.dialect_slug,
+                "format": parsed.source_format,
                 "rows": len(parsed.rows),
                 "is_paid": allowance.is_paid,
             },
@@ -194,6 +210,7 @@ class StatementPreviewView(APIView):
             {
                 "filename": filename,
                 "bank": {"slug": parsed.dialect_slug, "label": parsed.dialect_label},
+                "source_format": parsed.source_format,
                 "currency": parsed.currency,
                 "row_count": len(parsed.rows),
                 "skipped_rows": parsed.skipped_rows,
@@ -272,6 +289,7 @@ class StatementCommitView(APIView):
             platform=resolve_request_platform(request),
             metadata={
                 "dialect": parsed.dialect_slug,
+                "format": parsed.source_format,
                 "created": statement.created_count,
                 "duplicates": statement.duplicate_count,
                 "is_trial": statement.was_trial,

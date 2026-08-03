@@ -641,15 +641,21 @@ PLAID_SECRET = os.getenv("PLAID_SECRET", "")
 PLAID_ENV = os.getenv("PLAID_ENV", "sandbox")
 PLAID_WEBHOOK_SECRET = os.getenv("PLAID_WEBHOOK_SECRET", "")
 
-# CSV statement import. Analysis is free for every signed-in user; *saving* an
-# import is what the free allowance below is spent on, after which it needs
-# Plus/Pro. Uploaded files are parsed in memory and never written to disk.
+# Statement import (CSV/TSV, Excel, PDF, OFX/QFX/QIF). Analysis is free for
+# every signed-in user; *saving* an import is what the free allowance below is
+# spent on, after which it needs Plus/Pro. Uploaded files are parsed in memory
+# and never written to disk.
+#
+# Byte limits are sized for PDF, not CSV: a 12-month PDF statement runs to a
+# couple of MB where the same data as CSV is ~50KB.
 BUDGETING_FREE_STATEMENT_IMPORTS = int(os.getenv("BUDGETING_FREE_STATEMENT_IMPORTS", "3"))
 BUDGETING_FREE_STATEMENT_ROWS = int(os.getenv("BUDGETING_FREE_STATEMENT_ROWS", "400"))
-BUDGETING_FREE_STATEMENT_BYTES = int(os.getenv("BUDGETING_FREE_STATEMENT_BYTES", str(1024 * 1024)))
+BUDGETING_FREE_STATEMENT_BYTES = int(
+    os.getenv("BUDGETING_FREE_STATEMENT_BYTES", str(3 * 1024 * 1024))
+)
 BUDGETING_MAX_STATEMENT_ROWS = int(os.getenv("BUDGETING_MAX_STATEMENT_ROWS", "5000"))
 BUDGETING_MAX_STATEMENT_BYTES = int(
-    os.getenv("BUDGETING_MAX_STATEMENT_BYTES", str(5 * 1024 * 1024))
+    os.getenv("BUDGETING_MAX_STATEMENT_BYTES", str(10 * 1024 * 1024))
 )
 BUDGETING_STATEMENT_THROTTLE_RATE = os.getenv("STATEMENT_UPLOAD_THROTTLE_RATE", "20/hour")
 # Stripe Price IDs for subscription plans (create in Stripe Dashboard → Products → Prices)

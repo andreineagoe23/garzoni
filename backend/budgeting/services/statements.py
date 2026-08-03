@@ -218,6 +218,8 @@ class ParsedStatement:
     total_rows_seen: int = 0
     skipped_rows: int = 0
     warnings: List[str] = field(default_factory=list)
+    #: csv | xlsx | pdf | ofx | qif — surfaced so the UI can say what it read.
+    source_format: str = "csv"
 
     @property
     def period_start(self) -> Optional[date]:
@@ -233,18 +235,33 @@ class ParsedStatement:
 # ---------------------------------------------------------------------------
 
 
+def detect_format(raw: bytes) -> str:
+    """Sniff the container format from magic bytes and leading content.
+
+    Extension is not trusted: banks mislabel downloads, and mobile pickers
+    hand us ``application/octet-stream`` for everything.
+    """
+    head = raw[:512]
+    if head[:5] == b"%PDF-":
+        return "pdf"
+    if head[:4] == b"PK\x03\x04":
+        # xlsx is a zip; .xls (OLE2) is not, and we do not support it.
+        return "xlsx"
+    if head[:8] == b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
+        raise StatementParseError(
+            "legacy_excel",
+            "That's an old .xls file. Re-save it as .xlsx or CSV and try again.",
+        )
+    probe = head.lstrip().upper()
+    if probe.startswith(b"OFXHEADER") or b"<OFX>" in raw[:4096].upper():
+        return "ofx"
+    if probe.startswith(b"!TYPE:"):
+        return "qif"
+    return "csv"
+
+
 def decode(raw: bytes) -> str:
     """Decode statement bytes, trying the encodings European banks actually use."""
-    if raw[:4] in (b"PK\x03\x04",):
-        raise StatementParseError(
-            "unsupported_format",
-            "That looks like an Excel or ZIP file. Export as CSV and try again.",
-        )
-    if raw[:5] == b"%PDF-":
-        raise StatementParseError(
-            "unsupported_format",
-            "PDF statements can't be read yet. Export as CSV and try again.",
-        )
     for enc in ENCODINGS:
         try:
             return raw.decode(enc)
@@ -346,6 +363,13 @@ _DATE_FORMATS = (
     "%d %b %Y",
     "%d %B %Y",
     "%b %d, %Y",
+    # Two-digit years: the printed form on most UK PDF statements ("02 Jul 26")
+    # and on some short-form CSV exports.
+    "%d/%m/%y",
+    "%d.%m.%y",
+    "%d-%m-%y",
+    "%d %b %y",
+    "%d %B %y",
 )
 
 
@@ -358,16 +382,23 @@ def parse_date(value: str) -> Optional[date]:
     text = str(value or "").strip()
     if not text:
         return None
-    text = text.replace("T", " ").split(" ")[0].strip()
-    if not text:
-        return None
-    for fmt in _DATE_FORMATS:
-        try:
-            return datetime.strptime(text, fmt).date()
-        except ValueError:
-            continue
+
+    # Try the whole string first: spelled-out dates ("02 Jul 26") contain
+    # spaces, so splitting on whitespace up front would destroy them. Only
+    # fall back to the leading token, which strips an ISO time component.
+    candidates = [text]
+    head = text.replace("T", " ").split(" ")[0].strip()
+    if head and head != text:
+        candidates.append(head)
+
+    for candidate in candidates:
+        for fmt in _DATE_FORMATS:
+            try:
+                return datetime.strptime(candidate, fmt).date()
+            except ValueError:
+                continue
     try:  # ISO with offset, e.g. 2026-07-03T10:15:00+01:00
-        return datetime.fromisoformat(str(value).strip()).date()
+        return datetime.fromisoformat(text).date()
     except (ValueError, TypeError):
         return None
 
@@ -492,6 +523,76 @@ def _fingerprint(row: ParsedRow) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Shared finalisation
+# ---------------------------------------------------------------------------
+
+
+def _finalize(
+    rows: List[ParsedRow],
+    *,
+    dialect_slug: str,
+    dialect_label: str,
+    source_format: str,
+    column_map: Optional[Dict[str, str]] = None,
+    seen: int = 0,
+    skipped: int = 0,
+    warnings: Optional[List[str]] = None,
+    truncated: bool = False,
+    max_rows: int = MAX_PREVIEW_ROWS,
+    allow_sign_flip: bool = True,
+) -> ParsedStatement:
+    """Common tail for every format: warnings, sign sanity, currency, fingerprints."""
+    warnings = list(warnings or [])
+    if not rows:
+        raise StatementParseError(
+            "no_transactions",
+            "No transactions could be read from that file. Check it's a statement export.",
+        )
+
+    if truncated:
+        warnings.append(f"Only the first {max_rows} transactions were read.")
+    if skipped:
+        warnings.append(f"{skipped} row(s) were skipped because they had no usable date or amount.")
+
+    # A statement where every amount is positive almost always means an
+    # unsigned "spending" export. Flip it, and say so. Formats that carry an
+    # explicit direction per transaction (OFX, QIF, debit/credit columns) opt
+    # out via allow_sign_flip.
+    if allow_sign_flip and all(r.amount > 0 for r in rows):
+        for row in rows:
+            row.amount = -row.amount
+        warnings.append(
+            "All amounts were positive, so they were read as money out. "
+            "Check the totals below before saving."
+        )
+
+    currencies = {r.currency for r in rows if r.currency}
+    dominant = ""
+    if currencies:
+        dominant = max(currencies, key=lambda c: sum(1 for r in rows if r.currency == c))
+        if len(currencies) > 1:
+            warnings.append(
+                f"This statement mixes {len(currencies)} currencies; totals are shown in {dominant}."
+            )
+    for row in rows:
+        if not row.currency:
+            row.currency = dominant
+        row.fingerprint = _fingerprint(row)
+
+    return ParsedStatement(
+        rows=rows,
+        dialect_slug=dialect_slug,
+        dialect_label=dialect_label,
+        currency=dominant,
+        column_map=column_map or {},
+        total_rows_seen=seen or len(rows),
+        skipped_rows=skipped,
+        warnings=warnings,
+        source_format=source_format,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -499,19 +600,88 @@ def _fingerprint(row: ParsedRow) -> str:
 def parse_statement(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
     """Parse statement bytes into normalised rows.
 
-    Raises :class:`StatementParseError` when the file has no usable header or
-    yields no rows at all; individual bad rows are skipped and counted instead.
+    Dispatches on the *sniffed* container format, not the file extension.
+    Raises :class:`StatementParseError` when the file cannot be understood at
+    all; individual bad rows are skipped and counted instead.
     """
-    text = decode(raw)
-    if not text.strip():
+    if not raw or not raw.strip():
         raise StatementParseError("empty_file", "That file is empty.")
 
-    delimiter = _sniff_delimiter(text)
-    all_rows = list(csv.reader(io.StringIO(text), delimiter=delimiter))
-    all_rows = [r for r in all_rows if any(str(c).strip() for c in r)]
-    if not all_rows:
-        raise StatementParseError("empty_file", "That file has no rows.")
+    fmt = detect_format(raw)
+    if fmt == "pdf":
+        return parse_pdf(raw, max_rows=max_rows)
+    if fmt == "xlsx":
+        return _parse_tabular(_rows_from_xlsx(raw), max_rows=max_rows, source_format="xlsx")
+    if fmt == "ofx":
+        return parse_ofx(decode(raw), max_rows=max_rows)
+    if fmt == "qif":
+        return parse_qif(decode(raw), max_rows=max_rows)
+    return _parse_tabular(_rows_from_csv(decode(raw)), max_rows=max_rows, source_format="csv")
 
+
+def _rows_from_csv(text: str) -> List[List[str]]:
+    if not text.strip():
+        raise StatementParseError("empty_file", "That file is empty.")
+    delimiter = _sniff_delimiter(text)
+    rows = list(csv.reader(io.StringIO(text), delimiter=delimiter))
+    rows = [r for r in rows if any(str(c).strip() for c in r)]
+    if not rows:
+        raise StatementParseError("empty_file", "That file has no rows.")
+    return rows
+
+
+def _rows_from_xlsx(raw: bytes) -> List[List[str]]:
+    """Read the first worksheet of an .xlsx export into CSV-shaped rows.
+
+    Dates come back as ``datetime`` and amounts as ``float``; both are
+    stringified here so the same column mapper and value parsers handle them.
+    """
+    try:
+        from openpyxl import load_workbook
+    except ImportError:  # pragma: no cover - dependency is pinned in requirements
+        raise StatementParseError(
+            "xlsx_unsupported",
+            "Spreadsheet statements aren't supported on this server yet.",
+        )
+
+    try:
+        workbook = load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
+    except Exception:
+        raise StatementParseError(
+            "xlsx_unreadable",
+            "That spreadsheet couldn't be opened. Try exporting as CSV instead.",
+        )
+    try:
+        sheet = workbook[workbook.sheetnames[0]]
+        rows: List[List[str]] = []
+        for excel_row in sheet.iter_rows(values_only=True):
+            cells = []
+            for value in excel_row:
+                if value is None:
+                    cells.append("")
+                elif isinstance(value, datetime):
+                    cells.append(value.date().isoformat())
+                elif isinstance(value, date):
+                    cells.append(value.isoformat())
+                else:
+                    cells.append(str(value))
+            if any(c.strip() for c in cells):
+                rows.append(cells)
+    finally:
+        workbook.close()
+
+    if not rows:
+        raise StatementParseError("empty_file", "That spreadsheet has no rows.")
+    return rows
+
+
+def _parse_tabular(
+    all_rows: List[List[str]],
+    *,
+    max_rows: int = MAX_PREVIEW_ROWS,
+    source_format: str = "csv",
+) -> ParsedStatement:
+    """Header-mapped parsing shared by CSV and spreadsheet exports."""
     header_idx = _find_header_row(all_rows)
     header = [str(h).strip() for h in all_rows[header_idx]]
     column_map = _map_columns(header)
@@ -575,47 +745,430 @@ def parse_statement(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedState
             )
         )
 
-    if not rows:
-        raise StatementParseError(
-            "no_transactions",
-            "No transactions could be read from that file. Check it's a statement export.",
-        )
-
-    if truncated:
-        warnings.append(f"Only the first {max_rows} transactions were read.")
-    if skipped:
-        warnings.append(f"{skipped} row(s) were skipped because they had no usable date or amount.")
-
-    # A statement where every amount is positive almost always means an
-    # unsigned "spending" export. Flip it, and say so.
-    if all(r.amount > 0 for r in rows) and "credit" not in column_map:
-        for row in rows:
-            row.amount = -row.amount
-        warnings.append(
-            "All amounts were positive, so they were read as money out. "
-            "Check the totals below before saving."
-        )
-
-    currencies = {r.currency for r in rows if r.currency}
-    dominant = ""
-    if currencies:
-        dominant = max(currencies, key=lambda c: sum(1 for r in rows if r.currency == c))
-        if len(currencies) > 1:
-            warnings.append(
-                f"This statement mixes {len(currencies)} currencies; totals are shown in {dominant}."
-            )
-    for row in rows:
-        if not row.currency:
-            row.currency = dominant
-        row.fingerprint = _fingerprint(row)
-
-    return ParsedStatement(
-        rows=rows,
+    generic_label = "Generic spreadsheet" if source_format == "xlsx" else "Generic CSV"
+    return _finalize(
+        rows,
         dialect_slug=dialect.slug if dialect else "generic",
-        dialect_label=dialect.label if dialect else "Generic CSV",
-        currency=dominant,
+        dialect_label=dialect.label if dialect else generic_label,
+        source_format=source_format,
         column_map=column_map,
-        total_rows_seen=seen,
-        skipped_rows=skipped,
+        seen=seen,
+        skipped=skipped,
         warnings=warnings,
+        truncated=truncated,
+        max_rows=max_rows,
+        # A debit/credit pair already encodes direction, so an all-positive
+        # result there is real, not an unsigned export.
+        allow_sign_flip="credit" not in column_map,
+    )
+
+
+# ---------------------------------------------------------------------------
+# PDF statements
+# ---------------------------------------------------------------------------
+#
+# Barclays (and most UK high-street banks) only offer PDF for anything older
+# than the last few months, so this is the format users actually have.
+#
+# PDFs carry no column semantics — only glyphs at coordinates. The approach:
+#
+#   1. Group extracted words into visual lines by their y position.
+#   2. A transaction line starts with a date. Continuation lines (wrapped
+#      descriptions) do not, and get appended to the previous transaction.
+#   3. Numeric tokens are clustered by x position across the whole document
+#      into columns. The rightmost recurring column is the running balance.
+#   4. Direction comes from the balance delta where a balance exists — the
+#      single most reliable signal in a PDF, since "money out" vs "money in"
+#      is otherwise only implied by which column a number sits in.
+
+_PDF_DATE_RE = re.compile(
+    r"^\s*("
+    r"\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}"
+    r"|\d{1,2}\s+[A-Za-z]{3,9}\s*\d{0,4}"
+    r"|\d{4}-\d{2}-\d{2}"
+    r")\b"
+)
+# Money tokens must carry 2 decimals. That is exactly what separates an amount
+# from the day and year in "02 Jul 26", which would otherwise be read as two
+# extra numeric columns on every single transaction line.
+_PDF_NUMBER_RE = re.compile(
+    r"^[\-+(]?[£€$]?\s?"
+    r"(?:\d{1,3}(?:[.,\s]\d{3})+|\d+)"  # grouped thousands, or plain digits
+    r"[.,]\d{2}"
+    r"\)?(?:CR|DR|DB)?$",
+    re.IGNORECASE,
+)
+# Rows on a bank PDF are ~8-12pt tall; anything within this counts as one line.
+_PDF_LINE_TOLERANCE = 3.0
+_PDF_COLUMN_TOLERANCE = 12.0
+MAX_PDF_PAGES = 40
+
+
+@dataclass
+class _PdfLine:
+    top: float
+    text: str
+    numbers: List[Tuple[Decimal, float]]  # (value, x centre)
+
+
+def _pdf_lines(page) -> List[_PdfLine]:
+    """Group a page's words into visual lines, keeping numeric x positions."""
+    words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
+    buckets: Dict[int, List[dict]] = {}
+    for word in words:
+        key = int(round(float(word["top"]) / _PDF_LINE_TOLERANCE))
+        buckets.setdefault(key, []).append(word)
+
+    lines: List[_PdfLine] = []
+    for key in sorted(buckets):
+        group = sorted(buckets[key], key=lambda w: float(w["x0"]))
+        text = " ".join(w["text"] for w in group)
+        numbers: List[Tuple[Decimal, float]] = []
+        for word in group:
+            token = word["text"].strip()
+            if not _PDF_NUMBER_RE.match(token):
+                continue
+            value = parse_amount(token)
+            if value is None:
+                continue
+            centre = (float(word["x0"]) + float(word["x1"])) / 2
+            numbers.append((value, centre))
+        lines.append(_PdfLine(top=key * _PDF_LINE_TOLERANCE, text=text, numbers=numbers))
+    return lines
+
+
+def _cluster_columns(centres: Sequence[float]) -> List[float]:
+    """Collapse x centres into column positions (simple 1-D agglomeration)."""
+    columns: List[float] = []
+    for centre in sorted(centres):
+        if columns and centre - columns[-1] <= _PDF_COLUMN_TOLERANCE:
+            columns[-1] = (columns[-1] + centre) / 2
+        else:
+            columns.append(centre)
+    return columns
+
+
+def _pdf_balance_column(lines: Sequence[_PdfLine]) -> Optional[float]:
+    """Identify the running-balance column: the rightmost column present on
+    most transaction lines. Returns ``None`` when there clearly isn't one."""
+    tx_lines = [ln for ln in lines if _PDF_DATE_RE.match(ln.text) and ln.numbers]
+    if len(tx_lines) < 3:
+        return None
+    columns = _cluster_columns([c for ln in tx_lines for _, c in ln.numbers])
+    if len(columns) < 2:
+        return None
+    rightmost = columns[-1]
+    hits = sum(
+        1
+        for ln in tx_lines
+        if any(abs(c - rightmost) <= _PDF_COLUMN_TOLERANCE for _, c in ln.numbers)
+    )
+    return rightmost if hits >= len(tx_lines) * 0.8 else None
+
+
+def _pdf_money_in_column(lines: Sequence[_PdfLine], balance_x: Optional[float]) -> Optional[float]:
+    """Locate a separate "money in" / "paid in" column, if the layout has one.
+
+    Barclays and Lloyds print money out and money in as two columns to the left
+    of the balance. When that layout is present, which column a number sits in
+    *is* the direction — far more reliable than inferring it. Returns the x
+    centre of the money-in (rightmost non-balance) column, or ``None`` when the
+    statement uses a single amount column.
+    """
+    centres: List[float] = []
+    for line in lines:
+        if not _PDF_DATE_RE.match(line.text):
+            continue
+        for _, centre in line.numbers:
+            if balance_x is not None and abs(centre - balance_x) <= _PDF_COLUMN_TOLERANCE:
+                continue
+            centres.append(centre)
+
+    columns = _cluster_columns(centres)
+    if len(columns) < 2:
+        return None
+
+    # Guard against a reference-number column masquerading as money: the two
+    # money columns sit close together, well right of the description.
+    if columns[-1] - columns[-2] > _PDF_COLUMN_TOLERANCE * 12:
+        return None
+    return columns[-1]
+
+
+def parse_pdf(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
+    """Extract transactions from a text-based PDF statement."""
+    try:
+        import pdfplumber
+    except ImportError:  # pragma: no cover - dependency is pinned in requirements
+        raise StatementParseError(
+            "pdf_unsupported",
+            "PDF statements aren't supported on this server yet.",
+        )
+
+    lines: List[_PdfLine] = []
+    try:
+        with pdfplumber.open(io.BytesIO(raw)) as pdf:
+            if len(pdf.pages) > MAX_PDF_PAGES:
+                raise StatementParseError(
+                    "pdf_too_long",
+                    f"That PDF has more than {MAX_PDF_PAGES} pages. "
+                    "Export a shorter date range.",
+                )
+            for page in pdf.pages:
+                lines.extend(_pdf_lines(page))
+    except StatementParseError:
+        raise
+    except Exception as exc:
+        message = str(exc).lower()
+        if "password" in message or "encrypt" in message:
+            raise StatementParseError(
+                "pdf_encrypted",
+                "That PDF is password protected. Remove the password and try again.",
+            )
+        raise StatementParseError(
+            "pdf_unreadable",
+            "That PDF couldn't be read. If your bank also offers CSV, use that instead.",
+        )
+
+    if not any(ln.text.strip() for ln in lines):
+        raise StatementParseError(
+            "pdf_no_text",
+            "That PDF has no selectable text — it looks like a scan. "
+            "Download the statement again from your bank, or use a CSV export.",
+        )
+
+    balance_x = _pdf_balance_column(lines)
+    money_in_x = _pdf_money_in_column(lines, balance_x)
+    warnings: List[str] = []
+    rows: List[ParsedRow] = []
+    seen = 0
+    skipped = 0
+    truncated = False
+    previous_balance: Optional[Decimal] = None
+    directed = 0
+    assumed = 0
+
+    for line in lines:
+        match = _PDF_DATE_RE.match(line.text)
+        if not match:
+            # Wrapped description continues the previous transaction.
+            if rows and line.text.strip() and not line.numbers:
+                extra = redact(line.text.strip())
+                if extra:
+                    rows[-1].description = f"{rows[-1].description} {extra}"[:256]
+            continue
+
+        seen += 1
+        if len(rows) >= max_rows:
+            truncated = True
+            break
+
+        posted_at = parse_date(match.group(1))
+        if posted_at is None or not line.numbers:
+            skipped += 1
+            continue
+
+        balance: Optional[Decimal] = None
+        amounts = list(line.numbers)
+        if balance_x is not None:
+            for index, (value, centre) in enumerate(amounts):
+                if abs(centre - balance_x) <= _PDF_COLUMN_TOLERANCE:
+                    balance = value
+                    amounts.pop(index)
+                    break
+        if not amounts:
+            skipped += 1
+            continue
+
+        # The amount is the number nearest the balance column (the last money
+        # column before it); anything further left is a reference number.
+        amount, amount_x = amounts[-1]
+
+        # Direction, best signal first:
+        #   1. A separate "money in" column — Barclays and Lloyds print one.
+        #   2. The running-balance delta.
+        #   3. Nothing left: assume money out, and say how often we had to.
+        if money_in_x is not None and abs(amount_x - money_in_x) <= _PDF_COLUMN_TOLERANCE:
+            amount = abs(amount)
+            directed += 1
+        elif money_in_x is not None:
+            amount = -abs(amount)
+            directed += 1
+        elif balance is not None and previous_balance is not None and balance != previous_balance:
+            amount = -abs(amount) if balance < previous_balance else abs(amount)
+            directed += 1
+        else:
+            amount = -abs(amount)
+            assumed += 1
+
+        if balance is not None:
+            previous_balance = balance
+
+        description = redact(
+            line.text[match.end() :].strip()
+            # Strip the trailing numeric run so the description is words only.
+            .rsplit(" ", len(line.numbers))[0]
+        )
+        if not description:
+            description = "Transaction"
+
+        rows.append(
+            ParsedRow(
+                posted_at=posted_at,
+                amount=amount,
+                currency="",
+                description=description,
+            )
+        )
+
+    if assumed:
+        warnings.append(
+            f"{assumed} line(s) had no money-in column or balance to check against "
+            "and were read as money out. Check the sample below."
+        )
+    warnings.append(
+        "PDF statements are read from the printed layout, so they are less "
+        "exact than a CSV export. If your bank also offers CSV or OFX, prefer that."
+    )
+
+    return _finalize(
+        rows,
+        dialect_slug="pdf",
+        dialect_label="PDF statement",
+        source_format="pdf",
+        seen=seen,
+        skipped=skipped,
+        warnings=warnings,
+        truncated=truncated,
+        max_rows=max_rows,
+        # Direction is already resolved per line above; a blanket flip would
+        # undo it on any statement that happens to be all inflows.
+        allow_sign_flip=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# OFX / QIF
+# ---------------------------------------------------------------------------
+#
+# Barclays, Lloyds, HSBC and Nationwide all offer "Quicken/Money" downloads.
+# These are far more reliable than PDF — every field is explicit — so when a
+# user has the choice this is the best thing they can upload.
+
+_OFX_TAG_RE = re.compile(r"<([A-Z0-9.]+)>([^<\r\n]*)", re.IGNORECASE)
+
+
+def parse_ofx(text: str, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
+    """Parse OFX/QFX (SGML or XML flavour) statement downloads."""
+    currency = ""
+    currency_match = re.search(r"<CURDEF>\s*([A-Z]{3})", text, re.IGNORECASE)
+    if currency_match:
+        currency = currency_match.group(1).upper()
+
+    blocks = re.split(r"<STMTTRN>", text, flags=re.IGNORECASE)[1:]
+    rows: List[ParsedRow] = []
+    skipped = 0
+    truncated = False
+
+    for block in blocks:
+        if len(rows) >= max_rows:
+            truncated = True
+            break
+        block = re.split(r"</STMTTRN>", block, flags=re.IGNORECASE)[0]
+        fields: Dict[str, str] = {}
+        for tag, value in _OFX_TAG_RE.findall(block):
+            key = tag.upper()
+            if key not in fields:
+                fields[key] = value.strip()
+
+        posted_raw = fields.get("DTPOSTED", "")[:8]
+        try:
+            posted_at = datetime.strptime(posted_raw, "%Y%m%d").date()
+        except ValueError:
+            skipped += 1
+            continue
+
+        amount = parse_amount(fields.get("TRNAMT", ""))
+        if amount is None or amount == 0:
+            skipped += 1
+            continue
+
+        description = redact(fields.get("NAME") or fields.get("MEMO") or "Transaction")
+        rows.append(
+            ParsedRow(
+                posted_at=posted_at,
+                amount=amount,
+                currency=currency,
+                description=description or "Transaction",
+                raw_category=redact(fields.get("TRNTYPE", ""))[:128],
+            )
+        )
+
+    return _finalize(
+        rows,
+        dialect_slug="ofx",
+        dialect_label="OFX/QFX download",
+        source_format="ofx",
+        skipped=skipped,
+        truncated=truncated,
+        max_rows=max_rows,
+        # TRNAMT is signed by the spec.
+        allow_sign_flip=False,
+    )
+
+
+def parse_qif(text: str, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
+    """Parse QIF (Quicken Interchange Format) downloads."""
+    rows: List[ParsedRow] = []
+    skipped = 0
+    truncated = False
+    current: Dict[str, str] = {}
+
+    def flush() -> None:
+        nonlocal skipped
+        if not current:
+            return
+        posted_at = parse_date(current.get("D", "").replace("'", "/"))
+        amount = parse_amount(current.get("T") or current.get("U") or "")
+        if posted_at is None or amount is None or amount == 0:
+            skipped += 1
+            return
+        description = redact(current.get("P") or current.get("M") or "Transaction")
+        rows.append(
+            ParsedRow(
+                posted_at=posted_at,
+                amount=amount,
+                currency="",
+                description=description or "Transaction",
+                raw_category=redact(current.get("L", ""))[:128],
+            )
+        )
+
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("!"):
+            continue
+        if line == "^":
+            if len(rows) >= max_rows:
+                truncated = True
+                break
+            flush()
+            current = {}
+            continue
+        code, value = line[0].upper(), line[1:].strip()
+        current.setdefault(code, value)
+    else:
+        if len(rows) < max_rows:
+            flush()
+
+    return _finalize(
+        rows,
+        dialect_slug="qif",
+        dialect_label="QIF download",
+        source_format="qif",
+        skipped=skipped,
+        truncated=truncated,
+        max_rows=max_rows,
+        # QIF T amounts are signed.
+        allow_sign_flip=False,
     )

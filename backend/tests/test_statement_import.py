@@ -18,6 +18,7 @@ from budgeting.services import statement_analysis
 from budgeting.services.categorization import categorize, normalise_merchant
 from budgeting.services.statements import (
     StatementParseError,
+    detect_format,
     parse_amount,
     parse_date,
     parse_statement,
@@ -122,10 +123,12 @@ class DialectParsingTests(TestCase):
         self.assertTrue(all(r.amount < 0 for r in parsed.rows))
         self.assertTrue(any("positive" in w for w in parsed.warnings))
 
-    def test_rejects_non_csv(self):
+    def test_malformed_pdf_reports_a_pdf_specific_error(self):
+        # PDFs are supported now, so a broken one must fail as a bad PDF
+        # rather than as an unreadable CSV.
         with self.assertRaises(StatementParseError) as ctx:
             parse_statement(b"%PDF-1.4 fake pdf")
-        self.assertEqual(ctx.exception.code, "unsupported_format")
+        self.assertEqual(ctx.exception.code, "pdf_unreadable")
 
     def test_rejects_file_without_usable_columns(self):
         with self.assertRaises(StatementParseError):
@@ -314,3 +317,222 @@ class StatementApiTests(TestCase):
         client = APIClient()
         res = _upload(client, self.preview_url, REVOLUT_CSV.encode())
         self.assertIn(res.status_code, (401, 403))
+
+
+# ---------------------------------------------------------------------------
+# Non-CSV formats
+# ---------------------------------------------------------------------------
+
+OFX_STATEMENT = """OFXHEADER:100
+DATA:OFXSGML
+<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><CURDEF>GBP
+<BANKTRANLIST>
+<STMTTRN><TRNTYPE>DEBIT<DTPOSTED>20260702120000<TRNAMT>-42.10<FITID>1<NAME>TESCO STORES</STMTTRN>
+<STMTTRN><TRNTYPE>CREDIT<DTPOSTED>20260725120000<TRNAMT>1850.00<FITID>2<NAME>ACME LTD SALARY</STMTTRN>
+</BANKTRANLIST></STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>"""
+
+QIF_STATEMENT = """!Type:Bank
+D02/07/2026
+T-42.10
+PTESCO STORES
+^
+D25/07/2026
+T1850.00
+PACME LTD SALARY
+^
+"""
+
+
+def _make_pdf(placements):
+    """Build a minimal one-page PDF with text at explicit coordinates.
+
+    Hand-rolled rather than pulling in a PDF writer just for tests: what we
+    need to exercise is the coordinate-based column logic, and that only needs
+    words at known x/y.
+    """
+    parts = ["BT /F1 9 Tf"]
+    for x, y, text in placements:
+        escaped = text.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
+        parts.append(f"1 0 0 1 {x} {y} Tm ({escaped}) Tj")
+    parts.append("ET")
+    stream = "\n".join(parts).encode("latin-1")
+
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+        b"/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+    ]
+
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for index, body in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += f"{index} 0 obj\n".encode() + body + b"\nendobj\n"
+
+    xref_at = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n".encode()
+    out += b"0000000000 65535 f \n"
+    for offset in offsets:
+        out += f"{offset:010d} 00000 n \n".encode()
+    out += (
+        f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\n" f"startxref\n{xref_at}\n%%EOF\n"
+    ).encode()
+    return bytes(out)
+
+
+def _barclays_pdf(two_money_columns=True):
+    """Date | Description | Money out [| Money in] | Balance."""
+    rows = [
+        ("02 Jul 26", "Card Payment to TESCO STORES", "42.10", None, "957.90"),
+        ("03 Jul 26", "Direct Debit NETFLIX.COM", "10.99", None, "946.91"),
+        ("04 Jul 26", "Bank Giro Credit ACME LTD SALARY", None, "1,850.00", "2,796.91"),
+        ("07 Jul 26", "Card Payment to OMV PETROM", "50.00", None, "2,746.91"),
+    ]
+    placements = [
+        (40, 810, "Barclays Bank UK PLC"),
+        (40, 795, "Date Description Money out Money in Balance"),
+    ]
+    y = 770
+    for day, description, out, incoming, balance in rows:
+        placements.append((40, y, day))
+        placements.append((110, y, description))
+        if two_money_columns:
+            if out:
+                placements.append((360, y, out))
+            if incoming:
+                placements.append((420, y, incoming))
+        else:
+            placements.append((400, y, out or incoming))
+        placements.append((480, y, balance))
+        y -= 18
+    return _make_pdf(placements)
+
+
+class FormatDetectionTests(TestCase):
+    def test_detects_containers_from_magic_bytes_not_extension(self):
+        self.assertEqual(detect_format(b"%PDF-1.4 ..."), "pdf")
+        self.assertEqual(detect_format(b"PK\x03\x04..."), "xlsx")
+        self.assertEqual(detect_format(OFX_STATEMENT.encode()), "ofx")
+        self.assertEqual(detect_format(QIF_STATEMENT.encode()), "qif")
+        self.assertEqual(detect_format(REVOLUT_CSV.encode()), "csv")
+
+    def test_legacy_xls_is_rejected_with_a_useful_message(self):
+        with self.assertRaises(StatementParseError) as ctx:
+            detect_format(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1rest")
+        self.assertEqual(ctx.exception.code, "legacy_excel")
+
+
+class PdfParsingTests(TestCase):
+    def test_two_money_columns_give_direction_without_guessing(self):
+        parsed = parse_statement(_barclays_pdf(two_money_columns=True))
+        self.assertEqual(parsed.source_format, "pdf")
+        self.assertEqual(len(parsed.rows), 4)
+        self.assertEqual(
+            [r.amount for r in parsed.rows][:2], [Decimal("-42.10"), Decimal("-10.99")]
+        )
+        # The money-in column makes the salary an inflow.
+        self.assertEqual(parsed.rows[2].amount, Decimal("1850.00"))
+        self.assertEqual(parsed.rows[3].amount, Decimal("-50.00"))
+        self.assertFalse(any("read as money out" in w for w in parsed.warnings))
+
+    def test_single_amount_column_falls_back_to_balance_deltas(self):
+        parsed = parse_statement(_barclays_pdf(two_money_columns=False))
+        self.assertEqual(len(parsed.rows), 4)
+        # Rows 2-4 are resolved by the running balance; only the first line has
+        # no previous balance to compare against and is assumed to be an outflow.
+        self.assertEqual(parsed.rows[2].amount, Decimal("1850.00"))
+        self.assertTrue(all(r.amount < 0 for r in parsed.rows if r.posted_at.day != 4))
+        self.assertTrue(any("read as money out" in w for w in parsed.warnings))
+
+    def test_descriptions_survive_the_layout(self):
+        parsed = parse_statement(_barclays_pdf())
+        self.assertIn("TESCO STORES", parsed.rows[0].description)
+        self.assertNotIn("42.10", parsed.rows[0].description)
+
+    def test_warns_that_pdf_is_less_exact(self):
+        parsed = parse_statement(_barclays_pdf())
+        self.assertTrue(any("less exact" in w for w in parsed.warnings))
+
+    def test_scanned_pdf_is_rejected_with_a_useful_message(self):
+        with self.assertRaises(StatementParseError) as ctx:
+            parse_statement(_make_pdf([]))
+        self.assertEqual(ctx.exception.code, "pdf_no_text")
+
+
+class SpreadsheetParsingTests(TestCase):
+    def _workbook(self):
+        import io as _io
+
+        from openpyxl import Workbook
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.append(["Data tranzactiei", "Descriere", "Suma debit", "Suma credit", "Valuta"])
+        sheet.append([date(2026, 7, 2), "PLATA LA POS MEGA IMAGE", 123.45, None, "RON"])
+        sheet.append([date(2026, 7, 5), "TRANSFER SALARIU ACME SRL", None, 5500.00, "RON"])
+        buffer = _io.BytesIO()
+        workbook.save(buffer)
+        return buffer.getvalue()
+
+    def test_xlsx_reuses_the_csv_column_mapping(self):
+        parsed = parse_statement(self._workbook())
+        self.assertEqual(parsed.source_format, "xlsx")
+        self.assertEqual(parsed.dialect_slug, "banca-transilvania")
+        self.assertEqual(parsed.currency, "RON")
+        self.assertEqual(parsed.rows[0].amount, Decimal("-123.45"))
+        self.assertEqual(parsed.rows[1].amount, Decimal("5500"))
+
+
+class OfxQifParsingTests(TestCase):
+    def test_ofx_amounts_are_taken_as_signed(self):
+        parsed = parse_statement(OFX_STATEMENT.encode())
+        self.assertEqual(parsed.source_format, "ofx")
+        self.assertEqual(parsed.currency, "GBP")
+        self.assertEqual(parsed.rows[0].amount, Decimal("-42.10"))
+        self.assertEqual(parsed.rows[1].amount, Decimal("1850.00"))
+        self.assertEqual(parsed.rows[0].posted_at, date(2026, 7, 2))
+
+    def test_qif_amounts_are_taken_as_signed(self):
+        parsed = parse_statement(QIF_STATEMENT.encode())
+        self.assertEqual(parsed.source_format, "qif")
+        self.assertEqual(len(parsed.rows), 2)
+        self.assertEqual(parsed.rows[0].amount, Decimal("-42.10"))
+        self.assertEqual(parsed.rows[1].amount, Decimal("1850.00"))
+
+    def test_all_inflow_ofx_is_not_flipped_to_spending(self):
+        """The CSV heuristic flips all-positive files; signed formats must not."""
+        only_credits = OFX_STATEMENT.replace("<TRNAMT>-42.10", "<TRNAMT>42.10")
+        parsed = parse_statement(only_credits.encode())
+        self.assertTrue(all(r.amount > 0 for r in parsed.rows))
+
+
+class MultiFormatUploadTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("fmtuser", "fmt@example.com", "pw12345!")
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def test_pdf_upload_round_trips_through_the_api(self):
+        res = _upload(
+            self.client,
+            reverse("budgeting-statement-preview"),
+            _barclays_pdf(),
+            name="statement.pdf",
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["source_format"], "pdf")
+        self.assertEqual(res.data["row_count"], 4)
+        self.assertEqual(res.data["analysis"]["totals"]["income"], 1850.0)
+
+    def test_unsupported_extension_is_still_rejected(self):
+        res = _upload(
+            self.client,
+            reverse("budgeting-statement-preview"),
+            b"whatever",
+            name="statement.docx",
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.data["error"], "unsupported_extension")

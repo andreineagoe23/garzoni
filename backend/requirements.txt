@@ -59,3 +59,7 @@ cloudinary==1.40.0
 django-cloudinary-storage==0.3.0
 django-anymail[resend]
 groq>=0.12.0
+# Statement import: PDF (Barclays and most UK banks only offer PDF) and
+# spreadsheet exports. pdfplumber pulls in pdfminer.six for text extraction.
+pdfplumber==0.11.4
+openpyxl==3.1.5
