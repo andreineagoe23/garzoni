@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from datetime import datetime
 
 from django.db import transaction
 from django.utils import timezone
@@ -46,14 +47,28 @@ from budgeting.services.dashboard import (
 )
 from budgeting.services.providers import get_provider
 from budgeting.services.summaries import (
+    available_periods,
     envelopes_with_progress,
     get_or_compute_summary,
+    resolve_active_period,
 )
 from finance.models import FinancialGoal, PortfolioEntry
 from finance.utils import record_funnel_event
 from core.request_platform import resolve_request_platform
 
 logger = logging.getLogger(__name__)
+
+
+def parse_period_param(value):
+    """Parse a ``?period=YYYY-MM`` (or ``YYYY-MM-DD``) filter into a month."""
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d", "%Y-%m"):
+        try:
+            return datetime.strptime(str(value).strip(), fmt).date().replace(day=1)
+        except ValueError:
+            continue
+    return None
 
 
 def _require_budget_entitlement(request):
@@ -123,8 +138,10 @@ class BudgetEnvelopeViewSet(viewsets.ModelViewSet):
         gate = _require_budget_entitlement(request)
         if gate:
             return gate
-        envelopes = envelopes_with_progress(request.user)
-        return Response({"results": envelopes})
+        requested = parse_period_param(request.query_params.get("period"))
+        ref = requested or resolve_active_period(request.user)
+        envelopes = envelopes_with_progress(request.user, ref=ref)
+        return Response({"results": envelopes, "period": ref.isoformat()})
 
     def retrieve(self, request, *args, **kwargs):
         gate = _require_budget_entitlement(request)
@@ -179,11 +196,19 @@ class SpendingSummaryView(APIView):
         gate = _require_budget_entitlement(request)
         if gate:
             return gate
-        ref = timezone.now().date()
+        # An imported statement is usually *last* month's, so defaulting to the
+        # current month showed an empty dashboard right after a successful
+        # import. Honour an explicit ?period=, else fall back to the latest
+        # month that actually has data.
+        requested = parse_period_param(request.query_params.get("period"))
+        ref = requested or resolve_active_period(request.user)
         summary = get_or_compute_summary(request.user, ref=ref)
+        periods = available_periods(request.user)
         return Response(
             {
                 "period": summary.period_start.isoformat(),
+                "available_periods": [p.isoformat() for p in periods],
+                "is_current_month": summary.period_start == timezone.now().date().replace(day=1),
                 "currency": summary.currency,
                 "total_income": float(summary.total_income),
                 "total_spent": float(summary.total_spent),
@@ -307,7 +332,7 @@ class PersonalCfoSummaryView(APIView):
                 },
                 status=402,
             )
-        today = timezone.now().date()
+        today = resolve_active_period(request.user)
         spending = None
         try:
             spending = get_or_compute_summary(request.user, ref=today)

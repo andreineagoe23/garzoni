@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -802,6 +803,54 @@ _PDF_NUMBER_RE = re.compile(
 _PDF_LINE_TOLERANCE = 3.0
 _PDF_COLUMN_TOLERANCE = 12.0
 MAX_PDF_PAGES = 40
+# A wrapped description is at most a line or two below its transaction.
+_PDF_CONTINUATION_GAP = _PDF_LINE_TOLERANCE * 5
+_PDF_CONTINUATION_MAX_CHARS = 60
+
+# Real Barclays statements print the transaction date as "15 Jul" with no year
+# — the year only appears once, in the statement header. Without recovering it
+# every single row would fail to parse.
+_PDF_DAY_MONTH_RE = re.compile(r"^\s*(\d{1,2})\s+([A-Za-z]{3,9})\s*$")
+
+# Statement furniture that sits on a dated line but is not a transaction:
+# opening/closing balances and page carry-overs. Importing these as spending
+# silently corrupts every total.
+_PDF_BALANCE_MARKER_RE = re.compile(
+    r"\b("
+    r"start(ing)?\s+balance|end(ing)?\s+balance|opening\s+balance|closing\s+balance"
+    r"|balance\s+(brought|carried)\s+forward|brought\s+forward|carried\s+forward"
+    r"|b/?fwd|c/?fwd|total\s+(payments|receipts)"
+    r")\b",
+    re.IGNORECASE,
+)
+_YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
+
+
+def _infer_statement_year(lines: Sequence[_PdfLine]) -> Optional[int]:
+    """Most frequent plausible year printed anywhere in the document."""
+    counts: Dict[int, int] = {}
+    for line in lines:
+        for match in _YEAR_RE.finditer(line.text):
+            year = int(match.group(0))
+            if 1990 <= year <= date.today().year + 1:
+                counts[year] = counts.get(year, 0) + 1
+    if not counts:
+        return None
+    # On a tie, take the *earliest* year: rows run forward through the
+    # statement, so a period spanning new year should start in the older one
+    # and roll forward (handled at the row level), never start in the newer.
+    return max(counts.items(), key=lambda kv: (kv[1], -kv[0]))[0]
+
+
+def _pdf_date(token: str, fallback_year: Optional[int]) -> Optional[date]:
+    """Parse a PDF date token, filling in a missing year from the header."""
+    parsed = parse_date(token)
+    if parsed is not None:
+        return parsed
+    match = _PDF_DAY_MONTH_RE.match(token)
+    if not match or fallback_year is None:
+        return None
+    return parse_date(f"{match.group(1)} {match.group(2)} {fallback_year}")
 
 
 @dataclass
@@ -809,9 +858,10 @@ class _PdfLine:
     top: float
     text: str
     numbers: List[Tuple[Decimal, float]]  # (value, x centre)
+    page: int = 0
 
 
-def _pdf_lines(page) -> List[_PdfLine]:
+def _pdf_lines(page, page_number: int = 0) -> List[_PdfLine]:
     """Group a page's words into visual lines, keeping numeric x positions."""
     words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
     buckets: Dict[int, List[dict]] = {}
@@ -833,7 +883,14 @@ def _pdf_lines(page) -> List[_PdfLine]:
                 continue
             centre = (float(word["x0"]) + float(word["x1"])) / 2
             numbers.append((value, centre))
-        lines.append(_PdfLine(top=key * _PDF_LINE_TOLERANCE, text=text, numbers=numbers))
+        lines.append(
+            _PdfLine(
+                top=key * _PDF_LINE_TOLERANCE,
+                text=text,
+                numbers=numbers,
+                page=page_number,
+            )
+        )
     return lines
 
 
@@ -905,6 +962,12 @@ def parse_pdf(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
             "PDF statements aren't supported on this server yet.",
         )
 
+    # pdfminer emits a DEBUG record per token — tens of thousands of lines for
+    # one statement, and the logging call itself dominates the parse time.
+    # settings.LOGGING pins this too; this guards runners with their own config.
+    for noisy in ("pdfminer", "pdfplumber"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
     lines: List[_PdfLine] = []
     try:
         with pdfplumber.open(io.BytesIO(raw)) as pdf:
@@ -914,8 +977,8 @@ def parse_pdf(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
                     f"That PDF has more than {MAX_PDF_PAGES} pages. "
                     "Export a shorter date range.",
                 )
-            for page in pdf.pages:
-                lines.extend(_pdf_lines(page))
+            for page_number, page in enumerate(pdf.pages):
+                lines.extend(_pdf_lines(page, page_number))
     except StatementParseError:
         raise
     except Exception as exc:
@@ -939,23 +1002,37 @@ def parse_pdf(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
 
     balance_x = _pdf_balance_column(lines)
     money_in_x = _pdf_money_in_column(lines, balance_x)
+    fallback_year = _infer_statement_year(lines)
     warnings: List[str] = []
     rows: List[ParsedRow] = []
     seen = 0
     skipped = 0
     truncated = False
     previous_balance: Optional[Decimal] = None
+    last_row_anchor: Optional[Tuple[int, float]] = None
     directed = 0
     assumed = 0
 
     for line in lines:
         match = _PDF_DATE_RE.match(line.text)
         if not match:
-            # Wrapped description continues the previous transaction.
-            if rows and line.text.strip() and not line.numbers:
+            # A wrapped description sits directly under its transaction, on the
+            # same page. Anything further away is page furniture — footers,
+            # legal blurb, "Continued" markers — and must not be glued on.
+            if (
+                rows
+                and last_row_anchor is not None
+                and line.text.strip()
+                and not line.numbers
+                and line.page == last_row_anchor[0]
+                and 0 < line.top - last_row_anchor[1] <= _PDF_CONTINUATION_GAP
+                and len(line.text.strip()) <= _PDF_CONTINUATION_MAX_CHARS
+                and not _PDF_BALANCE_MARKER_RE.search(line.text)
+            ):
                 extra = redact(line.text.strip())
                 if extra:
                     rows[-1].description = f"{rows[-1].description} {extra}"[:256]
+                    last_row_anchor = (line.page, line.top)
             continue
 
         seen += 1
@@ -963,10 +1040,26 @@ def parse_pdf(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
             truncated = True
             break
 
-        posted_at = parse_date(match.group(1))
+        if _PDF_BALANCE_MARKER_RE.search(line.text):
+            # Keep the balance itself so the delta chain stays correct, but
+            # never emit it as a transaction.
+            if balance_x is not None:
+                for value, centre in line.numbers:
+                    if abs(centre - balance_x) <= _PDF_COLUMN_TOLERANCE:
+                        previous_balance = value
+                        break
+            skipped += 1
+            continue
+
+        posted_at = _pdf_date(match.group(1), fallback_year)
         if posted_at is None or not line.numbers:
             skipped += 1
             continue
+
+        # A statement that runs across new year prints "28 Dec" then "03 Jan";
+        # with a single inferred year the second one lands 12 months early.
+        if rows and (rows[-1].posted_at - posted_at).days > 180:
+            posted_at = posted_at.replace(year=posted_at.year + 1)
 
         balance: Optional[Decimal] = None
         amounts = list(line.numbers)
@@ -1020,6 +1113,7 @@ def parse_pdf(raw: bytes, max_rows: int = MAX_PREVIEW_ROWS) -> ParsedStatement:
                 description=description,
             )
         )
+        last_row_anchor = (line.page, line.top)
 
     if assumed:
         warnings.append(

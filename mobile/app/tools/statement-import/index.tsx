@@ -114,6 +114,7 @@ type Analysis = {
   currency: string;
   period_start: string;
   period_end: string;
+  days_covered: number;
   transaction_count: number;
   totals: { income: number; spent: number; net: number };
   categories: CategoryRow[];
@@ -124,6 +125,16 @@ type Analysis = {
     occurrences: number;
     typical_amount: number;
   }[];
+  essentials: {
+    essential?: number;
+    discretionary?: number;
+    discretionary_share?: number;
+  };
+  rhythm: {
+    weekend_share?: number;
+    no_spend_days?: number;
+    average_transaction?: number;
+  };
   insights: Insight[];
 };
 
@@ -177,6 +188,9 @@ export default function StatementImportScreen() {
   const [error, setError] = useState<string | null>(null);
   const [plusSheetVisible, setPlusSheetVisible] = useState(false);
   const [analysingStep, setAnalysingStep] = useState(0);
+  const [aiBullets, setAiBullets] = useState<string[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [openingId, setOpeningId] = useState<number | null>(null);
 
   // A PDF takes noticeably longer than a CSV, so the wait says what is
   // happening rather than showing an unlabelled spinner.
@@ -217,6 +231,20 @@ export default function StatementImportScreen() {
 
   const currency = preview?.currency || preview?.analysis?.currency || "GBP";
 
+  const dateRange = useCallback((start: string | null, end: string | null) => {
+    if (!start || !end) return "";
+    const from = new Date(start);
+    const to = new Date(end);
+    const sameYear = from.getFullYear() === to.getFullYear();
+    const fmt = (d: Date, withYear: boolean) =>
+      d.toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+        ...(withYear ? { year: "numeric" } : {}),
+      });
+    return `${fmt(from, !sameYear)} – ${fmt(to, true)}`;
+  }, []);
+
   const money = useCallback(
     (value: number) => `${Math.round(value).toLocaleString()} ${currency}`,
     [currency],
@@ -253,6 +281,42 @@ export default function StatementImportScreen() {
     return body;
   }, []);
 
+  // Runs after the analysis lands, not inside it: the upload stays fast and
+  // an AI outage just leaves the deterministic insights in place.
+  const requestInsight = useCallback(async (analysis?: Analysis) => {
+    if (!analysis) return;
+    setAiBullets(null);
+    setAiLoading(true);
+    try {
+      const res = await (apiClient as any).post(
+        "/budgeting/statements/insight/",
+        {
+          currency: analysis.currency,
+          days_covered: analysis.days_covered,
+          totals: analysis.totals,
+          categories: analysis.categories.map((row) => ({
+            category: row.category,
+            spent: row.spent,
+            share: row.share,
+          })),
+          essentials: analysis.essentials,
+          rhythm: analysis.rhythm,
+          recurring_count: analysis.recurring.length,
+          recurring_total: analysis.recurring.reduce(
+            (sum, row) => sum + row.typical_amount,
+            0,
+          ),
+        },
+      );
+      setAiBullets(res.data?.available ? (res.data.bullets ?? []) : []);
+    } catch (e) {
+      logDevError("tools/statement-import/insight", e);
+      setAiBullets([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
   const analyze = useCallback(
     async (from: Source) => {
       setAnalyzing(true);
@@ -268,6 +332,7 @@ export default function StatementImportScreen() {
         setPreview(res.data);
         setAllowance(res.data?.allowance ?? null);
         setSource(from);
+        void requestInsight(res.data?.analysis);
         void trackGarzoniEvent("statement_analyzed", {
           bank: res.data?.bank?.slug,
           rows: res.data?.row_count,
@@ -282,7 +347,7 @@ export default function StatementImportScreen() {
         setAnalyzing(false);
       }
     },
-    [buildForm, resolveError],
+    [buildForm, requestInsight, resolveError],
   );
 
   const handlePick = useCallback(async () => {
@@ -364,6 +429,39 @@ export default function StatementImportScreen() {
       setSaving(false);
     }
   }, [allowance, buildForm, source, loadMeta, resolveError]);
+
+  /** Open a previously saved import. The file is long gone, so the server
+      re-derives the analysis from the stored transactions. */
+  const openSavedImport = useCallback(
+    async (row: SavedImport) => {
+      setOpeningId(row.id);
+      setError(null);
+      try {
+        const res = await (apiClient as any).get(
+          `/budgeting/statements/${row.id}/analysis/`,
+        );
+        setPreview({
+          filename: row.filename || row.dialect_label,
+          bank: { slug: "", label: row.dialect_label },
+          currency: res.data?.analysis?.currency ?? "",
+          row_count: row.created_count,
+          warnings: [],
+          sample: res.data?.sample ?? [],
+          analysis: res.data.analysis,
+          allowance: allowance as Allowance,
+        });
+        setSaved(row);
+        setSource(null);
+        void requestInsight(res.data?.analysis);
+      } catch (e) {
+        logDevError("tools/statement-import/open", e);
+        setError(t("tools.statementImport.errors.openFailed"));
+      } finally {
+        setOpeningId(null);
+      }
+    },
+    [allowance, requestInsight, t],
+  );
 
   const handleUndo = useCallback(
     async (id: number) => {
@@ -588,6 +686,36 @@ export default function StatementImportScreen() {
               </View>
             </View>
 
+            {(aiLoading || (aiBullets && aiBullets.length > 0)) && (
+              <View
+                style={[
+                  styles.card,
+                  { borderColor: c.primary, backgroundColor: c.surface },
+                ]}
+              >
+                <Text style={[styles.cardTitle, { color: c.text }]}>
+                  {t("tools.statementImport.ai.title")}
+                </Text>
+                {aiLoading ? (
+                  <ActivityIndicator color={c.primary} />
+                ) : (
+                  aiBullets?.map((bullet) => (
+                    <View key={bullet} style={styles.bulletRow}>
+                      <Text style={[styles.bulletDot, { color: c.primary }]}>
+                        {"\u2022"}
+                      </Text>
+                      <Text style={[styles.bulletText, { color: c.text }]}>
+                        {bullet}
+                      </Text>
+                    </View>
+                  ))
+                )}
+                <Text style={[styles.cardSubtitle, { color: c.textMuted }]}>
+                  {t("tools.statementImport.ai.privacy")}
+                </Text>
+              </View>
+            )}
+
             {analysis.insights.length > 0 && (
               <View
                 style={[
@@ -800,19 +928,37 @@ export default function StatementImportScreen() {
           </>
         )}
 
-        {history.length > 0 && (
-          <View
-            style={[
-              styles.card,
-              { borderColor: c.border, backgroundColor: c.surface },
-            ]}
-          >
-            <Text style={[styles.cardTitle, { color: c.text }]}>
-              {t("tools.statementImport.history.title")}
+        <View
+          style={[
+            styles.card,
+            { borderColor: c.border, backgroundColor: c.surface },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: c.text }]}>
+            {t("tools.statementImport.history.titleWithCount", {
+              count: history.length,
+            })}
+          </Text>
+          {allowance && !allowance.is_paid && !allowance.can_save && (
+            <Text style={[styles.cardSubtitle, { color: c.textMuted }]}>
+              {t("tools.statementImport.history.freeUsed")}
             </Text>
+          )}
+          {history.length === 0 && (
+            <Text style={[styles.cardSubtitle, { color: c.textMuted }]}>
+              {t("tools.statementImport.history.empty")}
+            </Text>
+          )}
+          <View>
             {history.map((row) => (
               <View key={row.id} style={styles.listRow}>
-                <View style={styles.listRowText}>
+                <Pressable
+                  style={styles.listRowText}
+                  onPress={() => openSavedImport(row)}
+                  accessibilityRole="button"
+                  accessibilityLabel={row.filename || row.dialect_label}
+                  disabled={openingId === row.id}
+                >
                   <Text
                     numberOfLines={1}
                     style={[styles.listLabel, { color: c.text }]}
@@ -820,13 +966,14 @@ export default function StatementImportScreen() {
                     {row.filename || row.dialect_label}
                   </Text>
                   <Text style={[styles.listMeta, { color: c.textMuted }]}>
-                    {t("tools.statementImport.history.meta", {
-                      count: row.created_count,
-                      start: row.period_start ?? "—",
-                      end: row.period_end ?? "—",
-                    })}
+                    {openingId === row.id
+                      ? t("tools.statementImport.analysing.title")
+                      : t("tools.statementImport.history.meta", {
+                          count: row.created_count,
+                          range: dateRange(row.period_start, row.period_end),
+                        })}
                   </Text>
-                </View>
+                </Pressable>
                 {row.status === "completed" ? (
                   <Pressable
                     onPress={() => handleUndo(row.id)}
@@ -845,7 +992,7 @@ export default function StatementImportScreen() {
               </View>
             ))}
           </View>
-        )}
+        </View>
       </ScrollView>
 
       <PlusBottomSheet
@@ -949,6 +1096,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   listRowText: { flex: 1, gap: 2 },
+  bulletRow: { flexDirection: "row", gap: spacing.xs, marginTop: spacing.xs },
+  bulletDot: { fontSize: typography.sm, fontWeight: "800" },
+  bulletText: { flex: 1, fontSize: typography.sm, lineHeight: 20 },
   listLabel: { fontSize: typography.sm, fontWeight: "600" },
   listMeta: { fontSize: typography.xs },
   undo: { fontSize: typography.xs, fontWeight: "700" },

@@ -24,7 +24,11 @@ from django.utils import timezone
 
 from authentication.entitlements import get_user_plan
 from budgeting.models import LinkedAccount
-from budgeting.services.summaries import PeriodSummary, get_or_compute_summary
+from budgeting.services.summaries import (
+    PeriodSummary,
+    get_or_compute_summary,
+    resolve_active_period,
+)
 from finance.models import FinancialGoal, PortfolioEntry
 
 logger = logging.getLogger(__name__)
@@ -498,7 +502,11 @@ def build_dashboard(user, surface: str = "web") -> Dict[str, Any]:
 
     today = timezone.now().date()
     try:
-        spending = get_or_compute_summary(user, ref=today)
+        # Imported statements are usually last month's. Asking for the current
+        # month made the whole CFO — spending, savings rate, monthly
+        # contribution and the AI coach's context — read as zero right after a
+        # successful import.
+        spending = get_or_compute_summary(user, ref=resolve_active_period(user, today))
     except Exception as exc:  # pragma: no cover - defensive
         logger.warning("cfo_dashboard_spending_failed user=%s err=%s", user.id, exc)
         spending = None
@@ -555,7 +563,7 @@ def build_dashboard_context(user) -> DashboardContext:
     re-running the entire dashboard pipeline."""
 
     try:
-        spending = get_or_compute_summary(user, ref=timezone.now().date())
+        spending = get_or_compute_summary(user, ref=resolve_active_period(user))
     except Exception:
         spending = None
     portfolio = _portfolio_block(user)

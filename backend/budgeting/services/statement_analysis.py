@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Dict, List, Optional, Sequence
 
@@ -29,6 +29,20 @@ ZERO = Decimal("0")
 RECURRING_MIN_HITS = 2
 RECURRING_AMOUNT_TOLERANCE = Decimal("0.15")  # ±15%
 TOP_N = 8
+
+# Costs you cannot easily stop next month. The split is the single most useful
+# framing for "where could I actually cut?".
+ESSENTIAL_CATEGORIES = {
+    "housing",
+    "utilities",
+    "groceries",
+    "transport",
+    "fuel",
+    "phone_internet",
+    "health",
+    "insurance",
+    "education",
+}
 
 
 @dataclass
@@ -119,6 +133,78 @@ def _monthly_series(classified: Sequence[ClassifiedRow]) -> List[Dict]:
     ]
 
 
+def _daily_series(classified: Sequence[ClassifiedRow]) -> List[Dict]:
+    """Spend per calendar day across the whole period, zero-filled.
+
+    Zero-filling matters: the gaps are the story (no-spend days), and a chart
+    drawn only from days that have transactions hides them.
+    """
+    if not classified:
+        return []
+    per_day: Dict[date, Decimal] = defaultdict(lambda: ZERO)
+    for item in classified:
+        if item.row.amount < 0:
+            per_day[item.row.posted_at] += -item.row.amount
+    start = min(c.row.posted_at for c in classified)
+    end = max(c.row.posted_at for c in classified)
+    out: List[Dict] = []
+    cursor = start
+    while cursor <= end:
+        out.append({"date": cursor.isoformat(), "spent": _q(per_day.get(cursor, ZERO))})
+        cursor += timedelta(days=1)
+    return out
+
+
+def _rhythm(classified: Sequence[ClassifiedRow], daily: Sequence[Dict]) -> Dict:
+    """How spending is distributed across the period, not just its total."""
+    outflows = [c for c in classified if c.row.amount < 0]
+    if not outflows:
+        return {}
+
+    weekend = sum((-c.row.amount for c in outflows if c.row.posted_at.weekday() >= 5), ZERO)
+    weekday = sum((-c.row.amount for c in outflows if c.row.posted_at.weekday() < 5), ZERO)
+    total = weekend + weekday
+    busiest = max(daily, key=lambda d: d["spent"], default=None) if daily else None
+
+    return {
+        "weekday_spent": _q(weekday),
+        "weekend_spent": _q(weekend),
+        "weekend_share": float(round(weekend / total * 100, 1)) if total else 0.0,
+        "no_spend_days": sum(1 for d in daily if d["spent"] == 0),
+        "average_transaction": _q(total / len(outflows)),
+        "busiest_day": busiest if busiest and busiest["spent"] > 0 else None,
+    }
+
+
+def _essentials_split(categories: Sequence[Dict], total_spent: Decimal) -> Dict:
+    """Essential vs discretionary — the number that makes a budget actionable."""
+    if not total_spent:
+        return {}
+    essential = sum(
+        (
+            Decimal(str(row["spent"]))
+            for row in categories
+            if row["category"] in ESSENTIAL_CATEGORIES
+        ),
+        ZERO,
+    )
+    transfers = sum(
+        (
+            Decimal(str(row["spent"]))
+            for row in categories
+            if row["category"] in TRANSFER_CATEGORIES
+        ),
+        ZERO,
+    )
+    discretionary = total_spent - essential - transfers
+    return {
+        "essential": _q(essential),
+        "discretionary": _q(discretionary),
+        "transfers": _q(transfers),
+        "discretionary_share": float(round(discretionary / total_spent * 100, 1)),
+    }
+
+
 def _build_insights(
     *,
     currency: str,
@@ -128,6 +214,8 @@ def _build_insights(
     recurring: Sequence[Dict],
     days_covered: int,
     largest: Sequence[Dict],
+    rhythm: Optional[Dict] = None,
+    essentials: Optional[Dict] = None,
 ) -> List[Dict]:
     """Plain-language findings. Deterministic on purpose — these are facts,
     not opinions, and they must be identical every time the same file is
@@ -201,6 +289,45 @@ def _build_insights(
                         f"{biggest['merchant']} on {biggest['date']} is over a fifth "
                         "of everything you spent."
                     ),
+                }
+            )
+
+    if essentials and essentials.get("discretionary_share") is not None:
+        share = essentials["discretionary_share"]
+        insights.append(
+            {
+                "kind": "essentials_split",
+                "tone": "neutral",
+                "title": f"{share:.0f}% of your spending was discretionary",
+                "detail": (
+                    f"{essentials['essential']} {cur} went on essentials and "
+                    f"{essentials['discretionary']} {cur} on everything else — "
+                    "that second number is the part you can actually move."
+                ),
+            }
+        )
+
+    if rhythm and rhythm.get("weekend_share"):
+        weekend_share = rhythm["weekend_share"]
+        if weekend_share >= 40:
+            insights.append(
+                {
+                    "kind": "weekend_heavy",
+                    "tone": "neutral",
+                    "title": f"{weekend_share:.0f}% of your spending happened at weekends",
+                    "detail": (
+                        "Weekends are two days in seven, so anything above ~29% "
+                        "means that is where the money goes."
+                    ),
+                }
+            )
+        if rhythm.get("no_spend_days"):
+            insights.append(
+                {
+                    "kind": "no_spend_days",
+                    "tone": "positive",
+                    "title": f"{rhythm['no_spend_days']} days with no spending at all",
+                    "detail": "No-spend days are the cheapest habit to build on.",
                 }
             )
 
@@ -281,6 +408,9 @@ def analyze(rows: Sequence[ParsedRow], currency: str = "") -> Dict:
 
     recurring = _detect_recurring(classified)
     months = _monthly_series(classified)
+    daily = _daily_series(classified)
+    rhythm = _rhythm(classified, daily)
+    essentials = _essentials_split(categories, total_spent)
 
     period_start = min(c.row.posted_at for c in classified)
     period_end = max(c.row.posted_at for c in classified)
@@ -302,6 +432,9 @@ def analyze(rows: Sequence[ParsedRow], currency: str = "") -> Dict:
         "largest_transactions": largest,
         "recurring": recurring,
         "monthly": months,
+        "daily": daily,
+        "rhythm": rhythm,
+        "essentials": essentials,
         "insights": _build_insights(
             currency=currency,
             total_spent=total_spent,
@@ -310,6 +443,8 @@ def analyze(rows: Sequence[ParsedRow], currency: str = "") -> Dict:
             recurring=recurring,
             days_covered=days_covered,
             largest=largest,
+            rhythm=rhythm,
+            essentials=essentials,
         ),
     }
 
@@ -349,4 +484,64 @@ def redacted_context_for_ai(analysis: Dict, limit: int = 8) -> Optional[Dict]:
             for row in analysis.get("categories", [])[:limit]
         ],
         "recurring_count": len(analysis.get("recurring", [])),
+        "recurring_total": _q(
+            sum(
+                (Decimal(str(r["typical_amount"])) for r in analysis.get("recurring", [])),
+                ZERO,
+            )
+        ),
+        "essentials": analysis.get("essentials", {}),
+        "rhythm": {
+            key: value
+            for key, value in (analysis.get("rhythm") or {}).items()
+            if key != "busiest_day"
+        },
     }
+
+
+def analyze_saved_import(statement) -> Dict:
+    """Re-run the analysis for a saved import from its stored transactions.
+
+    The uploaded file is never kept, so a saved import is re-derived from the
+    rows it created. That also means the analysis reflects any later
+    improvement to categorisation rather than being frozen at import time.
+    """
+    from budgeting.models import Transaction
+
+    transactions = Transaction.objects.filter(
+        user_id=statement.user_id, statement_import=statement
+    ).order_by("posted_at")
+
+    rows = [
+        ParsedRow(
+            posted_at=tx.posted_at,
+            amount=tx.amount,
+            currency=tx.currency,
+            description=tx.description,
+            raw_category=tx.provider_category_raw,
+        )
+        for tx in transactions
+    ]
+    if not rows:
+        return {}
+    currency = statement.currency or (rows[0].currency if rows else "")
+    return analyze(rows, currency=currency)
+
+
+def sample_saved_import(statement, limit: int = 12) -> List[Dict]:
+    from budgeting.models import Transaction
+
+    transactions = Transaction.objects.filter(
+        user_id=statement.user_id, statement_import=statement
+    ).order_by("posted_at")[:limit]
+    rows = [
+        ParsedRow(
+            posted_at=tx.posted_at,
+            amount=tx.amount,
+            currency=tx.currency,
+            description=tx.description,
+            raw_category=tx.provider_category_raw,
+        )
+        for tx in transactions
+    ]
+    return sample_rows(rows, limit=limit)

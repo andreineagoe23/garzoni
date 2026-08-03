@@ -1198,7 +1198,11 @@
         "linkUnavailable": "Conectarea conturilor nu este disponibilă în regiunea ta.",
         "notEntitled": "Planificatorul de buget este inclus în Plus și Pro."
       },
-      "importStatement": "Importă un extras"
+      "importStatement": "Importă un extras",
+      "period": {
+        "label": "Luna",
+        "showingImported": "Îți arătăm cea mai recentă lună importată."
+      }
     },
     "realityCheck": {
       "activityLabel": "Verificare fezabilitate obiectiv",
@@ -1599,9 +1603,14 @@
       },
       "history": {
         "title": "Importuri salvate",
-        "meta": "{{count}} tranzacții · {{start}} → {{end}}",
+        "meta": "{{count}} tranzacții · {{range}}",
         "undo": "Anulează importul",
-        "reverted": "Anulat"
+        "reverted": "Anulat",
+        "titleWithCount": "Importuri salvate ({{count}})",
+        "empty": "Nimic salvat încă. Analizează un extras, apoi salvează-l ca să-l urmărești în timp.",
+        "freeUsed": "Ai folosit salvarea gratuită. Treci la Plus ca să adaugi mai multe luni.",
+        "meta_one": "{{count}} tranzacție · {{range}}",
+        "openHint": "Apasă pe un import salvat ca să-i vezi din nou analiza."
       },
       "errors": {
         "parseFailed": "Nu am putut citi fișierul. Asigură-te că este un export CSV de la bancă.",
@@ -1609,7 +1618,8 @@
         "throttled": "Prea multe încărcări acum. Încearcă din nou peste puțin timp.",
         "deleteFailed": "Nu am putut anula importul. Încearcă din nou.",
         "wrongType": "Alege un fișier de extras: CSV, PDF, Excel sau OFX/QIF.",
-        "pickerUnavailable": "Selectarea fișierelor nu este disponibilă în această versiune. Actualizează aplicația (sau reconstruiește dev client-ul) și încearcă din nou."
+        "pickerUnavailable": "Selectarea fișierelor nu este disponibilă în această versiune. Actualizează aplicația (sau reconstruiește dev client-ul) și încearcă din nou.",
+        "openFailed": "Nu am putut deschide acel import. Încearcă din nou."
       },
       "paste": {
         "open": "Lipește textul în schimb",
@@ -1621,6 +1631,22 @@
         "reading": "Extragem tranzacțiile din fișier.",
         "categorising": "Stabilim pentru ce a fost fiecare plată.",
         "summarising": "Adunăm totalurile și căutăm tipare."
+      },
+      "ai": {
+        "title": "Ce spune asta despre luna ta",
+        "privacy": "Generat doar din totalurile pe categorii — comercianții și tranzacțiile individuale nu sunt trimise niciodată."
+      },
+      "rhythm": {
+        "title": "Ritmul cheltuielilor tale",
+        "weekend": "Cheltuieli în weekend",
+        "weekday": "Cheltuieli în timpul săptămânii",
+        "noSpendDays": "Zile fără cheltuieli",
+        "averageTransaction": "Tranzacție medie"
+      },
+      "essentials": {
+        "title": "Esențiale vs opționale",
+        "essential": "Esențiale",
+        "discretionary": "Restul"
       }
     }
   },

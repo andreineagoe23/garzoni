@@ -12,7 +12,7 @@ from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple
 
 from django.db.models import Count, DecimalField, F, Q, Sum, Value
-from django.db.models.functions import Coalesce, Lower, NullIf
+from django.db.models.functions import Coalesce, Lower, NullIf, TruncMonth
 from django.utils import timezone
 
 from budgeting.models import (
@@ -46,6 +46,37 @@ class PeriodSummary:
 
 def month_start(d: date) -> date:
     return d.replace(day=1)
+
+
+def available_periods(user, limit: int = 24) -> List[date]:
+    """Months the user actually has transactions in, newest first."""
+    rows = (
+        Transaction.objects.filter(user=user)
+        .annotate(period=TruncMonth("posted_at"))
+        .values_list("period", flat=True)
+        .distinct()
+        .order_by("-period")[:limit]
+    )
+    return [row for row in rows if row]
+
+
+def resolve_active_period(user, ref: date | None = None) -> date:
+    """The month a dashboard should show.
+
+    Defaults to the current month, but falls back to the most recent month
+    that has data. Imported statements are usually *last* month's — showing an
+    empty current month made a successful import look like it had failed.
+    """
+    ref = ref or timezone.now().date()
+    current = month_start(ref)
+    if Transaction.objects.filter(
+        user=user,
+        posted_at__gte=current,
+        posted_at__lt=(current + timedelta(days=32)).replace(day=1),
+    ).exists():
+        return current
+    latest = available_periods(user, limit=1)
+    return latest[0] if latest else current
 
 
 def _period_bounds(ref: date) -> Tuple[date, date]:

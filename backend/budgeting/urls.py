@@ -19,6 +19,7 @@ from budgeting.views import (
 from budgeting.views_statements import (
     StatementAllowanceView,
     StatementCommitView,
+    StatementInsightView,
     StatementImportViewSet,
     StatementPreviewView,
 )
@@ -63,6 +64,11 @@ urlpatterns = [
         "budgeting/statements/commit/",
         StatementCommitView.as_view(),
         name="budgeting-statement-commit",
+    ),
+    path(
+        "budgeting/statements/insight/",
+        StatementInsightView.as_view(),
+        name="budgeting-statement-insight",
     ),
     path("", include(router.urls)),
     path(

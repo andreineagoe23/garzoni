@@ -87,6 +87,19 @@ type Analysis = {
     total: number;
   }>;
   monthly: Array<{ month: string; income: number; spent: number; net: number }>;
+  daily: Array<{ date: string; spent: number }>;
+  rhythm: {
+    weekday_spent?: number;
+    weekend_spent?: number;
+    weekend_share?: number;
+    no_spend_days?: number;
+    average_transaction?: number;
+  };
+  essentials: {
+    essential?: number;
+    discretionary?: number;
+    discretionary_share?: number;
+  };
   insights: Insight[];
 };
 
@@ -152,6 +165,9 @@ const StatementImport = () => {
   const [upsellOpen, setUpsellOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [analysingStep, setAnalysingStep] = useState(0);
+  const [aiBullets, setAiBullets] = useState<string[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [openingId, setOpeningId] = useState<number | null>(null);
 
   // A PDF takes noticeably longer than a CSV, so the wait needs to say what is
   // happening rather than showing an unlabelled spinner.
@@ -199,6 +215,23 @@ const StatementImport = () => {
 
   const currency = preview?.currency || preview?.analysis?.currency || "GBP";
 
+  const dateRange = useCallback(
+    (start: string | null, end: string | null) => {
+      if (!start || !end) return "";
+      const from = new Date(start);
+      const to = new Date(end);
+      const sameYear = from.getFullYear() === to.getFullYear();
+      const fmt = (d: Date, withYear: boolean) =>
+        d.toLocaleDateString(locale, {
+          day: "numeric",
+          month: "short",
+          ...(withYear ? { year: "numeric" } : {}),
+        });
+      return `${fmt(from, !sameYear)} – ${fmt(to, true)}`;
+    },
+    [locale]
+  );
+
   const money = useCallback(
     (value: number) =>
       formatCurrency(value, currency || "GBP", locale, {
@@ -221,6 +254,38 @@ const StatementImport = () => {
     [t]
   );
 
+  // Runs after the analysis lands, not inside it: the upload stays fast and
+  // an AI outage just leaves the deterministic insights in place.
+  const requestInsight = useCallback(async (analysis?: Analysis) => {
+    if (!analysis) return;
+    setAiBullets(null);
+    setAiLoading(true);
+    try {
+      const res = await apiClient.post("/budgeting/statements/insight/", {
+        currency: analysis.currency,
+        days_covered: analysis.days_covered,
+        totals: analysis.totals,
+        categories: analysis.categories.map((row) => ({
+          category: row.category,
+          spent: row.spent,
+          share: row.share,
+        })),
+        essentials: analysis.essentials,
+        rhythm: analysis.rhythm,
+        recurring_count: analysis.recurring.length,
+        recurring_total: analysis.recurring.reduce(
+          (sum, row) => sum + row.typical_amount,
+          0
+        ),
+      });
+      setAiBullets(res.data?.available ? (res.data.bullets ?? []) : []);
+    } catch (_) {
+      setAiBullets([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
   const handleAnalyze = useCallback(
     async (selected: File) => {
       if (selected.size > MAX_CLIENT_BYTES) {
@@ -242,6 +307,7 @@ const StatementImport = () => {
         setPreview(res.data);
         setAllowance(res.data?.allowance ?? null);
         setFile(selected);
+        void requestInsight(res.data?.analysis);
         recordToolEvent("statement_analyzed", "statement-import", {
           bank: res.data?.bank?.slug,
           rows: res.data?.row_count,
@@ -253,7 +319,7 @@ const StatementImport = () => {
         setAnalyzing(false);
       }
     },
-    [resolveError, t]
+    [requestInsight, resolveError, t]
   );
 
   const handleSave = useCallback(async () => {
@@ -288,6 +354,40 @@ const StatementImport = () => {
       setSaving(false);
     }
   }, [allowance, file, loadMeta, resolveError]);
+
+  /** Open a previously saved import. The file is long gone, so the server
+      re-derives the analysis from the stored transactions. */
+  const openSavedImport = useCallback(
+    async (row: SavedImport) => {
+      setOpeningId(row.id);
+      setError(null);
+      try {
+        const res = await apiClient.get(
+          `/budgeting/statements/${row.id}/analysis/`
+        );
+        setPreview({
+          filename: row.filename || row.dialect_label,
+          bank: { slug: "", label: row.dialect_label },
+          currency: res.data?.analysis?.currency ?? "",
+          row_count: row.created_count,
+          skipped_rows: 0,
+          warnings: [],
+          sample: res.data?.sample ?? [],
+          analysis: res.data.analysis,
+          allowance: allowance as Allowance,
+        });
+        setSaved(row);
+        setFile(null);
+        void requestInsight(res.data?.analysis);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (_) {
+        setError(t("tools.statementImport.errors.openFailed"));
+      } finally {
+        setOpeningId(null);
+      }
+    },
+    [allowance, requestInsight, t]
+  );
 
   const handleDelete = useCallback(
     async (id: number) => {
@@ -432,6 +532,43 @@ const StatementImport = () => {
 
       {analysis && (
         <>
+          {(aiLoading || (aiBullets && aiBullets.length > 0)) && (
+            <div className="app-card app-card--pad border-[color:var(--color-brand-primary)]/30 bg-[color:var(--color-brand-primary)]/5">
+              <p className="text-sm font-semibold text-content-primary">
+                {t("tools.statementImport.ai.title")}
+              </p>
+              {aiLoading ? (
+                <div className="mt-3 space-y-2">
+                  {[0, 1, 2].map((slot) => (
+                    <div
+                      key={slot}
+                      className="h-3 animate-pulse rounded-full bg-[color:var(--color-border-default)]/50"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ul className="mt-2 space-y-1.5">
+                  {aiBullets?.map((bullet) => (
+                    <li
+                      key={bullet}
+                      className="flex gap-2 text-sm text-content-primary"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="text-[color:var(--color-brand-primary)]"
+                      >
+                        •
+                      </span>
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-2 text-xs text-content-muted">
+                {t("tools.statementImport.ai.privacy")}
+              </p>
+            </div>
+          )}
           <div className="app-card app-card--pad">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -704,47 +841,69 @@ const StatementImport = () => {
         </>
       )}
 
-      {history.length > 0 && (
-        <div className="app-card app-card--pad">
+      <div className="app-card app-card--pad">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold text-content-primary">
-            {t("tools.statementImport.history.title")}
+            {t("tools.statementImport.history.titleWithCount", {
+              count: history.length,
+            })}
           </p>
-          <ul className="mt-3 space-y-2">
-            {history.map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[color:var(--color-border-default)] px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm text-content-primary">
-                    {row.filename || row.dialect_label}
-                  </p>
-                  <p className="text-xs text-content-muted">
-                    {t("tools.statementImport.history.meta", {
-                      count: row.created_count,
-                      start: row.period_start ?? "—",
-                      end: row.period_end ?? "—",
-                    })}
-                  </p>
-                </div>
-                {row.status === "completed" ? (
+          {allowance && !allowance.is_paid && !allowance.can_save && (
+            <span className="text-xs text-content-muted">
+              {t("tools.statementImport.history.freeUsed")}
+            </span>
+          )}
+        </div>
+        {history.length === 0 && (
+          <p className="mt-2 text-xs text-content-muted">
+            {t("tools.statementImport.history.empty")}
+          </p>
+        )}
+        {history.length > 0 && (
+          <div>
+            <ul className="mt-3 space-y-2">
+              {history.map((row) => (
+                <li
+                  key={row.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[color:var(--color-border-default)] px-3 py-2"
+                >
                   <button
                     type="button"
-                    onClick={() => handleDelete(row.id)}
-                    className="text-xs font-semibold text-[color:var(--color-state-error)] hover:underline"
+                    onClick={() => openSavedImport(row)}
+                    disabled={openingId === row.id}
+                    className="min-w-0 flex-1 text-left transition hover:opacity-80 disabled:opacity-60"
                   >
-                    {t("tools.statementImport.history.undo")}
+                    <p className="truncate text-sm font-medium text-content-primary">
+                      {row.filename || row.dialect_label}
+                    </p>
+                    <p className="text-xs text-content-muted">
+                      {openingId === row.id
+                        ? t("tools.statementImport.analysing.title")
+                        : t("tools.statementImport.history.meta", {
+                            count: row.created_count,
+                            range: dateRange(row.period_start, row.period_end),
+                          })}
+                    </p>
                   </button>
-                ) : (
-                  <span className="text-xs text-content-muted">
-                    {t("tools.statementImport.history.reverted")}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                  {row.status === "completed" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(row.id)}
+                      className="text-xs font-semibold text-[color:var(--color-state-error)] hover:underline"
+                    >
+                      {t("tools.statementImport.history.undo")}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-content-muted">
+                      {t("tools.statementImport.history.reverted")}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
       <p className="text-xs text-content-muted">
         {t("tools.statementImport.privacyNote")}

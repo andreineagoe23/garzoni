@@ -25,6 +25,8 @@ type Envelope = {
 
 type SpendingSummary = {
   period: string;
+  available_periods?: string[];
+  is_current_month?: boolean;
   total_income: number;
   total_spent: number;
   net_cash_flow: number;
@@ -67,6 +69,9 @@ const BudgetPlanner = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // An imported statement is usually last month's, so the planner must be
+  // able to look at a month other than the current one.
+  const [period, setPeriod] = useState<string>("");
   const [newEnvelope, setNewEnvelope] = useState({
     category: "groceries",
     label: "",
@@ -77,10 +82,11 @@ const BudgetPlanner = () => {
     setLoading(true);
     setError(null);
     try {
+      const query = period ? `?period=${encodeURIComponent(period)}` : "";
       const [accRes, envRes, sumRes, statusRes] = await Promise.allSettled([
         apiClient.get("/budgeting/linked-accounts/"),
-        apiClient.get("/budgeting/envelopes/"),
-        apiClient.get("/budgeting/spending-summary/"),
+        apiClient.get(`/budgeting/envelopes/${query}`),
+        apiClient.get(`/budgeting/spending-summary/${query}`),
         apiClient.get("/budgeting/provider-status/"),
       ]);
       if (accRes.status === "fulfilled") {
@@ -109,7 +115,7 @@ const BudgetPlanner = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [period, t]);
 
   useEffect(() => {
     void fetchAll();
@@ -210,6 +216,36 @@ const BudgetPlanner = () => {
       {error && (
         <div className="app-card app-card--pad-sm border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error)]/10 text-sm text-[color:var(--color-state-error)]">
           {error}
+        </div>
+      )}
+
+      {(summary?.available_periods?.length ?? 0) > 0 && (
+        <div className="app-card app-card--pad-sm flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+            {t("tools.budgetPlanner.period.label")}
+          </span>
+          {summary?.available_periods?.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setPeriod(option)}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                option === summary?.period
+                  ? "border-[color:var(--color-brand-primary)] text-[color:var(--color-brand-primary)]"
+                  : "border-[color:var(--color-border-default)] text-content-muted hover:text-content-primary"
+              }`}
+            >
+              {new Date(option).toLocaleDateString(locale, {
+                month: "short",
+                year: "numeric",
+              })}
+            </button>
+          ))}
+          {summary && summary.is_current_month === false && (
+            <span className="text-xs text-content-muted">
+              {t("tools.budgetPlanner.period.showingImported")}
+            </span>
+          )}
         </div>
       )}
 

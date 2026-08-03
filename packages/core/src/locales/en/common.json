@@ -1198,7 +1198,11 @@
         "linkUnavailable": "Account linking is unavailable in your region right now.",
         "notEntitled": "Budget Planner is included with Plus and Pro."
       },
-      "importStatement": "Import a statement"
+      "importStatement": "Import a statement",
+      "period": {
+        "label": "Month",
+        "showingImported": "Showing your most recent imported month."
+      }
     },
     "realityCheck": {
       "activityLabel": "Checked goal feasibility",
@@ -1599,9 +1603,14 @@
       },
       "history": {
         "title": "Saved imports",
-        "meta": "{{count}} transactions · {{start}} → {{end}}",
+        "meta": "{{count}} transactions · {{range}}",
         "undo": "Undo import",
-        "reverted": "Reverted"
+        "reverted": "Reverted",
+        "titleWithCount": "Saved imports ({{count}})",
+        "empty": "Nothing saved yet. Analyse a statement, then save it to track it over time.",
+        "freeUsed": "You've used your free save. Upgrade to keep adding months.",
+        "meta_one": "{{count}} transaction · {{range}}",
+        "openHint": "Tap a saved import to see its analysis again."
       },
       "errors": {
         "parseFailed": "We couldn't read that file. Make sure it's a CSV export from your bank.",
@@ -1609,7 +1618,8 @@
         "throttled": "Too many uploads for now. Try again in a little while.",
         "deleteFailed": "We couldn't undo that import. Please try again.",
         "wrongType": "Pick a statement file: CSV, PDF, Excel or OFX/QIF.",
-        "pickerUnavailable": "File picking isn't available in this build. Update the app (or rebuild the dev client) and try again."
+        "pickerUnavailable": "File picking isn't available in this build. Update the app (or rebuild the dev client) and try again.",
+        "openFailed": "We couldn't open that import. Please try again."
       },
       "paste": {
         "open": "Paste the text instead",
@@ -1621,6 +1631,22 @@
         "reading": "Pulling the transactions out of the file.",
         "categorising": "Working out what each payment was for.",
         "summarising": "Adding up the totals and spotting patterns."
+      },
+      "ai": {
+        "title": "What this says about your month",
+        "privacy": "Generated from category totals only — your merchants and individual transactions are never sent."
+      },
+      "rhythm": {
+        "title": "Your spending rhythm",
+        "weekend": "Weekend spending",
+        "weekday": "Weekday spending",
+        "noSpendDays": "No-spend days",
+        "averageTransaction": "Average transaction"
+      },
+      "essentials": {
+        "title": "Essential vs discretionary",
+        "essential": "Essentials",
+        "discretionary": "Everything else"
       }
     }
   },

@@ -55,26 +55,36 @@ TRANSFER_CATEGORIES = {"transfers", "savings"}
 # ---------------------------------------------------------------------------
 
 # Payment-rail prefixes that carry no merchant information.
+# Longest first: "card payment to" must win over "card payment".
 _NOISE_PREFIXES = (
     "card payment to",
+    "card purchase to",
+    "debit card purchase",
+    "mastercard purchase",
+    "bill payment to",
+    "bank giro credit",
+    "direct debit to",
+    "standing order to",
+    "faster payment to",
+    "faster payment from",
+    "faster payment",
+    "mobile payment to",
+    "visa purchase",
+    "card purchase",
     "card payment",
-    "payment to",
     "direct debit",
     "standing order",
-    "faster payment",
-    "bank giro credit",
-    "bill payment to",
-    "pos ",
+    "payment to",
+    "transfer to",
+    "transfer from",
+    "contactless",
     "plata la pos",
-    "plata pos",
     "cumparare pos",
     "tranzactie pos",
     "transfer catre",
     "transfer de la",
-    "debit card purchase",
-    "visa purchase",
-    "mastercard purchase",
-    "contactless",
+    "plata pos",
+    "pos ",
 )
 
 # Payment facilitators that prefix the real merchant name.
@@ -83,13 +93,44 @@ _FACILITATORS = ("sumup", "paypal", "izettle", "zettle", "square", "stripe", "sq
 # Trailing junk: dates, terminal ids, city codes, currency conversions.
 _TRAILING_NOISE = re.compile(
     r"\b("
-    r"on \d{1,2}\s*\w{3}(\s*\d{2,4})?"
+    r"on \d{1,2}\s*[a-z]{3}\w*(\s*\d{2,4})?"
     r"|\d{1,2}[/.]\d{1,2}([/.]\d{2,4})?"
     r"|ref[: ].*"
     r"|\d{2}:\d{2}(:\d{2})?"
     r"|[a-z]{2}\d{4,}"
-    r")\b",
+    # PDF page-break furniture that lands inside the description.
+    r"|continued" r")\b",
     re.IGNORECASE,
+)
+
+# Where the card was processed, not what was bought. Stripped only from the
+# END of a description so a merchant genuinely called e.g. "Ireland Craft
+# Beers" keeps its name.
+_LOCALE_SUFFIXES = (
+    "ireland",
+    "united kingdom",
+    "great britain",
+    "usa",
+    "u s a",
+    "estonia",
+    "lithuania",
+    "netherlands",
+    "germany",
+    "france",
+    "spain",
+    "italy",
+    "poland",
+    "romania",
+    "bulgaria",
+    "malta",
+    "cyprus",
+    "luxembourg",
+    "gbr",
+    "gb",
+    "uk",
+    "us",
+    "ie",
+    "ro",
 )
 
 _SEPARATORS = re.compile(r"[*_/\\|]+")
@@ -124,7 +165,18 @@ def normalise_merchant(description: str) -> str:
     # Drop bare number groups left behind by terminal ids, while keeping short
     # numbers that are part of a brand ("Trading 212", "5 to go").
     text = " ".join(p for p in text.split() if not p.isdigit() or len(p) <= 3)
-    return _MULTISPACE.sub(" ", text).strip()[:64]
+    text = _MULTISPACE.sub(" ", text).strip()
+
+    # Peel trailing country/locale markers, which can stack:
+    # "amazon co uk on 556 limes aven ireland" -> "amazon co uk".
+    changed = True
+    while changed:
+        changed = False
+        for suffix in _LOCALE_SUFFIXES:
+            if text.endswith(" " + suffix):
+                text = text[: -(len(suffix) + 1)].strip()
+                changed = True
+    return text[:64]
 
 
 def display_merchant(description: str) -> str:
@@ -160,6 +212,9 @@ RULES: Sequence[Tuple[str, Sequence[str]]] = (
             "budgens",
             "spar",
             "costcutter",
+            "nisa",
+            "premier stores",
+            "one stop",
             "mega image",
             "kaufland",
             "carrefour",
@@ -333,6 +388,10 @@ RULES: Sequence[Tuple[str, Sequence[str]]] = (
         "subscriptions",
         (
             "netflix",
+            "disney plus",
+            "x corp",
+            "linkedin premium",
+            "strava",
             "spotify",
             "disney",
             "amazon prime",
@@ -387,6 +446,9 @@ RULES: Sequence[Tuple[str, Sequence[str]]] = (
         "shopping",
         (
             "amazon",
+            "amznmktplace",
+            "amzn mktp",
+            "amazon mktplace",
             "ebay",
             "argos",
             "john lewis",
@@ -574,6 +636,18 @@ RULES: Sequence[Tuple[str, Sequence[str]]] = (
             "to pot",
             "from pot",
             "internal transfer",
+            "barclays bank",
+            "barclaycard",
+            "hsbc",
+            "lloyds",
+            "natwest",
+            "santander",
+            "halifax",
+            "nationwide",
+            "capital one",
+            "american express",
+            "credit card",
+            "loan repayment",
         ),
     ),
 )

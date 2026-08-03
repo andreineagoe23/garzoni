@@ -92,6 +92,12 @@ LOGGING = {
         "celery.utils.functional": {"level": "WARNING", "propagate": True},
         "urllib3": {"level": "WARNING", "propagate": True},
         "axes": {"level": "WARNING", "propagate": True},
+        # pdfminer logs one DEBUG record per PDF token — tens of thousands of
+        # lines for a single statement, which drowns the log and dominates the
+        # parse time. Only ever surface real problems from the PDF stack.
+        "pdfminer": {"level": "WARNING", "propagate": True},
+        "pdfplumber": {"level": "WARNING", "propagate": True},
+        "PIL": {"level": "WARNING", "propagate": True},
         "gunicorn.access": {"level": "INFO", "propagate": True},
         "gunicorn.error": {"level": "INFO", "propagate": True},
     },
@@ -648,7 +654,9 @@ PLAID_WEBHOOK_SECRET = os.getenv("PLAID_WEBHOOK_SECRET", "")
 #
 # Byte limits are sized for PDF, not CSV: a 12-month PDF statement runs to a
 # couple of MB where the same data as CSV is ~50KB.
-BUDGETING_FREE_STATEMENT_IMPORTS = int(os.getenv("BUDGETING_FREE_STATEMENT_IMPORTS", "3"))
+# One free saved import: enough to prove the value on a real statement,
+# and the moment a user wants a second month they hit the upgrade.
+BUDGETING_FREE_STATEMENT_IMPORTS = int(os.getenv("BUDGETING_FREE_STATEMENT_IMPORTS", "1"))
 BUDGETING_FREE_STATEMENT_ROWS = int(os.getenv("BUDGETING_FREE_STATEMENT_ROWS", "400"))
 BUDGETING_FREE_STATEMENT_BYTES = int(
     os.getenv("BUDGETING_FREE_STATEMENT_BYTES", str(3 * 1024 * 1024))

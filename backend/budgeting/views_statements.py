@@ -23,18 +23,20 @@ from __future__ import annotations
 
 import logging
 import os
+from urllib.parse import unquote
 
 from django.utils import timezone
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from authentication.entitlements import get_user_plan
+from authentication.entitlements import check_and_consume_entitlement, get_user_plan
 from budgeting.models import StatementImport
 from budgeting.serializers import StatementImportSerializer
-from budgeting.services import statement_analysis
+from budgeting.services import statement_ai, statement_analysis
 from budgeting.services.statement_import import (
     commit_statement,
     get_allowance,
@@ -65,8 +67,18 @@ ALLOWED_EXTENSIONS = (
 
 
 def _safe_filename(name: str) -> str:
-    """Keep the basename only, stripped of path components and control chars."""
-    base = os.path.basename(str(name or "").strip())
+    """Keep the basename only, stripped of path components and control chars.
+
+    iOS hands us the picked file's name percent-encoded (it comes off the
+    document URL), so "Statement 27-JUL-26.pdf" arrives as
+    "Statement%2027-JUL-26.pdf" and was being shown to the user like that.
+    """
+    raw = str(name or "").strip()
+    try:
+        decoded = unquote(raw)
+    except Exception:
+        decoded = raw
+    base = os.path.basename(decoded)
     return "".join(ch for ch in base if ch.isprintable() and ch not in "\\/")[:128]
 
 
@@ -316,6 +328,29 @@ class StatementImportViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return StatementImport.objects.filter(user=self.request.user)
 
+    @action(detail=True, methods=["get"])
+    def analysis(self, request, pk=None):
+        """Full analysis for a saved import, rebuilt from its transactions.
+
+        Lets the history list be opened rather than being a dead row — and
+        because it re-derives from stored rows, an old import benefits from
+        later categorisation improvements.
+        """
+        statement = self.get_object()
+        analysis = statement_analysis.analyze_saved_import(statement)
+        if not analysis:
+            return Response(
+                {"error": "no_transactions", "message": "This import has no transactions left."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(
+            {
+                "import": StatementImportSerializer(statement).data,
+                "analysis": analysis,
+                "sample": statement_analysis.sample_saved_import(statement),
+            }
+        )
+
     def destroy(self, request, *args, **kwargs):
         statement = self.get_object()
         deleted = revert_statement(request.user, statement)
@@ -334,3 +369,43 @@ class StatementImportViewSet(viewsets.ReadOnlyModelViewSet):
             metadata={"deleted": deleted},
         )
         return Response({"ok": True, "deleted": deleted}, status=status.HTTP_200_OK)
+
+
+class StatementInsightView(APIView):
+    """AI commentary on an analysis the client already has.
+
+    Kept off the preview path so uploading stays fast and an OpenAI outage
+    degrades to the deterministic insights instead of blocking the tool.
+
+    The request body carries **numbers only** — see ``statement_ai`` — so no
+    merchant name or transaction description is ever sent to the model, and
+    there is no free-text route from a statement into the prompt.
+    """
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [StatementUploadThrottle]
+
+    def post(self, request):
+        allowed, state = check_and_consume_entitlement(request.user, "ai_explain")
+        if not allowed:
+            return Response(
+                {
+                    "error": "You've used your AI insights for today.",
+                    "reason": "quota",
+                    "feature": "ai_explain",
+                    "state": state,
+                },
+                status=402,
+            )
+
+        text = statement_ai.generate_statement_insight(request.data or {})
+        if not text:
+            return Response({"available": False, "bullets": []})
+
+        record_funnel_event(
+            "statement_ai_insight",
+            user=request.user,
+            platform=resolve_request_platform(request),
+            metadata={"plan": get_user_plan(request.user)},
+        )
+        return Response({"available": True, "bullets": statement_ai.parse_bullets(text)})

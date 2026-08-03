@@ -64,7 +64,7 @@ def get_allowance(user, plan: str) -> ImportAllowance:
     from authentication.entitlements import plan_allows
 
     is_paid = plan_allows(plan, "plus")
-    free_limit = _setting("BUDGETING_FREE_STATEMENT_IMPORTS", 3)
+    free_limit = _setting("BUDGETING_FREE_STATEMENT_IMPORTS", 1)
 
     if is_paid:
         return ImportAllowance(
