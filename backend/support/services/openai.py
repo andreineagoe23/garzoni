@@ -70,7 +70,7 @@ class OpenAIService:
     # ------------------------------------------------------------------
 
     def _token_budget_key(self) -> str:
-        today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+        today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
         return f"openai:token_budget:{self.user.id}:{today}"
 
     def _get_daily_budget(self) -> int:

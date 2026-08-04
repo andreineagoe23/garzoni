@@ -84,6 +84,39 @@ const PRERENDER_API_BASE = (
   .replace(/\/api$/, "")
   .concat("/api");
 
+/**
+ * Fetch that retries transient backend failures.
+ *
+ * A Railway rollover takes the old container down before the new one serves,
+ * so requests in that window return 502 — and the first request per route
+ * after boot can take 2–5s while caches are cold. Both were observed hitting
+ * /api/public/lessons/<slug>/ in production. Without a retry the build happily
+ * snapshots a "Lesson not found" page and ships it as the SEO artefact, which
+ * is worse than a slow build.
+ *
+ * Retries network errors and 5xx only. A 404 is a real answer — retrying it
+ * would just slow the build down.
+ */
+async function fetchWithRetry(url, options = {}, { attempts = 3 } = {}) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const res = await fetch(url, options);
+      if (res.status < 500 || attempt === attempts) return res;
+      lastError = new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      lastError = err;
+      if (attempt === attempts) throw err;
+    }
+    const backoffMs = 500 * attempt;
+    console.log(
+      `  ↻ retry ${attempt}/${attempts - 1} in ${backoffMs}ms (${lastError.message}) ${url}`
+    );
+    await new Promise((resolve) => setTimeout(resolve, backoffMs));
+  }
+  throw lastError;
+}
+
 async function fulfillApiRequest(req) {
   // Re-target whatever origin the bundle used (localhost:8000, localhost:PORT,
   // or an absolute backend) onto PRERENDER_API_BASE, fetched from node.
@@ -111,11 +144,16 @@ async function fulfillApiRequest(req) {
     return req.respond({ status: 204, headers: cors, body: "" });
   }
   try {
-    const res = await fetch(target, {
+    const res = await fetchWithRetry(target, {
       method: req.method(),
       headers: { accept: "application/json" },
     });
     const body = await res.text();
+    if (res.status >= 500) {
+      // Retries are already exhausted here. Say so — otherwise the page silently
+      // renders its not-found state and gets snapshotted as if it were correct.
+      console.error(`  ⚠ api ${res.status} after retries for ${target}`);
+    }
     await req.respond({
       status: res.status,
       headers: {
@@ -409,7 +447,7 @@ async function fetchPublicList(path, label) {
   try {
     const apiBase =
       process.env.VITE_API_URL || "https://garzoni-production.up.railway.app";
-    const res = await fetch(`${apiBase}/api/public/${path}/`);
+    const res = await fetchWithRetry(`${apiBase}/api/public/${path}/`);
     if (!res.ok) return [];
     const data = await res.json();
     const items = Array.isArray(data) ? data : (data.results ?? []);
@@ -462,7 +500,7 @@ async function writeLlmsFull(lessonSlugs, articleSlugs) {
   ];
   for (const slug of lessonSlugs) {
     try {
-      const res = await fetch(`${base}/public/lessons/${slug}/`);
+      const res = await fetchWithRetry(`${base}/public/lessons/${slug}/`);
       if (!res.ok) continue;
       const d = await res.json();
       const body = [
@@ -489,7 +527,7 @@ async function writeLlmsFull(lessonSlugs, articleSlugs) {
   }
   for (const slug of articleSlugs) {
     try {
-      const res = await fetch(`${base}/public/articles/${slug}/`);
+      const res = await fetchWithRetry(`${base}/public/articles/${slug}/`);
       if (!res.ok) continue;
       const d = await res.json();
       parts.push(

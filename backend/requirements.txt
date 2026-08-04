@@ -1,3 +1,11 @@
+# Every requirement here must be pinned with `==`. A floating specifier means a
+# production rebuild can pull a new major with no code change on our side —
+# `openai` alone is imported by eight modules (tutor, CFO coach, statement
+# insight, scan, voice, smart-resume, embeddings, content commands).
+# CI enforces this: see the "Dependency pinning" step in .github/workflows/ci.yml.
+#
+# To bump: change the pin, rebuild, run the suite, and let pip-audit (also in CI)
+# vet the result.
 amqp==5.3.1
 asgiref==3.8.1
 async-timeout==5.0.1
@@ -12,9 +20,11 @@ click-repl==0.3.0
 colorama==0.4.6
 cron-descriptor==1.4.5
 dj-database-url==2.1.0
-Django==4.2.30
+# Django 4.2 LTS went end-of-life in April 2026. 5.2 LTS is supported to April 2028.
+# django-celery-beat < 2.9 caps at Django < 5.2, so the two move together.
+Django==5.2.16
 django-axes==8.3.1
-django-celery-beat==2.7.0
+django-celery-beat==2.9.0
 django-celery-results==2.6.0
 django-ckeditor-5==0.2.12
 django-cors-headers==4.6.0
@@ -24,7 +34,7 @@ django-timezone-field==7.0
 djangorestframework==3.17.1
 djangorestframework-simplejwt==5.5.1
 drf-spectacular==0.27.2
-setuptools>=83.0.0
+setuptools==83.0.0
 gunicorn==23.0.0
 idna==3.15
 jsonfield==3.1.0
@@ -34,7 +44,7 @@ packaging==24.2
 pillow==12.3.0
 prompt_toolkit==3.0.48
 psycopg2==2.9.10
-cryptography>=41.0.0
+cryptography==50.0.0
 PyJWT==2.13.0
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
@@ -43,8 +53,8 @@ python-dotenv==1.2.2
 pytz==2024.2
 redis==5.2.1
 requests==2.33.1
-openai>=1.35.0
-pgvector>=0.3.0
+openai==2.28.0
+pgvector==0.5.0
 six==1.16.0
 sqlparse==0.5.5
 stripe==12.0.0
@@ -57,8 +67,8 @@ whitenoise==6.8.2
 sentry-sdk[django]==2.19.0
 cloudinary==1.40.0
 django-cloudinary-storage==0.3.0
-django-anymail[resend]
-groq>=0.12.0
+django-anymail[resend]==14.0
+groq==1.1.1
 # Statement import: PDF (Barclays and most UK banks only offer PDF) and
 # spreadsheet exports. pdfplumber pulls in pdfminer.six for text extraction.
 pdfplumber==0.11.4

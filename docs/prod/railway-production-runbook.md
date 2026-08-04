@@ -13,11 +13,49 @@ Use this runbook for backend releases when Railway shell access is unavailable.
 sh /app/scripts/railway_predeploy.sh
 ```
 
-3. Keep Railway backend **Start Command** unchanged:
+This one stays in the dashboard on purpose — see "Why preDeployCommand is not in
+`railway.json`" below.
 
-```bash
-/bin/sh /app/docker/entrypoint.sh gunicorn settings.wsgi:application --workers 2 --timeout 300
+3. The **Start Command** and **healthcheck** now come from
+   [`backend/railway.json`](../../backend/railway.json), not the dashboard. Do not
+   re-add them in the UI; config-as-code overrides dashboard values for the fields
+   it defines, so a stale dashboard entry is just confusing.
+
+## Deploy config (`backend/railway.json`)
+
+Railway reads `railway.json` from the service root directory (`/backend`). The file
+sets:
+
+| Field | Value | Why |
+|---|---|---|
+| `startCommand` | `/bin/sh /app/docker/entrypoint.sh gunicorn settings.wsgi:application` | No tuning flags — `docker/entrypoint.sh` appends `-c gunicorn.conf.py --workers $WEB_CONCURRENCY --threads $GUNICORN_THREADS --timeout $GUNICORN_TIMEOUT` **after** whatever the start command passes, and gunicorn lets the later flag win. The old command's `--worker-class gthread --workers 2 --threads 4 --timeout 300` was therefore dead: the deploy log has always shown `workers=3 threads=8 timeout=90s`. It read as though production allowed 300s requests. |
+| `healthcheckPath` | `/health/` | Railway polls this until it returns 200 and only then makes the new deployment active and the old one inactive. Without it the old container stopped before the new one served: production HTTP logs on 2026-08-03 21:50 UTC show 8× `502` on `/api/public/lessons/<slug>/` — the exact paths the Vercel bot-prerender reads to build SEO snapshots. |
+| `healthcheckTimeout` | `300` | Railway's default. The pre-deploy command (migrations + content sync + quality gates) runs before the container starts, so it does not eat this budget. |
+| `restartPolicyType` / `MaxRetries` | `ON_FAILURE` / `3` | Unchanged behaviour, now version-controlled. |
+
+**`ALLOWED_HOSTS` dependency.** Railway sends healthcheck requests with
+`Host: healthcheck.railway.app`. Django answers `DisallowedHost` 400 for unknown
+hosts, so without that entry the healthcheck would never see a 200 and **every deploy
+would fail** after the timeout — the gate meant to prevent downtime would cause it.
+`settings.py` appends it unconditionally (next to the canonical-host block); do not
+remove it.
+
+**`/health/` returns 503 if Postgres or Redis is unreachable** (Celery broker only
+warns — see `core/views.py`). That is correct for a readiness gate, but it means a
+Redis outage will block deploys as well as traffic. If you need to ship during a
+Redis incident, clear `healthcheckPath` in the dashboard for that one deploy.
+
+### Why `preDeployCommand` is not in `railway.json`
+
+The schema supports it (as an array), but the dashboard value is the live source of
+truth and was not readable at the time this was written. Rather than guess and risk a
+mismatch, it stays in the UI. If you move it into the file, use:
+
+```json
+"preDeployCommand": ["sh /app/scripts/railway_predeploy.sh"]
 ```
+
+and delete the dashboard entry in the same change.
 
 ## Content Sync Model
 

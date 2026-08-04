@@ -158,6 +158,14 @@ for _canonical_host in ("garzoni.app", "www.garzoni.app", "api.garzoni.app"):
     if "*" not in ALLOWED_HOSTS and _canonical_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS = [*ALLOWED_HOSTS, _canonical_host]
 
+# Railway performs deploy healthchecks from the hostname `healthcheck.railway.app`
+# (https://docs.railway.com/deployments/healthchecks). Without it here Django answers
+# DisallowedHost 400, the healthcheck never sees a 200, and the deploy is marked failed
+# after the timeout — so the gate that exists to prevent downtime would instead cause it.
+_HEALTHCHECK_HOST = "healthcheck.railway.app"
+if "*" not in ALLOWED_HOSTS and _HEALTHCHECK_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, _HEALTHCHECK_HOST]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

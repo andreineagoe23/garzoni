@@ -2063,9 +2063,8 @@ class StripeWebhookView(APIView):
                                 try:
                                     subscription_status = sub_obj.status  # trialing or active
                                     if getattr(sub_obj, "trial_end", None):
-                                        trial_end_dt = timezone.make_aware(
-                                            datetime.utcfromtimestamp(sub_obj.trial_end),
-                                            timezone.utc,
+                                        trial_end_dt = datetime.fromtimestamp(
+                                            sub_obj.trial_end, tz=datetime_timezone.utc
                                         )
                                     customer_id_webhook = (
                                         sub_obj.customer
@@ -2260,7 +2259,7 @@ class StripeWebhookView(APIView):
                             mapped_plan = plan_id_from_stripe_price_id(pid)
                             trial_end_raw = sub.get("trial_end")
                             trial_end_dt = (
-                                datetime.fromtimestamp(int(trial_end_raw), tz=timezone.utc)
+                                datetime.fromtimestamp(int(trial_end_raw), tz=datetime_timezone.utc)
                                 if trial_end_raw
                                 else None
                             )
@@ -2300,7 +2299,9 @@ class StripeWebhookView(APIView):
                 if sub_id:
                     cpe = sub.get("current_period_end")
                     period_end_iso = (
-                        datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
+                        datetime.fromtimestamp(cpe, tz=datetime_timezone.utc).isoformat()
+                        if cpe
+                        else None
                     )
                     prof = None
                     with transaction.atomic():
@@ -2352,9 +2353,9 @@ class StripeWebhookView(APIView):
                         )
                         paid_ts = (inv.get("status_transitions") or {}).get("paid_at")
                         if paid_ts:
-                            date_str = datetime.fromtimestamp(paid_ts, tz=timezone.utc).strftime(
-                                "%Y-%m-%d"
-                            )
+                            date_str = datetime.fromtimestamp(
+                                paid_ts, tz=datetime_timezone.utc
+                            ).strftime("%Y-%m-%d")
                         else:
                             date_str = timezone.now().strftime("%Y-%m-%d")
                         billing = _stripe_billing_url()
@@ -2492,7 +2493,7 @@ class VerifySessionView(APIView):
                         subscription_status = getattr(resolved_sub, "status", "active") or "active"
                         te = getattr(resolved_sub, "trial_end", None)
                         if te:
-                            trial_end_dt = datetime.fromtimestamp(te, tz=timezone.utc)
+                            trial_end_dt = datetime.fromtimestamp(te, tz=datetime_timezone.utc)
                         cust = resolved_sub.customer
                         customer_id_from_sub = (
                             cust if isinstance(cust, str) else getattr(cust, "id", None)
@@ -2625,10 +2626,14 @@ def _stripe_subscription_ui_snapshot(profile) -> dict:
             out = {
                 "cancel_at_period_end": bool(getattr(sub, "cancel_at_period_end", False)),
                 "current_period_end": (
-                    datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
+                    datetime.fromtimestamp(cpe, tz=datetime_timezone.utc).isoformat()
+                    if cpe
+                    else None
                 ),
                 "current_period_start": (
-                    datetime.fromtimestamp(cps, tz=timezone.utc).isoformat() if cps else None
+                    datetime.fromtimestamp(cps, tz=datetime_timezone.utc).isoformat()
+                    if cps
+                    else None
                 ),
             }
     except stripe.error.StripeError as e:
@@ -3057,7 +3062,7 @@ class SubscriptionChangeView(APIView):
             _invalidate_stripe_subscription_ui_cache(profile.user_id)
             cpe = getattr(subscription, "current_period_end", None)
             period_end_iso = (
-                datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
+                datetime.fromtimestamp(cpe, tz=datetime_timezone.utc).isoformat() if cpe else None
             )
             record_funnel_event(
                 "subscription_plan_changed",
@@ -3270,7 +3275,7 @@ class SubscriptionCancelView(APIView):
             period_end_iso = None
             if current_period_end:
                 period_end_iso = datetime.fromtimestamp(
-                    current_period_end, tz=timezone.utc
+                    current_period_end, tz=datetime_timezone.utc
                 ).isoformat()
             if request.user.email:
                 _safe_enqueue_celery(

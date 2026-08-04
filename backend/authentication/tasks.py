@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 import stripe
 from celery import shared_task
@@ -439,7 +439,7 @@ def send_renewal_reminder(self):
             period_end = getattr(sub, "current_period_end", None)
             if not period_end:
                 continue
-            renewal_dt = datetime.fromtimestamp(period_end, tz=timezone.utc)
+            renewal_dt = datetime.fromtimestamp(period_end, tz=dt_timezone.utc)
             if renewal_dt.date() != target_date:
                 continue
             if _journey_reminders_mode():

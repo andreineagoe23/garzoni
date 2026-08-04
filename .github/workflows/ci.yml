@@ -53,6 +53,18 @@ jobs:
       - name: Secret scan (detect-secrets)
         run: detect-secrets scan --baseline .secrets.baseline
 
+      # A floating specifier means a production rebuild can pull a new major
+      # with no code change on our side. Keep every runtime requirement pinned.
+      - name: Dependency pinning
+        run: |
+          unpinned=$(grep -vE '^\s*(#|$)' backend/requirements.txt | grep -vE '=='  || true)
+          if [ -n "$unpinned" ]; then
+            echo "Unpinned requirement(s) in backend/requirements.txt:"
+            echo "$unpinned"
+            echo "Pin them with '=='. See the header comment in that file."
+            exit 1
+          fi
+
       - name: Lint (black)
         run: |
           black --check backend
