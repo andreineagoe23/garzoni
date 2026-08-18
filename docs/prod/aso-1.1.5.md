@@ -98,7 +98,7 @@ New in 1.1.5:
 Thanks for learning with Garzoni. Keep climbing!
 ```
 
-Verified against commit history `a7af026c..HEAD` (release 1.1.4 → 1.1.5):
+Verified against commit history `1567b93d..HEAD` (release 1.1.4 → 1.1.5):
 Missions UI + backend, voice-chat/audioPlayback fixes, CFO/Next-Steps polish,
 in-app review prompt, Customer.io push nudges, analytics + lesson-flow polish.
 

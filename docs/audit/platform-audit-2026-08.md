@@ -9,9 +9,9 @@
 > upgrade. See §9 for what shipped and what is still open.
 
 Scope: whole app — `backend/`, `frontend/`, `mobile/`, `packages/`, plus the Railway/Vercel/Cloudflare
-production topology. Written after the statement-import work landed (`6e3342c2`).
+production topology. Written after the statement-import work landed (`17d76401`).
 
-Every claim below was verified against the tree at `6e3342c2` or against live production data.
+Every claim below was verified against the tree at `17d76401` or against live production data.
 Where something is *latent* (wrong code, no user hitting it) it says so — that distinction drives
 the priority order in §6 and is the main reason this plan is not just "fix all the findings."
 
@@ -60,7 +60,7 @@ no hardcoded user-facing strings found in `components/tools/`. This is healthy �
 
 - Railway web service: Railpack builder, root `/backend`, start command still carries a dead
   `--timeout 300` (see §3.4). Effective runtime from the deploy log: `workers=3 threads=8 timeout=90s`.
-- Latest deploy `55857a6d` (commit `6e3342c2`) = **SUCCESS**. pdfplumber/openpyxl are live.
+- Latest deploy `55857a6d` (commit `17d76401`) = **SUCCESS**. pdfplumber/openpyxl are live.
   The "Railway needs a deploy" item from the statement-import work is **closed**.
 - `master` is pushed; `origin/master..master` is empty. That item is **closed** too.
 - No deploy-log errors on the previous revision. Gunicorn boot is clean.
@@ -479,7 +479,7 @@ print([f(json.load(open(p))) for p in ['packages/core/src/locales/en/common.json
 Stated so the gaps are not mistaken for clean bills of health:
 
 - **No test run.** Backend tests need Docker; the counts quoted (406/88/88/36) are from the prior
-  session's run at `ef785add`, not re-verified here.
+  session's run at `74bc9032`, not re-verified here.
 - **No load or query profiling.** The N+1 in §4.2 was read from code, not measured. There may be others
   in `education/views.py` and `gamification/views.py`, which were not read line by line.
 - **No mobile device pass.** The Android UI/UX audit items from July were not re-checked.
