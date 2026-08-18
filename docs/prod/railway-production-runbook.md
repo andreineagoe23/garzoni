@@ -33,6 +33,16 @@ sets:
 | `healthcheckTimeout` | `300` | Railway's default. The pre-deploy command (migrations + content sync + quality gates) runs before the container starts, so it does not eat this budget. |
 | `restartPolicyType` / `MaxRetries` | `ON_FAILURE` / `3` | Unchanged behaviour, now version-controlled. |
 
+**No `build` block — deliberate.** `railway.json` originally carried
+`"build": {"builder": "RAILPACK"}`. That was never verified against the service and it
+contradicts the rest of the repo: CI builds `backend/Dockerfile`
+(`.github/workflows/ci.yml`), docker-compose builds the same image, and the
+`startCommand` above points at `/app/docker/entrypoint.sh` — a path that only exists in
+that image. RAILPACK ignores the Dockerfile and auto-detects instead, so the start command
+would reference a file the built image does not contain. Removed 2026-08-18 so Railway
+keeps using whatever builder the service is already configured with. If you want the build
+config in git, set it to the Dockerfile builder and verify a deploy before relying on it.
+
 **`ALLOWED_HOSTS` dependency.** Railway sends healthcheck requests with
 `Host: healthcheck.railway.app`. Django answers `DisallowedHost` 400 for unknown
 hosts, so without that entry the healthcheck would never see a 200 and **every deploy
