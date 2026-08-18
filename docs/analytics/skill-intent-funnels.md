@@ -41,6 +41,6 @@ Instrumentation lives in the frontend (`useAnalytics` → Amplitude + `recordFun
 
 ## Backend allowlist
 
-New event types must appear in `FunnelEventIngestView.ALLOWED_EVENT_TYPES` in `backend/finance/views.py` and in `ANALYTICS_EVENTS` in `frontend/src/types/analytics.ts`.
+New event types must appear in `FunnelEventIngestView.ALLOWED_EVENT_TYPES` in `backend/finance/views.py` and in `ANALYTICS_EVENTS` in `packages/core/src/types/analytics.ts`.
 
 After adding events on the frontend, **restart the Django process** (or rebuild/redeploy the API). Otherwise `POST /api/funnel/events/` returns **400** with `Unsupported event type` for the new names. Funnel posts use `skipGlobalErrorToast` so this does not spam UI toasts, but failed requests still appear in the network tab until the server is updated.

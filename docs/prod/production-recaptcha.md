@@ -1,67 +1,74 @@
-# Why reCAPTCHA works in dev but not in production
+# reCAPTCHA works in dev but not in production
 
-## How it works in dev
+Stack note: the web app is **Vite**, not Create React App. The site key is read as
+`import.meta.env.VITE_RECAPTCHA_SITE_KEY` in [`frontend/src/AppRoot.tsx:113`](../../frontend/src/AppRoot.tsx#L113).
+`REACT_APP_RECAPTCHA_SITE_KEY` still resolves as a **legacy fallback only** (`envPrefix` in
+`frontend/vite.config.ts:131` accepts both prefixes) — do not use it for new setups.
 
-- Your **frontend** runs with `npm start` and loads `frontend/.env`.
-- That file contains `REACT_APP_RECAPTCHA_SITE_KEY=...`.
-- So at runtime `process.env.REACT_APP_RECAPTCHA_SITE_KEY` is set.
-- In `App.tsx`, `RECAPTCHA_SITE_KEY` is non-empty, so the app is wrapped with `RecaptchaEnterpriseProvider` (loads enterprise.js).
-- On Login/Register, `executeRecaptcha` is available → the "Verifying you're human..." modal runs → a token is sent to the backend.
-- The **backend** has `RECAPTCHA_SITE_KEY`, `RECAPTCHA_ENTERPRISE_PROJECT_ID`, and `RECAPTCHA_ENTERPRISE_API_KEY` and verifies via the createAssessment API. Everything works.
+Key config for the backend: [`recaptcha-enterprise-config.md`](recaptcha-enterprise-config.md).
 
-## Why it fails in production (two common causes)
+## How it works
 
-### 1. Site key not in the production build (most common)
+1. Web reads `VITE_RECAPTCHA_SITE_KEY` at **build time**. If it is empty, `AppRoot.tsx:129` never
+   wraps the tree in `RecaptchaEnterpriseProvider`, `executeRecaptcha` is always `null`, and no
+   token is ever sent.
+2. Login/Register run `executeRecaptcha`, show the "Verifying you're human…" modal, and post the token.
+3. Backend verifies via the Enterprise createAssessment API using `RECAPTCHA_SITE_KEY`,
+   `RECAPTCHA_ENTERPRISE_PROJECT_ID` and `RECAPTCHA_ENTERPRISE_API_KEY`
+   (`backend/settings/settings.py:729-741`), scoring against `RECAPTCHA_REQUIRED_SCORE`.
 
-In production the frontend is **built** on Vercel (or similar). Create React App bakes `REACT_APP_*` into the JavaScript **at build time**. So:
+Production refuses to boot with reCAPTCHA disabled: `settings.py:729-730` raises
+`ImproperlyConfigured` if `RECAPTCHA_DISABLED` is set outside dev.
 
-- If `REACT_APP_RECAPTCHA_SITE_KEY` was **not** set in Vercel when that build ran, it is **empty** in the production bundle.
-- Then `RECAPTCHA_SITE_KEY` is `""` → the app is **not** wrapped with `RecaptchaEnterpriseProvider` → `executeRecaptcha` is always `null` → no token is ever sent → backend returns "Security verification is required".
+## Cause 1 — site key missing from the production build (most common)
 
-Adding the variable in Vercel **after** a build does not change an already-built deployment. You must **trigger a new build** so the new value is embedded.
+Vite bakes `VITE_*` into the bundle **at build time**. Adding the variable in Vercel after a build
+does nothing to that deployment.
 
-**Fix:**
+1. Vercel → project → Settings → Environment Variables.
+2. Add `VITE_RECAPTCHA_SITE_KEY` = the reCAPTCHA **key ID** (same value as backend
+   `RECAPTCHA_SITE_KEY`). No quotes, no spaces. Apply to Production (and Preview if wanted).
+3. **Redeploy** — Deployments → ⋯ → Redeploy, or push a commit. The value only lands in a new build.
 
-1. **Vercel** → your project → **Settings** → **Environment Variables**.
-2. Add **`REACT_APP_RECAPTCHA_SITE_KEY`** with your reCAPTCHA **key ID** (same as backend `RECAPTCHA_SITE_KEY`).
-   - No quotes, no spaces.
-   - Apply to **Production** (and Preview if you want it there too).
-3. **Redeploy** so a new build runs with this variable:
-   - **Deployments** → three dots on the latest deployment → **Redeploy**, or
-   - Push a new commit so Vercel builds again.
-4. After the new deployment is live, try Register again. The popup should appear and registration should work.
+## Cause 2 — CSP blocks the reCAPTCHA origins
 
-### 2. Cookie consent blocking the reCAPTCHA script
+`vercel.json` ships a strict `Content-Security-Policy`. reCAPTCHA needs
+`https://www.google.com` and `https://www.gstatic.com` in `script-src`, and
+`https://www.google.com` + `https://recaptcha.google.com` in `frame-src`. Both are present today —
+if you edit the CSP, keep them, or the widget silently fails in production only.
 
-We use our **own cookie banner** (see `docs/cookie-consent-legal.md`). reCAPTCHA is **necessary** for login/register security, so we do **not** gate it on consent: the reCAPTCHA script loads on first page load. If you add another CMP or script-blocker, ensure reCAPTCHA (`google.com/recaptcha`, `gstatic.com/recaptcha`) is allowed to load without waiting for consent so the Register flow works.
+## Cause 3 — consent banner blocking the script
+
+Garzoni uses its own cookie banner ([`cookie-consent-legal.md`](cookie-consent-legal.md)).
+reCAPTCHA is **necessary** for login/register security, so it is deliberately not gated on consent.
+If you add a third-party CMP or script blocker, allow `google.com/recaptcha` and
+`gstatic.com/recaptcha` to load pre-consent or Register breaks.
 
 ## Checklist
 
-- [ ] `REACT_APP_RECAPTCHA_SITE_KEY` is set in Vercel (same value as backend’s public/site key).
-- [ ] A **new build** was run **after** adding that variable (redeploy or new commit).
-- [ ] If you use a third-party CMP, reCAPTCHA scripts are allowed to load (e.g. necessary); our own banner does not block them.
-- [ ] Backend has `RECAPTCHA_SITE_KEY`, `RECAPTCHA_ENTERPRISE_PROJECT_ID`, and `RECAPTCHA_ENTERPRISE_API_KEY` set (see `docs/recaptcha-enterprise-config.md`).
+- [ ] `VITE_RECAPTCHA_SITE_KEY` set in Vercel, same value as the backend site key
+- [ ] A **new build** ran after adding it
+- [ ] `vercel.json` CSP still allows the Google/gstatic reCAPTCHA origins
+- [ ] No CMP is blocking the script pre-consent
+- [ ] Backend has `RECAPTCHA_SITE_KEY`, `RECAPTCHA_ENTERPRISE_PROJECT_ID`, `RECAPTCHA_ENTERPRISE_API_KEY`
+- [ ] `RECAPTCHA_DISABLED` is **not** set in production (the app will refuse to start)
 
-After that, production should behave like dev: the verification popup appears and reCAPTCHA works.
+## Registration still failing? Wider checklist
 
----
+**Web**
+- `VITE_BACKEND_URL` must point at the real API (`https://…/api`, or the site origin without `/api` —
+  it is normalized in `packages/core/src/services/backendUrl.ts`). Unset means same-origin, which
+  404s when the backend is on another host. On Vercel, same-origin *is* correct because
+  `vercel.json` rewrites `/api/*` to Railway.
 
-## Registration / account creation not working: full checklist
+**Backend**
+- `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` must include the web origin.
+- Cross-subdomain cookies: with web on `garzoni.app` and API on `api.garzoni.app`, set
+  `REFRESH_COOKIE_DOMAIN=.garzoni.app` and `REFRESH_COOKIE_SAMESITE=Lax` (or `None` + Secure for
+  true cross-site). Otherwise the refresh cookie is dropped and the user looks logged out after register.
+- Rate limits: `REGISTER_THROTTLE_RATE` and `LOGIN_THROTTLE_RATE` are env-overridable; django-axes
+  lockout also applies.
 
-If registration still fails in production after fixing reCAPTCHA, check the following.
-
-### Frontend (e.g. Vercel)
-
-1. **`REACT_APP_RECAPTCHA_SITE_KEY`** – Set to your reCAPTCHA v3 **site** key. A **new build** must run after adding or changing it (redeploy).
-2. **`REACT_APP_BACKEND_URL`** – Must point to your real API (e.g. `https://your-api.railway.app/api` or `https://api.yourdomain.com/api`). If unset, the app uses the same host as the frontend (e.g. `https://garzoni.app/api`), which often 404s when the backend is on another host.
-
-### Backend
-
-3. **`RECAPTCHA_PRIVATE_KEY`** – Set to the **secret** key of the same reCAPTCHA v3 key pair.
-4. **CORS** – Backend must allow your frontend origin (e.g. `https://garzoni.app`) in `CORS_ALLOWED_ORIGINS` (or equivalent). Otherwise the browser blocks the register request.
-5. **Cookies (if frontend and backend are on different domains/subdomains)** – After a successful register, the backend sets a refresh cookie. If the frontend is `https://garzoni.app` and the backend is `https://api.garzoni.app`, set **`REFRESH_COOKIE_DOMAIN=.garzoni.app`** and use **`SameSite=Lax`** (or `None` with **`Secure=true`** if you need cross-site). Otherwise the cookie may not be stored and the user may appear logged out after register.
-
-### What you’ll see when it’s fixed
-
-- On Register submit, the “Verifying you’re human…” modal appears, then the request succeeds and you’re redirected to onboarding.
-- If reCAPTCHA still isn’t available (e.g. site key missing in build), the UI shows: “Security verification is required. Please refresh the page and try again, or sign in with Google.” and suggests using **Sign in with Google**.
+**Working state**: the verification modal appears on submit, the request succeeds, and the user lands
+on onboarding. When the site key is missing the UI falls back to
+"Security verification is required. Please refresh the page and try again, or sign in with Google."

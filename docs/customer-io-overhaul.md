@@ -1,5 +1,9 @@
 # Customer.io overhaul — status
 
+> **SUPERSEDED 2026-08-18** by `docs/notifications/audit-2026-07-22.md`. Note that
+> `CIO_TRACK_ENABLED` and `CIO_JOURNEY_EVENTS_ENABLED` both default to **False** today
+> (`backend/settings/settings.py:597,603`) — only CDP identify and transactional default on.
+
 Last updated: 2026-05-29
 Workspace: `garzoni` (env `215084`)
 

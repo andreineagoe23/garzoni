@@ -1,5 +1,9 @@
 # Stripe plan descriptions & asset prompts
 
+> **STALE 2026-08-18:** predates the RevenueCat-first migration. See
+> `docs/prod/billing-parity-runbook.md` and `docs/prod/subscription-matrix.md` for the current model
+> and prices (Plus £6.99/mo, Pro £7.99/mo).
+
 Use these in Stripe for product/price descriptions and for generating plan images (e.g. with Google Gemini).
 
 ---
@@ -44,5 +48,5 @@ Premium, forward-looking illustration for an advanced finance learning product. 
 ## Notes
 
 - In the app, the two paid tiers are **Plus** and **Pro**. “Premium” in code is an alias for Plus; if you name the top tier “Premium” in Stripe, use the **Pro** description and the **Image 2** prompt for it.
-- Adjust prices in Stripe to match your catalog (e.g. Plus £69/year, £7.99/month; Pro £79/year, £11.99/month).
+- Adjust prices in Stripe to match the catalog. Current: **Plus £59.99/year, £6.99/month; Pro £69.99/year, £7.99/month** (`backend/authentication/entitlements.py:246`; canonical table in [`subscription-matrix.md`](subscription-matrix.md)).
 - For Gemini: if the first run is too literal, add “no text, no numbers, no logos” and “abstract or metaphorical” to refine.

@@ -6,10 +6,10 @@
 
 | Layer                       | Location                                                                                                                                                                                                                                           |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime colors (light/dark) | [`mobile/src/theme/palettes.ts`](../mobile/src/theme/palettes.ts) — mirrors web SCSS tokens                                                                                                                                                        |
-| Theme hook                  | [`mobile/src/theme/ThemeContext.tsx`](../mobile/src/theme/ThemeContext.tsx) — `useThemeColors()`, `useTheme()`                                                                                                                                     |
+| Runtime colors (light/dark) | [`mobile/src/theme/palettes.ts`](../../mobile/src/theme/palettes.ts) — mirrors web SCSS tokens                                                                                                                                                        |
+| Theme hook                  | [`mobile/src/theme/ThemeContext.tsx`](../../mobile/src/theme/ThemeContext.tsx) — `useThemeColors()`, `useTheme()`                                                                                                                                     |
 | Layout scale                | [`packages/tokens/src/index.ts`](../../packages/tokens/src/index.ts) — `spacing`, `radius`, `typography`, `layout`, `shadows`. `mobile/src/theme/tokens.ts` re-exports it; import from there, and see [spacing-contract.md](./spacing-contract.md) |
-| Glass surfaces              | [`mobile/src/components/ui/GlassCard.tsx`](../mobile/src/components/ui/GlassCard.tsx), [`GlassButton.tsx`](../mobile/src/components/ui/GlassButton.tsx)                                                                                            |
+| Glass surfaces              | [`mobile/src/components/ui/GlassCard.tsx`](../../mobile/src/components/ui/GlassCard.tsx), [`GlassButton.tsx`](../../mobile/src/components/ui/GlassButton.tsx)                                                                                            |
 
 ## Rules
 
@@ -22,8 +22,8 @@
 
 ## Layout primitives
 
-- **Scrollable tab body:** [`ScreenScroll`](../mobile/src/components/ui/ScreenScroll.tsx) when the screen is a full tab with bottom nav padding.
-- **Stack modal / form screens:** `ScrollView` + `GlassCard` sections (see [`mobile/app/settings.tsx`](../mobile/app/settings.tsx)).
+- **Scrollable tab body:** [`ScreenScroll`](../../mobile/src/components/ui/ScreenScroll.tsx) when the screen is a full tab with bottom nav padding.
+- **Stack modal / form screens:** `ScrollView` + `GlassCard` sections (see [`mobile/app/settings.tsx`](../../mobile/app/settings.tsx)).
 
 ## Checklist (quick audit)
 

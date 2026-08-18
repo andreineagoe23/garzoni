@@ -1,5 +1,8 @@
 # Android launch checklist (Play going public)
 
+> **ARCHIVED 2026-08-18 — obsolete.** This was the pre-launch gate ("do not ship live Play links").
+> Android is live on Play. Nothing here is actionable.
+
 Status 2026-07-02: closed test 12 testers / 13 of 14 days. Day 14 → apply for
 production access → answer closed-test questions → **Google review (days)** →
 public. So public availability is _days_, not tomorrow. **Do not ship live Play

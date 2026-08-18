@@ -1,6 +1,6 @@
 # Subscription capability matrix
 
-Source of truth for plan gating. Code lives in [`backend/authentication/entitlements.py`](../backend/authentication/entitlements.py).
+Source of truth for plan gating. Code lives in [`backend/authentication/entitlements.py`](../../backend/authentication/entitlements.py).
 
 ## Plans
 

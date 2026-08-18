@@ -1,14 +1,16 @@
 # 60% Off Launch — Manual Checklist
 
 Campaign: **summer60** — 60% off all paid plans, 2026-07-11 → 2026-08-31.
-Discount shape: **first year** (yearly plans) / **first 3 months** (monthly plans).
+Discount shape: **first year, yearly plans only**.
 
-| Plan         | Normal   | Promo                       |
-| ------------ | -------- | --------------------------- |
-| Plus yearly  | £59.99   | **£23.99** first year       |
-| Pro yearly   | £69.99   | **£27.99** first year       |
-| Plus monthly | £6.99/mo | **£2.79/mo** first 3 months |
-| Pro monthly  | £7.99/mo | **£3.19/mo** first 3 months |
+| Plan        | Normal | Promo                 |
+| ----------- | ------ | --------------------- |
+| Plus yearly | £59.99 | **£23.99** first year |
+| Pro yearly  | £69.99 | **£27.99** first year |
+
+> **Monthly promo prices do not exist.** The £2.79 / £3.19 monthly entries were removed from
+> `backend/authentication/entitlements.py:322-333` — they had been advertised for weeks with no
+> store offer behind them anywhere. Scope is yearly-only; see the note under §1.
 
 Code + Customer.io are already done (see "Already done" at the bottom). The steps below
 are dashboard-only and cannot be automated.

@@ -14,7 +14,7 @@ You already track events. These are **red flags** to investigate, not real-time 
 | **Exercises skill intent** | `exercise_skill_intent_manual_category` after `exercise_skill_intent_received` | High rate                | Wrong default category or confusing banner/filters      |
 | **Exercises skill intent** | `exercise_started` after dashboard CTAs (`weak_skill_click`, etc.)             | Low rate vs clicks       | Drop-off before first attempt (loading, empty list, UX) |
 
-Funnel definitions and properties: [analytics/skill-intent-funnels.md](./analytics/skill-intent-funnels.md).
+Funnel definitions and properties: [analytics/skill-intent-funnels.md](../analytics/skill-intent-funnels.md).
 
 ## How to use this
 

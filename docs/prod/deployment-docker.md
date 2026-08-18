@@ -1,3 +1,7 @@
+> **STALE 2026-08-18:** production runs on Railway via `backend/railway.json` (RAILPACK builder,
+> `/health/` deploy gate), not this compose flow. Use `docs/prod/railway-production-runbook.md`.
+> This doc is still accurate for self-hosting the same images.
+
 ### Deployment (Docker)
 
 This repo’s `docker-compose.yml` is meant to be usable both locally and as a baseline for production-like deployments.
@@ -6,7 +10,7 @@ This repo’s `docker-compose.yml` is meant to be usable both locally and as a b
 
 - **Set real secrets**:
   - `DJANGO_SECRET_KEY`
-  - Stripe + email + reCAPTCHA env vars (see [docs/environment.md](environment.md))
+  - Stripe + email + reCAPTCHA env vars (see [docs/environment.md](../dev/environment.md))
 
 - **Lock down security settings**:
   - `DJANGO_ALLOWED_HOSTS_CSV`

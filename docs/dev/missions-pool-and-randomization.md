@@ -1,5 +1,9 @@
 # Missions pool and “show 4” randomization
 
+> **SUPERSEDED 2026-08-18** by `docs/ux/missions-audit-2026-08.md`, which reflects the current
+> mission model (lazy assignment behind `MISSIONS_LAZY_ASSIGNMENT`, cycle ids, shared presentation
+> logic in `packages/core/src/engagement/`). This doc is the original design note.
+
 ## Goal
 
 - Have a **pool** of daily and weekly missions (more than 4 of each).

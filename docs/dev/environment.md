@@ -191,6 +191,82 @@ CKEditor: `REACT_APP_CKEDITOR_LICENSE_KEY_*` continue to work with the prefix ab
 
 ---
 
-## 5. No `.env.example` files
+## 5. Subsystems added since this doc was first written
+
+Added 2026-08-18. Names only — never write a value into the repo (`detect-secrets` scans pre-commit
+and in CI). Defaults cited from `backend/settings/settings.py`.
+
+### Budgeting / open banking (Railway)
+
+| Var | Default | Notes |
+| --- | --- | --- |
+| `BUDGETING_PROVIDER` | `disabled` | `disabled` \| `plaid`. **Leave it disabled** — the Plaid provider is a stub (`budgeting/services/providers.py:111-147`) |
+| `BUDGETING_REGION` | — | region hint for the provider |
+| `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV`, `PLAID_WEBHOOK_SECRET` | — | webhook signature verification **rejects everything** when the secret is unset |
+| `BUDGETING_FREE_STATEMENT_BYTES` / `_IMPORTS` / `_ROWS` | — | free-tier statement-import allowance (the paywall) |
+| `BUDGETING_MAX_STATEMENT_BYTES` / `_ROWS` | — | hard upload ceiling for every plan |
+
+### RevenueCat (Railway) — the primary payment channel
+
+`REVENUECAT_API_KEY` (REST reconciliation is skipped without it) · `REVENUECAT_WEBHOOK_SECRET` ·
+`STRIPE_REFERRAL_COUPON_ID`. Plan mapping is validated at boot when the API key is present.
+
+### Customer.io webhooks
+
+`CIO_WEBHOOK_SIGNING_SECRET` · `CIO_PUBLIC_PING_SECRET`.
+
+> The Customer.io **event** paths are off by default: `CIO_TRACK_ENABLED=False`,
+> `CIO_JOURNEY_EVENTS_ENABLED=False`, `CIO_REMINDERS_VIA_JOURNEYS=False`. Only CDP identify
+> (`CIO_CDP_ENABLED=True`) and transactional (auto-on with `CIO_APP_API_KEY`) default on.
+> Setting the keys is not enough to make events flow.
+
+### Throttles (all env-overridable, DRF scopes)
+
+`THROTTLE_RATE_ANON` · `THROTTLE_RATE_USER` · `LOGIN_THROTTLE_RATE` · `REGISTER_THROTTLE_RATE` ·
+`REFRESH_THROTTLE_RATE` · `PASSWORD_RESET_THROTTLE_RATE` · `CONTACT_THROTTLE_RATE` ·
+`HEARTS_GRANT_THROTTLE_RATE` · `HEARTS_REFILL_THROTTLE_RATE` · `PUSH_TOKEN_THROTTLE_RATE` ·
+`FUNNEL_EVENT_THROTTLE_RATE` · `STATEMENT_UPLOAD_THROTTLE_RATE` · `FINANCE_EXTERNAL_THROTTLE_RATE` ·
+`AI_TUTOR_THROTTLE_RATE_FREE` / `_PREMIUM`.
+
+### Product flags — these change what users see
+
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `GAMIFICATION_RETENTION_V2` | **False** | weekly recap API, streak-rescue job and profile extras all no-op |
+| `LEAGUES_ENABLED` | True | whole leagues service no-ops when off |
+| `MISSIONS_LAZY_ASSIGNMENT` | True | eager assignment kept as a kill-switch |
+| `UX_PAYWALL_PLACEMENT` | `onboarding` | or `post_first_lesson` |
+| `BADGE_EVAL_SYNC` | False | badge evaluation sync vs debounced task |
+| `GAMIFICATION_DAILY_GOAL_TARGET_XP`, `LEAGUE_COHORT_SIZE`, `NOTIFICATION_DAILY_CAP` | — | tuning knobs |
+
+### Other live vars not previously listed
+
+`LOG_LEVEL` · `JWT_REFRESH_TOKEN_DAYS` · `REFRESH_COOKIE_DOMAIN` / `_SAMESITE` · `AXES_*` ·
+`MINIMUM_SIGNUP_AGE` · `CURRENT_TERMS_VERSION` · `CKEDITOR_5_LICENSE_KEY` ·
+`CONTENT_TRANSLATION_MODEL` / `_PROVIDER` · `MARKET_*_CACHE_TTL` ·
+`OPENAI_CACHE_TTL_SECONDS` / `OPENAI_IDEMPOTENCY_TTL_SECONDS` / `OPENAI_REWRITE_MODEL` /
+`OPENAI_REWRITE_DELAY` / `OPENAI_ALLOWED_MODELS_CSV` · `HTTP_POOL_*` · `ALLOW_LOCAL_MEDIA_STORAGE`.
+
+### Boot-time hard failures (production)
+
+The backend raises `ImproperlyConfigured` and refuses to start when: `SECRET_KEY` is missing,
+`RECAPTCHA_DISABLED` is set, the Stripe price/plan mapping is incomplete, the RevenueCat plan
+mapping is bad, media storage is local without `ALLOW_LOCAL_MEDIA_STORAGE`, or Celery is eager
+with a live broker. This is deliberate — a misconfigured boot is better than a silent one.
+
+### Declared but unused — do not set these
+
+`ALPHA_VANTAGE_API_KEY` · `FREE_CURRENCY_API_KEY` · `EXCHANGE_RATE_API_KEY` · `RECRAFT_API_KEY` ·
+Google CSE keys · `HF_API_KEY` · `OPENROUTER_API_KEY` · `GROQ_API_KEY` ·
+`CLOUDINARY_API_KEY` / `_API_SECRET` (use `CLOUDINARY_URL`) ·
+`EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` / `_ANDROID` (the live names are
+`EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY`).
+
+---
+
+## 6. No `.env.example` files
 
 Templates were removed to avoid drift. This file is the checklist; copy variable **names** into Railway / Vercel / local `.env` yourself.
+
+A machine-readable grouping of the same set, with what each var gates and its absence behaviour,
+lives in [`../../.claude/context/integrations-and-env.md`](../../.claude/context/integrations-and-env.md).

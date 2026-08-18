@@ -39,7 +39,7 @@ Everything else is real but can wait.
 
 ## 1. System map (verified state)
 
-**Shape.** pnpm monorepo. Django 4.2 + DRF backend on Railway (web + worker + beat + Postgres + Redis),
+**Shape.** pnpm monorepo. Django 4.2 + DRF backend on Railway *(4.2 at audit time; now 5.2.16 LTS — see §9.2)* (web + worker + beat + Postgres + Redis),
 Vite/React 19 web on Vercel, Expo 54 / RN 0.81 mobile, `packages/core` shared logic + i18n,
 `packages/tokens` design tokens.
 

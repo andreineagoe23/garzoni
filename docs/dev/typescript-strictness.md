@@ -1,5 +1,9 @@
 # TypeScript strictness (incremental migration)
 
+> **STATUS 2026-08-18: not started.** `tsconfig.base.json` is still `strict: false`,
+> `noImplicitAny: false`. The only package opting in is `packages/tokens`. Do not flip these
+> mid-task.
+
 The frontend `tsconfig.json` currently has `strict: false` and `noImplicitAny: false` to keep the build green while the codebase is large. The goal is to enable stricter options over time.
 
 ## Current state

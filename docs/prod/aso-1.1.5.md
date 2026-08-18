@@ -1,5 +1,9 @@
 # ASO copy pack — 1.1.5 (paste-ready)
 
+> **NOTE 2026-08-18:** written for 1.1.5; `mobile/app.json` is now on **1.1.8** and the newest
+> runbook is `docs/release/1.1.7-runbook.md`. Copy is still the most current of the three store-copy
+> packs, but re-check version-specific claims before pasting.
+
 Single source of truth for store metadata at the 1.1.5 release. Everything here
 is pasted into **App Store Connect** and **Play Console** (manual — not in the
 repo). Character counts verified against store limits.

@@ -97,7 +97,7 @@ Run this whenever you add or change missions in the fixture and want production 
 
 ## Romanian translations (local Docker, then push)
 
-Use this when you generate **Romanian (`ro`) rows** in local Docker (`education_*_translation` tables) and want Railway production to match. This is separate from **AI lesson rewrites** ([`backend/scripts/push_rewrites_to_railway.sh`](../backend/scripts/push_rewrites_to_railway.sh)), which syncs English body copy via `EducationAuditLog`.
+Use this when you generate **Romanian (`ro`) rows** in local Docker (`education_*_translation` tables) and want Railway production to match. This is separate from **AI lesson rewrites** ([`backend/scripts/push_rewrites_to_railway.sh`](../../backend/scripts/push_rewrites_to_railway.sh)), which syncs English body copy via `EducationAuditLog`.
 
 ### Prerequisites
 

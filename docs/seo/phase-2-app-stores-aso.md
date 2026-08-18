@@ -1,5 +1,9 @@
 # Phase 2 — App Stores / ASO
 
+> **ARCHIVED 2026-08-18 — the blocking finding (A1: Android not public on Play) is resolved.**
+> The Play listing is live; see `docs/aso/aso-audit-2026-07-07.md` for the post-launch audit and
+> `docs/prod/aso-1.1.5.md` for current store copy. Kept for the reasoning; not open work.
+
 ## A1. CRITICAL: Android app not publicly on Google Play
 
 `https://play.google.com/store/apps/details?id=app.garzoni.mobile` → **404 in GB, RO, US** (verified 2026-07-01). App is unpublished or stuck in a closed-testing track. Store pages are ~30–45% of download-intent SERP results ("financial literacy app" SERP is dominated by Play/App Store listings) — half the mobile market is unreachable and the SERP surface is forfeited.

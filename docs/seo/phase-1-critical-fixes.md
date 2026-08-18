@@ -1,5 +1,9 @@
 # Phase 1 — Critical Fixes (do first, same day)
 
+> **ARCHIVED 2026-08-18 — done.** `frontend/scripts/prerender.mjs` now emits per-slug HTML for
+> `/learn/<slug>` and `/guides/<slug>` from a backend manifest, plus `llms-full.txt`, with
+> error-marker guards so 404/error states are never baked. Kept for the reasoning; not open work.
+
 Everything else in this plan is moot until these ship. All findings verified live on 2026-07-01, reproducible with cache-busting params.
 
 ## C1. Lesson/guide pages return 404 to all bots — 56 of 68 sitemap URLs un-indexable

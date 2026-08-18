@@ -65,7 +65,7 @@ Garzoni delivers interactive personal finance education with gamified progressio
 ### Legal and info
 
 - **Subscriptions**: View plans (Starter, Plus, Pro), features, and pricing; start trial or subscribe.
-- **Legal pages**: Privacy policy, cookie policy, terms of service, financial disclaimer (and no-financial-advice section). See [docs/LEGAL_ANALYSIS.md](docs/LEGAL_ANALYSIS.md) for the underlying data-flow analysis used to draft these.
+- **Legal pages**: Privacy policy, cookie policy, terms of service, financial disclaimer (and no-financial-advice section). Cookie/consent rules are in [docs/prod/cookie-consent-legal.md](docs/prod/cookie-consent-legal.md).
 - **Welcome / About**: Landing and product info; footer links to dashboard, exercises, missions, tools, leaderboards, rewards, support, subscriptions.
 
 ### Elsewhere
@@ -77,7 +77,7 @@ Garzoni delivers interactive personal finance education with gamified progressio
 
 ## Premium value matrix
 
-| Capability                                        | Free (Starter) | Plus £7.99/mo | Pro £11.99/mo               |
+| Capability                                        | Free (Starter) | Plus £6.99/mo | Pro £7.99/mo                |
 | ------------------------------------------------- | -------------- | ------------- | --------------------------- |
 | Tutor chat (server-persisted history)             | 5/day          | 50/day        | 200/day                     |
 | Inline "explain wrong answer" + practice question | 3/day          | unlimited     | unlimited                   |
@@ -88,13 +88,18 @@ Garzoni delivers interactive personal finance education with gamified progressio
 | AI push nudges                                    | basic streak   | personalised  | personalised + market-aware |
 | Tutor model                                       | gpt-4o-mini    | gpt-4o-mini   | **gpt-4o**                  |
 
+> **What's actually shipped vs. flagged off vs. stubbed** — the premium matrix above describes the
+> designed product. For the verified per-feature state on each platform (including the features that
+> are built but currently unreachable or disabled by default), see
+> [.claude/context/feature-status.md](.claude/context/feature-status.md).
+
 ## Features (summary)
 
 - Personalized learning paths (Basic Finance, Forex, Crypto, Real Estate, Budgeting).
 - Gamification: badges, streaks, leaderboards, rewards (coins, shop, donations).
 - AI tutor with **function-calling tools**, persistent memory, RAG over curriculum, voice (mobile), receipt vision (mobile).
 - Finance tools: portfolio analyzer, reality check, economic calendar, economic map, news/market context, market explorer, next steps (some tools Plus/Pro).
-- Exercises: multiple choice, numeric, drag-and-drop, budget allocation, fill-in table, scenario simulation; review queue with inline AI explanations on wrong answers (see `docs/exercise-experience-plan.md`).
+- Exercises: multiple choice, numeric, drag-and-drop, budget allocation, fill-in table, scenario simulation; review queue with inline AI explanations on wrong answers .
 - Missions: 4 daily + 4 weekly (randomized from pool per day/week), swap, completion XP.
 - Support hub: FAQ + contact form; feedback page for bugs and suggestions.
 
@@ -103,7 +108,7 @@ Garzoni delivers interactive personal finance education with gamified progressio
 - **Monorepo**: pnpm workspaces. Packages: `frontend` (web), `mobile` (Expo), `packages/core` (shared TypeScript: API client, services, hooks, i18n).
 - **Frontend (web)**: React + Vite + Tailwind. Tested with Vitest.
 - **Mobile**: Expo (SDK 54), React Native, Expo Router. RevenueCat for IAP. expo-av (voice), expo-image-picker (receipt scan).
-- **Backend**: Django 4.2 + DRF, PostgreSQL, Redis, Celery (with Celery Beat for scheduled AI nudges + path re-eval).
+- **Backend**: Django 5.2 LTS + DRF, PostgreSQL 17, Redis, Celery (Celery Beat for scheduled jobs; in production Beat reads the `PeriodicTask` table, not the static schedule).
 - **AI / RAG**: OpenAI Python SDK (chat, embeddings, Whisper, TTS, GPT-4o vision). `pgvector` for semantic search over lesson content.
 - **Auth**: JWT via djangorestframework-simplejwt; Google OAuth; Sign in with Apple.
 - **Payments**: RevenueCat across all platforms — RevenueCat Web Billing (Stripe-backed) on web, App Store / Play Store IAP on mobile. The web RC SDK is enabled by `VITE_REVENUECAT_API_KEY`; if unset, web falls back to the legacy direct-Stripe checkout. See [docs/prod/billing-parity-runbook.md](docs/prod/billing-parity-runbook.md).
@@ -123,7 +128,7 @@ pnpm install
 
 ### Docker (recommended for backend)
 
-See `docs/setup-docker.md`.
+See [docs/dev/setup-docker.md](docs/dev/setup-docker.md).
 
 ### Backend (API)
 
@@ -139,7 +144,7 @@ python manage.py runserver
 - Set `DATABASE_URL` (PostgreSQL) for local and production. CI uses a Postgres service container for backend tests.
 - Celery/Redis are optional in local dev; enable when running scheduled tasks (path re-eval, AI nudges, embedding backfill).
 - **For RAG / AI tutor**: set `OPENAI_API_KEY` and run `CREATE EXTENSION IF NOT EXISTS vector;` on your Postgres DB. Then trigger an embedding backfill via the `backfill_embeddings_async` Celery task or a management command.
-- Environment variables: see [docs/environment.md](docs/environment.md) (Railway, Vercel, local).
+- Environment variables: see [docs/dev/environment.md](docs/dev/environment.md) (Railway, Vercel, local).
 
 #### Backend tests
 
@@ -150,12 +155,10 @@ python manage.py runserver
   make test-all          # backend lint + backend tests + frontend tests (requires dev stack up)
   ```
 
-- When running the backend directly on your machine (no Docker), run tests from `backend/` with a configured `DATABASE_URL` pointing at a Postgres instance:
-
-  ```bash
-  cd backend
-  python manage.py test
-  ```
+> **Backend tests only run inside the container.** Start the stack with `make dev` first.
+> Running `python manage.py test` on the host is not supported — the test settings expect the
+> container's Postgres and Redis. Single test:
+> `docker compose exec backend python manage.py test education.tests.TestX`
 
 ### Web (Vite)
 
@@ -194,8 +197,8 @@ The husky hook also runs Black + flake8 against `backend/` if installed.
 
 ## Deployment Notes
 
-- Docker deployment guide: `docs/deployment-docker.md`
-- Railway production runbook: `docs/railway-production-runbook.md` (pre-deploy sync for lessons + exercises; missions: `./backend/scripts/railway_push_missions.sh`).
+- Docker deployment guide: [docs/prod/deployment-docker.md](docs/prod/deployment-docker.md)
+- Railway production runbook: [docs/prod/railway-production-runbook.md](docs/prod/railway-production-runbook.md) (pre-deploy sync for lessons + exercises; missions: `./backend/scripts/railway_push_missions.sh`).
 - **Mobile (Expo):** For Google OAuth native flows, add your app's authorised redirect URI in Google Cloud (e.g. `com.garzoni.app:/oauth2redirect/google` or the value from `app.json` / `app.config` `scheme`). Keep web callback URLs (`https://www…/api/auth/google/callback`) as well.
 
 - Frontend on **Vercel**: `frontend/vercel.json` (and root `vercel.json` if you deploy from the monorepo root) includes a **CDN rewrite** as the first rule: `/api/:path*` → your Django host (see the `destination` URL). Order matters: API proxy first, then the SPA fallback that excludes `/api`. Change the Railway URL in both files when you use a different backend. Omit `VITE_BACKEND_URL` / `REACT_APP_BACKEND_URL` in Vercel if you want the browser to call same-origin `/api` (proxied). For **Google OAuth (redirect flow)**, add every callback URL you use to **Authorised redirect URIs** in Google Cloud — e.g. both `https://www.<your-domain>/api/auth/google/callback` (via the proxy) and `https://<your-railway-host>/api/auth/google/callback` if Django ever issues that host, so you avoid `redirect_uri_mismatch`.
@@ -211,26 +214,34 @@ The husky hook also runs Black + flake8 against `backend/` if installed.
 - JWTs: access tokens via Authorization header; configure lifetimes in `SIMPLE_JWT`.
 - AI tutor has per-plan daily quotas + per-user daily token budget (Redis-backed) to bound OpenAI spend.
 - Run dependency checks regularly (pip-audit, `pnpm audit`) and keep `requirements.txt` / `pnpm-lock.yaml` updated.
-- Dependabot is configured for **monthly grouped updates** (see `.github/dependabot.yml`) — patch bumps are skipped to reduce noise.
+- Every backend requirement is `==`-pinned and CI fails the build on any unpinned line; `pip-audit` and `pnpm audit` run in CI (`.github/workflows/ci.yml`).
 
 ## Architecture overview
 
 ```
 backend/
-  authentication/        # User, UserProfile (financial profile fields), Apple/Google OAuth, password reset, account deletion
-  finance/               # Stripe, paper trading, FunnelEvent, market-data proxies (CoinGecko, Alpha Vantage, ExchangeRate-API)
-  notifications/         # Customer.io integration, push, transactional email, AI nudges Celery beat
-  onboarding/            # QuestionnaireProgress (financial profile capture)
-  education/             # Lessons, courses, Mastery, ContentEmbedding (RAG), PathPlan, AI tutor service
-  support/               # AI conversation persistence (Conversation/Message), OpenAI service with tools, voice + scan endpoints, smart resume
-  gamification/          # Streaks, hearts, missions, rewards
-  reports/               # Internal reporting
+  authentication/        # User, UserProfile, JWT, Apple/Google OAuth, entitlements, hearts, friends, RevenueCat webhook
+  education/             # Paths, courses, lessons, exercises, Mastery + SRS, translations, ContentEmbedding (RAG)
+  gamification/          # XP, missions, badges, streaks, duels, wagers, leagues
+  finance/               # Stripe billing, portfolio, paper trading, FunnelEvent, market-data proxies
+  budgeting/             # Personal CFO: statement import, categorization, envelopes, open-banking abstraction
+  support/               # AI conversation persistence, OpenAI service with tools, voice + scan endpoints, smart resume
+  onboarding/            # Versioned questionnaire, plan summary
+  notifications/         # Customer.io, Expo push, transactional email, Celery senders
+  core/                  # Health check, robots/AASA, middleware, logging (no models — slated for removal)
+  settings/              # Project settings, root urls, Celery app
+  tests/                 # Cross-app tests
 
 frontend/src/            # React web app (Vite + Tailwind)
-mobile/app/              # Expo Router app (iOS + Android) — chat, voice-chat, scan, lessons, dashboard
-packages/core/           # Shared TypeScript: API client, services (aiTutor, entitlements), hooks, types, i18n locales
-docs/                    # LEGAL_ANALYSIS.md, environment.md, exercise-experience-plan.md, etc.
+mobile/app/              # Expo Router app (iOS + Android) — chat, voice-chat, scan, lessons, dashboard, tools
+packages/core/           # Shared TypeScript: API client, services, hooks, stores, types, i18n locales
+packages/tokens/         # Spacing/radius/type scale — single source for web + mobile
+docs/                    # Dev guides + audits (see docs/README.md)
+.claude/                 # Agent context pack, subagents, slash commands
 ```
+
+> Backend app detail, feature flags and Celery schedule: [.claude/context/backend.md](.claude/context/backend.md).
+> Per-feature status across web + mobile: [.claude/context/feature-status.md](.claude/context/feature-status.md).
 
 ## Contributing
 

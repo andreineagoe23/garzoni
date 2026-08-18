@@ -49,7 +49,10 @@ docker compose -f docker-compose.dev.yml exec backend python manage.py loaddata 
 docker compose -f docker-compose.dev.yml exec backend python manage.py verify_restore
 ```
 
-See `backend/backups/README.md` for details and the SQL restore option.
+> **`backend/backups/` is gitignored** — it is not in the repo and will not exist on a fresh
+> clone. Get the dump from your own machine or from the Railway backup workflow
+> (`.github/workflows/railway-db-backup.yml`, which writes a Postgres dump every 3 days when the
+> `RAILWAY_DB_URL` repo secret is set).
 
 **Restore from Railway or another Postgres dump**
 

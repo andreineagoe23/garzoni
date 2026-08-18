@@ -1,5 +1,9 @@
 # Phase 2 — ready-to-paste ASO copy pack
 
+> **SUPERSEDED 2026-08-18** by `docs/prod/aso-1.1.5.md`. Three store-copy packs exist
+> (this one, `docs/aso/play-listing-assets-2026-07.md`, and `docs/prod/aso-1.1.5.md`);
+> the `docs/prod/` one is the most recent. Use that.
+
 Companion to [phase-2-app-stores-aso.md](./phase-2-app-stores-aso.md). Everything
 here is copy/metadata to paste into **App Store Connect** and **Play Console** —
 these can't be done from the repo. Character counts verified against store limits.

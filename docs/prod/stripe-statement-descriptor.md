@@ -1,5 +1,10 @@
 # Transaction merchant name on card statements (Stripe)
 
+> **STALE 2026-08-18:** examples use the pre-rebrand name "Monevo", and Stripe is no longer the
+> primary payment channel — billing is RevenueCat-first on every platform
+> (`docs/prod/billing-parity-runbook.md`). Direct Stripe checkout is now only the web fallback when
+> `VITE_REVENUECAT_API_KEY` is unset.
+
 What customers see on their bank or card statement (e.g. **REVOLUT** or **MONEVO \* PLUS**) is controlled by **statement descriptors** in Stripe. Here’s how to set them up so your brand shows clearly (Revolut-style).
 
 ---

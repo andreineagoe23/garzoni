@@ -169,3 +169,8 @@ ds-bundle/
 # Editor swap files
 *.swp
 *.swo
+
+# ── Claude Code local context (kept local; drop this block to commit them) ────
+CLAUDE.md
+**/CLAUDE.md
+CLAUDE.local.md

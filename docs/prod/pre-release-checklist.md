@@ -38,7 +38,7 @@
 
 - [ ] **From dashboard weak skill / practice / quick card:** lands on `/exercises` with the expected focus (category or “all” if unmapped)
 - [ ] **Refresh on `/exercises?skill=…`** still applies the right category when mapped
-- [ ] After release, skim [monitoring red flags](./monitoring-red-flags.md) and [skill intent funnels](./analytics/skill-intent-funnels.md) for spikes (unmapped, mapped-zero, manual override)
+- [ ] After release, skim [monitoring red flags](./monitoring-red-flags.md) and [skill intent funnels](../analytics/skill-intent-funnels.md) for spikes (unmapped, mapped-zero, manual override)
 
 ## 🔹 Recommendations
 
@@ -103,4 +103,4 @@ See [ios-platforms-expansion-runbook.md](./ios-platforms-expansion-runbook.md) f
 
 ---
 
-See also: [Error reporting](error-reporting.md), [Monitoring red flags](monitoring-red-flags.md).
+See also: [Error reporting](../dev/error-reporting.md), [Monitoring red flags](monitoring-red-flags.md).
