@@ -76,6 +76,20 @@ export const MOBILE_TOOLS: MobileToolDef[] = [
     estimatedMinutes: 6,
   },
   {
+    // No `plusOnly`: that flag means Plus-or-Pro, and scan is Pro-only
+    // (`features.ai_scan`). Locking the tile here would upsell the wrong plan.
+    // The screen carries its own Pro gate with an Upgrade CTA — same
+    // free-entry / paywall-inside shape as statement-import below.
+    id: "receipt-scan",
+    group: "understand-myself",
+    route: "receipt-scan",
+    title: "Receipt Scan",
+    subtitle: "Photograph a receipt, see where the money went",
+    icon: "Camera",
+    accentColor: "#7c2d12",
+    estimatedMinutes: 2,
+  },
+  {
     // No `plusOnly`: analysing a statement is free on every plan. The paywall
     // sits on *saving* the import, inside the screen itself.
     id: "statement-import",

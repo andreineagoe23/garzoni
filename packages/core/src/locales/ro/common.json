@@ -961,6 +961,16 @@
         "whoItsFor": "Învățăcei care explorează mecanica forex, nu execuția live.",
         "questionItAnswers": "Care este valoarea pip pentru perechea și lotul meu?"
       },
+      "receipt-scan": {
+        "title": "Scanare bon",
+        "promise": "Fotografiază un bon și vezi unde s-au dus banii.",
+        "description": "Citește poza unui bon sau extras și împarte cheltuiala pe categorii.",
+        "mostUsefulFor": "Oricine plătește cash sau pe hârtie și nu vede asta în extrasul bancar.",
+        "whatItDoes": "Analizează imaginea, grupează cheltuiala pe categorii și îți recomandă o lecție potrivită.",
+        "sampleUseCase": "Fotografiază cumpărăturile săptămânale și vezi cât a fost chiar mâncare.",
+        "whoItsFor": "Membrii Pro care vor cheltuielile înregistrate fără să le scrie manual.",
+        "questionItAnswers": "Pe ce am cheltuit de fapt?"
+      },
       "statement-import": {
         "title": "Import extras de cont",
         "promise": "Încarcă un CSV de la bancă și vezi unde se duc banii cu adevărat.",

@@ -961,6 +961,16 @@
         "whoItsFor": "Learners exploring forex mechanics, not live trading execution.",
         "questionItAnswers": "What is the pip value for my pair and lot size?"
       },
+      "receipt-scan": {
+        "title": "Receipt Scan",
+        "promise": "Photograph a receipt, see where the money went.",
+        "description": "Reads a receipt or statement photo and breaks the spending down by category.",
+        "mostUsefulFor": "Anyone who spends in cash or on paper and never sees it in a bank export.",
+        "whatItDoes": "Analyses the image, groups the spend into categories, and points you at a matching lesson.",
+        "sampleUseCase": "Snap a weekly shop and see how much of it was actually groceries.",
+        "whoItsFor": "Pro members who want spending captured without typing it in.",
+        "questionItAnswers": "What did I actually spend this on?"
+      },
       "statement-import": {
         "title": "Statement Import",
         "promise": "Upload a bank CSV and see where your money actually goes.",

@@ -49,6 +49,11 @@ export default function ToolsStackLayout() {
           options={{ title: "Statement Import" }}
         />
         <Stack.Screen
+          name="receipt-scan"
+          // The screen draws its own header and Done button.
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="portfolio"
           options={{ title: "Portfolio Analyzer" }}
         />

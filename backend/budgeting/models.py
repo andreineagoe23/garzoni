@@ -18,6 +18,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from .fields import EncryptedTextField
+
 
 class LinkedAccount(models.Model):
     """A bank/card/wallet account that has been linked to the user."""
@@ -40,11 +42,11 @@ class LinkedAccount(models.Model):
     institution_name = models.CharField(max_length=128, blank=True)
     currency = models.CharField(max_length=8, default="USD")
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
-    # NOTE: encrypted at rest by infrastructure (DB-side encryption or KMS-backed)
-    # The fields stay opaque to the API. Application-level encryption can be layered
-    # via a custom field if needed; we keep TextField here to avoid migrations now.
-    encrypted_access_token = models.TextField(blank=True)
-    encrypted_refresh_token = models.TextField(blank=True)
+    # Encrypted with Fernet at the application layer (see budgeting/fields.py),
+    # so the ciphertext is what reaches the database, backups and read replicas.
+    # Never expose these through a serializer.
+    encrypted_access_token = EncryptedTextField(blank=True)
+    encrypted_refresh_token = EncryptedTextField(blank=True)
     consent_granted_at = models.DateTimeField(null=True, blank=True)
     consent_revoked_at = models.DateTimeField(null=True, blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)

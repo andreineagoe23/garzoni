@@ -24,6 +24,7 @@ const ICON_MAP: Record<string, string> = {
   Briefcase: "💼",
   Wallet: "👛",
   FileText: "🧾",
+  Camera: "📷",
 };
 
 type Props = {

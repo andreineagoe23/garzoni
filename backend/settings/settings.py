@@ -663,6 +663,19 @@ PLAID_SECRET = os.getenv("PLAID_SECRET", "")
 PLAID_ENV = os.getenv("PLAID_ENV", "sandbox")
 PLAID_WEBHOOK_SECRET = os.getenv("PLAID_WEBHOOK_SECRET", "")
 
+# Fernet key for LinkedAccount provider tokens (budgeting/fields.py).
+# Only required once a provider is actually enabled: while BUDGETING_PROVIDER is
+# "disabled" nothing writes a token, so an unset key must not block boot -- that
+# would break every existing deploy for a feature none of them use.
+BUDGETING_TOKEN_ENCRYPTION_KEY = os.getenv("BUDGETING_TOKEN_ENCRYPTION_KEY", "")
+if BUDGETING_PROVIDER != "disabled" and not BUDGETING_TOKEN_ENCRYPTION_KEY.strip():
+    raise ImproperlyConfigured(
+        f"BUDGETING_PROVIDER={BUDGETING_PROVIDER!r} requires "
+        "BUDGETING_TOKEN_ENCRYPTION_KEY so provider access/refresh tokens are "
+        "encrypted at rest. Generate one with: python -c "
+        "'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
+    )
+
 # Statement import (CSV/TSV, Excel, PDF, OFX/QFX/QIF). Analysis is free for
 # every signed-in user; *saving* an import is what the free allowance below is
 # spent on, after which it needs Plus/Pro. Uploaded files are parsed in memory
