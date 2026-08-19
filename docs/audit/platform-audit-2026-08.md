@@ -412,6 +412,21 @@ Gate: full suite (406 backend / 88 web / 88 mobile / 36 core) + a test-service d
 
 ### Sprint 2 — make the money path safe (~2–3 days)
 
+> **DONE 2026-08-19.** All four items shipped. §2.3 `EncryptedTextField` on `LinkedAccount`
+> (Fernet, key `BUDGETING_TOKEN_ENCRYPTION_KEY`, 9 tests, done while the table was still empty).
+> §3.2 13 Stripe webhook contract tests — which surfaced a latent bug the audit had not predicted:
+> the dedupe insert caught `IntegrityError` with no savepoint, so a duplicate delivery would raise
+> `TransactionManagementError` the moment anything wrapped the view in `atomic()`, and Stripe would
+> retry it forever. §4.2 `select_related("category")` plus removal of the silent `[:500]` slice —
+> measured at 5 rows → 7 queries and 40 rows → 42 before, constant after.
+>
+> §2.2 was **deliberately scoped rather than made the DRF default.** The call-site audit this item
+> asked for returned ~150 client references across the 17 list endpoints (`exercises/` alone has 57),
+> most indexing the response directly — a global `DEFAULT_PAGINATION_CLASS` would have broken working
+> read paths silently in production. Pagination is applied to `budgeting/statements` (clients already
+> read `data?.results ?? data ?? []` on both platforms) and `budgeting/transactions` (no client
+> consumers, as this audit predicted). Reasoning recorded in `backend/budgeting/pagination.py`.
+
 | # | Item | § | Effort |
 |---|---|---|---|
 | 5 | Stripe webhook tests: per-event-type + idempotency + bad signature | 3.2 | M |
@@ -599,6 +614,17 @@ a refused connection throws after 3. Then run for real against the production AP
   `cache-control: public, s-maxage=600, stale-while-revalidate=300`, and Cloudflare answers
   `cf-cache-status: DYNAMIC` — so the header shipped by the July perf audit is currently **inert**.
   The healthcheck gate fixes the 502s; this is what fixes the 2.5–4.7s cold reads.
-- **Deploy verification.** The healthcheck gate cannot be confirmed working until the next production
+- **Deploy verification — DONE 2026-08-19.** The gate is confirmed working, but only after two bugs
+  that it had itself introduced were fixed. It never passed once between 2026-08-04 and 2026-08-19:
+  `SECURE_SSL_REDIRECT` answered Railway's plain-HTTP probe with a 301 (Railway requires 200), and the
+  worker/beat services inherited `healthcheckPath` from `railway.json` despite serving no HTTP.
+  Production sat on the 2026-08-03 build the whole time. Fixed with `SECURE_REDIRECT_EXEMPT` and
+  `backend/railway.celery.json`.
+
+  Measurement on deployment `b01bf736` (commit `04699ef0`): green in 66s, and the Railway HTTP log
+  for the rollover window shows the Vercel prerender fetching ~50 `/api/public/lessons/*` and
+  `/api/public/articles/*` paths with **zero 502s** — all 200, 16–40ms warm. §2.1 is closed.
+
+- *(original note)* The healthcheck gate cannot be confirmed working until the next production
   deploy. Watch that deploy's HTTP log for 502s on `/api/public/lessons/*` during the rollover window —
   that is the direct before/after measurement.
