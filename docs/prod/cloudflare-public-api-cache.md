@@ -1,5 +1,24 @@
 # Cloudflare cache rule for `/api/public/*`
 
+> **APPLIED 2026-08-19.** Zone `garzoni.app` (`bfa87ed9030cf1e84aed5bbbfc12cf93`).
+> Cache-rules phase ruleset `33bf9a4eeae142c1ba8d96beea65dbe8`, rule
+> `fe811b06de474cf6b8ba5224b552fdb7`. There was no `http_request_cache_settings` phase
+> ruleset on the zone beforehand, so this created it rather than appending.
+>
+> Verified: `/api/public/lessons/` and the per-slug detail both go `MISS` then `HIT`;
+> `/health/`, `/api/plans/`, `/api/entitlements/`, `/api/userprofile/` and `/api/docs/`
+> all still report `DYNAMIC`. The `www.garzoni.app/api/public/*` route (Vercel rewrite)
+> caches too, which is why the expression carries no hostname condition.
+>
+> API equivalent of the dashboard fields in §3:
+> `action: set_cache_settings`, `action_parameters: {cache: true,
+> edge_ttl: {mode: respect_origin}, browser_ttl: {mode: respect_origin}}`.
+> `respect_origin` honours the origin's existing `s-maxage=600`, so the 10-minute edge TTL
+> comes from the header rather than being restated here.
+>
+> **If you edit this by API, list the ruleset first and append.** A `PUT` on the ruleset
+> replaces every cache rule in the zone — Cloudflare's own doc examples do exactly that.
+
 Status: **not applied** (dashboard action — see §4).
 Owner action, ~2 minutes. Written 2026-08-04 as the open half of
 [`docs/audit/platform-audit-2026-08.md`](../audit/platform-audit-2026-08.md) §2.1.

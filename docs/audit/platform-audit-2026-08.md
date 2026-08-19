@@ -588,7 +588,9 @@ a refused connection throws after 3. Then run for real against the production AP
 
 ### 9.5 Still open from Sprint 1
 
-- **Cloudflare cache rule on `/api/public/*`** — still not applied; it is Cloudflare-side config, not
+- **Cloudflare cache rule on `/api/public/*`** — **APPLIED 2026-08-19** (see the banner in
+  [`docs/prod/cloudflare-public-api-cache.md`](../prod/cloudflare-public-api-cache.md); `cf-cache-status`
+  now goes MISS→HIT on public paths and stays DYNAMIC everywhere else). Originally: it is Cloudflare-side config, not
   repository state, and the CF connector was unauthenticated here. The exact rule (match expression,
   edge TTL, why the path is safe to cache, how to verify) is now written up as a ~2-minute dashboard
   task in [`docs/prod/cloudflare-public-api-cache.md`](../prod/cloudflare-public-api-cache.md).

@@ -33,6 +33,25 @@ sets:
 | `healthcheckTimeout` | `300` | Railway's default. The pre-deploy command (migrations + content sync + quality gates) runs before the container starts, so it does not eat this budget. |
 | `restartPolicyType` / `MaxRetries` | `ON_FAILURE` / `3` | Unchanged behaviour, now version-controlled. |
 
+**Celery services must NOT use this file.** Railway applies a config file to every service
+whose root directory is `/backend`, and `healthcheckPath` is meaningless for a process that
+serves no HTTP. The worker and beat services will poll `/health/` for the full
+`healthcheckTimeout` and then fail the deploy — observed 2026-08-19 as
+`Network › Healthcheck (04:53)`, i.e. ~293s against the 300s budget.
+
+Point those two services at [`railway.celery.json`](../../backend/railway.celery.json) instead
+(Railway service → Settings → Config-as-code → `/backend/railway.celery.json`; the path is
+absolute from the repo root, not the service root). That file is this one minus
+`healthcheckPath` and `healthcheckTimeout` — omitting them disables the check.
+
+The `startCommand` is deliberately identical in both files. `docker/entrypoint.sh:16-20` reads
+`SERVICE_ROLE` (falling back to `RAILWAY_SERVICE_NAME`) and, when the command is `gunicorn`,
+swaps in `celery worker` or `celery beat` for those roles — so one start command covers all
+three services and no Railway UI edit is needed for it. **The service must be named exactly
+`worker` or `beat`**, or `SERVICE_ROLE` must be set explicitly; otherwise the role check misses,
+gunicorn starts, the healthcheck passes, and you get a web server where you wanted a worker —
+a failure that looks like success.
+
 **No `build` block — deliberate.** `railway.json` originally carried
 `"build": {"builder": "RAILPACK"}`. That was never verified against the service and it
 contradicts the rest of the repo: CI builds `backend/Dockerfile`
