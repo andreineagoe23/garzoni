@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@amplitude/analytics-react-native": "^1.5.57",
+    "@babel/runtime": "^7.20.0",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/vector-icons": "^15.1.1",

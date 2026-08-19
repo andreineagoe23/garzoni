@@ -22,7 +22,7 @@ cron-descriptor==1.4.5
 dj-database-url==2.1.0
 # Django 4.2 LTS went end-of-life in April 2026. 5.2 LTS is supported to April 2028.
 # django-celery-beat < 2.9 caps at Django < 5.2, so the two move together.
-Django==5.2.16
+Django==5.2.17
 django-axes==8.3.1
 django-celery-beat==2.9.0
 django-celery-results==2.6.0
