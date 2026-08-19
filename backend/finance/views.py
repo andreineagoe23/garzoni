@@ -1987,12 +1987,20 @@ class StripeWebhookView(APIView):
             # Idempotency: reject duplicate deliveries before any side-effects.
             event_id = event.get("id", "")
             if event_id:
-                from django.db import IntegrityError
+                from django.db import IntegrityError, transaction as db_transaction
 
                 try:
-                    StripeWebhookEvent.objects.create(
-                        event_id=event_id, event_type=event.get("type", "")
-                    )
+                    # The insert needs its own savepoint. Without it an
+                    # IntegrityError marks the surrounding transaction broken, so
+                    # every later query raises TransactionManagementError instead
+                    # of this returning a clean 200. Harmless while the view runs
+                    # in autocommit, fatal the moment anything wraps it in
+                    # atomic() (ATOMIC_REQUESTS, a decorator, a test case) — at
+                    # which point Stripe retries the duplicate forever.
+                    with db_transaction.atomic():
+                        StripeWebhookEvent.objects.create(
+                            event_id=event_id, event_type=event.get("type", "")
+                        )
                 except IntegrityError:
                     logger.info("Stripe webhook duplicate skipped event_id=%s", event_id)
                     return HttpResponse(status=200)

@@ -21,6 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authentication.entitlements import check_and_consume_entitlement, get_user_plan, plan_allows
+from budgeting.pagination import BudgetingPagination
 from budgeting.models import (
     BudgetEnvelope,
     LinkedAccount,
@@ -108,6 +109,7 @@ class LinkedAccountViewSet(viewsets.ReadOnlyModelViewSet):
 class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = BudgetingPagination
 
     def list(self, request, *args, **kwargs):
         gate = _require_budget_entitlement(request)
@@ -123,7 +125,12 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(posted_at__gte=start)
         if end:
             qs = qs.filter(posted_at__lte=end)
-        return qs.order_by("-posted_at")[:500]
+        # select_related: the serializer reads transaction.category on every row,
+        # which was one query per row (audit §4.2).
+        # The old `[:500]` silently dropped everything past the 500th newest row
+        # with no signal to the caller — pagination replaces it with an honest
+        # count and a next link.
+        return qs.select_related("category").order_by("-posted_at")
 
 
 class BudgetEnvelopeViewSet(viewsets.ModelViewSet):

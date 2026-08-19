@@ -28,6 +28,8 @@ from urllib.parse import unquote
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+
+from budgeting.pagination import BudgetingPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -324,9 +326,10 @@ class StatementImportViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = StatementImportSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = BudgetingPagination
 
     def get_queryset(self):
-        return StatementImport.objects.filter(user=self.request.user)
+        return StatementImport.objects.filter(user=self.request.user).order_by("-created_at")
 
     @action(detail=True, methods=["get"])
     def analysis(self, request, pk=None):
