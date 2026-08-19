@@ -539,6 +539,14 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN") or None
 
 SECURE_SSL_REDIRECT = not DEBUG
+# Railway's deploy healthcheck reaches the container directly on the internal network over
+# plain HTTP, and does not send X-Forwarded-Proto. SECURE_SSL_REDIRECT therefore answered the
+# probe with a 301 to https://, and Railway only accepts a 200 — so every web deploy failed
+# the gate after the full healthcheckTimeout while the app itself was healthy and serving.
+# The 301 was invisible in the logs: SecurityMiddleware short-circuits before health_view can
+# log anything, and gunicorn.conf.py filters access lines for /health/ by path.
+# Regexes are matched against the path with the leading slash removed.
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG

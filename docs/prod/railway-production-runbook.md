@@ -52,15 +52,37 @@ three services and no Railway UI edit is needed for it. **The service must be na
 gunicorn starts, the healthcheck passes, and you get a web server where you wanted a worker —
 a failure that looks like success.
 
-**No `build` block — deliberate.** `railway.json` originally carried
-`"build": {"builder": "RAILPACK"}`. That was never verified against the service and it
-contradicts the rest of the repo: CI builds `backend/Dockerfile`
-(`.github/workflows/ci.yml`), docker-compose builds the same image, and the
-`startCommand` above points at `/app/docker/entrypoint.sh` — a path that only exists in
-that image. RAILPACK ignores the Dockerfile and auto-detects instead, so the start command
-would reference a file the built image does not contain. Removed 2026-08-18 so Railway
-keeps using whatever builder the service is already configured with. If you want the build
-config in git, set it to the Dockerfile builder and verify a deploy before relying on it.
+**No `build` block — but not for the reason first assumed.** `railway.json` originally carried
+`"build": {"builder": "RAILPACK"}`, which was removed on 2026-08-18 on the theory that it made
+Railway ignore `backend/Dockerfile`. **That theory was wrong.** Inspecting the live services shows
+all three are configured with `builder: RAILPACK` at the service level *and* carry a
+`RAILWAY_DOCKERFILE_PATH` variable, which is what points the build at the Dockerfile. Removing the
+block therefore changed nothing — Railway falls back to the same service-level setting. It stays out
+of the file only because service-level build config is already the source of truth here.
+
+**The dashboard `startCommand` overrides `railway.json`.** The web service still has a service-level
+start command carrying `--worker-class gthread --workers 2 --threads 4 --timeout 300`. The
+`startCommand` in `railway.json` never applied, so the part of Sprint 1 that removed those dead
+flags did not actually take effect in production. Harmless (the entrypoint appends its own flags
+afterwards and the later ones win) but worth knowing before trusting the file over the dashboard.
+
+**The `/health/` gate failed every deploy for two weeks — `SECURE_SSL_REDIRECT`.** Railway probes the
+container directly on the internal network over plain HTTP and does **not** send
+`X-Forwarded-Proto`. With `SECURE_SSL_REDIRECT = not DEBUG` and no exemption, Django's
+`SecurityMiddleware` answered the probe with a **301 to https://**, and Railway only accepts a 200.
+Every web deploy from 2026-08-04 (when this file landed) to 2026-08-19 failed the gate after the
+full 300s timeout while the app was healthy and serving — production stayed on the 2026-08-03
+deployment the whole time.
+
+It was invisible in the logs by coincidence of two unrelated things: `SecurityMiddleware`
+short-circuits before `health_view` can log a failed check, and `gunicorn.conf.py` filters access
+lines for `/health/` by path — so the 301 was silenced along with the successes.
+
+Fixed with `SECURE_REDIRECT_EXEMPT = [r"^health/$"]` in `settings.py` (regexes match the path with
+the leading slash stripped), covered by `backend/tests/test_health_endpoint.py` — including a
+negative test that reproduces the 301 if the exemption is ever removed.
+
+> Worker and beat were a separate failure with the same symptom. See the Celery note above.
 
 **`ALLOWED_HOSTS` dependency.** Railway sends healthcheck requests with
 `Host: healthcheck.railway.app`. Django answers `DisallowedHost` 400 for unknown
