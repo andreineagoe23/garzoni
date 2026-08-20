@@ -4,7 +4,12 @@ import { Animated, Dimensions, Image, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { useAuthSession } from "../src/auth/AuthContext";
-import { fetchProfile, fetchQuestionnaireProgress } from "@garzoni/core";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  fetchProfile,
+  fetchQuestionnaireProgress,
+  queryKeys,
+} from "@garzoni/core";
 import {
   getPlanChosenCache,
   getWelcomeSeen,
@@ -51,6 +56,7 @@ async function resolvePushPromptStatus(): Promise<PushPromptStatus> {
 
 export default function Index() {
   const { hydrated, accessToken } = useAuthSession();
+  const queryClient = useQueryClient();
   const [welcomeStatus, setWelcomeStatus] = useState<WelcomeStatus>("pending");
   const [onboardingStatus, setOnboardingStatus] =
     useState<OnboardingStatus>("pending");
@@ -100,9 +106,30 @@ export default function Index() {
     })();
 
     void (async () => {
+      // The plan cache is a local read, so consult it BEFORE anything hits the
+      // network: it decides whether the profile call is needed at all. Previously
+      // the questionnaire call was awaited first and the profile call only started
+      // afterwards, making two independent requests strictly serial — a full extra
+      // round trip (up to 8s of timeout budget) on the splash for every
+      // authenticated cold start that had no cached plan.
+      const planCached = await getPlanChosenCache();
+      if (cancelled) return;
+
+      const progressPromise = withTimeout(fetchQuestionnaireProgress(), 8000);
+      // Fired in parallel, not awaited yet. Skipped entirely when the cache
+      // already answers the question, so this adds no request for returning users.
+      const profilePromise = planCached
+        ? null
+        : withTimeout(fetchProfile(), 8000).catch(() => null);
+
       try {
-        const progress = await withTimeout(fetchQuestionnaireProgress(), 8000);
+        const progress = await progressPromise;
         if (cancelled) return;
+        // Hand the result to React Query so the dashboard and learn tab reuse it
+        // instead of re-requesting the same endpoint seconds later. These boot
+        // probes are raw apiClient calls, so without this they never reached the
+        // cache and every app open paid for the same data twice.
+        queryClient.setQueryData(queryKeys.questionnaireProgress(), progress);
         const needsOnboarding = progress.status !== "completed";
         setOnboardingStatus(needsOnboarding ? "needs_onboarding" : "done");
         if (needsOnboarding) {
@@ -114,13 +141,16 @@ export default function Index() {
       }
 
       try {
-        const planCached = await getPlanChosenCache();
         if (cancelled) return;
         if (planCached) {
           setPlanStatus("chosen");
           return;
         }
-        const profile = (await withTimeout(fetchProfile(), 8000)).data;
+        const profileRes = await profilePromise;
+        if (cancelled) return;
+        if (!profileRes) throw new Error("profile unavailable");
+        const profile = profileRes.data;
+        queryClient.setQueryData(queryKeys.profile(), profile);
         const chosen =
           Boolean(profile.subscription_plan_id) ||
           Boolean(
@@ -141,7 +171,7 @@ export default function Index() {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, accessToken]);
+  }, [hydrated, accessToken, queryClient]);
 
   if (
     !hydrated ||

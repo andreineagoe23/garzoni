@@ -291,8 +291,7 @@ function LearnInner() {
   const questionnaireQuery = useQuery({
     queryKey: queryKeys.questionnaireProgress(),
     queryFn: fetchQuestionnaireProgress,
-    staleTime: 0,
-    refetchOnMount: true,
+    staleTime: staleTimes.questionnaireProgress,
     enabled: hydrated && Boolean(accessToken),
   });
 

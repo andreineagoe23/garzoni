@@ -350,6 +350,17 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    # JSON only, in every environment. DRF's default list also carries
+    # BrowsableAPIRenderer, which content-negotiates on Accept: an anonymous
+    # `Accept: text/html` to any endpoint returned a 38 KB HTML page plus a
+    # `Set-Cookie: csrftoken`. On the Cloudflare-cached /api/public/* prefix that is
+    # one Set-Cookie behaviour change away from the edge storing an HTML variant
+    # under the JSON cache key (Cloudflare does not honour `Vary: Accept`).
+    #
+    # Deliberately NOT gated on DEBUG: a security property that only holds in
+    # production cannot be covered by a test, and this one is worth a test. The
+    # browsable API is redundant anyway — /api/docs/ (Swagger) is the dev explorer.
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
@@ -378,6 +389,25 @@ SPECTACULAR_SETTINGS = {
     ),
     "VERSION": os.getenv("API_VERSION", "0.1.0"),
     "SERVE_INCLUDE_SCHEMA": False,
+    # drf-spectacular defaults these views to AllowAny. /api/schema/ was serving a
+    # 157 KB OpenAPI document — a complete map of every endpoint, parameter and
+    # auth requirement — to anonymous callers, at ~690 ms per request.
+    #
+    # Staff-only everywhere by default, including local dev, so the secure default
+    # is the one under test. Set API_DOCS_PUBLIC=true in backend/.env to browse the
+    # docs without a staff login locally.
+    "SERVE_PERMISSIONS": (
+        ["rest_framework.permissions.AllowAny"]
+        if env_bool("API_DOCS_PUBLIC", False)
+        else ["rest_framework.permissions.IsAdminUser"]
+    ),
+    # The project-wide default authenticator is JWT-only. Staff reach /api/docs/ from
+    # a browser holding a Django admin session cookie, not a bearer token, so session
+    # auth has to be allowed here or IsAdminUser would 403 every real admin.
+    "SERVE_AUTHENTICATION": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
 }
 
 try:
@@ -644,6 +674,13 @@ else:
 
 # Base API URL (including /api). Used to generate absolute links in emails.
 BACKEND_URL = (os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/api").rstrip("/")
+
+# Origin (scheme + host, no path) used to build absolute media URLs in responses
+# that are edge-cached and must therefore not depend on the incoming request's
+# Host / X-Forwarded-Host. Derived from BACKEND_URL by dropping the trailing /api.
+PUBLIC_MEDIA_ORIGIN = (
+    os.getenv("PUBLIC_MEDIA_ORIGIN", "").strip() or re.sub(r"/api/?$", "", BACKEND_URL)
+).rstrip("/")
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")

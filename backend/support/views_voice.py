@@ -17,6 +17,8 @@ from rest_framework.views import APIView
 
 from authentication.entitlements import check_and_consume_entitlement
 
+from .throttles import AIUploadRateThrottle
+
 logger = logging.getLogger(__name__)
 
 _TTS_VOICE = "nova"
@@ -39,6 +41,7 @@ class VoiceTutorView(APIView):
 
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [AIUploadRateThrottle]
 
     def post(self, request):
         allowed, meta = check_and_consume_entitlement(request.user, "ai_voice")
@@ -85,7 +88,9 @@ class VoiceTutorView(APIView):
 
             # 2. GPT answer (use full tutor service for context injection)
             from support.services.openai import OpenAIService
-            from authentication.entitlements import check_and_consume_entitlement as _cace
+            from authentication.entitlements import (
+                check_and_consume_entitlement as _cace,
+            )
 
             class _FakeRequest:
                 def __init__(self, user, text):

@@ -57,6 +57,38 @@ def sanitize_media_delivery_url(url: str) -> str:
     return u
 
 
+def canonical_file_field_url(file_field) -> str | None:
+    """Absolute URL for a FileField built WITHOUT reading the request.
+
+    Same result as `absolute_file_field_url` for Cloudinary-backed storage (the
+    stored URL is already absolute either way). The difference matters only for
+    locally-served media, where the request-based version calls
+    `request.build_absolute_uri` — and `request.get_host()` honours the
+    attacker-supplied `X-Forwarded-Host` header because `USE_X_FORWARDED_HOST`
+    is on. ALLOWED_HOSTS keeps that to a *known* host, so it is not an open
+    redirect, but on the Cloudflare-cached /api/public/* responses it still means
+    one caller's header could pick the host every later caller sees for 10
+    minutes. Public, cacheable payloads use this instead.
+    """
+    if not file_field:
+        return None
+    try:
+        raw = file_field.url
+    except (ValueError, AttributeError):
+        raw = ""
+    raw = (raw or "").strip()
+    if raw.startswith("//"):
+        raw = f"https:{raw}"
+    if raw.startswith("http://") or raw.startswith("https://"):
+        return sanitize_media_delivery_url(raw)
+    rel = normalize_media_relative_path(getattr(file_field, "name", "") or "")
+    if not rel:
+        return None
+    origin = (getattr(settings, "PUBLIC_MEDIA_ORIGIN", "") or "").rstrip("/")
+    media_url = settings.MEDIA_URL.rstrip("/")
+    return sanitize_media_delivery_url(f"{origin}{media_url}/{rel}")
+
+
 def absolute_file_field_url(request, file_field) -> str | None:
     """
     Absolute URL for a FileField/ImageField.
