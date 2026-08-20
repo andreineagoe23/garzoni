@@ -251,19 +251,22 @@ def _rank_members(members: list[LeagueMember]) -> list[LeagueMember]:
     return sorted(members, key=lambda m: (-m.weekly_xp, m.joined_at, m.user_id))
 
 
-def _close_one_league(league: League) -> int:
-    """Rank, set final_rank/outcome, and pay out for one league. Returns the
-    number of members processed. Idempotent: weekly_xp is not mutated here,
-    so re-running recomputes the identical ranking/outcome, and grant_reward's
-    ledger uniqueness on event_key makes the payout itself a no-op the second
-    time."""
+def _close_one_league(league: League) -> list[dict]:
+    """Rank, set final_rank/outcome, and pay out for one league. Returns one
+    settled row per member, so the caller can announce the result *after* the
+    transaction commits — an HTTP call to Customer.io inside `atomic()` would
+    hold the row locks open for the length of a network round trip. Idempotent:
+    weekly_xp is not mutated here, so re-running recomputes the identical
+    ranking/outcome, and grant_reward's ledger uniqueness on event_key makes the
+    payout itself a no-op the second time."""
     with transaction.atomic():
         members = list(
             LeagueMember.objects.select_for_update().select_related("user").filter(league=league)
         )
         if not members:
-            return 0
+            return []
 
+        settled: list[dict] = []
         ranked = _rank_members(members)
         total = len(ranked)
         promote_n = demote_n = 0
@@ -302,7 +305,65 @@ def _close_one_league(league: League) -> int:
                     extra={"league_id": league.id, "user_id": member.user_id},
                 )
 
-        return total
+            settled.append(
+                {
+                    "user": member.user,
+                    "rank": rank,
+                    "outcome": outcome,
+                    "tier": league.tier,
+                    "cohort_size": total,
+                    "weekly_xp": int(member.weekly_xp or 0),
+                }
+            )
+
+        return settled
+
+
+def _announce_league_results(settled: list[dict], cycle_id: str) -> int:
+    """Emit `league_week_closed` per member so a Customer.io journey can tell
+    people how their week went.
+
+    Leagues have been closing every Sunday at 23:55 and nobody was ever told —
+    the whole competitive loop settled in silence. Runs after the settlement
+    transaction has committed, and never raises: a messaging failure must not
+    make a settled league look unsettled.
+    """
+    from django.conf import settings as dj_settings
+
+    if not settled or not getattr(dj_settings, "CIO_JOURNEY_EVENTS_ENABLED", False):
+        return 0
+    try:
+        from notifications.enums import CioEventName
+        from notifications.events import NotificationEvents
+    except Exception:
+        logger.exception("close_week: notifications import failed")
+        return 0
+
+    publisher = NotificationEvents()
+    sent = 0
+    for row in settled:
+        try:
+            ok, _ = publisher.track(
+                row["user"],
+                CioEventName.LEAGUE_WEEK_CLOSED,
+                {
+                    "cycle_id": cycle_id,
+                    "tier": row["tier"],
+                    "rank": row["rank"],
+                    "outcome": row["outcome"],
+                    "cohort_size": row["cohort_size"],
+                    "weekly_xp": row["weekly_xp"],
+                },
+                identify_first=True,
+            )
+            if ok:
+                sent += 1
+        except Exception:
+            logger.exception(
+                "close_week: league_week_closed publish failed",
+                extra={"user_id": getattr(row.get("user"), "id", None)},
+            )
+    return sent
 
 
 def close_week(cycle_id: Optional[str] = None) -> dict:
@@ -321,10 +382,13 @@ def close_week(cycle_id: Optional[str] = None) -> dict:
     members_processed = 0
     for league in League.objects.filter(cycle_id=cid).iterator(chunk_size=100):
         try:
-            members_processed += _close_one_league(league)
+            settled = _close_one_league(league)
+            members_processed += len(settled)
             leagues_closed += 1
         except Exception:
             logger.exception("close_week: failed to close league %s", league.id)
+            continue
+        _announce_league_results(settled, cid)
 
     return {
         "enabled": True,

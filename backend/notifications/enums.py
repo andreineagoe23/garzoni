@@ -41,3 +41,12 @@ class CioEventName(str, Enum):
     COACH_NUDGE = "coach_nudge"
     STREAK_ABOUT_TO_EXPIRE = "streak_about_to_expire"
     INACTIVITY_NUDGE = "inactivity_nudge"
+    # Celebration events. Both fire on something the user *earned*, which is the
+    # only kind of notification that reliably improves retention rather than
+    # spending it — a badge nobody is told about does no work.
+    # The conversion signal every retention journey is measured against. Emitted
+    # server-side so web counts too — the mobile SDK's client-side copy never
+    # reached the workspace, which is why every campaign reported 0 conversions.
+    LESSON_COMPLETED = "lesson_completed"
+    STREAK_MILESTONE = "streak_milestone"
+    LEAGUE_WEEK_CLOSED = "league_week_closed"

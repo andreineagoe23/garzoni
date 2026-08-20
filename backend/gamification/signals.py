@@ -92,6 +92,31 @@ except Exception:  # pragma: no cover - app registry/import edge during setup
     FunnelEvent = None
 
 
+def _emit_lesson_completed(user, lesson, course) -> None:
+    """Publish `lesson_completed` to Customer.io. Best-effort, never raises —
+    a messaging failure must not break the lesson the user just finished."""
+    from django.conf import settings as dj_settings
+
+    if not getattr(dj_settings, "CIO_JOURNEY_EVENTS_ENABLED", False):
+        return
+    try:
+        from notifications.enums import CioEventName
+        from notifications.events import NotificationEvents
+
+        NotificationEvents().track(
+            user,
+            CioEventName.LESSON_COMPLETED,
+            {
+                "lesson_id": getattr(lesson, "id", None),
+                "lesson_title": getattr(lesson, "title", "") or "",
+                "course_id": getattr(course, "id", None),
+                "course_title": getattr(course, "title", "") or "",
+            },
+        )
+    except Exception:
+        logger.warning("lesson_completed CIO publish failed user_id=%s", user.id, exc_info=True)
+
+
 if LessonCompletion is not None:
 
     @receiver(post_save, sender=LessonCompletion)
@@ -108,6 +133,11 @@ if LessonCompletion is not None:
             course_id=getattr(course, "id", None),
             course_title=getattr(course, "title", None),
         )
+        # `lesson_completed` is the conversion event every retention journey is
+        # scored on, and the exit condition that stops a comeback sequence the
+        # moment it works. Emitted here rather than from the mobile SDK so web
+        # counts identically — the client-side copy never reached the workspace.
+        _emit_lesson_completed(user, lesson, course)
         # Refresh the `lessons_completed` trait on first lesson — the Welcome
         # journey's day-7 branch needs it. Subsequent lessons can wait for the
         # next regular identify; avoid hammering CIO per lesson.

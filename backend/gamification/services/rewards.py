@@ -110,6 +110,35 @@ def _quantize_coins(value: Decimal) -> Decimal:
     return value.quantize(Decimal("0.01"))
 
 
+def _emit_streak_milestone_event(user: User, threshold: int, streak_after: int) -> None:
+    """Tell Customer.io the user just crossed a streak milestone.
+
+    The bonus XP and coins have always been granted here; nobody was ever told.
+    A milestone the user never hears about buys no retention, so this is the
+    event a celebration journey triggers on. Best-effort by design: a messaging
+    failure must never roll back a reward the user has already earned.
+    """
+    from django.conf import settings as dj_settings
+
+    if not getattr(dj_settings, "CIO_JOURNEY_EVENTS_ENABLED", False):
+        return
+    try:
+        from notifications.enums import CioEventName
+        from notifications.events import NotificationEvents
+
+        NotificationEvents().track(
+            user,
+            CioEventName.STREAK_MILESTONE,
+            {"milestone": int(threshold), "streak_count": int(streak_after)},
+            identify_first=True,
+        )
+    except Exception:
+        logger.exception(
+            "streak milestone event publish failed",
+            extra={"user_id": user.id, "milestone": threshold},
+        )
+
+
 def _maybe_streak_milestones(user: User, streak_before: int, streak_after: int) -> None:
     if streak_after <= streak_before:
         return
@@ -124,6 +153,7 @@ def _maybe_streak_milestones(user: User, streak_before: int, streak_after: int) 
                 bump_streak="none",
                 evaluate_badges=True,
             )
+            _emit_streak_milestone_event(user, threshold, streak_after)
 
 
 def _apply_streak_bump(
