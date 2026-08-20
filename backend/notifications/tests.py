@@ -761,3 +761,56 @@ class StreakSweepTimezoneTests(TestCase):
         self.assertIn(local_today, (server_today, server_today - timedelta(days=1)))
         # The at-risk test is against the user's own yesterday.
         self.assertEqual(local_today - timedelta(days=1), local_today - timedelta(days=1))
+
+
+class CustomerIoProfileDeletionTests(TestCase):
+    """A Customer.io profile must not outlive its Django user.
+
+    89 of the 179 profiles in the workspace on 2026-08-20 had no Django row.
+    Only the account-deletion *view* removed the profile, so every other way a
+    user can disappear - the admin, a shell, a cascade - leaked one. Each orphan
+    keeps entering journeys and keeps failing its email send on
+    "undefined variable: customer.email".
+    """
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        self.user = User.objects.create_user(
+            username="deleteme", email="deleteme@example.com", password="pw12345!"
+        )
+
+    @patch("notifications.tasks.delete_user_from_customer_io.delay")
+    def test_deleting_a_user_removes_the_customer_io_profile(self, mock_delay):
+        person_id = str(self.user.pk)
+        # The dispatch is deferred to transaction commit so a rolled-back delete
+        # never removes a live person's profile; TestCase wraps each test in a
+        # transaction that is never committed, so run the callbacks explicitly.
+        with self.captureOnCommitCallbacks(execute=True):
+            self.user.delete()
+        mock_delay.assert_called_once_with(person_id)
+
+    @patch("notifications.tasks.delete_user_from_customer_io.delay")
+    def test_admin_style_queryset_delete_also_removes_the_profile(self, mock_delay):
+        """`.delete()` on a queryset is how the Django admin removes users, and
+        it bypasses any view-level cleanup entirely."""
+        from django.contrib.auth.models import User
+
+        person_id = str(self.user.pk)
+        with self.captureOnCommitCallbacks(execute=True):
+            User.objects.filter(pk=self.user.pk).delete()
+        mock_delay.assert_called_once_with(person_id)
+
+    @patch("notifications.customer_io.delete_person")
+    def test_broker_outage_falls_back_to_an_inline_delete(self, mock_delete_person):
+        """If Celery is unreachable the profile must still go. Silently skipping
+        here is precisely how the orphans accumulated."""
+        from notifications.tasks import safe_enqueue_delete_user_from_customer_io
+
+        mock_delete_person.return_value = (True, None)
+        with patch(
+            "notifications.tasks.delete_user_from_customer_io.delay",
+            side_effect=RuntimeError("broker down"),
+        ):
+            safe_enqueue_delete_user_from_customer_io("4242")
+        mock_delete_person.assert_called_once_with("4242")

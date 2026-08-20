@@ -160,6 +160,63 @@ def send_password_changed_email_task(
     )
 
 
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_kwargs={"max_retries": 5},
+)
+def delete_user_from_customer_io(self, person_id: str) -> str:
+    """Remove a deleted account's Customer.io profile.
+
+    Takes the person id, not a user id: by the time this runs the Django row is
+    gone, so there is nothing left to look up. Retries hard — a profile that
+    outlives its account keeps entering journeys, keeps failing every email send
+    on `undefined variable: customer.email`, and keeps counting against the
+    profile allowance. 89 of the 179 profiles in the workspace on 2026-08-20 were
+    exactly this, because nothing reconciled a failed delete.
+    """
+    from notifications.customer_io import delete_person
+
+    ok, err = delete_person(str(person_id))
+    if not ok:
+        # Raise so autoretry_for picks it up rather than losing the profile.
+        raise RuntimeError(f"customer.io delete failed for person_id={person_id}: {err}")
+    return "ok"
+
+
+def safe_enqueue_delete_user_from_customer_io(person_id: str) -> None:
+    """Queue the profile delete, falling back to an inline call if the broker is down.
+
+    Never raises: account deletion must succeed for the user even when Customer.io
+    or Redis does not. A failure here is logged at error level precisely because
+    it is the case that silently accumulates orphans.
+    """
+    try:
+        delete_user_from_customer_io.delay(str(person_id))
+        return
+    except Exception:
+        logger.warning(
+            "delete_user_from_customer_io.delay failed for person_id=%s — "
+            "broker may be unavailable. Deleting inline.",
+            person_id,
+            exc_info=True,
+        )
+    try:
+        from notifications.customer_io import delete_person
+
+        ok, err = delete_person(str(person_id))
+        if not ok:
+            logger.error(
+                "customer.io profile NOT deleted for person_id=%s: %s — "
+                "this leaves an orphaned profile; run `manage.py cio_find_orphans`",
+                person_id,
+                err,
+            )
+    except Exception:
+        logger.exception("customer.io inline delete raised for person_id=%s", person_id)
+
+
 def safe_enqueue_sync_user_to_customer_io(user_id: int) -> None:
     """
     Queue Customer.io profile sync without failing the HTTP request if Celery/Redis is down.

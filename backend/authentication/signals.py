@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
 from django.db import transaction
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from authentication.models import UserEmailPreference, UserProfile
@@ -18,7 +18,11 @@ from authentication.services.profile_analytics import (
 from authentication.tasks import send_welcome_email
 from core.request_platform import resolve_request_platform
 from core.utils import normalize_text_encoding
-from notifications.tasks import safe_enqueue_sync_user_to_customer_io
+from notifications.identity import customer_io_person_id
+from notifications.tasks import (
+    safe_enqueue_delete_user_from_customer_io,
+    safe_enqueue_sync_user_to_customer_io,
+)
 
 # Fields whose change should re-push the CIO profile so email/name stay in sync.
 _CIO_SYNC_FIELDS = ("email", "first_name", "last_name", "username")
@@ -155,6 +159,36 @@ def create_user_profile(sender, instance, created, **kwargs):
         threading.Thread(target=_dispatch, daemon=True).start()
 
     transaction.on_commit(_enqueue_cio_update_sync)
+
+
+@receiver(post_delete, sender=User)
+def delete_customer_io_profile(sender, instance, **kwargs):
+    """Remove the Customer.io profile whenever a User row disappears.
+
+    The account-deletion view already called this explicitly, but that covered
+    exactly one of the ways a user can be removed. Deletions from the Django
+    admin, a management shell, a data migration or a cascade all bypassed it, and
+    the profile was left behind forever — 89 of the 179 profiles in the workspace
+    on 2026-08-20 had no Django row at all. A profile that outlives its account
+    still enters journeys and still fails every email send.
+
+    post_delete rather than pre_delete so the profile is only removed once the
+    row is actually gone; `instance.pk` is still populated here. Enqueued on
+    commit so a rolled-back transaction does not delete a live person's profile.
+    """
+    person_id = customer_io_person_id(instance)
+    if not person_id or person_id == "None":
+        return
+
+    def _dispatch():
+        safe_enqueue_delete_user_from_customer_io(person_id)
+
+    try:
+        transaction.on_commit(_dispatch)
+    except Exception:
+        # Outside an atomic block on_commit runs inline; if it raises, never let
+        # a messaging concern block the deletion itself.
+        logger.exception("cio profile delete dispatch failed for person_id=%s", person_id)
 
 
 @receiver(user_logged_in)
