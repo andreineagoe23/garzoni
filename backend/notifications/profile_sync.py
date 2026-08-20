@@ -109,6 +109,17 @@ def build_identify_traits(user: User) -> dict[str, Any]:
     # can render `{{customer.preferences_url}}` / `{{customer.unsubscribe_url}}`
     # instead of pointing recipients at /settings (which bounces them off the
     # auth wall when they're not logged in).
+    #
+    # These two traits must ALWAYS be present. A CIO template that renders
+    # `{{customer.preferences_url}}` on a profile that lacks the trait does not
+    # fall back — Liquid raises "undefined variable" and the send is dropped
+    # with state=failed. That accounted for 43 of 355 emails created in the 60
+    # days to 2026-08-20. The signed-token URL is the good one; the settings
+    # page is the floor so the trait is never missing.
+    web_base = (getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    fallback_url = f"{web_base}/settings" if web_base else "https://www.garzoni.app/settings"
+    traits["preferences_url"] = fallback_url
+    traits["unsubscribe_url"] = fallback_url
     if profile is not None:
         api_base = (getattr(settings, "BACKEND_URL", "") or "").rstrip("/")
         if api_base:
@@ -117,7 +128,8 @@ def build_identify_traits(user: User) -> dict[str, Any]:
                 traits["preferences_url"] = f"{api_base}/email/preferences/?token={token}"
                 traits["unsubscribe_url"] = f"{api_base}/email/unsubscribe/?token={token}"
             except Exception:
-                # Best-effort CIO trait — templates fall back to /settings if absent.
+                # Best-effort: the signed URL is nicer, but the fallback above
+                # already guarantees the trait exists.
                 logger.debug("unsubscribe token URL build failed", exc_info=True)
     traits["last_seen_at"] = int(timezone.now().timestamp())
 

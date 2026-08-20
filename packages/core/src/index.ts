@@ -170,6 +170,13 @@ export type { ResolvedMascotPresentation } from "./engagement/mascotPresentation
 export { MOOD_TO_MASCOT } from "./engagement/mascotTypes";
 export { mergeMissionDeltas } from "./engagement/missionDeltas";
 export {
+  APP_OPENED_LAST_YMD_KEY,
+  todayYmdLocal,
+  shouldFireAppOpened,
+  runAppOpenedDailyGate,
+} from "./engagement/appOpenedDaily";
+export type { AppOpenedGateAdapter } from "./engagement/appOpenedDaily";
+export {
   getMissionPresentation,
   resolveQuestStepRoute,
   msUntilDailyReset,
