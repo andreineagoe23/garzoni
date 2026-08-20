@@ -678,9 +678,18 @@ BACKEND_URL = (os.getenv("BACKEND_URL", "").strip() or "http://localhost:8000/ap
 # Origin (scheme + host, no path) used to build absolute media URLs in responses
 # that are edge-cached and must therefore not depend on the incoming request's
 # Host / X-Forwarded-Host. Derived from BACKEND_URL by dropping the trailing /api.
-PUBLIC_MEDIA_ORIGIN = (
-    os.getenv("PUBLIC_MEDIA_ORIGIN", "").strip() or re.sub(r"/api/?$", "", BACKEND_URL)
-).rstrip("/")
+#
+# BACKEND_URL defaults to http://localhost:8000/api, which would bake a localhost
+# URL into a publicly cached response if it were ever unset in production. These
+# URLs are served to every visitor for 10 minutes, so guess the canonical API host
+# rather than emit something certainly wrong.
+from settings.public_media import resolve_public_media_origin  # noqa: E402
+
+PUBLIC_MEDIA_ORIGIN = resolve_public_media_origin(
+    explicit=os.getenv("PUBLIC_MEDIA_ORIGIN", ""),
+    backend_url=BACKEND_URL,
+    debug=DEBUG or _IS_BUILD_PHASE,
+)
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")

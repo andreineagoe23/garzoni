@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { APP_OPENED_LAST_YMD_KEY, runAppOpenedDailyGate } from "@garzoni/core";
 import type { UserProfile } from "types/api";
 
 declare global {
@@ -88,6 +89,37 @@ export async function identifyCustomerIoUser(
   if (created) traits.created_at = created;
 
   cioQueue().push(["identify", traits]);
+}
+
+/**
+ * Emit `app_opened` at most once per browser-local day.
+ *
+ * Every Customer.io inactivity segment is "has NOT performed `app_opened`
+ * within N days", and until now only the React Native SDK emitted it — so a
+ * web-only user who logged in daily still sat in "Inactive 3+ days" forever and
+ * collected the day-3 comeback mail. Same event name, same once-a-day gate as
+ * mobile (the gate is shared in @garzoni/core) so the segments mean the same
+ * thing on both platforms.
+ */
+export async function fireAppOpenedDailyWeb(): Promise<void> {
+  if (!SITE_ID) return;
+  await runAppOpenedDailyGate({
+    readLastFired: () => {
+      try {
+        return window.localStorage.getItem(APP_OPENED_LAST_YMD_KEY);
+      } catch {
+        return null;
+      }
+    },
+    writeLastFired: (ymd) => {
+      try {
+        window.localStorage.setItem(APP_OPENED_LAST_YMD_KEY, ymd);
+      } catch {
+        /* private mode / storage full — the event still fired */
+      }
+    },
+    track: () => trackCustomerIoEvent("app_opened", { platform: "web" }),
+  });
 }
 
 export async function resetCustomerIoWeb(): Promise<void> {

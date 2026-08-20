@@ -17,7 +17,9 @@ Two things are being held in place here, both found by the 2026-08-19 audit:
 """
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
+
+from settings.public_media import resolve_public_media_origin as _resolve_public_media_origin
 
 from education.models import Course, Lesson, Path
 
@@ -186,3 +188,46 @@ class CachedMediaUrlTests(TestCase):
         )
 
         self.assertEqual(detail["image_url"], listed["image_url"])
+
+
+class PublicMediaOriginTests(SimpleTestCase):
+    """The origin baked into cached media URLs must never be localhost in prod.
+
+    BACKEND_URL defaults to http://localhost:8000/api. If it were ever unset on
+    the server, every cached /api/public/* response would advertise a localhost
+    image URL to every visitor for 10 minutes.
+    """
+
+    def test_configured_value_wins(self):
+        origin = _resolve_public_media_origin(
+            explicit="https://cdn.example.com/", backend_url="https://x/api", debug=False
+        )
+
+        self.assertEqual(origin, "https://cdn.example.com")
+
+    def test_derived_from_backend_url_by_dropping_api(self):
+        origin = _resolve_public_media_origin(
+            explicit="", backend_url="https://api.garzoni.app/api", debug=False
+        )
+
+        self.assertEqual(origin, "https://api.garzoni.app")
+
+    def test_localhost_is_rejected_in_production(self):
+        origin = _resolve_public_media_origin(
+            explicit="", backend_url="http://localhost:8000/api", debug=False
+        )
+
+        self.assertEqual(origin, "https://api.garzoni.app")
+
+    def test_localhost_is_kept_in_debug(self):
+        origin = _resolve_public_media_origin(
+            explicit="", backend_url="http://localhost:8000/api", debug=True
+        )
+
+        self.assertEqual(origin, "http://localhost:8000")
+
+    def test_empty_backend_url_still_yields_a_reachable_origin(self):
+        """Never return "" — a relative //media/... URL would resolve to the caller."""
+        origin = _resolve_public_media_origin(explicit="", backend_url="", debug=False)
+
+        self.assertTrue(origin.startswith("https://"))

@@ -11,7 +11,11 @@ import apiClient from "services/httpClient";
 import { EntitlementFeature } from "types/api";
 import { attachToken } from "services/httpClient";
 import { queryClient, queryKeys } from "lib/reactQuery";
-import { identifyCustomerIoUser, resetCustomerIoWeb } from "hooks/useCio";
+import {
+  fireAppOpenedDailyWeb,
+  identifyCustomerIoUser,
+  resetCustomerIoWeb,
+} from "hooks/useCio";
 import type { Entitlements, FinancialProfile, UserProfile } from "types/api";
 
 type ApiErrorResponse = {
@@ -866,6 +870,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     () => {
       if (isAuthenticated && user?.id) {
         void identifyCustomerIoUser(user);
+        // Web has to emit `app_opened` too or the CIO inactivity segments treat
+        // every web-only user as permanently lapsed. Debounced to once a day.
+        void fireAppOpenedDailyWeb();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
