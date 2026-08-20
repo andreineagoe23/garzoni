@@ -191,8 +191,13 @@ function DashboardInner() {
     enabled: hasSession,
   });
 
-  const secondaryQueriesEnabled =
-    hasSession && progressQuery.isSuccess && profileQuery.isSuccess;
+  // Was `hasSession && progressQuery.isSuccess && profileQuery.isSuccess`, which
+  // cost a whole extra round-trip stage on every cold start: none of the queries
+  // below reads progress or profile, so the gate was sequencing, not a data
+  // dependency. It was also a failure cascade — one transient profile error left
+  // review, missions, mastery, smart-resume and the heatmap permanently unfetched
+  // for that session, silently rendering a half-empty dashboard.
+  const secondaryQueriesEnabled = hasSession;
 
   const entitlementsQuery = useQuery({
     queryKey: queryKeys.entitlements(),
@@ -204,8 +209,7 @@ function DashboardInner() {
   const questionnaireQuery = useQuery({
     queryKey: queryKeys.questionnaireProgress(),
     queryFn: fetchQuestionnaireProgress,
-    staleTime: 0,
-    refetchOnMount: true,
+    staleTime: staleTimes.questionnaireProgress,
     enabled: hasSession,
   });
 

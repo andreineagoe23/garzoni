@@ -45,7 +45,13 @@ export default function CourseFlowRoute() {
     );
   }
 
-  if (!hydrated || courseQuery.isPending) {
+  // Deliberately does NOT wait on courseQuery. `courseId` is already known from
+  // the route params, so gating here delayed LessonFlowScreen's own lessons +
+  // flow-state queries behind a metadata fetch whose only use is the header
+  // title — one avoidable round trip before lesson content can paint. `title`
+  // falls back to `Course ${id}` and swaps in when the query lands; `key` is
+  // courseId, not query state, so the late title does not remount the flow.
+  if (!hydrated) {
     return (
       <SafeAreaView style={safeAreaStyle}>
         <Stack.Screen options={{ headerShown: false }} />

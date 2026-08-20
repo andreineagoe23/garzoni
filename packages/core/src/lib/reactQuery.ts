@@ -98,6 +98,13 @@ export const staleTimes = {
   // Progress summary is used across multiple screens; keep it fresh-ish but avoid unnecessary refetching.
   progressSummary: 5 * MINUTE,
 
+  // Questionnaire progress only changes when the user finishes onboarding, and
+  // that path already invalidates this key (mobile/app/onboarding.tsx). It was
+  // previously read with staleTime: 0 + refetchOnMount on both the dashboard and
+  // the learn tab, which forced a refetch on every mount of either — a guaranteed
+  // extra round trip per app open for a value that almost never changes.
+  questionnaireProgress: 5 * MINUTE,
+
   // Hearts: short-lived (server truth can change from other tabs / sessions).
   hearts: 15_000,
 

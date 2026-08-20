@@ -15,6 +15,23 @@ class ContactRateThrottle(AnonRateThrottle):
         return getattr(settings, "CONTACT_THROTTLE_RATE", "5/min")
 
 
+class AIUploadRateThrottle(UserRateThrottle):
+    """Ceiling on the multipart AI endpoints (voice tutor, receipt scan).
+
+    The OpenAI spend on these is already capped by `check_and_consume_entitlement`
+    and the per-plan daily token budget. This throttle exists for a different
+    reason: both endpoints accept a 20-25 MB upload, and the body is on the wire
+    before the entitlement check can reject it. Without a scope here the only
+    ceiling was the global `user` rate of 500/day, i.e. ~12 GB/day/user of
+    ingress for requests that mostly answer 402.
+    """
+
+    scope = "ai_upload"
+
+    def get_rate(self):
+        return getattr(settings, "AI_UPLOAD_THROTTLE_RATE", "60/hour")
+
+
 class AITutorPlanRateThrottle(UserRateThrottle):
     """
     Per-user rate limits for AI tutor proxy, with higher limits for premium users.

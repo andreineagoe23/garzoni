@@ -13,6 +13,8 @@ from rest_framework.decorators import api_view, permission_classes, throttle_cla
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from core.media_url import canonical_file_field_url
+
 from .models import Article, Lesson, LessonSection
 
 
@@ -43,12 +45,7 @@ def public_lesson_detail(request, slug: str):
     except Lesson.DoesNotExist:
         raise Http404("Lesson not found")
 
-    image_url = ""
-    try:
-        if lesson.image:
-            image_url = request.build_absolute_uri(lesson.image.url)
-    except Exception:
-        image_url = ""
+    image_url = canonical_file_field_url(lesson.image) or ""
 
     # Lessons carry no timestamp of their own, but each section has a real
     # auto_now updated_at. The newest section edit is an honest "last updated"
@@ -109,12 +106,7 @@ def public_lesson_list(request):
 
     items = []
     for lesson in lessons:
-        image_url = ""
-        try:
-            if lesson.image:
-                image_url = request.build_absolute_uri(lesson.image.url)
-        except Exception:
-            image_url = ""
+        image_url = canonical_file_field_url(lesson.image) or ""
         items.append(
             {
                 "slug": lesson.slug,
@@ -151,7 +143,7 @@ def _article_card(article: Article) -> dict:
         "title": article.title,
         "category": article.category,
         "excerpt": article.excerpt or "",
-        "image_url": article.image.url if article.image else "",
+        "image_url": canonical_file_field_url(article.image) or "",
         "published_at": article.published_at.isoformat() if article.published_at else None,
         "updated_at": article.updated_at.isoformat() if article.updated_at else None,
     }
@@ -180,12 +172,7 @@ def public_article_detail(request, slug: str):
     except Article.DoesNotExist:
         raise Http404("Article not found")
 
-    image_url = ""
-    try:
-        if article.image:
-            image_url = request.build_absolute_uri(article.image.url)
-    except Exception:
-        image_url = ""
+    image_url = canonical_file_field_url(article.image) or ""
 
     payload = {
         "slug": article.slug,
