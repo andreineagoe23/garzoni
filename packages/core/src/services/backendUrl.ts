@@ -40,9 +40,11 @@ function inferBackendUrl(): string {
     const proto = (protocol || "").toLowerCase();
     if (proto === "https:") {
       // Reaching here in production means VITE_BACKEND_URL was not baked into the
-      // build. There is no same-origin /api proxy any more (the Vercel rewrites were
-      // removed 2026-08-19 — they infinite-looped on trailing slashes), so every API
-      // call from here 404s. Silent before; say so loudly instead of shipping a dead app.
+      // build. There is no same-origin /api proxy any more — the rewrites in
+      // frontend/vercel.json were removed 2026-08-20 because they infinite-looped:
+      // trailingSlash:false stripped the slash, the proxy forwarded to Django, and
+      // APPEND_SLASH redirected it straight back. So every API call from here 404s.
+      // Silent before; say so loudly instead of shipping a dead app.
       console.error(
         "[garzoni] VITE_BACKEND_URL is not set — falling back to same-origin /api, " +
           "which is not proxied. Every API call will fail. Set VITE_BACKEND_URL for this build.",

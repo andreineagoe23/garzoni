@@ -6,24 +6,17 @@
   "redirects": [
     {
       "source": "/((?!\\.well-known/).*)",
-      "has": [{ "type": "host", "value": "garzoni.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "garzoni.app"
+        }
+      ],
       "destination": "https://www.garzoni.app/$1",
       "permanent": true
     }
   ],
   "rewrites": [
-    {
-      "source": "/api",
-      "destination": "https://garzoni-production.up.railway.app/api"
-    },
-    {
-      "source": "/api/:path*/",
-      "destination": "https://garzoni-production.up.railway.app/api/:path*/"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://garzoni-production.up.railway.app/api/:path*"
-    },
     {
       "source": "/sitemap.xml",
       "destination": "https://garzoni-production.up.railway.app/sitemap.xml"

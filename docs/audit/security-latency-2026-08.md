@@ -165,8 +165,33 @@ The trap underneath: `inferBackendUrl()` falls back to `${origin}/api` when the 
 (`packages/core/src/services/backendUrl.ts`). One lost Vercel env var would have silently routed
 the entire web app into the loop.
 
-**Fixed:** dead rewrites removed from `vercel.json`; the fallback now emits a loud, specific
-`console.error` instead of failing silently.
+**The mechanism, fully traced (second attempt — the first fix was aimed at the wrong file):**
+
+There are **two** `vercel.json` files. The Vercel project's root directory is `frontend/`, so
+**`frontend/vercel.json` is the only one Vercel reads**; the repo-root `vercel.json` is dead
+config. That was confirmed empirically rather than assumed: the live CSP contains Stripe and
+Customer.io origins that appear in `frontend/vercel.json` and not in the root file. (This also
+resolves the "which layer adds the extra CSP directives" question left unverified in Phase 2 §7 —
+it is `frontend/vercel.json`, not a dashboard setting.)
+
+The loop is the interaction of two settings in that file:
+
+1. `"trailingSlash": false` makes Vercel 308 `/api/public/lessons/` → `/api/public/lessons`.
+2. That strip happens *before* rewrites, so the `/api/:path*/` rule (which matches the slashed
+   form) can never fire — the unslashed `/api/:path*` rule proxies to the Django origin instead.
+3. Django's `APPEND_SLASH` 301s `/api/public/lessons` → `/api/public/lessons/`.
+4. Back to 1.
+
+Proven from the Railway HTTP logs, which show the loop's origin leg arriving from Vercel edge IPs:
+`path:"/api/public/lessons" host:"garzoni-production.up.railway.app" httpStatus:301 srcIp:18.130.144.249`.
+
+**Fixed:** the three `/api/*` rewrites removed from `frontend/vercel.json`. The `/sitemap.xml`
+rewrite is kept — it is genuinely used for SEO — as is the SPA fallback, whose regex already
+excludes `api`. The root `vercel.json` was restored to its original state: editing dead config
+achieved nothing, and a diff there implies a fix it cannot deliver.
+
+The `inferBackendUrl()` fallback now emits a loud, specific `console.error` rather than failing
+silently.
 
 ### 2.3 Mobile shipped axios 1.14.0 *(fixed)*
 
@@ -343,6 +368,20 @@ Low impact; noted in Phase 2.
 
 ## 8. Implementation plan
 
+### Shipped to production
+
+Merged to `master` as `1f1a5218` on 2026-08-20 and deployed (Railway backend + Vercel web).
+Branch: `security-latency-audit-2026-08`.
+
+**The mobile changes are not live yet.** The boot-waterfall work and the axios bump reach users
+only on the next EAS build and store release — the backend deploy does nothing for them.
+
+One incident worth recording, since it nearly shipped: a `git add -A` swept in-progress
+Customer.io `app_opened` work from a separate change into the second commit — including both
+`AuthContext` files. It was caught before `master` was pushed and backed out in `e6c7ae07`,
+restoring all six files and leaving `appOpenedDaily.ts` untracked so the change it belongs to is
+unaffected. Stage explicitly rather than with `-A` when a working tree has unrelated work in it.
+
 ### Phase 1 — done (2026-08-19)
 
 All shipped, all gates green: **448 backend tests pass**, 88 web tests pass, `pnpm typecheck`
@@ -353,7 +392,7 @@ clean, `black` clean.
 | 1 | `DEFAULT_RENDERER_CLASSES` pinned to JSON only, in **every** environment | `backend/settings/settings.py` |
 | 2 | `SERVE_PERMISSIONS` → `IsAdminUser`, `SERVE_AUTHENTICATION` adds session auth, `API_DOCS_PUBLIC` escape hatch | `backend/settings/settings.py` |
 | 3 | 9 regression tests pinning the cached-prefix invariants and the schema lockdown | `backend/tests/test_public_api_surface.py` |
-| 4 | Dead + looping `/api/*` rewrites removed, with the reasoning recorded inline | `vercel.json` |
+| 4 | Dead + looping `/api/*` rewrites removed | `frontend/vercel.json` (see §2.2 — the first attempt edited the dead root `vercel.json` and changed nothing) |
 | 5 | Missing-`VITE_BACKEND_URL` fallback now fails loudly instead of silently | `packages/core/src/services/backendUrl.ts` |
 | 6 | axios `^1.7.9` → `^1.18.1` | `mobile/package.json`, `packages/core/package.json` |
 
@@ -429,9 +468,12 @@ Ordered by value per unit of risk. Items 1–3 are the ones worth doing soon.
 
 **7. Web CSP** — `script-src` carries `'unsafe-inline'`, which substantially defeats CSP's XSS
    value; `img-src` allows bare `https:`. Moving to nonce or hash based CSP is a real project, not a
-   quick fix. Note also that the **deployed** CSP differs from the one in `vercel.json` (production
-   includes Stripe, Customer.io, and Cloudflare Insights origins that the repo file does not) —
-   reconcile the two before editing either. **Unverified:** which layer adds the extra directives.
+   quick fix.
+
+   The "deployed CSP differs from the repo" puzzle is **now resolved**: the live headers come from
+   `frontend/vercel.json`, which is the file Vercel actually reads (project root directory is
+   `frontend/`). The repo-root `vercel.json` is dead config that nothing consumes — worth deleting
+   outright, since its presence is what sent the first pass at §2.2 to the wrong file.
 
 ### Deliberately not fixed
 
