@@ -193,6 +193,12 @@ achieved nothing, and a diff there implies a fix it cannot deliver.
 The `inferBackendUrl()` fallback now emits a loud, specific `console.error` rather than failing
 silently.
 
+**Verified live after the deploy landed** (deployment `a01dc2f7`):
+`/api/public/lessons/` went from 50 hops / 3.5 s to **1 hop / 0.35 s → 404**, and the no-slash form
+answers `404 x-vercel-error: NOT_FOUND` instead of proxying to Django. Regression-checked at the
+same time: all six SPA routes 200, `/sitemap.xml` 200 (11,492 bytes), apex→www 308 intact, all six
+security headers still applied, and a public lesson page renders.
+
 ### 2.3 Mobile shipped axios 1.14.0 *(fixed)*
 
 `mobile/package.json:55` and `packages/core/package.json:29` both declared `^1.7.9`, resolving to
