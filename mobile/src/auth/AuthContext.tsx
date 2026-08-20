@@ -47,15 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!cancelled && access) {
         attachToken(access);
         setAccessToken(access);
-        void (async () => {
-          await identifyGarzoniUserFromAccessToken(access);
-          // Re-attach the push device on every authenticated cold start, not
-          // only after a fresh login. Customer.io routes push by *its own*
-          // device registry, and a profile identified with no device attached
-          // fails the send with `NoDevicesSynced` and no email fallback — 17 of
-          // the last 100 push deliveries died that way. Never prompts.
-          await reregisterPushIfPermitted();
-        })();
+        void identifyGarzoniUserFromAccessToken(access);
         // Daily app_opened event drives CIO inactivity segments. Debounced
         // to once per local day inside the helper.
         void fireAppOpenedDaily();
