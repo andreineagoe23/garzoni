@@ -7,27 +7,18 @@ import { getWebAppBaseUrl } from "../../src/bootstrap/webAppUrl";
 import { webViewDevLoggingProps } from "../../src/bootstrap/webViewDevLogging";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
-
-const ALLOWED_TOOL_SLUGS = new Set([
-  "budget-planner",
-  "personal-cfo",
-  "reality-check",
-  "savings-goals",
-  "economic-map",
-  "news-context",
-  "market-explorer",
-  "economic-calendar",
-]);
+import { resolveWebToolSlug } from "../../src/navigation/webToolSlug";
 
 export default function ToolWebScreen() {
   const { tool } = useLocalSearchParams<{ tool: string }>();
   const c = useThemeColors();
   const base = getWebAppBaseUrl();
   const toolSlug = typeof tool === "string" ? tool.trim() : "";
+  const webSlug = resolveWebToolSlug(toolSlug);
   const uri = useMemo(() => {
-    if (!base || !toolSlug || !ALLOWED_TOOL_SLUGS.has(toolSlug)) return "";
-    return `${base}/tools/${encodeURIComponent(toolSlug)}`;
-  }, [base, toolSlug]);
+    if (!base || !webSlug) return "";
+    return `${base}/tools/${encodeURIComponent(webSlug)}`;
+  }, [base, webSlug]);
 
   return (
     <>
@@ -41,7 +32,7 @@ export default function ToolWebScreen() {
               {/* Landing here for a tool that has a native screen means the
                   static route was not in the bundle — restart Metro with
                   `--clear`. Saying so beats blaming the env var. */}
-              {toolSlug && !ALLOWED_TOOL_SLUGS.has(toolSlug)
+              {toolSlug && !webSlug
                 ? `"${toolSlug}" isn't available in this build. Restart the dev server with --clear, or update the app.`
                 : "Set EXPO_PUBLIC_WEB_APP_URL in your build env to load tools."}
             </Text>
