@@ -413,7 +413,13 @@ function TierCard({
   const { t } = useTranslation("common");
   const isPro = plan.id === "pro";
   const accent = isPro ? D.goldWarm : D.primaryBright;
-  const price = pkg?.product.priceString ?? "—";
+  // A yearly package carries the *annual* total in priceString, but the label
+  // underneath it reads "/ month, billed annually" — rendering it raw stated the
+  // price at 12x and contradicted the per-week figure just below.
+  const price =
+    cycle === "yearly" && pkg && pkg.product.price > 0
+      ? formatCurrencyAmount(pkg.product.price / 12, pkg.product.currencyCode)
+      : (pkg?.product.priceString ?? "—");
   const per =
     cycle === "yearly"
       ? t("subscriptions.mobilePaywall.perMonthBilledAnnually")
