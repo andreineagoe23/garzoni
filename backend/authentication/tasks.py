@@ -70,7 +70,13 @@ def send_email_reminders(self):
             user__email__isnull=False,
         )
         .exclude(last_reminder_sent__gt=now - timedelta(days=6))
-        .filter(Q(user__last_login__isnull=True) | Q(user__last_login__lt=weekly_cutoff))
+        # A digest summarises a week that actually happened, so it goes to people
+        # who did something in it. This used to select users who had *not* logged
+        # in for seven days — the exact inverse of the gating described above, and
+        # the same audience Customer.io's Re-engage 7d journey already owns.
+        # `.distinct()` because the completion join multiplies profile rows.
+        .filter(user__user_progress__lessoncompletion__completed_at__gte=weekly_cutoff)
+        .distinct()
         .select_related("user")
     )
 

@@ -165,6 +165,34 @@ class UserProfile(models.Model):
             self.refresh_from_db(fields=["points"])
         return bool(updated)
 
+    def local_now(self):
+        """
+        `now` in this profile's own timezone, falling back to server local time
+        when the device never reported one.
+
+        The streak is a claim about the user's day, not the server's. Deciding it
+        on `TIME_ZONE` (Europe/London) silently ate a day for anyone far enough
+        east or west of it — a Bucharest user finishing a lesson at 01:00 local
+        was still recorded against the previous London day.
+        """
+        tz_name = (self.timezone_name or "").strip()
+        if tz_name:
+            try:
+                from zoneinfo import ZoneInfo
+
+                return timezone.now().astimezone(ZoneInfo(tz_name))
+            except Exception:
+                logger.warning(
+                    "invalid profile timezone_name=%r, falling back to server time",
+                    tz_name,
+                    exc_info=True,
+                )
+        return timezone.localtime()
+
+    def local_today(self):
+        """Today's date in this profile's own timezone. See {@link local_now}."""
+        return self.local_now().date()
+
     def _try_bridge_one_gap_day_with_freeze(self, today) -> bool:
         """
         If the profile is more than one calendar day behind `today`, consume one
@@ -212,8 +240,10 @@ class UserProfile(models.Model):
         """
         Canonical learning streak on the profile. Consumes streak freezes one day
         at a time when the user returns after a gap.
+
+        "Today" is the user's own day, not the server's — see {@link local_now}.
         """
-        today = timezone.localdate()
+        today = self.local_today()
 
         if self.last_completed_date == today:
             return
@@ -257,7 +287,7 @@ class UserProfile(models.Model):
 
     def apply_manual_streak_freezes(self, max_uses: int = 1) -> int:
         """Use up to `max_uses` freezes without requiring a lesson completion."""
-        today = timezone.localdate()
+        today = self.local_today()
         used = 0
         for _ in range(max(0, int(max_uses))):
             if not self._try_bridge_one_gap_day_with_freeze(today):

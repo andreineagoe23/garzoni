@@ -103,19 +103,15 @@ STREAK_NUDGE_LOCAL_HOUR = 19
 
 
 def _local_now_for(profile):
-    """`now` in the profile's own timezone, falling back to server local time."""
-    tz_name = (getattr(profile, "timezone_name", "") or "").strip()
-    if tz_name:
-        try:
-            from zoneinfo import ZoneInfo
+    """
+    `now` in the profile's own timezone, falling back to server local time.
 
-            return timezone.now().astimezone(ZoneInfo(tz_name))
-        except Exception:
-            logger.warning(
-                "invalid profile timezone_name=%r, falling back to server time",
-                tz_name,
-                exc_info=True,
-            )
+    Delegates to the profile so the streak increment, the nightly reset and this
+    evening sweep can never disagree about when a user's day ends.
+    """
+    local_now = getattr(profile, "local_now", None)
+    if callable(local_now):
+        return local_now()
     return timezone.localtime()
 
 
@@ -206,14 +202,17 @@ def reset_inactive_streaks(self):
         last_active=Max("user_progress__last_course_activity_date")
     ).select_related("profile")
 
-    today = timezone.localdate()
     for user in users:
         if user.last_active:
-            days_inactive = (today - user.last_active).days
+            profile = getattr(user, "profile", None)
+            if not profile:
+                continue
+            # Per-user, not one server date for everyone: this job runs at server
+            # midnight, which is mid-afternoon for some users and the following
+            # morning for others. Judging their streak on the server's calendar
+            # ended streaks that were still alive where the user actually was.
+            days_inactive = (profile.local_today() - user.last_active).days
             if days_inactive > 1:
-                profile = getattr(user, "profile", None)
-                if not profile:
-                    continue
                 previous_streak = int(profile.streak or 0)
                 UserProgress.objects.filter(user=user).update(learning_session_count=0)
                 UserProfile.objects.filter(pk=profile.pk).update(

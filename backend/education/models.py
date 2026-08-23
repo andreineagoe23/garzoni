@@ -261,7 +261,11 @@ class UserProgress(models.Model):
         """Update per-course activity counters and bump the canonical profile streak."""
         if not self.user_id:
             return
-        today = timezone.localtime().date()
+        # Same day boundary the profile streak uses, or the two disagree for any
+        # user outside the server timezone and `reset_inactive_streaks` — which
+        # reads this field — starts clearing live streaks.
+        profile = getattr(self.user, "profile", None)
+        today = profile.local_today() if profile else timezone.localtime().date()
 
         if self.last_course_activity_date == today:
             if hasattr(self.user, "profile"):
