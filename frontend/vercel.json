@@ -18,6 +18,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/auth/google/callback",
+      "destination": "https://garzoni-production.up.railway.app/api/auth/google/callback"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "https://garzoni-production.up.railway.app/sitemap.xml"
     },

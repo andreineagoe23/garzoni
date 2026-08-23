@@ -44,6 +44,9 @@ function inferBackendUrl(): string {
       // frontend/vercel.json were removed 2026-08-20 because they infinite-looped:
       // trailingSlash:false stripped the slash, the proxy forwarded to Django, and
       // APPEND_SLASH redirected it straight back. So every API call from here 404s.
+      // The one surviving proxy is /api/auth/google/callback: Google's redirect_uri is
+      // built from FRONTEND_URL server-side, so that path must resolve on the web origin.
+      // It has no trailing slash and Django registers it without one, so it cannot loop.
       // Silent before; say so loudly instead of shipping a dead app.
       console.error(
         "[garzoni] VITE_BACKEND_URL is not set — falling back to same-origin /api, " +

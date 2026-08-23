@@ -523,3 +523,29 @@ The removed `/api/*` rewrites are documented here rather than as a comment key i
 Vercel validates that file against its published schema and can reject unknown top-level
 properties, so an explanatory key risks failing the build for the sake of a comment. If the proxy
 is ever restored, the trailing-slash problem in §2.2 is the thing to solve first.
+
+---
+
+## Addendum 2026-08-23 — the /api removal broke Google sign-in on web
+
+Removing all three `/api/*` rewrites from `frontend/vercel.json` (§2.2) also removed the one
+path that is **not** called by the SPA client and therefore is not covered by `VITE_BACKEND_URL`:
+the Google OAuth callback.
+
+`_google_oauth_redirect_uri()` (`backend/authentication/views_google_oauth.py:203-228`) builds
+`redirect_uri` from `FRONTEND_URL` server-side, so Google always returns the browser to
+`https://www.garzoni.app/api/auth/google/callback?code=…&state=v1.…&iss=…`. With no proxy that
+is a Vercel `404: NOT_FOUND`, and every Google sign-in on web dead-ends there. Verified live:
+
+    https://www.garzoni.app/api/auth/google/callback   -> 404 (Vercel)
+    https://garzoni-production.up.railway.app/…/callback -> 302 (Django, correct)
+
+Fix: one narrow rewrite for that exact path, restored in `frontend/vercel.json`. It cannot
+reintroduce the redirect loop — Django registers the route without a trailing slash
+(`backend/authentication/urls.py:63`), so `trailingSlash:false` has nothing to strip and
+`APPEND_SLASH` never fires. The wildcard `/api/:path*` rules stay removed.
+
+Cleaner long-term alternative, not taken because it needs a Google Cloud Console edit:
+set `GOOGLE_OAUTH_REDIRECT_BASE=https://garzoni-production.up.railway.app` on Railway and add
+that callback to the app's Authorized redirect URIs. The state's `origin` is already allowlisted
+(`_safe_return_origin`), so the post-login hop back to `www.garzoni.app` keeps working either way.
