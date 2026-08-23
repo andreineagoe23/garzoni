@@ -283,9 +283,12 @@ importers:
       axios:
         specifier: ^1.18.1
         version: 1.18.1
+      customerio-expo-plugin:
+        specifier: 3.7.2
+        version: 3.7.2(customerio-reactnative@6.6.3(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0))
       customerio-reactnative:
-        specifier: ^6.4.0
-        version: 6.4.0(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0)
+        specifier: ^6.6.3
+        version: 6.6.3(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0)
       expo:
         specifier: ~54.0.36
         version: 54.0.36(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(graphql@16.8.1)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0)
@@ -3956,8 +3959,13 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  customerio-reactnative@6.4.0:
-    resolution: {integrity: sha512-akDlFyN/wdOcffrEhH95J2FtFurGsJxowr4WodeqnY9C0+WFZRHMGqSN/PgcbwyH4wL9/8U88jDBgUOaGmbCLw==}
+  customerio-expo-plugin@3.7.2:
+    resolution: {integrity: sha512-SwOXCLNh9nkhUXnq6F2PwWbNPJ84A6zpOCYFpRwFXuCSrcdEYkLEL5Og3/3tyLlRnmw53nA9evOGuth8ZxW0Xw==}
+    peerDependencies:
+      customerio-reactnative: 6.6.3
+
+  customerio-reactnative@6.6.3:
+    resolution: {integrity: sha512-g4qCLgHAeKWmLC4L9pr+DRFDTk04AVwPuA9O/ngIMWkNnbCRRTeMzMDWG38Ewe72hQpshsxYxPkPTd7D+iJHAA==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: 19.1.0
@@ -4457,6 +4465,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -4885,6 +4894,9 @@ packages:
   find-cache-dir@3.3.2:
     resolution: {integrity: sha512-wXZV5emFEjrridIgED11OoUKLxiYjAcqot/NJdAkOhlJ+vGzwhOAfcG5OX1jP+S0PcjEn8bdMJv+g2jwQ3Onig==}
     engines: {node: '>=8'}
+
+  find-package-json@1.2.0:
+    resolution: {integrity: sha512-+SOGcLGYDJHtyqHd87ysBhmaeQ95oWspDKnMXBrnQ9Eq4OkLNqejgoaD8xVWu6GPa0B6roa6KinCMEMcVeqONw==}
 
   find-up@4.1.0:
     resolution: {integrity: sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==}
@@ -8759,11 +8771,6 @@ snapshots:
   '@ckeditor/ckeditor5-adapter-ckfinder@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-alignment@41.4.2':
     dependencies:
@@ -8834,11 +8841,6 @@ snapshots:
       '@ckeditor/ckeditor5-table': 41.4.2
       '@ckeditor/ckeditor5-typing': 41.4.2
       '@ckeditor/ckeditor5-ui': 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-build-balloon@41.4.2':
     dependencies:
@@ -8862,11 +8864,6 @@ snapshots:
       '@ckeditor/ckeditor5-paste-from-office': 41.4.2
       '@ckeditor/ckeditor5-table': 41.4.2
       '@ckeditor/ckeditor5-typing': 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-build-classic@41.4.2':
     dependencies:
@@ -8920,11 +8917,6 @@ snapshots:
       '@ckeditor/ckeditor5-paste-from-office': 41.4.2
       '@ckeditor/ckeditor5-table': 41.4.2
       '@ckeditor/ckeditor5-typing': 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-build-inline@41.4.2':
     dependencies:
@@ -8948,11 +8940,6 @@ snapshots:
       '@ckeditor/ckeditor5-paste-from-office': 41.4.2
       '@ckeditor/ckeditor5-table': 41.4.2
       '@ckeditor/ckeditor5-typing': 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-build-multi-root@41.4.2':
     dependencies:
@@ -8976,11 +8963,6 @@ snapshots:
       '@ckeditor/ckeditor5-paste-from-office': 41.4.2
       '@ckeditor/ckeditor5-table': 41.4.2
       '@ckeditor/ckeditor5-typing': 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-ckbox@41.4.2':
     dependencies:
@@ -9014,11 +8996,6 @@ snapshots:
   '@ckeditor/ckeditor5-cloud-services@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-code-block@41.4.2':
     dependencies:
@@ -9049,51 +9026,26 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-editor-classic@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-editor-decoupled@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-editor-inline@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-editor-multi-root@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-engine@41.4.2':
     dependencies:
@@ -9120,11 +9072,6 @@ snapshots:
       '@ckeditor/ckeditor5-ui': 41.4.2
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-font@41.4.2':
     dependencies:
@@ -9156,11 +9103,6 @@ snapshots:
   '@ckeditor/ckeditor5-horizontal-line@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-html-embed@41.4.2':
     dependencies:
@@ -9175,11 +9117,6 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-image@41.4.2':
     dependencies:
@@ -9274,6 +9211,11 @@ snapshots:
   '@ckeditor/ckeditor5-page-break@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-paragraph@41.4.2':
     dependencies:
@@ -9284,11 +9226,6 @@ snapshots:
   '@ckeditor/ckeditor5-paste-from-office@41.4.2':
     dependencies:
       ckeditor5: 41.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@ckeditor/ckeditor5-remove-format@41.4.2':
     dependencies:
@@ -9308,16 +9245,16 @@ snapshots:
     dependencies:
       '@ckeditor/ckeditor5-ui': 41.4.2
       ckeditor5: 41.4.2
-
-  '@ckeditor/ckeditor5-source-editing@41.4.2':
-    dependencies:
-      '@ckeditor/ckeditor5-theme-lark': 41.4.2
-      ckeditor5: 41.4.2
     transitivePeerDependencies:
       - bufferutil
       - canvas
       - supports-color
       - utf-8-validate
+
+  '@ckeditor/ckeditor5-source-editing@41.4.2':
+    dependencies:
+      '@ckeditor/ckeditor5-theme-lark': 41.4.2
+      ckeditor5: 41.4.2
 
   '@ckeditor/ckeditor5-special-characters@41.4.2':
     dependencies:
@@ -9327,6 +9264,11 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@ckeditor/ckeditor5-table@41.4.2':
     dependencies:
@@ -9392,6 +9334,11 @@ snapshots:
     dependencies:
       ckeditor5: 41.4.2
       lodash-es: 4.17.21
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@csstools/color-helpers@5.1.0': {}
 
@@ -12574,7 +12521,14 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  customerio-reactnative@6.4.0(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0):
+  customerio-expo-plugin@3.7.2(customerio-reactnative@6.6.3(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0)):
+    dependencies:
+      customerio-reactnative: 6.6.3(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0)
+      find-package-json: 1.2.0
+      fs-extra: 11.3.4
+      semver: 7.7.4
+
+  customerio-reactnative@6.6.3(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@18.2.79)(react@19.1.0)
@@ -13685,6 +13639,8 @@ snapshots:
       commondir: 1.0.1
       make-dir: 3.1.0
       pkg-dir: 4.2.0
+
+  find-package-json@1.2.0: {}
 
   find-up@4.1.0:
     dependencies:

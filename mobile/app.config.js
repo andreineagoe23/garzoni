@@ -59,6 +59,18 @@ if (
   );
 }
 
+if (
+  !process.env.EXPO_PUBLIC_CIO_CDP_API_KEY?.trim() &&
+  process.env.EAS_BUILD === "true"
+) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[app.config] EXPO_PUBLIC_CIO_CDP_API_KEY missing — the Customer.io plugin is skipped, so this " +
+      "build ships without the iOS Notification Service Extension or the Android FCM handler. " +
+      "Customer.io push will register device tokens and deliver nothing.",
+  );
+}
+
 /**
  * Sentry project: iOS history lives in `apple-ios`, Android gets its own
  * project so historical issue grouping isn't broken. Override via SENTRY_PROJECT
@@ -245,6 +257,60 @@ module.exports = ({ config }) => ({
         color: "#01696f",
       },
     ],
+    /**
+     * Customer.io native push. Without this plugin the RN SDK registers device
+     * tokens but nothing renders or reports them: no iOS Notification Service
+     * Extension, no App Group, no Android FCM service. That is why 47 pushes
+     * over 45 days produced 5 deliveries.
+     *
+     * Registration and display stay with expo-notifications, which already owns
+     * the permission prompt, the Expo push token for the Django path, local
+     * streak reminders and the tap listener. Two SDKs both claiming the iOS
+     * notification delegate is a known way to end up with duplicate banners or
+     * none at all, so Customer.io is configured to render rich push and report
+     * metrics only — `disableNotificationRegistration` and
+     * `autoFetchDeviceToken: false` keep it out of the registration path, and
+     * pushNotificationsMobile.ts keeps handing it the native token by hand.
+     *
+     * `env` exists because the Notification Service Extension is a separate
+     * process that cannot see the JS `CustomerIO.initialize()` call. Deliberately
+     * no top-level `config` key: that would make the plugin initialize the SDK
+     * natively as well, on top of the JS init in customerIoMobile.ts.
+     */
+    ...(process.env.EXPO_PUBLIC_CIO_CDP_API_KEY?.trim()
+      ? [
+          [
+            "customerio-expo-plugin",
+            {
+              android: {
+                googleServicesFile:
+                  process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+                setHighPriorityPushHandler: true,
+              },
+              ios: {
+                pushNotification: {
+                  provider: "apn",
+                  useRichPush: true,
+                  autoTrackPushEvents: true,
+                  handleDeeplinkInKilledState: true,
+                  autoFetchDeviceToken: false,
+                  disableNotificationRegistration: true,
+                  showPushAppInForeground: false,
+                  appGroupId: "group.app.garzoni.mobile.notifications",
+                  env: {
+                    cdpApiKey: process.env.EXPO_PUBLIC_CIO_CDP_API_KEY.trim(),
+                    region:
+                      process.env.EXPO_PUBLIC_CIO_REGION?.trim().toLowerCase() ===
+                      "us"
+                        ? "us"
+                        : "eu",
+                  },
+                },
+              },
+            },
+          ],
+        ]
+      : []),
     [
       "expo-build-properties",
       {
