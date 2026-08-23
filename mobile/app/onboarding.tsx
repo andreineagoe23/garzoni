@@ -36,8 +36,6 @@ import OnboardingLoadingScreen from "../src/components/onboarding/steps/Onboardi
 import PlanReadyScreen, {
   type PlanReadyContinueOptions,
 } from "../src/components/onboarding/PlanReadyScreen";
-import PushPromptScreen from "../src/components/onboarding/PushPromptScreen";
-import { markAskedForPush } from "../src/bootstrap/pushPromptState";
 import QuestionnaireSingleChoice from "../src/components/onboarding/steps/QuestionnaireSingleChoice";
 import QuestionnaireMultiChoice from "../src/components/onboarding/steps/QuestionnaireMultiChoice";
 import QuestionnaireTextAnswer from "../src/components/onboarding/steps/QuestionnaireTextAnswer";
@@ -152,7 +150,7 @@ export default function OnboardingScreen() {
   const personalizedPathReason =
     String(reasonParam ?? "").toLowerCase() === "personalized_path";
   const [phase, setPhase] = useState<
-    "checking" | "questionnaire" | "done" | "planReady" | "pushPrompt" | "error"
+    "checking" | "questionnaire" | "done" | "planReady" | "error"
   >("checking");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -274,49 +272,41 @@ export default function OnboardingScreen() {
     router.replace(`/subscriptions?${parts.join("&")}`);
   }, []);
 
-  // Plan-ready → custom push pre-permission screen (2.3) → personalized
-  // paywall carrying the plan-ready recommended tier + primary goal.
-  const [planReadyOpts, setPlanReadyOpts] =
-    useState<PlanReadyContinueOptions | null>(null);
-  const handlePlanReadyContinue = useCallback(
-    (opts: PlanReadyContinueOptions) => {
-      setPlanReadyOpts(opts);
-      setPhase("pushPrompt");
-    },
-    [],
-  );
+  // Plan-ready hands off directly now. The push pre-permission screen used to
+  // sit here, but iOS grants one permission dialog per install and spending it
+  // on someone who has completed zero lessons is why most people declined. The
+  // ask now waits for a lesson completion and is routed from app/index.tsx —
+  // see markPushPromptDue in src/bootstrap/pushPromptState.
 
-  // Paywall placement experiment (3.5). Default ("onboarding") is byte-for-byte
-  // today's flow: push prompt → personalized paywall. In the "post_first_lesson"
-  // arm the push prompt hands off straight to the first curated lesson and stows
-  // a flag; the first-lesson celebration then routes to the paywall (see
-  // LessonFlowScreen). If no curated lesson is available, fall back to Home.
+  // Paywall placement experiment (3.5). In the "post_first_lesson" arm plan-ready
+  // hands off straight to the first curated lesson and stows a flag; the
+  // first-lesson celebration then routes to the paywall (see LessonFlowScreen).
+  // If no curated lesson is available, fall back to Home.
   const PENDING_POST_LESSON_PAYWALL_KEY = "garzoni:pending_post_lesson_paywall";
-  const handlePushPromptComplete = useCallback(() => {
-    // Record the ask so the standalone /push-prompt route (for web-first users)
-    // never re-primes someone who already answered here.
-    void markAskedForPush();
-    const opts = planReadyOpts ?? undefined;
-    if (opts?.placement === "post_first_lesson") {
-      void AsyncStorage.setItem(PENDING_POST_LESSON_PAYWALL_KEY, "1");
-      // /flow/[id] is keyed by *course* id and takes the lesson as a query
-      // param; passing the lesson id as the route param opened the wrong course
-      // (or the "Invalid course." state).
-      const courseId = opts.firstCuratedCourseId;
-      const lessonId = opts.firstCuratedLessonId;
-      if (courseId != null && Number.isFinite(Number(courseId))) {
-        router.replace(
-          lessonId != null && Number.isFinite(Number(lessonId))
-            ? `/flow/${courseId}?lessonId=${lessonId}`
-            : `/flow/${courseId}`,
-        );
-      } else {
-        router.replace("/(tabs)");
+  const handlePlanReadyContinue = useCallback(
+    (opts: PlanReadyContinueOptions | undefined) => {
+      if (opts?.placement === "post_first_lesson") {
+        void AsyncStorage.setItem(PENDING_POST_LESSON_PAYWALL_KEY, "1");
+        // /flow/[id] is keyed by *course* id and takes the lesson as a query
+        // param; passing the lesson id as the route param opened the wrong course
+        // (or the "Invalid course." state).
+        const courseId = opts.firstCuratedCourseId;
+        const lessonId = opts.firstCuratedLessonId;
+        if (courseId != null && Number.isFinite(Number(courseId))) {
+          router.replace(
+            lessonId != null && Number.isFinite(Number(lessonId))
+              ? `/flow/${courseId}?lessonId=${lessonId}`
+              : `/flow/${courseId}`,
+          );
+        } else {
+          router.replace("/(tabs)");
+        }
+        return;
       }
-      return;
-    }
-    goToPaywall(opts);
-  }, [planReadyOpts, goToPaywall]);
+      goToPaywall(opts);
+    },
+    [goToPaywall],
+  );
 
   if (phase === "checking") {
     return (
@@ -375,15 +365,6 @@ export default function OnboardingScreen() {
       <SafeAreaView style={styles.safe}>
         <Stack.Screen options={{ headerShown: false }} />
         <PlanReadyScreen onContinue={handlePlanReadyContinue} />
-      </SafeAreaView>
-    );
-  }
-
-  if (phase === "pushPrompt") {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <PushPromptScreen onComplete={handlePushPromptComplete} />
       </SafeAreaView>
     );
   }

@@ -19,7 +19,10 @@ import { brand } from "../src/theme/brand";
 import LoadingSpinner from "../src/components/ui/LoadingSpinner";
 import { href } from "../src/navigation/href";
 import { getPushPermissionStatus } from "../src/bootstrap/pushNotificationsMobile";
-import { hasAskedForPush } from "../src/bootstrap/pushPromptState";
+import {
+  hasAskedForPush,
+  isPushPromptDue,
+} from "../src/bootstrap/pushPromptState";
 
 const { width: SW } = Dimensions.get("window");
 const LOGO = require("../assets/garzoni-logo-square-no-bg.png");
@@ -47,6 +50,10 @@ type PushPromptStatus = "pending" | "not_needed" | "needed";
 async function resolvePushPromptStatus(): Promise<PushPromptStatus> {
   try {
     if (await hasAskedForPush()) return "not_needed";
+    // Earned, not automatic: the ask waits until the user has finished a lesson.
+    // Onboarding used to spend iOS's one-shot dialog before anyone had seen a
+    // single lesson, which is why so few devices ever registered.
+    if (!(await isPushPromptDue())) return "not_needed";
     const status = await getPushPermissionStatus();
     return status === "undetermined" ? "needed" : "not_needed";
   } catch {
