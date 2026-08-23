@@ -60,6 +60,44 @@
   "mobile": {
     "offlineBanner": {
       "message": "You're offline — some actions may not sync."
+    },
+    "streakReminder": {
+      "established": {
+        "day0": {
+          "title": "Don't break your streak 🔥",
+          "body": "One lesson today keeps your {{count}}-day streak alive."
+        },
+        "day1": {
+          "title": "Your streak is slipping",
+          "body": "Five minutes now and your {{count}}-day streak survives the week."
+        },
+        "soon": {
+          "title": "Pick up where you left off",
+          "body": "One short lesson is enough to get moving again."
+        },
+        "later": {
+          "title": "Ready for a fresh start?",
+          "body": "You built a {{count}}-day streak once. Start the next one today."
+        }
+      },
+      "new": {
+        "day0": {
+          "title": "Make it day {{next}} 🔥",
+          "body": "One 5-minute lesson tonight and the habit starts to stick."
+        },
+        "day1": {
+          "title": "There's still time today",
+          "body": "Pick any lesson and you're back on track."
+        },
+        "soon": {
+          "title": "Pick up where you left off",
+          "body": "One short lesson is enough to get moving again."
+        },
+        "later": {
+          "title": "Five minutes is all it takes",
+          "body": "Start a new streak today — one lesson is enough."
+        }
+      }
     }
   },
   "screenErrors": {

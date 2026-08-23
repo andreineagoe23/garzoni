@@ -1,3 +1,4 @@
+import { i18n } from "@garzoni/core";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { ensureAndroidNotificationChannels } from "../bootstrap/pushNotificationsMobile";
@@ -5,7 +6,14 @@ import { ensureAndroidNotificationChannels } from "../bootstrap/pushNotification
 const STREAK_REMINDER_PREFIX = "garzoni-streak-reminder";
 /** Legacy single-shot identifier from before the rolling window; still cancelled. */
 const LEGACY_REMINDER_ID = "garzoni-streak-reminder";
-const STREAK_MIN_TO_PROTECT = 3;
+/**
+ * Arm from the very first completed day. This was 3, which meant the reminder
+ * required the streak it exists to produce — a day-one user, i.e. every user,
+ * got nothing, and nobody ever reached day 3 to unlock it.
+ */
+const STREAK_MIN_TO_ARM = 1;
+/** Above this, there is a number worth defending and the copy says so. */
+const STREAK_ESTABLISHED = 3;
 const REMINDER_HOUR_LOCAL = 20; // 8pm device-local
 
 /**
@@ -39,35 +47,30 @@ function reminderDate(dayOffset: number): Date {
 }
 
 /**
- * Copy escalates with each missed day. Day 0 protects the streak; later days
- * acknowledge it is gone and pivot to restarting, because pretending an
- * already-broken streak is still alive reads as spam.
+ * Copy escalates with each missed day, and splits on whether there is a streak
+ * worth defending yet. Below {@link STREAK_ESTABLISHED} the number is not the
+ * hook — "your 1-day streak" reads as a nag about nothing — so the message is
+ * about starting the habit instead. From day 2 onward both branches accept the
+ * streak is gone and pivot to restarting, because pretending an already-broken
+ * streak is still alive reads as spam.
  */
 function reminderContent(
   streak: number,
   dayOffset: number,
 ): { title: string; body: string } {
-  if (dayOffset === 0) {
-    return {
-      title: "Don't break your streak 🔥",
-      body: `One lesson today keeps your ${streak}-day streak alive.`,
-    };
-  }
-  if (dayOffset === 1) {
-    return {
-      title: "Your streak is slipping",
-      body: `Five minutes now and your ${streak}-day streak survives the week.`,
-    };
-  }
-  if (dayOffset <= 3) {
-    return {
-      title: "Pick up where you left off",
-      body: "One short lesson is enough to get moving again.",
-    };
-  }
+  const scope = streak >= STREAK_ESTABLISHED ? "established" : "new";
+  const bucket =
+    dayOffset === 0
+      ? "day0"
+      : dayOffset === 1
+        ? "day1"
+        : dayOffset <= 3
+          ? "soon"
+          : "later";
+  const vars = { count: streak, next: streak + 1 };
   return {
-    title: "Ready for a fresh start?",
-    body: `You built a ${streak}-day streak once. Start the next one today.`,
+    title: i18n.t(`mobile.streakReminder.${scope}.${bucket}.title`, vars),
+    body: i18n.t(`mobile.streakReminder.${scope}.${bucket}.body`, vars),
   };
 }
 
@@ -91,13 +94,14 @@ export async function cancelStreakReminder(): Promise<void> {
  * invoke this on every lesson completion or dashboard mount without leaking
  * duplicates — each app open simply pushes the window forward.
  *
- * No-op when the streak is below the protection threshold: 1- and 2-day streaks
- * are not worth pestering for and read as nagging to a day-one user.
+ * No-op only when there is no streak at all — a user who has completed nothing
+ * has nothing to be reminded about. Everyone from day one onward gets the
+ * window; {@link reminderContent} adjusts the tone to how much is at stake.
  */
 export async function scheduleStreakReminder(streak: number): Promise<void> {
   if (Platform.OS === "web") return;
   await cancelStreakReminder();
-  if (!Number.isFinite(streak) || streak < STREAK_MIN_TO_PROTECT) return;
+  if (!Number.isFinite(streak) || streak < STREAK_MIN_TO_ARM) return;
 
   // A revoked permission makes every schedule call throw; check once instead of
   // failing REMINDER_DAYS times.

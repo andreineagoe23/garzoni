@@ -60,6 +60,44 @@
   "mobile": {
     "offlineBanner": {
       "message": "Ești offline — unele acțiuni s-ar putea să nu se sincronizeze."
+    },
+    "streakReminder": {
+      "established": {
+        "day0": {
+          "title": "Nu-ți rupe seria 🔥",
+          "body": "O lecție azi îți menține seria de {{count}} zile."
+        },
+        "day1": {
+          "title": "Seria ta e pe muchie",
+          "body": "Cinci minute acum și seria de {{count}} zile rezistă."
+        },
+        "soon": {
+          "title": "Reia de unde ai rămas",
+          "body": "O lecție scurtă e de ajuns ca să pornești din nou."
+        },
+        "later": {
+          "title": "Gata pentru un nou început?",
+          "body": "Ai construit o serie de {{count}} zile o dată. Începe alta azi."
+        }
+      },
+      "new": {
+        "day0": {
+          "title": "Fă-o ziua {{next}} 🔥",
+          "body": "O lecție de 5 minute în seara asta și obiceiul prinde rădăcini."
+        },
+        "day1": {
+          "title": "Mai ai timp azi",
+          "body": "Alege orice lecție și ești din nou pe drumul bun."
+        },
+        "soon": {
+          "title": "Reia de unde ai rămas",
+          "body": "O lecție scurtă e de ajuns ca să pornești din nou."
+        },
+        "later": {
+          "title": "Cinci minute sunt de ajuns",
+          "body": "Începe o serie nouă azi — o lecție e suficientă."
+        }
+      }
     }
   },
   "screenErrors": {
