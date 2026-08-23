@@ -104,7 +104,24 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "65781f5d-673f-484b-866c-b8dc165a160b"
+        "projectId": "65781f5d-673f-484b-866c-b8dc165a160b",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "NotificationService",
+                  "bundleIdentifier": "app.garzoni.mobile.richpush",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.app.garzoni.mobile.notifications"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
       }
     },
     "owner": "andreineagoe",
