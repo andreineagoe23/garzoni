@@ -62,17 +62,25 @@ def resolve_path_access_tier(path) -> str:
     if not title:
         return "starter"
 
+    # Mirrors the tiers set in migration 0048. Free is exactly one path:
+    # Basic Finance. Plus adds Personal Finance, Everyday Money Skills and
+    # Financial Mindset; Pro covers the rest.
     if "crypto" in title:
         return "pro"
     if "forex" in title:
         return "pro"
     if "real estate" in title:
-        return "plus"
+        return "pro"
     if "personal finance" in title:
         return "plus"
     if "mindset" in title:
-        return "starter"
+        return "plus"
+    if "everyday money" in title:
+        return "plus"
     if "basic finance" in title or "finance basics" in title:
         return "starter"
 
+    # Only reached when access_tier is blank or invalid, which the column
+    # default prevents. Left at starter so unrecognised content stays visible
+    # rather than silently disappearing for everyone.
     return "starter"
