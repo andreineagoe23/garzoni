@@ -186,6 +186,13 @@ export default function OnboardingScreen() {
       try {
         const progress = await fetchQuestionnaireProgress();
         if (progress.status === "completed") {
+          // Seed the cache before bouncing back. The dashboard decides whether
+          // to send people here from its *cached* copy of this same query, so
+          // handing back without updating it meant it re-read a stale
+          // "not completed", redirected again, and the two screens ping-ponged
+          // forever — a soft-lock, since router.replace remounts the dashboard
+          // and resets its once-only redirect guard each time round.
+          queryClient.setQueryData(queryKeys.questionnaireProgress(), progress);
           router.replace("/(tabs)");
           return;
         }

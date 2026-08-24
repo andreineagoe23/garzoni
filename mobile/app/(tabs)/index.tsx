@@ -448,16 +448,21 @@ function DashboardInner() {
   const questionnaireProgress = questionnaireQuery.data;
   const questionnaireCompletedForUi =
     isQuestionnaireCompleted || questionnaireProgress?.status === "completed";
-  const onboardingRedirectedRef = useRef(false);
-
   useEffect(() => {
     if (!authReady || !accessToken) return;
     if (hasPlusAccess) return;
     const status = questionnaireProgress?.status;
     if (!status) return;
     if (status === "completed" || status === "abandoned") return;
-    if (onboardingRedirectedRef.current) return;
-    onboardingRedirectedRef.current = true;
+    // Guard has to outlive this component. It used to be a useRef, which
+    // resets on every mount — and the screen it sends you to hands back with
+    // router.replace, which remounts this one. So when onboarding disagreed
+    // about whether the questionnaire was done (it reads fresh, this reads
+    // cache) the two bounced off each other indefinitely and the app was
+    // stuck on "Preparing your onboarding". Module scope means one redirect
+    // per app launch, no matter how many times this screen is rebuilt.
+    if (onboardingRedirectDone) return;
+    onboardingRedirectDone = true;
     router.replace(href("/onboarding"));
   }, [authReady, accessToken, hasPlusAccess, questionnaireProgress?.status]);
 
@@ -888,6 +893,12 @@ function DashboardInner() {
     </View>
   );
 }
+
+/**
+ * One onboarding redirect per app launch, not per mount of this screen.
+ * Deliberately module scope — see the guard in the effect below.
+ */
+let onboardingRedirectDone = false;
 
 export default function DashboardScreen() {
   return (
