@@ -3095,7 +3095,8 @@
       "goalsLabel": "What you're working toward",
       "pathLabel": "Your first steps",
       "outcomeFallback": "You've got a clear path ahead — let's get started.",
-      "cta": "See my plan options"
+      "cta": "See my plan options",
+      "ctaStartLesson": "Start my first lesson"
     },
     "questionnaireHeaderPersonalized": "Complete your financial profile",
     "questionnaireHeaderDefault": "Personalise your journey",

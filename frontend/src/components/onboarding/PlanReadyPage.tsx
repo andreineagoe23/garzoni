@@ -13,6 +13,7 @@ import React, { useEffect, useRef } from "react";
 import PageContainer from "components/common/PageContainer";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { GlassCard, GlassButton } from "components/ui";
 import Loader from "components/common/Loader";
@@ -23,6 +24,7 @@ const DASHBOARD_ROUTE = "/all-topics";
 
 const PlanReadyPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const viewTrackedRef = useRef(false);
 
   const {
@@ -177,7 +179,12 @@ const PlanReadyPage: React.FC = () => {
             className="w-full max-w-sm"
             onClick={handleContinue}
           >
-            See my plan options →
+            {t(
+              summary?.paywall_placement === "post_first_lesson"
+                ? "onboarding.planReady.ctaStartLesson"
+                : "onboarding.planReady.cta"
+            )}{" "}
+            →
           </GlassButton>
           <button
             type="button"

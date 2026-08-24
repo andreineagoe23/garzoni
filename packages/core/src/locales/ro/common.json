@@ -3095,7 +3095,8 @@
       "goalsLabel": "Ce vrei să realizezi",
       "pathLabel": "Primii tăi pași",
       "outcomeFallback": "Ai un traseu clar înainte — hai să începem.",
-      "cta": "Vezi opțiunile planului meu"
+      "cta": "Vezi opțiunile planului meu",
+      "ctaStartLesson": "Începe prima lecție"
     },
     "questionnaireHeaderPersonalized": "Completează profilul tău financiar",
     "questionnaireHeaderDefault": "Personalizează-ți parcursul",

@@ -242,7 +242,18 @@ export default function PlanReadyScreen({ onContinue }: Props) {
           accessibilityRole="button"
         >
           <View style={s.ctaHighlight} pointerEvents="none" />
-          <Text style={s.ctaLabel}>{t("onboarding.planReady.cta")}</Text>
+          {/* The label has to follow the placement. "See my plan options" was
+              written for the onboarding arm, where this button opens the
+              paywall. Under post_first_lesson it opens the first curated
+              lesson instead, so the old copy promised a screen that never
+              came. */}
+          <Text style={s.ctaLabel}>
+            {t(
+              placement === "post_first_lesson"
+                ? "onboarding.planReady.ctaStartLesson"
+                : "onboarding.planReady.cta",
+            )}
+          </Text>
         </Pressable>
       </View>
     </View>
