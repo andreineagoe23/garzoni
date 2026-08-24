@@ -413,13 +413,20 @@ function TierCard({
   const { t } = useTranslation("common");
   const isPro = plan.id === "pro";
   const accent = isPro ? D.goldWarm : D.primaryBright;
-  // A yearly package carries the *annual* total in priceString, but the label
-  // underneath it reads "/ month, billed annually" — rendering it raw stated the
-  // price at 12x and contradicted the per-week figure just below.
+  // The amount the store actually charges, formatted by the store. Used wherever
+  // a real charge is quoted: the struck-through original, and the "then X / year"
+  // line under an intro offer.
+  const fullPriceString = pkg?.product.priceString ?? "—";
+  // A yearly package carries the *annual* total in priceString, but the headline
+  // label underneath reads "/ month, billed annually" — rendering it raw stated
+  // the price at 12x and contradicted the per-week figure just below. This is the
+  // monthly equivalent, and it belongs only next to a per-month label. Quoting it
+  // against "/ year" understates the charge by the same factor in the other
+  // direction, which is what happened when this was a single shared variable.
   const price =
     cycle === "yearly" && pkg && pkg.product.price > 0
       ? formatCurrencyAmount(pkg.product.price / 12, pkg.product.currencyCode)
-      : (pkg?.product.priceString ?? "—");
+      : fullPriceString;
   const per =
     cycle === "yearly"
       ? t("subscriptions.mobilePaywall.perMonthBilledAnnually")
@@ -504,7 +511,9 @@ function TierCard({
 
       {/* Price */}
       <View style={styles.priceRow}>
-        {paidIntro && <Text style={styles.priceStrike}>{price}</Text>}
+        {/* Struck-through original sits beside the intro total, so both must be
+            the real charge for the same period — not a monthly equivalent. */}
+        {paidIntro && <Text style={styles.priceStrike}>{fullPriceString}</Text>}
         <Text style={[styles.price, { fontFamily: DISPLAY_FONT }]}>
           {paidIntro ? paidIntro.priceString : price}
         </Text>
@@ -514,7 +523,9 @@ function TierCard({
           {(() => {
             const params = {
               period: formatIntroOfferLabel(paidIntro, t),
-              price,
+              // What they pay once the intro ends, for the period the suffix
+              // names — the annual total on a yearly plan, never the /12.
+              price: fullPriceString,
               suffix:
                 cycle === "yearly"
                   ? t("subscriptions.mobilePaywall.thenPerYear")
