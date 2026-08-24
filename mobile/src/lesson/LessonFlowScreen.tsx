@@ -34,7 +34,13 @@ import {
 import ConfettiCannon from "react-native-confetti-cannon";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { Button, ErrorState, HeartBar, ProgressBar } from "../components/ui";
+import {
+  AppPressable,
+  Button,
+  ErrorState,
+  HeartBar,
+  ProgressBar,
+} from "../components/ui";
 import { safeImpactAsync } from "../utils/safeHaptics";
 import { HeaderChatButton } from "../components/navigation/HeaderChatButton";
 import { href } from "../navigation/href";
@@ -64,6 +70,7 @@ import { layout, radius, shadows, spacing, typography } from "../theme/tokens";
 import { useScreenGutter } from "../utils/platform";
 import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
+import { resolveLessonColors, useLessonColors } from "./lessonTheme";
 import type { ThemeColors } from "../theme/palettes";
 import { useTranslation } from "react-i18next";
 
@@ -99,6 +106,7 @@ function formatCountdown(sec: number): string {
 }
 
 export function createLessonFlowStyles(c: ThemeColors) {
+  const lc = resolveLessonColors(c);
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: c.bg },
     centered: {
@@ -176,7 +184,9 @@ export function createLessonFlowStyles(c: ThemeColors) {
       flex: 1,
       paddingVertical: 16,
       borderRadius: 999,
-      backgroundColor: c.primary,
+      // Shared lesson action colour — see src/lesson/lessonTheme.ts. This was
+      // c.primary, a full step darker, and it read as inert next to the demo.
+      backgroundColor: lc.action,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -832,6 +842,7 @@ export default function LessonFlowScreen({
     () => createLessonFlowStyles(themeColors),
     [themeColors],
   );
+  const lessonColors = useLessonColors();
 
   if (lessonsQuery.isError) {
     return (
@@ -1081,7 +1092,12 @@ export default function LessonFlowScreen({
               marginTop: spacing.sm,
             }}
           >
-            <ProgressBar value={progress} height={5} style={{ flex: 1 }} />
+            <ProgressBar
+              value={progress}
+              height={5}
+              color={lessonColors.action}
+              style={{ flex: 1 }}
+            />
             <Text style={styles.stepFoot}>{Math.round(progress * 100)}%</Text>
           </View>
 
@@ -1182,7 +1198,11 @@ export default function LessonFlowScreen({
           </Text>
         </Pressable>
 
-        <Pressable
+        {/* AppPressable, not Pressable: a bare Pressable gives no visual
+            feedback at all, and this is the most-tapped control in the app —
+            the codebase documents that exact failure mode in AppPressable. */}
+        <AppPressable
+          feedback="scale"
           onPress={() => void handleContinuePress()}
           disabled={
             continueBusy ||
@@ -1204,7 +1224,7 @@ export default function LessonFlowScreen({
           <Text style={styles.continueBtnText}>
             {isLast ? t("shared.finish") : t("shared.continue")}
           </Text>
-        </Pressable>
+        </AppPressable>
       </View>
 
       <Modal
