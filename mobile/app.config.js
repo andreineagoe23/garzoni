@@ -117,6 +117,17 @@ function preferHttpsForRailway(url) {
 const allowInsecureLocalHttp =
   process.env.EXPO_PUBLIC_ALLOW_INSECURE_LOCAL_HTTP === "1";
 
+/**
+ * One launch-logo width for both platforms and for the JS loading screen that
+ * follows the native splash. Kept here so the two cannot drift again — iOS was
+ * rendering a full-screen wordmark while app/index.tsx showed a ~120pt one, so
+ * a single cold start displayed the same mark at two very different sizes.
+ *
+ * 150 comes from the Android 12+ circular mask: the safe zone is ~160dp across,
+ * and at 150 the wordmark's half-diagonal stays inside it.
+ */
+const SPLASH_LOGO_WIDTH = 150;
+
 const isProductionBuildProfile = process.env.EAS_BUILD_PROFILE === "production";
 
 module.exports = ({ config }) => ({
@@ -233,11 +244,15 @@ module.exports = ({ config }) => ({
           // Android 12+ masks the splash icon to a circle (safe zone ≈160dp
           // diameter). The wordmark is wide (1080×312 px in a 1200px square),
           // so cap it at 150dp: half-diagonal ≈78dp stays inside the mask.
-          imageWidth: 150,
+          imageWidth: SPLASH_LOGO_WIDTH,
         },
         ios: {
-          // Keep the existing iOS look: full-screen aspect-fit wordmark.
-          enableFullScreenImage_legacy: true,
+          // Was enableFullScreenImage_legacy, which aspect-fits the wordmark to
+          // the whole screen — an enormous logo, and nothing like the ~120pt one
+          // the JS loading screen shows a beat later. Two sizes of the same mark
+          // in the same launch. Matching Android's cap keeps the hand-off
+          // between the native splash and app/index.tsx invisible.
+          imageWidth: SPLASH_LOGO_WIDTH,
         },
       },
     ],

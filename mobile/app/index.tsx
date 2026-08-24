@@ -26,6 +26,8 @@ import {
 
 const { width: SW } = Dimensions.get("window");
 const LOGO = require("../assets/garzoni-logo-square-no-bg.png");
+/** Keep in step with SPLASH_LOGO_WIDTH in app.config.js. */
+const LAUNCH_LOGO_SIZE = 150;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -287,9 +289,10 @@ const styles = StyleSheet.create({
     gap: 28,
   },
   logo: {
-    width: SW * 0.28,
-    height: SW * 0.28,
-    maxWidth: 120,
-    maxHeight: 120,
+    // Same width the native splash uses (SPLASH_LOGO_WIDTH in app.config.js).
+    // It was SW*0.28 capped at 120 while iOS drew a full-screen wordmark, so a
+    // single cold start showed the same mark at two very different sizes.
+    width: LAUNCH_LOGO_SIZE,
+    height: LAUNCH_LOGO_SIZE,
   },
 });
