@@ -6,7 +6,7 @@
  * - EXPO_PUBLIC_CIO_REGION=us|eu
  */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { Platform } from "react-native";
+import { Platform, TurboModuleRegistry } from "react-native";
 
 const SITE_ID = process.env.EXPO_PUBLIC_CIO_SITE_ID?.trim();
 const CDP_KEY = process.env.EXPO_PUBLIC_CIO_CDP_API_KEY?.trim();
@@ -30,11 +30,44 @@ function decodeJwtUserId(accessToken: string): string | null {
   }
 }
 
+/**
+ * Is the Customer.io native module actually in this binary?
+ *
+ * The SDK's entry point eagerly pulls in every spec, and those use
+ * `TurboModuleRegistry.getEnforcing`, which throws an Invariant Violation when
+ * the native side is absent. Merely `require`-ing the package in a binary that
+ * predates the dependency therefore red-screens — the throw reaches LogBox
+ * before our catch can turn it into a warning.
+ *
+ * That is the normal state of a dev client built before customerio-reactnative
+ * was added, and of Expo Go, where the module can never exist. This file has
+ * always documented itself as optional; probing with the non-throwing `get`
+ * first makes it behave that way instead of shouting on every launch.
+ */
+function customerIoNativeModulePresent(): boolean {
+  try {
+    return TurboModuleRegistry.get("NativeCustomerIO") != null;
+  } catch {
+    return false;
+  }
+}
+
 export async function initCustomerIoMobile(): Promise<void> {
   if (!CDP_KEY) {
     if (__DEV__) {
       console.warn(
         "[Customer.io] EXPO_PUBLIC_CIO_CDP_API_KEY not set — SDK disabled, no push delivery via CIO",
+      );
+    }
+    return;
+  }
+  if (!customerIoNativeModulePresent()) {
+    nativeAvailable = false;
+    if (__DEV__) {
+      console.warn(
+        "[Customer.io] native module not in this binary — SDK skipped. " +
+          "Rebuild the dev client (npx expo run:ios) after adding or changing " +
+          "native dependencies; `expo start --clear` only refreshes JS.",
       );
     }
     return;
