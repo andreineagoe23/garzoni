@@ -1,4 +1,10 @@
-import { forwardRef, type ReactElement, type ReactNode } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import {
   Platform,
   RefreshControl,
@@ -7,6 +13,7 @@ import {
   type ScrollViewProps,
   StyleSheet,
 } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
 import { useResponsive } from "../../utils/platform";
 
 export type ScreenScrollProps = ScrollViewProps & {
@@ -51,6 +58,14 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
     },
     ref,
   ) {
+    // Tapping the active tab returns to the top of that screen — the standard
+    // mobile affordance, and the one people reach for after scrolling a long
+    // list. React Navigation drives it off a ref, so keep an internal one and
+    // re-expose it to any caller that also forwards a ref.
+    const innerRef = useRef<ScrollView>(null);
+    useImperativeHandle(ref, () => innerRef.current as ScrollView, []);
+    useScrollToTop(innerRef);
+
     const { isTablet, gutter } = useResponsive();
     // Fluid tablet gutter: extra horizontal padding on iPad only. 0 on phone,
     // so the iPhone layout is byte-for-byte unchanged.
@@ -71,7 +86,7 @@ const ScreenScroll = forwardRef<ScrollView, ScreenScrollProps>(
 
     return (
       <ScrollView
-        ref={ref}
+        ref={innerRef}
         style={[styles.flex, style]}
         contentContainerStyle={[contentContainerStyle, gutterStyle, bottomPad]}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}

@@ -19,7 +19,8 @@ import {
 } from "@garzoni/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useScrollToTop } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -760,6 +761,11 @@ export default function LeaderboardScreen() {
   const flatData =
     pageLoading || filteredLeaderboard.length === 0 ? [] : visibleRemainder;
 
+  // Tapping the active tab scrolls this screen back to the top — the standard
+  // affordance after a long scroll. Driven by React Navigation off this ref.
+  const listRef = useRef<FlatList>(null);
+  useScrollToTop(listRef);
+
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
       <TabScreenHeader
@@ -769,6 +775,7 @@ export default function LeaderboardScreen() {
       />
       <View style={{ flex: 1 }}>
         <FlatList
+          ref={listRef}
           data={flatData}
           keyExtractor={(item, i) => String(item.user?.id ?? `row-${i}`)}
           renderItem={({ item, index }) => {

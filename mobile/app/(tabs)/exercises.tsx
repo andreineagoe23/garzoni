@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useScrollToTop } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Modal,
@@ -591,6 +592,11 @@ function ExercisesInner() {
     ? labelForExerciseType(exerciseType, t)
     : t("exercises.filters.allTypes");
 
+  // Tapping the active tab scrolls this screen back to the top — the standard
+  // affordance after a long scroll. Driven by React Navigation off this ref.
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <TabScreenHeader
@@ -601,6 +607,7 @@ function ExercisesInner() {
 
       <View style={{ flex: 1 }}>
         <ScrollView
+          ref={scrollRef}
           style={{ flex: 1, backgroundColor: c.bg }}
           contentContainerStyle={[
             styles.container,

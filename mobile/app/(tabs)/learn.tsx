@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useScrollToTop } from "@react-navigation/native";
 import {
   FlatList,
   LayoutAnimation,
@@ -561,6 +562,11 @@ function LearnInner() {
     }
   }, [pathsQuery, progressQuery]);
 
+  // Tapping the active tab scrolls this screen back to the top — the standard
+  // affordance after a long scroll. Driven by React Navigation off this ref.
+  const listRef = useRef<FlatList>(null);
+  useScrollToTop(listRef);
+
   const segmentRow = useMemo(
     () => (
       <View style={styles.segmentRow}>
@@ -858,6 +864,7 @@ function LearnInner() {
 
   return (
     <FlatList
+      ref={listRef}
       style={{ flex: 1, backgroundColor: c.bg }}
       data={displayPaths}
       keyExtractor={(item, i) => String(item.id ?? i)}
