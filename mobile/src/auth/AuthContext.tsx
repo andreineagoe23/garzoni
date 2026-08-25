@@ -13,10 +13,7 @@ import {
   type AppStateStatus,
 } from "react-native";
 import { attachToken } from "@garzoni/core";
-import {
-  clearGarzoniCustomerIo,
-  identifyGarzoniUserFromAccessToken,
-} from "../bootstrap/customerIoMobile";
+import { identifyGarzoniUserFromAccessToken } from "../bootstrap/customerIoMobile";
 import { fireAppOpenedDaily } from "../bootstrap/sessionTracking";
 import { reregisterPushIfPermitted } from "../bootstrap/pushNotificationsMobile";
 import { tokenStorage } from "./tokenStorage";

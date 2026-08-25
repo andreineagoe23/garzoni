@@ -404,7 +404,14 @@ export function AddEntrySheet({
     } finally {
       setSubmitting(false);
     }
-  }, [form, isPaperTrade, onAdded, onClose, onFirstTrade]);
+  }, [
+    form,
+    isPaperTrade,
+    onAdded,
+    onClose,
+    onFirstTrade,
+    selectedCoingeckoId,
+  ]);
 
   const currentAssetLabel =
     ASSET_TYPES.find((t) => t.value === form.asset_type)?.label ?? "Stock";

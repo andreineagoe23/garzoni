@@ -15,9 +15,9 @@ import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
 import KeyboardAwareScrollView from "../../../components/ui/KeyboardAwareScrollView";
-import type { FinancialGoalDto } from "../../../types/financial-goals";
 import {
   EMPTY_GOAL_FORM,
+  type FinancialGoalDto,
   type GoalFormState,
   num,
 } from "../../../types/financial-goals";

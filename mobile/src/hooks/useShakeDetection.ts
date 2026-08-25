@@ -9,7 +9,6 @@ type Options = {
   enabled?: boolean;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyAccelerometer = any;
 
 export function useShakeDetection({ onShake, enabled = true }: Options) {

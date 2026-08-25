@@ -9,7 +9,7 @@ import {
 import { Stack } from "expo-router";
 import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../../../src/theme/tokens";
+import { spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import {
   groupEventsByDate,

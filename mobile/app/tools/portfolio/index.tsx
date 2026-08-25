@@ -503,7 +503,10 @@ export default function PortfolioScreen() {
     refetchInterval: 5 * 60 * 1000,
   });
 
-  const entries = portfolioQuery.data?.entries ?? [];
+  const entries = useMemo(
+    () => portfolioQuery.data?.entries ?? [],
+    [portfolioQuery.data?.entries],
+  );
   const virtualBalance =
     portfolioQuery.data?.balance !== undefined
       ? portfolioQuery.data.balance

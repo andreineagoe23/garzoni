@@ -88,7 +88,10 @@ export default function BudgetAllocation({
   const styles = useMemo(() => createStyles(c), [c]);
 
   const question = data?.question as string | undefined;
-  const categories = (data?.categories ?? []) as string[];
+  const categories = useMemo(
+    () => (data?.categories ?? []) as string[],
+    [data?.categories],
+  );
   const total = Number(data?.total ?? 0);
 
   const [allocations, setAllocations] = useState<Record<string, string>>(() =>
@@ -107,7 +110,7 @@ export default function BudgetAllocation({
     setFeedbackType(null);
     setIsCompleted(Boolean(isCompletedProp));
     setSubmitting(false);
-  }, [exerciseId, sectionId, isCompletedProp, categories.join("|")]);
+  }, [exerciseId, sectionId, isCompletedProp, categories]);
 
   const currentTotal = useMemo(
     () =>

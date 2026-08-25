@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -61,10 +61,17 @@ export default function AvatarSelectorMobile({
 
   const uploadEnabled = isCloudinaryUploadConfigured();
 
+  // Read via refs, not state, so this reset effect only fires on open/avatar
+  // change — not on every selectedStyle/seed change it itself causes.
+  const selectedStyleRef = useRef(selectedStyle);
+  selectedStyleRef.current = selectedStyle;
+  const seedRef = useRef(seed);
+  seedRef.current = seed;
+
   useEffect(() => {
     if (!visible) return;
-    let style = selectedStyle;
-    let s = seed;
+    let style = selectedStyleRef.current;
+    let s = seedRef.current;
     if (currentAvatar) {
       const m = currentAvatar.match(
         /avatars\.dicebear\.com\/(?:api|7\.x)\/([^/]+)\/([^.]+)/,

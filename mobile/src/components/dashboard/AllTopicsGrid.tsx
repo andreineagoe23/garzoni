@@ -16,7 +16,6 @@ import {
   getMediaBaseUrl,
   Images,
   queryKeys,
-  staleTimes,
 } from "@garzoni/core";
 import { useTranslation } from "react-i18next";
 import { useAuthSession } from "../../auth/AuthContext";

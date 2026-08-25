@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useThemeColors } from "../../../theme/ThemeContext";
-import { spacing, typography, radius } from "../../../theme/tokens";
+import { spacing, typography } from "../../../theme/tokens";
 
 type Props = { completed: number; total: number };
 

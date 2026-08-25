@@ -11,7 +11,6 @@ import Svg, {
 } from "react-native-svg";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../../theme/tokens";
-import { formatCurrency } from "../../../types/savings-calculator";
 
 type Props = {
   data: { month: number; value: number }[];

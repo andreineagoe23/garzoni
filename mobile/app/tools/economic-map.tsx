@@ -4,8 +4,7 @@ import LoadingSpinner from "../../src/components/ui/LoadingSpinner";
 import { Stack } from "expo-router";
 import { WebView } from "react-native-webview";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "../../src/theme/ThemeContext";
-import { useThemeColors } from "../../src/theme/ThemeContext";
+import { useTheme, useThemeColors } from "../../src/theme/ThemeContext";
 import { spacing, typography } from "../../src/theme/tokens";
 import WhyThisMattersMobile from "../../src/components/tools/WhyThisMattersMobile";
 

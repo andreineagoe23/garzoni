@@ -20,7 +20,7 @@ import Svg, {
 } from "react-native-svg";
 import { brand } from "../../../theme/brand";
 import { darkPalette } from "../../../theme/palettes";
-import { spacing, typography, radius } from "../../../theme/tokens";
+import { spacing, radius } from "../../../theme/tokens";
 
 const C = {
   bg: brand.bgDark,

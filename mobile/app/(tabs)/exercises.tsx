@@ -329,7 +329,7 @@ function ExercisesInner() {
     return buildStandaloneExerciseViewModel(d);
   }, [detailQuery.data]);
 
-  const list = listQuery.data ?? [];
+  const list = useMemo(() => listQuery.data ?? [], [listQuery.data]);
 
   const filteredList = useMemo(() => {
     if (mode === "review") return reviewItems;
@@ -363,9 +363,6 @@ function ExercisesInner() {
     pickedIndex >= 0 && filteredList.length > 0
       ? (pickedIndex + 1) / filteredList.length
       : 0;
-
-  const sessionBatchFraction =
-    SESSION_BATCH > 0 ? Math.min(1, sessionStats.completed / SESSION_BATCH) : 0;
 
   const timerSeconds = useMemo(() => {
     const d = detailQuery.data as Record<string, unknown> | undefined;

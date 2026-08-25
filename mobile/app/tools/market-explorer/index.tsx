@@ -175,7 +175,10 @@ export default function MarketExplorerScreen() {
     staleTime: staleTimes.marketSearch,
   });
 
-  const results = marketSearchQuery.data ?? [];
+  const results = useMemo(
+    () => marketSearchQuery.data ?? [],
+    [marketSearchQuery.data],
+  );
   const searching = marketSearchQuery.isFetching;
 
   const partialPriceWarning = useMemo(() => {

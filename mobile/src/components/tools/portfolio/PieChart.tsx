@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Svg, { Path, Circle, G } from "react-native-svg";
 import { useThemeColors } from "../../../theme/ThemeContext";
-import { spacing, typography, radius } from "../../../theme/tokens";
+import { spacing, typography } from "../../../theme/tokens";
 import { PIE_COLORS, formatCurrency } from "../../../types/portfolio";
 import type { PortfolioSummary } from "../../../types/portfolio";
 

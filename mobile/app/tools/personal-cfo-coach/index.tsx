@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -21,7 +21,6 @@ import {
   staleTimes,
 } from "@garzoni/core";
 import { brand } from "../../../src/theme/brand";
-import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
 import { trackGarzoniEvent } from "../../../src/bootstrap/customerIoMobile";
@@ -115,7 +114,6 @@ function TypingBubble() {
 }
 
 export default function PersonalCfoCoachScreen() {
-  const colors = useThemeColors();
   const gutter = useScreenGutter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation("common");

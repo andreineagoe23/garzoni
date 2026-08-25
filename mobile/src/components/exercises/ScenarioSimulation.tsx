@@ -108,10 +108,13 @@ export default function ScenarioSimulation({
 
   const scenario = data?.scenario as string | undefined;
   const question = data?.question as string | undefined;
-  const choicesRaw = data?.choices ?? data?.options ?? [];
+  const choicesRaw = useMemo(
+    () => data?.choices ?? data?.options ?? [],
+    [data?.choices, data?.options],
+  );
   const choices = useMemo(
     () => normalizeChoices(Array.isArray(choicesRaw) ? choicesRaw : []),
-    [data],
+    [choicesRaw],
   );
   const correctId = data?.correctAnswer ?? data?.correct_choice;
   const explanation = data?.explanation as string | undefined;

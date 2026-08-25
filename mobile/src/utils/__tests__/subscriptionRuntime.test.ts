@@ -16,6 +16,7 @@ jest.mock("../../billing/safeRevenueCat", () => ({
 jest.mock("react-native-purchases", () => ({}));
 jest.mock("@tanstack/react-query", () => ({}));
 
+/* eslint-disable import/first -- mocks must run before importing the module under test */
 import {
   rcIsEntitled,
   rcIsProEntitled,

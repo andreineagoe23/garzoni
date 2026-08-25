@@ -14,6 +14,25 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { Audio as AudioType } from "expo-av";
+import { router } from "expo-router";
+import {
+  isAppActiveForAudio,
+  isBackgroundAudioError,
+} from "../src/lib/audioPlayback";
+import { logDevError } from "../src/lib/logDevError";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import {
+  apiClient,
+  fetchEntitlements,
+  queryKeys,
+  staleTimes,
+} from "@garzoni/core";
+import { useQuery } from "@tanstack/react-query";
+import { useThemeColors } from "../src/theme/ThemeContext";
+import { spacing, typography, radius } from "../src/theme/tokens";
+import { useScreenGutter } from "../src/utils/platform";
+import type { ThemeColors } from "../src/theme/palettes";
 
 let audioModule: typeof AudioType | null | undefined;
 
@@ -37,21 +56,6 @@ function getAudio(): typeof AudioType | null {
   }
   return audioModule ?? null;
 }
-import { router } from "expo-router";
-import {
-  isAppActiveForAudio,
-  isBackgroundAudioError,
-} from "../src/lib/audioPlayback";
-import { logDevError } from "../src/lib/logDevError";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@garzoni/core";
-import { useThemeColors } from "../src/theme/ThemeContext";
-import { spacing, typography, radius } from "../src/theme/tokens";
-import { useScreenGutter } from "../src/utils/platform";
-import type { ThemeColors } from "../src/theme/palettes";
 
 type Message = {
   role: "user" | "assistant";
@@ -150,7 +154,7 @@ export default function VoiceChat() {
   const c = useThemeColors();
   const gutter = useScreenGutter();
   const styles = createStyles(c);
-  const { t } = useTranslation("common");
+  useTranslation("common");
   const insets = useSafeAreaInsets();
 
   const { data: entitlementsRaw } = useQuery({

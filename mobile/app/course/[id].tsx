@@ -11,10 +11,10 @@ import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import {
   courseService,
   fetchLessonsWithProgress,
+  isAxiosError,
   queryKeys,
   staleTimes,
 } from "@garzoni/core";
@@ -125,7 +125,10 @@ export default function CourseDetailScreen() {
     staleTime: staleTimes.content,
   });
 
-  const lessons: LessonRow[] = lessonsQuery.data ?? [];
+  const lessons: LessonRow[] = useMemo(
+    () => lessonsQuery.data ?? [],
+    [lessonsQuery.data],
+  );
   const completedCount = useMemo(
     () => lessons.filter((l) => l.is_completed).length,
     [lessons],

@@ -56,7 +56,7 @@ describe("ReferralLink", () => {
     expect(input.value).toBe("https://app.garzoni.app/welcome?ref=TEST-CODE");
   });
 
-  it("copies the referral link to clipboard when clicking copy", () => {
+  it("copies the referral link to clipboard when clicking copy", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText },
@@ -68,6 +68,10 @@ describe("ReferralLink", () => {
 
     const button = screen.getByRole("button", { name: /copy link/i });
     fireEvent.click(button);
+
+    // copyToClipboard flips `copied` to true once the clipboard write
+    // resolves; wait for that state settle so it lands inside act().
+    await screen.findByRole("button", { name: /copied/i });
 
     expect(writeText).toHaveBeenCalledWith(
       "https://app.garzoni.app/welcome?ref=FRIEND-123"

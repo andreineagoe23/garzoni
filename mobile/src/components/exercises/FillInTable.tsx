@@ -86,8 +86,14 @@ export default function FillInTable({
   const styles = useMemo(() => createStyles(c), [c]);
 
   const question = data?.question as string | undefined;
-  const columns = (data?.columns ?? []) as string[];
-  const rows = (data?.rows ?? []) as { id: string; label?: string }[];
+  const columns = useMemo(
+    () => (data?.columns ?? []) as string[],
+    [data?.columns],
+  );
+  const rows = useMemo(
+    () => (data?.rows ?? []) as { id: string; label?: string }[],
+    [data?.rows],
+  );
   const correctAnswer = data?.correctAnswer as
     Record<string, string[]> | undefined;
 
@@ -105,9 +111,6 @@ export default function FillInTable({
   const [isCompleted, setIsCompleted] = useState(Boolean(isCompletedProp));
   const [submitting, setSubmitting] = useState(false);
 
-  const rowsKey = rows.map((r) => r.id).join("|");
-  const colsKey = columns.join("|");
-
   useEffect(() => {
     setAnswers(
       Object.fromEntries(rows.map((r) => [r.id, columns.map(() => "")])),
@@ -116,7 +119,7 @@ export default function FillInTable({
     setFeedbackType(null);
     setIsCompleted(Boolean(isCompletedProp));
     setSubmitting(false);
-  }, [exerciseId, sectionId, isCompletedProp, rowsKey, colsKey]);
+  }, [exerciseId, sectionId, isCompletedProp, rows, columns]);
 
   const handleSubmit = async () => {
     if (disabled || submitting) return;

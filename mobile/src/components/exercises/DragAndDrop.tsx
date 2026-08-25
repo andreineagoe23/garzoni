@@ -93,8 +93,11 @@ export default function DragAndDrop({
   const { t } = useTranslation("common");
   const styles = useMemo(() => createStyles(c), [c]);
 
-  const items = (data?.items ?? []) as Item[];
-  const targets = (data?.targets ?? []) as Target[];
+  const items = useMemo(() => (data?.items ?? []) as Item[], [data?.items]);
+  const targets = useMemo(
+    () => (data?.targets ?? []) as Target[],
+    [data?.targets],
+  );
   const explanation = data?.explanation as string | undefined;
 
   const [order, setOrder] = useState<(string | number)[]>([]);

@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Skeleton } from "../ui";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -35,6 +28,10 @@ import { navigateToExercisesFromDashboardSkill } from "../../hooks/useDashboardS
 import { useAuthSession } from "../../auth/AuthContext";
 import { useThemeColors } from "../../theme/ThemeContext";
 import { scheduleStreakReminder } from "../../streak/streakReminder";
+import GlassCard from "../ui/GlassCard";
+import GlassButton from "../ui/GlassButton";
+import CircularProgressRing from "../ui/CircularProgressRing";
+import { spacing, typography, radius } from "../../theme/tokens";
 
 /** Normalize onboarding goal tags from API (string or nested arrays) for display. */
 function formatOnboardingGoalsLine(goals: unknown): string {
@@ -52,11 +49,6 @@ function formatOnboardingGoalsLine(goals: unknown): string {
   }
   return parts.join(" • ");
 }
-
-import GlassCard from "../ui/GlassCard";
-import GlassButton from "../ui/GlassButton";
-import CircularProgressRing from "../ui/CircularProgressRing";
-import { spacing, typography, radius } from "../../theme/tokens";
 
 function courseIconName(pathTitle?: string) {
   const title = String(pathTitle || "").toLowerCase();

@@ -12,7 +12,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { isAxiosError } from "axios";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +21,7 @@ import {
   fetchEntitlements,
   fetchForexQuote,
   fetchStockQuote,
+  isAxiosError,
   normalizeCurrencyCode,
   queryKeys,
   requestAiTutorPayload,

@@ -31,8 +31,8 @@ export function getRevenueCatPurchases(): RevenueCatPurchasesApi | null {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mod =
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require("react-native-purchases") as typeof import("react-native-purchases");
   cached = {
     Purchases: mod.default,

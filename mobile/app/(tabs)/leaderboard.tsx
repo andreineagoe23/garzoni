@@ -272,8 +272,14 @@ export default function LeaderboardScreen() {
 
   const hasMoreList = listRemainder.length > listVisible;
 
-  const friends: FriendUserBrief[] = friendsListQuery.data ?? [];
-  const sentRequests: FriendRequestSent[] = sentQuery.data ?? [];
+  const friends: FriendUserBrief[] = useMemo(
+    () => friendsListQuery.data ?? [],
+    [friendsListQuery.data],
+  );
+  const sentRequests: FriendRequestSent[] = useMemo(
+    () => sentQuery.data ?? [],
+    [sentQuery.data],
+  );
 
   const duelStatusByUserId = useMemo(() => {
     const map = new Map<number, "pending" | "active">();
@@ -361,7 +367,6 @@ export default function LeaderboardScreen() {
     sentQuery,
     friendsListQuery,
     queryClient,
-    activeSkill,
   ]);
 
   const userRank = rankQuery.data;

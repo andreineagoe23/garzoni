@@ -20,7 +20,7 @@ import KeyboardAwareScrollView from "../../../src/components/ui/KeyboardAwareScr
 import { useCfoProfile, hasProfileInputs } from "../../../src/state/cfoProfile";
 import WhyThisMattersMobile from "../../../src/components/tools/WhyThisMattersMobile";
 
-const PRESETS: Array<{ label: string; form: Partial<SavingsForm> }> = [
+const PRESETS: { label: string; form: Partial<SavingsForm> }[] = [
   {
     label: "Emergency fund",
     form: {

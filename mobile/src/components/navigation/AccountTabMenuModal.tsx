@@ -17,7 +17,7 @@ import { href } from "../../navigation/href";
 import { useTheme, useThemeColors } from "../../theme/ThemeContext";
 import { navIcons } from "../../theme/navIcons";
 import GlassCard from "../ui/GlassCard";
-import { spacing, typography, radius } from "../../theme/tokens";
+import { spacing, typography } from "../../theme/tokens";
 
 type Props = {
   visible: boolean;

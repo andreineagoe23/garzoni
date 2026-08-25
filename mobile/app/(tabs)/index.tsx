@@ -217,7 +217,7 @@ function DashboardInner() {
     queryKey: queryKeys.reviewQueue(),
     queryFn: () =>
       fetchReviewQueue().then(
-        (r) => r.data as { count?: number; due?: Array<{ skill?: string }> },
+        (r) => r.data as { count?: number; due?: { skill?: string }[] },
       ),
     staleTime: staleTimes.progressSummary,
     enabled: secondaryQueriesEnabled,
@@ -541,11 +541,8 @@ function DashboardInner() {
     [summary.strongestSkills],
   );
 
-  const {
-    handleWeakSkillPrimaryAction,
-    handleContinueImproving,
-    handleAskTutorAboutSkill,
-  } = useDashboardSkillExercisesNavigation();
+  const { handleContinueImproving, handleAskTutorAboutSkill } =
+    useDashboardSkillExercisesNavigation();
 
   const primaryCTASignal = useMemo(
     () =>

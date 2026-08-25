@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";

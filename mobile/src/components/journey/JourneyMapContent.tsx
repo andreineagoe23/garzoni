@@ -25,13 +25,17 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import {
+  buildJourneyLayout,
   buildProgressByCourse,
   derivePersonalizedPathState,
   fetchPersonalizedPath,
   fetchProgressSummary,
   postPersonalizedPathRefresh,
   queryKeys,
+  remainingMinutes,
   staleTimes,
+  type JourneyDecorationKind,
+  type JourneyNodeModel,
   type MascotType,
   type PersonalizedPathCourse,
   type ProgressSummary,
@@ -45,12 +49,6 @@ import { radius, spacing, typography, shadows } from "../../theme/tokens";
 import GlassButton from "../ui/GlassButton";
 import GlassCard from "../ui/GlassCard";
 import { Skeleton } from "../ui";
-import {
-  buildJourneyLayout,
-  remainingMinutes,
-  type JourneyDecorationKind,
-  type JourneyNodeModel,
-} from "@garzoni/core";
 import JourneyBackdrop from "./JourneyBackdrop";
 import JourneyNode from "./JourneyNode";
 import JourneyTrail from "./JourneyTrail";

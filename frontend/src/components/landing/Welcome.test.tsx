@@ -10,6 +10,15 @@ vi.mock("components/layout/Header", () => ({
   default: () => <div>Header</div>,
 }));
 
+// Welcome fetches the public pricing catalog on mount; mock it so that fetch
+// resolves deterministically instead of hitting the real network in tests.
+vi.mock("services/httpClient", () => ({
+  __esModule: true,
+  default: {
+    get: vi.fn().mockResolvedValue({ data: { plans: [], promo: null } }),
+  },
+}));
+
 const renderWelcome = (initialPath: string) =>
   render(
     <ThemeProvider>
@@ -28,11 +37,11 @@ const renderWelcome = (initialPath: string) =>
   );
 
 describe("Welcome referral flow", () => {
-  it("shows referral modal when ref query param is present", () => {
+  it("shows referral modal when ref query param is present", async () => {
     renderWelcome("/welcome?ref=INVITE-123");
 
     expect(
-      screen.getByText(/You were invited to Garzoni/i)
+      await screen.findByText(/You were invited to Garzoni/i)
     ).toBeInTheDocument();
   });
 

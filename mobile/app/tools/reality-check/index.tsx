@@ -151,8 +151,6 @@ export default function RealityCheckScreen() {
     setTimeout(() => setRefreshing(false), 300);
   }, [fadeAnim]);
 
-  const hasInputs = Boolean(form.goalAmount || form.months || form.incomeLow);
-
   return (
     <>
       <Stack.Screen options={{ title: "Goals Reality Check" }} />

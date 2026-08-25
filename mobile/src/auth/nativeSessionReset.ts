@@ -11,13 +11,13 @@ import { clearGarzoniCustomerIo } from "../bootstrap/customerIoMobile";
 import { clearPushRegistrationFlag } from "../hooks/usePushNotifications";
 import { clearCfoProfileStorage } from "../state/cfoProfile";
 import { tokenStorage } from "./tokenStorage";
-
-const CHAT_HISTORY_STORAGE_KEY = "garzoni:chat:history:v1";
 import {
   clearPlanChosenCache,
   clearWelcomeHeaderPending,
   clearWelcomeSeen,
 } from "./firstRunFlags";
+
+const CHAT_HISTORY_STORAGE_KEY = "garzoni:chat:history:v1";
 
 /** Fired when session storage is cleared outside `AuthContext` (e.g. HTTP 401 refresh failure). */
 export const NATIVE_AUTH_STORAGE_CLEARED =

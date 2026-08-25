@@ -7,7 +7,6 @@ import {
 } from "react";
 import {
   Platform,
-  RefreshControl,
   type RefreshControlProps,
   ScrollView,
   type ScrollViewProps,

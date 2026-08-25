@@ -14,9 +14,13 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { fetchEntitlements, queryKeys, staleTimes } from "@garzoni/core";
+import {
+  apiClient,
+  fetchEntitlements,
+  queryKeys,
+  staleTimes,
+} from "@garzoni/core";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@garzoni/core";
 import { useThemeColors } from "../src/theme/ThemeContext";
 import { spacing, typography, radius } from "../src/theme/tokens";
 import { useScreenGutter } from "../src/utils/platform";
@@ -136,7 +140,7 @@ export default function Scan() {
   const c = useThemeColors();
   const gutter = useScreenGutter();
   const styles = createStyles(c);
-  const { t } = useTranslation("common");
+  useTranslation("common");
 
   const { data: entitlementsRaw } = useQuery({
     queryKey: queryKeys.entitlements(),

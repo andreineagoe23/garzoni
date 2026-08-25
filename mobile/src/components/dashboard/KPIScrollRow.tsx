@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 import {
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type ViewStyle,
 } from "react-native";
 import { useThemeColors } from "../../theme/ThemeContext";
 import HapticPressable from "../ui/HapticPressable";
-import { spacing, typography, radius } from "../../theme/tokens";
+import { spacing, radius } from "../../theme/tokens";
 import { gridFlexBasis, useResponsive } from "../../utils/platform";
 
 const CARD_WIDTH = 158;

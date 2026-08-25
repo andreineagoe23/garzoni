@@ -15,6 +15,7 @@ const ANDROID_PACKAGE = "app.garzoni.mobile";
  */
 function getStoreReview(): typeof import("expo-store-review") | null {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("expo-store-review") as typeof import("expo-store-review");
   } catch {
     return null;
@@ -186,8 +187,8 @@ export async function maybeRequestReview(reason: ReviewReason): Promise<void> {
     }
 
     // Lazy require so the bootstrap module stays free of UI/store deps until used.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require("../components/review/reviewPromptStore") as typeof import("../components/review/reviewPromptStore");
     mod.useReviewPromptStore.getState().open(reason);
   } catch {

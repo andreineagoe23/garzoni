@@ -11,8 +11,8 @@ import {
   configureHttpClient,
   refreshAccessToken,
   setClientPlatform,
+  type InternalAxiosRequestConfig,
 } from "@garzoni/core";
-import type { InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "../auth/tokenStorage";
 import {
   getSessionVersion,
@@ -26,10 +26,10 @@ let initialized = false;
 // Token refresh queue: while a refresh is in-flight we hold concurrent 401
 // requests and replay them once we have a fresh access token.
 let isRefreshing = false;
-let pendingQueue: Array<{
+let pendingQueue: {
   resolve: (token: string) => void;
   reject: (err: unknown) => void;
-}> = [];
+}[] = [];
 
 function flushQueue(error: unknown, token: string | null) {
   pendingQueue.forEach(({ resolve, reject }) =>
