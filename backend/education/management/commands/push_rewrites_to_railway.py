@@ -30,6 +30,12 @@ from education.models import (
 )
 
 
+# Every audit action that edits published content. "ai_rewrite" was the only
+# one until rebalance_mc_answer_positions started moving answer slots; a push
+# that ignored it would leave production on the old, index-1-heavy order.
+CONTENT_ACTIONS = ["ai_rewrite", "answer_position_rebalance"]
+
+
 class Command(BaseCommand):
     help = "Push all AI-rewritten content from local DB to Railway production DB."
 
@@ -101,7 +107,9 @@ class Command(BaseCommand):
 
     def _push_sections(self, conn, dry_run):
         rewritten_ids = list(
-            EducationAuditLog.objects.filter(action="ai_rewrite", target_type="LessonSection")
+            EducationAuditLog.objects.filter(
+                action__in=CONTENT_ACTIONS, target_type="LessonSection"
+            )
             .values_list("target_id", flat=True)
             .distinct()
         )
@@ -186,7 +194,7 @@ class Command(BaseCommand):
 
     def _push_exercises(self, conn, dry_run):
         rewritten_ids = list(
-            EducationAuditLog.objects.filter(action="ai_rewrite", target_type="Exercise")
+            EducationAuditLog.objects.filter(action__in=CONTENT_ACTIONS, target_type="Exercise")
             .values_list("target_id", flat=True)
             .distinct()
         )
@@ -250,11 +258,26 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
 
     def _push_quizzes(self, conn, dry_run):
-        rewritten_ids = list(
-            EducationAuditLog.objects.filter(action="ai_rewrite", target_type="Quiz")
+        rewritten_ids = set(
+            EducationAuditLog.objects.filter(action__in=CONTENT_ACTIONS, target_type="Quiz")
             .values_list("target_id", flat=True)
             .distinct()
         )
+
+        # Checkpoint quizzes are materialized copies of a lesson section, kept in
+        # step by resync_quiz_from_section. They carry no audit row of their
+        # own, so pull them in via the sections that do — otherwise production
+        # keeps the pre-rebalance option order in the checkpoint modal while the
+        # in-lesson check shows the new one.
+        touched_sections = EducationAuditLog.objects.filter(
+            action__in=CONTENT_ACTIONS, target_type="LessonSection"
+        ).values_list("target_id", flat=True)
+        rewritten_ids |= set(
+            Quiz.objects.filter(source_lesson_section_id__in=touched_sections).values_list(
+                "id", flat=True
+            )
+        )
+        rewritten_ids = sorted(rewritten_ids)
 
         if not rewritten_ids:
             self.stdout.write("  [quizzes] No rewritten quizzes in audit log.")

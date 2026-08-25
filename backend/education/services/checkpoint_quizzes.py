@@ -120,6 +120,109 @@ def get_or_create_quiz_from_mc_section(section: LessonSection) -> Quiz | None:
     return quiz
 
 
+def resync_quiz_from_section(section: LessonSection) -> str | None:
+    """
+    Push a section's current multiple-choice content into its checkpoint Quiz.
+
+    ``get_or_create_quiz_from_mc_section`` only fills a Quiz on creation, so any
+    later edit to the section — an AI rewrite, an option reshuffle — left the
+    checkpoint modal showing the old wording and, worse, an option order that no
+    longer matched. Call this after every write to ``exercise_data``.
+
+    Returns a short note when a translation had to be blanked, else None.
+    """
+    from education.models import LessonSectionTranslation, QuizTranslation
+
+    quiz = Quiz.objects.filter(source_lesson_section=section).first()
+    if quiz is None:
+        return None
+
+    data = section.exercise_data if isinstance(section.exercise_data, dict) else {}
+    options = _mc_options_from_exercise_data(data)
+    if section.exercise_type != "multiple-choice" or len(options) < 2:
+        # The section was converted to another exercise type after its
+        # checkpoint was materialized. ensure_checkpoint_quizzes_for_lesson only
+        # looks at multiple-choice sections, so nothing ever revisits this row
+        # and the checkpoint keeps asking a question the lesson no longer
+        # contains. Not deleted here — that would cascade QuizCompletion rows.
+        return (
+            f"quiz {quiz.id} orphaned: section is now {section.exercise_type or 'not an exercise'}"
+        )
+    correct_text = _correct_choice_text(options, data)
+    if not correct_text:
+        return None
+
+    raw_options = data.get("options") if isinstance(data.get("options"), list) else []
+    correct_idx = data.get("correctAnswer")
+    if not isinstance(correct_idx, int) or isinstance(correct_idx, bool):
+        correct_idx = None
+
+    old_choices = quiz.choices or []
+    new_choices = []
+    for i, text in enumerate(options):
+        if i < len(old_choices) and isinstance(old_choices[i], dict):
+            new_choices.append({**old_choices[i], "text": text})
+        else:
+            new_choices.append({"text": text})
+
+    question_raw = data.get("question") if isinstance(data.get("question"), str) else None
+    question = _strip_html(str(question_raw or section.title or ""))[:2000]
+
+    quiz.choices = new_choices
+    quiz.correct_answer = correct_text[:200]
+    if question:
+        quiz.question = question
+    quiz.save(update_fields=["question", "choices", "correct_answer"])
+
+    # QuizTranslation.choices is index-aligned to Quiz.choices, so it can only
+    # be rebuilt from a section translation with the same option count.
+    # Anything else is blanked for the translate command to refill rather than
+    # left silently pointing at the wrong option.
+    note = None
+    for qt in QuizTranslation.objects.filter(quiz=quiz):
+        tr = LessonSectionTranslation.objects.filter(section=section, language=qt.language).first()
+        tr_data = tr.exercise_data if tr and isinstance(tr.exercise_data, dict) else None
+        tr_raw = tr_data.get("options") if tr_data else None
+        rebuilt = False
+        if (
+            correct_idx is not None
+            and isinstance(tr_raw, list)
+            and len(tr_raw) == len(raw_options)
+            and correct_idx < len(tr_raw)
+        ):
+            tr_options: list[str] = []
+            for item in tr_raw:
+                text = _normalize_option(item)
+                if text and text not in tr_options:
+                    tr_options.append(text)
+            if len(tr_options) == len(new_choices):
+                qt.choices = [{"text": text} for text in tr_options]
+                qt.correct_answer = (_normalize_option(tr_raw[correct_idx]) or "")[:200]
+                tr_question = tr_data.get("question")
+                if isinstance(tr_question, str) and tr_question.strip():
+                    qt.question = _strip_html(tr_question)[:2000]
+                qt.save(update_fields=["question", "choices", "correct_answer"])
+                rebuilt = True
+        if not rebuilt:
+            qt.choices = []
+            qt.correct_answer = ""
+            qt.save(update_fields=["choices", "correct_answer"])
+            note = f"blanked {qt.language} quiz translation"
+    return note
+
+
+def orphaned_checkpoint_quizzes():
+    """
+    Checkpoint quizzes whose source section is no longer multiple-choice.
+
+    These keep asking the section's pre-conversion question, so the lesson shows
+    (say) a numeric input while the checkpoint modal shows the old options.
+    """
+    return Quiz.objects.filter(source_lesson_section__isnull=False).exclude(
+        source_lesson_section__exercise_type="multiple-choice"
+    )
+
+
 def generate_ai_checkpoint_questions(lesson: Lesson, n: int = 3) -> list[Quiz]:
     """
     Use GPT to generate n novel comprehension questions from a lesson's published text sections.

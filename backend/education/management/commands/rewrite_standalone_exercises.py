@@ -29,11 +29,17 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from education.exercise_quality import (
+    MAX_LENGTH_RATIO,
+    MIN_OPTION_CHARS,
+    length_problem,
+    target_length_band,
+)
 from education.models import EducationAuditLog, Exercise, ExerciseTranslation, Quiz, QuizTranslation
 
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[2] / "content" / "rewrite_output"
 
-OPENAI_MODEL = os.environ.get("OPENAI_REWRITE_MODEL", "gpt-4o")
+OPENAI_MODEL = os.environ.get("OPENAI_REWRITE_MODEL", settings.OPENAI_MODEL_AUTHORING)
 REQUEST_DELAY = float(os.environ.get("OPENAI_REWRITE_DELAY", "0.2"))
 MAX_RETRIES = 3
 
@@ -47,8 +53,13 @@ Rewrite multiple-choice exercises to test real understanding, not generic recall
 
 OUTPUT FORMAT — non-negotiable:
 • Output ONLY valid JSON. No markdown fences, no commentary.
-• Keys: question, options, hints. options = exactly 4 strings. hints = 1-2 strings.
-• The correct answer MUST remain at the SAME INDEX as specified — do not reorder options.
+• Keys: question, options, correct_index, hints. options = exactly 4 strings. hints = 1-2 strings.
+• correct_index must equal the TARGET ANSWER INDEX given in the request. Write the correct option into that slot.
+
+ANSWER MUST NOT BE GUESSABLE FROM SHAPE — this is checked and rejected:
+• All four options must be close to the same length. The longest may not exceed 1.60x the shortest.
+• Every option must be at least 25 characters.
+• The correct option must not be the most detailed or most complete-sounding one.
 
 CONTENT RULES:
 • Question tests genuine understanding of the topic, not surface-level definitions.
@@ -126,7 +137,12 @@ OUTPUT FORMAT — non-negotiable:
 • Output ONLY valid JSON. No markdown fences, no commentary.
 • Keys: question, choices, correct_index.
 • choices = array of strings (same length as original, max 4).
-• correct_index = integer (0-based) indicating which choice is correct.
+• correct_index must equal the TARGET ANSWER INDEX given in the request.
+
+ANSWER MUST NOT BE GUESSABLE FROM SHAPE — this is checked and rejected:
+• All choices must be close to the same length. The longest may not exceed 1.60x the shortest.
+• Every choice must be at least 25 characters.
+• The correct choice must not be the most detailed or most complete-sounding one.
 
 CONTENT RULES:
 • Question tests understanding, not generic recall.
@@ -162,7 +178,16 @@ def _call_openai(client, system_prompt, messages_extra):
             return json.loads(response.choices[0].message.content.strip())
         except Exception as exc:
             error_str = str(exc)
-            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
+            lowered = error_str.lower()
+            # An exhausted credit balance also comes back as a 429. Retrying it
+            # just sleeps through three backoffs before failing, once per record
+            # — an hour of waiting on an error that will never clear on its own.
+            if "insufficient_quota" in lowered or "credit_balance_exhausted" in lowered:
+                raise CommandError(
+                    "OpenAI credit balance exhausted — top up at "
+                    "https://platform.openai.com/settings/organization/billing/ and re-run."
+                )
+            is_rate_limit = "429" in error_str or "rate_limit" in lowered
             if is_rate_limit and attempt < MAX_RETRIES:
                 wait = 60 * attempt
                 match = re.search(r"try again in (\d+)s", error_str)
@@ -180,12 +205,15 @@ def _call_openai(client, system_prompt, messages_extra):
 def _user_prompt_multiple_choice(exercise):
     correct_idx = exercise.correct_answer if isinstance(exercise.correct_answer, int) else 0
     data = exercise.exercise_data or {}
+    low, mid, high = target_length_band(data.get("options") or [])
     return (
         f"CATEGORY: {exercise.category or 'Finance'}\n"
         f"DIFFICULTY: {exercise.difficulty or 'beginner'}\n\n"
         f"QUESTION: {exercise.question}\n"
         f"OPTIONS: {json.dumps(data.get('options', []))}\n"
-        f"CORRECT ANSWER INDEX: {correct_idx}\n"
+        f"TARGET ANSWER INDEX: {correct_idx}\n"
+        f"TARGET OPTION LENGTH: aim for about {mid} characters per option; every one of the "
+        f"four must land between {low} and {high} characters, the correct one included\n"
         f"HINTS: {json.dumps(data.get('hints', []))}"
     )
 
@@ -245,10 +273,13 @@ def _user_prompt_quiz(quiz):
         (i for i, t in enumerate(choice_texts) if t == quiz.correct_answer),
         0,
     )
+    low, mid, high = target_length_band(choice_texts)
     return (
         f"QUESTION: {quiz.question}\n"
         f"CHOICES: {json.dumps(choice_texts)}\n"
-        f"CORRECT ANSWER INDEX: {correct_idx}"
+        f"TARGET ANSWER INDEX: {correct_idx}\n"
+        f"TARGET CHOICE LENGTH: aim for about {mid} characters per choice; every one must land "
+        f"between {low} and {high} characters, the correct one included"
     )
 
 
@@ -257,7 +288,15 @@ def _user_prompt_quiz(quiz):
 # ---------------------------------------------------------------------------
 
 
-def _validate_multiple_choice(data, original_correct_idx):
+def _validate_multiple_choice(data, target_idx):
+    """
+    Same answer-shape gates as rewrite_exercise_sections.
+
+    This used to check only "4 strings", and the prompt told the model to keep
+    the answer at its original index without ever verifying it — the two
+    together are what left the practice catalog at 81% slot 1 with the correct
+    option averaging 50 characters more than its distractors.
+    """
     for key in ("question", "options"):
         if key not in data:
             return f"missing key: {key}"
@@ -265,7 +304,17 @@ def _validate_multiple_choice(data, original_correct_idx):
         return f"options must be exactly 4 items, got {len(data.get('options', []))}"
     if not all(isinstance(o, str) for o in data["options"]):
         return "all options must be strings"
-    return None
+
+    correct = data.get("correct_index")
+    if isinstance(correct, bool) or not isinstance(correct, int):
+        return "correct_index missing or not an integer"
+    if correct != target_idx:
+        return f"correct_index must be {target_idx}, got {correct}"
+
+    options = [o.strip() for o in data["options"]]
+    if len(set(options)) != len(options):
+        return "options must all be different"
+    return length_problem(options, correct)
 
 
 def _validate_drag_and_drop(data, original_item_count):
@@ -301,7 +350,7 @@ def _validate_matching(data, original_pair_count):
     return None
 
 
-def _validate_quiz(data, original_choice_count):
+def _validate_quiz(data, original_choice_count, target_idx=None):
     for key in ("question", "choices", "correct_index"):
         if key not in data:
             return f"missing key: {key}"
@@ -313,12 +362,46 @@ def _validate_quiz(data, original_choice_count):
         0 <= data["correct_index"] < original_choice_count
     ):
         return f"correct_index must be 0-{original_choice_count - 1}"
-    return None
+    if target_idx is not None and data["correct_index"] != target_idx:
+        return f"correct_index must be {target_idx}, got {data['correct_index']}"
+    choices = [str(c).strip() for c in data["choices"]]
+    if len(set(choices)) != len(choices):
+        return "choices must all be different"
+    return length_problem(choices, data["correct_index"])
 
 
 # ---------------------------------------------------------------------------
 # Per-type apply helpers
 # ---------------------------------------------------------------------------
+
+
+def _sync_choice_rows(exercise):
+    """
+    Mirror exercise_data.options into MultipleChoiceChoice.
+
+    Nothing serves those rows to learners — no serializer or view reads them —
+    but ``ExerciseAdmin.save_related`` writes exercise_data BACK from them on
+    every admin save. 57 of 76 rows held placeholder text from an old generator
+    ("Memorize definitions without context", …), so saving such an exercise in
+    admin replaced good content with boilerplate. Keeping the mirror faithful
+    makes that write a no-op.
+    """
+    from education.models import MultipleChoiceChoice
+
+    rows = list(exercise.multiple_choice_choices.order_by("order", "id"))
+    if not rows:
+        return
+    options = [str(o) for o in (exercise.exercise_data or {}).get("options") or []]
+    if not options:
+        return
+    correct = exercise.correct_answer
+    MultipleChoiceChoice.objects.filter(exercise=exercise).delete()
+    MultipleChoiceChoice.objects.bulk_create(
+        [
+            MultipleChoiceChoice(exercise=exercise, order=i, text=text, is_correct=(i == correct))
+            for i, text in enumerate(options)
+        ]
+    )
 
 
 def _apply_exercise(exercise, rewritten, exercise_type, metadata):
@@ -332,7 +415,15 @@ def _apply_exercise(exercise, rewritten, exercise_type, metadata):
         if rewritten.get("hints"):
             new_data["hints"] = rewritten["hints"]
         exercise.exercise_data = new_data
-        exercise.save(update_fields=["question", "exercise_data"])
+        # The model now states which slot it wrote the answer into, and the
+        # validator has confirmed it matches the slot we asked for. This used
+        # to be left at the original index on trust, so a reordered rewrite
+        # could point correct_answer at a distractor.
+        correct_index = rewritten.get("correct_index")
+        if isinstance(correct_index, int) and not isinstance(correct_index, bool):
+            exercise.correct_answer = correct_index
+        exercise.save(update_fields=["question", "exercise_data", "correct_answer"])
+        _sync_choice_rows(exercise)
 
     elif exercise_type == "drag-and-drop":
         exercise.question = rewritten["question"]
@@ -602,14 +693,23 @@ class Command(BaseCommand):
 
             rewritten = None
             error_msg = None
+            retry_note = None
+            base_prompt = user_prompt
 
             for attempt in range(1, MAX_RETRIES + 1):
+                user_prompt = base_prompt
+                if retry_note:
+                    user_prompt += (
+                        f"\n\nYOUR PREVIOUS ANSWER WAS REJECTED: {retry_note}\n"
+                        "Fix that and return the JSON again."
+                    )
                 try:
                     candidate = _call_openai(
                         client, system_prompt, [{"role": "user", "content": user_prompt}]
                     )
                     err = validate_fn(candidate)
                     if err:
+                        retry_note = err
                         raise ValueError(f"Validation failed: {err}")
                     rewritten = candidate
                     break
@@ -618,6 +718,10 @@ class Command(BaseCommand):
                         self.style.WARNING(f"    Rate limit — waiting {e.wait_seconds}s…")
                     )
                     time.sleep(e.wait_seconds)
+                except CommandError:
+                    # Unrecoverable (e.g. no credits) — abort the run instead of
+                    # working through every remaining record to fail identically.
+                    raise
                 except Exception as exc:
                     error_msg = str(exc)
                     self.stderr.write(self.style.ERROR(f"    Error (attempt {attempt}): {exc}"))
@@ -708,7 +812,11 @@ class Command(BaseCommand):
     def _run_quizzes(
         self, client, dry_run, batch_size, skip_ids, only_ids, skip_processed, output_path
     ):
-        qs = Quiz.objects.order_by("id")
+        # Standalone (course capstone) quizzes only. Rows with
+        # source_lesson_section set are materialized copies of a lesson
+        # section, kept in step by resync_quiz_from_section — rewriting them
+        # here would fork them from the section they mirror.
+        qs = Quiz.objects.filter(source_lesson_section__isnull=True).order_by("id")
 
         if only_ids:
             qs = qs.filter(id__in=only_ids)
@@ -738,20 +846,34 @@ class Command(BaseCommand):
 
             choices = quiz.choices or []
             choice_count = len(choices)
-            user_prompt = _user_prompt_quiz(quiz)
+            base_prompt = _user_prompt_quiz(quiz)
+            choice_texts = [
+                c["text"] if isinstance(c, dict) else str(c) for c in (quiz.choices or [])
+            ]
+            target_idx = next(
+                (i for i, t in enumerate(choice_texts) if t == quiz.correct_answer), 0
+            )
 
             rewritten = None
             error_msg = None
+            retry_note = None
 
             for attempt in range(1, MAX_RETRIES + 1):
+                user_prompt = base_prompt
+                if retry_note:
+                    user_prompt += (
+                        f"\n\nYOUR PREVIOUS ANSWER WAS REJECTED: {retry_note}\n"
+                        "Fix that and return the JSON again."
+                    )
                 try:
                     candidate = _call_openai(
                         client,
                         SYSTEM_PROMPT_QUIZ,
                         [{"role": "user", "content": user_prompt}],
                     )
-                    err = _validate_quiz(candidate, choice_count)
+                    err = _validate_quiz(candidate, choice_count, target_idx)
                     if err:
+                        retry_note = err
                         raise ValueError(f"Validation failed: {err}")
                     rewritten = candidate
                     break
@@ -760,6 +882,10 @@ class Command(BaseCommand):
                         self.style.WARNING(f"    Rate limit — waiting {e.wait_seconds}s…")
                     )
                     time.sleep(e.wait_seconds)
+                except CommandError:
+                    # Unrecoverable (e.g. no credits) — abort the run instead of
+                    # working through every remaining record to fail identically.
+                    raise
                 except Exception as exc:
                     error_msg = str(exc)
                     self.stderr.write(self.style.ERROR(f"    Error (attempt {attempt}): {exc}"))
@@ -824,7 +950,7 @@ class Command(BaseCommand):
                 if target == "quiz":
                     quiz = Quiz.objects.get(id=record_id)
                     choices = quiz.choices or []
-                    err = _validate_quiz(rewritten, len(choices))
+                    err = _validate_quiz(rewritten, len(choices))  # slot already fixed on generate
                     if err:
                         raise ValueError(err)
                     _apply_quiz(quiz, rewritten, {"source_file": path.name})

@@ -238,7 +238,7 @@ module.exports = ({ config }) => ({
         // fell back to the launcher icon cropped by the circular mask — the
         // "zoomed logo" splash. This plugin generates the proper v31 styles.
         backgroundColor: "#0b0f14",
-        image: "./assets/garzoni-logo-square-no-bg.png",
+        image: "./assets/garzoni-logo-white.png",
         resizeMode: "contain",
         android: {
           // Android 12+ masks the splash icon to a circle (safe zone ≈160dp

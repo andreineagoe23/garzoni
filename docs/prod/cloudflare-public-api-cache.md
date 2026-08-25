@@ -12,7 +12,7 @@
 >
 > API equivalent of the dashboard fields in §3:
 > `action: set_cache_settings`, `action_parameters: {cache: true,
-> edge_ttl: {mode: respect_origin}, browser_ttl: {mode: respect_origin}}`.
+edge_ttl: {mode: respect_origin}, browser_ttl: {mode: respect_origin}}`.
 > `respect_origin` honours the origin's existing `s-maxage=600`, so the 10-minute edge TTL
 > comes from the header rather than being restated here.
 >
@@ -38,7 +38,7 @@ server: cloudflare
 cf-cache-status: DYNAMIC        ← Cloudflare is not caching this at all
 ```
 
-`s-maxage` is an instruction to a *shared* cache. Cloudflare does not cache responses
+`s-maxage` is an instruction to a _shared_ cache. Cloudflare does not cache responses
 for paths like these by default — its default cache behaviour keys off file extension,
 and an extensionless API path is treated as dynamic no matter what the origin asks for.
 So the header is currently inert: every request, from every crawler and every user,
@@ -70,13 +70,13 @@ prefix; every other `/api/` path is user-scoped.
 
 Cloudflare dashboard → **Caching → Cache Rules → Create rule**.
 
-| Field | Value |
-|---|---|
-| Rule name | `Cache public content API` |
-| When incoming requests match | `(starts_with(http.request.uri.path, "/api/public/"))` |
-| Cache eligibility | **Eligible for cache** |
-| Edge TTL | **Use cache-control header if present, use default otherwise** — default `10 minutes` |
-| Browser TTL | **Respect origin TTL** |
+| Field                        | Value                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| Rule name                    | `Cache public content API`                                                            |
+| When incoming requests match | `(starts_with(http.request.uri.path, "/api/public/"))`                                |
+| Cache eligibility            | **Eligible for cache**                                                                |
+| Edge TTL                     | **Use cache-control header if present, use default otherwise** — default `10 minutes` |
+| Browser TTL                  | **Respect origin TTL**                                                                |
 
 Leave Cache Key on defaults. These responses do not vary by cookie, header, or query
 string; adding cache-key dimensions would only fragment the cache.

@@ -64,7 +64,9 @@ function createStyles(c: ThemeColors) {
       fontWeight: "600",
       marginTop: spacing.md,
     },
-    fSuccess: { color: c.success },
+    // Reward gold, not green: green marks which option was right, gold says
+    // you earned something. See src/lesson/lessonTheme.ts.
+    fSuccess: { color: c.accent },
     fError: { color: c.error },
   });
 }

@@ -12,7 +12,7 @@ Scope: whole app — `backend/`, `frontend/`, `mobile/`, `packages/`, plus the R
 production topology. Written after the statement-import work landed (`17d76401`).
 
 Every claim below was verified against the tree at `17d76401` or against live production data.
-Where something is *latent* (wrong code, no user hitting it) it says so — that distinction drives
+Where something is _latent_ (wrong code, no user hitting it) it says so — that distinction drives
 the priority order in §6 and is the main reason this plan is not just "fix all the findings."
 
 Related: [`docs/banking/open-banking-plan.md`](../banking/open-banking-plan.md),
@@ -39,16 +39,16 @@ Everything else is real but can wait.
 
 ## 1. System map (verified state)
 
-**Shape.** pnpm monorepo. Django 4.2 + DRF backend on Railway *(4.2 at audit time; now 5.2.16 LTS — see §9.2)* (web + worker + beat + Postgres + Redis),
+**Shape.** pnpm monorepo. Django 4.2 + DRF backend on Railway _(4.2 at audit time; now 5.2.16 LTS — see §9.2)_ (web + worker + beat + Postgres + Redis),
 Vite/React 19 web on Vercel, Expo 54 / RN 0.81 mobile, `packages/core` shared logic + i18n,
 `packages/tokens` design tokens.
 
-| Surface | Size | Tests |
-|---|---|---|
-| backend (app code, excl. migrations/venv) | ~65k lines | ~7.8k lines |
-| frontend `src/` | ~49k lines | 22 test files |
-| mobile | ~56k lines | 13 test files |
-| `packages/core` | 64 modules | — |
+| Surface                                   | Size       | Tests         |
+| ----------------------------------------- | ---------- | ------------- |
+| backend (app code, excl. migrations/venv) | ~65k lines | ~7.8k lines   |
+| frontend `src/`                           | ~49k lines | 22 test files |
+| mobile                                    | ~56k lines | 13 test files |
+| `packages/core`                           | 64 modules | —             |
 
 **Domain models.** education 32, gamification 13, finance 11, budgeting 8, support 6,
 authentication 4, notifications 2, onboarding 2.
@@ -137,7 +137,7 @@ encrypted_refresh_token = models.TextField(blank=True)
 The field names assert an encryption that does not exist. The docstring above them says any token
 "MUST be stored using the field helpers below (`encrypted_*`)" — there are no helpers.
 
-Harmless *today*: the provider is disabled, so no real token has ever been written
+Harmless _today_: the provider is disabled, so no real token has ever been written
 ([`services/providers.py:146`](../../backend/budgeting/services/providers.py#L146) is still a stub),
 and the admin already excludes both fields ([`budgeting/admin.py:19`](../../backend/budgeting/admin.py#L19)).
 
@@ -167,12 +167,12 @@ extended support ended **April 2026**. No further security releases. Target is *
 
 **Verify before starting** — these four are the likely friction, none confirmed either way yet:
 
-| Package | Pinned | Why it's on the list |
-|---|---|---|
-| `django-ckeditor-5` | 0.2.12 | small maintainer, admin-only surface |
-| `django-rest-passwordreset` | 1.5.0 | touches auth; there are already two reset systems (see auth audit) |
-| `django-cloudinary-storage` | 0.3.0 | storage API changed in Django 4.2→5.x |
-| `jsonfield` | 3.1.0 | superseded by native `JSONField`; possibly droppable outright |
+| Package                     | Pinned | Why it's on the list                                               |
+| --------------------------- | ------ | ------------------------------------------------------------------ |
+| `django-ckeditor-5`         | 0.2.12 | small maintainer, admin-only surface                               |
+| `django-rest-passwordreset` | 1.5.0  | touches auth; there are already two reset systems (see auth audit) |
+| `django-cloudinary-storage` | 0.3.0  | storage API changed in Django 4.2→5.x                              |
+| `jsonfield`                 | 3.1.0  | superseded by native `JSONField`; possibly droppable outright      |
 
 **Also:** `pytz==2024.2` is pinned. Django 5.0 removed `USE_DEPRECATED_PYTZ`. `django-timezone-field`
 7.0 should already be zoneinfo-based — confirm nothing in app code imports `pytz` directly.
@@ -193,7 +193,7 @@ money path. Test coverage is **two tests**, both `customer.subscription.updated`
 Untested: `checkout.session.completed`, `invoice.payment_failed`, signature-verification failure,
 duplicate/replayed event ids, out-of-order delivery, unknown-customer events.
 
-Given billing runs through RevenueCat *and* Stripe (see
+Given billing runs through RevenueCat _and_ Stripe (see
 [`docs/prod/billing-parity-runbook.md`](../prod/billing-parity-runbook.md)), a webhook bug is a silent
 entitlement bug — the worst kind, because the user notices before you do.
 
@@ -249,12 +249,12 @@ schedule it, don't rush it.
 
 3968 lines. It contains:
 
-| Concern | Rough span |
-|---|---|
-| Market data scraping (Yahoo session/crumb, Stooq, CoinGecko, news RSS) | `212–1102` |
-| Market/quote/search/paper-trade endpoints | `1102–1889` |
+| Concern                                                                     | Rough span  |
+| --------------------------------------------------------------------------- | ----------- |
+| Market data scraping (Yahoo session/crumb, Stooq, CoinGecko, news RSS)      | `212–1102`  |
+| Market/quote/search/paper-trade endpoints                                   | `1102–1889` |
 | Stripe billing lifecycle (webhook, create/change/cancel/portal/sync/verify) | `1966–3357` |
-| Funnel analytics ingest + metrics | `3357–3814` |
+| Funnel analytics ingest + metrics                                           | `3357–3814` |
 
 Split into `views_market.py`, `views_billing.py`, `views_analytics.py` with the scraping helpers moved
 to `finance/services/market/`. Pure moves, no behaviour change. The payoff is that the billing code
@@ -280,7 +280,7 @@ across `frontend/src`, `mobile/`, and `packages/`: only `statements/`, `envelope
 So this is a trap, not a bug. Fix it anyway — `select_related("category")` is one line — but it does not
 justify a slot ahead of anything in §2 or §3. The truncation resolves itself under §2.2.
 
-The path users *do* hit, `analyze_saved_import`
+The path users _do_ hit, `analyze_saved_import`
 ([`statement_analysis.py:500-526`](../../backend/budgeting/services/statement_analysis.py#L500-L526)),
 was checked and is clean: it touches no FK, so there is no N+1 there.
 
@@ -401,12 +401,12 @@ Ordered by risk retired per day of work, not by severity label.
 
 ### Sprint 1 — stop the bleeding (~2–3 days)
 
-| # | Item | § | Effort |
-|---|---|---|---|
-| 1 | Pin the six unbounded deps; add `.in` + lockfile | 3.3 | S |
-| 2 | Django 4.2 → 5.0 → 5.1 → 5.2 LTS, suite green at each hop | 3.1 | M |
-| 3 | `railway.json` with `healthcheckPath=/health/`; drop dead `--timeout 300` | 2.1, 3.4 | S |
-| 4 | Prerender fetch retry + Cloudflare cache rule on `/api/public/*` | 2.1 | S |
+| #   | Item                                                                      | §        | Effort |
+| --- | ------------------------------------------------------------------------- | -------- | ------ |
+| 1   | Pin the six unbounded deps; add `.in` + lockfile                          | 3.3      | S      |
+| 2   | Django 4.2 → 5.0 → 5.1 → 5.2 LTS, suite green at each hop                 | 3.1      | M      |
+| 3   | `railway.json` with `healthcheckPath=/health/`; drop dead `--timeout 300` | 2.1, 3.4 | S      |
+| 4   | Prerender fetch retry + Cloudflare cache rule on `/api/public/*`          | 2.1      | S      |
 
 Gate: full suite (406 backend / 88 web / 88 mobile / 36 core) + a test-service deploy before production.
 
@@ -427,29 +427,29 @@ Gate: full suite (406 backend / 88 web / 88 mobile / 36 core) + a test-service d
 > read `data?.results ?? data ?? []` on both platforms) and `budgeting/transactions` (no client
 > consumers, as this audit predicted). Reasoning recorded in `backend/budgeting/pagination.py`.
 
-| # | Item | § | Effort |
-|---|---|---|---|
-| 5 | Stripe webhook tests: per-event-type + idempotency + bad signature | 3.2 | M |
-| 6 | `EncryptedTextField` on `LinkedAccount` while the table is empty | 2.3 | S |
-| 7 | DRF default pagination + audit the 17 viewsets' client call sites | 2.2 | S–M |
-| 8 | `select_related("category")` on the transaction queryset | 4.2 | XS |
+| #   | Item                                                               | §   | Effort |
+| --- | ------------------------------------------------------------------ | --- | ------ |
+| 5   | Stripe webhook tests: per-event-type + idempotency + bad signature | 3.2 | M      |
+| 6   | `EncryptedTextField` on `LinkedAccount` while the table is empty   | 2.3 | S      |
+| 7   | DRF default pagination + audit the 17 viewsets' client call sites  | 2.2 | S–M    |
+| 8   | `select_related("category")` on the transaction queryset           | 4.2 | XS     |
 
 ### Sprint 3 — the product loop (~1 week)
 
-| # | Item | § | Effort |
-|---|---|---|---|
-| 9 | Category override + per-user merchant rules, applied retroactively | 5.1 | M |
-| 10 | Multi-statement month-over-month trends | 5.2 | M |
-| 11 | Export a saved analysis (CSV + PDF) | 5.5 | S |
+| #   | Item                                                               | §   | Effort |
+| --- | ------------------------------------------------------------------ | --- | ------ |
+| 9   | Category override + per-user merchant rules, applied retroactively | 5.1 | M      |
+| 10  | Multi-statement month-over-month trends                            | 5.2 | M      |
+| 11  | Export a saved analysis (CSV + PDF)                                | 5.5 | S      |
 
 ### Sprint 4 — structure and experiments
 
-| # | Item | § | Effort |
-|---|---|---|---|
-| 12 | Split `finance/views.py` into market / billing / analytics | 4.1 | M |
-| 13 | Statement import as an onboarding branch, behind a flag | 5.3 | M |
-| 14 | Market-data staleness indicator | 4.3 | S |
-| 15 | Align local Python to 3.12, or default local tests to Docker | 3.4 | S |
+| #   | Item                                                         | §   | Effort |
+| --- | ------------------------------------------------------------ | --- | ------ |
+| 12  | Split `finance/views.py` into market / billing / analytics   | 4.1 | M      |
+| 13  | Statement import as an onboarding branch, behind a flag      | 5.3 | M      |
+| 14  | Market-data staleness indicator                              | 4.3 | S      |
+| 15  | Align local Python to 3.12, or default local tests to Docker | 3.4 | S      |
 
 ### Backlog (scheduled, not urgent)
 
@@ -514,14 +514,14 @@ prerender run emitting 73 pages.
 
 ### 9.1 Dependency pinning (§3.3)
 
-| Package | Was | Now |
-|---|---|---|
-| `setuptools` | `>=83.0.0` | `==83.0.0` |
-| `cryptography` | `>=41.0.0` | `==50.0.0` |
-| `openai` | `>=1.35.0` | `==2.28.0` |
-| `pgvector` | `>=0.3.0` | `==0.5.0` |
-| `groq` | `>=0.12.0` | `==1.1.1` |
-| `django-anymail[resend]` | *(no bound at all)* | `==14.0` |
+| Package                  | Was                 | Now        |
+| ------------------------ | ------------------- | ---------- |
+| `setuptools`             | `>=83.0.0`          | `==83.0.0` |
+| `cryptography`           | `>=41.0.0`          | `==50.0.0` |
+| `openai`                 | `>=1.35.0`          | `==2.28.0` |
+| `pgvector`               | `>=0.3.0`           | `==0.5.0`  |
+| `groq`                   | `>=0.12.0`          | `==1.1.1`  |
+| `django-anymail[resend]` | _(no bound at all)_ | `==14.0`   |
 
 Versions were taken from `pip freeze` inside the built production image, so the pins record what
 production was already running — this changed nothing at runtime, it only stopped the drift.
@@ -558,7 +558,7 @@ Also removed while in there: `datetime.utcfromtimestamp` in the webhook and `dat
 
 **`django-celery-beat` 2.7.0 → 2.9.0.** 2.7.0 declares `Django<5.2` and was the only package in the
 tree with an upper bound below 5.2 (verified by reading `Requires-Dist` for every installed
-distribution — `pip show` does *not* surface the specifier, which is why the audit's "verify these
+distribution — `pip show` does _not_ surface the specifier, which is why the audit's "verify these
 four first" list missed it). 2.9.0 allows `Django<6.1` and adds no new migrations.
 
 The four packages the audit flagged as likely friction — `django-ckeditor-5`,
@@ -574,7 +574,7 @@ reasoning.
 
 **The trap this nearly walked into:** Railway performs healthchecks from the hostname
 `healthcheck.railway.app`. Django answers `DisallowedHost` 400 for unrecognised hosts, so adding
-`healthcheckPath` *without* allowlisting that host would have made **every deploy fail** at the
+`healthcheckPath` _without_ allowlisting that host would have made **every deploy fail** at the
 healthcheck timeout. `settings.py` now appends it unconditionally, verified by evaluating the settings
 module under production-shaped env (`DEBUG=False`, no allow-all) and asserting the host is present.
 
@@ -614,6 +614,7 @@ a refused connection throws after 3. Then run for real against the production AP
   `cache-control: public, s-maxage=600, stale-while-revalidate=300`, and Cloudflare answers
   `cf-cache-status: DYNAMIC` — so the header shipped by the July perf audit is currently **inert**.
   The healthcheck gate fixes the 502s; this is what fixes the 2.5–4.7s cold reads.
+
 - **Deploy verification — DONE 2026-08-19.** The gate is confirmed working, but only after two bugs
   that it had itself introduced were fixed. It never passed once between 2026-08-04 and 2026-08-19:
   `SECURE_SSL_REDIRECT` answered Railway's plain-HTTP probe with a 301 (Railway requires 200), and the
@@ -625,6 +626,6 @@ a refused connection throws after 3. Then run for real against the production AP
   for the rollover window shows the Vercel prerender fetching ~50 `/api/public/lessons/*` and
   `/api/public/articles/*` paths with **zero 502s** — all 200, 16–40ms warm. §2.1 is closed.
 
-- *(original note)* The healthcheck gate cannot be confirmed working until the next production
+- _(original note)_ The healthcheck gate cannot be confirmed working until the next production
   deploy. Watch that deploy's HTTP log for 502s on `/api/public/lessons/*` during the rollover window —
   that is the direct before/after measurement.

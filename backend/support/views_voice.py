@@ -22,8 +22,10 @@ from .throttles import AIUploadRateThrottle
 logger = logging.getLogger(__name__)
 
 _TTS_VOICE = "nova"
-_TTS_MODEL = "tts-1"
-_WHISPER_MODEL = "whisper-1"
+_TTS_MODEL = getattr(settings, "OPENAI_MODEL_TTS", "tts-1")
+# gpt-4o-mini-transcribe: same endpoint, same response_format="text", half the
+# price of whisper-1 ($0.003 vs $0.006 per minute).
+_WHISPER_MODEL = getattr(settings, "OPENAI_MODEL_TRANSCRIBE", "gpt-4o-mini-transcribe")
 
 
 class VoiceTutorView(APIView):

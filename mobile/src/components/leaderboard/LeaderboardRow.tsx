@@ -200,9 +200,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: { fontSize: typography.base, fontWeight: "700", flexShrink: 1 },
-  youPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full },
+  youPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+  },
   youPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
-  duelPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full },
+  duelPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+  },
   duelPillText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
   points: { fontSize: typography.sm, marginTop: 2 },
   friendBtn: {

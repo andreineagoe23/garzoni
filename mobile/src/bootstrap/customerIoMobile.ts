@@ -31,7 +31,20 @@ function decodeJwtUserId(accessToken: string): string | null {
 }
 
 /**
- * Is the Customer.io native module actually in this binary?
+ * Every TurboModule spec `customerio-reactnative`'s entry point pulls in. All
+ * of them use `getEnforcing`, so the package throws while it is still being
+ * required if the binary is missing any single one.
+ */
+const CIO_NATIVE_SPECS = [
+  "NativeCustomerIO",
+  "NativeCustomerIOLiveActivities",
+  "NativeCustomerIOLogging",
+  "NativeCustomerIOMessagingInApp",
+  "NativeCustomerIOMessagingPush",
+] as const;
+
+/**
+ * Which Customer.io specs are missing from this binary?
  *
  * The SDK's entry point eagerly pulls in every spec, and those use
  * `TurboModuleRegistry.getEnforcing`, which throws an Invariant Violation when
@@ -39,16 +52,16 @@ function decodeJwtUserId(accessToken: string): string | null {
  * predates the dependency therefore red-screens — the throw reaches LogBox
  * before our catch can turn it into a warning.
  *
- * That is the normal state of a dev client built before customerio-reactnative
- * was added, and of Expo Go, where the module can never exist. This file has
- * always documented itself as optional; probing with the non-throwing `get`
- * first makes it behave that way instead of shouting on every launch.
+ * Probing only `NativeCustomerIO` was not enough. A dev client can carry an
+ * older CIO pod that registers the main module but not the newer ones, so the
+ * probe passed, the require ran anyway, and LiveActivities threw — which is
+ * exactly what a stale dev client does. Check all of them.
  */
-function customerIoNativeModulePresent(): boolean {
+function missingCustomerIoSpecs(): string[] {
   try {
-    return TurboModuleRegistry.get("NativeCustomerIO") != null;
+    return CIO_NATIVE_SPECS.filter((n) => TurboModuleRegistry.get(n) == null);
   } catch {
-    return false;
+    return [...CIO_NATIVE_SPECS];
   }
 }
 
@@ -61,11 +74,12 @@ export async function initCustomerIoMobile(): Promise<void> {
     }
     return;
   }
-  if (!customerIoNativeModulePresent()) {
+  const missing = missingCustomerIoSpecs();
+  if (missing.length > 0) {
     nativeAvailable = false;
     if (__DEV__) {
       console.warn(
-        "[Customer.io] native module not in this binary — SDK skipped. " +
+        `[Customer.io] native modules not in this binary (${missing.join(", ")}) — SDK skipped. ` +
           "Rebuild the dev client (npx expo run:ios) after adding or changing " +
           "native dependencies; `expo start --clear` only refreshes JS.",
       );

@@ -118,7 +118,7 @@ class TranslationProvider(ABC):
 class OpenAITranslator(TranslationProvider):
     """Translate content via the OpenAI chat-completions API."""
 
-    DEFAULT_MODEL = "gpt-4o-mini"
+    DEFAULT_MODEL = "gpt-4.1-mini"
 
     def __init__(self):
         self.api_key: str = getattr(settings, "OPENAI_API_KEY", "") or ""

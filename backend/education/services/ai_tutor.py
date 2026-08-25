@@ -50,8 +50,33 @@ def _sync_openai_client():
 
 
 def _default_model() -> str:
-    allowed = getattr(settings, "OPENAI_ALLOWED_MODELS_CSV", ["gpt-4o-mini"])
-    return allowed[0] if allowed else "gpt-4o-mini"
+    # Was `OPENAI_ALLOWED_MODELS_CSV[0]`, which made the whitelist double as the
+    # default — reordering the allowed list silently changed which model every
+    # learner got. The default is its own setting now.
+    return getattr(settings, "OPENAI_MODEL_ASSISTANT", "gpt-4.1-mini")
+
+
+def _resolve_model(model: Optional[str]) -> str:
+    """
+    Honour a caller-supplied model only if it is on the whitelist.
+
+    OPENAI_ALLOWED_MODELS_CSV is documented as payload validation, but nothing
+    ever checked it — it was only read for `allowed[0]` as the default. Nothing
+    passes a model today; this keeps that true if something starts to.
+    """
+    default = _default_model()
+    # The configured default is always allowed. Deployments still carry a stale
+    # OPENAI_ALLOWED_MODELS_CSV from the gpt-4o era, and callers that pass
+    # `_default_model()` explicitly must not trip the guard against it.
+    if not model or model == default:
+        return default
+    allowed = getattr(settings, "OPENAI_ALLOWED_MODELS_CSV", None) or []
+    if allowed and model not in allowed:
+        logger.warning(
+            "[ai_tutor] model %r not in OPENAI_ALLOWED_MODELS_CSV — using %s", model, default
+        )
+        return default
+    return model
 
 
 def _post(
@@ -74,7 +99,7 @@ def _post(
     try:
         client = _sync_openai_client()
         resp = client.chat.completions.create(
-            model=model or _default_model(),
+            model=_resolve_model(model),
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,

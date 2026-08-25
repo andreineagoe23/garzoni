@@ -1,6 +1,21 @@
 """
 Rewrite exercise LessonSections (all multiple-choice) using OpenAI.
-Rewrites question, options, hints, explanation — preserves correctAnswer index and difficulty.
+Rewrites question, options, hints, explanation — keeps the answer in its existing
+slot and preserves difficulty.
+
+Two answer-giveaway rules are enforced here, because both were introduced by
+earlier runs of this command:
+
+* The model must return ``correct_index`` and it must match the slot we asked
+  for. Previously the model was told to "keep the correct answer at the same
+  index" and was never checked, so a rewrite could point ``correctAnswer`` at a
+  distractor without anything noticing.
+* The four options must be close in length. Before this gate, the correct option
+  was the longest one in 95% of all knowledge checks and averaged 39 characters
+  longer than its distractors — a learner could score without reading the stem.
+
+Slot balance itself is handled separately by ``rebalance_mc_answer_positions``;
+this command preserves whatever slot the section already uses.
 
 Default run:
     python manage.py rewrite_exercise_sections --batch-size 50
@@ -26,15 +41,28 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from education.exercise_quality import (
+    MAX_LENGTH_RATIO,
+    MIN_OPTION_CHARS,
+    correct_index_of,
+    length_problem,
+    target_length_band,
+)
 from education.models import EducationAuditLog, LessonSection, LessonSectionTranslation
+from education.services.checkpoint_quizzes import resync_quiz_from_section
 
 STANDARDS_PATH = Path(__file__).resolve().parents[2] / "content" / "lesson_authoring_standards.md"
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[2] / "content" / "rewrite_output"
 
-OPENAI_MODEL = os.environ.get("OPENAI_REWRITE_MODEL", "gpt-4o")
+OPENAI_MODEL = os.environ.get("OPENAI_REWRITE_MODEL", settings.OPENAI_MODEL_AUTHORING)
 REQUEST_DELAY = float(os.environ.get("OPENAI_REWRITE_DELAY", "0.2"))
-MAX_RETRIES = 3
+MAX_RETRIES = 4
 
+# The examples are the strongest signal the model gets, so they carry the two
+# properties we care about: the answer sits in a different slot in each one
+# (an earlier version put it at index 1 in both, and the corpus came out 75%
+# index 1 / 0% index 3), and all four options are within a few characters of
+# each other so length never identifies the answer.
 FEW_SHOT_EXAMPLES = [
     {
         "user": (
@@ -45,7 +73,7 @@ FEW_SHOT_EXAMPLES = [
             "CURRENT EXERCISE:\n"
             "QUESTION: What is money?\n"
             'OPTIONS: ["A concept", "A medium of exchange", "Numbers on a screen", "Government paper"]\n'
-            "CORRECT ANSWER INDEX: 1\n"
+            "TARGET ANSWER INDEX: 3\n"
             'HINTS: ["Think about what you use every day"]\n'
             "EXPLANATION: Money is a tool used for exchange."
         ),
@@ -53,11 +81,12 @@ FEW_SHOT_EXAMPLES = [
             {
                 "question": "Which of the following best describes the core purpose of a budget?",
                 "options": [
-                    "To record where your money went at the end of each month",
-                    "To plan where every pound or euro goes before the month starts",
-                    "To show your bank how responsibly you manage money",
-                    "To calculate your total income for the year",
+                    "A record of where your money went last month",
+                    "A signal to your bank that you handle money well",
+                    "A total of the income you expect to earn this year",
+                    "A plan for where your money goes before the month starts",
                 ],
+                "correct_index": 3,
                 "hints": [
                     "A budget is a forward-looking plan, not a backward-looking record",
                     "Think about what happens to your money before you spend it",
@@ -76,7 +105,7 @@ FEW_SHOT_EXAMPLES = [
             "CURRENT EXERCISE:\n"
             "QUESTION: What is a fixed expense?\n"
             'OPTIONS: ["An expense that changes", "An expense that stays the same each month", "A luxury item", "A one-time payment"]\n'
-            "CORRECT ANSWER INDEX: 1\n"
+            "TARGET ANSWER INDEX: 0\n"
             'HINTS: ["Think about rent or subscriptions"]\n'
             "EXPLANATION: Fixed expenses are the same each month."
         ),
@@ -84,16 +113,49 @@ FEW_SHOT_EXAMPLES = [
             {
                 "question": "Your rent, insurance, and loan repayment are all examples of which type of expense?",
                 "options": [
-                    "Variable expenses, because they depend on your usage",
-                    "Fixed expenses, because they stay the same amount each month",
-                    "Discretionary expenses, because you can choose whether to pay them",
-                    "Emergency expenses, because they arise unexpectedly",
+                    "Fixed costs, because the amount is the same every month",
+                    "Variable costs, because the amount depends on your usage",
+                    "Optional costs, because you can decide whether to pay them",
+                    "Emergency costs, because they turn up without any warning",
                 ],
+                "correct_index": 0,
                 "hints": [
-                    "These costs are predictable and appear on your bank statement for the same amount every month",
+                    "These costs are predictable and leave your account for the same amount every month",
                     "They form the non-negotiable baseline of your monthly budget",
                 ],
                 "explanation": "Fixed expenses are costs that remain constant each month — like rent, insurance premiums, and loan repayments. Because they do not change, they are the easiest to plan for in a budget.",
+            },
+            indent=2,
+        ),
+    },
+    {
+        "user": (
+            "PATH: Basic Finance\n"
+            "COURSE: Saving\n"
+            "LESSON: Emergency Funds\n"
+            "EXERCISE TITLE: Knowledge Check 1\n\n"
+            "CURRENT EXERCISE:\n"
+            "QUESTION: How big should an emergency fund be?\n"
+            'OPTIONS: ["A lot", "Three to six months of essential spending", "£100", "One year of salary"]\n'
+            "TARGET ANSWER INDEX: 2\n"
+            'HINTS: ["Think in months, not in a flat amount"]\n'
+            "EXPLANATION: Three to six months is the usual guidance."
+        ),
+        "assistant": json.dumps(
+            {
+                "question": "Your essential outgoings are £1,200 a month. What is the usual target for an emergency fund?",
+                "options": [
+                    "£1,200, so you can always cover one more month",
+                    "£14,400, matching a full year of essential spending",
+                    "£3,600 to £7,200, or three to six months of essentials",
+                    "£600, since half a month is enough for most surprises",
+                ],
+                "correct_index": 2,
+                "hints": [
+                    "The target is set in months of spending, not as a flat amount",
+                    "It has to cover a gap in income, not a single unexpected bill",
+                ],
+                "explanation": "An emergency fund is sized in months of essential spending, normally three to six. At £1,200 a month that is £3,600 to £7,200 — enough to absorb a job loss rather than one surprise bill.",
             },
             indent=2,
         ),
@@ -122,9 +184,18 @@ Your job is to rewrite multiple-choice exercise questions so they test real unde
 
 OUTPUT FORMAT — non-negotiable:
 • Output ONLY valid JSON. No markdown fences, no commentary, no extra keys.
-• The JSON must have exactly these keys: question, options, hints, explanation.
+• The JSON must have exactly these keys: question, options, correct_index, hints, explanation.
 • options must be an array of exactly 4 strings.
-• The correct answer must remain at the SAME INDEX as the original — do not change which option is correct.
+• correct_index must equal the TARGET ANSWER INDEX given in the request. Write the correct option into that slot and put distractors in the other three.
+
+ANSWER MUST NOT BE GUESSABLE FROM SHAPE — this is checked and rejected:
+• All four options must be close to the same length. The longest may not exceed \
+{MAX_LENGTH_RATIO:.2f}× the shortest.
+• Every option must be at least {MIN_OPTION_CHARS} characters.
+• The correct option must not be the most detailed, most qualified, or most complete-sounding one. \
+If the correct option needs a clause like "because…", give the distractors one too.
+• Do not signal the answer with hedges ("always", "never", "all of the above") or with a distractor \
+that is obviously absurd.
 
 CONTENT RULES:
 • Question must be specific to the Path → Course → Lesson context, not generic trivia.
@@ -135,20 +206,35 @@ CONTENT RULES:
 • No vague motivational language."""
 
 
-def _build_user_prompt(path_title, course_title, lesson_title, section_title, exercise_data):
-    correct_idx = exercise_data.get("correctAnswer", 0)
-    return (
+def _build_user_prompt(
+    path_title,
+    course_title,
+    lesson_title,
+    section_title,
+    exercise_data,
+    target_idx,
+    retry_note=None,
+):
+    existing = exercise_data.get("options") or []
+    low, mid, high = target_length_band(existing)
+    prompt = (
         f"PATH: {path_title}\n"
         f"COURSE: {course_title}\n"
         f"LESSON: {lesson_title}\n"
         f"EXERCISE TITLE: {section_title}\n\n"
         f"CURRENT EXERCISE:\n"
         f"QUESTION: {exercise_data.get('question', '')}\n"
-        f"OPTIONS: {json.dumps(exercise_data.get('options', []))}\n"
-        f"CORRECT ANSWER INDEX: {correct_idx}\n"
+        f"OPTIONS: {json.dumps(existing)}\n"
+        f"TARGET ANSWER INDEX: {target_idx}\n"
+        f"TARGET OPTION LENGTH: aim for about {mid} characters per option; "
+        f"every one of the four must land between {low} and {high} characters, "
+        f"the correct one included\n"
         f"HINTS: {json.dumps(exercise_data.get('hints', []))}\n"
         f"EXPLANATION: {exercise_data.get('explanation', '')}"
     )
+    if retry_note:
+        prompt += f"\n\nYOUR PREVIOUS ANSWER WAS REJECTED: {retry_note}\nFix that and return the JSON again."
+    return prompt
 
 
 def _build_messages(system_prompt, user_prompt):
@@ -179,7 +265,16 @@ def _call_openai(client, system_prompt, user_prompt):
             return json.loads(response.choices[0].message.content.strip())
         except Exception as exc:
             error_str = str(exc)
-            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
+            lowered = error_str.lower()
+            # An exhausted credit balance also comes back as a 429. Retrying it
+            # just sleeps through three backoffs before failing, once per record
+            # — an hour of waiting on an error that will never clear on its own.
+            if "insufficient_quota" in lowered or "credit_balance_exhausted" in lowered:
+                raise CommandError(
+                    "OpenAI credit balance exhausted — top up at "
+                    "https://platform.openai.com/settings/organization/billing/ and re-run."
+                )
+            is_rate_limit = "429" in error_str or "rate_limit" in lowered
             if is_rate_limit and attempt < MAX_RETRIES:
                 wait = 60 * attempt
                 match = re.search(r"try again in (\d+)s", error_str)
@@ -189,7 +284,13 @@ def _call_openai(client, system_prompt, user_prompt):
             raise
 
 
-def _validate(data, original_correct_idx):
+def _validate(data, target_idx):
+    """
+    Reject a rewrite that would be answerable without reading the question.
+
+    Returns None when the candidate is usable, otherwise a message that is fed
+    back to the model on the next attempt.
+    """
     if not isinstance(data, dict):
         return "response is not a JSON object"
     for key in ("question", "options", "explanation"):
@@ -199,7 +300,18 @@ def _validate(data, original_correct_idx):
         return f"options must be exactly 4 items, got {len(data.get('options', []))}"
     if not all(isinstance(o, str) for o in data["options"]):
         return "all options must be strings"
-    return None
+
+    correct = data.get("correct_index")
+    if isinstance(correct, bool) or not isinstance(correct, int):
+        return "correct_index missing or not an integer"
+    if correct != target_idx:
+        return f"correct_index must be {target_idx}, got {correct}"
+
+    options = [o.strip() for o in data["options"]]
+    if len(set(options)) != len(options):
+        return "options must all be different"
+
+    return length_problem(options, correct)
 
 
 def _apply_record(section_id, original_data, rewritten_data, metadata):
@@ -214,6 +326,18 @@ def _apply_record(section_id, original_data, rewritten_data, metadata):
     if rewritten_data.get("hints"):
         new_data["hints"] = rewritten_data["hints"]
 
+    # The model states which slot it wrote the answer into, and _validate has
+    # already confirmed it matches the slot we asked for. Trusting the original
+    # index instead (what this used to do) let a rewrite silently point
+    # correctAnswer at a distractor.
+    correct_index = rewritten_data.get("correct_index")
+    if not isinstance(correct_index, int) or isinstance(correct_index, bool):
+        raise ValueError(f"section {section_id}: rewrite has no usable correct_index")
+    if not 0 <= correct_index < len(new_data["options"]):
+        raise ValueError(f"section {section_id}: correct_index {correct_index} out of range")
+    new_data["correctAnswer"] = correct_index
+    new_data.pop("correct_answer", None)
+
     section.exercise_data = new_data
     section.save(update_fields=["exercise_data"])
 
@@ -221,6 +345,12 @@ def _apply_record(section_id, original_data, rewritten_data, metadata):
         exercise_data=None,
         source_hash="",
     )
+
+    # The lesson checkpoint modal reads a Quiz row materialized from this
+    # section. It was only ever populated on creation, so before this every
+    # rewrite left the checkpoint showing the pre-rewrite wording and option
+    # order while the in-lesson check showed the new one.
+    resync_quiz_from_section(section)
 
     EducationAuditLog.objects.create(
         user=None,
@@ -285,7 +415,14 @@ class Command(BaseCommand):
         system_prompt = _build_system_prompt(standards)
 
         qs = (
-            LessonSection.objects.filter(content_type="exercise", is_published=True)
+            # Multiple-choice only. The filter used to be content_type alone,
+            # which swept in numeric and drag-and-drop sections and rewrote
+            # their stems into MC questions the widget cannot render.
+            LessonSection.objects.filter(
+                content_type="exercise",
+                exercise_type="multiple-choice",
+                is_published=True,
+            )
             .exclude(exercise_data__isnull=True)
             .select_related("lesson__course__path")
             .order_by(
@@ -354,24 +491,43 @@ class Command(BaseCommand):
             lesson_title = lesson.title
             section_title = section.title
             original_data = section.exercise_data or {}
-            correct_idx = original_data.get("correctAnswer", 0)
+            # Rewrites keep the slot the section already uses; balancing slots
+            # across the corpus is rebalance_mc_answer_positions' job. A row
+            # with an unusable index falls back to 0 rather than to whatever
+            # `.get(..., 0)` happened to return for a string.
+            existing_options = (
+                original_data.get("options")
+                if isinstance(original_data.get("options"), list)
+                else []
+            )
+            correct_idx = correct_index_of(original_data, len(existing_options) or 4) or 0
 
             self.stdout.write(
                 f"  [{i}/{len(sections)}] #{section.id} — "
                 f"{path_title} / {lesson_title} / {section_title}"
             )
 
-            user_prompt = _build_user_prompt(
-                path_title, course_title, lesson_title, section_title, original_data
-            )
             rewritten_data = None
             error_msg = None
+            retry_note = None
 
             for attempt in range(1, MAX_RETRIES + 1):
+                # The rejection reason goes back into the prompt: a bare retry
+                # at temperature 0.2 tends to return the same rejected shape.
+                user_prompt = _build_user_prompt(
+                    path_title,
+                    course_title,
+                    lesson_title,
+                    section_title,
+                    original_data,
+                    correct_idx,
+                    retry_note,
+                )
                 try:
                     candidate = _call_openai(client, system_prompt, user_prompt)
                     err = _validate(candidate, correct_idx)
                     if err:
+                        retry_note = err
                         raise ValueError(f"Validation failed: {err}")
                     rewritten_data = candidate
                     break
@@ -382,6 +538,10 @@ class Command(BaseCommand):
                         )
                     )
                     time.sleep(e.wait_seconds)
+                except CommandError:
+                    # Unrecoverable (e.g. no credits) — abort the run instead of
+                    # working through every remaining record to fail identically.
+                    raise
                 except Exception as exc:
                     error_msg = str(exc)
                     self.stderr.write(self.style.ERROR(f"    Error (attempt {attempt}): {exc}"))
@@ -404,7 +564,9 @@ class Command(BaseCommand):
                 "original_explanation": original_data.get("explanation", ""),
                 "rewritten_question": rewritten_data.get("question") if rewritten_data else None,
                 "rewritten_options": rewritten_data.get("options") if rewritten_data else None,
-                "rewritten_correct_index": correct_idx,
+                "rewritten_correct_index": (
+                    rewritten_data.get("correct_index") if rewritten_data else None
+                ),
                 "rewritten_hints": rewritten_data.get("hints", []) if rewritten_data else None,
                 "rewritten_explanation": (
                     rewritten_data.get("explanation") if rewritten_data else None
@@ -478,9 +640,18 @@ class Command(BaseCommand):
             try:
                 section = LessonSection.objects.get(id=section_id)
                 original_data = section.exercise_data or {}
+                # Batch files written before the model returned correct_index
+                # carry only the original slot; fall back to it rather than
+                # guessing, and let _apply_record reject anything unusable.
+                correct_index = record.get("rewritten_correct_index")
+                if correct_index is None:
+                    correct_index = record.get(
+                        "original_correct_index", original_data.get("correctAnswer")
+                    )
                 rewritten_data = {
                     "question": record["rewritten_question"],
                     "options": record["rewritten_options"],
+                    "correct_index": correct_index,
                     "hints": record.get("rewritten_hints", []),
                     "explanation": record.get("rewritten_explanation", ""),
                 }

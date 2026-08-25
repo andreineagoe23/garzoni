@@ -64,7 +64,9 @@ function createStyles(c: ThemeColors) {
       fontWeight: "600",
       marginTop: spacing.md,
     },
-    fOk: { color: c.success },
+    // Reward gold, not green: green marks which option was right, gold says
+    // you earned something. See src/lesson/lessonTheme.ts.
+    fOk: { color: c.accent },
     fErr: { color: c.error },
     explanation: {
       fontSize: typography.sm,

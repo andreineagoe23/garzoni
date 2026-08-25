@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.utils.html import strip_tags
 
 from education.models import Lesson
+from education.exercise_quality import correct_index_of, length_problem, slot_distribution
 from education.lesson_section_structure import SECTION_TEMPLATE_9
 
 # Canonical 9-section layout, derived from the single source of truth.
@@ -71,6 +72,9 @@ class Command(BaseCommand):
 
         rows = []
         failing = 0
+        # Answer-slot bias is invisible per lesson (two checks each) and only
+        # shows up across the corpus, so it is reported rather than gated.
+        answer_slots: list[tuple[list, int | None]] = []
 
         lessons = (
             Lesson.objects.select_related("course")
@@ -122,6 +126,12 @@ class Command(BaseCommand):
                         reasons.append(f"exercise section {order} requires 4 options")
                     if not isinstance(correct, int):
                         reasons.append(f"exercise section {order} missing integer correctAnswer")
+                    if isinstance(opts, list) and len(opts) >= 2:
+                        idx = correct_index_of(data, len(opts))
+                        answer_slots.append((list(opts), idx))
+                        shape = length_problem([str(o) for o in opts], idx)
+                        if shape:
+                            reasons.append(f"exercise section {order} {shape}")
                 elif ex_type == "numeric":
                     if (
                         data.get("expected_value") if isinstance(data, dict) else None
@@ -160,6 +170,7 @@ class Command(BaseCommand):
             "failing_lessons": failing,
             "passing_lessons": len(rows) - failing,
             "target_types": TARGET_TYPES,
+            "answer_positions": slot_distribution(answer_slots),
             "results": rows,
         }
 
@@ -177,6 +188,19 @@ class Command(BaseCommand):
         self.stdout.write(f"Total lessons: {payload['total_lessons']}")
         self.stdout.write(f"Passing lessons: {payload['passing_lessons']}")
         self.stdout.write(f"Failing lessons: {payload['failing_lessons']}")
+
+        pos = payload["answer_positions"]
+        if pos["total"]:
+            spread = "  ".join(
+                f"[{slot}] {n} ({100 * n / pos['total']:.0f}%)"
+                for slot, n in pos["by_slot"].items()
+            )
+            self.stdout.write("")
+            self.stdout.write(f"Answer slot ({pos['total']} multiple-choice checks): {spread}")
+            self.stdout.write(
+                f"Correct option is the longest: {pos['correct_is_longest']} "
+                f"({pos['correct_is_longest_pct']}%)"
+            )
         self.stdout.write("")
         for row in rows:
             if row["status"] == "fail":

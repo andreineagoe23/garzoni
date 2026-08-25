@@ -14,12 +14,28 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { Audio as AudioType } from "expo-av";
-let Audio: typeof AudioType | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Audio = require("expo-av").Audio;
-} catch {
-  /* native module not in this dev build — feature gated at runtime */
+
+let audioModule: typeof AudioType | null | undefined;
+
+/**
+ * Resolve expo-av on first use rather than at module scope.
+ *
+ * expo-router imports every route file during startup, so a top-level require
+ * ran on every cold start and printed expo-av's SDK 54 deprecation warning —
+ * on a Pro-gated screen most launches never open. Loading it lazily ties both
+ * the module and the warning to actually using voice.
+ */
+function getAudio(): typeof AudioType | null {
+  if (audioModule === undefined) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      audioModule = require("expo-av").Audio;
+    } catch {
+      /* native module not in this dev build — feature gated at runtime */
+      audioModule = null;
+    }
+  }
+  return audioModule ?? null;
 }
 import { router } from "expo-router";
 import {
@@ -169,6 +185,7 @@ export default function VoiceChat() {
 
   const playTtsFromUri = useCallback(
     async (dataUri: string) => {
+      const Audio = getAudio();
       if (!Audio) return;
 
       if (!isAppActiveForAudio()) {
@@ -214,6 +231,7 @@ export default function VoiceChat() {
   }, [playTtsFromUri]);
 
   const startRecording = async () => {
+    const Audio = getAudio();
     if (!Audio) {
       Alert.alert(
         "Not available",
@@ -260,6 +278,7 @@ export default function VoiceChat() {
   };
 
   const stopRecordingAndProcess = async () => {
+    const Audio = getAudio();
     if (!recording) return;
     setStatus("processing");
     try {

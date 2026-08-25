@@ -64,10 +64,16 @@ const FillInTableExercise = ({
     null
   );
 
+  // `isCompleted` is a prop, so Retry could never re-enable the inputs. This is
+  // the local override.
+  const [reopened, setReopened] = useState(false);
+  const locked = Boolean(isCompleted) && !reopened;
+
   useEffect(() => {
     setAnswers(emptyAnswers);
     setFeedback("");
     setFeedbackType(null);
+    setReopened(false);
   }, [emptyAnswers, isCompleted]);
 
   const handleChange = (
@@ -153,16 +159,20 @@ const FillInTableExercise = ({
   };
 
   const handleRetry = async () => {
-    try {
-      const sectionId = exerciseId;
-      if (!sectionId) return;
-      await apiClient.post("/exercises/reset/", { section_id: sectionId });
-      setAnswers(emptyAnswers);
-      setFeedback("");
-      setFeedbackType(null);
-    } catch (error) {
-      console.error("Error resetting exercise:", error);
+    if (exerciseId) {
+      try {
+        await apiClient.post("/exercises/reset/", { section_id: exerciseId });
+      } catch (error) {
+        // An in-lesson check has no stored progress to clear. Reopening must
+        // not depend on that call succeeding — it used to sit after the await,
+        // so a throw left every input disabled with no way back.
+        console.error("Error resetting exercise:", error);
+      }
     }
+    setAnswers(emptyAnswers);
+    setFeedback("");
+    setFeedbackType(null);
+    setReopened(true);
   };
 
   return (
@@ -217,7 +227,7 @@ const FillInTableExercise = ({
                         onChange={(event) =>
                           handleChange(row.id, colIndex, event.target.value)
                         }
-                        disabled={isCompleted || disabled}
+                        disabled={locked || disabled}
                         aria-label={`${row.label || t("exercises.table.row")} ${column}`}
                         className={`w-full rounded-xl border px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${borderClass}`}
                       />
@@ -231,7 +241,7 @@ const FillInTableExercise = ({
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        {isCompleted ? (
+        {locked ? (
           <button
             type="button"
             onClick={handleRetry}

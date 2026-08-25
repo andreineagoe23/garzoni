@@ -392,11 +392,7 @@
     },
     "q2": {
       "prompt": "Ai un venit net de 2.000 £ pe lună. Cât ar trebui să meargă spre economii și datorii?",
-      "options": [
-        "100 £",
-        "400 £",
-        "1.000 £"
-      ],
+      "options": ["100 £", "400 £", "1.000 £"],
       "explanation": "20% din 2.000 £ înseamnă 400 £ — ținta ta lunară pentru economii și achitarea datoriilor."
     },
     "done": {
@@ -2915,7 +2911,7 @@
     "referralDiscountBanner": "Reducerea ta de 50% din recomandare ({{code}}) se va aplica automat la checkout Stripe.",
     "promoAppHint": "Descărcați aplicația pentru a revendica reducerea — fără cod.",
     "promoCtaApp": "Obțineți {{percent}}% reducere în aplicație",
-    "promoBanner": "Ofertă limitată: {{percent}}% REDUCERE la toate planurile",
+    "promoBanner": "Ofertă limitată: până la {{percent}}% REDUCERE la toate planurile",
     "promoBannerEnds": "Se încheie pe {{date}}",
     "promoBadge": "-{{percent}}%",
     "promoFirstYear": "pentru primul an",
@@ -3180,7 +3176,8 @@
       "wrongOrder": "Ordinea nu e corectă. Încearcă din nou.",
       "cellsWrong": "Unele celule sunt greșite. Încearcă din nou.",
       "budgetTotalHint": "Totalul trebuie să fie {{total}}. Acum: {{current}}",
-      "notQuiteTryAgain": "Nu chiar. Încearcă din nou."
+      "notQuiteTryAgain": "Nu chiar. Încearcă din nou.",
+      "alreadyAnswered": "Ai răspuns deja la această întrebare."
     },
     "errors": {
       "loadFailed": "Nu s-au putut încărca exercițiile. Te rugăm să încerci din nou.",

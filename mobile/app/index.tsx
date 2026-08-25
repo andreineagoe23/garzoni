@@ -25,7 +25,7 @@ import {
 } from "../src/bootstrap/pushPromptState";
 
 const { width: SW } = Dimensions.get("window");
-const LOGO = require("../assets/garzoni-logo-square-no-bg.png");
+const LOGO = require("../assets/garzoni-logo-white.png");
 /** Keep in step with SPLASH_LOGO_WIDTH in app.config.js. */
 const LAUNCH_LOGO_SIZE = 150;
 

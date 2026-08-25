@@ -53,10 +53,16 @@ const BudgetAllocationExercise = ({
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState(null);
 
+  // `isCompleted` is a prop, so Retry could never re-enable the inputs. This is
+  // the local override.
+  const [reopened, setReopened] = useState(false);
+  const locked = Boolean(isCompleted) && !reopened;
+
   useEffect(() => {
     setAllocations(initialAllocations);
     setFeedback("");
     setFeedbackType(null);
+    setReopened(false);
   }, [initialAllocations, isCompleted]);
 
   const currentTotal = useMemo(() => {
@@ -105,16 +111,21 @@ const BudgetAllocationExercise = ({
   };
 
   const handleRetry = async () => {
-    try {
-      const sectionId = exerciseId || id;
-      if (!sectionId) return;
-      await apiClient.post("/exercises/reset/", { section_id: sectionId });
-      setAllocations(initialAllocations);
-      setFeedback("");
-      setFeedbackType(null);
-    } catch (error) {
-      console.error("Error resetting exercise:", error);
+    const sectionId = exerciseId || id;
+    if (sectionId) {
+      try {
+        await apiClient.post("/exercises/reset/", { section_id: sectionId });
+      } catch (error) {
+        // An in-lesson check has no stored progress to clear. Reopening must
+        // not depend on that call succeeding — it used to sit after the await,
+        // so a throw left every input disabled with no way back.
+        console.error("Error resetting exercise:", error);
+      }
     }
+    setAllocations(initialAllocations);
+    setFeedback("");
+    setFeedbackType(null);
+    setReopened(true);
   };
 
   return (
@@ -143,7 +154,7 @@ const BudgetAllocationExercise = ({
               step="1"
               value={allocations[category] ?? ""}
               onChange={(event) => handleChange(category, event.target.value)}
-              disabled={isCompleted || disabled}
+              disabled={locked || disabled}
               className={`w-full rounded-xl border backdrop-blur-sm px-3 py-2 text-sm text-content-primary shadow-inner focus:border-[color:var(--accent,#2563eb)]/60 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent,#2563eb)]/30 disabled:cursor-not-allowed disabled:opacity-60 ${
                 feedbackType === "success"
                   ? "border-emerald-500/60 bg-emerald-500/10"
@@ -175,7 +186,7 @@ const BudgetAllocationExercise = ({
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        {isCompleted ? (
+        {locked ? (
           <button
             type="button"
             onClick={handleRetry}

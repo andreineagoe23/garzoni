@@ -70,7 +70,11 @@ import { layout, radius, shadows, spacing, typography } from "../theme/tokens";
 import { useScreenGutter } from "../utils/platform";
 import { useShowHeartsMobile } from "../hooks/useShowHeartsMobile";
 import { useThemeColors } from "../theme/ThemeContext";
-import { resolveLessonColors, useLessonColors } from "./lessonTheme";
+import {
+  lessonStyleObjects,
+  resolveLessonColors,
+  useLessonColors,
+} from "./lessonTheme";
 import type { ThemeColors } from "../theme/palettes";
 import { useTranslation } from "react-i18next";
 
@@ -107,6 +111,7 @@ function formatCountdown(sec: number): string {
 
 export function createLessonFlowStyles(c: ThemeColors) {
   const lc = resolveLessonColors(c);
+  const shared = lessonStyleObjects(lc);
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: c.bg },
     centered: {
@@ -142,8 +147,8 @@ export function createLessonFlowStyles(c: ThemeColors) {
     },
     bottomBarBack: {
       flex: 1,
-      paddingVertical: 16,
-      borderRadius: 999,
+      paddingVertical: spacing.lg,
+      borderRadius: radius.full,
       backgroundColor: c.surface,
       alignItems: "center",
       justifyContent: "center",
@@ -180,16 +185,14 @@ export function createLessonFlowStyles(c: ThemeColors) {
       color: c.textMuted,
       marginTop: spacing.sm,
     },
+    // The demo's CTA verbatim — see src/lesson/lessonTheme.ts. This used to be
+    // c.primary (a full step darker) with no shadow at all, which is most of
+    // why the most-tapped control in the app read as inert next to the demo's.
     continueBtn: {
+      ...shared.cta,
       flex: 1,
-      paddingVertical: 16,
-      borderRadius: 999,
-      // Shared lesson action colour — see src/lesson/lessonTheme.ts. This was
-      // c.primary, a full step darker, and it read as inert next to the demo.
-      backgroundColor: lc.action,
-      alignItems: "center",
-      justifyContent: "center",
     },
+    continueBtnHighlight: shared.ctaHighlight,
     continueBtnText: {
       fontSize: typography.base,
       fontWeight: "700",
@@ -211,6 +214,8 @@ export function createLessonFlowStyles(c: ThemeColors) {
       marginBottom: spacing.xxl,
     },
     completeActions: { gap: spacing.md, width: "100%" },
+    completeBackRow: { flexDirection: "row", gap: spacing.sm, width: "100%" },
+    completeBackRowItem: { flex: 1 },
 
     modalOverlay: {
       flex: 1,
@@ -928,7 +933,10 @@ export default function LessonFlowScreen({
               cta?.toolUrl || courseToolPracticeCta?.mobileToolUrl;
             if (!toolUrl) return null;
             return (
-              <Button onPress={() => router.push(href(toolUrl))}>
+              <Button
+                variant="secondary"
+                onPress={() => router.push(href(toolUrl))}
+              >
                 {cta?.ctaText ||
                   courseToolPracticeCta?.ctaText ||
                   "Put it to practice"}
@@ -946,19 +954,32 @@ export default function LessonFlowScreen({
             </Button>
           ) : null}
           {hasCourseQuiz ? (
-            <Button onPress={() => router.push(`/quiz/${courseId}`)}>
+            <Button
+              variant="secondary"
+              onPress={() => router.push(`/quiz/${courseId}`)}
+            >
               {t("courses.flow.takeQuiz")}
             </Button>
           ) : null}
-          <Button variant="secondary" onPress={() => router.replace("/(tabs)")}>
-            {t("courses.flow.backToDashboard")}
-          </Button>
-          <Button
-            variant="secondary"
-            onPress={() => router.replace("/(tabs)/learn")}
-          >
-            {t("courses.flow.backToCourses")}
-          </Button>
+          {/* Both are "leave the lesson" escapes, so they are peers and share a
+              row. Stacked full-width they added two more equal-weight slabs to
+              a screen that could already show six. */}
+          <View style={styles.completeBackRow}>
+            <Button
+              variant="ghost"
+              style={styles.completeBackRowItem}
+              onPress={() => router.replace("/(tabs)")}
+            >
+              {t("courses.flow.backToDashboard")}
+            </Button>
+            <Button
+              variant="ghost"
+              style={styles.completeBackRowItem}
+              onPress={() => router.replace("/(tabs)/learn")}
+            >
+              {t("courses.flow.backToCourses")}
+            </Button>
+          </View>
         </View>
         <RewardClaimModal
           visible={missionCompletedNow != null}
@@ -1221,6 +1242,7 @@ export default function LessonFlowScreen({
               styles.continueBtnDisabled,
           ]}
         >
+          <View style={styles.continueBtnHighlight} pointerEvents="none" />
           <Text style={styles.continueBtnText}>
             {isLast ? t("shared.finish") : t("shared.continue")}
           </Text>

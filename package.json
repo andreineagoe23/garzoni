@@ -46,7 +46,7 @@
     "qa:backend": "pnpm run lint:backend",
     "qa:mobile": "pnpm run typecheck:mobile && pnpm run lint:mobile && pnpm --filter @garzoni/mobile test && pnpm run test:core",
     "test:core": "pnpm --filter @garzoni/core test",
-    "precommit": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts && pnpm run typecheck && pnpm lint && pnpm --filter @garzoni/web format:check && pnpm --filter @garzoni/web test",
+    "precommit": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts && pnpm run typecheck && pnpm lint && pnpm run lint:mobile && pnpm --filter @garzoni/web format:check && pnpm --filter @garzoni/web test",
     "upload:cloudinary": "node scripts/upload-cloudinary-images.js",
     "upload:cloudinary:dry-run": "node scripts/upload-cloudinary-images.js --dry-run"
   },

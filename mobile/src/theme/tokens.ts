@@ -9,10 +9,4 @@
  * For colours use `useTheme().colors` or `useThemeColors()` from `./ThemeContext`.
  */
 
-export {
-  spacing,
-  radius,
-  typography,
-  layout,
-  shadows,
-} from "@garzoni/tokens";
+export { spacing, radius, typography, layout, shadows } from "@garzoni/tokens";

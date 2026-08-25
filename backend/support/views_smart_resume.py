@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 
+from django.conf import settings
 from django.core.cache import cache
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -70,7 +71,7 @@ class SmartResumeView(APIView):
 
             client = _get_openai_client()
             resp = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=getattr(settings, "OPENAI_MODEL_EXTRACTION", "gpt-4.1-nano"),
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": context},

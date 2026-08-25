@@ -311,26 +311,31 @@ PLAN_CATALOG = [
     },
 ]
 
-# Limited-time 60%-off promotion. These values only drive marketing display on
-# the pricing pages — actual checkout discounts are configured store-side
+# Limited-time promotion. These values only drive marketing display on the
+# pricing pages — actual checkout discounts are configured store-side
 # (App Store intro offers, Play Console offers, RC Web Billing intro offers)
 # and must be kept in sync with the store dashboards by hand.
-# Discount applies to the first year (yearly) / first 3 months (monthly).
+#
+# This campaign runs two rates: 50% off yearly, 40% off monthly. `percent_off`
+# is the headline (the highest rate) and the banner copy reads "up to"; each
+# plan card must state its own rate from `percent_off_by_interval`, or the
+# monthly card overstates its discount by ten points.
 PROMO_CAMPAIGN = {
-    "id": "summer60",
-    "percent_off": 60,
-    "starts_on": date(2026, 7, 11),
-    "ends_on": date(2026, 8, 31),
-    # Yearly only. The monthly entries (£2.79 / £3.19) were advertised for weeks
-    # with no store offer behind them anywhere — Play has no offer on
-    # plus-monthly/pro-monthly, RevenueCat Web Billing has none on any product,
-    # and the App Store intro offers are on the yearly products. Quoting a price
-    # nothing can charge is worse than quoting none.
+    "id": "newyear2026",
+    "percent_off": 50,
+    "percent_off_by_interval": {"yearly": 50, "monthly": 40},
+    "starts_on": date(2026, 9, 1),
+    "ends_on": date(2026, 12, 31),
+    # Display-only. Every entry here needs a real store offer behind it or the
+    # pricing page advertises a discount checkout will not apply — summer60
+    # shipped monthly prices with no offer anywhere and had to have them pulled.
     "prices": {
-        ("plus", "yearly"): 23.99,
-        ("pro", "yearly"): 27.99,
+        ("plus", "yearly"): 29.99,
+        ("pro", "yearly"): 34.99,
+        ("plus", "monthly"): 4.19,
+        ("pro", "monthly"): 4.79,
     },
-    "duration_labels": {"yearly": "first year"},
+    "duration_labels": {"yearly": "first year", "monthly": "first 3 months"},
 }
 
 
@@ -495,10 +500,16 @@ def get_plan_catalog(settings) -> Dict[str, list]:
 
         promo_price = None
         promo_duration_label = None
+        promo_percent_off = None
         if promo:
             promo_price = promo["prices"].get((plan["plan_id"], plan["billing_interval"]))
             if promo_price is not None:
                 promo_duration_label = promo["duration_labels"].get(plan["billing_interval"])
+                # Per-plan rate. A campaign may discount yearly and monthly by
+                # different amounts, so the card cannot reuse the headline.
+                promo_percent_off = promo.get("percent_off_by_interval", {}).get(
+                    plan["billing_interval"], promo["percent_off"]
+                )
 
         plans.append(
             {
@@ -513,6 +524,7 @@ def get_plan_catalog(settings) -> Dict[str, list]:
                 "features": features,
                 "promo_price_amount": promo_price,
                 "promo_duration_label": promo_duration_label,
+                "promo_percent_off": promo_percent_off,
             }
         )
 
@@ -521,6 +533,7 @@ def get_plan_catalog(settings) -> Dict[str, list]:
         payload["promo"] = {
             "id": promo["id"],
             "percent_off": promo["percent_off"],
+            "percent_off_by_interval": promo.get("percent_off_by_interval", {}),
             "ends_on": promo["ends_on"].isoformat(),
         }
     return payload

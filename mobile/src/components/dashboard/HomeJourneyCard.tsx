@@ -108,12 +108,10 @@ export default function HomeJourneyCard() {
         },
       ]}
     >
-      <View style={[styles.iconTile, { backgroundColor: "rgba(255,255,255,0.16)" }]}>
-        <MaterialCommunityIcons
-          name="terrain"
-          size={22}
-          color="#ffffff"
-        />
+      <View
+        style={[styles.iconTile, { backgroundColor: "rgba(255,255,255,0.16)" }]}
+      >
+        <MaterialCommunityIcons name="terrain" size={22} color="#ffffff" />
       </View>
       <View style={styles.copy}>
         <Text style={styles.eyebrow} numberOfLines={1}>

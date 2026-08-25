@@ -19,16 +19,14 @@ if (major < MIN_NODE[0] || (major === MIN_NODE[0] && minor < MIN_NODE[1])) {
   console.error(
     `@garzoni/tokens: Node ${MIN_NODE.join(".")}+ is required (running ${process.versions.node}).\n` +
       "This script imports src/index.ts directly and needs Node's native TypeScript\n" +
-      "stripping. Use the version in .nvmrc (`nvm use`)."
+      "stripping. Use the version in .nvmrc (`nvm use`).",
   );
   process.exit(1);
 }
 
 // Dynamic so the version guard above can report a readable error first — a
 // static import of a .ts file throws before any of this module's code runs.
-const { layout, radius, spacing, typography } = await import(
-  "../src/index.ts"
-);
+const { layout, radius, spacing, typography } = await import("../src/index.ts");
 
 const here = dirname(fileURLToPath(import.meta.url));
 // Not `dist/` — the repo .gitignore excludes that, and this output is meant to
@@ -49,14 +47,16 @@ const lines = [
   "",
   "  /* Semantic layout */",
   ...Object.entries(layout).map(
-    ([k, v]) => `  --layout-${kebab(k)}: ${px(v)};`
+    ([k, v]) => `  --layout-${kebab(k)}: ${px(v)};`,
   ),
   "",
   "  /* Radii */",
   ...Object.entries(radius).map(([k, v]) => `  --radius-${k}: ${px(v)};`),
   "",
   "  /* Type scale */",
-  ...Object.entries(typography).map(([k, v]) => `  --font-size-${k}: ${px(v)};`),
+  ...Object.entries(typography).map(
+    ([k, v]) => `  --font-size-${k}: ${px(v)};`,
+  ),
   "}",
   "",
 ];

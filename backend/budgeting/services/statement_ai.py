@@ -26,7 +26,7 @@ from budgeting.services.categorization import CATEGORY_LABELS, label_for
 logger = logging.getLogger(__name__)
 
 MAX_CATEGORIES = 10
-MODEL = "gpt-4o-mini"
+MODEL = getattr(settings, "OPENAI_MODEL_EXTRACTION", "gpt-4.1-nano")
 
 SYSTEM_PROMPT = (
     "You are a UK/Romania personal finance coach reviewing one bank statement. "

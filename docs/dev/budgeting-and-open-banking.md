@@ -13,20 +13,20 @@ Related: [`../banking/open-banking-plan.md`](../banking/open-banking-plan.md) (t
 `backend/tests/test_statement_import.py`). **Open banking is not** — the provider layer exists, the
 Plaid implementation is a stub, and `BUDGETING_PROVIDER` defaults to `disabled` everywhere.
 
-| Capability | State |
-| --- | --- |
-| Upload CSV / TSV / Excel / PDF / OFX / QFX / QIF | shipped |
-| Parse + normalize into `Transaction` rows | shipped |
-| Auto-categorization | shipped (`services/categorization.py`, 754 lines) |
-| AI insight over a statement | shipped (`services/statement_ai.py`) |
-| Budget envelopes + period summaries | shipped |
-| Spending anomalies | shipped |
-| Personal CFO dashboard / narrative / coach | shipped (Plus/Pro) |
-| Weekly CFO report email | shipped (Mon 09:00 Celery beat) |
-| **Bank account linking** | **stubbed** — UI says "Bank connections are coming soon" |
-| Category override / per-user merchant rules | not built |
-| Multi-statement month-over-month trends | not built |
-| Export a saved analysis | not built |
+| Capability                                       | State                                                    |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| Upload CSV / TSV / Excel / PDF / OFX / QFX / QIF | shipped                                                  |
+| Parse + normalize into `Transaction` rows        | shipped                                                  |
+| Auto-categorization                              | shipped (`services/categorization.py`, 754 lines)        |
+| AI insight over a statement                      | shipped (`services/statement_ai.py`)                     |
+| Budget envelopes + period summaries              | shipped                                                  |
+| Spending anomalies                               | shipped                                                  |
+| Personal CFO dashboard / narrative / coach       | shipped (Plus/Pro)                                       |
+| Weekly CFO report email                          | shipped (Mon 09:00 Celery beat)                          |
+| **Bank account linking**                         | **stubbed** — UI says "Bank connections are coming soon" |
+| Category override / per-user merchant rules      | not built                                                |
+| Multi-statement month-over-month trends          | not built                                                |
+| Export a saved analysis                          | not built                                                |
 
 ## Models (`backend/budgeting/models.py`)
 
@@ -95,24 +95,24 @@ Client behaviour when disabled: the backend reports `providerStatus.enabled = fa
 
 ## Celery
 
-| When | Task |
-| --- | --- |
+| When            | Task                                                               |
+| --------------- | ------------------------------------------------------------------ |
 | every 6h at :15 | `budgeting.tasks.sync_linked_accounts_task` (no-op while disabled) |
-| 03:00 | `budgeting.tasks.recompute_summaries_task` |
-| Mon 09:00 | `budgeting.tasks.send_weekly_cfo_reports` |
-| event-driven | `budgeting.tasks.generate_cfo_narrative_task` |
+| 03:00           | `budgeting.tasks.recompute_summaries_task`                         |
+| Mon 09:00       | `budgeting.tasks.send_weekly_cfo_reports`                          |
+| event-driven    | `budgeting.tasks.generate_cfo_narrative_task`                      |
 
 In production Beat reads the `PeriodicTask` table, not the static schedule in
 `backend/settings/celery.py` — see [`architecture.md`](architecture.md).
 
 ## Clients
 
-| Surface | Web | Mobile |
-| --- | --- | --- |
-| Statement import | `frontend/src/components/tools/StatementImport.tsx` (917 L) | `mobile/app/tools/statement-import/index.tsx` (1105 L) |
-| Budget planner | `components/tools/BudgetPlanner.tsx` | `app/tools/budget-planner/` |
-| Personal CFO | `components/tools/CFODashboard.tsx` (778 L) | `app/tools/personal-cfo/` (814 L) |
-| CFO coach | — | `app/tools/personal-cfo-coach/` (464 L) — **mobile only** |
+| Surface          | Web                                                         | Mobile                                                    |
+| ---------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
+| Statement import | `frontend/src/components/tools/StatementImport.tsx` (917 L) | `mobile/app/tools/statement-import/index.tsx` (1105 L)    |
+| Budget planner   | `components/tools/BudgetPlanner.tsx`                        | `app/tools/budget-planner/`                               |
+| Personal CFO     | `components/tools/CFODashboard.tsx` (778 L)                 | `app/tools/personal-cfo/` (814 L)                         |
+| CFO coach        | —                                                           | `app/tools/personal-cfo-coach/` (464 L) — **mobile only** |
 
 Mobile's document picker is lazily `require`d (`statement-import/index.tsx:49-63`) so older
 binaries without `expo-document-picker` degrade instead of crashing.

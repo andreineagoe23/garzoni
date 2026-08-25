@@ -442,7 +442,7 @@ def generate_ai_narrative(user, ctx: DashboardContext) -> Optional[str]:
         ]
         user_msg = "Stats:\n" + "\n".join(context_lines)
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=getattr(settings, "OPENAI_MODEL_EXTRACTION", "gpt-4.1-nano"),
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user_msg},

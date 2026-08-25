@@ -56,7 +56,14 @@ function advancedTier(prestige: number): XpTier {
     roman = "X+";
     key = "advanced-x+";
   }
-  return { level: "advanced", key, roman, prestige, floor, next: floor + PRESTIGE_BAND };
+  return {
+    level: "advanced",
+    key,
+    roman,
+    prestige,
+    floor,
+    next: floor + PRESTIGE_BAND,
+  };
 }
 
 /**

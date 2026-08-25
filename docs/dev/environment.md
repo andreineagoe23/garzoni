@@ -198,13 +198,13 @@ and in CI). Defaults cited from `backend/settings/settings.py`.
 
 ### Budgeting / open banking (Railway)
 
-| Var | Default | Notes |
-| --- | --- | --- |
-| `BUDGETING_PROVIDER` | `disabled` | `disabled` \| `plaid`. **Leave it disabled** — the Plaid provider is a stub (`budgeting/services/providers.py:111-147`) |
-| `BUDGETING_REGION` | — | region hint for the provider |
-| `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV`, `PLAID_WEBHOOK_SECRET` | — | webhook signature verification **rejects everything** when the secret is unset |
-| `BUDGETING_FREE_STATEMENT_BYTES` / `_IMPORTS` / `_ROWS` | — | free-tier statement-import allowance (the paywall) |
-| `BUDGETING_MAX_STATEMENT_BYTES` / `_ROWS` | — | hard upload ceiling for every plan |
+| Var                                                                    | Default    | Notes                                                                                                                   |
+| ---------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `BUDGETING_PROVIDER`                                                   | `disabled` | `disabled` \| `plaid`. **Leave it disabled** — the Plaid provider is a stub (`budgeting/services/providers.py:111-147`) |
+| `BUDGETING_REGION`                                                     | —          | region hint for the provider                                                                                            |
+| `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV`, `PLAID_WEBHOOK_SECRET` | —          | webhook signature verification **rejects everything** when the secret is unset                                          |
+| `BUDGETING_FREE_STATEMENT_BYTES` / `_IMPORTS` / `_ROWS`                | —          | free-tier statement-import allowance (the paywall)                                                                      |
+| `BUDGETING_MAX_STATEMENT_BYTES` / `_ROWS`                              | —          | hard upload ceiling for every plan                                                                                      |
 
 ### RevenueCat (Railway) — the primary payment channel
 
@@ -230,14 +230,14 @@ and in CI). Defaults cited from `backend/settings/settings.py`.
 
 ### Product flags — these change what users see
 
-| Flag | Default | Effect |
-| --- | --- | --- |
-| `GAMIFICATION_RETENTION_V2` | **False** | weekly recap API, streak-rescue job and profile extras all no-op |
-| `LEAGUES_ENABLED` | True | whole leagues service no-ops when off |
-| `MISSIONS_LAZY_ASSIGNMENT` | True | eager assignment kept as a kill-switch |
-| `UX_PAYWALL_PLACEMENT` | `onboarding` | or `post_first_lesson` |
-| `BADGE_EVAL_SYNC` | False | badge evaluation sync vs debounced task |
-| `GAMIFICATION_DAILY_GOAL_TARGET_XP`, `LEAGUE_COHORT_SIZE`, `NOTIFICATION_DAILY_CAP` | — | tuning knobs |
+| Flag                                                                                | Default      | Effect                                                           |
+| ----------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------- |
+| `GAMIFICATION_RETENTION_V2`                                                         | **False**    | weekly recap API, streak-rescue job and profile extras all no-op |
+| `LEAGUES_ENABLED`                                                                   | True         | whole leagues service no-ops when off                            |
+| `MISSIONS_LAZY_ASSIGNMENT`                                                          | True         | eager assignment kept as a kill-switch                           |
+| `UX_PAYWALL_PLACEMENT`                                                              | `onboarding` | or `post_first_lesson`                                           |
+| `BADGE_EVAL_SYNC`                                                                   | False        | badge evaluation sync vs debounced task                          |
+| `GAMIFICATION_DAILY_GOAL_TARGET_XP`, `LEAGUE_COHORT_SIZE`, `NOTIFICATION_DAILY_CAP` | —            | tuning knobs                                                     |
 
 ### Other live vars not previously listed
 

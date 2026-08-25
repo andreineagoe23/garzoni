@@ -68,6 +68,7 @@ type Plan = {
   features?: Record<string, PlanFeature>;
   promo_price_amount?: number | null;
   promo_duration_label?: string | null;
+  promo_percent_off?: number | null;
 };
 
 type PromoInfo = {
@@ -593,7 +594,11 @@ const SubscriptionPlansPage = () => {
                       {promoPrice != null && promo && (
                         <p className="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                           {t("subscriptions.promoBadge", {
-                            percent: promo.percent_off,
+                            // This plan's own rate. `promo.percent_off` is the
+                            // headline maximum and overstates the cheaper
+                            // interval when a campaign runs two rates.
+                            percent:
+                              plan.promo_percent_off ?? promo.percent_off,
                           })}{" "}
                           {plan.billing_interval === "yearly"
                             ? t("subscriptions.promoFirstYear")

@@ -106,8 +106,7 @@ const AppPressable = forwardRef<View, AppPressableProps>(function AppPressable(
       onPressIn={handlePressIn}
       android_ripple={android_ripple}
       style={(state) => {
-        const base =
-          typeof style === "function" ? style(state) : style;
+        const base = typeof style === "function" ? style(state) : style;
         if (!useVisualDip || !state.pressed) return base;
         const dip: ViewStyle =
           feedback === "scale"

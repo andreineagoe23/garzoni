@@ -1,5 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Text, View, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
+import { resetExercise } from "@garzoni/core";
+import { AppText, Button } from "../ui";
 import MultipleChoice from "../exercises/MultipleChoice";
 import NumericInput from "../exercises/NumericInput";
 import BudgetAllocation from "../exercises/BudgetAllocation";
@@ -48,6 +51,15 @@ function createUnsupportedStyles(c: ThemeColors) {
       color: c.textMuted,
       textAlign: "center",
     },
+    answeredFooter: {
+      marginTop: spacing.md,
+      alignItems: "flex-start",
+      gap: spacing.sm,
+    },
+    answeredNote: {
+      fontSize: typography.sm,
+      color: c.textMuted,
+    },
   });
 }
 
@@ -65,13 +77,47 @@ export default function ExerciseSection({
   onStandaloneSubmitResult,
 }: ExerciseSectionProps) {
   const c = useThemeColors();
+  const { t } = useTranslation("common");
   const styles = useMemo(() => createUnsupportedStyles(c), [c]);
+
+  // Every widget locks its inputs on `isCompleted` and offers no way back.
+  // The lesson flow marks a knowledge check complete when you press Continue
+  // past it without answering, so on the next pass the options render at full
+  // strength and silently swallow taps. Reopening is owned here rather than in
+  // each of the six widgets: bumping `attempt` remounts the widget, which
+  // clears its internal answer state and reshuffles the options.
+  const [attempt, setAttempt] = useState(0);
+  const [reopened, setReopened] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+
+  useEffect(() => {
+    setReopened(false);
+  }, [exerciseId, sectionId]);
+
+  const locked = Boolean(isCompleted) && !reopened;
+
+  const handleRetry = async () => {
+    if (retrying) return;
+    if (gradingMode === "standalone" && exerciseId != null) {
+      setRetrying(true);
+      try {
+        await resetExercise({ exercise_id: exerciseId });
+      } catch {
+        // A skipped check has no UserExerciseProgress row to clear, and that
+        // 404 must not keep the learner locked out. Reopen either way.
+      } finally {
+        setRetrying(false);
+      }
+    }
+    setReopened(true);
+    setAttempt((n) => n + 1);
+  };
 
   const props = {
     data: exerciseData ?? {},
     exerciseId,
     sectionId,
-    isCompleted,
+    isCompleted: locked,
     disabled,
     onAttempt,
     onComplete,
@@ -80,19 +126,42 @@ export default function ExerciseSection({
     onStandaloneSubmitResult,
   };
 
+  const withRetry = (widget: React.ReactNode) => (
+    <View>
+      {/* Keyed on `attempt` so Try Again remounts the widget rather than
+          relying on each one to expose a reset of its own. */}
+      <View key={attempt}>{widget}</View>
+      {locked && !disabled ? (
+        <View style={styles.answeredFooter}>
+          <AppText style={styles.answeredNote}>
+            {t("exercises.widgets.alreadyAnswered")}
+          </AppText>
+          <Button
+            size="sm"
+            variant="secondary"
+            loading={retrying}
+            onPress={() => void handleRetry()}
+          >
+            {t("exercises.actions.tryAgain")}
+          </Button>
+        </View>
+      ) : null}
+    </View>
+  );
+
   switch (exerciseType) {
     case "multiple-choice":
-      return <MultipleChoice {...props} />;
+      return withRetry(<MultipleChoice {...props} />);
     case "numeric":
-      return <NumericInput {...props} />;
+      return withRetry(<NumericInput {...props} />);
     case "budget-allocation":
-      return <BudgetAllocation {...props} />;
+      return withRetry(<BudgetAllocation {...props} />);
     case "fill-in-table":
-      return <FillInTable {...props} />;
+      return withRetry(<FillInTable {...props} />);
     case "scenario-simulation":
-      return <ScenarioSimulation {...props} />;
+      return withRetry(<ScenarioSimulation {...props} />);
     case "drag-and-drop":
-      return <DragAndDrop {...props} />;
+      return withRetry(<DragAndDrop {...props} />);
     default:
       return (
         <View style={styles.unsupported}>

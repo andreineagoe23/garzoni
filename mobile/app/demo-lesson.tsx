@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Pressable,
@@ -13,26 +13,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { brand } from "../src/theme/brand";
 import { setWelcomeSeen } from "../src/auth/firstRunFlags";
 import { trackEvent } from "../src/lib/analytics";
-
-const C = {
-  bg: brand.bgDark,
-  surface: brand.bgCard,
-  surfaceRaised: "#161f2e",
-  primary: brand.green,
-  primaryBright: "#2a7347",
-  gold: brand.gold,
-  goldWarm: brand.goldWarm,
-  border: brand.borderGlass,
-  text: brand.text,
-  muted: brand.textMuted,
-  faint: "rgba(229,231,235,0.4)",
-  ghost: "rgba(229,231,235,0.12)",
-  correct: "#2a7347",
-  wrong: "#ef4444",
-};
+import {
+  useLessonColors,
+  useLessonStyles,
+  type LessonColors,
+} from "../src/lesson/lessonTheme";
+import { layout, radius, spacing, typography } from "../src/theme/tokens";
 
 const XP_PER_CORRECT = 10;
 
@@ -49,6 +37,12 @@ type Step =
 
 export default function DemoLessonScreen() {
   const { t } = useTranslation("common");
+  // Shared lesson look — see src/lesson/lessonTheme.ts. The demo used to carry
+  // a private palette of raw hex, which is how it drifted away from the flow it
+  // is meant to advertise.
+  const { styles: ls } = useLessonStyles();
+  const lc = useLessonColors();
+  const s = useDemoStyles(lc);
 
   // Fully local content — no network, no guest account (3.1 mobile).
   const steps: Step[] = [
@@ -154,7 +148,7 @@ export default function DemoLessonScreen() {
   };
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={ls.screen}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Header: progress + close + XP */}
@@ -167,11 +161,15 @@ export default function DemoLessonScreen() {
         >
           <Text style={s.closeLabel}>✕</Text>
         </Pressable>
-        <View style={s.progressTrack}>
-          <View style={[s.progressFill, { width: `${progressPct}%` }]} />
+        <View style={[ls.progressTrack, s.progressGrow]}>
+          <View style={[ls.progressFill, { width: `${progressPct}%` }]} />
         </View>
-        <Animated.View style={[s.xpPill, { transform: [{ scale: xpScale }] }]}>
-          <Text style={s.xpPillText}>{t("demoLesson.xpBadge", { xp })}</Text>
+        <Animated.View
+          style={[ls.rewardPill, { transform: [{ scale: xpScale }] }]}
+        >
+          <Text style={ls.rewardPillText}>
+            {t("demoLesson.xpBadge", { xp })}
+          </Text>
         </Animated.View>
       </View>
 
@@ -183,11 +181,11 @@ export default function DemoLessonScreen() {
           <View style={s.doneActions}>
             <Pressable
               onPress={() => void leave("/register")}
-              style={({ pressed }) => [s.cta, pressed && { opacity: 0.88 }]}
+              style={({ pressed }) => [ls.cta, pressed && s.ctaPressed]}
               accessibilityRole="button"
             >
-              <View style={s.ctaHighlight} pointerEvents="none" />
-              <Text style={s.ctaLabel}>
+              <View style={ls.ctaHighlight} pointerEvents="none" />
+              <Text style={ls.ctaLabel}>
                 {t("demoLesson.done.createAccount")}
               </Text>
             </Pressable>
@@ -226,26 +224,18 @@ export default function DemoLessonScreen() {
                 {step.options.map((opt, i) => {
                   const isSel = selected === i;
                   const isCorrect = i === step.correctIndex;
-                  let borderColor: string = C.border;
-                  let bg: string = C.surfaceRaised;
-                  if (answered) {
-                    if (isCorrect) {
-                      borderColor = C.correct;
-                      bg = "rgba(42,115,71,0.16)";
-                    } else if (isSel) {
-                      borderColor = C.wrong;
-                      bg = "rgba(239,68,68,0.12)";
-                    }
-                  } else if (isSel) {
-                    borderColor = C.primaryBright;
-                  }
                   return (
                     <Pressable
                       key={i}
                       onPress={() => !answered && setSelected(i)}
                       disabled={answered}
                       accessibilityRole="button"
-                      style={[s.option, { borderColor, backgroundColor: bg }]}
+                      style={[
+                        ls.optionBase,
+                        answered && isCorrect && ls.optionCorrect,
+                        answered && !isCorrect && isSel && ls.optionWrong,
+                        !answered && isSel && { borderColor: lc.action },
+                      ]}
                     >
                       <Text style={s.optionText}>{opt}</Text>
                     </Pressable>
@@ -259,17 +249,18 @@ export default function DemoLessonScreen() {
                     s.feedback,
                     {
                       borderColor:
-                        selected === step.correctIndex ? C.correct : C.wrong,
+                        selected === step.correctIndex
+                          ? lc.positive
+                          : lc.negative,
                     },
                   ]}
                 >
                   <Text
                     style={[
-                      s.feedbackTitle,
-                      {
-                        color:
-                          selected === step.correctIndex ? C.goldWarm : C.wrong,
-                      },
+                      selected === step.correctIndex
+                        ? ls.feedbackCorrect
+                        : ls.feedbackWrong,
+                      s.feedbackTitleGap,
                     ]}
                   >
                     {selected === step.correctIndex
@@ -291,20 +282,20 @@ export default function DemoLessonScreen() {
             <Pressable
               onPress={checkAnswer}
               disabled={selected == null}
-              style={[s.cta, selected == null && s.ctaDisabled]}
+              style={[ls.cta, selected == null && ls.ctaDisabled]}
               accessibilityRole="button"
             >
-              <View style={s.ctaHighlight} pointerEvents="none" />
-              <Text style={s.ctaLabel}>{t("demoLesson.checkAnswer")}</Text>
+              <View style={ls.ctaHighlight} pointerEvents="none" />
+              <Text style={ls.ctaLabel}>{t("demoLesson.checkAnswer")}</Text>
             </Pressable>
           ) : (
             <Pressable
               onPress={goNext}
-              style={s.cta}
+              style={ls.cta}
               accessibilityRole="button"
             >
-              <View style={s.ctaHighlight} pointerEvents="none" />
-              <Text style={s.ctaLabel}>
+              <View style={ls.ctaHighlight} pointerEvents="none" />
+              <Text style={ls.ctaLabel}>
                 {stepIndex >= total - 2
                   ? t("demoLesson.finish")
                   : t("demoLesson.continue")}
@@ -317,179 +308,133 @@ export default function DemoLessonScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 14,
-  },
-  closeBtn: {
-    width: 30,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeLabel: { color: C.faint, fontSize: 18, fontWeight: "600" },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: C.ghost,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: C.primaryBright,
-  },
-  xpPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: "rgba(230,200,122,0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(230,200,122,0.4)",
-  },
-  xpPillText: {
-    color: C.goldWarm,
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-  },
+/**
+ * Demo-only chrome. Anything a real lesson also renders — CTA, options,
+ * progress, feedback, reward pill — comes from `useLessonStyles()`; only the
+ * welcome-flow furniture belongs here, and all of it on the token scales.
+ */
+function useDemoStyles(lc: LessonColors) {
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        header: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: layout.screenPaddingX,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.lg,
+        },
+        progressGrow: { flex: 1 },
+        closeBtn: {
+          width: spacing.xxxl,
+          height: spacing.xxxl,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        closeLabel: {
+          color: lc.textFaint,
+          fontSize: typography.lg,
+          fontWeight: "600",
+        },
 
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  eyebrow: {
-    fontSize: 11,
-    letterSpacing: 1.6,
-    color: C.faint,
-    fontWeight: "600",
-    marginBottom: 14,
-  },
-  headline: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: "500",
-    letterSpacing: -0.6,
-    color: C.text,
-  },
+        content: {
+          flexGrow: 1,
+          paddingHorizontal: layout.screenPaddingX,
+          paddingTop: spacing.lg,
+          paddingBottom: spacing.xxl,
+        },
+        eyebrow: {
+          fontSize: typography.xs,
+          letterSpacing: 1.6,
+          color: lc.textFaint,
+          fontWeight: "600",
+          marginBottom: spacing.lg,
+        },
+        headline: {
+          fontSize: typography.xxl,
+          lineHeight: typography.hero,
+          fontWeight: "500",
+          letterSpacing: -0.6,
+          color: lc.text,
+        },
 
-  infoBody: {
-    marginTop: 20,
-    fontSize: 16,
-    lineHeight: 24,
-    color: C.text,
-  },
+        infoBody: {
+          marginTop: spacing.xl,
+          fontSize: typography.md,
+          lineHeight: typography.md * 1.5,
+          color: lc.text,
+        },
 
-  options: { marginTop: 22, gap: 12 },
-  option: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-  },
-  optionText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: C.text,
-  },
+        options: { marginTop: spacing.xl, gap: spacing.md },
+        optionText: {
+          fontSize: typography.base,
+          fontWeight: "600",
+          color: lc.text,
+        },
 
-  feedback: {
-    marginTop: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    backgroundColor: "rgba(255,255,255,0.03)",
-    padding: 16,
-  },
-  feedbackTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    marginBottom: 6,
-  },
-  feedbackBody: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: C.muted,
-  },
+        feedback: {
+          marginTop: spacing.xl,
+          borderRadius: radius.lg,
+          borderWidth: 1,
+          backgroundColor: lc.surface,
+          padding: spacing.lg,
+        },
+        feedbackTitleGap: { marginBottom: spacing.xs },
+        feedbackBody: {
+          fontSize: typography.sm,
+          lineHeight: typography.sm * 1.6,
+          color: lc.textMuted,
+        },
 
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 36,
-  },
-  cta: {
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: C.primaryBright,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 8,
-  },
-  ctaDisabled: { opacity: 0.5 },
-  ctaHighlight: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.18)",
-  },
-  ctaLabel: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.3,
-  },
+        footer: {
+          paddingHorizontal: layout.screenPaddingX,
+          paddingTop: spacing.md,
+          paddingBottom: spacing.xxxl,
+        },
+        ctaPressed: { opacity: 0.88 },
 
-  doneWrap: {
-    flex: 1,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  doneEmoji: { fontSize: 56, marginBottom: 12 },
-  doneTitle: {
-    fontSize: 26,
-    lineHeight: 32,
-    fontWeight: "600",
-    letterSpacing: -0.5,
-    color: C.text,
-    textAlign: "center",
-  },
-  doneSubtitle: {
-    marginTop: 12,
-    fontSize: 16,
-    lineHeight: 23,
-    color: C.muted,
-    textAlign: "center",
-    maxWidth: 320,
-  },
-  doneActions: {
-    marginTop: 32,
-    width: "100%",
-    gap: 8,
-  },
-  secondaryBtn: {
-    height: 48,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryLabel: {
-    color: C.muted,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-});
+        doneWrap: {
+          flex: 1,
+          paddingHorizontal: layout.screenPaddingX,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        /** Decorative glyph — sized like LessonFlowScreen's modalEmoji. */
+        doneEmoji: { fontSize: 56, marginBottom: spacing.md },
+        doneTitle: {
+          fontSize: typography.xxl,
+          lineHeight: typography.xxl * 1.15,
+          fontWeight: "600",
+          letterSpacing: -0.5,
+          color: lc.text,
+          textAlign: "center",
+        },
+        doneSubtitle: {
+          marginTop: spacing.md,
+          fontSize: typography.md,
+          lineHeight: typography.md * 1.45,
+          color: lc.textMuted,
+          textAlign: "center",
+          /** Measure cap, not a spacing step: keeps the line length readable. */
+          maxWidth: 320,
+        },
+        doneActions: {
+          marginTop: spacing.xxxl,
+          width: "100%",
+          gap: spacing.sm,
+        },
+        secondaryBtn: {
+          height: spacing.xxxxl,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        secondaryLabel: {
+          color: lc.textMuted,
+          fontSize: typography.sm,
+          fontWeight: "600",
+        },
+      }),
+    [lc],
+  );
+}

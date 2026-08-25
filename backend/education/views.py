@@ -648,6 +648,13 @@ class QuizViewSet(viewsets.ModelViewSet):
         ensure_checkpoint_quizzes_for_lesson(lesson)
         qs = (
             Quiz.objects.filter(lesson=lesson, source_lesson_section__isnull=False)
+            # A checkpoint is a materialized copy of a multiple-choice section.
+            # When a section is later converted to another exercise type nothing
+            # revisits its Quiz row, so the lesson would show (say) a numeric
+            # input and the checkpoint modal would then ask the multiple-choice
+            # question the lesson no longer contains. Filtered rather than
+            # deleted: deleting cascades the learner's QuizCompletion rows.
+            .filter(source_lesson_section__exercise_type="multiple-choice")
             .select_related("course", "source_lesson_section")
             .prefetch_related("translations")
             .order_by("source_lesson_section__order")
@@ -2424,25 +2431,38 @@ def reset_exercise(request):
 
     try:
         if section_id:
-            # If section_id is provided, find the exercise through the section
+            # Exercise has no `section` field — this used to be
+            # `Exercise.objects.filter(section=section)`, which raised an
+            # uncaught FieldError and 500'd every retry from the lesson flow.
+            # A section points at a catalog exercise through its exercise_data.
             section = LessonSection.objects.get(id=section_id)
-            exercise = Exercise.objects.only(*EXERCISE_SAFE_FIELDS).filter(section=section).first()
-            if not exercise:
-                return Response({"error": "No exercise found for this section"}, status=404)
-            exercise_id = exercise.id
+            linked = _section_catalog_exercise_ids(section)
+            if not linked:
+                # An in-lesson knowledge check with no catalog exercise behind
+                # it is graded client-side and has no server progress row. That
+                # is not an error: answer it again and the client reopens it.
+                # Section completion is deliberately left alone so retrying a
+                # question never walks the learner's progress backwards.
+                return Response(
+                    {"message": "No stored progress for this section.", "reset": False},
+                    status=200,
+                )
+            exercise_id = next(iter(sorted(linked)))
+            if not learner_can_access_exercise(request.user, exercise_id, force_learner=True):
+                return Response({"error": "Exercise not found."}, status=404)
 
         progress = UserExerciseProgress.objects.get(user=request.user, exercise_id=exercise_id)
         progress.attempts = 0
         progress.completed = False
         progress.user_answer = None
         progress.save()
-        return Response({"message": "Progress reset successfully."}, status=200)
-    except (
-        UserExerciseProgress.DoesNotExist,
-        LessonSection.DoesNotExist,
-        Exercise.DoesNotExist,
-    ):
-        return Response({"error": "No progress found to reset."}, status=404)
+        return Response({"message": "Progress reset successfully.", "reset": True}, status=200)
+    except UserExerciseProgress.DoesNotExist:
+        # Nothing stored yet (a skipped exercise, or a first visit). The caller
+        # only needs to know it is safe to reopen the question.
+        return Response({"message": "No progress found to reset.", "reset": False}, status=200)
+    except LessonSection.DoesNotExist:
+        return Response({"error": "Section not found."}, status=404)
 
 
 def _review_queue_payload(request):

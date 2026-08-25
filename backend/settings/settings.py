@@ -469,20 +469,48 @@ OPENAI_IDEMPOTENCY_TTL_SECONDS = int(os.getenv("OPENAI_IDEMPOTENCY_TTL_SECONDS",
 
 # OpenAI payload validation / abuse prevention
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-# Model used by translate_lessons_to_ro / OpenAITranslator. Empty -> provider default (gpt-4o-mini).
-CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "").strip()
+# CONTENT_TRANSLATION_MODEL is defined once, below with the other translation
+# settings. It used to be assigned here too, to "", and silently overwritten.
 OPENAI_MAX_PROMPT_CHARS = int(os.getenv("OPENAI_MAX_PROMPT_CHARS", "4000"))
 OPENAI_MAX_MESSAGES = int(os.getenv("OPENAI_MAX_MESSAGES", "30"))
 OPENAI_MAX_MESSAGE_CHARS = int(os.getenv("OPENAI_MAX_MESSAGE_CHARS", "2000"))
 OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "512"))
+# ---- Model tiers -----------------------------------------------------------
+# One place to pick a model per job, so a swap is an env change rather than a
+# grep across a dozen call sites.
+#
+# The whole app runs the gpt-4.1 family. It replaced gpt-4o/gpt-4o-mini in
+# 2026-08: 4.1 is cheaper than 4o on both input and output ($2.00/$8.00 vs
+# $2.50/$10.00) and 4.1-nano is cheaper than 4o-mini ($0.10/$0.40 vs
+# $0.15/$0.60), so the old models cost more for less.
+#
+# Deliberately NOT gpt-5.x: those take `max_completion_tokens` instead of
+# `max_tokens` and several reject a non-default `temperature`. Every call site
+# here passes both, so gpt-5 needs a parameter adapter first. gpt-5-nano
+# ($0.05/$0.40) is the prize when that happens.
+#
+# AUTHORING  — content pipeline; follows long rubrics, worth the token cost.
+# ASSISTANT  — anything a user reads live: tutor, chat, receipt vision, RO translation.
+# EXTRACTION — mechanical structured output at volume: statement categories, blurbs.
+OPENAI_MODEL_AUTHORING = os.getenv("OPENAI_MODEL_AUTHORING", "gpt-4.1")
+OPENAI_MODEL_ASSISTANT = os.getenv("OPENAI_MODEL_ASSISTANT", "gpt-4.1-mini")
+OPENAI_MODEL_EXTRACTION = os.getenv("OPENAI_MODEL_EXTRACTION", "gpt-4.1-nano")
+# Same transcription endpoint and response_format as whisper-1, half the price.
+OPENAI_MODEL_TRANSCRIBE = os.getenv("OPENAI_MODEL_TRANSCRIBE", "gpt-4o-mini-transcribe")
+OPENAI_MODEL_TTS = os.getenv("OPENAI_MODEL_TTS", "tts-1")
+
+# Whitelist for caller-supplied model overrides. Not the default — that is
+# OPENAI_MODEL_ASSISTANT; this list only says what a request is allowed to ask for.
 OPENAI_ALLOWED_MODELS_CSV = env_csv(
     "OPENAI_ALLOWED_MODELS_CSV",
-    default=["gpt-4o-mini", "gpt-4o"],
+    default=["gpt-4.1-nano", "gpt-4.1-mini", "gpt-4.1"],
 )
 
 # Content translation settings
 CONTENT_TRANSLATION_PROVIDER = os.getenv("CONTENT_TRANSLATION_PROVIDER", "openai")
-CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", "gpt-4o-mini")
+# Translation reads as product copy, so it sits on ASSISTANT rather than the
+# cheap tier — mini drift is exactly what shows up in the RO strings.
+CONTENT_TRANSLATION_MODEL = os.getenv("CONTENT_TRANSLATION_MODEL", OPENAI_MODEL_ASSISTANT)
 # Default to enabled only when an OpenAI key is present; without a key
 # every content save fires a no-op that logs errors in tests and CI.
 _translation_default = "true" if OPENAI_API_KEY else "false"

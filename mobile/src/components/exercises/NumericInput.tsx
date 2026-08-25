@@ -214,7 +214,7 @@ export default function NumericInput({
 
       {/* Feedback (lesson mode only — standalone uses parent banner) */}
       {gradingMode === "lesson" && result === "correct" ? (
-        <Text style={[styles.feedback, { color: c.success }]}>
+        <Text style={[styles.feedback, { color: c.accent }]}>
           {t("exercises.widgets.correctShort")}
         </Text>
       ) : gradingMode === "lesson" && result === "wrong" ? (

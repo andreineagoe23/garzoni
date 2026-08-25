@@ -165,7 +165,9 @@ export function resolveQuestStepRoute(step: QuestStep): QuestStepRoute {
     case "lesson": {
       const topic = str(step.course_topic);
       return {
-        web: topic ? `/all-topics?topic=${encodeURIComponent(topic)}` : "/all-topics",
+        web: topic
+          ? `/all-topics?topic=${encodeURIComponent(topic)}`
+          : "/all-topics",
         mobile: "/(tabs)/learn?view=personalized",
       };
     }
@@ -210,7 +212,7 @@ export function msUntilDailyReset(now: Date = new Date()): number {
 export function msUntilWeeklyReset(now: Date = new Date()): number {
   const next = new Date(now);
   // getDay(): 0 = Sunday. Days until the next Monday 00:00, never 0.
-  const daysUntilMonday = ((8 - now.getDay()) % 7) || 7;
+  const daysUntilMonday = (8 - now.getDay()) % 7 || 7;
   next.setDate(now.getDate() + daysUntilMonday);
   next.setHours(0, 0, 0, 0);
   return next.getTime() - now.getTime();

@@ -1,7 +1,4 @@
-import {
-  acceptedToolSlugs,
-  resolveWebToolSlug,
-} from "../webToolSlug";
+import { acceptedToolSlugs, resolveWebToolSlug } from "../webToolSlug";
 
 /**
  * The WebView fallback builds `${webBase}/tools/<slug>`, so every value here

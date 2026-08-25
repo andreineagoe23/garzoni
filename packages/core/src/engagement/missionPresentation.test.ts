@@ -121,9 +121,10 @@ describe("resolveQuestStepRoute", () => {
   });
 
   it("never invents a mobile destination for an unknown step type", () => {
-    expect(
-      resolveQuestStepRoute({ type: "chat", route: "/support" }),
-    ).toEqual({ web: "/support", mobile: null });
+    expect(resolveQuestStepRoute({ type: "chat", route: "/support" })).toEqual({
+      web: "/support",
+      mobile: null,
+    });
     expect(resolveQuestStepRoute({ type: "chat" })).toEqual({
       web: null,
       mobile: null,

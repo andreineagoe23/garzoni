@@ -84,6 +84,7 @@ export const queryPersistOptions = {
     // Keep default behaviour (only successful queries) AND drop sensitive ones
     // so financial/PII/account data never lands in unencrypted AsyncStorage.
     shouldDehydrateQuery: (query: Query) =>
-      defaultShouldDehydrateQuery(query) && !isSensitiveQueryKey(query.queryKey),
+      defaultShouldDehydrateQuery(query) &&
+      !isSensitiveQueryKey(query.queryKey),
   },
 };

@@ -45,10 +45,11 @@ def _get_openai_client():
 
 
 def _model_for_user(user) -> str:
-    plan = get_user_plan(user)
-    if plan == "pro":
-        return "gpt-4o"
-    return "gpt-4o-mini"
+    # Everyone gets the same model. The old split (Pro on gpt-4o, free on
+    # gpt-4o-mini) bought nothing with no paying users, and the free tier is the
+    # experience that has to convert. Entitlements still gate message volume by
+    # plan — see check_and_consume_entitlement.
+    return getattr(settings, "OPENAI_MODEL_ASSISTANT", "gpt-4.1-mini")
 
 
 class OpenAIService:
@@ -150,7 +151,7 @@ class OpenAIService:
                 return
             text = "\n".join(f"{m['role'].upper()}: {m['content'][:300]}" for m in history[-20:])
             resp = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=getattr(settings, "OPENAI_MODEL_EXTRACTION", "gpt-4.1-nano"),
                 messages=[
                     {
                         "role": "system",

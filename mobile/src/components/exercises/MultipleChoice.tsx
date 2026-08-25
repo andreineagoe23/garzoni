@@ -56,6 +56,9 @@ function createStyles(c: ThemeColors) {
       borderColor: c.error,
       backgroundColor: c.errorBg,
     },
+    // A locked option has to look locked. At full strength an answered
+    // knowledge check reads as a live question that ignores taps.
+    optionLocked: { opacity: 0.6 },
     optionText: { fontSize: typography.base, color: c.text },
     optionTextSelected: { fontWeight: "600" },
     feedback: {
@@ -63,7 +66,9 @@ function createStyles(c: ThemeColors) {
       fontWeight: "600",
       marginTop: spacing.md,
     },
-    feedbackSuccess: { color: c.success },
+    // Reward gold, not green: green marks which option was right, gold says
+    // you earned something. See src/lesson/lessonTheme.ts.
+    feedbackSuccess: { color: c.accent },
     feedbackError: { color: c.error },
     explanation: {
       fontSize: typography.sm,
@@ -235,6 +240,7 @@ export default function MultipleChoice({
                   (feedbackType === "success"
                     ? styles.optionCorrect
                     : styles.optionWrong),
+                (isCompleted || disabled) && styles.optionLocked,
               ]}
             >
               <Text

@@ -118,6 +118,16 @@ export const submitExerciseAnswer = (
     body,
   );
 
+/**
+ * Clear a catalog exercise's stored progress so it can be attempted again.
+ * Only meaningful for standalone (catalog) grading — in-lesson knowledge checks
+ * are graded client-side and have no UserExerciseProgress row to reset.
+ */
+export const resetExercise = (body: {
+  exercise_id?: string | number;
+  section_id?: string | number;
+}) => apiClient.post<{ message?: string }>("/exercises/reset/", body);
+
 export type ExerciseProgressPayload = {
   completed?: boolean;
   attempts?: number;
@@ -373,7 +383,13 @@ export const postSubscriptionCheckout = (body: {
 
 export type ActivePromo = {
   id: string;
+  /**
+   * Headline rate — the highest on offer. A campaign may discount yearly and
+   * monthly differently, so banner copy reads "up to" and a per-plan badge must
+   * use `percent_off_by_interval`, never this.
+   */
   percent_off: number;
+  percent_off_by_interval?: Record<string, number>;
   ends_on: string;
 };
 

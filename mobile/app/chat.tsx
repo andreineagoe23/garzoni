@@ -560,67 +560,75 @@ export default function ChatScreen() {
   const keyboardOffset =
     Platform.OS === "ios" ? Math.max(44, insets.top + 44) : 0;
 
+  /**
+   * Memoised: this object is handed to the navigator as screen options, and
+   * rebuilding it on every render — which the composer's `input` state causes
+   * on every keystroke — remounts the header, taking the back chevron and the
+   * swipe-back gesture with it.
+   */
+  const headerOptions = useMemo(
+    () =>
+      ({
+        title: t("chatbot.title"),
+        headerShown: true,
+        headerStyle: { backgroundColor: colors.bg },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          color: colors.text,
+          fontSize: 17,
+          fontWeight: "600",
+        },
+        headerShadowVisible: false,
+        headerBackTitle: "",
+        /**
+         * iOS: Native stack already applies trailing safe-area inset — extra paddingRight
+         * stacks on top and pushes the icon left vs TabScreenHeader icons. Keep minimal.
+         * Match HeaderChatButton: Ionicons + padding only (no fixed 44 box).
+         */
+        headerRightContainerStyle: Platform.select({
+          ios: {
+            paddingRight: spacing.sm,
+            justifyContent: "center",
+            alignItems: "flex-end",
+          },
+          default: {
+            paddingRight: spacing.xl,
+            justifyContent: "center",
+            alignItems: "flex-end",
+          },
+        }),
+        headerRight: () => (
+          <Pressable
+            onPress={() => router.push("/voice-chat" as any)}
+            accessibilityLabel="Voice tutor"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={({ pressed }) => ({
+              padding: 4,
+              justifyContent: "center",
+              alignItems: "center",
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <View
+              style={
+                Platform.OS === "ios"
+                  ? { transform: [{ translateX: 1.5 }] }
+                  : undefined
+              }
+            >
+              <Ionicons name="mic-outline" size={22} color={colors.text} />
+            </View>
+          </Pressable>
+        ),
+      }) as React.ComponentProps<typeof Stack.Screen>["options"] & {
+        headerRightContainerStyle?: object;
+      },
+    [t, colors],
+  );
+
   return (
     <>
-      <Stack.Screen
-        options={
-          {
-            title: t("chatbot.title"),
-            headerShown: true,
-            headerStyle: { backgroundColor: colors.bg },
-            headerTintColor: colors.text,
-            headerTitleStyle: {
-              color: colors.text,
-              fontSize: 17,
-              fontWeight: "600",
-            },
-            headerShadowVisible: false,
-            headerBackTitle: "",
-            /**
-             * iOS: Native stack already applies trailing safe-area inset — extra paddingRight
-             * stacks on top and pushes the icon left vs TabScreenHeader icons. Keep minimal.
-             * Match HeaderChatButton: Ionicons + padding only (no fixed 44 box).
-             */
-            headerRightContainerStyle: Platform.select({
-              ios: {
-                paddingRight: spacing.sm,
-                justifyContent: "center",
-                alignItems: "flex-end",
-              },
-              default: {
-                paddingRight: spacing.xl,
-                justifyContent: "center",
-                alignItems: "flex-end",
-              },
-            }),
-            headerRight: () => (
-              <Pressable
-                onPress={() => router.push("/voice-chat" as any)}
-                accessibilityLabel="Voice tutor"
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={({ pressed }) => ({
-                  padding: 4,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  opacity: pressed ? 0.6 : 1,
-                })}
-              >
-                <View
-                  style={
-                    Platform.OS === "ios"
-                      ? { transform: [{ translateX: 1.5 }] }
-                      : undefined
-                  }
-                >
-                  <Ionicons name="mic-outline" size={22} color={colors.text} />
-                </View>
-              </Pressable>
-            ),
-          } as React.ComponentProps<typeof Stack.Screen>["options"] & {
-            headerRightContainerStyle?: object;
-          }
-        }
-      />
+      <Stack.Screen options={headerOptions} />
       <KeyboardAvoidingView
         style={[styles.flex, { backgroundColor: colors.bg }]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}

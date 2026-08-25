@@ -392,11 +392,7 @@
     },
     "q2": {
       "prompt": "You take home £2,000 a month. How much should go to savings and debt?",
-      "options": [
-        "£100",
-        "£400",
-        "£1,000"
-      ],
+      "options": ["£100", "£400", "£1,000"],
       "explanation": "20% of £2,000 is £400 — that's your monthly target for savings and paying down debt."
     },
     "done": {
@@ -2915,7 +2911,7 @@
     "referralDiscountBanner": "Your 50% referral discount ({{code}}) will be applied automatically at Stripe checkout.",
     "promoAppHint": "Download the app to claim your discount — no code needed.",
     "promoCtaApp": "Get {{percent}}% off in the app",
-    "promoBanner": "Limited time: {{percent}}% OFF all plans",
+    "promoBanner": "Limited time: up to {{percent}}% OFF all plans",
     "promoBannerEnds": "Ends {{date}}",
     "promoBadge": "{{percent}}% OFF",
     "promoFirstYear": "for your first year",
@@ -3180,7 +3176,8 @@
       "wrongOrder": "That’s not the right order. Try again.",
       "cellsWrong": "Some cells are incorrect. Try again.",
       "budgetTotalHint": "Total must equal {{total}}. Current: {{current}}",
-      "notQuiteTryAgain": "Not quite. Try again."
+      "notQuiteTryAgain": "Not quite. Try again.",
+      "alreadyAnswered": "You've already answered this one."
     },
     "errors": {
       "loadFailed": "Failed to load exercises. Please try again later.",

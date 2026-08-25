@@ -62,7 +62,9 @@ function createStyles(c: ThemeColors) {
       backgroundColor: c.inputBg,
     },
     feedback: { fontSize: typography.sm, fontWeight: "600" },
-    fSuccess: { color: c.success },
+    // Reward gold, not green: green marks which option was right, gold says
+    // you earned something. See src/lesson/lessonTheme.ts.
+    fSuccess: { color: c.accent },
     fError: { color: c.error },
   });
 }

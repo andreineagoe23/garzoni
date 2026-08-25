@@ -31,11 +31,13 @@ from education.models import EducationAuditLog, LessonSection, LessonSectionTran
 STANDARDS_PATH = Path(__file__).resolve().parents[2] / "content" / "lesson_authoring_standards.md"
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[2] / "content" / "rewrite_output"
 
-# gpt-4o follows complex instructions precisely; gpt-4o-mini is faster/cheaper but drifts more.
+# Authoring tier (gpt-4.1): follows the long authoring rubric precisely. The mini
+# and nano tiers are faster and cheaper but drift on instructions this long.
 # Override with OPENAI_REWRITE_MODEL env var.
-OPENAI_MODEL = os.environ.get("OPENAI_REWRITE_MODEL", "gpt-4o")
+OPENAI_MODEL = os.environ.get("OPENAI_REWRITE_MODEL", settings.OPENAI_MODEL_AUTHORING)
 
-# gpt-4o tier-1 limit is 500 RPM — 0.15s gap is more than enough.
+# Tier-1 limit is 500 RPM — a 0.15s gap is more than enough. The token/min cap
+# bites first on long prompts; raise OPENAI_REWRITE_DELAY if you see 429s.
 # Increase if you hit rate limits.
 REQUEST_DELAY = float(os.environ.get("OPENAI_REWRITE_DELAY", "0.2"))
 MAX_RETRIES = 3
@@ -212,7 +214,16 @@ def _call_openai(client, system_prompt: str, user_prompt: str) -> str:
             return _fix_html(response.choices[0].message.content.strip())
         except Exception as exc:
             error_str = str(exc)
-            is_rate_limit = "429" in error_str or "rate_limit" in error_str.lower()
+            lowered = error_str.lower()
+            # An exhausted credit balance also comes back as a 429. Retrying it
+            # just sleeps through three backoffs before failing, once per record
+            # — an hour of waiting on an error that will never clear on its own.
+            if "insufficient_quota" in lowered or "credit_balance_exhausted" in lowered:
+                raise CommandError(
+                    "OpenAI credit balance exhausted — top up at "
+                    "https://platform.openai.com/settings/organization/billing/ and re-run."
+                )
+            is_rate_limit = "429" in error_str or "rate_limit" in lowered
             if is_rate_limit and attempt < MAX_RETRIES:
                 wait = 60 * attempt
                 # Try to parse retry-after from error message
@@ -446,6 +457,10 @@ class Command(BaseCommand):
                         )
                     )
                     time.sleep(e.wait_seconds)
+                except CommandError:
+                    # Unrecoverable (e.g. no credits) — abort the run instead of
+                    # working through every remaining record to fail identically.
+                    raise
                 except Exception as exc:
                     error_msg = str(exc)
                     self.stderr.write(self.style.ERROR(f"    OpenAI error: {exc}"))

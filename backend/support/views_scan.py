@@ -81,7 +81,7 @@ class ReceiptScanView(APIView):
             data_url = f"data:{content_type};base64,{image_data}"
 
             resp = client.chat.completions.create(
-                model="gpt-4o",
+                model=getattr(settings, "OPENAI_MODEL_ASSISTANT", "gpt-4.1-mini"),
                 messages=[
                     {"role": "system", "content": _SCAN_SYSTEM},
                     {

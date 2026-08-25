@@ -52,10 +52,16 @@ const ScenarioSimulationExercise = ({
     null
   );
 
+  // `isCompleted` is a prop, so Retry could never re-enable the inputs. This is
+  // the local override.
+  const [reopened, setReopened] = useState(false);
+  const locked = Boolean(isCompleted) && !reopened;
+
   useEffect(() => {
     setSelectedId(null);
     setFeedback("");
     setFeedbackType(null);
+    setReopened(false);
   }, [exerciseId, isCompleted]);
 
   const selectedChoice = useMemo(
@@ -91,16 +97,20 @@ const ScenarioSimulationExercise = ({
   };
 
   const handleRetry = async () => {
-    try {
-      const sectionId = exerciseId;
-      if (!sectionId) return;
-      await apiClient.post("/exercises/reset/", { section_id: sectionId });
-      setSelectedId(null);
-      setFeedback("");
-      setFeedbackType(null);
-    } catch (error) {
-      console.error("Error resetting exercise:", error);
+    if (exerciseId) {
+      try {
+        await apiClient.post("/exercises/reset/", { section_id: exerciseId });
+      } catch (error) {
+        // An in-lesson check has no stored progress to clear. Reopening must
+        // not depend on that call succeeding — it used to sit after the await,
+        // so a throw left every input disabled with no way back.
+        console.error("Error resetting exercise:", error);
+      }
     }
+    setSelectedId(null);
+    setFeedback("");
+    setFeedbackType(null);
+    setReopened(true);
   };
 
   return (
@@ -159,24 +169,22 @@ const ScenarioSimulationExercise = ({
               <button
                 key={choice.id}
                 type="button"
-                draggable={!isCompleted && !disabled}
+                draggable={!locked && !disabled}
                 onDragStart={(event) => {
                   event.dataTransfer.setData("text/plain", String(choice.id));
                 }}
-                onClick={() =>
-                  !isCompleted && !disabled && setSelectedId(choice.id)
-                }
+                onClick={() => !locked && !disabled && setSelectedId(choice.id)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    if (!isCompleted && !disabled) {
+                    if (!locked && !disabled) {
                       setSelectedId(choice.id);
                     }
                   }
                 }}
-                disabled={isCompleted || disabled}
+                disabled={locked || disabled}
                 className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 ${borderClass} ${
-                  isCompleted || disabled ? "cursor-not-allowed opacity-70" : ""
+                  locked || disabled ? "cursor-not-allowed opacity-70" : ""
                 }`}
               >
                 <span>{choice.label}</span>
@@ -192,7 +200,7 @@ const ScenarioSimulationExercise = ({
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        {isCompleted ? (
+        {locked ? (
           <button
             type="button"
             onClick={handleRetry}

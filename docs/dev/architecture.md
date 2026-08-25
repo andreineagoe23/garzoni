@@ -48,7 +48,7 @@ flowchart LR
 | Animation      | Framer Motion, Three.js (landing globe), Lottie, Canvas Confetti                                                            |
 | Rich text      | CKEditor 5 (lessons), react-native-render-html (mobile)                                                                     |
 | i18n           | i18next (EN + RO); locale source-of-truth in `packages/core/src/locales/`                                                   |
-| Backend        | Django 5.2 LTS, DRF 3.17, Celery 5.4, Redis 5, PostgreSQL 17, pgvector (pinned, not yet adopted)                                                                |
+| Backend        | Django 5.2 LTS, DRF 3.17, Celery 5.4, Redis 5, PostgreSQL 17, pgvector (pinned, not yet adopted)                            |
 | AI             | OpenAI Python SDK (gpt-4o-mini, gpt-4o, text-embedding-3-small, whisper-1, tts-1, gpt-4o vision)                            |
 | Auth           | JWT (simplejwt), Google OAuth (web + mobile), Sign in with Apple (mobile), reCAPTCHA Enterprise on sensitive endpoints      |
 | Payments       | Stripe (web), RevenueCat → Apple/Google IAP (mobile)                                                                        |

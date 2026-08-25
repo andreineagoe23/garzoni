@@ -817,7 +817,9 @@ export default function JourneyMapContent({
               <GlassButton
                 variant="primary"
                 size="sm"
-                onPress={() => router.push(href("/subscriptions?reason=journey"))}
+                onPress={() =>
+                  router.push(href("/subscriptions?reason=journey"))
+                }
               >
                 {t("journey.unlockRoute", { defaultValue: "Unfog route" })}
               </GlassButton>

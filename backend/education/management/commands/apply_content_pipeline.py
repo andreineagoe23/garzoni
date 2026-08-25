@@ -16,7 +16,7 @@ Usage:
   python manage.py apply_content_pipeline --dry-run
   python manage.py apply_content_pipeline                       # author + videos + fixes
   python manage.py apply_content_pipeline --translate           # + fill missing RO
-  python manage.py apply_content_pipeline --translate-force      # + re-translate ALL RO (gpt-4o)
+  python manage.py apply_content_pipeline --translate-force      # + re-translate ALL RO (CONTENT_TRANSLATION_MODEL)
 """
 
 from pathlib import Path as FsPath

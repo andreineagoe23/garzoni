@@ -56,12 +56,14 @@ If you add a third-party CMP or script blocker, allow `google.com/recaptcha` and
 ## Registration still failing? Wider checklist
 
 **Web**
+
 - `VITE_BACKEND_URL` must point at the real API (`https://…/api`, or the site origin without `/api` —
   it is normalized in `packages/core/src/services/backendUrl.ts`). Unset means same-origin, which
-  404s when the backend is on another host. On Vercel, same-origin *is* correct because
+  404s when the backend is on another host. On Vercel, same-origin _is_ correct because
   `vercel.json` rewrites `/api/*` to Railway.
 
 **Backend**
+
 - `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` must include the web origin.
 - Cross-subdomain cookies: with web on `garzoni.app` and API on `api.garzoni.app`, set
   `REFRESH_COOKIE_DOMAIN=.garzoni.app` and `REFRESH_COOKIE_SAMESITE=Lax` (or `None` + Secure for

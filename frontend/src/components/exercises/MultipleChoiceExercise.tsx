@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
@@ -26,11 +26,35 @@ const MultipleChoiceExercise = ({
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState(null);
+  // `isCompleted` is a prop, so Retry could never re-enable the options — the
+  // button posted to /exercises/reset/ and left every choice disabled. This is
+  // the local override.
+  const [reopened, setReopened] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  const locked = Boolean(isCompleted) && !reopened;
+
+  // Stable shuffle per attempt, matching mobile. `selectedAnswer` always holds
+  // the original index so grading is unaffected.
+  const shuffled = useMemo(() => {
+    if (!options.length) return { options, originalOf: (i) => i };
+    const order = options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return {
+      options: order.map((i) => options[i]),
+      originalOf: (shuffledIdx) => order[shuffledIdx],
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseId, attempt]);
 
   useEffect(() => {
     setSelectedAnswer(null);
     setFeedback("");
     setFeedbackType(null);
+    setReopened(false);
   }, [exerciseId, isCompleted]);
 
   const handleSubmit = async () => {
@@ -67,15 +91,20 @@ const MultipleChoiceExercise = ({
   };
 
   const handleRetry = async () => {
-    try {
-      if (!exerciseId) return;
-      await apiClient.post("/exercises/reset/", { section_id: exerciseId });
-      setSelectedAnswer(null);
-      setFeedback("");
-      setFeedbackType(null);
-    } catch (error) {
-      console.error("Error resetting exercise:", error);
+    if (exerciseId) {
+      try {
+        await apiClient.post("/exercises/reset/", { section_id: exerciseId });
+      } catch (error) {
+        // An in-lesson check has no stored progress to clear. That must not
+        // keep the learner locked out, so reopen either way.
+        console.error("Error resetting exercise:", error);
+      }
     }
+    setSelectedAnswer(null);
+    setFeedback("");
+    setFeedbackType(null);
+    setReopened(true);
+    setAttempt((n) => n + 1);
   };
 
   return (
@@ -90,16 +119,15 @@ const MultipleChoiceExercise = ({
       </header>
 
       <div className="mt-6 grid gap-3">
-        {options.map((option, index) => {
-          const isSelected = selectedAnswer === index;
+        {shuffled.options.map((option, index) => {
+          const origIdx = shuffled.originalOf(index);
+          const isSelected = selectedAnswer === origIdx;
           return (
             <button
               key={index}
               type="button"
-              onClick={() =>
-                !isCompleted && !disabled && setSelectedAnswer(index)
-              }
-              disabled={isCompleted || disabled}
+              onClick={() => !locked && !disabled && setSelectedAnswer(origIdx)}
+              disabled={locked || disabled}
               className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[color:#2a7347]/40 ${
                 isSelected
                   ? "border-[color:#2a7347] bg-[color:#2a7347]/10 text-[color:#2a7347] shadow-inner"
@@ -110,7 +138,7 @@ const MultipleChoiceExercise = ({
                     ? "border-[color:#2a7347]/45 bg-[color:#2a7347]/12 text-[color:#2a7347]"
                     : "border-[color:var(--color-state-error)]/60 bg-[color:var(--color-state-error)]/10 text-[color:var(--color-state-error)]"
                   : ""
-              } ${isCompleted || disabled ? "cursor-not-allowed opacity-70" : ""}`}
+              } ${locked || disabled ? "cursor-not-allowed opacity-70" : ""}`}
             >
               <span>{option}</span>
               {isSelected && (
@@ -124,7 +152,7 @@ const MultipleChoiceExercise = ({
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        {isCompleted ? (
+        {locked ? (
           <button
             type="button"
             onClick={handleRetry}

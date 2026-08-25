@@ -313,8 +313,8 @@ export function useLessonFlow(
       // gate in app/index.tsx stays closed until this is set. Fired on every
       // completion, not just the first, so someone who signed up on the web and
       // installed later becomes eligible too.
-      void import("../bootstrap/pushPromptState").then(({ markPushPromptDue }) =>
-        markPushPromptDue(),
+      void import("../bootstrap/pushPromptState").then(
+        ({ markPushPromptDue }) => markPushPromptDue(),
       );
       // The response carries authoritative mission states for this action —
       // merge into the missions cache so the Missions screen is already fresh,

@@ -9,9 +9,7 @@ const formatPoints = (n: number) => String(n);
 
 describe("resolveDisplayXp", () => {
   it("uses xp_window on week", () => {
-    expect(resolveDisplayXp({ points: 500, xp_window: 120 }, "week")).toBe(
-      120,
-    );
+    expect(resolveDisplayXp({ points: 500, xp_window: 120 }, "week")).toBe(120);
   });
 
   it("uses xp_window on month", () => {
@@ -25,16 +23,21 @@ describe("resolveDisplayXp", () => {
   });
 
   it("uses lifetime points on all-time regardless of xp_window", () => {
-    expect(
-      resolveDisplayXp({ points: 500, xp_window: 120 }, "all-time"),
-    ).toBe(500);
+    expect(resolveDisplayXp({ points: 500, xp_window: 120 }, "all-time")).toBe(
+      500,
+    );
   });
 });
 
 describe("leaderboardPointsLabel", () => {
   it("uses the windowed copy key on week", () => {
     expect(
-      leaderboardPointsLabel(t, formatPoints, { points: 500, xp_window: 120 }, "week"),
+      leaderboardPointsLabel(
+        t,
+        formatPoints,
+        { points: 500, xp_window: 120 },
+        "week",
+      ),
     ).toBe('leaderboard.pointsWindow.week:{"points":"120"}');
   });
 

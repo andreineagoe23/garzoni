@@ -28,14 +28,14 @@ Goal: what to fix, what to redesign, and how missions should hook into the rest 
 
 **Progress triggers** (the only call sites of `MissionCompletion.update_progress`)
 
-| goal_type | trigger | file |
-|---|---|---|
-| `complete_lesson` | lesson completion | `education/views.py:1876` |
-| `complete_path` | course completion | `education/views.py:1665` |
-| `read_fact` | mark fact read | `finance/views.py:1866` |
-| `add_savings` | savings deposit | `finance/services/savings.py` |
-| `clear_review_queue` | **none** | — |
-| `streak_rescue` | client POST only | `gamification/views.py:338` |
+| goal_type            | trigger           | file                          |
+| -------------------- | ----------------- | ----------------------------- |
+| `complete_lesson`    | lesson completion | `education/views.py:1876`     |
+| `complete_path`      | course completion | `education/views.py:1665`     |
+| `read_fact`          | mark fact read    | `finance/views.py:1866`       |
+| `add_savings`        | savings deposit   | `finance/services/savings.py` |
+| `clear_review_queue` | **none**          | —                             |
+| `streak_rescue`      | client POST only  | `gamification/views.py:338`   |
 
 **XP flow** — mission XP is granted through `grant_reward()` → `RewardLedgerEntry`, which is exactly what
 `services/leaderboards.py` aggregates for the weekly XP leaderboard and leagues. Missions are already the
@@ -58,7 +58,7 @@ goal_type and daily display count is 4 with exactly 4 daily goal types — so **
 exactly one permanently-0% mission on the board**, forever. Same for weekly. That is 25% of the daily board
 being visibly broken.
 Fix: call `touch_assigned_completions(user, ["clear_review_queue"])` + `update_progress()` from the review/
-practice completion path in `education/views.py`, and recompute on GET (the goal is a *state* check —
+practice completion path in `education/views.py`, and recompute on GET (the goal is a _state_ check —
 `Mastery.due_at` count — so it can be evaluated on read).
 
 **2.2 Multi-step quests grant nothing.**
@@ -89,16 +89,17 @@ Both cards render `FactCard` only when `isDaily` is true. The weekly "5 facts" m
 and no way to act on it; if the daily fact mission isn't one of today's picks, there's no fact surface at all.
 
 **2.7 Copy/state bugs.**
+
 - Web `<h1>` is hardcoded `missions.header.title` = "Daily Missions" while the tabs switch to Weekly/Quests.
-- Mobile shows a native header "Missions" *and* an in-page H1 "Daily Missions" — double title.
-- Mobile summary block always shows *daily* XP numbers even when the Weekly tab is active
+- Mobile shows a native header "Missions" _and_ an in-page H1 "Daily Missions" — double title.
+- Mobile summary block always shows _daily_ XP numbers even when the Weekly tab is active
   (`missions.tsx:636-684` uses `dailyXpEarned/dailyXpTotal`); web made this scope-aware, mobile didn't.
 - `showSavingsMenu` is one boolean for the whole page on both platforms → two savings missions expand
   together.
 
 **2.8 Rotation is an illusion.**
 Because `_diverse_pick` fills one slot per goal_type and there are exactly 4 daily goal types, the daily
-board is always {lesson, savings, review, fact}. The 12-mission pool only changes the *names*. Users see the
+board is always {lesson, savings, review, fact}. The 12-mission pool only changes the _names_. Users see the
 same four verbs every day for the life of the account.
 
 **2.9 The savings mission is the weakest loop on the page and it is 42% of the daily pool.**
@@ -115,7 +116,7 @@ are this. It teaches nothing and is trivially farmable.
   `streak_rescue` this is direct client-authoritative XP.
 - `POST /missions/complete/` trusts client-declared `first_try`, `attempts`, `hints_used`, `mastery_bonus`
   → self-declared +20% / +15% multipliers, on any mission id.
-- The reward ledger prevents *double* awards per (mission, cycle); it does not prevent the first fake one.
+- The reward ledger prevents _double_ awards per (mission, cycle); it does not prevent the first fake one.
 - Throttle is 10/min (`MissionCompletionThrottle`).
 
 Same class as the education-viewset finding in the 2026-07 security audit. Recommend: delete the progress
@@ -147,7 +148,7 @@ completion copy is a generic "Keep the momentum to unlock streak and leaderboard
 **4.5 Five parallel progress systems, no reconciliation.**
 Daily missions, daily XP goal (`profile.daily_goal`), streak, weekly league XP, hearts. Home surfaces a raw
 "active missions" number; the missions page surfaces "XP earned · XP still on the table"; the Climb map
-surfaces course progress. Nothing tells the user which one is *the* daily target.
+surfaces course progress. Nothing tells the user which one is _the_ daily target.
 
 **4.6 The streak-wager card sits above the missions.**
 `StreakWagerCard` renders between the summary and the tabs on both platforms, pushing the actual missions
@@ -159,12 +160,12 @@ mastery next.") — not a button. Empty state says "New missions appear after th
 (mobile passes `onAction={undefined}` explicitly).
 
 **4.8 Swap is unexplained and, on web, uses `window.confirm`.**
-Native browser dialog inside a designed product; also no indication *before* tapping that you get one swap
+Native browser dialog inside a designed product; also no indication _before_ tapping that you get one swap
 per day, or what you'll get instead.
 
 **4.9 Quests tab is a hidden third mode.**
 Only appears if quests exist, shows no reward, no overall progress bar, no CTAs, and on mobile renders
-*above* the loading/error branch so it can appear while the rest of the page is still skeletons.
+_above_ the loading/error branch so it can appear while the rest of the page is still skeletons.
 
 **4.10 Accessibility.**
 Web scope tabs are plain `<button>`s — no `role="tablist"`, `aria-selected`, or arrow-key navigation; no
@@ -181,17 +182,17 @@ authoritative deltas (`current_mission_deltas`, `missions_completed_now`) — ba
 
 ## 5. Web ↔ mobile parity
 
-| Capability | Mobile | Web |
-|---|---|---|
-| Per-mission CTA deep link | ✅ | ❌ |
-| Mission-complete celebration | ✅ `RewardClaimModal` + haptics | toast only |
-| Lesson-flow mission celebration | ✅ (`useLessonFlow` → `missions_completed_now`) | ❌ (only invalidates query) |
-| Delta merge from mutations | ✅ `mergeMissionDeltas` | ❌ (guesses with `bumpMissionProgress(+25)`) |
-| Skeletons / error state + retry | ✅ | spinner only, no retry |
-| Pull to refresh | ✅ | — |
-| Fact loading state | ✅ | ❌ |
-| Scope-aware summary numbers | ❌ | ✅ |
-| Entrance animation | ✅ | ❌ |
+| Capability                      | Mobile                                          | Web                                          |
+| ------------------------------- | ----------------------------------------------- | -------------------------------------------- |
+| Per-mission CTA deep link       | ✅                                              | ❌                                           |
+| Mission-complete celebration    | ✅ `RewardClaimModal` + haptics                 | toast only                                   |
+| Lesson-flow mission celebration | ✅ (`useLessonFlow` → `missions_completed_now`) | ❌ (only invalidates query)                  |
+| Delta merge from mutations      | ✅ `mergeMissionDeltas`                         | ❌ (guesses with `bumpMissionProgress(+25)`) |
+| Skeletons / error state + retry | ✅                                              | spinner only, no retry                       |
+| Pull to refresh                 | ✅                                              | —                                            |
+| Fact loading state              | ✅                                              | ❌                                           |
+| Scope-aware summary numbers     | ❌                                              | ✅                                           |
+| Entrance animation              | ✅                                              | ❌                                           |
 
 Web's `bumpMissionProgress` fabricating "+25%" while the server returns real deltas is the one worth fixing
 first — it can show progress that the server disagrees with.
@@ -212,7 +213,7 @@ first — it can show progress that the server disagrees with.
 
 ### 6.2 Rebuild the board (P1, ~2–3 days)
 
-- **Header**: "Today" + reset countdown chip + one XP ring that *is* the daily goal (fed by mission XP).
+- **Header**: "Today" + reset countdown chip + one XP ring that _is_ the daily goal (fed by mission XP).
 - **Rows, not cards**: one line per mission — icon, name, `1/3 lessons`, XP pill, primary CTA. Expand for
   the "why" sentence on tap. Target ~72px per row instead of 260px.
 - **One page, no tabs**: Daily rows → Weekly section → Story quests section. The tab row currently hides
@@ -248,17 +249,17 @@ first — it can show progress that the server disagrees with.
   free-text number.
 - Add goal types with genuine action: `complete_exercise_set`, `use_tool`, `beat_quiz_score`,
   `maintain_streak`, `finish_story_step`.
-- Replace "one per goal_type" with a rotation that varies the *verb* day to day, so the board isn't
+- Replace "one per goal_type" with a rotation that varies the _verb_ day to day, so the board isn't
   identical for 365 days.
 
 ---
 
 ## 7. Suggested order
 
-| Phase | Work | Why first |
-|---|---|---|
-| 0 | §6.1 items 1–5 | A quarter of the board is permanently broken and quests pay nothing. No UI work is worth doing on top of that. |
-| 0.5 | §6.1 item 6 | XP is client-forgeable today. |
-| 1 | §6.2 | Turn the ledger into a board; fixes web/mobile parity in the same pass. |
-| 2 | §6.3 items 1–2 | Biggest engagement lever: missions become visible where users already are. |
-| 3 | §6.3 items 3–6, §6.4 | Cross-surface polish and content depth. |
+| Phase | Work                 | Why first                                                                                                      |
+| ----- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 0     | §6.1 items 1–5       | A quarter of the board is permanently broken and quests pay nothing. No UI work is worth doing on top of that. |
+| 0.5   | §6.1 item 6          | XP is client-forgeable today.                                                                                  |
+| 1     | §6.2                 | Turn the ledger into a board; fixes web/mobile parity in the same pass.                                        |
+| 2     | §6.3 items 1–2       | Biggest engagement lever: missions become visible where users already are.                                     |
+| 3     | §6.3 items 3–6, §6.4 | Cross-surface polish and content depth.                                                                        |

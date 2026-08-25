@@ -191,23 +191,27 @@ const DragAndDropExercise = ({
   };
 
   const handleRetry = async () => {
-    try {
-      if (!exerciseId) return;
-      await apiClient.post("/exercises/reset/", { section_id: exerciseId });
-      setUserAnswers({});
-      setTargetStates(
-        targetsArray.map((target) => ({
-          ...target,
-          status: null as "correct" | "incorrect" | null,
-        }))
-      );
-      setFeedback("");
-      setFeedbackType(null);
-      setIsCompleted(false);
-      setKeyboardSelectedId(null);
-    } catch (error) {
-      console.error("Error resetting exercise:", error);
+    if (exerciseId) {
+      try {
+        await apiClient.post("/exercises/reset/", { section_id: exerciseId });
+      } catch (error) {
+        // An in-lesson check has no stored progress to clear. Reopening must
+        // not depend on that call succeeding — every reset below used to sit
+        // after this await, so a throw left the board locked with no way back.
+        console.error("Error resetting exercise:", error);
+      }
     }
+    setUserAnswers({});
+    setTargetStates(
+      targetsArray.map((target) => ({
+        ...target,
+        status: null as "correct" | "incorrect" | null,
+      }))
+    );
+    setFeedback("");
+    setFeedbackType(null);
+    setIsCompleted(false);
+    setKeyboardSelectedId(null);
   };
 
   return (

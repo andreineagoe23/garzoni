@@ -74,126 +74,136 @@ export function useLessonColors(): LessonColors {
 }
 
 /**
+ * The shared lesson style map, as plain objects.
+ *
+ * Kept un-registered so callers that build their own `StyleSheet.create` map —
+ * `createLessonFlowStyles` in LessonFlowScreen — can spread these into their
+ * own entries. Everyone else should use `createLessonStyles`/`useLessonStyles`.
+ */
+export function lessonStyleObjects(lc: LessonColors) {
+  return {
+    screen: { flex: 1, backgroundColor: lc.bg },
+
+    card: {
+      backgroundColor: lc.surface,
+      borderRadius: radius.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: lc.border,
+      padding: spacing.lg,
+    },
+    cardRaised: {
+      backgroundColor: lc.surfaceRaised,
+      borderRadius: radius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: lc.border,
+      padding: spacing.lg,
+    },
+
+    /**
+     * Primary action. Carries a real shadow — the flow's button was flat,
+     * which is a large part of why it read as inert next to the demo's.
+     */
+    cta: {
+      backgroundColor: lc.action,
+      borderRadius: radius.full,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.xxl,
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+      ...shadows.md,
+    },
+    /**
+     * One-pixel gloss along the top edge of the CTA. Pure decoration, so
+     * it must never eat the press — always render it with
+     * `pointerEvents="none"`.
+     */
+    ctaHighlight: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: StyleSheet.hairlineWidth * 2,
+      backgroundColor: lc.rewardSoft,
+    },
+    ctaLabel: {
+      color: lc.textOnAction,
+      fontSize: typography.md,
+      fontWeight: "700",
+    },
+    ctaDisabled: { opacity: 0.5 },
+
+    progressTrack: {
+      height: spacing.sm,
+      borderRadius: radius.full,
+      backgroundColor: lc.borderFaint,
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: "100%",
+      borderRadius: radius.full,
+      backgroundColor: lc.action,
+    },
+
+    /** Correct answers read as a reward, not as a marked exam paper. */
+    feedbackCorrect: {
+      color: lc.reward,
+      fontSize: typography.md,
+      fontWeight: "700",
+    },
+    feedbackWrong: {
+      color: lc.negative,
+      fontSize: typography.md,
+      fontWeight: "700",
+    },
+
+    optionBase: {
+      backgroundColor: lc.surfaceRaised,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: lc.border,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+    },
+    optionCorrect: {
+      borderColor: lc.positive,
+      backgroundColor: lc.positiveSoft,
+    },
+    optionWrong: {
+      borderColor: lc.negative,
+      backgroundColor: lc.negativeSoft,
+    },
+
+    /** The per-answer XP pill — the demo's most-missed moment. */
+    rewardPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      alignSelf: "flex-start",
+      backgroundColor: lc.rewardSoft,
+      borderRadius: radius.full,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+    },
+    rewardPillText: {
+      color: lc.reward,
+      fontSize: typography.sm,
+      fontWeight: "700",
+    },
+  } as const;
+}
+
+/** StyleSheet form, for a `ThemeColors` caller that cannot use hooks. */
+export function createLessonStyles(c: ThemeColors) {
+  const lc = resolveLessonColors(c);
+  return { colors: lc, styles: StyleSheet.create(lessonStyleObjects(lc)) };
+}
+
+/**
  * Shared lesson styles. Anything a lesson and the demo both render should live
  * here rather than being written twice with slightly different numbers.
  */
 export function useLessonStyles() {
-  const lc = useLessonColors();
-  return useMemo(
-    () =>
-      ({
-        colors: lc,
-        styles: StyleSheet.create({
-          screen: { flex: 1, backgroundColor: lc.bg },
-
-          card: {
-            backgroundColor: lc.surface,
-            borderRadius: radius.card,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: lc.border,
-            padding: spacing.lg,
-          },
-          cardRaised: {
-            backgroundColor: lc.surfaceRaised,
-            borderRadius: radius.lg,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: lc.border,
-            padding: spacing.lg,
-          },
-
-          /**
-           * Primary action. Carries a real shadow — the flow's button was flat,
-           * which is a large part of why it read as inert next to the demo's.
-           */
-          cta: {
-            backgroundColor: lc.action,
-            borderRadius: radius.full,
-            paddingVertical: spacing.lg,
-            paddingHorizontal: spacing.xxl,
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-            ...shadows.md,
-          },
-          /**
-           * One-pixel gloss along the top edge of the CTA. Pure decoration, so
-           * it must never eat the press — always render it with
-           * `pointerEvents="none"`.
-           */
-          ctaHighlight: {
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: StyleSheet.hairlineWidth * 2,
-            backgroundColor: lc.rewardSoft,
-          },
-          ctaLabel: {
-            color: lc.textOnAction,
-            fontSize: typography.md,
-            fontWeight: "700",
-          },
-          ctaDisabled: { opacity: 0.5 },
-
-          progressTrack: {
-            height: spacing.sm,
-            borderRadius: radius.full,
-            backgroundColor: lc.borderFaint,
-            overflow: "hidden",
-          },
-          progressFill: {
-            height: "100%",
-            borderRadius: radius.full,
-            backgroundColor: lc.action,
-          },
-
-          /** Correct answers read as a reward, not as a marked exam paper. */
-          feedbackCorrect: {
-            color: lc.reward,
-            fontSize: typography.md,
-            fontWeight: "700",
-          },
-          feedbackWrong: {
-            color: lc.negative,
-            fontSize: typography.md,
-            fontWeight: "700",
-          },
-
-          optionBase: {
-            backgroundColor: lc.surfaceRaised,
-            borderRadius: radius.lg,
-            borderWidth: 1,
-            borderColor: lc.border,
-            paddingVertical: spacing.md,
-            paddingHorizontal: spacing.lg,
-          },
-          optionCorrect: {
-            borderColor: lc.positive,
-            backgroundColor: lc.positiveSoft,
-          },
-          optionWrong: {
-            borderColor: lc.negative,
-            backgroundColor: lc.negativeSoft,
-          },
-
-          /** The per-answer XP pill — the demo's most-missed moment. */
-          rewardPill: {
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.xs,
-            alignSelf: "flex-start",
-            backgroundColor: lc.rewardSoft,
-            borderRadius: radius.full,
-            paddingVertical: spacing.xs,
-            paddingHorizontal: spacing.md,
-          },
-          rewardPillText: {
-            color: lc.reward,
-            fontSize: typography.sm,
-            fontWeight: "700",
-          },
-        }),
-      }) as const,
-    [lc],
-  );
+  const c = useThemeColors();
+  return useMemo(() => createLessonStyles(c), [c]);
 }

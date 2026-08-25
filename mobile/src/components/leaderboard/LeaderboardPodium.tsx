@@ -217,7 +217,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   youPillText: { fontSize: 9, fontWeight: "800", textTransform: "uppercase" },
-  points: { fontSize: typography.xs, marginTop: spacing.xs, textAlign: "center" },
+  points: {
+    fontSize: typography.xs,
+    marginTop: spacing.xs,
+    textAlign: "center",
+  },
   friendBtn: {
     marginTop: spacing.sm,
     paddingVertical: spacing.sm,
