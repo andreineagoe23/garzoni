@@ -46,6 +46,17 @@ class Command(BaseCommand):
             help="Show what would be pushed without writing to Railway.",
         )
         parser.add_argument(
+            "--only-ids",
+            type=str,
+            default="",
+            metavar="1,2,3",
+            help=(
+                "Local LessonSection ids to push regardless of the audit log. For sections that "
+                "changed outside a rewrite — an exercise_type conversion, say — which the "
+                "audit-log selection would otherwise never carry across."
+            ),
+        )
+        parser.add_argument(
             "--target",
             choices=["sections", "exercises", "quizzes", "all"],
             default="all",
@@ -63,6 +74,10 @@ class Command(BaseCommand):
 
         dry_run = options["dry_run"]
         target = options["target"]
+        try:
+            only_ids = {int(x) for x in options.get("only_ids", "").split(",") if x.strip()}
+        except ValueError as exc:
+            raise CommandError(f"--only-ids must be a comma-separated list of ints: {exc}")
 
         if dry_run:
             self.stdout.write(self.style.WARNING("DRY RUN — no writes to Railway."))
@@ -77,7 +92,7 @@ class Command(BaseCommand):
 
         try:
             if target in ("sections", "all"):
-                pushed, failed = self._push_sections(conn, dry_run)
+                pushed, failed = self._push_sections(conn, dry_run, only_ids)
                 total_pushed += pushed
                 total_failed += failed
 
@@ -105,14 +120,37 @@ class Command(BaseCommand):
     # LessonSection text + exercise data
     # ------------------------------------------------------------------
 
-    def _push_sections(self, conn, dry_run):
-        rewritten_ids = list(
-            EducationAuditLog.objects.filter(
-                action__in=CONTENT_ACTIONS, target_type="LessonSection"
+    def _resolve_remote_section_ids(self, conn, sections):
+        """
+        Map local sections to remote ids by (lesson slug, section order).
+
+        Row ids are NOT stable between environments. On 2026-08-25, 216 section
+        ids referred to a different lesson in each database — the ids are offset
+        by roughly one lesson — and an id-keyed push wrote 45 sections' content
+        into the wrong lesson in production. Slug plus order is the only key that
+        means the same thing on both sides.
+        """
+        keys = {(s.lesson.slug, s.order) for s in sections}
+        with conn.cursor() as cur:
+            cur.execute(
+                'SELECT s.id, s."order", l.slug FROM core_lessonsection s '
+                "JOIN core_lesson l ON l.id = s.lesson_id"
             )
-            .values_list("target_id", flat=True)
-            .distinct()
-        )
+            remote = {(slug, order): rid for rid, order, slug in cur.fetchall()}
+        return {s.id: remote.get((s.lesson.slug, s.order)) for s in sections}, keys - set(remote)
+
+    def _push_sections(self, conn, dry_run, only_ids=None):
+        if only_ids:
+            rewritten_ids = sorted(only_ids)
+        else:
+            rewritten_ids = list(
+                EducationAuditLog.objects.filter(
+                    action__in=CONTENT_ACTIONS, target_type="LessonSection"
+                )
+                .order_by()
+                .values_list("target_id", flat=True)
+                .distinct()
+            )
 
         if not rewritten_ids:
             self.stdout.write("  [sections] No rewritten sections in audit log.")
@@ -130,11 +168,25 @@ class Command(BaseCommand):
         for t in translations:
             trans_by_section.setdefault(t["section_id"], []).append(t)
 
+        remote_id_of, unmatched = self._resolve_remote_section_ids(conn, sections)
+        resolvable = sum(1 for sid in rewritten_ids if remote_id_of.get(sid))
+        shifted = sum(1 for sid in rewritten_ids if remote_id_of.get(sid) not in (None, sid))
+
         self.stdout.write(f"\n[sections] Found {len(rewritten_ids)} rewritten sections.")
+        self.stdout.write(
+            f"  matched by lesson slug + order: {resolvable}; "
+            f"of those {shifted} land on a DIFFERENT remote id than the local one"
+        )
+        if unmatched:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  {len(unmatched)} local section(s) have no remote counterpart"
+                )
+            )
 
         if dry_run:
-            self.stdout.write(f"  Would push {len(rewritten_ids)} sections.")
-            return len(rewritten_ids), 0
+            self.stdout.write(f"  Would push {resolvable} sections.")
+            return resolvable, len(rewritten_ids) - resolvable
 
         pushed = 0
         failed = 0
@@ -149,35 +201,55 @@ class Command(BaseCommand):
                     failed += 1
                     continue
 
+                remote_id = remote_id_of.get(sid)
+                if remote_id is None:
+                    self.stderr.write(
+                        self.style.WARNING(
+                            f"  Section {sid} ({section.lesson.slug} #{section.order}): "
+                            "no remote counterpart — skipping."
+                        )
+                    )
+                    failed += 1
+                    continue
+
                 try:
                     if section.content_type == "text":
                         cur.execute(
                             "UPDATE core_lessonsection SET text_content = %s WHERE id = %s",
-                            (section.text_content, sid),
+                            (section.text_content, remote_id),
                         )
                         cur.execute(
                             "UPDATE education_lessonsection_translation SET source_hash = '' WHERE section_id = %s",
-                            (sid,),
+                            (remote_id,),
                         )
                         for trans in trans_by_section.get(sid, []):
+                            # Keyed on (remote section, language), not the local
+                            # translation row id — that id is no more stable
+                            # across environments than the section id was.
                             cur.execute(
-                                "UPDATE education_lessonsection_translation SET text_content = %s WHERE id = %s",
-                                (trans["text_content"], trans["id"]),
+                                "UPDATE education_lessonsection_translation SET text_content = %s "
+                                "WHERE section_id = %s AND language = %s",
+                                (trans["text_content"], remote_id, trans["language"]),
                             )
                     elif section.content_type == "exercise":
+                        # exercise_type travels with exercise_data. Pushing the
+                        # data alone left drag-and-drop or numeric payloads in a
+                        # section the remote still typed multiple-choice, which
+                        # renders as a broken widget rather than an exercise.
                         cur.execute(
-                            "UPDATE core_lessonsection SET exercise_data = %s WHERE id = %s",
-                            (json.dumps(section.exercise_data), sid),
+                            "UPDATE core_lessonsection "
+                            "SET exercise_data = %s, exercise_type = %s WHERE id = %s",
+                            (json.dumps(section.exercise_data), section.exercise_type, remote_id),
                         )
                         cur.execute(
                             "UPDATE education_lessonsection_translation SET exercise_data = %s, source_hash = '' WHERE section_id = %s",
-                            (json.dumps({}), sid),
+                            (json.dumps({}), remote_id),
                         )
 
                     conn.commit()
                     pushed += 1
                     self.stdout.write(
-                        f"  ✓ section #{sid} — {section.lesson.title} / {section.title}"
+                        f"  ✓ section #{sid}→{remote_id} — {section.lesson.title} / {section.title}"
                     )
 
                 except Exception as exc:
@@ -195,6 +267,7 @@ class Command(BaseCommand):
     def _push_exercises(self, conn, dry_run):
         rewritten_ids = list(
             EducationAuditLog.objects.filter(action__in=CONTENT_ACTIONS, target_type="Exercise")
+            .order_by()
             .values_list("target_id", flat=True)
             .distinct()
         )
@@ -260,6 +333,7 @@ class Command(BaseCommand):
     def _push_quizzes(self, conn, dry_run):
         rewritten_ids = set(
             EducationAuditLog.objects.filter(action__in=CONTENT_ACTIONS, target_type="Quiz")
+            .order_by()
             .values_list("target_id", flat=True)
             .distinct()
         )
