@@ -147,31 +147,79 @@ alone, so a rebalance would never have reached production.
 
 ## Outstanding
 
-Blocked 2026-08-25 on **OpenAI credits** (`credit_balance_exhausted`). Top up at
-<https://platform.openai.com/settings/organization/billing/>, then run "Resume" below.
+**Shipped to production 2026-08-25.** All four surfaces verified directly against the Railway DB:
 
-| Surface                          | Answer slot | Wording                      |
-| -------------------------------- | ----------- | ---------------------------- |
-| A. Lesson knowledge checks (334) | ✅ 25% each | ✅ applied, 0% fail the gate |
-| B. Checkpoint reviews (43)       | ✅ even     | ✅ follows A                 |
-| C. Capstone quizzes (20)         | ✅ 25% each | ⏳ 60% fail the gate         |
-| D. Practice catalog (86)         | ✅ 25% each | ⏳ 55% fail the gate         |
+| Surface | n | Top slot | Correct-option length edge | Failing the gate |
+| --- | --- | --- | --- | --- |
+| A. Lesson knowledge checks | 334 | 25% | +2.8 chars | **0** |
+| B. Checkpoint reviews | 18 | 33% | +1.7 chars | **0** |
+| C. Capstone quizzes | 20 | 25% | +1.8 chars | **0** |
+| D. Practice catalog | 88 | 26% | +2.6 chars | **0** |
 
-Everything above is in the **local dev DB only**. Production has none of it — the push is deliberately
-held until C and D are done, so it goes out in one pass.
+Before: slot 2 held the answer in 75% of lesson checks (never slot 4), the practice catalog put it in
+slot 1 81% of the time, and the correct option averaged +38.8 characters over its distractors.
 
-Also owed:
+C and D were written by hand rather than by the model — the OpenAI balance ran out mid-programme.
+`apply_manual_option_rewrites` puts hand-written content through the same gate.
 
-| Item                                              | State                                                                                                                                                                     |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Romanian exercise translations                    | All 334 RO rows blank; Romanian falls back to English. Deferred — English first.                                                                                          |
-| 2 orphan checkpoint quizzes (sections 1699, 2614) | No longer served (the endpoint filters on `exercise_type="multiple-choice"`). Rows remain; `--prune-orphan-checkpoints` deletes them and cascades their `QuizCompletion`. |
-| Rotate the Railway Postgres password              | Credentials were pasted into a chat transcript on 2026-08-25.                                                                                                             |
+Still owed:
 
-### Resume after top-up
+| Item | State |
+| --- | --- |
+| Romanian exercise translations | All 334 RO rows blank; Romanian falls back to English. Deferred — English first. |
+| 2 sections are a different exercise type per environment | See *Known remaining divergence* below. Content is otherwise at full parity: 1575/1575 sections match by lesson slug + order. |
+| Orphan checkpoint quizzes | 2 local (sections 1699, 2614), 1 in production. Source section is no longer multiple-choice. Not served to learners; rows kept because deleting cascades `QuizCompletion`. |
+| Rotate the Railway Postgres password | Credentials were pasted into a chat transcript on 2026-08-25. |
+
+### Environments have diverged — never push by row id
+
+Local and production hold the **same content** (175 lessons, 1575 sections each, every section
+matching by lesson slug + order) but the **row ids do not line up**. They are offset by roughly one
+lesson: on 2026-08-25, 216 section ids referred to a different lesson in each database.
+
+`push_rewrites_to_railway` originally matched on `id`. That pushed 45 sections' content into the
+wrong lesson in production — local "What a Bank Actually Does" landed on production's
+"Current vs Savings Accounts". The command now resolves the remote row by
+**(lesson slug, section order)** and reports how many land on a different remote id
+(`_resolve_remote_section_ids`). Re-running it repaired all 45.
+
+The translation write had the same flaw and is now keyed on (remote section id, language) rather
+than the local translation row id.
+
+Two production-only sections also had `correctAnswer` pointing at a **distractor** — 3100 marked
+"300 GBP, because the government triples all contributions" correct, and 3163 marked "You should
+cancel it immediately since it did not pay out" correct. Anyone answering those correctly was told
+they were wrong. Fixed with `apply_manual_option_rewrites --railway`.
+
+**Rules that follow from this:**
+
+* Never key a cross-environment write on a database id. Use lesson slug + section order for
+  sections; exercises and quizzes are id-aligned today but verify before trusting that.
+* A push that only issues `UPDATE` reports a no-op as a success. Always compare the two databases
+  afterwards on a stable key, not on the command's own success count.
+
+### Known remaining divergence
+
+Two sections are a different exercise type on each side — local converted them, production never
+received that change. Both sides are internally valid and pass the gate:
+
+| Lesson (section 6) | Local | Production |
+| --- | --- | --- |
+| `what-to-do-if-youve-been-scammed` | drag-and-drop | multiple-choice |
+| `how-to-read-your-payslip` | numeric | multiple-choice |
+
+`push_rewrites_to_railway` writes `exercise_data` but not the `exercise_type` column, so it cannot
+reconcile these. Decide whether production should take the local variety change.
+
+### Re-running any of this
 
 ```bash
-# 1. C and D wording (~106 records; the two rebalances are already applied)
+# 0. Checkpoint quizzes drift from their sections whenever a section is edited.
+#    Safe and idempotent; run it after any content change, on both targets.
+docker compose exec backend python manage.py resync_checkpoint_quizzes
+docker compose exec -e RAILWAY_DB_URL="<url>" backend python manage.py resync_checkpoint_quizzes --railway
+
+# 1. C and D wording (needs OpenAI credits; the two rebalances are already applied)
 docker compose exec -e OPENAI_REWRITE_DELAY=10 backend python manage.py \
   rewrite_standalone_exercises --dry-run --target all --batch-size 200 \
   --output-file /app/education/content/rewrite_output/catalog_<name>.json
