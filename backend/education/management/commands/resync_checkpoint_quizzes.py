@@ -10,8 +10,9 @@ this command repairs whatever drifted before that existed.
 
 It also reports checkpoints whose source section is no longer multiple-choice.
 Those are dead: nothing rebuilds them, and the endpoint already filters them out
-of what learners see. They are reported rather than deleted, because deleting a
-Quiz cascades its ``QuizCompletion`` rows.
+of what learners see. They are reported rather than deleted by default, because
+deleting a Quiz cascades its ``QuizCompletion`` rows — pass ``--prune`` to remove
+them, which reports how many completion records go with each.
 
     python manage.py resync_checkpoint_quizzes --dry-run
     python manage.py resync_checkpoint_quizzes
@@ -43,6 +44,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument(
+            "--prune",
+            action="store_true",
+            help=(
+                "Delete checkpoints whose source section is no longer multiple-choice. "
+                "Destructive: cascades their QuizCompletion rows."
+            ),
+        )
+        parser.add_argument(
             "--railway",
             action="store_true",
             help="Operate on the Railway DB named by RAILWAY_DB_URL instead of the local one.",
@@ -50,27 +59,34 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options["railway"]:
-            self._run_railway(options["dry_run"])
+            self._run_railway(options["dry_run"], options["prune"])
         else:
-            self._run_local(options["dry_run"])
+            self._run_local(options["dry_run"], options["prune"])
 
     # ------------------------------------------------------------------
 
-    def _run_local(self, dry_run: bool):
+    def _run_local(self, dry_run: bool, prune: bool = False):
         rows = Quiz.objects.filter(source_lesson_section__isnull=False).select_related(
             "source_lesson_section"
         )
-        resynced = orphans = 0
+        resynced = orphans = pruned = 0
         for quiz in rows:
             section = quiz.source_lesson_section
             if section.exercise_type != "multiple-choice":
+                from education.models import QuizCompletion
+
+                done = QuizCompletion.objects.filter(quiz=quiz).count()
                 orphans += 1
                 self.stdout.write(
                     self.style.WARNING(
                         f"  quiz {quiz.id}: section {section.id} is now "
                         f"{section.exercise_type or 'not an exercise'} — orphaned"
+                        f" ({done} completion row(s))"
                     )
                 )
+                if prune and not dry_run:
+                    quiz.delete()
+                    pruned += 1
                 continue
             if dry_run:
                 resynced += 1
@@ -82,11 +98,20 @@ class Command(BaseCommand):
         verb = "would resync" if dry_run else "resynced"
         self.stdout.write(self.style.SUCCESS(f"{verb} {resynced} checkpoint quiz(zes)"))
         if orphans:
-            self.stdout.write(self.style.WARNING(f"  {orphans} orphaned (left in place)"))
+            if pruned:
+                self.stdout.write(self.style.SUCCESS(f"  {pruned} orphan(s) deleted"))
+            elif prune and dry_run:
+                self.stdout.write(self.style.WARNING(f"  {orphans} orphan(s) would be deleted"))
+            else:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"  {orphans} orphaned (left in place; --prune removes them)"
+                    )
+                )
 
     # ------------------------------------------------------------------
 
-    def _run_railway(self, dry_run: bool):
+    def _run_railway(self, dry_run: bool, prune: bool = False):
         import psycopg2
         import psycopg2.extras
 
@@ -105,7 +130,7 @@ class Command(BaseCommand):
                     return default
             return default if value is None else value
 
-        resynced = orphans = unchanged = 0
+        resynced = orphans = unchanged = pruned = 0
         try:
             cur.execute(
                 "SELECT q.id AS qid, q.question, q.choices, q.correct_answer, "
@@ -114,13 +139,29 @@ class Command(BaseCommand):
             )
             for row in cur.fetchall():
                 if row["exercise_type"] != "multiple-choice":
+                    cur.execute(
+                        "SELECT count(*) AS n FROM core_quizcompletion WHERE quiz_id = %s",
+                        (row["qid"],),
+                    )
+                    done = cur.fetchone()["n"]
                     orphans += 1
                     self.stdout.write(
                         self.style.WARNING(
                             f"  quiz {row['qid']}: section {row['sid']} is now "
                             f"{row['exercise_type'] or 'not an exercise'} — orphaned"
+                            f" ({done} completion row(s))"
                         )
                     )
+                    if prune:
+                        cur.execute(
+                            "DELETE FROM core_quizcompletion WHERE quiz_id = %s", (row["qid"],)
+                        )
+                        cur.execute(
+                            "DELETE FROM education_quiz_translation WHERE quiz_id = %s",
+                            (row["qid"],),
+                        )
+                        cur.execute("DELETE FROM core_quiz WHERE id = %s", (row["qid"],))
+                        pruned += 1
                     continue
 
                 data = as_json(row["exercise_data"], {})
@@ -172,7 +213,8 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING(
                         f"\nDry run — rolled back. {resynced} would rebuild, "
-                        f"{unchanged} already in step, {orphans} orphaned."
+                        f"{unchanged} already in step, {orphans} orphaned"
+                        f"{f', {pruned} would be deleted' if prune else ''}."
                     )
                 )
             else:
@@ -180,7 +222,8 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"\nRebuilt {resynced} checkpoint quiz(zes) on Railway; "
-                        f"{unchanged} already in step, {orphans} orphaned."
+                        f"{unchanged} already in step, {orphans} orphaned"
+                        f"{f', {pruned} deleted' if prune else ''}."
                     )
                 )
         except Exception:
