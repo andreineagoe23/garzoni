@@ -416,6 +416,7 @@ function Register() {
                       components={{
                         terms: (
                           <a
+                            key="terms"
                             href="/terms-of-service"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -426,6 +427,7 @@ function Register() {
                         ),
                         privacy: (
                           <a
+                            key="privacy"
                             href="/privacy-policy"
                             target="_blank"
                             rel="noopener noreferrer"
