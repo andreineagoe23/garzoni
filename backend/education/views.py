@@ -2944,6 +2944,14 @@ class PersonalizedPathView(APIView):
                     is_active=True,
                 )
                 .select_related("path")
+                # CourseSerializer nests lessons -> sections, and each row resolves a
+                # translation. Without these the view issued 654 queries per request.
+                .prefetch_related(
+                    "translations",
+                    "path__translations",
+                    "lessons__translations",
+                    "lessons__sections__translations",
+                )
                 .order_by("path__sort_order", "order", "id")
             )
             serializer = CourseSerializer(courses, many=True, context={"request": request})

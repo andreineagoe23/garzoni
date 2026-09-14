@@ -234,6 +234,9 @@ LEAGUE_COHORT_SIZE = int(os.getenv("LEAGUE_COHORT_SIZE", "30"))
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # Above WhiteNoise so static/media responses get compressed too. Railway runs
+    # gunicorn with no reverse proxy, so nothing else compresses API JSON.
+    "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "core.middleware.RequestIdMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -1268,8 +1271,9 @@ customColorPalette = [
 CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.DefaultStorage"
 STORAGES = {
     "default": {"BACKEND": MEDIA_STORAGE_BACKEND},
-    # Plain StaticFilesStorage: no post-processing, no compression during collectstatic.
-    # WhiteNoise middleware handles gzip/brotli on-the-fly at request time.
+    # Plain StaticFilesStorage: no post-processing, no precompressed .gz/.br sidecars.
+    # WhiteNoise only serves sidecars it finds, it does not compress at request time —
+    # GZipMiddleware above it does that instead.
     # Both CompressedManifestStaticFilesStorage and CompressedStaticFilesStorage crash
     # with Django 4.2 admin assets (FileNotFoundError in threaded compressor).
     "staticfiles": {
