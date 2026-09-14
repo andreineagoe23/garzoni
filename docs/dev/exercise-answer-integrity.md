@@ -167,8 +167,9 @@ Still owed:
 
 | Item | State |
 | --- | --- |
-| Romanian exercise translations | All 334 RO rows blank; Romanian falls back to English. Deferred — English first. |
-| 2 sections are a different exercise type per environment | See *Known remaining divergence* below. Content is otherwise at full parity: 1575/1575 sections match by lesson slug + order. |
+| Romanian exercise translations | **Done 2026-09-15.** All 350 lesson knowledge checks and 86 practice-catalog exercises re-translated with gpt-4.1, one call per question, and pushed. Production matches local on (lesson slug, section order) fingerprints. |
+| Romanian checkpoint and capstone quizzes | No `ro` `QuizTranslation` rows exist in either database, so both surfaces serve English. Nothing translates `QuizTranslation` yet. |
+| 2 sections are a different exercise type per environment | **Resolved.** Both sides hold the local types, verified 2026-09-15 — see *Known remaining divergence*. Content is at full parity: 1575/1575 sections match by lesson slug + order. |
 | Orphan checkpoint quizzes | 2 local (sections 1699, 2614), 1 in production. Source section is no longer multiple-choice. Not served to learners; rows kept because deleting cascades `QuizCompletion`. |
 | Rotate the Railway Postgres password | Credentials were pasted into a chat transcript on 2026-08-25. |
 
@@ -201,16 +202,9 @@ they were wrong. Fixed with `apply_manual_option_rewrites --railway`.
 
 ### Known remaining divergence
 
-Two sections are a different exercise type on each side — local converted them, production never
-received that change. Both sides are internally valid and pass the gate:
-
-| Lesson (section 6) | Local | Production |
-| --- | --- | --- |
-| `what-to-do-if-youve-been-scammed` | drag-and-drop | multiple-choice |
-| `how-to-read-your-payslip` | numeric | multiple-choice |
-
-`push_rewrites_to_railway` writes `exercise_data` but not the `exercise_type` column, so it cannot
-reconcile these. Decide whether production should take the local variety change.
+None in exercise types as of 2026-09-15. `what-to-do-if-youve-been-scammed` #6 (drag-and-drop) and
+`how-to-read-your-payslip` #6 (numeric) now match on both sides: `push_rewrites_to_railway` writes
+`exercise_type` together with `exercise_data`.
 
 ### Re-running any of this
 
