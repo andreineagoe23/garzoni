@@ -34,9 +34,23 @@ def _get_translation(instance, language, rel_name="translations"):
     translations = getattr(instance, rel_name, None)
     if translations is None:
         return None
-    if hasattr(translations, "filter"):
-        return translations.filter(language=language).first()
+    if hasattr(translations, "all"):
+        # .all() reuses the prefetch cache when the caller prefetched `translations`;
+        # .filter() would bypass that cache and re-query once per row (654 queries on
+        # /api/personalized-path/). Unprefetched, this is still a single query.
+        translations = translations.all()
     return next((t for t in translations if getattr(t, "language", None) == language), None)
+
+
+def _options_aligned(source_data, translated_data) -> bool:
+    """Translated options are index-aligned with the English only when the counts match.
+
+    Grading uses the English answer index, so a translation left over from before an
+    English rewrite would score learners against options they never read.
+    """
+    src = source_data.get("options") if isinstance(source_data, dict) else None
+    tr = translated_data.get("options") if isinstance(translated_data, dict) else None
+    return len(src or []) == len(tr or [])
 
 
 # Serializer for quizzes, including fields for course association and question details.
@@ -70,7 +84,15 @@ class QuizSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         lang = get_request_language(self.context.get("request"))
         trans = _get_translation(instance, lang)
-        if trans:
+        # Rewrites blank a translation's choices (and pushes blank the question) until it
+        # is re-translated. Serving that shows an empty quiz, so fall back to English.
+        usable = (
+            trans
+            and trans.question
+            and trans.correct_answer
+            and len(trans.choices or []) == len(instance.choices or [])
+        )
+        if usable:
             data["title"] = trans.title
             data["question"] = trans.question
             data["choices"] = trans.choices
@@ -123,7 +145,9 @@ class LessonSectionSerializer(serializers.ModelSerializer):
                 data["title"] = trans.title
             if trans.text_content is not None:
                 data["text_content"] = trans.text_content or ""
-            if trans.exercise_data:
+            if trans.exercise_data and _options_aligned(
+                instance.exercise_data, trans.exercise_data
+            ):
                 data["exercise_data"] = trans.exercise_data
         return data
 
@@ -523,7 +547,12 @@ class ExerciseSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         lang = get_request_language(self.context.get("request"))
         trans = _get_translation(instance, lang)
-        if trans:
+        stale = (
+            trans
+            and trans.exercise_data
+            and not _options_aligned(instance.exercise_data, trans.exercise_data)
+        )
+        if trans and trans.question and not stale:
             data["question"] = trans.question
             if trans.exercise_data:
                 data["exercise_data"] = trans.exercise_data

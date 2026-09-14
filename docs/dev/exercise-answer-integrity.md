@@ -93,7 +93,8 @@ Seeded by section id, so a re-run is a no-op rather than a reshuffle. It moves e
 copy of the options together: `LessonSectionTranslation.exercise_data` for every language, plus the
 `Quiz` / `QuizTranslation` rows the lesson checkpoint modal reads.
 
-**Applied to the local DB 2026-08-25** — 243 sections moved. Not yet on Railway.
+**Applied to the local DB 2026-08-25** — 243 sections moved. Pushed to Railway the same day
+(see *Outstanding*).
 Re-running is a verified no-op ("would move 0 sections").
 
 ### 2. Option wording — costs API calls
@@ -257,6 +258,23 @@ docker compose exec -e RAILWAY_DB_URL="<DATABASE_PUBLIC_URL>" backend \
   (`rebalance_catalog_answer_positions.sync_choice_rows`).
 - **An exhausted credit balance returns 429.** All three rewriters used to treat it as a rate limit
   and sleep 60/120/180s per record. They now abort the run with the billing URL.
+  The translator (`education/services/translation.py`) had the same flaw with a worse outcome:
+  after its retries it saved the English source as the Romanian, and `--only-missing` then
+  counted the row as done. It now raises `OpenAIPaymentRequiredError` on `insufficient_quota`.
+- **`translate_lessons_to_ro --dry-run` used to call OpenAI for every exercise section.** Only
+  text went through the dry-run guard. Fixed 2026-09-15; on an older checkout, dry-run with
+  `-e OPENAI_API_KEY=` so it cannot spend.
+- **`push_ro_translations_to_railway` keyed section translations on the local id** — the same
+  flaw `push_rewrites_to_railway` had. Since 2026-09-15 it resolves by lesson slug + order, skips
+  rows whose options would not align with the Railway English, and verifies each standalone
+  exercise's English question before writing. Paths, courses and lessons are still id-keyed.
+  Use `--section-type exercise` to push quiz translations without touching RO lesson text.
+- **Running `manage.py test` with a real `OPENAI_API_KEY` in the container spends it.** Some
+  translation tests reach the real API. An invalid key turned the suite into a 40-minute retry
+  loop on 2026-09-15; with `-e OPENAI_API_KEY=` it runs in seconds.
+- **Local content lives in the `monevo` database.** Compose defaults `POSTGRES_DB` to `garzoni`,
+  which is empty. Target the content with `POSTGRES_DB=monevo docker compose -f docker-compose.yml
+  -f docker-compose.dev.yml run --rm ...`.
 
 ## Related
 

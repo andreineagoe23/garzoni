@@ -420,7 +420,12 @@ class Command(BaseCommand):
         payload: Dict[str, Any] = {}
         base_ctx = {**ctx, "section_order": section.order, "section_title": section.title}
 
-        if section.title:
+        title = (section.title or "").strip()
+        check_number = title.removeprefix("Knowledge Check ")
+        if check_number != title and check_number.isdigit():
+            # Translated one call at a time, this one title came back four different ways.
+            payload["title"] = f"Verificare cunoștințe {check_number}"
+        elif section.title:
             payload["title"] = self._safe_translate(
                 section.title, {**base_ctx, "field": "section_title"}
             )
@@ -440,6 +445,13 @@ class Command(BaseCommand):
             data = section.exercise_data
             if not isinstance(data, dict):
                 return None
+
+            if self.dry_run:
+                # translate_exercise calls the API directly. Only _safe_translate checks
+                # dry_run, so without this a dry run paid for every exercise section.
+                payload["exercise_data"] = data
+                payload["text_content"] = None
+                return payload
 
             try:
                 translated_data = self.translator.translate_exercise(data, base_ctx)

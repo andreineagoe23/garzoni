@@ -19,7 +19,7 @@ import logging
 import re
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from django.conf import settings
@@ -29,8 +29,20 @@ logger = logging.getLogger(__name__)
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
 
+def _match_final_period(translated: str, source: str) -> str:
+    """A lone full stop on one option gives the answer away; end options as the English does."""
+    translated = translated.strip()
+    if translated.endswith(".") and not source.strip().endswith("."):
+        return translated[:-1].rstrip()
+    return translated
+
+
+def _strip_code_fence(text: str) -> str:
+    return re.sub(r"^```[a-zA-Z]*\s*|\s*```$", "", text.strip())
+
+
 class OpenAIPaymentRequiredError(Exception):
-    """Raised when OpenAI returns 402 Payment Required (credits exhausted or billing limit)."""
+    """Raised when OpenAI credits are exhausted (402, or 429 insufficient_quota)."""
 
     pass
 
@@ -40,6 +52,12 @@ class TranslationProvider(ABC):
 
     @abstractmethod
     def translate_text(self, text: str, context: Optional[Dict[str, Any]] = None) -> str: ...
+
+    def _translate_multiple_choice(
+        self, question: str, options: List[str], explanation: str, context: Dict[str, Any]
+    ) -> Optional[Tuple[str, List[str], str]]:
+        """Translate a whole multiple-choice question in one pass; None to go per string."""
+        return None
 
     def translate_exercise(
         self, exercise_data: Dict[str, Any], context: Optional[Dict[str, Any]] = None
@@ -99,13 +117,20 @@ class TranslationProvider(ABC):
         if not question or not options:
             return exercise_data
 
-        ro_q = self.translate_text(question, {**ctx, "field": "exercise_question"})
-        ro_opts = [self.translate_text(opt, {**ctx, "field": "exercise_option"}) for opt in options]
-        ro_expl = (
-            self.translate_text(explanation, {**ctx, "field": "exercise_explanation"})
-            if explanation
-            else ""
-        )
+        batched = self._translate_multiple_choice(question, options, explanation, ctx)
+        if batched:
+            ro_q, ro_opts, ro_expl = batched
+        else:
+            ro_q = self.translate_text(question, {**ctx, "field": "exercise_question"})
+            ro_opts = [
+                self.translate_text(opt, {**ctx, "field": "exercise_option"}) for opt in options
+            ]
+            ro_expl = (
+                self.translate_text(explanation, {**ctx, "field": "exercise_explanation"})
+                if explanation
+                else ""
+            )
+        ro_opts = [_match_final_period(ro, en) for ro, en in zip(ro_opts, options)]
 
         return {
             **exercise_data,
@@ -137,6 +162,50 @@ class OpenAITranslator(TranslationProvider):
             logger.warning("Translation API returned None for text: %s", text[:80])
             return text
         return result.strip()
+
+    def _translate_multiple_choice(
+        self, question: str, options: List[str], explanation: str, context: Dict[str, Any]
+    ) -> Optional[Tuple[str, List[str], str]]:
+        # One call for the whole question. Options sent one at a time had no question to
+        # agree with, so terms drifted and gender agreement broke ("fiecărui liră").
+        source = {"question": question, "options": options, "explanation": explanation}
+        prompt = (
+            "Translate this multiple-choice question from a personal finance learning app to "
+            "Romanian, in a friendly, conversational tone. Keep the options in the same order "
+            "and the same number. Translate each English term the same way in the question, "
+            "options and explanation, and make every option agree grammatically with the "
+            "question. Preserve numbers and currency symbols. Return ONLY a JSON object with "
+            'the keys "question", "options" (a list of strings) and "explanation".\n\n'
+            + json.dumps(source, ensure_ascii=False)
+        )
+        raw = self._call_api(prompt)
+        if not raw:
+            return None
+        try:
+            data = json.loads(_strip_code_fence(raw))
+        except ValueError:
+            logger.warning("Multiple-choice translation was not JSON; translating per string.")
+            return None
+        if not isinstance(data, dict):
+            return None
+        ro_q, ro_opts, ro_expl = data.get("question"), data.get("options"), data.get("explanation")
+        valid = (
+            isinstance(ro_q, str)
+            and ro_q.strip()
+            and isinstance(ro_opts, list)
+            and len(ro_opts) == len(options)
+            and all(isinstance(o, str) and o.strip() for o in ro_opts)
+            # Grading is by index, so a reordered list is the failure that matters. Numbers
+            # survive translation, which catches a swap between options that carry any.
+            and all(
+                re.findall(r"\d+", ro) == re.findall(r"\d+", en) for ro, en in zip(ro_opts, options)
+            )
+        )
+        if not valid:
+            logger.warning("Multiple-choice translation failed validation; translating per string.")
+            return None
+        ro_expl = ro_expl.strip() if isinstance(ro_expl, str) and explanation else ""
+        return ro_q.strip(), [o.strip() for o in ro_opts], ro_expl
 
     def _build_prompt(self, text: str, context: Optional[Dict[str, Any]] = None) -> str:
         ctx = context or {}
@@ -214,6 +283,20 @@ class OpenAITranslator(TranslationProvider):
                 )
 
                 if resp.status_code == 429:
+                    try:
+                        body = resp.json()
+                    except ValueError:
+                        body = {}
+                    error = body.get("error") if isinstance(body, dict) else None
+                    code = error.get("code") if isinstance(error, dict) else None
+                    if code in {"insufficient_quota", "credit_balance_exhausted"}:
+                        # An empty balance also answers 429. Retrying cannot help, and
+                        # returning None makes callers store the English source as the
+                        # translation, which --only-missing then treats as done.
+                        logger.error("OpenAI 429 %s: credits exhausted.", code)
+                        raise OpenAIPaymentRequiredError(
+                            f"OpenAI 429 {code} – add credits to continue."
+                        )
                     wait = self.backoff_base**attempt
                     logger.warning(
                         "Rate limited (429). Sleeping %.1fs before retry %d", wait, attempt
