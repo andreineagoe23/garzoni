@@ -257,7 +257,10 @@ def _resolve_one(wager_id: int, now) -> Optional[str]:
 def resolve_wagers(now=None) -> dict:
     """Resolve every active wager whose deadline has passed. Safe to call twice."""
     now = now or timezone.now()
-    today = now.date()
+    # open_wager dates the deadline with localdate(). now.date() is the UTC date, which
+    # in BST is still yesterday at the 00:30 Europe/London beat tick, so every wager due
+    # that day waited another 24h, long enough for a streak reset to flip a win to a loss.
+    today = timezone.localdate(now)
 
     ids = list(
         StreakWager.objects.filter(
