@@ -24,7 +24,7 @@ Currency: GBP. Channels: RevenueCat everywhere — **Web Billing (Stripe-backed)
 | Downloads                                            | 1 cert/share/day        | Unlimited      | Unlimited                   |
 | Analytics & insights                                 | Locked                  | Full           | Full                        |
 | **AI tutor chat** (server-persisted)                 | 5 prompts/day           | 50 prompts/day | 200 prompts/day             |
-| **AI tutor model**                                   | gpt-4o-mini             | gpt-4o-mini    | **gpt-4o**                  |
+| **AI tutor model** (`OPENAI_MODEL_ASSISTANT`)        | gpt-4.1-mini            | gpt-4.1-mini   | gpt-4.1-mini                |
 | **Inline AI explain wrong answer**                   | 3/day                   | Unlimited      | Unlimited                   |
 | **Personalized Path 2.0** (daily re-eval)            | Locked                  | ✔              | ✔                           |
 | **Weekly AI Coach Brief**                            | Locked                  | ✔              | ✔                           |
