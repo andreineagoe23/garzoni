@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Skeleton } from "../ui";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";

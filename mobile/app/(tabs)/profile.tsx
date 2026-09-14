@@ -44,7 +44,7 @@ import {
 import { TabErrorBoundary } from "../../src/components/common/TabErrorBoundary";
 import { useThemeColors } from "../../src/theme/ThemeContext";
 import { navIcons } from "../../src/theme/navIcons";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { spacing, typography, radius } from "../../src/theme/tokens";
 import type { ThemeColors } from "../../src/theme/palettes";
 import EntitlementUsageMobile from "../../src/components/profile/EntitlementUsageMobile";

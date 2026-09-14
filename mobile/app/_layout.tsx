@@ -40,16 +40,17 @@ import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
 import ReviewPromptModal from "../src/components/review/ReviewPromptModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
-import {
-  useFonts as useInter,
-  Inter_400Regular,
-  Inter_400Regular_Italic,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  Inter_800ExtraBold,
-} from "@expo-google-fonts/inter";
-import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
+// Per-weight subpaths, not the package barrel. The barrel re-exports all 18 Inter
+// faces and Metro cannot tree-shake an asset require(), so importing from it shipped
+// ~4 MB of weights (Thin, Light, Black, every italic) the app never loads.
+import { useFonts as useInter } from "expo-font";
+import { Inter_400Regular } from "@expo-google-fonts/inter/400Regular";
+import { Inter_400Regular_Italic } from "@expo-google-fonts/inter/400Regular_Italic";
+import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
+import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
+import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
+import { Inter_800ExtraBold } from "@expo-google-fonts/inter/800ExtraBold";
+import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono/400Regular";
 import { installGlobalInterFont } from "../src/theme/installFonts";
 import { ensureAndroidNotificationChannels } from "../src/bootstrap/pushNotificationsMobile";
 

@@ -55,7 +55,7 @@ import { InsightCard as InsightCardComponent } from "../../../src/components/too
 import { AddEntrySheet } from "../../../src/components/tools/portfolio/AddEntrySheet";
 import { AiExplanationSheet } from "../../../src/components/tools/portfolio/AiExplanationSheet";
 import { logDevError } from "../../../src/lib/logDevError";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, useRouter } from "expo-router";
 import { href } from "../../../src/navigation/href";
 import { useInvalidatePortfolioTools } from "../../../src/hooks/usePortfolioToolsSync";

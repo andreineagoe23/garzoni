@@ -15,7 +15,7 @@ import Svg, {
   RadialGradient,
   Stop,
 } from "react-native-svg";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { brand } from "../../theme/brand";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import KeyboardAwareScrollView from "../ui/KeyboardAwareScrollView";

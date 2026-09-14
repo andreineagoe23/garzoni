@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import type { BadgeCatalogItem, UserBadgeItem } from "@garzoni/core";
 import { getMediaBaseUrl } from "@garzoni/core";

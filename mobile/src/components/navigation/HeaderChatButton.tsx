@@ -1,6 +1,6 @@
 import { Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "../../theme/ThemeContext";
 import { navIcons } from "../../theme/navIcons";
 import { href } from "../../navigation/href";

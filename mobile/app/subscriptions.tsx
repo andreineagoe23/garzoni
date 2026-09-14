@@ -16,7 +16,7 @@ import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type {
   PurchasesIntroPrice,
   PurchasesPackage,

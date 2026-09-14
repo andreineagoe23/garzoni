@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import type { Audio as AudioType } from "expo-av";
 import { router } from "expo-router";
 import {

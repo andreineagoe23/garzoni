@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { href } from "../src/navigation/href";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {

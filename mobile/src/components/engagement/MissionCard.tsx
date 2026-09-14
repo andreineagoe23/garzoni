@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router, type Href } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import type { Mission, MissionActionKind } from "@garzoni/core";
 import { getMissionPresentation } from "@garzoni/core";
 import { useThemeColors } from "../../theme/ThemeContext";

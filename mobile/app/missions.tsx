@@ -27,7 +27,7 @@ import {
   type UserProfile,
 } from "@garzoni/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { Stack, router, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

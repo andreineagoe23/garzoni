@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { useThemeColors } from "../../theme/ThemeContext";
 import GlassButton from "../ui/GlassButton";

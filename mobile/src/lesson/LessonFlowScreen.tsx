@@ -32,7 +32,7 @@ import {
   localizeSectionTitle,
 } from "@garzoni/core";
 import ConfettiCannon from "react-native-confetti-cannon";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import {
   AppPressable,
