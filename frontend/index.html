@@ -165,6 +165,11 @@
     <script>
       (function () {
         var MEASUREMENT_ID = "G-99E61ZXSV9";
+        // Only production traffic belongs in the property. Local dev, LAN
+        // testing, the prerender and Vercel previews were all counted as visits.
+        var ANALYTICS_HOSTS = ["garzoni.app", "www.garzoni.app"];
+        var analyticsHost =
+          ANALYTICS_HOSTS.indexOf(window.location.hostname) !== -1;
         function deniedUpdate() {
           if (typeof window.gtag !== "function") return;
           window.gtag("consent", "update", {
@@ -175,7 +180,7 @@
           });
         }
         function loadGA() {
-          if (window.__GARZONI_GA_LOADED__) return;
+          if (!analyticsHost || window.__GARZONI_GA_LOADED__) return;
           window.__GARZONI_GA_LOADED__ = true;
           var gaScript = document.createElement("script");
           gaScript.async = true;
