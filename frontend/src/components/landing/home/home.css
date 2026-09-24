@@ -383,7 +383,10 @@
   gap: 12px;
   padding: 12px 22px 12px 18px;
   border-radius: 16px;
-  background: #000;
+  /* Same surface as the header, so the badges sit in the page rather than on it. */
+  background: rgba(11, 15, 20, 0.7);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.22);
   color: #fff;
   text-decoration: none;
