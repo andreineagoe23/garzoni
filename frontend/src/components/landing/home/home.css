@@ -237,6 +237,12 @@
   .gzh-hero__globe {
     order: 0;
   }
+  /* The globe sits in the middle of its column; centre the copy in its own so
+     the pair balances around the page centre instead of leaning left. */
+  .gzh-hero__copy {
+    justify-self: center;
+    max-width: 520px;
+  }
 }
 
 .gzh-hero__copy {
@@ -249,7 +255,7 @@
 .gzh-h1 {
   margin: 0;
   font-weight: 800;
-  font-size: clamp(44px, 6.2vw, 80px);
+  font-size: clamp(40px, 5.2vw, 66px);
   line-height: 1.02;
   letter-spacing: -0.04em;
   color: var(--gzh-text);
