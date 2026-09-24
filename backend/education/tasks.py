@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.html import strip_tags
 
@@ -192,54 +192,59 @@ def reset_inactive_streaks(self):
     """
     Reset streaks for users who have been inactive for over 24 hours.
 
-    - Checks the last activity date for each user.
-    - If a user has been inactive for more than a day, their streak is reset to 0.
+    Judged on `UserProfile.last_completed_date`, the date every streak path writes.
+    Course activity is not enough: the signup streak and quiz passes leave none, so
+    those users were never reset and kept a streak of 1 (or more) forever.
     """
     from authentication.models import UserProfile
     from education.models import UserProgress
 
-    users = User.objects.annotate(
-        last_active=Max("user_progress__last_course_activity_date")
-    ).select_related("profile")
+    # A user's own date is at most one day ahead of the server's, so anyone who
+    # completed something on or after the server's today is still alive.
+    profiles = UserProfile.objects.filter(
+        Q(streak__gt=0, last_completed_date__isnull=True)
+        | Q(last_completed_date__lt=timezone.localdate())
+    ).select_related("user")
 
-    for user in users:
-        if user.last_active:
-            profile = getattr(user, "profile", None)
-            if not profile:
-                continue
-            # Per-user, not one server date for everyone: this job runs at server
-            # midnight, which is mid-afternoon for some users and the following
-            # morning for others. Judging their streak on the server's calendar
-            # ended streaks that were still alive where the user actually was.
-            days_inactive = (profile.local_today() - user.last_active).days
-            if days_inactive > 1:
-                previous_streak = int(profile.streak or 0)
-                UserProgress.objects.filter(user=user).update(learning_session_count=0)
-                UserProfile.objects.filter(pk=profile.pk).update(
-                    streak=0,
-                    last_completed_date=None,
+    for profile in profiles.iterator():
+        user = profile.user
+        # Per-user, not one server date for everyone: this job runs at server
+        # midnight, which is mid-afternoon for some users and the following
+        # morning for others. Judging their streak on the server's calendar
+        # ended streaks that were still alive where the user actually was.
+        last = profile.last_completed_date
+        days_inactive = (profile.local_today() - last).days if last else None
+        if days_inactive is not None and days_inactive <= 1:
+            continue
+        previous_streak = int(profile.streak or 0)
+        UserProgress.objects.filter(user=user).update(learning_session_count=0)
+        UserProfile.objects.filter(pk=profile.pk).update(
+            streak=0,
+            last_completed_date=None,
+        )
+        # Only a streak that broke since the last run earns the "streak ended"
+        # message, not one found long dead.
+        if previous_streak > 3 and days_inactive is not None and days_inactive <= 3:
+            from authentication.tasks import send_streak_broken_email
+            from notifications.enums import CioTemplate
+            from notifications.policy import should_send_push
+            from notifications.transactional import TransactionalMessages
+
+            send_streak_broken_email.delay(user.id, previous_streak)
+
+            push_policy = should_send_push(user, "transactional")
+            if push_policy.allowed:
+                name = user.first_name or user.username or "there"
+                TransactionalMessages().send_push(
+                    CioTemplate.STREAK_BROKEN,
+                    user,
+                    {
+                        "streak_count": previous_streak,
+                        "customer_name": name,
+                        "body": f"Your {previous_streak}-day streak has ended, {name}. Start a new one today!",
+                    },
+                    badge=1,
                 )
-                if previous_streak > 3:
-                    from authentication.tasks import send_streak_broken_email
-                    from notifications.enums import CioTemplate
-                    from notifications.policy import should_send_push
-                    from notifications.transactional import TransactionalMessages
-
-                    send_streak_broken_email.delay(user.id, previous_streak)
-
-                    push_policy = should_send_push(user, "transactional")
-                    if push_policy.allowed:
-                        name = user.first_name or user.username or "there"
-                        TransactionalMessages().send_push(
-                            CioTemplate.STREAK_BROKEN,
-                            user,
-                            {
-                                "streak_count": previous_streak,
-                                "customer_name": name,
-                                "body": f"Your {previous_streak}-day streak has ended, {name}. Start a new one today!",
-                            },
-                            badge=1,
-                        )
 
 
 def _source_hash(text: str) -> str:

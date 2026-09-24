@@ -140,3 +140,39 @@ class ResetInactiveStreaksTimezoneTests(TestCase):
         profile.refresh_from_db()
         self.assertEqual(profile.streak, 0)
         self.assertIsNone(profile.last_completed_date)
+
+    def test_clears_a_lapsed_streak_with_no_course_activity(self):
+        # The signup streak leaves no UserProgress row. Those users used to be
+        # skipped, so a streak of 1 never ended.
+        profile = _profile(
+            TZ_AHEAD, streak=1, last_completed_date=LOCAL_DATE_AHEAD - timedelta(days=30)
+        )
+        with mock.patch.object(timezone, "now", return_value=INSTANT_AHEAD):
+            reset_inactive_streaks()
+        profile.refresh_from_db()
+        self.assertEqual(profile.streak, 0)
+
+    def test_keeps_a_streak_kept_alive_outside_courses(self):
+        # A quiz pass bumps the profile streak without touching course activity,
+        # so old course activity alone must not end it.
+        profile = _profile(
+            TZ_AHEAD, streak=4, last_completed_date=LOCAL_DATE_AHEAD - timedelta(days=1)
+        )
+        self._with_progress(profile, LOCAL_DATE_AHEAD - timedelta(days=10))
+        with mock.patch.object(timezone, "now", return_value=INSTANT_AHEAD):
+            reset_inactive_streaks()
+        profile.refresh_from_db()
+        self.assertEqual(profile.streak, 4)
+
+    def test_does_not_announce_a_streak_that_ended_long_ago(self):
+        profile = _profile(
+            TZ_AHEAD, streak=9, last_completed_date=LOCAL_DATE_AHEAD - timedelta(days=200)
+        )
+        with (
+            mock.patch.object(timezone, "now", return_value=INSTANT_AHEAD),
+            mock.patch("authentication.tasks.send_streak_broken_email.delay") as send_email,
+        ):
+            reset_inactive_streaks()
+        send_email.assert_not_called()
+        profile.refresh_from_db()
+        self.assertEqual(profile.streak, 0)
