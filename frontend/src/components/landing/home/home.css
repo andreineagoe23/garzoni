@@ -231,8 +231,11 @@
 }
 
 @media (min-width: 900px) {
+  /* Bottom-aligned, so the globe caption sits on the same line as the stat
+     captions at the foot of the copy. */
   .gzh-hero__grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
   }
   .gzh-hero__globe {
     order: 0;
@@ -362,10 +365,10 @@
 .gzh-globe__hint {
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: 0;
   transform: translateX(-50%);
-  font: 500 11px var(--gzh-mono);
-  letter-spacing: 0.14em;
+  /* Same style as the stat captions it lines up with. */
+  font-size: 13px;
   color: var(--gzh-faint);
   white-space: nowrap;
   pointer-events: none;
@@ -481,6 +484,10 @@
 
 .gzh-stat__star {
   color: var(--gzh-gold-bright);
+}
+
+.gzh-stat--placeholder {
+  visibility: hidden;
 }
 
 .gzh-stat__label {

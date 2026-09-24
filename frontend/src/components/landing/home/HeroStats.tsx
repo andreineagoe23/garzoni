@@ -17,7 +17,18 @@ export default function HeroStats() {
     staleTime: 10 * 60_000,
   });
 
-  if (!data) return null;
+  // Holds the row's height while the numbers load, so the copy above it and the
+  // globe caption it lines up with don't jump.
+  const placeholder = (
+    <div className="gzh-stats" aria-hidden="true">
+      <div className="gzh-stat gzh-stat--placeholder">
+        <span className="gzh-stat__value">0</span>
+        <span className="gzh-stat__label">&nbsp;</span>
+      </div>
+    </div>
+  );
+
+  if (!data) return placeholder;
 
   const items: Array<{ key: string; value: React.ReactNode; label: string }> =
     [];
@@ -47,7 +58,7 @@ export default function HeroStats() {
       label: t("welcome.stats.onStreak", { count: data.on_streak }),
     });
   }
-  if (!items.length) return null;
+  if (!items.length) return placeholder;
 
   return (
     <div className="gzh-stats">
