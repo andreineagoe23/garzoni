@@ -1,11 +1,11 @@
 # Transaction merchant name on card statements (Stripe)
 
-> **STALE 2026-08-18:** examples use the pre-rebrand name "Monevo", and Stripe is no longer the
+> **STALE 2026-08-18:** Stripe is no longer the
 > primary payment channel — billing is RevenueCat-first on every platform
 > (`docs/prod/billing-parity-runbook.md`). Direct Stripe checkout is now only the web fallback when
 > `VITE_REVENUECAT_API_KEY` is unset.
 
-What customers see on their bank or card statement (e.g. **REVOLUT** or **MONEVO \* PLUS**) is controlled by **statement descriptors** in Stripe. Here’s how to set them up so your brand shows clearly (Revolut-style).
+What customers see on their bank or card statement (e.g. **REVOLUT** or **GARZONI \* PLUS**) is controlled by **statement descriptors** in Stripe. Here’s how to set them up so your brand shows clearly (Revolut-style).
 
 ---
 
@@ -14,7 +14,7 @@ What customers see on their bank or card statement (e.g. **REVOLUT** or **MONEVO
 1. Log in to [Stripe Dashboard](https://dashboard.stripe.com).
 2. Go to **Settings** (gear icon) → **Business details**.
 3. Find **Statement descriptor**.
-4. Enter the name that should appear on card statements (e.g. `MONEVO` or `MONEVO FINANCE`).
+4. Enter the name that should appear on card statements (e.g. `GARZONI` or `GARZONI FINANCE`).
 
 **Rules:**
 
@@ -26,13 +26,13 @@ This value is used for all charges unless you override it (e.g. per product). Ma
 
 ---
 
-## 2. Optional: prefix + dynamic suffix (e.g. `MONEVO * PLUS`)
+## 2. Optional: prefix + dynamic suffix (e.g. `GARZONI * PLUS`)
 
 If you want a **fixed prefix** plus a **per-transaction suffix** (e.g. plan name):
 
 1. In **Settings → Business details**, set:
-   - **Statement descriptor** – full static text (e.g. `MONEVO`) for non-card or fallback.
-   - **Shortened descriptor** – 2–10 character **prefix** used for card charges (e.g. `MONEVO`).
+   - **Statement descriptor** – full static text (e.g. `GARZONI`) for non-card or fallback.
+   - **Shortened descriptor** – 2–10 character **prefix** used for card charges (e.g. `GARZONI`).
 2. Total length of **prefix + `* ` + suffix** must be ≤ 22 characters.
 
 For **subscriptions** created via Stripe Checkout, you **cannot** set a different suffix per checkout session. The descriptor comes from:
@@ -46,7 +46,7 @@ So for “merchant” style like Revolut, setting the **Statement descriptor** (
 
 ## 3. Optional: different descriptor per plan (Plus vs Pro)
 
-To show something like `MONEVO* PLUS` vs `MONEVO* PRO` on statements:
+To show something like `GARZONI* PLUS` vs `GARZONI* PRO` on statements:
 
 1. In Stripe go to **Product catalog** → open the **Plus** product.
 2. Set **Statement descriptor** (or product-level descriptor if shown) for that product (e.g. `PLUS` or keep empty to use account descriptor).
@@ -60,8 +60,8 @@ Stripe may use the first subscription item’s **product** descriptor for the ch
 
 | Goal                            | Where to set it                                           |
 | ------------------------------- | --------------------------------------------------------- |
-| Single name (e.g. `MONEVO`)     | **Settings → Business details → Statement descriptor**    |
-| Prefix for card (e.g. `MONEVO`) | **Settings → Business details → Shortened descriptor**    |
+| Single name (e.g. `GARZONI`)     | **Settings → Business details → Statement descriptor**    |
+| Prefix for card (e.g. `GARZONI`) | **Settings → Business details → Shortened descriptor**    |
 | Per-plan text                   | **Product** (Plus/Pro) statement descriptor, if supported |
 
-No code changes are required in Monevo: subscription checkout uses your Stripe account (and product) descriptors automatically. After you save Business details, new charges will use the new merchant name; existing subscriptions may keep the previous descriptor until the next billing cycle, depending on the bank.
+No code changes are required in Garzoni: subscription checkout uses your Stripe account (and product) descriptors automatically. After you save Business details, new charges will use the new merchant name; existing subscriptions may keep the previous descriptor until the next billing cycle, depending on the bank.

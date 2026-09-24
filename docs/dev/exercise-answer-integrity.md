@@ -266,9 +266,9 @@ docker compose exec -e RAILWAY_DB_URL="<DATABASE_PUBLIC_URL>" backend \
 - **Running `manage.py test` with a real `OPENAI_API_KEY` in the container spends it.** Some
   translation tests reach the real API. An invalid key turned the suite into a 40-minute retry
   loop on 2026-09-15; with `-e OPENAI_API_KEY=` it runs in seconds.
-- **Local content lives in the `monevo` database.** Compose defaults `POSTGRES_DB` to `garzoni`,
-  which is empty. Target the content with `POSTGRES_DB=monevo docker compose -f docker-compose.yml
-  -f docker-compose.dev.yml run --rm ...`.
+- **Local content lives in the `garzoni` database**, owned by the `garzoni` role — the compose
+  default. Until 2026-09-24 it was a `monevo` database with an empty `garzoni` one beside it; any
+  `POSTGRES_DB=monevo` override in older notes is now wrong.
 
 ## Related
 

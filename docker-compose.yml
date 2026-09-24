@@ -39,8 +39,8 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-monevo}
-      POSTGRES_USER: ${POSTGRES_USER:-monevo}
+      POSTGRES_DB: ${POSTGRES_DB:-garzoni}
+      POSTGRES_USER: ${POSTGRES_USER:-garzoni}
       # Local-dev default only. Production requires POSTGRES_PASSWORD (see docker-compose.prod.yml).
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-garzoni_local_dev_only}
     volumes:

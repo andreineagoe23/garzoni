@@ -1,11 +1,8 @@
 # Google OAuth consent screen – show "Sign in on Garzoni"
 
-> **STALE 2026-08-18:** instructions still name the pre-rebrand product "Monevo". The consent screen
-> should read **Garzoni**. Steps are otherwise current.
-
 The text and links on the Google sign-in screen (e.g. "Sign in to garzoni-production.up.railway.app") are **not** set by your app code. They come from the **OAuth consent screen** in Google Cloud Console.
 
-To show **"Sign in on Monevo"** and your own links:
+To show **"Sign in on Garzoni"** and your own links:
 
 1. Open [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **OAuth consent screen**.
 2. Click **Edit app** (or set it up if you haven’t).

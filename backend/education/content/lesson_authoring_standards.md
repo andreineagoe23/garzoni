@@ -4,7 +4,7 @@ This rubric is the baseline for the 9-section lesson flow. **Core principle: con
 
 ---
 
-## The Monevo Coach Principle
+## The Garzoni Coach Principle
 
 Every lesson should answer four things clearly:
 
@@ -85,7 +85,7 @@ Lessons stay **tight and powerful**. Depth comes from the full curriculum, not f
 - Tone: **confident, neutral, evidence-based, clear, calm, direct.**
 - **No:** "This will change your life," "Millionaires do this," "Crush your goals," "Hack your finances."
 - Prefer short paragraphs over dense blocks. No "Action:", "Metric:", "Question:" labels in content.
-- Each text section should support the Monevo Coach Principle (what / why / how / mistake) where relevant; not every section must cover all four.
+- Each text section should support the Garzoni Coach Principle (what / why / how / mistake) where relevant; not every section must cover all four.
 
 ---
 

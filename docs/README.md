@@ -75,7 +75,7 @@ since shipped, and a few describe a stack we no longer run.
 | [`prod/ios-platforms-expansion-runbook.md`](prod/ios-platforms-expansion-runbook.md)                                                                                        | PLAN — untouched                                         |
 | [`prod/deployment-docker.md`](prod/deployment-docker.md)                                                                                                                    | STALE — prod is Railway; still valid for self-hosting    |
 | [`prod/aso-1.1.5.md`](prod/aso-1.1.5.md)                                                                                                                                    | STALE version, but the current store-copy pack           |
-| [`prod/google-oauth-consent-screen.md`](prod/google-oauth-consent-screen.md)                                                                                                | STALE — pre-rebrand naming                               |
+| [`prod/google-oauth-consent-screen.md`](prod/google-oauth-consent-screen.md)                                                                                                | Current                                                  |
 | [`prod/stripe-statement-descriptor.md`](prod/stripe-statement-descriptor.md) · [`prod/stripe-plan-descriptions-and-assets.md`](prod/stripe-plan-descriptions-and-assets.md) | STALE — predate RevenueCat-first                         |
 
 ## seo/, aso/, promo/, release/ — growth and shipping
