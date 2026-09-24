@@ -237,11 +237,8 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: end;
   }
-  .gzh-hero__globe {
-    order: 0;
-  }
   /* The globe sits in the middle of its column; centre the copy in its own so
-     the pair balances around the page centre instead of leaning left. */
+     the pair balances around the page centre. */
   .gzh-hero__copy {
     justify-self: center;
     max-width: 520px;
