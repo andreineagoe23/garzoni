@@ -44,6 +44,8 @@ const noChatbotPaths = [
   "/marketing",
 ];
 const noFooterPaths = [
+  // The home page is dark-only and renders its own footer.
+  "/",
   "/login",
   "/register",
   "/forgot-password",

@@ -396,6 +396,18 @@ export type ActivePromo = {
 export const fetchSubscriptionPlans = () =>
   apiClient.get<{ plans?: unknown[]; promo?: ActivePromo | null }>("/plans/");
 
+/** Live landing-page figures. Read from whichever database the API runs against. */
+export type PublicStats = {
+  learners: number;
+  /** Learners holding a streak of one day or more right now. */
+  on_streak: number;
+  /** Null when the App Store lookup is unavailable. */
+  app_store_rating: { average: number; count: number } | null;
+};
+
+export const fetchPublicStats = () =>
+  apiClient.get<PublicStats>("/public/stats/");
+
 export type BadgeCatalogItem = {
   id: number;
   name: string;

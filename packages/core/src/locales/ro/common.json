@@ -361,6 +361,237 @@
       "body": "După ce îți verifici emailul și finalizezi prima lecție, tu și prietenul tău veți primi fiecare 50% reducere la orice plan (prima lună sau anual) — valorifică pe web la checkout.",
       "cta": "Începe cu invitația ta",
       "dismiss": "Poate mai târziu"
+    },
+    "seo": {
+      "title": "Garzoni | Educație financiară personală",
+      "description": "Garzoni te învață despre bani așa cum înveți o limbă străină: lecții de zece minute, serii zilnice și instrumente ghidate de AI."
+    },
+    "header": {
+      "logIn": "Autentificare",
+      "getApp": "Descarcă aplicația",
+      "logoAlt": "Garzoni"
+    },
+    "hero": {
+      "title": "Pricepe-te la bani, <accent>zece minute pe zi.</accent>",
+      "body": "Lecții scurte despre buget, economii și investiții, o serie zilnică care te ține motivat și instrumente pe care le încerci cu propriile cifre. Poți începe gratuit.",
+      "globeHint": "MIȘCĂ CURSORUL · APASĂ PENTRU PULS",
+      "topics": {
+        "budgeting": "Buget",
+        "saving": "Economii",
+        "investing": "Investiții",
+        "credit": "Credit",
+        "taxes": "Taxe"
+      }
+    },
+    "badges": {
+      "appStoreCaption": "Descarcă din",
+      "playCaption": "Disponibil pe"
+    },
+    "stats": {
+      "rating": "notă în App Store",
+      "learners": "cursanți",
+      "learners_one": "cursant",
+      "learners_few": "cursanți",
+      "learners_other": "cursanți",
+      "onStreak": "au o serie activă acum",
+      "onStreak_one": "are o serie activă acum",
+      "onStreak_few": "au o serie activă acum",
+      "onStreak_other": "au o serie activă acum"
+    },
+    "marquee": {
+      "label": "Subiecte pe care le vei învăța",
+      "topics": {
+        "budgeting": "Buget",
+        "saving": "Economii",
+        "creditScores": "Scor de credit",
+        "investing": "Investiții",
+        "taxes": "Taxe",
+        "debtPayoff": "Plata datoriilor",
+        "pensions": "Pensii",
+        "emergencyFunds": "Fond de urgență",
+        "indexFunds": "Fonduri indexate",
+        "payslips": "Fluturași de salariu",
+        "studentLoans": "Credite pentru studenți",
+        "compoundInterest": "Dobândă compusă"
+      }
+    },
+    "how": {
+      "title": "Construit ca un joc. <accent>Susținut de matematică reală.</accent>",
+      "body": "Garzoni transformă finanțele personale într-un obicei zilnic. Iată cum arată câteva minute pe zi.",
+      "steps": {
+        "lessons": {
+          "title": "Lecții cât o pauză de cafea",
+          "body": "O idee, un exemplu rezolvat și o verificare rapidă. Majoritatea lecțiilor durează cam zece minute, iar repetiția spațiată îți readuce în minte ce ești pe cale să uiți. Încearcă întrebarea de pe telefon."
+        },
+        "streaks": {
+          "title": "Seriile și XP-ul te fac să revii",
+          "body": "Atinge-ți obiectivul zilnic, crește-ți seria și urcă în liga săptămânală. E aceeași atracție care face o aplicație de limbi străine greu de lăsat din mână."
+        },
+        "practise": {
+          "title": "Exersează cu propriile cifre",
+          "body": "Constructor de buget, simulator de plată a datoriilor și proiecții de economii. Coach-ul AI îți explică ce s-a schimbat și de ce, pe înțelesul tău."
+        },
+        "path": {
+          "title": "Un traseu construit în jurul obiectivului tău",
+          "body": "Spune-i lui Garzoni ce vrei să schimbi: bugetul, datoriile, economiile sau prima investiție. Lecțiile și provocările se reordonează în funcție de asta."
+        }
+      }
+    },
+    "phone": {
+      "quiz": {
+        "label": "VERIFICARE RAPIDĂ",
+        "question": "Câștigi net 2.000 £ pe lună. După regula 50/30/20, cât economisești?",
+        "check": "VERIFICĂ",
+        "tryAgain": "ÎNCEARCĂ DIN NOU",
+        "correctTitle": "Bravo!",
+        "correctBody": "20% din 2.000 £ înseamnă 400 £. Seria ta tocmai a crescut.",
+        "wrongTitle": "Nu chiar",
+        "wrongBody": "Economiile primesc 20%, adică 400 £. Nevoile primesc 1.000 £, iar dorințele 600 £.",
+        "xp": "+15 XP"
+      },
+      "streak": {
+        "caption": "zile de serie",
+        "finish": "TERMINĂ LECȚIA DE AZI",
+        "done": "GATA PE AZI ✓  (+{{xp}} XP)",
+        "league": "LIGA SĂPTĂMÂNII",
+        "you": "Tu",
+        "xp": "{{xp}} XP",
+        "days": {
+          "mon": "L",
+          "tue": "M",
+          "wed": "M",
+          "thu": "J",
+          "fri": "V",
+          "sat": "S",
+          "sun": "D"
+        }
+      },
+      "budget": {
+        "label": "CALCULATOR · AI",
+        "monthly": "Buget lunar",
+        "needs": "Nevoi {{pct}}%",
+        "wants": "Dorințe {{pct}}%",
+        "save": "Economii {{pct}}%",
+        "drag": "Trage ca să economisești mai mult",
+        "perMonth": "{{amount}}/lună",
+        "insightLabel": "✦ OBSERVAȚIE AI",
+        "sooner": "La {{pct}}% ai strânge o rezervă de {{cushion}} în {{count}} de luni, față de {{base}} luni la {{baseline}}%.",
+        "sooner_one": "La {{pct}}% ai strânge o rezervă de {{cushion}} într-o lună, față de {{base}} luni la {{baseline}}%.",
+        "sooner_few": "La {{pct}}% ai strânge o rezervă de {{cushion}} în {{count}} luni, față de {{base}} luni la {{baseline}}%.",
+        "sooner_other": "La {{pct}}% ai strânge o rezervă de {{cushion}} în {{count}} de luni, față de {{base}} luni la {{baseline}}%.",
+        "later": "La {{pct}}%, o rezervă de {{cushion}} îți ia {{count}} de luni, față de {{base}} luni la {{baseline}}%.",
+        "later_one": "La {{pct}}%, o rezervă de {{cushion}} îți ia o lună, față de {{base}} luni la {{baseline}}%.",
+        "later_few": "La {{pct}}%, o rezervă de {{cushion}} îți ia {{count}} luni, față de {{base}} luni la {{baseline}}%.",
+        "later_other": "La {{pct}}%, o rezervă de {{cushion}} îți ia {{count}} de luni, față de {{base}} luni la {{baseline}}%.",
+        "same": "La {{pct}}% ai strânge o rezervă de {{cushion}} în {{count}} de luni. Crește puțin procentul ca să ajungi mai repede.",
+        "same_one": "La {{pct}}% ai strânge o rezervă de {{cushion}} într-o lună. Crește puțin procentul ca să ajungi mai repede.",
+        "same_few": "La {{pct}}% ai strânge o rezervă de {{cushion}} în {{count}} luni. Crește puțin procentul ca să ajungi mai repede.",
+        "same_other": "La {{pct}}% ai strânge o rezervă de {{cushion}} în {{count}} de luni. Crește puțin procentul ca să ajungi mai repede."
+      },
+      "goal": {
+        "title": "Care e principalul tău obiectiv financiar?",
+        "pathLabel": "TRASEUL TĂU ÎNCEPE CU",
+        "goals": {
+          "budget": {
+            "title": "Fă-ți un buget",
+            "sub": "Află unde se duc banii"
+          },
+          "debt": {
+            "title": "Scapă de datorii",
+            "sub": "Micșorează soldurile"
+          },
+          "savings": {
+            "title": "Crește-ți economiile",
+            "sub": "Construiește o rezervă"
+          },
+          "investing": {
+            "title": "Începe să investești",
+            "sub": "Pune banii la treabă"
+          }
+        },
+        "lessons": {
+          "whereMoneyGoes": "Unde se duc banii tăi",
+          "rule503020": "Regula 50/30/20",
+          "howAprWorks": "Cum funcționează DAE",
+          "avalancheSnowball": "Avalanșă vs. bulgăre de zăpadă",
+          "emergencyFunds": "Fondul de urgență",
+          "automatingSavings": "Economii automate",
+          "compoundGrowth": "Creșterea compusă",
+          "indexFunds": "Fonduri indexate"
+        }
+      }
+    },
+    "demo": {
+      "eyebrow": "Încearcă singur",
+      "headline": "{{monthly}} pe lună timp de {{years}} ar putea ajunge la <accent>{{total}}</accent>.",
+      "yearsCount": "{{count}} de ani",
+      "yearsCount_one": "{{count}} an",
+      "yearsCount_few": "{{count}} ani",
+      "yearsCount_other": "{{count}} de ani",
+      "monthly": "Depunere lunară",
+      "years": "Ani",
+      "rate": "Randament anual",
+      "coachLabel": "✦ COACH AI",
+      "insightLate": "Dacă ai aștepta cinci ani ca să începi, ai ajunge la {{late}}. Adică {{difference}} mai puțin, din același obicei lunar.",
+      "insightShort": "Întinde perioada peste cinci ani și dobânda compusă începe să muncească mai mult decât depunerile tale.",
+      "putIn": "Ai depus",
+      "growth": "Creștere",
+      "chartLabel": "Grafic de creștere: {{total}} în total, din care {{contributions}} din depunerile tale.",
+      "disclaimer": "Doar ilustrativ. Randamentele nu sunt garantate, iar acesta nu este un sfat financiar."
+    },
+    "pricing": {
+      "title": "Gratuit la început. <accent>Treci la un plan superior dacă vrei mai mult.</accent>",
+      "body": "Anulezi oricând. Planurile anuale te scapă de până la {{pct}}% din cost.",
+      "billingLabel": "Perioada de facturare",
+      "monthly": "Lunar",
+      "annual": "Anual",
+      "perMonth": "/ lună",
+      "billedYearly": "Facturat {{price}} pe an · economisești {{pct}}%",
+      "billedMonthly": "Facturat lunar · anulezi oricând",
+      "starter": {
+        "name": "Starter",
+        "forever": "pentru totdeauna",
+        "note": "Fără card",
+        "cta": "Alege Starter",
+        "features": {
+          "basicFinance": "Cursul Finanțe de bază",
+          "streaks": "Serii zilnice și XP",
+          "calculators": "Calculatoare de bază"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "cta": "Începe Plus",
+        "features": {
+          "path": "Traseu de învățare personalizat",
+          "calculators": "Calculatoare nelimitate",
+          "insights": "Statistici despre progres"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "badge": "CEL MAI POPULAR",
+        "cta": "Începe Pro",
+        "features": {
+          "everythingPlus": "Tot ce include Plus",
+          "simulations": "Simulări avansate",
+          "priorityAi": "Ghidare AI prioritară",
+          "earlyAccess": "Acces timpuriu la instrumente noi"
+        }
+      }
+    },
+    "download": {
+      "title": "Prima ta lecție durează <accent>zece minute.</accent>",
+      "body": "Gratuit la început, fără card de credit. Continui de unde ai rămas, pe iPhone sau Android.",
+      "disclaimer": "Garzoni este o platformă de educație financiară, nu un consultant financiar."
+    },
+    "footer": {
+      "label": "Subsolul site-ului",
+      "about": "Despre",
+      "privacy": "Confidențialitate",
+      "terms": "Termeni",
+      "disclaimer": "Declinare de responsabilitate financiară",
+      "contact": "Contact"
     }
   },
   "demoLesson": {
@@ -392,7 +623,11 @@
     },
     "q2": {
       "prompt": "Ai un venit net de 2.000 £ pe lună. Cât ar trebui să meargă spre economii și datorii?",
-      "options": ["100 £", "400 £", "1.000 £"],
+      "options": [
+        "100 £",
+        "400 £",
+        "1.000 £"
+      ],
       "explanation": "20% din 2.000 £ înseamnă 400 £ — ținta ta lunară pentru economii și achitarea datoriilor."
     },
     "done": {

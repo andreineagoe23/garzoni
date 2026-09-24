@@ -152,13 +152,16 @@ export default function ParticleGlobe({
   topicRefs,
   lineRefs,
   flowRef,
+  pulseRef,
   lightBackdrop = false,
 }: {
   canvasContainerRef: React.RefObject<HTMLDivElement | null>;
   brainStageRef: React.RefObject<HTMLDivElement | null>;
-  topicRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  topicRefs: React.MutableRefObject<Record<string, HTMLElement | null>>;
   lineRefs: React.MutableRefObject<Array<SVGLineElement | null>>;
   flowRef: React.MutableRefObject<number>;
+  /** Set above 0 to send a pulse through the globe; it decays on its own. */
+  pulseRef?: React.MutableRefObject<number>;
   lightBackdrop?: boolean;
 }) {
   // Three.js: particle globe behind hero content
@@ -215,7 +218,7 @@ export default function ParticleGlobe({
       0.1,
       100
     );
-    camera.position.set(0, 0, 24);
+    camera.position.set(0, 0, 21);
 
     let renderer: THREE.WebGLRenderer;
     try {
@@ -283,10 +286,12 @@ export default function ParticleGlobe({
 
     const uniforms = {
       uTime: { value: 0 },
-      uDistortion: { value: PARTICLE_DEFAULTS.difficulty },
+      // Widened from the frozen literal: the click pulse raises it each frame.
+      uDistortion: { value: PARTICLE_DEFAULTS.difficulty as number },
       uSize: { value: PARTICLE_DEFAULTS.mastery },
       uSpread: { value: (1 - PARTICLE_DEFAULTS.focus) * 0.6 },
-      uMouse: { value: new THREE.Vector2(0, 0) },
+      // Far outside NDC, so nothing is repelled until the pointer arrives.
+      uMouse: { value: new THREE.Vector2(9, 9) },
       uColorPrimary: { value: new THREE.Color(BRAND.primary) },
       uColorAccent: { value: new THREE.Color(BRAND.accent) },
       uOpacity: { value: isLight ? 0.82 : 0.9 },
@@ -351,12 +356,12 @@ export default function ParticleGlobe({
     const lineMat = new THREE.LineBasicMaterial({
       color: new THREE.Color(BRAND.primary),
       transparent: true,
-      opacity: isLight ? 0.22 : 0.12,
+      opacity: isLight ? 0.22 : 0.14,
     });
     const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
     constellationGroup.add(lineMesh);
 
-    const mouseTarget = { x: 0, y: 0 };
+    const mouseTarget = { x: 9, y: 9 };
     const rotTarget = { x: 0, y: 0 };
 
     const onPointerMove = (e) => {
@@ -366,12 +371,14 @@ export default function ParticleGlobe({
       const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
 
-      mouseTarget.x = Math.max(-1, Math.min(1, nx));
-      mouseTarget.y = Math.max(-1, Math.min(1, ny));
+      // Repel only while the pointer is near the globe; elsewhere park it off-screen.
+      const inside = Math.abs(nx) <= 1.2 && Math.abs(ny) <= 1.2;
+      mouseTarget.x = inside ? nx : 9;
+      mouseTarget.y = inside ? ny : 9;
 
       // Gentle parallax on the whole group
-      rotTarget.y = mouseTarget.x * 0.22;
-      rotTarget.x = mouseTarget.y * 0.12;
+      rotTarget.y = Math.max(-1, Math.min(1, nx)) * 0.22;
+      rotTarget.x = Math.max(-1, Math.min(1, ny)) * 0.12;
     };
 
     const onResize = () => {
@@ -388,6 +395,7 @@ export default function ParticleGlobe({
     let rafId = 0;
     let last = performance.now();
     let time = 0;
+    let hudRevealed = false;
 
     const tick = (now) => {
       rafId = requestAnimationFrame(tick);
@@ -398,6 +406,14 @@ export default function ParticleGlobe({
       time += dt * (0.65 + flowRef.current * 2.8);
       uniforms.uTime.value = time;
 
+      // A click pulse swells the noise and spins the globe faster, then decays.
+      let pulse = 0;
+      if (pulseRef) {
+        pulseRef.current *= Math.pow(0.12, dt);
+        pulse = pulseRef.current;
+      }
+      uniforms.uDistortion.value = PARTICLE_DEFAULTS.difficulty + pulse * 1.4;
+
       // Smooth mouse -> uniform
       uniforms.uMouse.value.x +=
         (mouseTarget.x - uniforms.uMouse.value.x) * 0.12;
@@ -406,7 +422,9 @@ export default function ParticleGlobe({
 
       // "Planet" spin lives on the particle brain itself (like the original),
       // while the outer group handles mouse-driven parallax.
-      particleSystem.rotation.y += prefersReducedMotion ? 0 : dt * 0.22;
+      particleSystem.rotation.y += prefersReducedMotion
+        ? 0
+        : dt * (0.22 + pulse * 0.6);
       particleSystem.rotation.z = Math.sin(time * 0.22) * 0.06;
 
       constellationGroup.rotation.y +=
@@ -431,12 +449,16 @@ export default function ParticleGlobe({
           if (!el) return;
           hudTemp.copy(hudPoints[key]);
           hudTemp.applyMatrix4(particleSystem.matrixWorld);
+          // The camera looks down -z, so a marker behind the sphere has z < 0.
+          const facingAway = hudTemp.z < 0;
           hudTemp.project(camera);
 
           const x = (hudTemp.x * 0.5 + 0.5) * stageRect.width;
           const y = (-hudTemp.y * 0.5 + 0.5) * stageRect.height;
           hudScreen[key] = { x, y };
           el.style.transform = `translate(${x}px, ${y}px)`;
+          el.style.opacity = facingAway ? "0.18" : "1";
+          el.style.pointerEvents = facingAway ? "none" : "auto";
         });
 
         hudConnections.forEach(([a, b], idx) => {
@@ -452,6 +474,17 @@ export default function ParticleGlobe({
       }
 
       renderer.render(scene, camera);
+
+      // Labels stay hidden until they have a real position, so they never
+      // stack in the corner while three.js is still loading.
+      if (!hudRevealed) {
+        hudRevealed = true;
+        Object.values(topicRefs.current).forEach((el) => {
+          if (el) el.style.visibility = "visible";
+        });
+        const svg = lineRefs.current.find(Boolean)?.ownerSVGElement;
+        if (svg) svg.style.opacity = "1";
+      }
     };
 
     rafId = requestAnimationFrame(tick);
@@ -479,6 +512,7 @@ export default function ParticleGlobe({
     topicRefs,
     lineRefs,
     flowRef,
+    pulseRef,
   ]);
 
   return null;

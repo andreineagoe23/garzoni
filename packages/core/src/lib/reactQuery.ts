@@ -10,6 +10,7 @@ export const queryKeys = {
   /** Per-day lesson/section/exercise counts (not Redis-cached with profile). */
   activityHeatmap: () => ["activityHeatmap"] as const,
   entitlements: () => ["entitlements"] as const,
+  publicStats: () => ["publicStats"] as const,
 
   progressSummary: () => ["progressSummary"] as const,
   hearts: () => ["hearts"] as const,

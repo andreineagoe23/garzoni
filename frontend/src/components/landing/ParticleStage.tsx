@@ -18,13 +18,15 @@ export default function ParticleStage({
   topicRefs,
   lineRefs,
   flowRef,
+  pulseRef,
   lightBackdrop = false,
 }: {
   canvasContainerRef: React.RefObject<HTMLDivElement | null>;
   brainStageRef: React.RefObject<HTMLDivElement | null>;
-  topicRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  topicRefs: React.MutableRefObject<Record<string, HTMLElement | null>>;
   lineRefs: React.MutableRefObject<Array<SVGLineElement | null>>;
   flowRef: React.MutableRefObject<number>;
+  pulseRef?: React.MutableRefObject<number>;
   lightBackdrop?: boolean;
 }) {
   const fallbackBg = "transparent";
@@ -59,6 +61,7 @@ export default function ParticleStage({
         topicRefs={topicRefs}
         lineRefs={lineRefs}
         flowRef={flowRef}
+        pulseRef={pulseRef}
         lightBackdrop={lightBackdrop}
       />
     </Suspense>

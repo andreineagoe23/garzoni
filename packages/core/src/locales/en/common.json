@@ -361,6 +361,237 @@
       "body": "After you verify your email and complete your first lesson, you and your friend will both receive 50% off any plan (first month or yearly) — redeem on the web at checkout.",
       "cta": "Start with your invite",
       "dismiss": "Maybe later"
+    },
+    "seo": {
+      "title": "Garzoni | Personal Finance Education",
+      "description": "Garzoni teaches you money the way you learn a language: ten-minute lessons, daily streaks, and AI-guided tools."
+    },
+    "header": {
+      "logIn": "Log in",
+      "getApp": "Get the app",
+      "logoAlt": "Garzoni"
+    },
+    "hero": {
+      "title": "Get good with money, <accent>ten minutes a day.</accent>",
+      "body": "Short lessons on budgeting, saving and investing, a daily streak to keep you going, and tools you can try with your own numbers. Free to start.",
+      "globeHint": "MOVE YOUR CURSOR · CLICK TO PULSE",
+      "topics": {
+        "budgeting": "Budgeting",
+        "saving": "Saving",
+        "investing": "Investing",
+        "credit": "Credit",
+        "taxes": "Taxes"
+      }
+    },
+    "badges": {
+      "appStoreCaption": "Download on the",
+      "playCaption": "Get it on"
+    },
+    "stats": {
+      "rating": "App Store rating",
+      "learners": "learners",
+      "learners_one": "learner",
+      "learners_few": "learners",
+      "learners_other": "learners",
+      "onStreak": "on a streak right now",
+      "onStreak_one": "on a streak right now",
+      "onStreak_few": "on a streak right now",
+      "onStreak_other": "on a streak right now"
+    },
+    "marquee": {
+      "label": "Topics you'll learn",
+      "topics": {
+        "budgeting": "Budgeting",
+        "saving": "Saving",
+        "creditScores": "Credit scores",
+        "investing": "Investing",
+        "taxes": "Taxes",
+        "debtPayoff": "Debt payoff",
+        "pensions": "Pensions",
+        "emergencyFunds": "Emergency funds",
+        "indexFunds": "Index funds",
+        "payslips": "Payslips",
+        "studentLoans": "Student loans",
+        "compoundInterest": "Compound interest"
+      }
+    },
+    "how": {
+      "title": "Built like a game. <accent>Backed by real maths.</accent>",
+      "body": "Garzoni turns personal finance into a daily habit. Here's what a few minutes a day looks like.",
+      "steps": {
+        "lessons": {
+          "title": "Lessons that fit in a coffee break",
+          "body": "One idea, a worked example and a quick check. Most lessons take about ten minutes, and spaced repetition brings back what you are about to forget. Try the question on the phone."
+        },
+        "streaks": {
+          "title": "Streaks and XP keep you coming back",
+          "body": "Hit your daily goal, grow your streak and climb the weekly league. It is the same pull that makes a language app hard to put down."
+        },
+        "practise": {
+          "title": "Practise with your own numbers",
+          "body": "Budget builder, debt payoff simulator and savings projections. The AI coach explains what changed and why, in plain language."
+        },
+        "path": {
+          "title": "A path built around your goal",
+          "body": "Tell Garzoni what you want to move: your budget, your debt, your savings or your first investment. Lessons and challenges reorder around it."
+        }
+      }
+    },
+    "phone": {
+      "quiz": {
+        "label": "QUICK CHECK",
+        "question": "You take home £2,000 a month. With 50/30/20, how much do you save?",
+        "check": "CHECK",
+        "tryAgain": "TRY AGAIN",
+        "correctTitle": "Nice one!",
+        "correctBody": "20% of £2,000 is £400. Your streak just went up.",
+        "wrongTitle": "Not quite",
+        "wrongBody": "Savings get 20%, so £400. Needs get £1,000 and wants £600.",
+        "xp": "+15 XP"
+      },
+      "streak": {
+        "caption": "day streak",
+        "finish": "FINISH TODAY'S LESSON",
+        "done": "DONE FOR TODAY ✓  (+{{xp}} XP)",
+        "league": "THIS WEEK'S LEAGUE",
+        "you": "You",
+        "xp": "{{xp}} XP",
+        "days": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "W",
+          "thu": "T",
+          "fri": "F",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
+      "budget": {
+        "label": "CALCULATOR · AI",
+        "monthly": "Monthly budget",
+        "needs": "Needs {{pct}}%",
+        "wants": "Wants {{pct}}%",
+        "save": "Save {{pct}}%",
+        "drag": "Drag to save more",
+        "perMonth": "{{amount}}/mo",
+        "insightLabel": "✦ AI INSIGHT",
+        "sooner": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} months. That's {{diff}} sooner than at {{baseline}}%.",
+        "sooner_one": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} month. That's {{diff}} sooner than at {{baseline}}%.",
+        "sooner_few": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} months. That's {{diff}} sooner than at {{baseline}}%.",
+        "sooner_other": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} months. That's {{diff}} sooner than at {{baseline}}%.",
+        "later": "At {{pct}}% a {{cushion}} cushion takes {{count}} months, {{diff}} longer than at {{baseline}}%.",
+        "later_one": "At {{pct}}% a {{cushion}} cushion takes {{count}} month, {{diff}} longer than at {{baseline}}%.",
+        "later_few": "At {{pct}}% a {{cushion}} cushion takes {{count}} months, {{diff}} longer than at {{baseline}}%.",
+        "later_other": "At {{pct}}% a {{cushion}} cushion takes {{count}} months, {{diff}} longer than at {{baseline}}%.",
+        "same": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} months. Nudge it up to get there sooner.",
+        "same_one": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} month. Nudge it up to get there sooner.",
+        "same_few": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} months. Nudge it up to get there sooner.",
+        "same_other": "At {{pct}}% you'd hit a {{cushion}} cushion in {{count}} months. Nudge it up to get there sooner."
+      },
+      "goal": {
+        "title": "What's your top money goal?",
+        "pathLabel": "YOUR PATH STARTS WITH",
+        "goals": {
+          "budget": {
+            "title": "Build a budget",
+            "sub": "Know where it goes"
+          },
+          "debt": {
+            "title": "Pay down debt",
+            "sub": "Shrink balances"
+          },
+          "savings": {
+            "title": "Grow savings",
+            "sub": "Build a cushion"
+          },
+          "investing": {
+            "title": "Start investing",
+            "sub": "Money to work"
+          }
+        },
+        "lessons": {
+          "whereMoneyGoes": "Where your money goes",
+          "rule503020": "The 50/30/20 rule",
+          "howAprWorks": "How APR works",
+          "avalancheSnowball": "Avalanche vs. snowball",
+          "emergencyFunds": "Emergency funds",
+          "automatingSavings": "Automating savings",
+          "compoundGrowth": "Compound growth",
+          "indexFunds": "Index funds"
+        }
+      }
+    },
+    "demo": {
+      "eyebrow": "Try it yourself",
+      "headline": "{{monthly}} a month for {{years}} could grow to <accent>{{total}}</accent>.",
+      "yearsCount": "{{count}} years",
+      "yearsCount_one": "{{count}} year",
+      "yearsCount_few": "{{count}} years",
+      "yearsCount_other": "{{count}} years",
+      "monthly": "Monthly deposit",
+      "years": "Years",
+      "rate": "Annual return",
+      "coachLabel": "✦ AI COACH",
+      "insightLate": "Waiting five years to start would leave you with {{late}}. That's {{difference}} less, from the same monthly habit.",
+      "insightShort": "Push the timeline past five years and compounding starts doing more of the work than your deposits.",
+      "putIn": "You put in",
+      "growth": "Growth",
+      "chartLabel": "Growth chart: {{total}} in total, {{contributions}} of it from your deposits.",
+      "disclaimer": "Illustrative only. Returns aren't guaranteed and this isn't financial advice."
+    },
+    "pricing": {
+      "title": "Free to start. <accent>Upgrade if you want more.</accent>",
+      "body": "Cancel anytime. Annual plans save up to {{pct}}%.",
+      "billingLabel": "Billing period",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "perMonth": "/ month",
+      "billedYearly": "Billed {{price}} a year · save {{pct}}%",
+      "billedMonthly": "Billed monthly · cancel anytime",
+      "starter": {
+        "name": "Starter",
+        "forever": "forever",
+        "note": "No card needed",
+        "cta": "Get Starter",
+        "features": {
+          "basicFinance": "The Basic Finance course",
+          "streaks": "Daily streaks & XP",
+          "calculators": "Basic calculators"
+        }
+      },
+      "plus": {
+        "name": "Plus",
+        "cta": "Start Plus",
+        "features": {
+          "path": "Personalised learning path",
+          "calculators": "Unlimited calculators",
+          "insights": "Progress insights"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "badge": "MOST POPULAR",
+        "cta": "Start Pro",
+        "features": {
+          "everythingPlus": "Everything in Plus",
+          "simulations": "Advanced simulations",
+          "priorityAi": "Priority AI guidance",
+          "earlyAccess": "Early access to new tools"
+        }
+      }
+    },
+    "download": {
+      "title": "Your first lesson takes <accent>ten minutes.</accent>",
+      "body": "Free to start, no credit card. Pick up where you left off on iPhone or Android.",
+      "disclaimer": "Garzoni is a financial education platform, not a financial adviser."
+    },
+    "footer": {
+      "label": "Site footer",
+      "about": "About",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "disclaimer": "Financial disclaimer",
+      "contact": "Contact"
     }
   },
   "demoLesson": {
@@ -392,7 +623,11 @@
     },
     "q2": {
       "prompt": "You take home £2,000 a month. How much should go to savings and debt?",
-      "options": ["£100", "£400", "£1,000"],
+      "options": [
+        "£100",
+        "£400",
+        "£1,000"
+      ],
       "explanation": "20% of £2,000 is £400 — that's your monthly target for savings and paying down debt."
     },
     "done": {
