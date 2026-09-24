@@ -21,6 +21,7 @@ from core.views import (
     apple_app_site_association,
     health_view,
 )
+from core.views_public import public_stats_view
 from education.views_public import sitemap_xml
 
 urlpatterns = [
@@ -36,6 +37,7 @@ urlpatterns = [
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh-direct"),
     # Compatibility route to ensure /api/me/profile/ is always available
     path("api/me/profile/", FinancialProfileView.as_view(), name="financial-profile-direct"),
+    path("api/public/stats/", public_stats_view, name="public-stats"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
