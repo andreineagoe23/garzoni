@@ -297,7 +297,9 @@ _is_local_db = any(
     host in database_url for host in ("railway.internal", "@db:", "@localhost", "@127.0.0.1")
 )
 _is_external_db = not _is_local_db
-default_db = dj_database_url.parse(database_url, conn_max_age=600, ssl_require=_is_external_db)
+default_db = dj_database_url.parse(
+    database_url, conn_max_age=600, conn_health_checks=True, ssl_require=_is_external_db
+)
 if "OPTIONS" not in default_db:
     default_db["OPTIONS"] = {}
 
@@ -1293,6 +1295,10 @@ if (
     )
 
 SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
+# Local docker shares production's DSN; its connection and missing-key errors were
+# landing in the same project as real incidents.
+if DJANGO_ENV == "development":
+    SENTRY_DSN = ""
 if SENTRY_DSN and "test" not in sys.argv:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -1333,7 +1339,7 @@ if SENTRY_DSN and "test" not in sys.argv:
     import logging as _logging
 
     _logging.getLogger(__name__).info("Sentry initialised env=%s", DJANGO_ENV)
-elif not SENTRY_DSN and "test" not in sys.argv:
+elif DJANGO_ENV != "development" and "test" not in sys.argv:
     # Only warn when actually serving traffic, not during management commands (migrate, makemigrations, etc.)
     _server_commands = {"runserver", "gunicorn"}
     if not _server_commands.isdisjoint(sys.argv):
