@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   AppState,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,7 +14,7 @@ import {
   View,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import type { Audio as AudioType } from "expo-av";
+import type * as ExpoAudio from "expo-audio";
 import { router } from "expo-router";
 import {
   isAppActiveForAudio,
@@ -34,27 +35,56 @@ import { spacing, typography, radius } from "../src/theme/tokens";
 import { useScreenGutter } from "../src/utils/platform";
 import type { ThemeColors } from "../src/theme/palettes";
 
-let audioModule: typeof AudioType | null | undefined;
+type AudioApi = typeof ExpoAudio;
+type AudioRecorder = InstanceType<AudioApi["AudioModule"]["AudioRecorder"]>;
+type AudioPlayer = ReturnType<AudioApi["createAudioPlayer"]>;
+
+let audioModule: AudioApi | null | undefined;
 
 /**
- * Resolve expo-av on first use rather than at module scope.
+ * Resolve expo-audio on first use rather than at module scope.
  *
- * expo-router imports every route file during startup, so a top-level require
- * ran on every cold start and printed expo-av's SDK 54 deprecation warning —
- * on a Pro-gated screen most launches never open. Loading it lazily ties both
- * the module and the warning to actually using voice.
+ * expo-router imports every route file during startup, and expo-audio throws at
+ * import time when its native module is missing (a dev build or an OTA-updated
+ * binary built before it was added). Loading it lazily confines that failure to
+ * this Pro-gated screen instead of taking down every cold start.
  */
-function getAudio(): typeof AudioType | null {
+function getAudio(): AudioApi | null {
   if (audioModule === undefined) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      audioModule = require("expo-av").Audio;
+      audioModule = require("expo-audio") as AudioApi;
     } catch {
       /* native module not in this dev build — feature gated at runtime */
       audioModule = null;
     }
   }
   return audioModule ?? null;
+}
+
+/** What `useAudioRecorder` does to a preset before handing it to the native recorder. */
+function createRecorder(Audio: AudioApi): AudioRecorder {
+  const preset = Audio.RecordingPresets.HIGH_QUALITY;
+  return new Audio.AudioModule.AudioRecorder({
+    extension: preset.extension,
+    sampleRate: preset.sampleRate,
+    numberOfChannels: preset.numberOfChannels,
+    bitRate: preset.bitRate,
+    isMeteringEnabled: false,
+    ...(Platform.OS === "ios" ? preset.ios : preset.android),
+  });
+}
+
+/** expo-av's defaults: mix on iOS, duck others on Android. */
+const INTERRUPTION_MODE =
+  Platform.OS === "android" ? "duckOthers" : "mixWithOthers";
+
+function releaseRecorder(rec: AudioRecorder) {
+  try {
+    rec.release();
+  } catch {
+    /* already released */
+  }
 }
 
 type Message = {
@@ -167,12 +197,12 @@ export default function VoiceChat() {
   const isProUser = voiceEntitlement?.enabled === true;
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [recording, setRecording] = useState<AudioType.Recording | null>(null);
   const [status, setStatus] = useState<"idle" | "recording" | "processing">(
     "idle",
   );
   const scrollRef = useRef<ScrollView>(null);
-  const soundRef = useRef<AudioType.Sound | null>(null);
+  const recorderRef = useRef<AudioRecorder | null>(null);
+  const soundRef = useRef<AudioPlayer | null>(null);
   const pendingTtsUriRef = useRef<string | null>(null);
 
   const unloadSound = useCallback(async () => {
@@ -180,9 +210,9 @@ export default function VoiceChat() {
     soundRef.current = null;
     if (current) {
       try {
-        await current.unloadAsync();
+        current.remove();
       } catch {
-        /* already unloaded */
+        /* already released */
       }
     }
   }, []);
@@ -200,12 +230,13 @@ export default function VoiceChat() {
       try {
         await unloadSound();
         await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: true,
+          allowsRecording: false,
+          playsInSilentMode: true,
+          interruptionMode: INTERRUPTION_MODE,
         });
-        const { sound: snd } = await Audio.Sound.createAsync({ uri: dataUri });
-        soundRef.current = snd;
-        await snd.playAsync();
+        const player = Audio.createAudioPlayer({ uri: dataUri });
+        soundRef.current = player;
+        player.play();
       } catch (e) {
         if (isBackgroundAudioError(e)) {
           pendingTtsUriRef.current = dataUri;
@@ -220,6 +251,14 @@ export default function VoiceChat() {
   useEffect(() => {
     return () => {
       void unloadSound();
+      const rec = recorderRef.current;
+      recorderRef.current = null;
+      if (rec) {
+        void rec
+          .stop()
+          .catch(() => undefined)
+          .finally(() => releaseRecorder(rec));
+      }
     };
   }, [unloadSound]);
 
@@ -239,7 +278,7 @@ export default function VoiceChat() {
     if (!Audio) {
       Alert.alert(
         "Not available",
-        "Voice requires a development build with expo-av.",
+        "Voice requires a development build with expo-audio.",
       );
       return;
     }
@@ -247,17 +286,19 @@ export default function VoiceChat() {
       return;
     }
     try {
-      // Unload any leftover recording from a previous session
-      if (recording) {
+      // Release any leftover recorder from a previous session
+      const leftover = recorderRef.current;
+      if (leftover) {
+        recorderRef.current = null;
         try {
-          await recording.stopAndUnloadAsync();
+          await leftover.stop();
         } catch {
-          // already unloaded — safe to ignore
+          // already stopped — safe to ignore
         }
-        setRecording(null);
+        releaseRecorder(leftover);
       }
 
-      const { granted } = await Audio.requestPermissionsAsync();
+      const { granted } = await Audio.requestRecordingPermissionsAsync();
       if (!granted) {
         Alert.alert(
           "Permission required",
@@ -266,13 +307,19 @@ export default function VoiceChat() {
         return;
       }
       await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+        allowsRecording: true,
+        playsInSilentMode: true,
+        interruptionMode: INTERRUPTION_MODE,
       });
-      const { recording: rec } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-      );
-      setRecording(rec);
+      const rec = createRecorder(Audio);
+      try {
+        await rec.prepareToRecordAsync();
+        rec.record();
+      } catch (e) {
+        releaseRecorder(rec);
+        throw e;
+      }
+      recorderRef.current = rec;
       setStatus("recording");
     } catch (e) {
       if (!isBackgroundAudioError(e)) {
@@ -283,12 +330,13 @@ export default function VoiceChat() {
 
   const stopRecordingAndProcess = async () => {
     const Audio = getAudio();
-    if (!recording) return;
+    const rec = recorderRef.current;
+    if (!rec) return;
+    recorderRef.current = null;
     setStatus("processing");
     try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setRecording(null);
+      await rec.stop();
+      const uri = rec.uri;
       if (!uri) throw new Error("No recording URI");
 
       const formData = new FormData();
@@ -320,6 +368,7 @@ export default function VoiceChat() {
       const msg = e?.response?.data?.error || "Could not process voice.";
       Alert.alert("Error", msg);
     } finally {
+      releaseRecorder(rec);
       setStatus("idle");
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
     }

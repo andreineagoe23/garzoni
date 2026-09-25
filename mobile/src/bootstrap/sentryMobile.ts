@@ -30,7 +30,7 @@ const IGNORED_ERRORS = [
   // RevenueCat — surfaces when store is unavailable
   /StoreKit/i,
   /SKErrorDomain/i,
-  // expo-av — iOS refuses audio session activation while app is inactive
+  // expo-audio — iOS refuses audio session activation while app is inactive
   /audio session could not be activated/i,
   /currently in the background/i,
   /EXModulesErrorDomain/i,

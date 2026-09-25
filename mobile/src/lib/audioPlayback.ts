@@ -11,6 +11,7 @@ export function isBackgroundAudioError(err: unknown): boolean {
     /audio session could not be activated/i.test(msg) ||
     /currently in the background/i.test(msg) ||
     /EXModulesErrorDomain/i.test(msg) ||
+    /Failed to configure audio session/i.test(msg) ||
     /Prepare encountered an error/i.test(msg)
   );
 }
