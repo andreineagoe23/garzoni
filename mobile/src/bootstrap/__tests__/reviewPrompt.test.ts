@@ -16,30 +16,29 @@ jest.mock("expo-store-review", () => ({
   requestReview: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock("../customerIoMobile", () => ({
+  trackGarzoniEvent: jest.fn(() => Promise.resolve()),
+}));
+
 /* eslint-disable import/first -- mocks must run before importing the module under test */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Linking, Platform } from "react-native";
 import * as StoreReview from "expo-store-review";
+import { trackGarzoniEvent } from "../customerIoMobile";
 import {
   shouldPromptReview,
-  triggerHappyPathStoreReview,
   markReviewed,
   maybeRequestReview,
+  openStoreReview,
 } from "../reviewPrompt";
-
-jest.mock(
-  "../../components/review/reviewPromptStore",
-  () => ({
-    useReviewPromptStore: {
-      getState: () => ({ open: mockOpenSentimentModal }),
-    },
-  }),
-  { virtual: false },
-);
-const mockOpenSentimentModal = jest.fn();
 
 const store = (AsyncStorage as unknown as { __store: Record<string, string> })
   .__store;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const elapseCooldown = () => {
+  store["garzoni:review_prompt_last_ts"] = String(Date.now() - 31 * DAY_MS);
+};
 
 beforeEach(() => {
   for (const k of Object.keys(store)) delete store[k];
@@ -53,13 +52,6 @@ describe("shouldPromptReview (gating)", () => {
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
   });
 
-  it("does not depend on native StoreReview availability", async () => {
-    // The modal's feedback path needs no native module; only the happy branch does.
-    (StoreReview.isAvailableAsync as jest.Mock).mockResolvedValue(false);
-    (StoreReview.hasAction as jest.Mock).mockResolvedValue(false);
-    expect(await shouldPromptReview("quiz_pass")).toBe(true);
-  });
-
   it("is false a second time within the 30-day cooldown", async () => {
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
 
@@ -69,53 +61,42 @@ describe("shouldPromptReview (gating)", () => {
 
   it("is true again once the 30-day cooldown has elapsed", async () => {
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
-
-    const past = Date.now() - 31 * 24 * 60 * 60 * 1000;
-    store["garzoni:review_prompt_last_ts"] = String(past);
-
+    elapseCooldown();
     expect(await shouldPromptReview("streak_milestone")).toBe(true);
   });
 
   it("stops after 3 prompts within a rolling 365 days", async () => {
-    const past = () => String(Date.now() - 31 * 24 * 60 * 60 * 1000);
-    // Three prompts are allowed (spacing past the 30-day cooldown each time).
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
-    store["garzoni:review_prompt_last_ts"] = past();
+    elapseCooldown();
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
-    store["garzoni:review_prompt_last_ts"] = past();
+    elapseCooldown();
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
     // The 4th is blocked by the annual ceiling even though the cooldown elapsed.
-    store["garzoni:review_prompt_last_ts"] = past();
+    elapseCooldown();
     expect(await shouldPromptReview("lesson_complete")).toBe(false);
   });
 
   it("allows prompting again once old prompts age out of the 365-day window", async () => {
     expect(await shouldPromptReview("lesson_complete")).toBe(true);
-    // Simulate 3 prompts that all happened >1 year ago, plus an elapsed cooldown.
-    const overAYearAgo = Date.now() - 366 * 24 * 60 * 60 * 1000;
+    const overAYearAgo = Date.now() - 366 * DAY_MS;
     store["garzoni:review_prompt_timestamps"] = JSON.stringify([
       overAYearAgo,
       overAYearAgo,
       overAYearAgo,
     ]);
-    store["garzoni:review_prompt_last_ts"] = String(
-      Date.now() - 31 * 24 * 60 * 60 * 1000,
-    );
+    elapseCooldown();
     expect(await shouldPromptReview("streak_milestone")).toBe(true);
   });
 
-  it("never prompts again once the user has left a review", async () => {
+  it("never prompts again once the user has been routed to the store", async () => {
     await markReviewed();
     expect(await shouldPromptReview("lesson_complete")).toBe(false);
-
-    // Even after the cooldown elapses.
-    const past = Date.now() - 31 * 24 * 60 * 60 * 1000;
-    store["garzoni:review_prompt_last_ts"] = String(past);
+    elapseCooldown();
     expect(await shouldPromptReview("streak_milestone")).toBe(false);
   });
 });
 
-describe("triggerHappyPathStoreReview", () => {
+describe("maybeRequestReview (delight-moment entry point)", () => {
   const originalOS = Platform.OS;
   let openURL: jest.SpyInstance;
 
@@ -127,59 +108,102 @@ describe("triggerHappyPathStoreReview", () => {
     openURL.mockRestore();
   });
 
-  it("shows the native sheet on iOS", async () => {
-    Object.defineProperty(Platform, "OS", { value: "ios" });
-    await triggerHappyPathStoreReview();
+  it.each(["android", "ios"])(
+    "shows the native review sheet after the first positive event on %s",
+    async (os) => {
+      Object.defineProperty(Platform, "OS", { value: os });
+      await maybeRequestReview("lesson_complete");
+      expect(StoreReview.requestReview).toHaveBeenCalledTimes(1);
+      expect(trackGarzoniEvent).toHaveBeenCalledWith("app_review_requested", {
+        reason: "lesson_complete",
+      });
+      expect(openURL).not.toHaveBeenCalled();
+    },
+  );
+
+  it("never asks a question before the native sheet", async () => {
+    // Play policy: no "do you like the app?" step may precede the review card.
+    expect(() =>
+      jest.requireActual("../../components/review/ReviewPromptModal"),
+    ).toThrow();
+    expect(() =>
+      jest.requireActual("../../components/review/reviewPromptStore"),
+    ).toThrow();
+
+    await maybeRequestReview("quiz_pass");
     expect(StoreReview.requestReview).toHaveBeenCalledTimes(1);
     expect(openURL).not.toHaveBeenCalled();
   });
 
-  it("opens the Play Store listing on Android (no native card)", async () => {
-    Object.defineProperty(Platform, "OS", { value: "android" });
-    await triggerHappyPathStoreReview();
+  it("respects the 30-day cooldown", async () => {
+    await maybeRequestReview("lesson_complete");
+    jest.clearAllMocks();
+    await maybeRequestReview("quiz_pass");
     expect(StoreReview.requestReview).not.toHaveBeenCalled();
+    expect(trackGarzoniEvent).not.toHaveBeenCalled();
+  });
+
+  it("respects the yearly cap", async () => {
+    for (let i = 0; i < 3; i += 1) {
+      await maybeRequestReview("lesson_complete");
+      elapseCooldown();
+    }
+    expect(StoreReview.requestReview).toHaveBeenCalledTimes(3);
+    await maybeRequestReview("lesson_complete");
+    expect(StoreReview.requestReview).toHaveBeenCalledTimes(3);
+  });
+
+  it("does nothing when the native review is unavailable", async () => {
+    (StoreReview.isAvailableAsync as jest.Mock).mockResolvedValue(false);
+    await maybeRequestReview("lesson_complete");
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
+    expect(trackGarzoniEvent).not.toHaveBeenCalled();
+    expect(openURL).not.toHaveBeenCalled();
+    // The gate isn't consumed, so the next delight moment can still ask.
+    expect(store["garzoni:review_prompt_last_ts"]).toBeUndefined();
+  });
+
+  it("does nothing when the OS has no review action", async () => {
+    (StoreReview.hasAction as jest.Mock).mockResolvedValue(false);
+    await maybeRequestReview("streak_milestone");
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
+    expect(openURL).not.toHaveBeenCalled();
+  });
+});
+
+describe("openStoreReview (manual Settings action)", () => {
+  const originalOS = Platform.OS;
+  let openURL: jest.SpyInstance;
+
+  beforeEach(() => {
+    openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+  });
+  afterEach(() => {
+    Object.defineProperty(Platform, "OS", { value: originalOS });
+    openURL.mockRestore();
+  });
+
+  it("uses the native sheet when available, bypassing the gate", async () => {
+    await maybeRequestReview("lesson_complete");
+    jest.clearAllMocks();
+    await openStoreReview();
+    expect(StoreReview.requestReview).toHaveBeenCalledTimes(1);
+    expect(openURL).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the store listing when native review is unavailable", async () => {
+    Object.defineProperty(Platform, "OS", { value: "android" });
+    (StoreReview.isAvailableAsync as jest.Mock).mockResolvedValue(false);
+    await openStoreReview();
     expect(openURL).toHaveBeenCalledWith(
       expect.stringContaining("play.google.com/store/apps/details"),
     );
   });
-});
 
-describe("maybeRequestReview (delight-moment entry point)", () => {
-  const originalOS = Platform.OS;
-
-  afterEach(() => {
-    Object.defineProperty(Platform, "OS", { value: originalOS });
-  });
-
-  it("shows the native In-App Review card directly on Android (no sentiment gate)", async () => {
-    Object.defineProperty(Platform, "OS", { value: "android" });
-    await maybeRequestReview("lesson_complete");
-    expect(StoreReview.requestReview).toHaveBeenCalledTimes(1);
-    expect(mockOpenSentimentModal).not.toHaveBeenCalled();
-  });
-
-  it("falls back to the sentiment modal on Android when the native module is unavailable", async () => {
-    Object.defineProperty(Platform, "OS", { value: "android" });
-    (StoreReview.isAvailableAsync as jest.Mock).mockResolvedValue(false);
-    (StoreReview.hasAction as jest.Mock).mockResolvedValue(false);
-    await maybeRequestReview("lesson_complete");
-    expect(StoreReview.requestReview).not.toHaveBeenCalled();
-    expect(mockOpenSentimentModal).toHaveBeenCalledWith("lesson_complete");
-  });
-
-  it("opens the sentiment modal on iOS", async () => {
-    Object.defineProperty(Platform, "OS", { value: "ios" });
-    await maybeRequestReview("quiz_pass");
-    expect(StoreReview.requestReview).not.toHaveBeenCalled();
-    expect(mockOpenSentimentModal).toHaveBeenCalledWith("quiz_pass");
-  });
-
-  it("does nothing when gating blocks the prompt", async () => {
-    Object.defineProperty(Platform, "OS", { value: "android" });
-    await maybeRequestReview("lesson_complete"); // first one passes
+  it("stops future automatic prompts", async () => {
+    await openStoreReview();
     jest.clearAllMocks();
-    await maybeRequestReview("lesson_complete"); // 30-day cooldown blocks
+    await maybeRequestReview("lesson_complete");
     expect(StoreReview.requestReview).not.toHaveBeenCalled();
-    expect(mockOpenSentimentModal).not.toHaveBeenCalled();
   });
 });

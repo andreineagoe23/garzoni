@@ -38,7 +38,6 @@ import { useNativeOnlineSync } from "../src/hooks/useNativeOnlineSync";
 import { usePushNotifications } from "../src/hooks/usePushNotifications";
 import { useShakeDetection } from "../src/hooks/useShakeDetection";
 import ShakeFeedbackModal from "../src/components/feedback/ShakeFeedbackModal";
-import ReviewPromptModal from "../src/components/review/ReviewPromptModal";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 // Per-weight subpaths, not the package barrel. The barrel re-exports all 18 Inter
 // faces and Metro cannot tree-shake an asset require(), so importing from it shipped
@@ -245,7 +244,6 @@ function ThemedRoot() {
           currentRoute={pathname}
           onDismiss={() => setShakeModalVisible(false)}
         />
-        <ReviewPromptModal />
         <Toast topOffset={insets.top + 8} />
       </View>
     </NavigationThemeProvider>

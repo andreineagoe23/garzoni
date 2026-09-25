@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Linking, Platform } from "react-native";
+import { trackGarzoniEvent } from "./customerIoMobile";
 
 /** Apple App Store id + Android package, for the store-listing fallback. */
 const APP_STORE_ID = "6761790801";
@@ -22,17 +23,36 @@ function getStoreReview(): typeof import("expo-store-review") | null {
   }
 }
 
+/** The native review module, or null when it can't show a review sheet. */
+async function getAvailableStoreReview(): Promise<
+  typeof import("expo-store-review") | null
+> {
+  try {
+    const StoreReview = getStoreReview();
+    if (
+      StoreReview &&
+      (await StoreReview.isAvailableAsync()) &&
+      (await StoreReview.hasAction())
+    ) {
+      return StoreReview;
+    }
+  } catch {
+    // treat as unavailable
+  }
+  return null;
+}
+
 const LAST_PROMPT_KEY = "garzoni:review_prompt_last_ts";
 const POSITIVE_EVENT_COUNT_KEY = "garzoni:review_prompt_positive_events";
-// Set once the user has been routed to the store (tapped the positive option);
-// our best available proxy for "left a review" since the OS never tells us.
+// Set once the user has been routed to the store (older builds' "Love it" path,
+// or the manual Settings "Rate app" action); our best available proxy for
+// "left a review" since the OS never tells us.
 const REVIEWED_KEY = "garzoni:review_prompt_reviewed";
 const MIN_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
 // Prompt after the user's first positive event (e.g. first lesson completed).
 const MIN_POSITIVE_EVENTS = 1;
 // Hard ceiling of 3 prompts per rolling 365 days — mirrors Apple's native
-// SKStoreReviewController limit so our sentiment modal never over-asks a user
-// who keeps dismissing it (the 30-day cooldown alone would allow ~12/year).
+// SKStoreReviewController limit (the 30-day cooldown alone would allow ~12/year).
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 const MAX_PROMPTS_PER_YEAR = 3;
 const PROMPT_TIMESTAMPS_KEY = "garzoni:review_prompt_timestamps";
@@ -49,16 +69,13 @@ async function readNumber(key: string): Promise<number> {
 }
 
 /**
- * Decide whether to show the in-app sentiment prompt for a delight event.
+ * Frequency gate for the automatic review request at a delight event.
  *
- * Gates on engagement only: the user needs a couple of positive events first,
- * and we self-gate to once per 30 days. Once the user has left a review (tapped
- * the positive option and been routed to the store, see {@link markReviewed}),
- * we never prompt again. Crucially this does NOT depend on the native review
- * module being available — the modal's unhappy path collects feedback with no
- * native dependency, and the happy path falls back to a store link when the
- * native sheet is unavailable. Returns true when the caller should open the
- * sentiment modal; stamps the "last prompt" timestamp so the cooldown starts now.
+ * Gates on engagement only: the user needs a positive event first, and we
+ * self-gate to once per 30 days and at most 3 times per rolling year. Once the
+ * user has been routed to the store (see {@link markReviewed}) we never ask
+ * again. Returns true when the caller should request the native review sheet;
+ * stamps the "last prompt" timestamp so the cooldown starts now.
  */
 export async function shouldPromptReview(
   reason: ReviewReason,
@@ -101,10 +118,7 @@ export async function shouldPromptReview(
   }
 }
 
-/**
- * Mark the user as having left a review so the prompt never shows again.
- * Called from the positive-sentiment branch, which routes them to the store.
- */
+/** Mark the user as having been routed to the store so we never auto-ask again. */
 export async function markReviewed(): Promise<void> {
   try {
     await AsyncStorage.setItem(REVIEWED_KEY, "1");
@@ -114,83 +128,24 @@ export async function markReviewed(): Promise<void> {
 }
 
 /**
- * Happy-path store action, called only after a user picked the positive
- * sentiment in our prompt. iOS shows the native in-app review sheet. Android's
- * In-App Review API policy forbids gating its native card behind a sentiment
- * question, so we send happy Android users to the Play Store listing instead
- * (linking to the listing is allowed).
- */
-export async function triggerHappyPathStoreReview(): Promise<void> {
-  if (Platform.OS === "android") {
-    try {
-      await Linking.openURL(
-        `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`,
-      );
-    } catch {
-      // nothing more we can do
-    }
-    return;
-  }
-
-  try {
-    const StoreReview = getStoreReview();
-    if (
-      StoreReview &&
-      (await StoreReview.isAvailableAsync()) &&
-      (await StoreReview.hasAction())
-    ) {
-      await StoreReview.requestReview();
-      return;
-    }
-  } catch {
-    // fall through to the listing
-  }
-
-  try {
-    await Linking.openURL(
-      `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`,
-    );
-  } catch {
-    // nothing more we can do
-  }
-}
-
-/**
- * Triggered at moments of user delight. If gating passes:
+ * Triggered at moments of user delight. If the frequency gate passes, show the
+ * native review sheet (Play In-App Review / SKStoreReviewController) directly.
  *
- * - Android: invoke the native In-App Review card directly, with no sentiment
- *   pre-question. Play policy forbids gating the card behind "do you like the
- *   app?", so ungated is the only compliant low-friction path — and the card
- *   (rate in place, no app switch) converts far better than deep-linking to
- *   the store listing. The API self-quotas and may silently show nothing;
- *   that's fine, our own 30-day/3-per-year gating still applies.
- * - iOS: open our in-app sentiment prompt, so happy users get routed to the
- *   store and unhappy users tell us why first.
+ * No question of any kind precedes it: Play's in-app review policy forbids
+ * asking "do you like the app?" before or while showing the card, and forbids
+ * steering only happy users to it. When the native sheet is unavailable (Expo
+ * Go, stale dev client, no Play Store) we do nothing — never open a store link
+ * unprompted — and the gate isn't consumed. The OS self-quotas and may show
+ * nothing; our own gate still applies.
  */
 export async function maybeRequestReview(reason: ReviewReason): Promise<void> {
   try {
+    const StoreReview = await getAvailableStoreReview();
+    if (!StoreReview) return;
     if (!(await shouldPromptReview(reason))) return;
 
-    if (Platform.OS === "android") {
-      const StoreReview = getStoreReview();
-      if (
-        StoreReview &&
-        (await StoreReview.isAvailableAsync()) &&
-        (await StoreReview.hasAction())
-      ) {
-        await StoreReview.requestReview();
-        return;
-      }
-      // Native module unavailable (Expo Go / stale dev client): fall through
-      // to the sentiment modal, whose unhappy path needs no native module and
-      // whose happy path already falls back to the store listing.
-    }
-
-    // Lazy require so the bootstrap module stays free of UI/store deps until used.
-    const mod =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("../components/review/reviewPromptStore") as typeof import("../components/review/reviewPromptStore");
-    mod.useReviewPromptStore.getState().open(reason);
+    void trackGarzoniEvent("app_review_requested", { reason });
+    await StoreReview.requestReview();
   } catch {
     // Best-effort: never throw from a review prompt path.
   }
@@ -202,18 +157,16 @@ export async function maybeRequestReview(reason: ReviewReason): Promise<void> {
  * sheet first, then fall back to opening the store listing's review page.
  */
 export async function openStoreReview(): Promise<void> {
-  try {
-    const StoreReview = getStoreReview();
-    if (
-      StoreReview &&
-      (await StoreReview.isAvailableAsync()) &&
-      (await StoreReview.hasAction())
-    ) {
+  void markReviewed();
+
+  const StoreReview = await getAvailableStoreReview();
+  if (StoreReview) {
+    try {
       await StoreReview.requestReview();
       return;
+    } catch {
+      // fall through to the store listing
     }
-  } catch {
-    // fall through to the store listing
   }
 
   const url =
