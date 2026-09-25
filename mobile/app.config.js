@@ -160,7 +160,7 @@ module.exports = ({ config }) => ({
       NSUserNotificationsUsageDescription:
         "Garzoni sends notifications to remind you of daily learning goals, streak milestones, and mission completions.",
       NSCameraUsageDescription:
-        "Garzoni uses the camera to scan receipts and statements for AI-powered spending insights (Pro feature).",
+        "Allow Garzoni to take a profile photo with your camera.",
       NSMicrophoneUsageDescription:
         "Garzoni uses the microphone for the voice tutor so you can ask finance questions hands-free (Pro feature).",
       UISupportedInterfaceOrientations: ["UIInterfaceOrientationPortrait"],
