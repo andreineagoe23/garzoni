@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import { reportToolError } from "sentry";
-import { formatCurrency, getLocale } from "utils/format";
+import { DEFAULT_CURRENCY, formatCurrency, getLocale } from "utils/format";
 
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:savings";
 
@@ -81,7 +81,7 @@ const SavingsGoalCalculator = () => {
           JSON.stringify({
             label: `${t("tools.savingsCalc.activityPrefix")} ${formatCurrency(
               Number(formData.savings_goal || 0),
-              "USD",
+              DEFAULT_CURRENCY,
               locale,
               { minimumFractionDigits: 0, maximumFractionDigits: 0 }
             )}`,
@@ -239,7 +239,7 @@ const SavingsGoalCalculator = () => {
               <span className="font-semibold">
                 {formatCurrency(
                   Number(result.final_savings || 0),
-                  "USD",
+                  DEFAULT_CURRENCY,
                   locale,
                   { minimumFractionDigits: 0, maximumFractionDigits: 0 }
                 )}

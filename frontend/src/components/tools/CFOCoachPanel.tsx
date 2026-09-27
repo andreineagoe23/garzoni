@@ -22,7 +22,7 @@ type Props = {
 
 const QUICK_PROMPTS: { key: string; text: string }[] = [
   { key: "ontrack", text: "Am I on track for my financial goals?" },
-  { key: "invest_more", text: "What if I invest $200 more per month?" },
+  { key: "invest_more", text: "What if I invest £200 more per month?" },
   { key: "diversify", text: "How diversified is my portfolio?" },
   { key: "cut_spending", text: "Where should I cut my spending?" },
 ];

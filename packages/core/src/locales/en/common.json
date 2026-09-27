@@ -1106,7 +1106,7 @@
         "description": "Run quick savings projections by initial amount, rate, and time.",
         "mostUsefulFor": "Anyone testing how long a savings goal takes at a given rate.",
         "whatItDoes": "Computes final savings with optional compounding frequencies.",
-        "sampleUseCase": "See what a 5% return turns $1,000 + $200/month into in 5 years.",
+        "sampleUseCase": "See what a 5% return turns £1,000 + £200/month into in 5 years.",
         "whoItsFor": "Learners who want a quick what-if without spreadsheets.",
         "questionItAnswers": "How big could my savings grow by my target date?"
       },
@@ -1126,7 +1126,7 @@
         "description": "See if your goals are realistic for your income and costs",
         "mostUsefulFor": "People with a goal and uncertain monthly cash flow.",
         "whatItDoes": "Turns a goal into a realistic saving range and feasibility check.",
-        "sampleUseCase": "Plan a $6k emergency fund in 12 months without guesswork.",
+        "sampleUseCase": "Plan a £6k emergency fund in 12 months without guesswork.",
         "whoItsFor": "Anyone who wants an honest view of what's achievable.",
         "questionItAnswers": "Can I actually hit this goal with my current cash flow?"
       },
@@ -1186,7 +1186,7 @@
         "description": "Add goals, update balances, and see how close you are to each target.",
         "mostUsefulFor": "Anyone building an emergency fund, vacation fund, or debt payoff plan.",
         "whatItDoes": "Stores your goals on your account and shows progress toward each target date.",
-        "sampleUseCase": "Track a $10k emergency fund and a vacation fund in one place.",
+        "sampleUseCase": "Track a £10k emergency fund and a vacation fund in one place.",
         "whoItsFor": "Savers who want structured goal tracking beyond a single calculator.",
         "questionItAnswers": "How am I progressing on my financial goals?"
       },
@@ -1196,7 +1196,7 @@
         "description": "Adjust contribution, years, and return to see a projected ending balance.",
         "mostUsefulFor": "Beginners exploring compound growth without linking real accounts.",
         "whatItDoes": "Runs a basic month-by-month projection from your inputs.",
-        "sampleUseCase": "See what 7% average returns might mean for $100/month over 5 years.",
+        "sampleUseCase": "See what 7% average returns might mean for £100/month over 5 years.",
         "whoItsFor": "Learners who want a quick what-if without spreadsheets.",
         "questionItAnswers": "What might my balance look like if I keep contributing?"
       },
@@ -1398,7 +1398,7 @@
     "cfoCoach": {
       "eyebrow": "AI Personal CFO",
       "title": "Ask your CFO",
-      "greeting": "Hi! I'm your Personal CFO. Ask me anything about your goals, spending, portfolio or projections. I can run scenarios too — try 'what if I save $200 more per month?'",
+      "greeting": "Hi! I'm your Personal CFO. Ask me anything about your goals, spending, portfolio or projections. I can run scenarios too — try 'what if I save £200 more per month?'",
       "placeholder": "Ask about your money…",
       "send": "Send",
       "thinking": "Thinking…",
@@ -1406,7 +1406,7 @@
       "tryAsking": "Try asking me about:",
       "prompts": {
         "ontrack": "Am I on track for my financial goals?",
-        "invest_more": "What if I invest $200 more per month?",
+        "invest_more": "What if I invest £200 more per month?",
         "diversify": "How diversified is my portfolio?",
         "cut_spending": "Where should I cut my spending?"
       },

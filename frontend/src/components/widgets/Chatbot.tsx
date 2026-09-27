@@ -7,7 +7,12 @@ import UpsellModal from "components/billing/UpsellModal";
 import { fetchEntitlements } from "services/entitlementsService";
 import apiClient from "services/httpClient";
 import { queryKeys, staleTimes } from "lib/reactQuery";
-import { formatCurrency, formatNumber, getLocale } from "utils/format";
+import {
+  MARKET_QUOTE_CURRENCY,
+  formatCurrency,
+  formatNumber,
+  getLocale,
+} from "utils/format";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
 
 // ── Regex patterns (shared logic with mobile) ────────────────────────────────
@@ -225,9 +230,9 @@ const Chatbot = () => {
       const { price = 0, change = 0, marketCap = 0 } = response.data || {};
       let formattedMarketCap = null;
       if (marketCap >= 1_000_000_000) {
-        formattedMarketCap = `${formatCurrency(marketCap / 1e9, "USD", locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+        formattedMarketCap = `${formatCurrency(marketCap / 1e9, MARKET_QUOTE_CURRENCY, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
       } else if (marketCap >= 1_000_000) {
-        formattedMarketCap = `${formatCurrency(marketCap / 1e6, "USD", locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+        formattedMarketCap = `${formatCurrency(marketCap / 1e6, MARKET_QUOTE_CURRENCY, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
       }
       return { price, change, marketCap: formattedMarketCap };
     } catch {
@@ -285,10 +290,15 @@ const Chatbot = () => {
         if (stockData.price > 0) {
           botResponse = t("chatbot.responses.stockPrice", {
             symbol,
-            price: formatCurrency(stockData.price, "USD", locale, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+            price: formatCurrency(
+              stockData.price,
+              MARKET_QUOTE_CURRENCY,
+              locale,
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }
+            ),
             direction:
               stockData.change >= 0
                 ? t("chatbot.responses.increased")
@@ -353,10 +363,15 @@ const Chatbot = () => {
           if (cryptoData.price > 0) {
             botResponse = t("chatbot.responses.cryptoPrice", {
               name: displayName,
-              price: formatCurrency(cryptoData.price, "USD", locale, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }),
+              price: formatCurrency(
+                cryptoData.price,
+                MARKET_QUOTE_CURRENCY,
+                locale,
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              ),
               direction:
                 cryptoData.change >= 0
                   ? t("chatbot.responses.up")

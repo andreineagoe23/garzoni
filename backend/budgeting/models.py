@@ -20,6 +20,9 @@ from django.utils import timezone
 
 from .fields import EncryptedTextField
 
+# UK market: app pricing and user money default to pounds.
+DEFAULT_CURRENCY = "GBP"
+
 
 class LinkedAccount(models.Model):
     """A bank/card/wallet account that has been linked to the user."""
@@ -40,7 +43,7 @@ class LinkedAccount(models.Model):
     display_name = models.CharField(max_length=128)
     mask = models.CharField(max_length=8, blank=True)
     institution_name = models.CharField(max_length=128, blank=True)
-    currency = models.CharField(max_length=8, default="USD")
+    currency = models.CharField(max_length=8, default=DEFAULT_CURRENCY)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
     # Encrypted with Fernet at the application layer (see budgeting/fields.py),
     # so the ciphertext is what reaches the database, backups and read replicas.
@@ -168,7 +171,7 @@ class Transaction(models.Model):
     source = models.CharField(max_length=16, choices=Source.choices, default=Source.PROVIDER)
 
     amount = models.DecimalField(max_digits=20, decimal_places=4)
-    currency = models.CharField(max_length=8, default="USD")
+    currency = models.CharField(max_length=8, default=DEFAULT_CURRENCY)
     description = models.CharField(max_length=256, blank=True)
     merchant_name = models.CharField(max_length=128, blank=True)
     posted_at = models.DateField()
@@ -221,7 +224,7 @@ class BudgetEnvelope(models.Model):
     category = models.CharField(max_length=64)
     label = models.CharField(max_length=64)
     monthly_target = models.DecimalField(max_digits=14, decimal_places=2)
-    currency = models.CharField(max_length=8, default="USD")
+    currency = models.CharField(max_length=8, default=DEFAULT_CURRENCY)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -243,7 +246,7 @@ class BudgetPeriodSummary(models.Model):
         related_name="budget_period_summaries",
     )
     period_start = models.DateField()
-    currency = models.CharField(max_length=8, default="USD")
+    currency = models.CharField(max_length=8, default=DEFAULT_CURRENCY)
     total_income = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal("0"))
     total_spent = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal("0"))
     net_cash_flow = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal("0"))

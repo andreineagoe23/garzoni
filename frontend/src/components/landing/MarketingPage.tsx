@@ -686,7 +686,7 @@ function MarketingPage() {
                           marginBottom: "18px",
                         }}
                       >
-                        $2,840
+                        £2,840
                       </div>
                       <div
                         style={{

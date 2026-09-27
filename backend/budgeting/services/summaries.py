@@ -16,6 +16,7 @@ from django.db.models.functions import Coalesce, Lower, NullIf, TruncMonth
 from django.utils import timezone
 
 from budgeting.models import (
+    DEFAULT_CURRENCY,
     BudgetEnvelope,
     BudgetPeriodSummary,
     SpendingAnomaly,
@@ -159,7 +160,7 @@ def _aggregate_period(user, period_start: date) -> PeriodSummary:
         .order_by("-n", "currency")
         .first()
     )
-    currency = currency_row["currency"] if currency_row else "USD"
+    currency = currency_row["currency"] if currency_row else DEFAULT_CURRENCY
 
     # Spend per category: slug when categorised, else lowercased raw provider
     # category, else "other" — same key the envelopes are matched on.

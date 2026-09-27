@@ -22,6 +22,7 @@ import type {
   Offerings,
   Package,
 } from "@revenuecat/purchases-js";
+import { DEFAULT_CURRENCY, formatCurrency } from "@garzoni/core";
 
 // ─── Constants (keep aligned with mobile `subscriptionRuntime.ts`) ──────────
 
@@ -292,7 +293,7 @@ export function formatRCPackagePrice(pkg: Package): string {
       formatted,
       amount,
       amountMicros,
-      currency = "USD",
+      currency = DEFAULT_CURRENCY,
     } = product.currentPrice;
 
     if (formatted) return formatted;
@@ -304,12 +305,12 @@ export function formatRCPackagePrice(pkg: Package): string {
           ? amountMicros / 1_000_000
           : 0;
 
-    return new Intl.NumberFormat(navigator.language, {
-      style: "currency",
+    return formatCurrency(value, {
       currency,
+      locale: navigator.language,
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
-    }).format(value);
+    });
   } catch {
     return "";
   }

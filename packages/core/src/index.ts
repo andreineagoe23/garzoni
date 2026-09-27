@@ -236,6 +236,15 @@ export type {
 export { localizeSectionTitle } from "./utils/sectionTitles";
 
 export { resolveCategoryFromSkill } from "./utils/resolveCategoryFromSkill";
+export {
+  DEFAULT_CURRENCY,
+  MARKET_QUOTE_CURRENCY,
+  currencyLocale,
+  currencySymbol,
+  formatCurrency,
+  resolveCurrency,
+} from "./utils/currency";
+export type { FormatCurrencyOptions } from "./utils/currency";
 export { invalidateOnlineDependentQueries } from "./lib/onlineSyncInvalidate";
 
 export { buildStandaloneExerciseViewModel } from "./utils/standaloneExerciseViewModel";

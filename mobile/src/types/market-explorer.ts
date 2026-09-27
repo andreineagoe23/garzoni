@@ -1,3 +1,5 @@
+import { MARKET_QUOTE_CURRENCY, formatCurrency } from "@garzoni/core";
+
 export type MarketTab = "stocks" | "crypto" | "forex";
 
 export type Asset = {
@@ -24,17 +26,9 @@ export const TAB_LABELS: Record<MarketTab, string> = {
 };
 
 export function formatPrice(n: number): string {
-  if (n >= 1000) {
-    return n.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 2,
-    });
-  }
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 4,
+  return formatCurrency(n, {
+    currency: MARKET_QUOTE_CURRENCY,
+    maximumFractionDigits: n >= 1000 ? 2 : 4,
   });
 }
 

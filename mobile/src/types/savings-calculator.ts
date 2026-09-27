@@ -1,3 +1,5 @@
+import { formatCurrency as formatMoney } from "@garzoni/core";
+
 export type SavingsForm = {
   savingsGoal: string;
   initialAmount: string;
@@ -68,9 +70,5 @@ export function calcSavings(form: SavingsForm): SavingsResult | null {
 }
 
 export function formatCurrency(n: number): string {
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+  return formatMoney(n, { maximumFractionDigits: 0 });
 }

@@ -4,7 +4,12 @@ import { isAxiosError } from "@garzoni/core";
 import { GlassButton, GlassCard, Modal } from "components/ui";
 import apiClient from "services/httpClient";
 import { useAuth } from "contexts/AuthContext";
-import { formatCurrency, formatDate, getLocale } from "utils/format";
+import {
+  DEFAULT_CURRENCY,
+  formatCurrency,
+  formatDate,
+  getLocale,
+} from "utils/format";
 import { safeRedirectUrl } from "utils/safeRedirectUrl";
 import {
   isRevenueCatEnabled,
@@ -497,7 +502,7 @@ const SubscriptionManager = () => {
                     <div className="text-3xl font-extrabold text-content-primary">
                       {formatCurrency(
                         Number(plan.price_amount || 0),
-                        plan.currency || "USD",
+                        plan.currency || DEFAULT_CURRENCY,
                         locale,
                         { minimumFractionDigits: 0 }
                       )}

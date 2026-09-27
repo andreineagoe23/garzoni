@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import apiClient from "services/httpClient";
 import { recordToolEvent } from "services/toolsAnalytics";
-import { formatCurrency, getLocale } from "utils/format";
+import { DEFAULT_CURRENCY, formatCurrency, getLocale } from "utils/format";
 
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:budget-planner";
 
@@ -128,7 +128,8 @@ const BudgetPlanner = () => {
     }
   }, [fetchAll, t]);
 
-  const currency = summary?.currency || envelopes[0]?.currency || "USD";
+  const currency =
+    summary?.currency || envelopes[0]?.currency || DEFAULT_CURRENCY;
 
   const handleCreateEnvelope = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -9,6 +9,7 @@ import Svg, {
   LinearGradient,
   Stop,
 } from "react-native-svg";
+import { currencySymbol } from "@garzoni/core";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius, shadows } from "../../../theme/tokens";
 
@@ -103,8 +104,8 @@ export function GrowthChart({ data, goalAmount }: Props) {
               textAnchor="end"
             >
               {t.value >= 1000
-                ? `$${(t.value / 1000).toFixed(0)}k`
-                : `$${t.value.toFixed(0)}`}
+                ? `${currencySymbol()}${(t.value / 1000).toFixed(0)}k`
+                : `${currencySymbol()}${t.value.toFixed(0)}`}
             </SvgText>
           </React.Fragment>
         ))}

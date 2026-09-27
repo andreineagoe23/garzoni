@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { GOALS_LEVER_LESSONS } from "./lessonMapping";
-import { formatCurrency, getLocale } from "utils/format";
+import { DEFAULT_CURRENCY, formatCurrency, getLocale } from "utils/format";
 import { requestAiTutorResponse } from "services/aiTutor";
 
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:reality-check";
@@ -164,11 +164,11 @@ const GoalsRealityCheck = () => {
       "You are a practical personal finance coach.",
       "Explain this savings goal scenario in plain language.",
       `Goal name: ${form.goalName || "Savings goal"}`,
-      `Goal amount: ${formatCurrency(Number(form.goalAmount || 0), "USD", locale)}`,
-      `Already saved: ${formatCurrency(Number(form.currentSaved || 0), "USD", locale)}`,
+      `Goal amount: ${formatCurrency(Number(form.goalAmount || 0), DEFAULT_CURRENCY, locale)}`,
+      `Already saved: ${formatCurrency(Number(form.currentSaved || 0), DEFAULT_CURRENCY, locale)}`,
       `Target timeline (months): ${form.months || 0}`,
-      `Monthly surplus range: ${formatCurrency(lowSurplus, "USD", locale)} to ${formatCurrency(highSurplus, "USD", locale)}`,
-      `Required monthly saving: ${formatCurrency(requiredMonthly, "USD", locale)}`,
+      `Monthly surplus range: ${formatCurrency(lowSurplus, DEFAULT_CURRENCY, locale)} to ${formatCurrency(highSurplus, DEFAULT_CURRENCY, locale)}`,
+      `Required monthly saving: ${formatCurrency(requiredMonthly, DEFAULT_CURRENCY, locale)}`,
       `Estimated time-to-goal best/expected/worst: ${bestMonths ?? "not feasible"} / ${expectedMonths ?? "not feasible"} / ${worstMonths ?? "not feasible"}`,
       warnings.length ? `Warnings: ${warnings.join("; ")}` : "Warnings: none",
       "Give:",
@@ -362,13 +362,14 @@ const GoalsRealityCheck = () => {
               {t("tools.realityCheck.savingRange")}
             </p>
             <p className="mt-2 text-lg font-semibold text-content-primary">
-              {formatCurrency(lowSurplus, "USD", locale)} -{" "}
-              {formatCurrency(highSurplus, "USD", locale)} / month
+              {formatCurrency(lowSurplus, DEFAULT_CURRENCY, locale)} -{" "}
+              {formatCurrency(highSurplus, DEFAULT_CURRENCY, locale)} / month
             </p>
             <p className="mt-2 text-sm text-content-muted">
               {t("tools.realityCheck.requiredToHitGoal")}{" "}
               <span className="font-semibold text-content-primary">
-                {formatCurrency(requiredMonthly, "USD", locale)} / month
+                {formatCurrency(requiredMonthly, DEFAULT_CURRENCY, locale)} /
+                month
               </span>
             </p>
           </div>

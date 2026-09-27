@@ -17,7 +17,12 @@ import { useAuth } from "contexts/AuthContext";
 import { recordFunnelEvent } from "services/analyticsService";
 import apiClient from "services/httpClient";
 import { fetchQuestionnaireProgress } from "services/questionnaireService";
-import { formatCurrency, formatDate, getLocale } from "utils/format";
+import {
+  DEFAULT_CURRENCY,
+  formatCurrency,
+  formatDate,
+  getLocale,
+} from "utils/format";
 import { safeRedirectUrl } from "utils/safeRedirectUrl";
 import {
   fetchReferralSummary,
@@ -567,7 +572,7 @@ const SubscriptionPlansPage = () => {
                           <span className="mr-2 text-lg font-semibold text-content-muted line-through">
                             {formatCurrency(
                               Number(plan.price_amount || 0),
-                              plan.currency || "USD",
+                              plan.currency || DEFAULT_CURRENCY,
                               locale,
                               { minimumFractionDigits: 0 }
                             )}
@@ -577,7 +582,7 @@ const SubscriptionPlansPage = () => {
                           promoPrice != null
                             ? promoPrice
                             : Number(plan.price_amount || 0),
-                          plan.currency || "USD",
+                          plan.currency || DEFAULT_CURRENCY,
                           locale,
                           { minimumFractionDigits: 0 }
                         )}
@@ -611,7 +616,7 @@ const SubscriptionPlansPage = () => {
                             (promoPrice != null
                               ? promoPrice
                               : Number(plan.price_amount || 0)) / 52,
-                            plan.currency || "USD",
+                            plan.currency || DEFAULT_CURRENCY,
                             locale,
                             {
                               minimumFractionDigits: 2,

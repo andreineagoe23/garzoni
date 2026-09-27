@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import Svg, { Circle, Line, Path, Polyline, Rect } from "react-native-svg";
 import { useTranslation } from "react-i18next";
-import { apiClient } from "@garzoni/core";
+import { apiClient, formatCurrency as formatMoney } from "@garzoni/core";
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { radius, spacing, typography } from "../../../theme/tokens";
 import { logDevError } from "../../../lib/logDevError";
@@ -114,28 +114,12 @@ export type CFODashboardPayload = {
   };
 };
 
-function formatCurrency(value: number, currency = "USD") {
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch {
-    return `${currency} ${Math.round(value)}`;
-  }
+function formatCurrency(value: number, currency?: string) {
+  return formatMoney(value, { currency, maximumFractionDigits: 0 });
 }
 
-function formatCurrencyPrecise(value: number, currency = "USD") {
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 2,
-    }).format(value);
-  } catch {
-    return `${currency} ${value.toFixed(2)}`;
-  }
+function formatCurrencyPrecise(value: number, currency?: string) {
+  return formatMoney(value, { currency, maximumFractionDigits: 2 });
 }
 
 type Props = {

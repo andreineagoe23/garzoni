@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { apiClient } from "@garzoni/core";
+import { DEFAULT_CURRENCY, apiClient } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import { layout, radius, spacing, typography } from "../../../src/theme/tokens";
 import { useScreenGutter } from "../../../src/utils/platform";
@@ -229,7 +229,8 @@ export default function StatementImportScreen() {
     void loadMeta();
   }, [loadMeta]);
 
-  const currency = preview?.currency || preview?.analysis?.currency || "GBP";
+  const currency =
+    preview?.currency || preview?.analysis?.currency || DEFAULT_CURRENCY;
 
   const dateRange = useCallback((start: string | null, end: string | null) => {
     if (!start || !end) return "";

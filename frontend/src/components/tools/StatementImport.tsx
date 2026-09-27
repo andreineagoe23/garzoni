@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import UpsellModal from "components/billing/UpsellModal";
 import apiClient from "services/httpClient";
 import { recordToolEvent } from "services/toolsAnalytics";
-import { formatCurrency, getLocale } from "utils/format";
+import { DEFAULT_CURRENCY, formatCurrency, getLocale } from "utils/format";
 
 const ACTIVITY_STORAGE_KEY = "garzoni:tools:activity:statement-import";
 const MAX_CLIENT_BYTES = 10 * 1024 * 1024;
@@ -213,7 +213,8 @@ const StatementImport = () => {
     }
   }, [loadMeta, t]);
 
-  const currency = preview?.currency || preview?.analysis?.currency || "GBP";
+  const currency =
+    preview?.currency || preview?.analysis?.currency || DEFAULT_CURRENCY;
 
   const dateRange = useCallback(
     (start: string | null, end: string | null) => {
@@ -234,7 +235,7 @@ const StatementImport = () => {
 
   const money = useCallback(
     (value: number) =>
-      formatCurrency(value, currency || "GBP", locale, {
+      formatCurrency(value, currency || DEFAULT_CURRENCY, locale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }),
