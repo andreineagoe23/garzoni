@@ -1,0 +1,70 @@
+{
+  "lang": "ro",
+  "featureGraphic": {
+    "headline": "Învață despre bani în 5 minute pe zi",
+    "accent": "5 minute",
+    "tagline": "150+ lecții · Tutore AI · Începi gratuit"
+  },
+  "slots": [
+    {
+      "id": "slot1",
+      "capture": "Ascensiunea — traseul tău personalizat",
+      "eyebrow": "Educație financiară",
+      "headline": "Stăpânește-ți banii în 5 minute pe zi",
+      "accent": "5 minute",
+      "subline": "Un traseu pas cu pas prin peste 150 de lecții scurte.",
+      "image": "captures/ro/slot1.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot2",
+      "capture": "O întrebare din lecție cu sume în £ și XP vizibil",
+      "eyebrow": "Lecții scurte",
+      "headline": "Lecții pe care chiar le termini",
+      "accent": "chiar le termini",
+      "subline": "Întrebări rapide, feedback pe loc și XP pentru fiecare răspuns.",
+      "image": "captures/ro/slot2.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot3",
+      "capture": "Tutorele AI răspunzând la o întrebare despre bani",
+      "eyebrow": "Tutore AI",
+      "headline": "Întreabă orice despre bani",
+      "accent": "orice",
+      "subline": "Tutorele AI îți explică totul pe înțelesul tău.",
+      "image": "captures/ro/slot3.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot4",
+      "capture": "Seria și misiunile zilnice",
+      "eyebrow": "Serii zilnice",
+      "headline": "Un obicei care chiar rămâne",
+      "accent": "rămâne",
+      "subline": "Seria și misiunile zilnice te țin pe drumul cel bun.",
+      "image": "captures/ro/slot4.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot5",
+      "capture": "Analizor portofoliu cu sume în £",
+      "eyebrow": "Instrumente reale",
+      "headline": "Pune lecțiile în practică",
+      "accent": "practică",
+      "subline": "Analizor de portofoliu și alte instrumente financiare.",
+      "image": "captures/ro/slot5.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot6",
+      "capture": "Aplicația în limba română (ecranul de limbă sau o lecție)",
+      "eyebrow": "În limba ta",
+      "headline": "Învață în română sau engleză",
+      "accent": "română",
+      "subline": "Începi gratuit. Învățare nelimitată cu Plus sau Pro.",
+      "image": "captures/ro/slot6.png",
+      "cropTop": 0.141
+    }
+  ]
+}

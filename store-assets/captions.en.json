@@ -1,0 +1,70 @@
+{
+  "lang": "en",
+  "featureGraphic": {
+    "headline": "Learn money in 5 minutes a day",
+    "accent": "5 minutes",
+    "tagline": "150+ lessons · AI tutor · Free to start"
+  },
+  "slots": [
+    {
+      "id": "slot1",
+      "capture": "The Climb — personalised journey map",
+      "eyebrow": "Learn personal finance",
+      "headline": "Master money in 5 minutes a day",
+      "accent": "5 minutes",
+      "subline": "A step-by-step path through 150+ short lessons.",
+      "image": "captures/en/slot1.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot2",
+      "capture": "A lesson question in £, with the XP reward showing",
+      "eyebrow": "Bite-size lessons",
+      "headline": "Lessons you’ll actually finish",
+      "accent": "actually finish",
+      "subline": "Quick questions, instant feedback, XP for every answer.",
+      "image": "captures/en/slot2.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot3",
+      "capture": "AI tutor answering a money question",
+      "eyebrow": "AI money tutor",
+      "headline": "Ask anything about money",
+      "accent": "anything",
+      "subline": "Your AI tutor explains it in plain English.",
+      "image": "captures/en/slot3.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot4",
+      "capture": "Streak and daily missions",
+      "eyebrow": "Daily streaks",
+      "headline": "Build a habit that sticks",
+      "accent": "sticks",
+      "subline": "Streaks and daily missions keep you on track.",
+      "image": "captures/en/slot4.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot5",
+      "capture": "Portfolio Analyzer with holdings in £",
+      "eyebrow": "Real tools",
+      "headline": "Put lessons into practice",
+      "accent": "practice",
+      "subline": "Portfolio Analyzer and more money tools, built in.",
+      "image": "captures/en/slot5.png",
+      "cropTop": 0.141
+    },
+    {
+      "id": "slot6",
+      "capture": "Language picker, or a lesson shown in Romanian",
+      "eyebrow": "In your language",
+      "headline": "Learn in English or Romanian",
+      "accent": "Romanian",
+      "subline": "Free to start. Unlimited learning with Plus or Pro.",
+      "image": "captures/en/slot6.png",
+      "cropTop": 0.141
+    }
+  ]
+}

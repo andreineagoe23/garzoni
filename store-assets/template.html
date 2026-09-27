@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--BASE-->
+    <title>Store screenshot</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- render.mjs replaces this JSON with one entry from captions.<lang>.json.
+         Opened directly in a browser, it shows this sample so the layout can be reviewed. -->
+    <script id="slot-data" type="application/json">
+      {
+        "lang": "en",
+        "size": "ios",
+        "id": "slot1",
+        "capture": "The Climb — personalised journey map",
+        "eyebrow": "Learn personal finance",
+        "headline": "Master money in 5 minutes a day",
+        "accent": "5 minutes",
+        "subline": "A step-by-step path through 150+ short lessons.",
+        "image": null,
+        "imagePath": "captures/en/slot1.png",
+        "cropTop": 0.141
+      }
+    </script>
+    <main class="slot">
+      <header class="caption">
+        <p class="eyebrow"></p>
+        <h1 class="headline"></h1>
+        <p class="subline"></p>
+      </header>
+      <figure class="shot"></figure>
+    </main>
+    <script>
+      const d = JSON.parse(document.getElementById("slot-data").textContent);
+      document.documentElement.lang = d.lang;
+      document.body.classList.add(`size-${d.size}`);
+
+      const q = (s) => document.querySelector(s);
+      q(".eyebrow").textContent = d.eyebrow;
+      q(".subline").textContent = d.subline;
+
+      const h = q(".headline");
+      const at = d.headline.indexOf(d.accent);
+      if (!d.accent || at < 0) {
+        h.textContent = d.headline;
+        guard(`accent "${d.accent}" not found in headline`);
+      } else {
+        const em = document.createElement("span");
+        em.className = "accent";
+        em.textContent = d.accent;
+        h.append(d.headline.slice(0, at), em, d.headline.slice(at + d.accent.length));
+      }
+
+      const shot = q(".shot");
+      shot.style.setProperty("--crop-top", d.cropTop ?? 0);
+      if (d.image) {
+        const img = new Image();
+        img.src = d.image;
+        img.alt = "";
+        shot.append(img);
+      } else {
+        shot.classList.add("placeholder");
+        shot.innerHTML = `<p class="ph-id"></p><p class="ph-what"></p><p class="ph-path"></p>`;
+        shot.querySelector(".ph-id").textContent = `${d.id} · capture pending`;
+        shot.querySelector(".ph-what").textContent = d.capture;
+        shot.querySelector(".ph-path").textContent = d.imagePath;
+      }
+
+      function guard(msg) {
+        const g = document.createElement("div");
+        g.className = "guard";
+        g.textContent = `RENDER CHECK: ${msg}`;
+        document.body.append(g);
+      }
+
+      document.fonts.ready.then(() => {
+        if (!document.fonts.check('800 40px "Inter"')) guard("Inter did not load");
+        const cap = q(".caption");
+        if (cap.scrollHeight > cap.clientHeight + 1) guard("caption taller than its zone");
+        for (const el of cap.children) {
+          if (el.scrollWidth > el.clientWidth + 1) guard(`${el.className} overflows horizontally`);
+        }
+        if (h.getClientRects().length && h.offsetHeight > parseFloat(getComputedStyle(h).lineHeight) * 3 + 1) {
+          guard("headline wraps to more than 3 lines");
+        }
+      });
+    </script>
+  </body>
+</html>
