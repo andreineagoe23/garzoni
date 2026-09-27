@@ -5,6 +5,13 @@ import apiClient from "services/httpClient";
 import { recordFunnelEvent } from "services/analyticsService";
 import SeoHead from "components/seo/SeoHead";
 import Byline from "components/editorial/Byline";
+import LanguageSwitch from "components/seo/LanguageSwitch";
+import {
+  SITE_URL,
+  hreflangAlternates,
+  publicApiParams,
+  usePublicLocale,
+} from "components/seo/publicLocale";
 
 /**
  * Optional interactive "sample question" attached to a public lesson (UX plan
@@ -20,6 +27,7 @@ type SampleQuestion = {
 
 type PublicLessonResponse = {
   slug: string;
+  available_languages?: string[];
   title: string;
   short_description: string;
   detailed_content: string;
@@ -198,6 +206,7 @@ type RelatedLesson = {
 
 export default function PublicLesson() {
   const { slug } = useParams<{ slug: string }>();
+  const { lang, t, to, url: absUrl } = usePublicLocale();
   const [data, setData] = useState<PublicLessonResponse | null>(null);
   const [related, setRelated] = useState<RelatedLesson[]>([]);
   const [error, setError] = useState<string>("");
@@ -207,8 +216,12 @@ export default function PublicLesson() {
     if (!slug) return;
     let cancelled = false;
     setLoading(true);
+    setError("");
+    setData(null);
     apiClient
-      .get<PublicLessonResponse>(`/public/lessons/${slug}/`)
+      .get<PublicLessonResponse>(`/public/lessons/${slug}/`, {
+        params: publicApiParams(lang),
+      })
       .then((res) => {
         if (!cancelled) setData(res.data);
       })
@@ -222,13 +235,15 @@ export default function PublicLesson() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, lang]);
 
   useEffect(() => {
     if (!data) return;
     let cancelled = false;
     apiClient
-      .get<{ results: RelatedLesson[] }>("/public/lessons/")
+      .get<{ results: RelatedLesson[] }>("/public/lessons/", {
+        params: publicApiParams(lang),
+      })
       .then((res) => {
         if (cancelled) return;
         const others = (res.data.results ?? [])
@@ -242,7 +257,7 @@ export default function PublicLesson() {
     return () => {
       cancelled = true;
     };
-  }, [data]);
+  }, [data, lang]);
 
   const sanitizedLessonHtml = useMemo(
     () => DOMPurify.sanitize(data?.detailed_content || ""),
@@ -272,7 +287,7 @@ export default function PublicLesson() {
   if (loading) {
     return (
       <main style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
-        <p>Loading…</p>
+        <p>{t("publicLesson.loading")}</p>
       </main>
     );
   }
@@ -281,24 +296,23 @@ export default function PublicLesson() {
     return (
       <main style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
         <SeoHead
-          title="Lesson not found — Garzoni"
-          description="This lesson is not available."
-          canonical={`https://www.garzoni.app/learn/${slug ?? ""}`}
+          title={t("publicLesson.notFoundSeoTitle")}
+          description={t("publicLesson.notFoundSeoDescription")}
+          canonical={absUrl(`/learn/${slug ?? ""}`)}
+          locale={lang}
         />
-        <h1>Lesson not found</h1>
-        <p>
-          The lesson you’re looking for isn’t available. Browse all lessons
-          inside the app.
-        </p>
-        <Link to="/register">Create a free account</Link>
+        <h1>{t("publicLesson.notFoundTitle")}</h1>
+        <p>{t("publicLesson.notFoundBody")}</p>
+        <Link to="/register">{t("publicLesson.createAccount")}</Link>
       </main>
     );
   }
 
-  const canonical = `https://www.garzoni.app/learn/${data.slug}`;
+  const path = `/learn/${data.slug}`;
+  const canonical = absUrl(path);
   const description =
     data.short_description ||
-    `${data.title} — free finance lesson from Garzoni.`;
+    t("publicLesson.fallbackDescription", { title: data.title });
 
   return (
     <main style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
@@ -306,6 +320,8 @@ export default function PublicLesson() {
         title={`${data.title} — Garzoni`}
         description={description}
         canonical={canonical}
+        locale={lang}
+        alternates={hreflangAlternates(path, data.available_languages)}
         image={data.image_url || undefined}
         course={{
           name: data.title,
@@ -316,17 +332,22 @@ export default function PublicLesson() {
           citations: sources.length > 0 ? sources : undefined,
         }}
         breadcrumbs={[
-          { name: "Home", url: "https://www.garzoni.app/" },
-          { name: "Lessons", url: "https://www.garzoni.app/learn" },
+          { name: t("learnIndex.breadcrumbHome"), url: `${SITE_URL}/` },
+          { name: t("learnIndex.breadcrumbLessons"), url: absUrl("/learn") },
           { name: data.title, url: canonical },
         ]}
       />
       <nav aria-label="Breadcrumb" style={{ fontSize: 14, opacity: 0.7 }}>
-        <Link to="/">Home</Link> › <Link to="/learn">Lessons</Link> ›{" "}
+        <Link to="/">{t("learnIndex.breadcrumbHome")}</Link> ›{" "}
+        <Link to={to("/learn")}>{t("learnIndex.breadcrumbLessons")}</Link> ›{" "}
         <span>{data.course.title}</span>
+        <LanguageSwitch
+          path={path}
+          available={(data.available_languages ?? []).length > 1}
+        />
       </nav>
       <h1>{data.title}</h1>
-      <Byline reviewed={data.updated_at} />
+      <Byline reviewed={data.updated_at} lang={lang} />
       {data.short_description ? <p>{data.short_description}</p> : null}
       {data.image_url ? (
         <img
@@ -356,7 +377,7 @@ export default function PublicLesson() {
       ) : null}
       {sources.length > 0 ? (
         <section style={{ marginTop: "2.5rem" }}>
-          <h2>Sources</h2>
+          <h2>{t("publicLesson.sources")}</h2>
           <ul style={{ lineHeight: 1.8, fontSize: 14 }}>
             {sources.map((s) => (
               <li key={s.url}>
@@ -374,21 +395,21 @@ export default function PublicLesson() {
       ) : null}
       {related.length > 0 ? (
         <section style={{ marginTop: "3rem" }}>
-          <h2>Related lessons</h2>
+          <h2>{t("publicLesson.relatedLessons")}</h2>
           <ul style={{ lineHeight: 1.9 }}>
             {related.map((l) => (
               <li key={l.slug}>
-                <Link to={`/learn/${l.slug}`}>{l.title}</Link>
+                <Link to={to(`/learn/${l.slug}`)}>{l.title}</Link>
               </li>
             ))}
           </ul>
           <p>
-            <Link to="/learn">Browse all free lessons →</Link>
+            <Link to={to("/learn")}>{t("publicLesson.browseAll")}</Link>
           </p>
         </section>
       ) : (
         <p style={{ marginTop: "2rem" }}>
-          <Link to="/learn">Browse all free lessons →</Link>
+          <Link to={to("/learn")}>{t("publicLesson.browseAll")}</Link>
         </p>
       )}
       <aside
@@ -399,11 +420,8 @@ export default function PublicLesson() {
           borderRadius: 12,
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Keep learning with Garzoni</h2>
-        <p>
-          Sign up for free to track progress, earn streaks, and unlock the full
-          path of lessons, quizzes, and AI-powered tutor.
-        </p>
+        <h2 style={{ marginTop: 0 }}>{t("publicLesson.keepLearningTitle")}</h2>
+        <p>{t("publicLesson.keepLearningBody")}</p>
         <Link
           to="/register"
           style={{
@@ -416,7 +434,7 @@ export default function PublicLesson() {
             fontWeight: 600,
           }}
         >
-          Create a free account
+          {t("publicLesson.createAccount")}
         </Link>
         <p style={{ marginTop: "1rem", marginBottom: 0 }}>
           <a
@@ -425,7 +443,7 @@ export default function PublicLesson() {
             rel="noopener noreferrer"
             style={{ fontSize: 14, opacity: 0.85 }}
           >
-            Or download Garzoni on the App Store →
+            {t("publicLesson.appStore")}
           </a>
         </p>
         <p style={{ marginTop: "0.5rem", marginBottom: 0 }}>
@@ -435,7 +453,7 @@ export default function PublicLesson() {
             rel="noopener noreferrer"
             style={{ fontSize: 14, opacity: 0.85 }}
           >
-            Or get Garzoni on Google Play →
+            {t("publicLesson.googlePlay")}
           </a>
         </p>
       </aside>

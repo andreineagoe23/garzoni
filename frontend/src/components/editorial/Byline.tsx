@@ -20,13 +20,17 @@ type Props = {
   author?: string | null;
   published?: string | null;
   reviewed?: string | null;
+  /** Page language when it differs from the app language (e.g. /ro pages). */
+  lang?: string;
 };
 
 /** "Written by Andrei Neagoe · Published … · Reviewed …" for lessons and guides. */
-export default function Byline({ author, published, reviewed }: Props) {
-  const { t, i18n } = useTranslation();
-  const publishedLabel = formatEditorialDate(published, i18n.language);
-  const reviewedLabel = formatEditorialDate(reviewed, i18n.language);
+export default function Byline({ author, published, reviewed, lang }: Props) {
+  const { t: appT, i18n } = useTranslation();
+  const t = lang ? i18n.getFixedT(lang) : appT;
+  const language = lang ?? i18n.language;
+  const publishedLabel = formatEditorialDate(published, language);
+  const reviewedLabel = formatEditorialDate(reviewed, language);
   const showReviewed = reviewedLabel && reviewedLabel !== publishedLabel;
 
   return (

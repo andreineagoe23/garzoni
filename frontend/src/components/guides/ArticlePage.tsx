@@ -4,6 +4,13 @@ import DOMPurify from "dompurify";
 import apiClient from "services/httpClient";
 import SeoHead from "components/seo/SeoHead";
 import Byline from "components/editorial/Byline";
+import LanguageSwitch from "components/seo/LanguageSwitch";
+import {
+  SITE_URL,
+  hreflangAlternates,
+  publicApiParams,
+  usePublicLocale,
+} from "components/seo/publicLocale";
 
 type FaqPair = { question: string; answer: string };
 
@@ -17,6 +24,7 @@ type RelatedLesson = {
 
 type ArticleResponse = {
   slug: string;
+  available_languages?: string[];
   title: string;
   category: string;
   meta_description: string;
@@ -33,6 +41,7 @@ type ArticleResponse = {
 
 export default function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
+  const { lang, t, to, url } = usePublicLocale();
   const [data, setData] = useState<ArticleResponse | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -41,8 +50,12 @@ export default function ArticlePage() {
     if (!slug) return;
     let cancelled = false;
     setLoading(true);
+    setError("");
+    setData(null);
     apiClient
-      .get<ArticleResponse>(`/public/articles/${slug}/`)
+      .get<ArticleResponse>(`/public/articles/${slug}/`, {
+        params: publicApiParams(lang),
+      })
       .then((res) => {
         if (!cancelled) setData(res.data);
       })
@@ -56,7 +69,7 @@ export default function ArticlePage() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, lang]);
 
   const sanitizedHtml = useMemo(
     () => DOMPurify.sanitize(data?.content || ""),
@@ -66,7 +79,7 @@ export default function ArticlePage() {
   if (loading) {
     return (
       <main style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
-        <p>Loading…</p>
+        <p>{t("publicGuides.loadingGuide")}</p>
       </main>
     );
   }
@@ -75,22 +88,24 @@ export default function ArticlePage() {
     return (
       <main style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
         <SeoHead
-          title="Guide not found — Garzoni"
-          description="This guide is not available."
-          canonical={`https://www.garzoni.app/guides/${slug ?? ""}`}
+          title={t("publicGuides.notFoundSeoTitle")}
+          description={t("publicGuides.notFoundSeoDescription")}
+          canonical={url(`/guides/${slug ?? ""}`)}
+          locale={lang}
         />
-        <h1>Guide not found</h1>
-        <p>The guide you’re looking for isn’t available.</p>
-        <Link to="/guides">Browse all guides →</Link>
+        <h1>{t("publicGuides.notFoundTitle")}</h1>
+        <p>{t("publicGuides.notFoundBody")}</p>
+        <Link to={to("/guides")}>{t("publicGuides.browseAll")}</Link>
       </main>
     );
   }
 
-  const canonical = `https://www.garzoni.app/guides/${data.slug}`;
+  const path = `/guides/${data.slug}`;
+  const canonical = url(path);
   const description =
     data.meta_description ||
     data.excerpt ||
-    `${data.title} — a free personal finance guide from Garzoni.`;
+    t("publicGuides.fallbackDescription", { title: data.title });
   const datePublished =
     data.published_at || data.updated_at || new Date().toISOString();
 
@@ -100,6 +115,8 @@ export default function ArticlePage() {
         title={`${data.title} — Garzoni`}
         description={description}
         canonical={canonical}
+        locale={lang}
+        alternates={hreflangAlternates(path, data.available_languages)}
         image={data.image_url || undefined}
         article={{
           headline: data.title,
@@ -115,15 +132,20 @@ export default function ArticlePage() {
         }
         itemListName={data.title}
         breadcrumbs={[
-          { name: "Home", url: "https://www.garzoni.app/" },
-          { name: "Guides", url: "https://www.garzoni.app/guides" },
+          { name: t("learnIndex.breadcrumbHome"), url: `${SITE_URL}/` },
+          { name: t("publicGuides.breadcrumbGuides"), url: url("/guides") },
           { name: data.title, url: canonical },
         ]}
       />
 
       <nav aria-label="Breadcrumb" style={{ fontSize: 14, opacity: 0.7 }}>
-        <Link to="/">Home</Link> › <Link to="/guides">Guides</Link> ›{" "}
+        <Link to="/">{t("learnIndex.breadcrumbHome")}</Link> ›{" "}
+        <Link to={to("/guides")}>{t("publicGuides.breadcrumbGuides")}</Link> ›{" "}
         <span>{data.title}</span>
+        <LanguageSwitch
+          path={path}
+          available={(data.available_languages ?? []).length > 1}
+        />
       </nav>
 
       <h1>{data.title}</h1>
@@ -131,6 +153,7 @@ export default function ArticlePage() {
         author={data.author}
         published={data.published_at}
         reviewed={data.updated_at}
+        lang={lang}
       />
 
       {data.image_url ? (
@@ -151,7 +174,7 @@ export default function ArticlePage() {
 
       {data.faq && data.faq.length > 0 ? (
         <section style={{ marginTop: "2.5rem" }}>
-          <h2>Frequently asked questions</h2>
+          <h2>{t("publicGuides.faqTitle")}</h2>
           {data.faq.map((item, i) => (
             <div key={i} style={{ marginBottom: "1.25rem" }}>
               <h3 style={{ marginBottom: 4 }}>{item.question}</h3>
@@ -165,11 +188,11 @@ export default function ArticlePage() {
 
       {data.related_lessons.length > 0 ? (
         <section style={{ marginTop: "3rem" }}>
-          <h2>Related lessons</h2>
+          <h2>{t("publicGuides.relatedLessons")}</h2>
           <ul style={{ lineHeight: 1.9 }}>
             {data.related_lessons.map((l) => (
               <li key={l.slug}>
-                <Link to={`/learn/${l.slug}`}>{l.title}</Link>
+                <Link to={to(`/learn/${l.slug}`)}>{l.title}</Link>
               </li>
             ))}
           </ul>
@@ -184,11 +207,8 @@ export default function ArticlePage() {
           borderRadius: 12,
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Put this into practice</h2>
-        <p>
-          Garzoni turns guides like this into short interactive lessons with
-          quizzes, streaks, and an AI coach. Sign up free to start learning.
-        </p>
+        <h2 style={{ marginTop: 0 }}>{t("publicGuides.practiceTitle")}</h2>
+        <p>{t("publicGuides.practiceBody")}</p>
         <Link
           to="/register"
           style={{
@@ -201,12 +221,12 @@ export default function ArticlePage() {
             fontWeight: 600,
           }}
         >
-          Create a free account
+          {t("publicGuides.createAccount")}
         </Link>
       </aside>
 
       <p style={{ marginTop: "2rem" }}>
-        <Link to="/guides">← All guides</Link>
+        <Link to={to("/guides")}>{t("publicGuides.allGuides")}</Link>
       </p>
     </main>
   );

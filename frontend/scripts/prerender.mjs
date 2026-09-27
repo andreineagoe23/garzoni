@@ -222,7 +222,13 @@ function serveDist() {
 // Markers that mean the page rendered an error/empty state instead of real
 // content (e.g. the API 404'd mid-build). We must never bake these into a
 // static snapshot — a "not found" page tells crawlers the URL is broken.
-const ERROR_MARKERS = ["Guide not found", "Lesson not found"];
+const ERROR_MARKERS = [
+  "Guide not found",
+  "Lesson not found",
+  // Romanian twins (publicGuides/publicLesson.notFoundTitle in the ro locale).
+  "Ghid negăsit",
+  "Lecție negăsită",
+];
 
 function isErrorSnapshot(html) {
   return ERROR_MARKERS.some((marker) => html.includes(marker));
@@ -445,11 +451,11 @@ async function launchBrowser() {
  * slugs — the rest of the object (title, updated_at, …) is what the snapshot
  * cache fingerprints against to decide whether a page needs re-rendering.
  */
-async function fetchPublicList(path, label) {
+async function fetchPublicList(path, label, query = "") {
   try {
     const apiBase =
       process.env.VITE_API_URL || "https://garzoni-production.up.railway.app";
-    const res = await fetchWithRetry(`${apiBase}/api/public/${path}/`);
+    const res = await fetchWithRetry(`${apiBase}/api/public/${path}/${query}`);
     if (!res.ok) return [];
     const data = await res.json();
     const items = Array.isArray(data) ? data : (data.results ?? []);
@@ -611,6 +617,29 @@ async function main() {
     const route = `/guides/${article.slug}`;
     routes.push(route);
     fingerprints.set(route, sha1(JSON.stringify(article)));
+  }
+
+  // Romanian twins. The ?lang=ro lists hold only fully translated items (the
+  // detail API 404s the rest), and a /ro index is only rendered when it has
+  // something to list — matching what sitemap.xml advertises.
+  const roLists = [
+    [
+      await fetchPublicList("lessons", "ro lesson slugs", "?lang=ro"),
+      "/ro/learn",
+    ],
+    [
+      await fetchPublicList("articles", "ro article slugs", "?lang=ro"),
+      "/ro/guides",
+    ],
+  ];
+  for (const [items, base] of roLists) {
+    if (items.length === 0) continue;
+    routes.push(base);
+    for (const item of items) {
+      const route = `${base}/${item.slug}`;
+      routes.push(route);
+      fingerprints.set(route, sha1(JSON.stringify(item)));
+    }
   }
 
   // Empty slug lists on a production build mean the API was unreachable or
