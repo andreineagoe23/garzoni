@@ -146,6 +146,9 @@ amplifyconfiguration*
 # ── AI rewrite output (ephemeral batch JSONs, not source) ─────────────────────
 backend/education/content/rewrite_output/
 
+# ── Store screenshot renders (regenerate with node store-assets/render.mjs) ───
+store-assets/out/
+
 # ── Secrets ───────────────────────────────────────────────────────────────────
 backend/chartwise/garzonicredentials.json
 backend/garzonicredentials.json

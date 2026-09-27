@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--BASE-->
+    <title>Play feature graphic</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .trail {
+        fill: none;
+        stroke: rgba(var(--brand-text-rgb), 0.28);
+        stroke-width: 3;
+        stroke-dasharray: 2 9;
+        stroke-linecap: round;
+      }
+      .ridge {
+        fill: url(#ridge);
+      }
+      .done {
+        fill: var(--brand-green);
+        stroke: rgba(var(--brand-text-rgb), 0.35);
+        stroke-width: 2;
+      }
+      .tick {
+        fill: none;
+        stroke: var(--brand-text);
+        stroke-width: 3.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .now {
+        fill: var(--brand-gold-warm);
+      }
+      .now-ring {
+        fill: none;
+        stroke: var(--brand-gold-warm);
+        stroke-width: 2.5;
+        opacity: 0.45;
+      }
+      .next {
+        fill: var(--brand-bg-card);
+        stroke: rgba(var(--brand-text-rgb), 0.3);
+        stroke-width: 2;
+      }
+      .flag {
+        fill: var(--brand-gold-warm);
+      }
+      .pole {
+        stroke: rgba(var(--brand-text-rgb), 0.7);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+      }
+    </style>
+  </head>
+  <body class="fg">
+    <script id="slot-data" type="application/json">
+      {
+        "lang": "en",
+        "headline": "Learn money in 5 minutes a day",
+        "accent": "5 minutes",
+        "tagline": "150+ lessons · AI tutor · Free to start"
+      }
+    </script>
+    <section class="fg-copy">
+      <div class="fg-logo" role="img" aria-label="Garzoni"></div>
+      <h1 class="fg-headline"></h1>
+      <p class="fg-tagline"></p>
+    </section>
+
+    <!-- The Climb, abstracted: finished steps, the current one, the summit -->
+    <svg class="fg-art" viewBox="0 0 340 300" aria-hidden="true">
+      <defs>
+        <linearGradient id="ridge" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color: rgb(var(--brand-green-rgb)); stop-opacity: 0.55" />
+          <stop offset="1" style="stop-color: rgb(var(--brand-green-rgb)); stop-opacity: 0" />
+        </linearGradient>
+        <linearGradient id="fade-x" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="white" stop-opacity="0" />
+          <stop offset="0.2" stop-color="white" stop-opacity="1" />
+          <stop offset="0.8" stop-color="white" stop-opacity="1" />
+          <stop offset="1" stop-color="white" stop-opacity="0" />
+        </linearGradient>
+        <mask id="fade">
+          <rect width="340" height="300" fill="url(#fade-x)" />
+        </mask>
+      </defs>
+      <path class="ridge" mask="url(#fade)" d="M0 300 L120 150 L165 190 L270 40 L340 120 L340 300 Z" />
+      <path class="trail" d="M52 262 C120 250 170 238 150 212 C130 186 70 176 98 150 C126 124 190 128 204 108 C218 88 240 70 270 46" />
+      <circle class="done" cx="52" cy="262" r="15" />
+      <path class="tick" d="M45 262 l5 5 l9 -10" />
+      <circle class="done" cx="150" cy="212" r="15" />
+      <path class="tick" d="M143 212 l5 5 l9 -10" />
+      <circle class="done" cx="98" cy="150" r="15" />
+      <path class="tick" d="M91 150 l5 5 l9 -10" />
+      <circle class="now-ring" cx="204" cy="108" r="26" />
+      <circle class="now" cx="204" cy="108" r="17" />
+      <circle class="next" cx="270" cy="46" r="13" />
+      <line class="pole" x1="270" y1="33" x2="270" y2="4" />
+      <path class="flag" d="M270 5 L292 12 L270 19 Z" />
+    </svg>
+
+    <script>
+      const d = JSON.parse(document.getElementById("slot-data").textContent);
+      document.documentElement.lang = d.lang;
+      const h = document.querySelector(".fg-headline");
+      const at = d.headline.indexOf(d.accent);
+      const em = document.createElement("span");
+      em.className = "accent";
+      em.textContent = d.accent;
+      if (at < 0) h.textContent = d.headline;
+      else h.append(d.headline.slice(0, at), em, d.headline.slice(at + d.accent.length));
+      document.querySelector(".fg-tagline").textContent = d.tagline;
+
+      function guard(msg) {
+        const g = document.createElement("div");
+        g.className = "guard";
+        g.textContent = `RENDER CHECK: ${msg}`;
+        document.body.append(g);
+      }
+      if (at < 0) guard(`accent "${d.accent}" not found in headline`);
+      document.fonts.ready.then(() => {
+        if (!document.fonts.check('800 40px "Inter"')) guard("Inter did not load");
+        const copy = document.querySelector(".fg-copy");
+        if (copy.getBoundingClientRect().right > document.querySelector(".fg-art").getBoundingClientRect().left) {
+          guard("copy collides with art");
+        }
+        for (const el of copy.children) {
+          if (el.scrollWidth > el.clientWidth + 1) guard(`${el.className} overflows`);
+        }
+        if (h.offsetHeight > parseFloat(getComputedStyle(h).lineHeight) * 2 + 1) guard("headline over 2 lines");
+      });
+    </script>
+  </body>
+</html>

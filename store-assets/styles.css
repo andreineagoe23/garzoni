@@ -1,0 +1,242 @@
+/* Store screenshots + Play feature graphic.
+   Colours come from the canonical brand tokens (frontend/src/styles/brand.css);
+   typography mirrors the live landing hero (Inter 800, gold accent, mono eyebrow).
+   Every length is in vw so one layout scales to 1290, 1080 and 1024 wide canvases. */
+@import url("../frontend/src/styles/brand.css");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=block");
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 500;
+  src: url("../brand/kit/fonts/JetBrainsMono_500Medium.ttf") format("truetype");
+}
+
+:root {
+  --ink: var(--brand-text);
+  --ink-muted: var(--brand-text-muted);
+  --accent: var(--brand-gold-warm);
+  --green-rgb: var(--brand-green-rgb);
+  --gold-rgb: var(--brand-gold-warm-rgb);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--brand-font-primary);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(70vw circle at 12% 6%, rgba(var(--green-rgb), 0.5), transparent 70%),
+    radial-gradient(60vw circle at 92% 14%, rgba(var(--gold-rgb), 0.13), transparent 70%),
+    radial-gradient(90vw circle at 50% 100%, rgba(var(--green-rgb), 0.22), transparent 70%),
+    linear-gradient(180deg, var(--brand-bg-dark) 0%, var(--brand-bg-card) 55%, var(--brand-bg-dark) 100%);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+/* ── Screenshot slot ─────────────────────────────────────────────────────── */
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+}
+
+.caption {
+  flex: none;
+  height: var(--caption-h);
+  width: 100%;
+  padding: 0 7vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.eyebrow {
+  font-family: var(--brand-font-mono);
+  font-weight: 500;
+  font-size: 2.9vw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Narrower than the caption so every headline breaks onto two lines: a consistent set */
+.headline {
+  max-width: 80vw;
+  margin: 2.8vw auto 0;
+  font-weight: 800;
+  font-size: var(--headline-size);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.subline {
+  margin-top: 3vw;
+  font-weight: 400;
+  font-size: 3.9vw;
+  line-height: 1.35;
+  color: var(--ink-muted);
+  text-wrap: balance;
+}
+
+.shot {
+  flex: 1 0 auto;
+  width: var(--shot-w);
+  margin-bottom: -12vw;
+  border-radius: 5vw;
+  overflow: hidden;
+  border: 0.3vw solid var(--brand-border-glass);
+  background: var(--brand-bg-card);
+  box-shadow:
+    0 0 0 1.2vw rgba(var(--green-rgb), 0.12),
+    0 4vw 12vw rgba(0, 0, 0, 0.6);
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  /* margin % resolves against width, so --crop-top is "status bar height / capture width" */
+  margin-top: calc(var(--crop-top) * -100%);
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2vw;
+  padding: 24vw 8vw 0;
+  text-align: center;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(var(--brand-text-rgb), 0.035) 0 1.2vw,
+      transparent 1.2vw 2.4vw
+    ),
+    var(--brand-bg-card);
+  border-style: dashed;
+}
+
+.placeholder .ph-id {
+  font-family: var(--brand-font-mono);
+  font-size: 2.6vw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.placeholder .ph-what {
+  font-size: 4.4vw;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.placeholder .ph-path {
+  font-family: var(--brand-font-mono);
+  font-size: 2.4vw;
+  color: var(--ink-muted);
+}
+
+/* iPhone 6.9" portrait (1290×2796): tall canvas, the capture shows nearly whole */
+.size-ios {
+  --caption-h: 62vw;
+  --headline-size: 9vw;
+  --shot-w: 84vw;
+}
+
+/* Play phone (1080×1920, 9:16): shorter canvas, tighter caption */
+.size-play {
+  --caption-h: 54vw;
+  --headline-size: 8.6vw;
+  --shot-w: 78vw;
+}
+
+/* ── Feature graphic (1024×500) ──────────────────────────────────────────── */
+
+.fg {
+  position: relative;
+  background:
+    radial-gradient(55vw circle at 8% 0%, rgba(var(--green-rgb), 0.55), transparent 70%),
+    radial-gradient(40vw circle at 82% 30%, rgba(var(--gold-rgb), 0.16), transparent 70%),
+    radial-gradient(50vw circle at 80% 110%, rgba(var(--green-rgb), 0.35), transparent 70%),
+    linear-gradient(135deg, var(--brand-bg-dark) 0%, var(--brand-bg-card) 60%, var(--brand-bg-dark) 100%);
+}
+
+.fg-copy {
+  position: absolute;
+  left: 6.5vw;
+  top: 0;
+  bottom: 0;
+  width: 55vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* logo-dark.png is a 1200×1200 canvas; this box crops to the wordmark (x 60–1150, y 415–735) */
+.fg-logo {
+  width: 21vw;
+  aspect-ratio: 1090 / 320;
+  background: url("../brand/logo-dark.png") no-repeat;
+  background-size: 110.09% auto;
+  background-position: 54.5% 47.16%;
+}
+
+.fg-headline {
+  margin-top: 4.2vw;
+  font-weight: 800;
+  font-size: 5.9vw;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.fg-tagline {
+  margin-top: 3.4vw;
+  font-family: var(--brand-font-mono);
+  font-weight: 500;
+  font-size: 1.55vw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.fg-art {
+  position: absolute;
+  right: 3vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34vw;
+}
+
+/* ── Render guards: a broken render must look broken ────────────────────── */
+
+.guard {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 10;
+  padding: 1vw;
+  font: 700 2vw/1.2 monospace;
+  color: #fff;
+  background: #dc2626;
+  text-align: center;
+}
