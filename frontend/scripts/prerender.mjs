@@ -171,6 +171,8 @@ async function fulfillApiRequest(req) {
 const STATIC_ROUTES = [
   "/",
   "/about",
+  "/authors/andrei-neagoe",
+  "/editorial-standards",
   "/learn",
   "/guides",
   "/marketing",

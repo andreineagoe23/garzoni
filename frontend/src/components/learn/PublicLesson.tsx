@@ -4,6 +4,7 @@ import DOMPurify from "dompurify";
 import apiClient from "services/httpClient";
 import { recordFunnelEvent } from "services/analyticsService";
 import SeoHead from "components/seo/SeoHead";
+import Byline from "components/editorial/Byline";
 
 /**
  * Optional interactive "sample question" attached to a public lesson (UX plan
@@ -267,17 +268,6 @@ export default function PublicLesson() {
     }
     return out;
   }, [data?.sections]);
-  const updatedLabel = useMemo(() => {
-    if (!data?.updated_at) return "";
-    const d = new Date(data.updated_at);
-    return Number.isNaN(d.getTime())
-      ? ""
-      : d.toLocaleDateString("en-GB", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-  }, [data?.updated_at]);
 
   if (loading) {
     return (
@@ -336,12 +326,7 @@ export default function PublicLesson() {
         <span>{data.course.title}</span>
       </nav>
       <h1>{data.title}</h1>
-      {updatedLabel ? (
-        <p style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>
-          Reviewed and updated{" "}
-          <time dateTime={data.updated_at ?? undefined}>{updatedLabel}</time>
-        </p>
-      ) : null}
+      <Byline reviewed={data.updated_at} />
       {data.short_description ? <p>{data.short_description}</p> : null}
       {data.image_url ? (
         <img

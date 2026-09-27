@@ -1,0 +1,131 @@
+{
+  "byline": {
+    "writtenBy": "Scris de",
+    "published": "Publicat pe {{date}}",
+    "reviewed": "Revizuit pe {{date}}"
+  },
+  "links": {
+    "author": "Despre autor",
+    "standards": "Standarde editoriale"
+  },
+  "breadcrumbs": {
+    "home": "Acasă",
+    "about": "Despre",
+    "standards": "Standarde editoriale"
+  },
+  "author": {
+    "seoTitle": "Andrei Neagoe, fondatorul Garzoni — autor și editor",
+    "seoDescription": "Andrei Neagoe este fondatorul Garzoni și scrie și editează lecțiile și ghidurile de finanțe personale ale aplicației. Licență în Informatică, Queen Mary University of London.",
+    "jobTitle": "Fondatorul Garzoni",
+    "role": "Fondator",
+    "photoAlt": "Fotografie cu Andrei Neagoe",
+    "bio": "Andrei Neagoe este fondatorul Garzoni și scrie și editează lecțiile și ghidurile aplicației.",
+    "education": "Are o licență (BSc) în Informatică la Queen Mary University of London.",
+    "disclaimer": "Garzoni este o aplicație educațională, nu un consultant financiar autorizat.",
+    "topicsHeading": "Subiecte despre care scrie",
+    "topics": {
+      "budgeting": "Bugetare",
+      "saving": "Economisire și fond de urgență",
+      "debt": "Gestionarea datoriilor",
+      "credit": "Scorul de credit",
+      "investing": "Bazele investițiilor",
+      "tax": "Noțiuni de bază despre taxele din Marea Britanie"
+    },
+    "processHeading": "Cum este scris și revizuit conținutul",
+    "processBody": "Fiecare lecție și ghid respectă aceleași standarde editoriale: limbaj simplu, surse oficiale din Marea Britanie acolo unde contează o cifră sau o regulă, o dată de revizuire vizibilă și corecturi rapide.",
+    "profilesHeading": "Alte profiluri",
+    "guidesHeading": "Ghiduri scrise de Andrei Neagoe",
+    "lessonsHeading": "Lecții scrise de Andrei Neagoe",
+    "loading": "Se încarcă…",
+    "empty": "Nimic publicat încă."
+  },
+  "standards": {
+    "seoTitle": "Standarde editoriale — cum își scrie Garzoni lecțiile",
+    "seoDescription": "Cum scrie, documentează, revizuiește și corectează Garzoni lecțiile și ghidurile de finanțe personale și de ce nimic din ele nu reprezintă consultanță financiară.",
+    "title": "Standarde editoriale",
+    "lastUpdated": "Ultima actualizare: {{date}}",
+    "intro": "Garzoni predă finanțe personale. Deciziile legate de bani contează, așa că lecțiile și ghidurile noastre respectă câteva reguli simple. Această pagină explică cine le scrie, de unde provin informațiile, cum sunt ținute la zi și ce se întâmplă când greșim.",
+    "who": {
+      "heading": "Cine scrie conținutul",
+      "body": "Fiecare lecție și ghid de pe Garzoni este scris și editat de Andrei Neagoe, fondatorul Garzoni.",
+      "review": "În prezent, conținutul nostru nu este revizuit de un expert financiar extern. Dacă acest lucru se schimbă, persoana care revizuiește va fi menționată aici și pe fiecare pagină pe care o revizuiește."
+    },
+    "writing": {
+      "heading": "Cum scriem lecțiile",
+      "clarity": "Limbaj simplu. Termenii de specialitate sunt explicați prima dată când apar, iar fiecare lecție se concentrează pe o singură idee pe care o poți folosi.",
+      "context": "Context britanic. Cifrele, regulile și exemplele se bazează pe Marea Britanie, dacă pagina nu spune altceva.",
+      "education": "Educație, nu recomandări. Explicăm cum funcționează lucrurile și ce compromisuri implică. Nu îți spunem ce să faci cu banii tăi."
+    },
+    "sources": {
+      "heading": "Cum ne documentăm",
+      "intro": "Acolo unde o lecție se bazează pe o cifră, o regulă sau un prag, folosim în primul rând surse primare și oficiale din Marea Britanie și le indicăm într-o secțiune Surse pe pagină:",
+      "moneyHelper": "îndrumare financiară gratuită, susținută de guvern",
+      "fca": "autoritatea de reglementare financiară din Marea Britanie și registrul său de firme autorizate",
+      "gov": "reguli fiscale, scutiri și praguri",
+      "boe": "rata dobânzii de politică monetară și inflația",
+      "ons": "statistici oficiale, precum inflația și câștigurile salariale",
+      "outro": "Alte surse, cum ar fi presa sau cercetările de încredere, sunt folosite pentru context și sunt menționate atunci când ne bazăm pe ele."
+    },
+    "updates": {
+      "heading": "Date de revizuire și actualizări",
+      "body": "Fiecare lecție și ghid afișează data la care a fost revizuit sau actualizat ultima dată. Când regulile sau pragurile din Marea Britanie se schimbă, de exemplu la începutul unui nou an fiscal, actualizăm paginile afectate, iar data se schimbă odată cu ele."
+    },
+    "corrections": {
+      "heading": "Corecturi",
+      "body": "Dacă observi o greșeală sau o informație depășită, spune-ne prin pagina de asistență. Verificăm fiecare semnalare, corectăm erorile factuale cât de repede putem și actualizăm data de revizuire a paginii.",
+      "link": "Semnalează o eroare"
+    },
+    "advice": {
+      "heading": "Nu este consultanță financiară",
+      "body": "Garzoni este o aplicație educațională, nu un consultant financiar autorizat. Lecțiile, ghidurile, instrumentele și asistentul nostru AI oferă informații generale, nu sfaturi personalizate în funcție de situația ta.",
+      "help": "Pentru sfaturi despre situația ta, ia în considerare un consultant financiar autorizat (îl poți verifica în registrul FCA) sau îndrumarea gratuită și imparțială de la MoneyHelper.",
+      "link": "Citește declinarea completă a responsabilității financiare"
+    },
+    "authorLink": "Despre Andrei Neagoe"
+  },
+  "about": {
+    "seoTitle": "Despre Garzoni — educație financiară pentru tineri",
+    "seoDescription": "Garzoni este o aplicație de educație financiară care te învață bugetare, economisire, investiții și gestionarea datoriilor prin lecții interactive scurte. Află cine este fondatorul și cum scriem lecțiile.",
+    "title": "Despre Garzoni",
+    "intro": "Garzoni este o platformă de educație financiară creată pentru tinerii cărora nimeni nu le-a explicat cum funcționează banii. Transformăm bugetarea, economisirea, investițiile, creditul, datoriile și taxele în lecții scurte și practice, pe care le poți termina în zece minute.",
+    "missionHeading": "Misiunea noastră",
+    "missionBody": "Educația financiară este una dintre cele mai utile abilități pe care le poate învăța cineva, însă majoritatea oamenilor termină școala fără ea. Garzoni există pentru a acoperi acest gol și pentru a face educația financiară captivantă, accesibilă și cu adevărat utilă, nu intimidantă.",
+    "founderHeading": "Cine se află în spatele Garzoni",
+    "founderBody": "Garzoni a fost fondat de Andrei Neagoe, care scrie și editează lecțiile și ghidurile aplicației. Are o licență (BSc) în Informatică la Queen Mary University of London.",
+    "founderDisclaimer": "Garzoni este o aplicație educațională, nu un consultant financiar autorizat.",
+    "founderLink": "Vezi profilul lui Andrei",
+    "standardsHeading": "Cum scriem lecțiile",
+    "standardsBody": "Lecțiile folosesc un limbaj simplu și contextul din Marea Britanie, citează surse oficiale precum MoneyHelper, FCA, HMRC și Bank of England acolo unde contează o cifră sau o regulă și afișează data ultimei revizuiri.",
+    "standardsLink": "Citește standardele noastre editoriale",
+    "howHeading": "Cum funcționează Garzoni",
+    "how": {
+      "lessonsTitle": "Lecții de zece minute.",
+      "lessonsBody": "Lecții scurte, fără jargon, care încap într-o zi aglomerată.",
+      "repetitionTitle": "Repetiție spațiată.",
+      "repetitionBody": "Verificările de cunoștințe readuc conceptele în timp, astfel încât ceea ce înveți să rămână.",
+      "coachTitle": "Asistent bazat pe AI.",
+      "coachBody": "Asistentul AI Garzoni citește datele introduse în simulatoarele de buget, datorii și economii și îți explică pe înțeles ce se schimbă și de ce.",
+      "streaksTitle": "Serii și XP.",
+      "streaksBody": "Seriile zilnice și punctele de experiență te ajută să îți formezi obiceiul."
+    },
+    "learnHeading": "Ce vei învăța",
+    "learnBody": "Garzoni acoperă pilonii de bază ai finanțelor personale: construirea unui buget, creșterea economiilor și a fondului de urgență, achitarea datoriilor, înțelegerea scorului de credit, bazele investițiilor și taxele, totul pornind de la situații reale.",
+    "browseLessons": "Vezi lecțiile gratuite",
+    "browseGuides": "Citește ghidurile",
+    "seeFeatures": "Vezi funcțiile",
+    "viewPricing": "Vezi prețurile",
+    "ctaHeading": "Începe să înveți gratuit",
+    "ctaBody": "Creează un cont gratuit pentru a debloca parcursul complet de învățare, testele, seriile și asistentul financiar AI Garzoni.",
+    "ctaButton": "Creează un cont gratuit",
+    "faq": {
+      "whatQ": "Ce este Garzoni?",
+      "whatA": "Garzoni este o aplicație de educație financiară pentru tineri. Te învață bugetare, economisire, investiții, gestionarea datoriilor, scorul de credit și taxe prin lecții interactive de zece minute, serii zilnice și un asistent financiar bazat pe AI.",
+      "differentQ": "Prin ce diferă Garzoni de o aplicație de bugetare?",
+      "differentA": "Majoritatea aplicațiilor financiare îți urmăresc banii. Garzoni te învață cum funcționează banii. Este o platformă de învățare, ca un Duolingo pentru finanțe personale, care construiește o educație financiară durabilă prin repetiție spațiată și simulatoare practice.",
+      "whoQ": "Cine scrie lecțiile Garzoni?",
+      "whoA": "Lecțiile și ghidurile Garzoni sunt scrise și editate de fondatorul aplicației, Andrei Neagoe, după standarde editoriale publice care favorizează surse oficiale din Marea Britanie, precum MoneyHelper, FCA și HMRC.",
+      "adviceQ": "Garzoni oferă consultanță financiară?",
+      "adviceA": "Nu. Garzoni este o aplicație de educație financiară. Explică concepte și rulează simulări, dar nu oferă recomandări personalizate și nu este un consultant financiar autorizat."
+    }
+  }
+}
