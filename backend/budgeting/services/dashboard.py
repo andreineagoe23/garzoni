@@ -23,7 +23,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from authentication.entitlements import get_user_plan
-from budgeting.models import LinkedAccount
+from budgeting.models import DEFAULT_CURRENCY, LinkedAccount
 from budgeting.services.summaries import (
     PeriodSummary,
     get_or_compute_summary,
@@ -213,7 +213,7 @@ def _spending_block(
     if spending is None:
         return {
             "available": False,
-            "currency": "USD",
+            "currency": DEFAULT_CURRENCY,
             "income": 0.0,
             "spent": 0.0,
             "net_cash_flow": 0.0,
@@ -520,7 +520,7 @@ def build_dashboard(user, surface: str = "web") -> Dict[str, Any]:
         monthly_contribution = _decimal(spending.net_cash_flow)
 
     goals_block = _goals_block(user, monthly_contribution)
-    currency = spending_block.get("currency") or "USD"
+    currency = spending_block.get("currency") or DEFAULT_CURRENCY
     net_worth = _net_worth_block(portfolio_value, currency, user)
 
     projections = _projections_block(portfolio_value, monthly_contribution)
@@ -583,5 +583,5 @@ def build_dashboard_context(user) -> DashboardContext:
         on_track_goals=goals_block["on_track_count"],
         real_holdings_count=portfolio["holdings_count"],
         monthly_contribution=monthly_contribution,
-        currency=spending_block.get("currency") or "USD",
+        currency=spending_block.get("currency") or DEFAULT_CURRENCY,
     )

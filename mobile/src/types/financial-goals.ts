@@ -1,3 +1,5 @@
+import { formatCurrency as formatMoney } from "@garzoni/core";
+
 export type GoalStatus = "not_started" | "in_progress" | "completed";
 
 export type FinancialGoalDto = {
@@ -56,12 +58,7 @@ function deriveStatus(goal: FinancialGoalDto): GoalStatus {
 }
 
 export function formatGoalMoney(value: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatMoney(value, { maximumFractionDigits: 0 });
 }
 
 export function formatGoalDate(iso: string | null | undefined): string {

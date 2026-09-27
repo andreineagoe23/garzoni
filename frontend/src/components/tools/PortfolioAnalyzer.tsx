@@ -19,7 +19,12 @@ import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useAuth } from "contexts/AuthContext";
 import apiClient from "services/httpClient";
-import { formatCurrency, formatNumber, getLocale } from "utils/format";
+import {
+  MARKET_QUOTE_CURRENCY,
+  formatCurrency,
+  formatNumber,
+  getLocale,
+} from "utils/format";
 import { PORTFOLIO_INSIGHT_LESSONS } from "./lessonMapping";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { requestAiTutorResponse } from "services/aiTutor";
@@ -626,7 +631,7 @@ function PortfolioAnalyzer() {
         (entry) =>
           `${entry.symbol.toUpperCase()} (${entry.asset_type}): ${formatCurrency(
             Number(entry.current_value || 0),
-            "USD",
+            MARKET_QUOTE_CURRENCY,
             locale,
             { maximumFractionDigits: 0 }
           )}`
@@ -648,8 +653,8 @@ function PortfolioAnalyzer() {
     const prompt = [
       "You are a practical personal finance coach.",
       "Explain this learner's portfolio results in simple language.",
-      `Total portfolio value: ${formatCurrency(summary.total_value || 0, "USD", locale, { maximumFractionDigits: 0 })}`,
-      `Total gain/loss: ${formatCurrency(summary.total_gain_loss || 0, "USD", locale, { maximumFractionDigits: 0 })}`,
+      `Total portfolio value: ${formatCurrency(summary.total_value || 0, MARKET_QUOTE_CURRENCY, locale, { maximumFractionDigits: 0 })}`,
+      `Total gain/loss: ${formatCurrency(summary.total_gain_loss || 0, MARKET_QUOTE_CURRENCY, locale, { maximumFractionDigits: 0 })}`,
       `Total gain/loss percentage: ${formatNumber(totalGainLossPercentage, locale, { maximumFractionDigits: 1 })}%`,
       `Allocation mix: ${allocationSummary || "N/A"}`,
       `Top holdings: ${topHoldings || "N/A"}`,
@@ -737,7 +742,7 @@ function PortfolioAnalyzer() {
     }
     bullets.push(
       t("tools.portfolio.problems.totalValueBullet", {
-        value: formatCurrency(total, "USD", locale, {
+        value: formatCurrency(total, MARKET_QUOTE_CURRENCY, locale, {
           maximumFractionDigits: 0,
         }),
         gainOrLoss:
@@ -955,7 +960,7 @@ function PortfolioAnalyzer() {
         <p className="text-center text-sm text-content-muted">
           Virtual cash available:{" "}
           <span className="font-bold text-content-primary">
-            {formatCurrency(virtualBalance, "USD", locale, {
+            {formatCurrency(virtualBalance, MARKET_QUOTE_CURRENCY, locale, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -1065,7 +1070,7 @@ function PortfolioAnalyzer() {
                 <p className="text-3xl font-bold text-content-primary">
                   {formatCurrency(
                     filteredSummary.total_value || 0,
-                    "USD",
+                    MARKET_QUOTE_CURRENCY,
                     locale,
                     {
                       minimumFractionDigits: 2,
@@ -1100,7 +1105,7 @@ function PortfolioAnalyzer() {
                   {filteredSummary.total_gain_loss >= 0 ? "+" : ""}
                   {formatCurrency(
                     Math.abs(filteredSummary.total_gain_loss || 0),
-                    "USD",
+                    MARKET_QUOTE_CURRENCY,
                     locale,
                     { minimumFractionDigits: 2, maximumFractionDigits: 2 }
                   )}
@@ -1367,10 +1372,15 @@ function PortfolioAnalyzer() {
                         </Pie>
                         <Tooltip
                           formatter={(value) =>
-                            formatCurrency(Number(value || 0), "USD", locale, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })
+                            formatCurrency(
+                              Number(value || 0),
+                              MARKET_QUOTE_CURRENCY,
+                              locale,
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )
                           }
                         />
                         <Legend />
@@ -1416,7 +1426,7 @@ function PortfolioAnalyzer() {
                             <p className="text-xs text-content-muted">
                               {formatCurrency(
                                 Number(value || 0),
-                                "USD",
+                                MARKET_QUOTE_CURRENCY,
                                 locale,
                                 {
                                   minimumFractionDigits: 2,
@@ -1539,10 +1549,15 @@ function PortfolioAnalyzer() {
                 {lookupPrice != null && !lookupError && (
                   <p className="mt-1 text-xs text-content-muted">
                     {t("tools.portfolio.currentPrice")}:{" "}
-                    {formatCurrency(lookupPrice, "USD", locale, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {formatCurrency(
+                      lookupPrice,
+                      MARKET_QUOTE_CURRENCY,
+                      locale,
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
                   </p>
                 )}
               </div>
@@ -1598,9 +1613,14 @@ function PortfolioAnalyzer() {
               {isPaperTrade && virtualBalance !== null && (
                 <span className="ml-auto font-normal normal-case text-content-muted">
                   Balance:{" "}
-                  {formatCurrency(virtualBalance, "USD", locale, {
-                    maximumFractionDigits: 0,
-                  })}
+                  {formatCurrency(
+                    virtualBalance,
+                    MARKET_QUOTE_CURRENCY,
+                    locale,
+                    {
+                      maximumFractionDigits: 0,
+                    }
+                  )}
                 </span>
               )}
             </label>
@@ -1682,7 +1702,7 @@ function PortfolioAnalyzer() {
                         <td className="px-4 py-3">
                           {formatCurrency(
                             Number(entry.purchase_price || 0),
-                            "USD",
+                            MARKET_QUOTE_CURRENCY,
                             locale,
                             {
                               minimumFractionDigits: 2,
@@ -1693,7 +1713,7 @@ function PortfolioAnalyzer() {
                         <td className="px-4 py-3 font-medium">
                           {formatCurrency(
                             Number(entry.current_value || 0),
-                            "USD",
+                            MARKET_QUOTE_CURRENCY,
                             locale,
                             {
                               minimumFractionDigits: 2,
@@ -1713,7 +1733,7 @@ function PortfolioAnalyzer() {
                               {entry.gain_loss >= 0 ? "+" : ""}
                               {formatCurrency(
                                 Math.abs(Number(entry.gain_loss || 0)),
-                                "USD",
+                                MARKET_QUOTE_CURRENCY,
                                 locale,
                                 {
                                   minimumFractionDigits: 2,

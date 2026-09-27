@@ -1,3 +1,8 @@
+import {
+  MARKET_QUOTE_CURRENCY,
+  formatCurrency as formatMoney,
+} from "@garzoni/core";
+
 export type PortfolioEntry = {
   id?: string | number;
   asset_type: string;
@@ -170,12 +175,11 @@ export function inferAssetType(symbol: string): "stock" | "crypto" {
 }
 
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return formatMoney(value, {
+    currency: MARKET_QUOTE_CURRENCY,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value);
+  });
 }
 
 export function formatPercent(value: number, decimals = 2): string {

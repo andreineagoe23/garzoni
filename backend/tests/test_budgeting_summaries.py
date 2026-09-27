@@ -162,6 +162,6 @@ class BudgetingSummariesEquivalenceTest(TestCase):
         summary = _aggregate_period(empty_user, month_start(REF))
         self.assertEqual(summary.total_income, Decimal("0"))
         self.assertEqual(summary.total_spent, Decimal("0"))
-        self.assertEqual(summary.currency, "USD")
+        self.assertEqual(summary.currency, "GBP")
         self.assertEqual(summary.by_category, [])
         self.assertEqual(envelopes_with_progress(empty_user, REF), [])

@@ -2,7 +2,10 @@
  * Format utilities for locale-aware number, date, and percentage formatting
  */
 
+import { formatCurrency as formatMoney } from "@garzoni/core";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from "constants/i18n";
+
+export { DEFAULT_CURRENCY, MARKET_QUOTE_CURRENCY } from "@garzoni/core";
 
 type LocaleLike = string | undefined;
 
@@ -48,20 +51,15 @@ export const formatNumber = (
 
 export const formatCurrency = (
   value: number,
-  currency: string,
+  currency?: string | null,
   locale: LocaleLike = getLocale(),
   options: Intl.NumberFormatOptions = {}
-) => {
-  try {
-    return new Intl.NumberFormat(normalizeLocale(locale), {
-      style: "currency",
-      currency,
-      ...options,
-    }).format(value);
-  } catch {
-    return `${currency} ${value}`;
-  }
-};
+) =>
+  formatMoney(value, {
+    ...options,
+    currency,
+    locale: normalizeLocale(locale),
+  });
 
 export const formatPercentage = (
   value: number,

@@ -11,6 +11,7 @@ import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
+  DEFAULT_CURRENCY,
   apiClient,
   fetchEntitlements,
   queryKeys,
@@ -154,7 +155,8 @@ export default function BudgetPlannerScreen() {
     }
   };
 
-  const currency = summary?.currency || envelopes[0]?.currency || "USD";
+  const currency =
+    summary?.currency || envelopes[0]?.currency || DEFAULT_CURRENCY;
   const overBudgetEnvelopes = useMemo(
     () => envelopes.filter((e) => e.spent_this_period > e.monthly_target),
     [envelopes],

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Stack } from "expo-router";
+import { currencySymbol } from "@garzoni/core";
 import { useThemeColors } from "../../../src/theme/ThemeContext";
 import {
   layout,
@@ -160,19 +161,19 @@ export default function SavingsGoalsScreen() {
             ]}
           >
             <Field
-              label="Savings goal ($)"
+              label={`Savings goal (${currencySymbol()})`}
               value={form.savingsGoal}
               onChange={set("savingsGoal")}
               c={c}
             />
             <Field
-              label="Initial amount ($)"
+              label={`Initial amount (${currencySymbol()})`}
               value={form.initialAmount}
               onChange={set("initialAmount")}
               c={c}
             />
             <Field
-              label="Monthly contribution ($)"
+              label={`Monthly contribution (${currencySymbol()})`}
               value={form.monthlyContribution}
               onChange={set("monthlyContribution")}
               c={c}

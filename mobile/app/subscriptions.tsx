@@ -26,6 +26,7 @@ import {
   fetchPersonalizedPath,
   fetchProfile,
   fetchSubscriptionPlans,
+  formatCurrency,
   queryKeys,
   staleTimes,
   type ActivePromo,
@@ -212,14 +213,7 @@ function formatIntroTrialLabel(
 
 /** Format a numeric amount as currency, matching the store's currency code. */
 function formatCurrencyAmount(amount: number, currencyCode?: string): string {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currencyCode || "USD",
-    }).format(amount);
-  } catch {
-    return amount.toFixed(2);
-  }
+  return formatCurrency(amount, { currency: currencyCode });
 }
 
 /** Trial length in days from StoreKit intro period (WEEK×1 → 7, MONTH×1 → 30). */

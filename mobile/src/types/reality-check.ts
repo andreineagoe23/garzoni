@@ -1,3 +1,5 @@
+import { formatCurrency as formatMoney } from "@garzoni/core";
+
 export type RealityCheckForm = {
   goalName: string;
   goalAmount: string;
@@ -85,9 +87,5 @@ export function calcRealityCheck(form: RealityCheckForm): RealityCheckResult {
 }
 
 export function formatCurrency(n: number): string {
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+  return formatMoney(n, { maximumFractionDigits: 0 });
 }

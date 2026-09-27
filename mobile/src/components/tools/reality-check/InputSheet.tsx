@@ -17,6 +17,9 @@ import KeyboardAwareScrollView from "../../../components/ui/KeyboardAwareScrollV
 import { useThemeColors } from "../../../theme/ThemeContext";
 import { spacing, typography, radius } from "../../../theme/tokens";
 import type { RealityCheckForm } from "../../../types/reality-check";
+import { currencySymbol } from "@garzoni/core";
+
+const CUR = currencySymbol();
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const SNAP = SCREEN_HEIGHT * 0.88;
@@ -134,9 +137,9 @@ export function InputSheet({
             </Text>
 
             {field("Goal Name", "goalName", "e.g. Emergency fund")}
-            {field("Goal Amount ($)", "goalAmount", "e.g. 10000")}
+            {field(`Goal Amount (${CUR})`, "goalAmount", "e.g. 10000")}
             {field("Timeline (months)", "months", "e.g. 12")}
-            {field("Already Saved ($)", "currentSaved", "e.g. 1000")}
+            {field(`Already Saved (${CUR})`, "currentSaved", "e.g. 1000")}
 
             <View style={[styles.sectionDivider, { borderColor: c.border }]}>
               <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
@@ -144,13 +147,13 @@ export function InputSheet({
               </Text>
             </View>
             {field(
-              "Income Low ($)",
+              `Income Low (${CUR})`,
               "incomeLow",
               "e.g. 2800",
               "Your lowest expected monthly income",
             )}
             {field(
-              "Income High ($)",
+              `Income High (${CUR})`,
               "incomeHigh",
               "e.g. 3200",
               "Your highest expected monthly income",
@@ -162,13 +165,13 @@ export function InputSheet({
               </Text>
             </View>
             {field(
-              "Expenses Low ($)",
+              `Expenses Low (${CUR})`,
               "expenseLow",
               "e.g. 1900",
               "Minimum expected monthly spending",
             )}
             {field(
-              "Expenses High ($)",
+              `Expenses High (${CUR})`,
               "expenseHigh",
               "e.g. 2200",
               "Maximum expected monthly spending",

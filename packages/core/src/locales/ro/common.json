@@ -1106,7 +1106,7 @@
         "description": "Rulează proiecții rapide după sumă inițială, rată și perioadă.",
         "mostUsefulFor": "Oricine testează cât durează să atingă un obiectiv la o anumită rată.",
         "whatItDoes": "Calculează economiile finale cu frecvențe de compunere selectabile.",
-        "sampleUseCase": "Vezi cum se transformă 1.000$ + 200$/lună la 5% în 5 ani.",
+        "sampleUseCase": "Vezi cum se transformă 1.000 £ + 200 £/lună la 5% în 5 ani.",
         "whoItsFor": "Învățăcei care vor un scenariu rapid fără foi de calcul.",
         "questionItAnswers": "Cât de mult ar putea crește economiile mele până la data țintă?"
       },
@@ -1126,7 +1126,7 @@
         "description": "Vezi dacă obiectivele tale sunt realiste pentru venitul și costurile tale",
         "mostUsefulFor": "Persoane cu un obiectiv și un flux lunar de numerar incert.",
         "whatItDoes": "Transformă un obiectiv într-un interval realist de economisire și verifică fezabilitatea.",
-        "sampleUseCase": "Planifică un fond de urgență de 6.000 $ în 12 luni fără presupuneri.",
+        "sampleUseCase": "Planifică un fond de urgență de 6.000 £ în 12 luni fără presupuneri.",
         "whoItsFor": "Oricine vrea o imagine sinceră a ceea ce este realizabil.",
         "questionItAnswers": "Pot atinge acest obiectiv cu fluxul meu de numerar actual?"
       },
@@ -1186,7 +1186,7 @@
         "description": "Adaugă obiective, actualizează soldurile și vezi cât mai ai până la fiecare țintă.",
         "mostUsefulFor": "Oricine își construiește fond de urgență, vacanță sau rambursare datorii.",
         "whatItDoes": "Salvează obiectivele în contul tău și arată progresul către fiecare dată țintă.",
-        "sampleUseCase": "Urmărește un fond de urgență de 10.000 și o vacanță în același loc.",
+        "sampleUseCase": "Urmărește un fond de urgență de 10.000 £ și o vacanță în același loc.",
         "whoItsFor": "Cei care vor urmăriere structurată, nu doar un singur calculator.",
         "questionItAnswers": "Cum stau cu progresul obiectivelor mele financiare?"
       },
@@ -1196,7 +1196,7 @@
         "description": "Ajustează contribuția, anii și randamentul pentru un sold final estimat.",
         "mostUsefulFor": "Începători care explorează dobânda compusă fără conturi reale.",
         "whatItDoes": "Rulează o proiecție lunară simplă din datele introduse.",
-        "sampleUseCase": "Vezi ce ar însemna ~7% la 100$/lună timp de 5 ani.",
+        "sampleUseCase": "Vezi ce ar însemna ~7% la 100 £/lună timp de 5 ani.",
         "whoItsFor": "Cei care vor un scenariu rapid fără foi de calcul.",
         "questionItAnswers": "Cum ar arăta soldul dacă continui să contribui?"
       },
@@ -1398,7 +1398,7 @@
     "cfoCoach": {
       "eyebrow": "AI Personal CFO",
       "title": "Discută cu CFO-ul tău",
-      "greeting": "Salut! Sunt CFO-ul tău personal. Întreabă-mă despre obiective, cheltuieli, portofoliu sau proiecții. Pot rula și scenarii — încearcă „ce se întâmplă dacă economisesc 200 USD în plus pe lună?\".",
+      "greeting": "Salut! Sunt CFO-ul tău personal. Întreabă-mă despre obiective, cheltuieli, portofoliu sau proiecții. Pot rula și scenarii — încearcă „ce se întâmplă dacă economisesc 200 £ în plus pe lună?\".",
       "placeholder": "Întreabă despre banii tăi…",
       "send": "Trimite",
       "thinking": "Mă gândesc…",
@@ -1406,7 +1406,7 @@
       "tryAsking": "Întreabă-mă despre:",
       "prompts": {
         "ontrack": "Sunt pe drumul cel bun cu obiectivele mele?",
-        "invest_more": "Ce dacă investesc 200 USD în plus pe lună?",
+        "invest_more": "Ce dacă investesc 200 £ în plus pe lună?",
         "diversify": "Cât de diversificat e portofoliul meu?",
         "cut_spending": "Unde ar trebui să tai din cheltuieli?"
       },

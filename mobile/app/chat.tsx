@@ -17,11 +17,13 @@ import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  MARKET_QUOTE_CURRENCY,
   cryptoDisplayName,
   fetchCryptoQuote,
   fetchEntitlements,
   fetchForexQuote,
   fetchStockQuote,
+  formatCurrency,
   isAxiosError,
   normalizeCurrencyCode,
   queryKeys,
@@ -78,9 +80,8 @@ function fmtNumber(value: number, opts: Intl.NumberFormatOptions): string {
 }
 
 function fmtUsd(value: number, digits = 2): string {
-  return fmtNumber(value, {
-    style: "currency",
-    currency: "USD",
+  return formatCurrency(value, {
+    currency: MARKET_QUOTE_CURRENCY,
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });

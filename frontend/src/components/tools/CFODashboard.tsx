@@ -17,7 +17,12 @@ import {
 import apiClient from "services/httpClient";
 import { recordToolEvent } from "services/toolsAnalytics";
 import { recordFunnelEvent } from "services/analyticsService";
-import { formatCurrency, formatNumber, getLocale } from "utils/format";
+import {
+  DEFAULT_CURRENCY,
+  formatCurrency,
+  formatNumber,
+  getLocale,
+} from "utils/format";
 import CFOCoachPanel from "./CFOCoachPanel";
 
 type AllocationRow = {
@@ -217,7 +222,7 @@ const CFODashboard = ({ onReviewSteps }: Props) => {
 
   const fmt = useCallback(
     (value: number, fractionDigits = 0) =>
-      formatCurrency(value, data?.currency || "USD", locale, {
+      formatCurrency(value, data?.currency || DEFAULT_CURRENCY, locale, {
         maximumFractionDigits: fractionDigits,
       }),
     [data?.currency, locale]

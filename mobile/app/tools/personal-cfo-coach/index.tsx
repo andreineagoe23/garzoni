@@ -58,7 +58,7 @@ const QUICK_PROMPT_FALLBACKS: Record<
   string
 > = {
   ontrack: "Am I on track for my financial goals?",
-  invest_more: "What if I invest $200 more per month?",
+  invest_more: "What if I invest £200 more per month?",
   diversify: "How diversified is my portfolio?",
   cut_spending: "Where should I cut my spending?",
 };

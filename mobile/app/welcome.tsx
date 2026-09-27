@@ -311,7 +311,7 @@ function SlideTools() {
           </View>
         </View>
         <Text style={s.italicMuted}>Monthly budget</Text>
-        <Text style={s.bigNumber}>$2,840</Text>
+        <Text style={s.bigNumber}>£2,840</Text>
         <View style={s.segRow}>
           <View
             style={{ flex: 42, backgroundColor: C.primaryBright, height: 6 }}
