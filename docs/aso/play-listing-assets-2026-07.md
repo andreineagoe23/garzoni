@@ -26,12 +26,12 @@ Learn personal finance in 5-min lessons: budgeting, investing & money skills.
 Paste as-is (plain text; Play renders line breaks, no markdown):
 
 ```
-Garzoni is your financial literacy app — learn personal finance in just 5 minutes a day. From your first budget to your first stock, Garzoni turns money management, investing, real estate and crypto into 500+ bite-sized lessons you'll actually finish.
+Garzoni is your financial literacy app — learn personal finance in just 5 minutes a day. From your first budget to your first stock, Garzoni turns money management, investing, real estate and crypto into 150+ bite-sized lessons you'll actually finish.
 
 No jargon. No overwhelm. Just clear steps that build real financial confidence — whether you're a complete beginner or levelling up your money skills.
 
 WHY GARZONI
-• 500+ short lessons — from budgeting for beginners to advanced investing
+• 150+ short lessons — from budgeting for beginners to advanced investing
 • The Climb — a personalised, step-by-step finance journey built around your goals
 • Learn by doing — interactive exercises and budget simulations
 • 24/7 AI money tutor — ask anything, get a plain-English answer instantly
@@ -77,7 +77,19 @@ saving money, compound interest, crypto, real estate, credit score, debt,
 pensions, financial education, personal finance course, money skills, money
 lessons.
 
-## 4. What's New (500-char limit) — current release
+## 4. What's New (500-char limit) — current release (1.2.1)
+
+```
+Cleaner rating prompt. Voice tutor rebuilt on a newer audio engine. Fewer permissions: Garzoni no longer asks for camera access on Android.
+```
+
+ro:
+
+```
+Solicitare de evaluare simplificată. Tutorul vocal folosește un motor audio nou. Mai puține permisiuni: pe Android, Garzoni nu mai cere acces la cameră.
+```
+
+1.2.0 shipped with:
 
 ```
 • The Climb: your personalised finance journey — every lesson unlocks the next step
@@ -117,12 +129,12 @@ Garzoni: Educație Financiară
 **Full description:**
 
 ```
-Garzoni este aplicația ta de educație financiară — învață finanțe personale în doar 5 minute pe zi. De la primul tău buget până la prima ta acțiune la bursă, Garzoni transformă gestionarea banilor, investițiile, imobiliarele și crypto în peste 500 de lecții scurte pe care chiar le vei termina.
+Garzoni este aplicația ta de educație financiară — învață finanțe personale în doar 5 minute pe zi. De la primul tău buget până la prima ta acțiune la bursă, Garzoni transformă gestionarea banilor, investițiile, imobiliarele și crypto în peste 150 de lecții scurte pe care chiar le vei termina.
 
 Fără jargon. Fără stres. Doar pași clari care îți construiesc încredere financiară reală — fie că ești începător complet, fie că vrei să-ți duci abilitățile la nivelul următor.
 
 DE CE GARZONI
-• Peste 500 de lecții scurte — de la buget pentru începători la investiții avansate
+• Peste 150 de lecții scurte — de la buget pentru începători la investiții avansate
 • The Climb — un traseu financiar personalizat, pas cu pas, construit în jurul obiectivelor tale
 • Înveți exersând — exerciții interactive și simulări de buget
 • Tutor AI 24/7 — întreabă orice, primești instant un răspuns pe înțelesul tău
@@ -198,7 +210,7 @@ Frameless treatment (works on both stores, dodges the iOS-status-bar tell).
 | --- | ---------------------- | ---------------------- | --------------------------------- | ----------------------------------------------------- |
 | 1   | Onboarding (streak/XP) | LEARN PERSONAL FINANCE | Master money in _5 minutes_ a day | Build streaks, earn XP, actually stick with it.       |
 | 2   | The Climb (mountain)   | THE CLIMB              | Your personal finance _journey_   | A step-by-step path built around your goals.          |
-| 3   | Applied Insight lesson | BITE-SIZE LESSONS      | Lessons you'll _actually finish_  | 500+ short lessons. No jargon, no overwhelm.          |
+| 3   | Applied Insight lesson | BITE-SIZE LESSONS      | Lessons you'll _actually finish_  | 150+ short lessons. No jargon, no overwhelm.          |
 | 4   | Finance Assistant (AI) | 24/7 AI MONEY TUTOR    | Ask anything, _anytime_           | Plain-English answers the moment you're stuck.        |
 | 5   | Portfolio Analyzer     | REAL TOOLS             | Practise investing, _risk-free_   | Build a virtual portfolio and watch it perform.       |
 | 6   | Personal CFO           | YOUR PERSONAL CFO      | See your _whole picture_          | Net worth, goals and a 10-year outlook in one place.  |
