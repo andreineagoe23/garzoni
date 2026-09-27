@@ -223,6 +223,13 @@ export {
   getToolLearningHook,
 } from "./constants/toolLearningHooks";
 export type { ToolLearningHook } from "./constants/toolLearningHooks";
+export {
+  EDITORIAL_STANDARDS_PATH,
+  FOUNDER_AUTHOR,
+  isFounderByline,
+  ORGANIZATION_ID,
+} from "./constants/editorial";
+export type { EditorialAuthor } from "./constants/editorial";
 
 export { getUserLevel, getXpTier, getNextXpTier } from "./utils/userLevel";
 export type { UserLevel, XpTier } from "./utils/userLevel";

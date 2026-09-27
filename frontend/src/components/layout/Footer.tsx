@@ -64,6 +64,8 @@ function Footer() {
         { label: "Free Lessons", to: "/learn" },
         { label: "Guides & Comparisons", to: "/guides" },
         { label: "About Garzoni", to: "/about" },
+        { label: t("editorial.links.standards"), to: "/editorial-standards" },
+        { label: t("editorial.links.author"), to: "/authors/andrei-neagoe" },
       ],
     },
     {

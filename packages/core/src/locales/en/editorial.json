@@ -1,0 +1,131 @@
+{
+  "byline": {
+    "writtenBy": "Written by",
+    "published": "Published {{date}}",
+    "reviewed": "Reviewed {{date}}"
+  },
+  "links": {
+    "author": "About the author",
+    "standards": "Editorial standards"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "about": "About",
+    "standards": "Editorial standards"
+  },
+  "author": {
+    "seoTitle": "Andrei Neagoe, Founder of Garzoni — Author and Editor",
+    "seoDescription": "Andrei Neagoe is the founder of Garzoni and writes and edits its personal finance lessons and guides. BSc Computer Science, Queen Mary University of London.",
+    "jobTitle": "Founder of Garzoni",
+    "role": "Founder",
+    "photoAlt": "Photo of Andrei Neagoe",
+    "bio": "Andrei Neagoe is the founder of Garzoni and writes and edits its lessons and guides.",
+    "education": "He holds a BSc in Computer Science from Queen Mary University of London.",
+    "disclaimer": "Garzoni is an education app, not a regulated financial adviser.",
+    "topicsHeading": "Topics he writes about",
+    "topics": {
+      "budgeting": "Budgeting",
+      "saving": "Saving and emergency funds",
+      "debt": "Debt management",
+      "credit": "Credit scores",
+      "investing": "Investing basics",
+      "tax": "UK tax basics"
+    },
+    "processHeading": "How the content is written and reviewed",
+    "processBody": "Every lesson and guide follows the same editorial standards: plain language, official UK sources where a figure or rule matters, a visible review date, and prompt corrections.",
+    "profilesHeading": "Elsewhere",
+    "guidesHeading": "Guides by Andrei Neagoe",
+    "lessonsHeading": "Lessons by Andrei Neagoe",
+    "loading": "Loading…",
+    "empty": "Nothing published yet."
+  },
+  "standards": {
+    "seoTitle": "Editorial Standards — How Garzoni Writes Its Lessons",
+    "seoDescription": "How Garzoni writes, sources, reviews and corrects its personal finance lessons and guides, and why none of it is financial advice.",
+    "title": "Editorial standards",
+    "lastUpdated": "Last updated {{date}}",
+    "intro": "Garzoni teaches personal finance. Money decisions matter, so we hold our lessons and guides to a few simple rules. This page explains who writes them, where the facts come from, how they are kept up to date and what happens when we get something wrong.",
+    "who": {
+      "heading": "Who writes our content",
+      "body": "Every lesson and guide on Garzoni is written and edited by Andrei Neagoe, Garzoni's founder.",
+      "review": "Our content is not currently reviewed by an external financial expert. If that changes, the reviewer will be named here and on each page they review."
+    },
+    "writing": {
+      "heading": "How we write lessons",
+      "clarity": "Plain language. Jargon is explained the first time it appears, and each lesson focuses on one idea you can use.",
+      "context": "UK context. Figures, rules and examples are based on the UK unless a page says otherwise.",
+      "education": "Education, not recommendations. We explain how things work and the trade-offs involved. We do not tell you what to do with your own money."
+    },
+    "sources": {
+      "heading": "How we source facts",
+      "intro": "Where a lesson relies on a figure, rule or threshold, we use primary and official UK sources first, and link them in a Sources section on the page:",
+      "moneyHelper": "free, government-backed money guidance",
+      "fca": "the UK financial regulator, and its register of authorised firms",
+      "gov": "tax rules, allowances and thresholds",
+      "boe": "Bank Rate and inflation",
+      "ons": "official statistics such as inflation and earnings",
+      "outro": "Other sources, such as reputable news or research, are used for context and are named when we rely on them."
+    },
+    "updates": {
+      "heading": "Review dates and updates",
+      "body": "Each lesson and guide shows the date it was last reviewed or updated. When UK rules or thresholds change, for example at the start of a new tax year, we update the affected pages and the date changes with them."
+    },
+    "corrections": {
+      "heading": "Corrections",
+      "body": "If you spot a mistake or something out of date, tell us through our support page. We check every report, fix factual errors as quickly as we can and update the page's review date.",
+      "link": "Report an error"
+    },
+    "advice": {
+      "heading": "Not financial advice",
+      "body": "Garzoni is an education app, not a regulated financial adviser. Our lessons, guides, tools and AI coach give general information, not personal advice based on your circumstances.",
+      "help": "For advice about your own situation, consider a regulated financial adviser (you can check one on the FCA register) or free, impartial guidance from MoneyHelper.",
+      "link": "Read the full financial disclaimer"
+    },
+    "authorLink": "About Andrei Neagoe"
+  },
+  "about": {
+    "seoTitle": "About Garzoni — Financial Education for Young Adults",
+    "seoDescription": "Garzoni is a personal finance education app that teaches budgeting, saving, investing and debt through short interactive lessons. Meet the founder and see how we write our lessons.",
+    "title": "About Garzoni",
+    "intro": "Garzoni is a personal finance education platform built for young adults who were never taught how money works. We turn budgeting, saving, investing, credit, debt and taxes into short, practical lessons you can finish in ten minutes.",
+    "missionHeading": "Our mission",
+    "missionBody": "Financial literacy is one of the most useful skills a person can learn, yet most people leave school without it. Garzoni exists to close that gap and make financial education engaging, accessible and genuinely useful, not intimidating.",
+    "founderHeading": "Who is behind Garzoni",
+    "founderBody": "Garzoni was founded by Andrei Neagoe, who writes and edits its lessons and guides. He holds a BSc in Computer Science from Queen Mary University of London.",
+    "founderDisclaimer": "Garzoni is an education app, not a regulated financial adviser.",
+    "founderLink": "Read Andrei's profile",
+    "standardsHeading": "How we write our lessons",
+    "standardsBody": "Lessons use plain language and UK context, cite official sources such as MoneyHelper, the FCA, HMRC and the Bank of England where a figure or rule matters, and show the date they were last reviewed.",
+    "standardsLink": "Read our editorial standards",
+    "howHeading": "How Garzoni works",
+    "how": {
+      "lessonsTitle": "Ten-minute lessons.",
+      "lessonsBody": "Bite-sized, jargon-free lessons that fit into a busy day.",
+      "repetitionTitle": "Spaced repetition.",
+      "repetitionBody": "Knowledge checks resurface concepts over time so what you learn actually sticks.",
+      "coachTitle": "AI-powered coaching.",
+      "coachBody": "Garzoni's AI coach reads your inputs in the budget, debt and savings simulators and explains what changes and why, in plain language.",
+      "streaksTitle": "Streaks and XP.",
+      "streaksBody": "Daily streaks and experience points help you build the habit."
+    },
+    "learnHeading": "What you'll learn",
+    "learnBody": "Garzoni covers the core pillars of personal finance: building a budget, growing savings and an emergency fund, paying down debt, understanding credit scores, the basics of investing and navigating taxes, all grounded in real-world scenarios.",
+    "browseLessons": "Browse free lessons",
+    "browseGuides": "Read our guides",
+    "seeFeatures": "See features",
+    "viewPricing": "View pricing",
+    "ctaHeading": "Start learning for free",
+    "ctaBody": "Create a free account to unlock the full learning path, quizzes, streaks and Garzoni's AI financial coach.",
+    "ctaButton": "Create a free account",
+    "faq": {
+      "whatQ": "What is Garzoni?",
+      "whatA": "Garzoni is a personal finance education app for young adults. It teaches budgeting, saving, investing, debt management, credit scores and taxes through interactive ten-minute lessons, daily streaks and an AI-powered financial coach.",
+      "differentQ": "How is Garzoni different from a budgeting app?",
+      "differentA": "Most finance apps track your money. Garzoni teaches you how money works. It is a learning platform, like Duolingo for personal finance, that builds lasting financial literacy through spaced repetition and hands-on simulators.",
+      "whoQ": "Who writes Garzoni's lessons?",
+      "whoA": "Garzoni's lessons and guides are written and edited by its founder, Andrei Neagoe, following published editorial standards that favour official UK sources such as MoneyHelper, the FCA and HMRC.",
+      "adviceQ": "Is Garzoni financial advice?",
+      "adviceA": "No. Garzoni is a financial education app. It explains concepts and runs simulations, but it does not give personal recommendations and is not a regulated financial adviser."
+    }
+  }
+}

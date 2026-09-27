@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { FOUNDER_AUTHOR, isFounderByline } from "@garzoni/core";
 
 type CourseSchema = {
   name: string;
@@ -51,6 +52,8 @@ type Props = {
   itemList?: ItemListEntry[];
   /** Human-readable name for the ItemList (defaults to the page title). */
   itemListName?: string;
+  /** Extra page-specific JSON-LD nodes (e.g. ProfilePage), emitted as-is. */
+  jsonLd?: Array<Record<string, unknown>>;
 };
 
 const DEFAULT_IMAGE = "https://www.garzoni.app/og-image.jpg";
@@ -60,6 +63,14 @@ const SITE_URL = "https://www.garzoni.app";
 // pages reference it instead of re-declaring a partial Organization, so the
 // whole site resolves to a single publisher entity.
 const ORG_ID = `${SITE_URL}/#organization`;
+// Lessons and guides are written by the founder; his full Person node lives on
+// the /authors page and is referenced here by @id.
+const FOUNDER_REF = {
+  "@type": "Person",
+  "@id": FOUNDER_AUTHOR.id,
+  name: FOUNDER_AUTHOR.name,
+  url: FOUNDER_AUTHOR.url,
+};
 
 export default function SeoHead({
   title,
@@ -74,6 +85,7 @@ export default function SeoHead({
   article,
   itemList,
   itemListName,
+  jsonLd,
 }: Props) {
   const ogImage = image || DEFAULT_IMAGE;
   // A single lesson is a LearningResource (an individual educational unit), not a
@@ -91,6 +103,7 @@ export default function SeoHead({
         inLanguage: locale,
         provider: { "@id": ORG_ID },
         publisher: { "@id": ORG_ID },
+        author: FOUNDER_REF,
         about: { "@type": "Thing", name: "Personal finance" },
         ...(course.dateModified ? { dateModified: course.dateModified } : {}),
         ...(course.partOf
@@ -175,10 +188,9 @@ export default function SeoHead({
         inLanguage: locale,
         datePublished: article.datePublished,
         ...(article.dateModified ? { dateModified: article.dateModified } : {}),
-        author:
-          article.author && article.author !== "Garzoni Team"
-            ? { "@type": "Person", name: article.author }
-            : { "@id": ORG_ID },
+        author: isFounderByline(article.author)
+          ? FOUNDER_REF
+          : { "@type": "Person", name: article.author },
         publisher: { "@id": ORG_ID },
         image: ogImage,
       }
@@ -243,6 +255,12 @@ export default function SeoHead({
           {JSON.stringify(itemListJsonLd)}
         </script>
       ) : null}
+
+      {jsonLd?.map((node, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(node)}
+        </script>
+      ))}
     </Helmet>
   );
 }

@@ -41,6 +41,8 @@ import {
   AboutPage,
   GuidesIndex,
   ArticlePage,
+  AuthorPage,
+  EditorialStandardsPage,
 } from "routes/lazyPages";
 
 const protectedWithBoundary = (element: React.ReactNode) => (
@@ -58,6 +60,8 @@ const AppRoutes = () => {
       <Route path="/learn/:slug" element={<PublicLesson />} />
       <Route path="/guides" element={<GuidesIndex />} />
       <Route path="/guides/:slug" element={<ArticlePage />} />
+      <Route path="/authors/:slug" element={<AuthorPage />} />
+      <Route path="/editorial-standards" element={<EditorialStandardsPage />} />
       <Route
         path="/privacy-policy"
         element={

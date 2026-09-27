@@ -16,6 +16,12 @@ export const GuidesIndex = React.lazy(
 export const ArticlePage = React.lazy(
   () => import("components/guides/ArticlePage")
 );
+export const AuthorPage = React.lazy(
+  () => import("components/editorial/AuthorPage")
+);
+export const EditorialStandardsPage = React.lazy(
+  () => import("components/editorial/EditorialStandardsPage")
+);
 export const CoursePage = React.lazy(
   () => import("components/courses/CoursePage")
 );

@@ -5,6 +5,7 @@ import logo from "assets/logo/logo-light-wordmark.svg";
 
 const LINKS = [
   { key: "about", to: "/about" },
+  { key: "editorial", to: "/editorial-standards" },
   { key: "privacy", to: "/privacy-policy" },
   { key: "terms", to: "/terms-of-service" },
   { key: "disclaimer", to: "/financial-disclaimer" },
