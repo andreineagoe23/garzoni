@@ -7,3 +7,5 @@ android
 *.log
 *.LOG
 play-store-service-account.json
+store.config.json
+store
