@@ -1352,3 +1352,6 @@ elif DJANGO_ENV != "development" and "test" not in sys.argv:
 if "test" in sys.argv:
     # Use same PostgreSQL as dev/prod (DATABASE_URL). No SQLite override.
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    # A local .env with an OpenAI key turns this on, and with eager Celery every
+    # content save in a test would call OpenAI and insert its own ro rows.
+    CONTENT_TRANSLATION_ENABLED = False
