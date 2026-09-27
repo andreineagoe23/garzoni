@@ -216,7 +216,6 @@ def sitemap_xml(request):
     # (loc, priority, changefreq, lastmod-or-None)
     static_urls = [
         (f"{site_url}/", "1.0", "daily", None),
-        (f"{site_url}/marketing", "0.8", "weekly", None),
         (f"{site_url}/learn", "0.9", "weekly", None),
         (f"{site_url}/guides", "0.9", "weekly", None),
         (f"{site_url}/about", "0.7", "monthly", None),

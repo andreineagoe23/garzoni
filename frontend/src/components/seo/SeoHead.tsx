@@ -175,10 +175,10 @@ export default function SeoHead({
         inLanguage: locale,
         datePublished: article.datePublished,
         ...(article.dateModified ? { dateModified: article.dateModified } : {}),
-        author: {
-          "@type": "Person",
-          name: article.author || "Garzoni Team",
-        },
+        author:
+          article.author && article.author !== "Garzoni Team"
+            ? { "@type": "Person", name: article.author }
+            : { "@id": ORG_ID },
         publisher: { "@id": ORG_ID },
         image: ogImage,
       }

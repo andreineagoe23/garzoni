@@ -52,6 +52,7 @@ function Welcome() {
       <Helmet>
         <title>{t("welcome.seo.title")}</title>
         <meta name="description" content={t("welcome.seo.description")} />
+        <link rel="canonical" href="https://www.garzoni.app/" />
       </Helmet>
 
       <div className="gzh" data-theme="dark">
