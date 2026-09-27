@@ -31,6 +31,7 @@ from education.models import (
     QuizTranslation,
     ExerciseTranslation,
     Article,
+    ArticleTranslation,
 )
 
 
@@ -742,9 +743,18 @@ class SectionCompletionAdmin(NoAddDeleteAdminMixin, admin.ModelAdmin):
     course.admin_order_field = "section__lesson__course"
 
 
+class ArticleTranslationInline(admin.StackedInline):
+    model = ArticleTranslation
+    extra = 0
+    fields = ("language", "title", "meta_description", "excerpt", "content", "faq", "item_list")
+    formfield_overrides = {models.JSONField: {"widget": PrettyJSONWidget}}
+
+
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
     """Manage SEO/GEO articles served at /guides/<slug>."""
+
+    inlines = [ArticleTranslationInline]
 
     list_display = ("title", "category", "is_published", "published_at", "updated_at")
     list_filter = ("category", "is_published")

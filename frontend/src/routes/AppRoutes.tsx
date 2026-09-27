@@ -58,6 +58,11 @@ const AppRoutes = () => {
       <Route path="/learn/:slug" element={<PublicLesson />} />
       <Route path="/guides" element={<GuidesIndex />} />
       <Route path="/guides/:slug" element={<ArticlePage />} />
+      {/* Romanian twins — the page reads its language from the /ro prefix. */}
+      <Route path="/ro/learn" element={<LearnIndex />} />
+      <Route path="/ro/learn/:slug" element={<PublicLesson />} />
+      <Route path="/ro/guides" element={<GuidesIndex />} />
+      <Route path="/ro/guides/:slug" element={<ArticlePage />} />
       <Route
         path="/privacy-policy"
         element={

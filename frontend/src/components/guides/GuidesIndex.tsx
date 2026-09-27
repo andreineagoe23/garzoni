@@ -1,10 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import apiClient from "services/httpClient";
 import SeoHead from "components/seo/SeoHead";
+import LanguageSwitch from "components/seo/LanguageSwitch";
+import {
+  SITE_URL,
+  hreflangAlternates,
+  publicApiParams,
+  usePublicLocale,
+} from "components/seo/publicLocale";
 
 type ArticleItem = {
   slug: string;
+  available_languages?: string[];
   title: string;
   category: string;
   excerpt: string;
@@ -18,12 +27,12 @@ type ArticleListResponse = {
   results: ArticleItem[];
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  roundup: "Best-of roundups",
-  comparison: "Comparisons",
-  alternatives: "Alternatives",
-  guide: "Guides",
-  answer: "Answers",
+const CATEGORY_LABEL_KEYS: Record<string, string> = {
+  roundup: "publicGuides.categoryRoundup",
+  comparison: "publicGuides.categoryComparison",
+  alternatives: "publicGuides.categoryAlternatives",
+  guide: "publicGuides.categoryGuide",
+  answer: "publicGuides.categoryAnswer",
 };
 
 const CATEGORY_ORDER = [
@@ -48,13 +57,17 @@ const FAQ_ITEMS = [
 ];
 
 export default function GuidesIndex() {
+  const { lang, t, to, url } = usePublicLocale();
   const [data, setData] = useState<ArticleListResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     apiClient
-      .get<ArticleListResponse>("/public/articles/")
+      .get<ArticleListResponse>("/public/articles/", {
+        params: publicApiParams(lang),
+      })
       .then((res) => {
         if (!cancelled) setData(res.data);
       })
@@ -67,7 +80,14 @@ export default function GuidesIndex() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lang]);
+
+  const results = data?.results ?? [];
+  // Same rule as LearnIndex: the pair exists once any guide is in Romanian.
+  const bothLanguages =
+    lang === "ro"
+      ? results.length > 0
+      : results.some((a) => a.available_languages?.includes("ro"));
 
   const grouped = useMemo(() => {
     const map = new Map<string, ArticleItem[]>();
@@ -84,37 +104,50 @@ export default function GuidesIndex() {
   return (
     <main style={{ padding: "2rem", maxWidth: 1000, margin: "0 auto" }}>
       <SeoHead
-        title="Personal Finance Guides & Comparisons — Garzoni"
-        description="Free personal finance guides, app comparisons, and plain-English answers on budgeting, saving, investing, credit, and debt — from Garzoni."
-        canonical="https://www.garzoni.app/guides"
+        title={t("publicGuides.seoTitle")}
+        description={t("publicGuides.seoDescription")}
+        canonical={url("/guides")}
+        locale={lang}
+        alternates={hreflangAlternates(
+          "/guides",
+          bothLanguages ? ["en", "ro"] : [lang]
+        )}
         breadcrumbs={[
-          { name: "Home", url: "https://www.garzoni.app/" },
-          { name: "Guides", url: "https://www.garzoni.app/guides" },
+          { name: t("learnIndex.breadcrumbHome"), url: `${SITE_URL}/` },
+          { name: t("publicGuides.breadcrumbGuides"), url: url("/guides") },
         ]}
-        faqItems={FAQ_ITEMS}
+        faqItems={lang === "en" ? FAQ_ITEMS : undefined}
       />
+      {lang === "ro" && !loading && results.length === 0 ? (
+        <Helmet>
+          <meta name="robots" content="noindex" />
+        </Helmet>
+      ) : null}
 
       <nav aria-label="Breadcrumb" style={{ fontSize: 14, opacity: 0.7 }}>
-        <Link to="/">Home</Link> › <span>Guides</span>
+        <Link to="/">{t("learnIndex.breadcrumbHome")}</Link> ›{" "}
+        <span>{t("publicGuides.breadcrumbGuides")}</span>
+        <LanguageSwitch path="/guides" available={bothLanguages} />
       </nav>
 
-      <h1>Personal Finance Guides & Comparisons</h1>
+      <h1>{t("publicGuides.title")}</h1>
       <p style={{ fontSize: 18, lineHeight: 1.7, maxWidth: 720 }}>
-        Deep dives, honest app comparisons, and straight answers to the money
-        questions people actually ask. Free to read, no jargon, no sales pitch.
+        {t("publicGuides.intro")}
       </p>
 
       {loading ? (
-        <p>Loading guides…</p>
+        <p>{t("publicGuides.loading")}</p>
       ) : grouped.length === 0 ? (
         <p>
-          New guides are coming soon.{" "}
-          <Link to="/learn">Browse our free lessons</Link> in the meantime.
+          {t("publicGuides.empty")}{" "}
+          <Link to={to("/learn")}>{t("publicGuides.emptyCta")}</Link>
         </p>
       ) : (
         grouped.map(([category, articles]) => (
           <section key={category} style={{ marginTop: "2.5rem" }}>
-            <h2>{CATEGORY_LABELS[category] ?? "Guides"}</h2>
+            <h2>
+              {t(CATEGORY_LABEL_KEYS[category] ?? "publicGuides.categoryGuide")}
+            </h2>
             <ul
               style={{
                 listStyle: "none",
@@ -134,14 +167,18 @@ export default function GuidesIndex() {
                   }}
                 >
                   <h3 style={{ marginTop: 0 }}>
-                    <Link to={`/guides/${article.slug}`}>{article.title}</Link>
+                    <Link to={to(`/guides/${article.slug}`)}>
+                      {article.title}
+                    </Link>
                   </h3>
                   {article.excerpt ? (
                     <p style={{ opacity: 0.8, lineHeight: 1.6 }}>
                       {article.excerpt}
                     </p>
                   ) : null}
-                  <Link to={`/guides/${article.slug}`}>Read guide →</Link>
+                  <Link to={to(`/guides/${article.slug}`)}>
+                    {t("publicGuides.readGuide")}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -157,11 +194,8 @@ export default function GuidesIndex() {
           borderRadius: 12,
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Learn money, step by step</h2>
-        <p>
-          Garzoni turns these guides into interactive lessons with quizzes,
-          streaks, and an AI coach. Sign up free to start the full path.
-        </p>
+        <h2 style={{ marginTop: 0 }}>{t("publicGuides.indexCtaTitle")}</h2>
+        <p>{t("publicGuides.indexCtaBody")}</p>
         <Link
           to="/register"
           style={{
@@ -174,7 +208,7 @@ export default function GuidesIndex() {
             fontWeight: 600,
           }}
         >
-          Create a free account
+          {t("publicGuides.createAccount")}
         </Link>
       </aside>
     </main>

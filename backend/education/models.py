@@ -1019,3 +1019,27 @@ class Article(models.Model):
         if self.is_published and self.published_at is None:
             self.published_at = timezone.now()
         super().save(*args, **kwargs)
+
+
+class ArticleTranslation(models.Model):
+    """Per-language copy of an Article. A guide is served at /ro/guides/<slug> only when
+    its row carries a title and content — the public API never falls back to English."""
+
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="translations")
+    language = models.CharField(max_length=10, db_index=True)
+    title = models.CharField(max_length=200)
+    meta_description = models.TextField(blank=True)
+    excerpt = models.TextField(blank=True)
+    content = models.TextField(blank=True)
+    faq = models.JSONField(blank=True, null=True)
+    item_list = models.JSONField(blank=True, null=True)
+    source_hash = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Hash of the English source at translation time, used for staleness detection.",
+    )
+
+    class Meta:
+        db_table = "education_article_translation"
+        unique_together = [("article", "language")]

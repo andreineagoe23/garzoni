@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import apiClient from "services/httpClient";
 import SeoHead from "components/seo/SeoHead";
+import LanguageSwitch from "components/seo/LanguageSwitch";
+import {
+  SITE_URL,
+  hreflangAlternates,
+  publicApiParams,
+  usePublicLocale,
+} from "components/seo/publicLocale";
 
 type LessonItem = {
   slug: string;
+  available_languages?: string[];
   title: string;
   short_description: string;
   image_url: string;
@@ -20,9 +28,8 @@ type LessonListResponse = {
   results: LessonItem[];
 };
 
-// Crawler-facing only (JSON-LD FAQPage via SeoHead, never rendered). The
-// canonical for /learn is the English page and carries no hreflang, so these
-// and the SeoHead strings below stay English regardless of the UI language.
+// Crawler-facing only (JSON-LD FAQPage via SeoHead, never rendered). English
+// page only — /ro/learn has no Romanian copy of these.
 const FAQ_ITEMS = [
   {
     question: "Are Garzoni's lessons free?",
@@ -42,14 +49,17 @@ const FAQ_ITEMS = [
 ];
 
 export default function LearnIndex() {
-  const { t } = useTranslation();
+  const { lang, t, to, url } = usePublicLocale();
   const [data, setData] = useState<LessonListResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     apiClient
-      .get<LessonListResponse>("/public/lessons/")
+      .get<LessonListResponse>("/public/lessons/", {
+        params: publicApiParams(lang),
+      })
       .then((res) => {
         if (!cancelled) setData(res.data);
       })
@@ -62,7 +72,15 @@ export default function LearnIndex() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lang]);
+
+  const results = data?.results ?? [];
+  // /ro/learn exists only when some lesson is in Romanian; the English index
+  // always exists, so from /ro/learn the pair is complete once it has lessons.
+  const bothLanguages =
+    lang === "ro"
+      ? results.length > 0
+      : results.some((l) => l.available_languages?.includes("ro"));
 
   const grouped = useMemo(() => {
     const map = new Map<string, LessonItem[]>();
@@ -77,19 +95,30 @@ export default function LearnIndex() {
   return (
     <main style={{ padding: "2rem", maxWidth: 1000, margin: "0 auto" }}>
       <SeoHead
-        title="Free Personal Finance Lessons — Garzoni"
-        description="Browse Garzoni's free finance lessons: budgeting, saving, investing, credit scores, debt management, and taxes. Ten-minute lessons that make money simple."
-        canonical="https://www.garzoni.app/learn"
+        title={t("learnIndex.seoTitle")}
+        description={t("learnIndex.seoDescription")}
+        canonical={url("/learn")}
+        locale={lang}
+        alternates={hreflangAlternates(
+          "/learn",
+          bothLanguages ? ["en", "ro"] : [lang]
+        )}
         breadcrumbs={[
-          { name: "Home", url: "https://www.garzoni.app/" },
-          { name: "Lessons", url: "https://www.garzoni.app/learn" },
+          { name: t("learnIndex.breadcrumbHome"), url: `${SITE_URL}/` },
+          { name: t("learnIndex.breadcrumbLessons"), url: url("/learn") },
         ]}
-        faqItems={FAQ_ITEMS}
+        faqItems={lang === "en" ? FAQ_ITEMS : undefined}
       />
+      {lang === "ro" && !loading && results.length === 0 ? (
+        <Helmet>
+          <meta name="robots" content="noindex" />
+        </Helmet>
+      ) : null}
 
       <nav aria-label="Breadcrumb" style={{ fontSize: 14, opacity: 0.7 }}>
         <Link to="/">{t("learnIndex.breadcrumbHome")}</Link> ›{" "}
         <span>{t("learnIndex.breadcrumbLessons")}</span>
+        <LanguageSwitch path="/learn" available={bothLanguages} />
       </nav>
 
       <h1>{t("learnIndex.title")}</h1>
@@ -127,7 +156,7 @@ export default function LearnIndex() {
                   }}
                 >
                   <h3 style={{ marginTop: 0 }}>
-                    <Link to={`/learn/${lesson.slug}`}>{lesson.title}</Link>
+                    <Link to={to(`/learn/${lesson.slug}`)}>{lesson.title}</Link>
                     {lesson.has_sample_question ? (
                       <span
                         style={{
@@ -152,7 +181,7 @@ export default function LearnIndex() {
                       {lesson.short_description}
                     </p>
                   ) : null}
-                  <Link to={`/learn/${lesson.slug}`}>
+                  <Link to={to(`/learn/${lesson.slug}`)}>
                     {t("learnIndex.readLesson")}
                   </Link>
                 </li>
