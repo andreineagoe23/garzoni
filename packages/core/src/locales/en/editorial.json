@@ -53,12 +53,12 @@
     "writing": {
       "heading": "How we write lessons",
       "clarity": "Plain language. Jargon is explained the first time it appears, and each lesson focuses on one idea you can use.",
-      "context": "UK context. Figures, rules and examples are based on the UK unless a page says otherwise.",
+      "context": "UK context. New and updated lessons use UK figures, rules and examples unless the page says otherwise; older lessons are being brought in line as they are reviewed.",
       "education": "Education, not recommendations. We explain how things work and the trade-offs involved. We do not tell you what to do with your own money."
     },
     "sources": {
       "heading": "How we source facts",
-      "intro": "Where a lesson relies on a figure, rule or threshold, we use primary and official UK sources first, and link them in a Sources section on the page:",
+      "intro": "Where a lesson relies on a figure, rule or threshold, we cite a primary or official source in a Sources section on the page. We are moving every lesson to official UK sources such as:",
       "moneyHelper": "free, government-backed money guidance",
       "fca": "the UK financial regulator, and its register of authorised firms",
       "gov": "tax rules, allowances and thresholds",

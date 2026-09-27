@@ -53,12 +53,12 @@
     "writing": {
       "heading": "Cum scriem lecțiile",
       "clarity": "Limbaj simplu. Termenii de specialitate sunt explicați prima dată când apar, iar fiecare lecție se concentrează pe o singură idee pe care o poți folosi.",
-      "context": "Context britanic. Cifrele, regulile și exemplele se bazează pe Marea Britanie, dacă pagina nu spune altceva.",
+      "context": "Context britanic. Lecțiile noi și cele actualizate folosesc cifre, reguli și exemple din Marea Britanie, dacă pagina nu spune altceva; lecțiile mai vechi sunt aliniate pe măsură ce le revizuim.",
       "education": "Educație, nu recomandări. Explicăm cum funcționează lucrurile și ce compromisuri implică. Nu îți spunem ce să faci cu banii tăi."
     },
     "sources": {
       "heading": "Cum ne documentăm",
-      "intro": "Acolo unde o lecție se bazează pe o cifră, o regulă sau un prag, folosim în primul rând surse primare și oficiale din Marea Britanie și le indicăm într-o secțiune Surse pe pagină:",
+      "intro": "Acolo unde o lecție se bazează pe o cifră, o regulă sau un prag, indicăm o sursă primară sau oficială într-o secțiune Surse pe pagină. Trecem treptat toate lecțiile la surse oficiale din Marea Britanie, precum:",
       "moneyHelper": "îndrumare financiară gratuită, susținută de guvern",
       "fca": "autoritatea de reglementare financiară din Marea Britanie și registrul său de firme autorizate",
       "gov": "reguli fiscale, scutiri și praguri",
