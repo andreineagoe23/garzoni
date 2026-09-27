@@ -1,5 +1,7 @@
 # Phase 2 — ready-to-paste ASO copy pack
 
+> **SUPERSEDED 2026-09-27** by [`docs/aso/store-listing.md`](../aso/store-listing.md) — do not paste copy from here.
+
 > **SUPERSEDED 2026-08-18** by `docs/prod/aso-1.1.5.md`. Three store-copy packs exist
 > (this one, `docs/aso/play-listing-assets-2026-07.md`, and `docs/prod/aso-1.1.5.md`);
 > the `docs/prod/` one is the most recent. Use that.

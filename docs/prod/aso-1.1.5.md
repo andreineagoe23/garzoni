@@ -1,5 +1,7 @@
 # ASO copy pack — 1.1.5 (paste-ready)
 
+> **SUPERSEDED 2026-09-27** by [`docs/aso/store-listing.md`](../aso/store-listing.md) — do not paste copy from here.
+
 > **NOTE 2026-08-18:** written for 1.1.5; `mobile/app.json` is now on **1.1.8** and the newest
 > runbook is `docs/release/1.1.7-runbook.md`. Copy is still the most current of the three store-copy
 > packs, but re-check version-specific claims before pasting.
