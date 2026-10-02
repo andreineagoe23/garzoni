@@ -15,6 +15,7 @@ since shipped, and a few describe a stack we no longer run.
 | know what's actually built  | [`../.claude/context/feature-status.md`](../.claude/context/feature-status.md)                                                                |
 | know what's broken or owed  | [`audit/platform-audit-2026-08.md`](audit/platform-audit-2026-08.md)                                                                          |
 | security or latency posture | [`audit/security-latency-2026-08.md`](audit/security-latency-2026-08.md)                                                                      |
+| grow traffic, rank, signups | [`audit/growth-audit-2026-10.md`](audit/growth-audit-2026-10.md)                                                                              |
 | run it locally              | [`dev/setup-docker.md`](dev/setup-docker.md) · [`dev/setup-local.md`](dev/setup-local.md)                                                     |
 | set env vars                | [`dev/environment.md`](dev/environment.md)                                                                                                    |
 | ship a release              | [`prod/pre-release-checklist.md`](prod/pre-release-checklist.md) · [`prod/railway-production-runbook.md`](prod/railway-production-runbook.md) |
@@ -51,6 +52,7 @@ since shipped, and a few describe a stack we no longer run.
 | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`audit/platform-audit-2026-08.md`](audit/platform-audit-2026-08.md)             | **CURRENT.** Sprint 1 shipped (Django 5.2, pins, health gate); §1–§5 open                                                                                |
 | [`audit/security-latency-2026-08.md`](audit/security-latency-2026-08.md)         | **CURRENT.** Access-control sweep + latency audit, 2026-08-19. Phase 1 shipped; Phase 2 proposed. Verdict: no IDOR, cache proven safe, 4 real fixes made |
+| [`audit/growth-audit-2026-10.md`](audit/growth-audit-2026-10.md)                 | **CURRENT PLAN.** SEO + ASO + AI search + signup funnel, 2026-10-02. Supersedes the priority order of `seo/README.md` and `aso/aso-audit-2026-07-07.md` |
 | [`banking/open-banking-plan.md`](banking/open-banking-plan.md)                   | PLAN — abstraction built, Plaid is a stub, default disabled                                                                                              |
 | [`ux/missions-audit-2026-08.md`](ux/missions-audit-2026-08.md)                   | PLAN — partial; open items listed in the doc                                                                                                             |
 | [`ux/UX_ONBOARDING_MONETIZATION_PLAN.md`](ux/UX_ONBOARDING_MONETIZATION_PLAN.md) | PLAN — paywall-placement lever built, default unchanged                                                                                                  |
