@@ -107,6 +107,22 @@ class PublicLessonLanguageTests(TestCase):
         self.assertEqual(body["sections"][0]["text_content"], "Secțiune în română")
         self.assertNotIn("sample_question", body, "the teaser has no Romanian version")
 
+    def test_seed_placeholder_intro_is_not_published_in_either_language(self):
+        Lesson.objects.filter(pk=self.translated.pk).update(
+            detailed_content="<p>Content to be added.</p>"
+        )
+        LessonTranslation.objects.filter(lesson=self.translated, language="ro").update(
+            detailed_content="Conținut de adăugat."
+        )
+        cache.clear()
+
+        en = self.client.get("/api/public/lessons/emergency-funds/").json()
+        ro = self.client.get("/api/public/lessons/emergency-funds/", {"lang": "ro"}).json()
+
+        self.assertEqual(en["detailed_content"], "")
+        self.assertEqual(ro["detailed_content"], "")
+        self.assertEqual(ro["sections"][0]["text_content"], "Secțiune în română")
+
     def test_ro_detail_404s_without_a_translation(self):
         res = self.client.get("/api/public/lessons/credit-scores/", {"lang": "ro"})
 

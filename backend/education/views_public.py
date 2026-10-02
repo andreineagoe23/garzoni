@@ -14,6 +14,7 @@ lesson or guide exists in a language only when it is fully translated; detail vi
 from django.db.models import Exists, Max, OuterRef, Prefetch, Q
 from django.http import Http404, HttpResponse
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django.views.decorators.cache import cache_page
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
@@ -34,6 +35,17 @@ from .models import (
 from .utils import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
 
 TRANSLATED_LANGUAGES = [lang for lang in SUPPORTED_LANGUAGES if lang != DEFAULT_LANGUAGE]
+
+
+# Seed text left in Lesson.detailed_content by add_missing_courses (and its literal
+# Romanian translation). The real prose lives in the sections, so a public page
+# should render no intro rather than publish "Content to be added." to Google.
+_PLACEHOLDER_INTROS = {"", "content to be added", "conținut de adăugat"}
+
+
+def _public_intro(html: str | None) -> str:
+    text = strip_tags(html or "").strip().rstrip(".").strip().lower()
+    return "" if text in _PLACEHOLDER_INTROS else html
 
 
 def _public_language(request) -> str:
@@ -152,7 +164,9 @@ def public_lesson_detail(request, slug: str):
         "available_languages": _languages(lesson),
         "title": trans.title if trans else lesson.title,
         "short_description": trans.short_description if trans else lesson.short_description,
-        "detailed_content": (trans.detailed_content if trans else lesson.detailed_content) or "",
+        "detailed_content": _public_intro(
+            trans.detailed_content if trans else lesson.detailed_content
+        ),
         "image_url": image_url,
         "updated_at": updated_at,
         "course": {
