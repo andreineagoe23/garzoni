@@ -17,7 +17,7 @@ export default function DownloadBand({ id }: { id: string }) {
           />
         </h2>
         <p className="gzh-sub">{t("welcome.download.body")}</p>
-        <StoreBadges size="lg" />
+        <StoreBadges size="lg" placement="download_band" />
         <span className="gzh-download__note">
           {t("welcome.download.disclaimer")}
         </span>

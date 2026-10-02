@@ -10,6 +10,7 @@ import LandingFooter from "./home/LandingFooter";
 import LandingHeader from "./home/LandingHeader";
 import PricingSection from "./home/PricingSection";
 import TopicMarquee from "./home/TopicMarquee";
+import { detectMobileOs } from "utils/storeLinks";
 import "./home/home.css";
 
 const DOWNLOAD_ID = "download";
@@ -63,7 +64,12 @@ function Welcome() {
           <TopicMarquee />
           <HowItWorks />
           <CompoundDemo />
-          <PricingSection onChoosePlan={goDownload} />
+          {/* Desktop visitors can't install from a badge — send them to web signup. */}
+          <PricingSection
+            onChoosePlan={
+              detectMobileOs() ? goDownload : () => navigate("/register")
+            }
+          />
           <DownloadBand id={DOWNLOAD_ID} />
         </main>
         <LandingFooter />

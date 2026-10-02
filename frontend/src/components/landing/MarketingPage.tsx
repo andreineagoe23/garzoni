@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Header from "components/layout/Header";
 import { useTheme } from "contexts/ThemeContext";
+import { appStoreUrl, playStoreUrl } from "utils/storeLinks";
 import "./marketing.css";
 
 const FAQ_ITEMS = [
@@ -106,7 +107,7 @@ function MarketingPage() {
               </p>
               <div className="cta-row">
                 <a
-                  href="https://apps.apple.com/gb/app/garzoni-personal-finance/id6761790801"
+                  href={appStoreUrl("marketing")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-store"
@@ -132,7 +133,7 @@ function MarketingPage() {
                   </div>
                 </a>
                 <a
-                  href="https://play.google.com/store/apps/details?id=app.garzoni.mobile"
+                  href={playStoreUrl("marketing")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-store"

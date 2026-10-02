@@ -38,22 +38,12 @@ import {
 import type { CustomerInfo } from "@revenuecat/purchases-js";
 import RevenueCatPaywall from "components/billing/RevenueCatPaywall";
 import TrialTimeline from "components/billing/TrialTimeline";
+import { storeUrlForDevice } from "utils/storeLinks";
 
 // Promo is fulfilled by the store-side intro offers (App Store / Play), so the
 // web pricing page advertises the discount but sends buyers into the app to
 // claim it — there is no discounted web checkout during the promo.
-const APP_STORE_URL =
-  "https://apps.apple.com/gb/app/garzoni-personal-finance/id6761790801";
-const PLAY_STORE_URL =
-  "https://play.google.com/store/apps/details?id=app.garzoni.mobile";
-
-const resolvePromoStoreUrl = (): string => {
-  if (typeof navigator === "undefined") return APP_STORE_URL;
-  const ua = navigator.userAgent || "";
-  if (/android/i.test(ua)) return PLAY_STORE_URL;
-  if (/iphone|ipad|ipod/i.test(ua)) return APP_STORE_URL;
-  return APP_STORE_URL; // desktop default (UK-first audience)
-};
+const resolvePromoStoreUrl = (): string => storeUrlForDevice("pricing_promo");
 
 type PlanFeature = {
   name?: string;
@@ -416,6 +406,7 @@ const SubscriptionPlansPage = () => {
     <>
       <Helmet>
         <title>Plans &amp; Pricing | Garzoni</title>
+        <meta property="og:title" content="Plans & Pricing | Garzoni" />
         <meta
           name="description"
           content="Compare Garzoni's Starter, Plus, and Pro plans. Structured learning paths, AI tutor, and finance tools. Free to start — no credit card needed."
@@ -427,9 +418,9 @@ const SubscriptionPlansPage = () => {
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="space-y-3">
               <div className="mx-auto h-px w-12 bg-gradient-to-r from-transparent via-[color:var(--color-brand-primary)]/40 to-transparent" />
-              <h2 className="text-2xl font-bold tracking-tight text-[color:var(--accent,#111827)]">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--accent,#111827)]">
                 {t("subscriptions.choosePlan")}
-              </h2>
+              </h1>
               <p className="max-w-lg text-sm text-content-muted">
                 {t("subscriptions.intro")}
               </p>

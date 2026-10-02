@@ -369,12 +369,15 @@
     "header": {
       "logIn": "Log in",
       "getApp": "Get the app",
+      "startFree": "Start free",
       "logoAlt": "Garzoni"
     },
     "hero": {
       "title": "Get good with money, <accent>ten minutes a day.</accent>",
       "body": "Short lessons on budgeting, saving and investing, a daily streak to keep you going, and tools you can try with your own numbers. Free to start.",
       "globeHint": "Move your cursor · click to pulse",
+      "startWeb": "Start free in your browser",
+      "orGetApp": "Or get the app on your phone",
       "topics": {
         "budgeting": "Budgeting",
         "saving": "Saving",

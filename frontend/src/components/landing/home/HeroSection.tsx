@@ -1,11 +1,16 @@
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { GlassButton } from "components/ui";
+import { detectMobileOs } from "utils/storeLinks";
 import HeroGlobe from "./HeroGlobe";
 import HeroStats from "./HeroStats";
 import StoreBadges from "./StoreBadges";
 
 export default function HeroSection() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const onPhone = detectMobileOs() !== null;
 
   return (
     <section className="gzh-hero" aria-labelledby="gzh-hero-title">
@@ -21,7 +26,23 @@ export default function HeroSection() {
             />
           </h1>
           <p className="gzh-lede">{t("welcome.hero.body")}</p>
-          <StoreBadges />
+          {onPhone ? (
+            <StoreBadges placement="hero" />
+          ) : (
+            <div className="flex flex-col items-start gap-3">
+              <GlassButton
+                variant="active"
+                size="lg"
+                onClick={() => navigate("/register")}
+              >
+                {t("welcome.hero.startWeb")}
+              </GlassButton>
+              <span className="text-sm text-content-muted">
+                {t("welcome.hero.orGetApp")}
+              </span>
+              <StoreBadges placement="hero" />
+            </div>
+          )}
           <HeroStats />
         </div>
       </div>
