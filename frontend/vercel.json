@@ -14,6 +14,11 @@
       ],
       "destination": "https://www.garzoni.app/$1",
       "permanent": true
+    },
+    {
+      "source": "/welcome",
+      "destination": "/",
+      "permanent": true
     }
   ],
   "rewrites": [

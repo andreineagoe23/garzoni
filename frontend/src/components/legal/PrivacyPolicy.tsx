@@ -10,6 +10,7 @@ const PrivacyPolicy = () => {
     <>
       <Helmet>
         <title>Privacy Policy | Garzoni</title>
+        <meta property="og:title" content="Privacy Policy | Garzoni" />
         <meta
           name="description"
           content="Read Garzoni's Privacy Policy to understand how we collect, use, and protect your personal data in compliance with UK GDPR."

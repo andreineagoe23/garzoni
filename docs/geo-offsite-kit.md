@@ -11,8 +11,11 @@ Official handles (keep identical everywhere):
 
 - Web: https://www.garzoni.app
 - iOS: https://apps.apple.com/app/id6761790801
-- X: @garzoniapp · Instagram: @garzoni.app · TikTok: @garzoni.app · YouTube: @garzoni_app
-- LinkedIn: linkedin.com/company/garzoni
+- X: @garzoniapp · Instagram: @garzoni.app · YouTube: @garzoni_app
+- TikTok: **not created** — `@garzoni.app` does not resolve (checked 2026-10-02). Claim it or
+  leave it out everywhere; don't list a handle that 404s.
+- LinkedIn: **not created.** `linkedin.com/company/garzoni` belongs to Garzoni SA, a Lugano
+  construction firm — never link it. Create `linkedin.com/company/garzoni-app`.
 
 ---
 
@@ -42,9 +45,9 @@ Create an item at https://www.wikidata.org/wiki/Special:NewItem
 - **Statements:**
   - instance of (P31) → mobile app (Q620615) and web application (Q193424)
   - official website (P856) → https://www.garzoni.app
-  - operating system (P306) → iOS, Web
+  - operating system (P306) → iOS, Android, Web
   - genre/field → personal finance education / financial literacy
-  - social media: X username (P2002) → garzoniapp; Instagram (P2003) → garzoni.app; YouTube channel ID (P2397) → (from channel URL); TikTok (P7085) → garzoni.app
+  - social media: X username (P2002) → garzoniapp; Instagram (P2003) → garzoni.app; YouTube channel ID (P2397) → (from channel URL)
 
 Note: Wikidata wants notability. If it's removed for notability, revisit after
 press/listicle coverage (Section 6) gives citeable sources.
@@ -69,7 +72,7 @@ press/listicle coverage (Section 6) gives citeable sources.
 **Crunchbase** (crunchbase.com → add company): name Garzoni, category Fintech /
 EdTech, short + long description from Section 0, website, founded year, location.
 
-**LinkedIn company (linkedin.com/company/garzoni):** ensure it's claimed, logo
+**LinkedIn company (create at linkedin.com/company/garzoni-app — `/company/garzoni` is an unrelated Swiss firm):** logo
 set, "About" = canonical description, website link, industry = E-Learning /
 Financial Services. Post the YouTube/guide content here too.
 

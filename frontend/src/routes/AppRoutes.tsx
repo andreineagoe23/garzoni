@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import ProtectedRoute from "components/auth/ProtectedRoute";
 import ErrorBoundary from "components/common/ErrorBoundary";
@@ -44,6 +44,12 @@ import {
   AuthorPage,
   EditorialStandardsPage,
 } from "routes/lazyPages";
+
+/** Keeps the query — referral links are /welcome?ref=CODE. */
+function WelcomeRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: "/", search }} replace />;
+}
 
 const protectedWithBoundary = (element: React.ReactNode) => (
   <ProtectedRoute>
@@ -181,7 +187,7 @@ const AppRoutes = () => {
         element={protectedWithBoundary(<PricingFunnelDashboard />)}
       />
       <Route path="/tools/*" element={protectedWithBoundary(<ToolsPage />)} />
-      <Route path="/welcome" element={<Navigate to="/" replace />} />
+      <Route path="/welcome" element={<WelcomeRedirect />} />
       <Route path="/marketing" element={<MarketingPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route

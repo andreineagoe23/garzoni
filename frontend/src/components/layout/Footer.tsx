@@ -6,19 +6,15 @@ import { useAuth } from "contexts/AuthContext";
 import {
   FaFacebookF,
   FaInstagram,
-  FaLinkedinIn,
-  FaTiktok,
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
 import { GlassContainer } from "components/ui";
 
-const FaTiktokIcon = FaTiktok as React.ComponentType<{ size?: number }>;
 const FaXTwitterIcon = FaXTwitter as React.ComponentType<{ size?: number }>;
 const FaInstagramIcon = FaInstagram as React.ComponentType<{ size?: number }>;
 const FaFacebookFIcon = FaFacebookF as React.ComponentType<{ size?: number }>;
 const FaYoutubeIcon = FaYoutube as React.ComponentType<{ size?: number }>;
-const FaLinkedinInIcon = FaLinkedinIn as React.ComponentType<{ size?: number }>;
 
 const BMC_BUTTON_IMG =
   "https://img.buymeacoffee.com/button-api/?slug=garzoni&button_colour=FFDD00&font_colour=000000&font_family=Cookie&text=Buy%20me%20a%20coffee&outline_colour=000000&coffee_colour=ffffff";
@@ -167,16 +163,7 @@ function Footer() {
           {/* Second section: socials + BMC. Rule sits between this and copyright below. */}
           <div>
             <div className="flex flex-col items-center justify-between gap-3 pb-4 sm:flex-row sm:items-center">
-              <div className="grid w-full max-w-sm grid-cols-3 justify-items-center gap-3 sm:w-auto sm:max-w-none sm:grid-cols-6 sm:justify-items-start">
-                <a
-                  href="https://www.tiktok.com/@garzoni.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
-                  aria-label={t("footer.garzoniOn", { platform: "TikTok" })}
-                >
-                  <FaTiktokIcon size={18} />
-                </a>
+              <div className="grid w-full max-w-sm grid-cols-4 justify-items-center gap-3 sm:w-auto sm:max-w-none sm:grid-cols-4 sm:justify-items-start">
                 <a
                   href="https://x.com/garzoniapp"
                   target="_blank"
@@ -212,15 +199,6 @@ function Footer() {
                   aria-label={t("footer.garzoniOn", { platform: "YouTube" })}
                 >
                   <FaYoutubeIcon size={18} />
-                </a>
-                <a
-                  href="https://www.linkedin.com/company/garzoni"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-content-muted transition hover:border-[#2a7347]/50 hover:text-[color:var(--color-brand-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[#2a7347]/35"
-                  aria-label={t("footer.garzoniOn", { platform: "LinkedIn" })}
-                >
-                  <FaLinkedinInIcon size={18} />
                 </a>
               </div>
               <div className="flex shrink-0 justify-center sm:justify-end">

@@ -15,6 +15,12 @@ const CookiePolicy = () => {
     <>
       <Helmet>
         <title>Cookie Policy | Garzoni</title>
+        <meta property="og:title" content="Cookie Policy | Garzoni" />
+        <meta
+          name="description"
+          content="Which cookies and similar technologies Garzoni uses, why, and how to change your consent at any time."
+        />
+        <link rel="canonical" href="https://www.garzoni.app/cookie-policy" />
       </Helmet>
       <LegalPageLayout
         lastUpdated={t("legal.lastUpdated", {

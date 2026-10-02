@@ -155,6 +155,24 @@
       gtag("set", "url_passthrough", true);
     </script>
 
+    <!-- Vercel Web Analytics: cookieless page counts, so it sees the visitors
+         GA4's consent gate drops. Production hosts only, same as GA. -->
+    <script data-cookieconsent="ignore">
+      (function () {
+        var hosts = ["garzoni.app", "www.garzoni.app"];
+        if (hosts.indexOf(window.location.hostname) === -1) return;
+        window.va =
+          window.va ||
+          function () {
+            (window.vaq = window.vaq || []).push(arguments);
+          };
+        var s = document.createElement("script");
+        s.defer = true;
+        s.src = "/_vercel/insights/script.js";
+        document.head.appendChild(s);
+      })();
+    </script>
+
     <link rel="preconnect" href="https://garzoni-production.up.railway.app" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
 
@@ -256,8 +274,6 @@
             "description": "Personal finance education platform for young adults. Interactive lessons on budgeting, saving, investing, credit, debt management, and taxes — with AI-powered coaching and spaced repetition.",
             "sameAs": [
               "https://x.com/garzoniapp",
-              "https://www.linkedin.com/company/garzoni",
-              "https://www.tiktok.com/@garzoni.app",
               "https://www.instagram.com/garzoni.app/",
               "https://www.facebook.com/profile.php?id=61587379603993",
               "https://www.youtube.com/@garzoni_app"

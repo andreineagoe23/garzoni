@@ -279,6 +279,51 @@ function loadSnapshotCache() {
   return { shell, routes: {} };
 }
 
+/**
+ * Content fingerprints from the previous build, kept even when the bundle changed
+ * (loadSnapshotCache drops them then). Used only to tell IndexNow which pages'
+ * content actually changed.
+ */
+function loadPreviousFingerprints() {
+  try {
+    const manifest = JSON.parse(readFileSync(CACHE_MANIFEST, "utf-8"));
+    return Object.fromEntries(
+      Object.entries(manifest.routes || {}).map(([route, e]) => [route, e?.fp])
+    );
+  } catch {
+    return {};
+  }
+}
+
+// Public by design: IndexNow verifies ownership by fetching /<key>.txt.
+const INDEXNOW_KEY = "53fde4032ad192dc911e87f41973ce8d";
+const SITE = "https://www.garzoni.app";
+
+/**
+ * Tell IndexNow (Bing, Yandex, Seznam, Naver — Bing feeds Copilot and ChatGPT
+ * search) which content pages changed in this deploy. Best-effort, never fatal.
+ */
+async function pingIndexNow(routes) {
+  if (routes.length === 0) return;
+  try {
+    const res = await fetch("https://api.indexnow.org/indexnow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        host: "www.garzoni.app",
+        key: INDEXNOW_KEY,
+        keyLocation: `${SITE}/${INDEXNOW_KEY}.txt`,
+        urlList: routes.map((route) => `${SITE}${route}`),
+      }),
+    });
+    console.log(
+      `  ✓ IndexNow: ${routes.length} changed URL(s) → ${res.status}`
+    );
+  } catch (err) {
+    console.error("  ⚠ IndexNow ping failed:", err.message);
+  }
+}
+
 function saveSnapshotCache(cache) {
   try {
     mkdirSync(CACHE_DIR, { recursive: true });
@@ -658,6 +703,7 @@ async function main() {
     process.exit(1);
   }
 
+  const previousFingerprints = loadPreviousFingerprints();
   const cache = loadSnapshotCache();
   const nextCache = { shell: cache.shell, routes: {} };
 
@@ -725,6 +771,26 @@ async function main() {
   }
 
   saveSnapshotCache(nextCache);
+
+  // Every route the content API says exists. The edge middleware 404s crawler
+  // hits on /learn, /guides and /authors slugs missing from this list (dead slugs
+  // used to get a 200 "index, follow" shell). Listing known routes rather than
+  // written files means a page that failed to render this build degrades to the
+  // shell, as before, instead of 404ing a real lesson.
+  writeFileSync(join(OUT, "manifest.json"), JSON.stringify(routes), "utf-8");
+  const written = routes.filter((route) =>
+    existsSync(join(OUT, `${route === "/" ? "/index" : route}.html`))
+  );
+
+  if (isVercelProduction) {
+    await pingIndexNow(
+      written.filter(
+        (route) =>
+          fingerprints.has(route) &&
+          previousFingerprints[route] !== fingerprints.get(route)
+      )
+    );
+  }
 
   await browser.close();
   server.close();

@@ -10,6 +10,7 @@ const TermsOfService = () => {
     <>
       <Helmet>
         <title>Terms of Service | Garzoni</title>
+        <meta property="og:title" content="Terms of Service | Garzoni" />
         <meta
           name="description"
           content="Read Garzoni's Terms of Service. By using our platform you agree to these terms covering accounts, subscriptions, acceptable use, and more."

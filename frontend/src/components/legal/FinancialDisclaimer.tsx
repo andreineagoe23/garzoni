@@ -10,6 +10,15 @@ const FinancialDisclaimer = () => {
     <>
       <Helmet>
         <title>Financial Disclaimer | Garzoni</title>
+        <meta property="og:title" content="Financial Disclaimer | Garzoni" />
+        <meta
+          name="description"
+          content="Garzoni teaches personal finance for education only. Nothing on the site or in the app is financial, investment, tax or legal advice."
+        />
+        <link
+          rel="canonical"
+          href="https://www.garzoni.app/financial-disclaimer"
+        />
       </Helmet>
       <LegalPageLayout
         lastUpdated={t("legal.lastUpdated", {
