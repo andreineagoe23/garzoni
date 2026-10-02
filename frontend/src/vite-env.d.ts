@@ -20,6 +20,12 @@ interface ImportMetaEnv {
    * Get from: RevenueCat Dashboard → Project → API Keys → Public app-specific keys.
    */
   readonly VITE_REVENUECAT_API_KEY?: string;
+  /**
+   * App Store Connect provider token (`pt`), public — it appears in every campaign
+   * link. Without it store badges still carry `ct` but Apple won't attribute them.
+   * Get from: App Store Connect → App Analytics → Sources → Campaigns → Generate a link.
+   */
+  readonly VITE_APPLE_PROVIDER_TOKEN?: string;
 }
 
 interface ImportMeta {

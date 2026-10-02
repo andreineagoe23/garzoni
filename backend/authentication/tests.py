@@ -485,6 +485,41 @@ class RegisterConsentTests(APITestCase):
         profile = User.objects.get(username="plat").profile
         self.assertEqual(profile.signup_platform, "android")
 
+    def test_register_stores_cleaned_first_touch_attribution(self):
+        resp = self.client.post(
+            reverse("register-secure"),
+            self._payload(
+                username="attr",
+                email="attr@example.com",
+                attribution={
+                    "utm_source": "reddit",
+                    "utm_campaign": " launch ",
+                    "landing_path": "/learn/how-much-to-save",
+                    "referrer": "x" * 500,
+                    "utm_medium": "",
+                    "is_staff": "true",
+                },
+            ),
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        attribution = User.objects.get(username="attr").profile.signup_attribution
+        self.assertEqual(attribution["utm_source"], "reddit")
+        self.assertEqual(attribution["utm_campaign"], "launch")
+        self.assertEqual(attribution["landing_path"], "/learn/how-much-to-save")
+        self.assertEqual(len(attribution["referrer"]), 200)
+        self.assertNotIn("utm_medium", attribution)
+        self.assertNotIn("is_staff", attribution)
+
+    def test_register_without_attribution_leaves_it_empty(self):
+        resp = self.client.post(
+            reverse("register-secure"),
+            self._payload(username="noattr", email="noattr@example.com"),
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(User.objects.get(username="noattr").profile.signup_attribution, {})
+
 
 class SlimRegistrationTests(APITestCase):
     """UX Phase 2 (plan §2.1): email+password+consents-only signup."""

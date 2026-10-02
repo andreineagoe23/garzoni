@@ -19,6 +19,7 @@ import {
 import QuestionnaireCompletionModal from "./QuestionnaireCompletionModal";
 import toast from "react-hot-toast";
 import { calculatePercent } from "utils/progress";
+import { consumePostSignupPath } from "utils/postSignupPath";
 
 /** Short questionnaire has 6 questions; fallback if API doesn't send total */
 const DEFAULT_TOTAL_QUESTIONS = 6;
@@ -152,7 +153,7 @@ const OnboardingQuestionnaire: React.FC = () => {
     mutationFn: abandonQuestionnaire,
     onSuccess: (data) => {
       queryClient.setQueryData(["questionnaire-progress"], data);
-      navigate("/all-topics", { replace: true });
+      navigate(consumePostSignupPath() || "/all-topics", { replace: true });
       toast.success(t("onboarding.progressSaved"));
     },
     onError: () => {

@@ -19,6 +19,8 @@ import { recordFunnelEvent } from "services/analyticsService";
 import { buildGoogleOAuthInitHref } from "utils/buildGoogleOAuthInitHref";
 import RecaptchaVerifyingModal from "components/auth/RecaptchaVerifyingModal";
 import { peekPendingReferralCode } from "utils/pendingReferral";
+import { readFirstTouch } from "utils/firstTouch";
+import { savePostSignupPath } from "utils/postSignupPath";
 import FormNotice from "components/common/FormNotice";
 
 // TODO(i18n): step-2 / OAuth-caption copy below is hardcoded English pending
@@ -43,6 +45,9 @@ function Register() {
     const params = new URLSearchParams(location.search);
     const fromQuery = params.get("ref") || "";
     return fromQuery || peekPendingReferralCode();
+  }, [location.search]);
+  useEffect(() => {
+    savePostSignupPath(new URLSearchParams(location.search).get("next"));
   }, [location.search]);
   const [step, setStep] = useState<RegisterStep>(1);
   const [formData, setFormData] = useState({
@@ -182,6 +187,9 @@ function Register() {
     const runRegister = async (payload: Record<string, unknown>) => {
       const result = await registerUser(payload);
       if (result.success) {
+        if (typeof window.gtag === "function") {
+          window.gtag("event", "sign_up", { method: "email" });
+        }
         navigate("/onboarding", { replace: true });
       } else {
         setErrorMessage(result.error || t("auth.register.registerFailed"));
@@ -213,6 +221,8 @@ function Register() {
       if (firstName) payload.first_name = firstName;
       if (lastName) payload.last_name = lastName;
       if (referralCode) payload.referral_code = referralCode;
+      const attribution = readFirstTouch();
+      if (attribution) payload.attribution = attribution;
       const result = await runRegister(payload);
       if (result.success) return;
     } catch (registerError) {

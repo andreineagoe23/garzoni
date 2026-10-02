@@ -19,6 +19,7 @@ import { GlassCard, GlassButton } from "components/ui";
 import Loader from "components/common/Loader";
 import { fetchPlanSummary, type PlanSummary } from "@garzoni/core";
 import { recordFunnelEvent } from "services/analyticsService";
+import { consumePostSignupPath } from "utils/postSignupPath";
 
 const DASHBOARD_ROUTE = "/all-topics";
 
@@ -66,9 +67,8 @@ const PlanReadyPage: React.FC = () => {
     // meant the arms diverged by platform and the experiment could not be read.
     if (summary?.paywall_placement === "post_first_lesson") {
       // Straight into learning; the paywall comes after the first lesson.
-      // Deliberately not deep-linking a curated lesson — the web course route is
-      // keyed by path/course id, not lesson id.
-      navigate(DASHBOARD_ROUTE);
+      // Back into the course of the public lesson they signed up from, if any.
+      navigate(consumePostSignupPath() || DASHBOARD_ROUTE);
       return;
     }
     const params = new URLSearchParams({ from: "plan_ready" });
@@ -77,7 +77,7 @@ const PlanReadyPage: React.FC = () => {
   };
 
   const handleContinueFree = () => {
-    navigate(DASHBOARD_ROUTE);
+    navigate(consumePostSignupPath() || DASHBOARD_ROUTE);
   };
 
   if (isLoading) {

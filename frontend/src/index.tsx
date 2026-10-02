@@ -12,7 +12,9 @@ import { trackAnalyticsEvent } from "services/analyticsClient";
 import { initStartup } from "bootstrap/startup";
 import { initHttpClientWeb } from "bootstrap/httpClientWeb";
 import { initCustomerIoWeb } from "hooks/useCio";
+import { captureFirstTouch } from "utils/firstTouch";
 
+captureFirstTouch();
 initStartup();
 initHttpClientWeb();
 void initCustomerIoWeb();

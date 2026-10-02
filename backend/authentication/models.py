@@ -123,6 +123,10 @@ class UserProfile(models.Model):
     # e.g. accounts created before this was tracked). Powers the new-signups-by-
     # platform split in the admin analytics dashboard. Reporting-only.
     signup_platform = models.CharField(max_length=16, blank=True, default="")
+    # First-touch acquisition context sent by the web register form: utm_* params,
+    # referrer and landing path from the visitor's first page view. Empty for
+    # mobile, Google OAuth and pre-2026-10 accounts. Reporting-only.
+    signup_attribution = models.JSONField(default=dict, blank=True)
     # Last client seen on an authenticated request (updated at login + throttled middleware).
     last_seen_platform = models.CharField(max_length=16, blank=True, default="")
     # Last authenticated request timestamp (throttled to ~hourly by middleware).

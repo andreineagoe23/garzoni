@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import apiClient from "services/httpClient";
 import { recordFunnelEvent } from "services/analyticsService";
+import { appStoreUrl, playStoreUrl } from "utils/storeLinks";
 import SeoHead from "components/seo/SeoHead";
 import Byline from "components/editorial/Byline";
 import LanguageSwitch from "components/seo/LanguageSwitch";
@@ -46,6 +47,11 @@ type PublicLessonResponse = {
   }>;
 };
 
+/** Sign up, then land back in this lesson's course once onboarding is done. */
+function registerHref(courseId: number): string {
+  return `/register?next=${encodeURIComponent(`/lessons/${courseId}/flow`)}`;
+}
+
 /** True only when the payload is a usable, well-formed sample question. */
 function isValidSampleQuestion(q: unknown): q is SampleQuestion {
   if (!q || typeof q !== "object") return false;
@@ -69,9 +75,11 @@ function isValidSampleQuestion(q: unknown): q is SampleQuestion {
 function SampleQuestionCard({
   question,
   lessonSlug,
+  signupHref,
 }: {
   question: SampleQuestion;
   lessonSlug: string;
+  signupHref: string;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   const answered = selected !== null;
@@ -177,7 +185,7 @@ function SampleQuestionCard({
             You’d have earned 10 XP — create a free account to keep it.
           </p>
           <Link
-            to="/register"
+            to={signupHref}
             style={{
               display: "inline-block",
               marginTop: "0.5rem",
@@ -373,6 +381,7 @@ export default function PublicLesson() {
         <SampleQuestionCard
           question={data.sample_question}
           lessonSlug={data.slug}
+          signupHref={registerHref(data.course.id)}
         />
       ) : null}
       {sources.length > 0 ? (
@@ -423,7 +432,7 @@ export default function PublicLesson() {
         <h2 style={{ marginTop: 0 }}>{t("publicLesson.keepLearningTitle")}</h2>
         <p>{t("publicLesson.keepLearningBody")}</p>
         <Link
-          to="/register"
+          to={registerHref(data.course.id)}
           style={{
             display: "inline-block",
             padding: "0.75rem 1.5rem",
@@ -438,7 +447,7 @@ export default function PublicLesson() {
         </Link>
         <p style={{ marginTop: "1rem", marginBottom: 0 }}>
           <a
-            href="https://apps.apple.com/app/id6761790801"
+            href={appStoreUrl("lesson_footer")}
             target="_blank"
             rel="noopener noreferrer"
             style={{ fontSize: 14, opacity: 0.85 }}
@@ -448,7 +457,7 @@ export default function PublicLesson() {
         </p>
         <p style={{ marginTop: "0.5rem", marginBottom: 0 }}>
           <a
-            href="https://play.google.com/store/apps/details?id=app.garzoni.mobile"
+            href={playStoreUrl("lesson_footer")}
             target="_blank"
             rel="noopener noreferrer"
             style={{ fontSize: 14, opacity: 0.85 }}

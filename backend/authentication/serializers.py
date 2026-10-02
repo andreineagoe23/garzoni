@@ -49,6 +49,28 @@ def generate_username_from_email(email: str) -> str:
     return f"{base}{uuid.uuid4().hex[:8]}"
 
 
+_ATTRIBUTION_KEYS = (
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+    "referrer",
+    "landing_path",
+)
+_ATTRIBUTION_MAX_LENGTH = 200
+
+
+def _clean_attribution(raw) -> dict:
+    if not isinstance(raw, dict):
+        return {}
+    return {
+        key: value.strip()[:_ATTRIBUTION_MAX_LENGTH]
+        for key in _ATTRIBUTION_KEYS
+        if isinstance(value := raw.get(key), str) and value.strip()
+    }
+
+
 # Serializer for user registration, including optional referral code handling.
 class RegisterSerializer(serializers.ModelSerializer):
     referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -62,6 +84,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     # them will fail registration by design (see rollout note in the PR).
     accept_terms = serializers.BooleanField(write_only=True, required=True)
     age_confirmed = serializers.BooleanField(write_only=True, required=True)
+    # First-touch acquisition context (utm_*, referrer, landing path). Optional and
+    # never fails a signup: unknown keys are dropped and values are length-capped.
+    attribution = serializers.DictField(write_only=True, required=False)
 
     class Meta:
         model = User
@@ -75,6 +100,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "marketing_opt_in",
             "accept_terms",
             "age_confirmed",
+            "attribution",
         ]
         # Slim signup (UX Phase 2, plan §2.1): email + password + consents are
         # enough. username is auto-generated from the email local-part when
@@ -146,6 +172,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Consumed for consent capture below; not User model fields.
         validated_data.pop("accept_terms", None)
         validated_data.pop("age_confirmed", None)
+        attribution = _clean_attribution(validated_data.pop("attribution", None))
 
         # Slim signup: auto-generate a username from the email local-part when
         # the client didn't send one (dedupe handled by the generator).
@@ -185,6 +212,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request is not None:
             user_profile.signup_platform = resolve_request_platform(request)
+        if attribution:
+            user_profile.signup_attribution = attribution
         user_profile.save()
 
         if referral_code:
