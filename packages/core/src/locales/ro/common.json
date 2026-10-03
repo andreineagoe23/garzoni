@@ -540,7 +540,8 @@
       "putIn": "Ai depus",
       "growth": "Creștere",
       "chartLabel": "Grafic de creștere: {{total}} în total, din care {{contributions}} din depunerile tale.",
-      "disclaimer": "Doar ilustrativ. Randamentele nu sunt garantate, iar acesta nu este un sfat financiar."
+      "disclaimer": "Doar ilustrativ. Randamentele nu sunt garantate, iar acesta nu este un sfat financiar.",
+      "fullCalculator": "Deschide calculatorul complet →"
     },
     "pricing": {
       "title": "Gratuit la început. <accent>Treci la un plan superior dacă vrei mai mult.</accent>",

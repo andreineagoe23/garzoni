@@ -9,6 +9,16 @@ export const futureValue = (
   return i === 0 ? monthly * n : monthly * ((Math.pow(1 + i, n) - 1) / i);
 };
 
+/** Balance after `years`: a starting lump sum plus monthly deposits, both compounded monthly. */
+export const balanceWithStart = (
+  start: number,
+  monthly: number,
+  years: number,
+  ratePct: number
+) =>
+  start * Math.pow(1 + ratePct / 100 / 12, years * 12) +
+  futureValue(monthly, years, ratePct);
+
 export const CHART_WIDTH = 800;
 export const CHART_HEIGHT = 260;
 const SAMPLES = 40;

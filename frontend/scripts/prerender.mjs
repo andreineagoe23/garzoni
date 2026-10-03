@@ -173,6 +173,8 @@ const STATIC_ROUTES = [
   "/about",
   "/authors/andrei-neagoe",
   "/editorial-standards",
+  "/calculators/compound-interest",
+  "/ro/calculators/compound-interest",
   "/learn",
   "/guides",
   "/marketing",

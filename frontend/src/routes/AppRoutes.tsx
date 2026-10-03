@@ -43,6 +43,7 @@ import {
   ArticlePage,
   AuthorPage,
   EditorialStandardsPage,
+  CompoundInterestPage,
 } from "routes/lazyPages";
 
 /** Keeps the query — referral links are /welcome?ref=CODE. */
@@ -68,11 +69,19 @@ const AppRoutes = () => {
       <Route path="/guides/:slug" element={<ArticlePage />} />
       <Route path="/authors/:slug" element={<AuthorPage />} />
       <Route path="/editorial-standards" element={<EditorialStandardsPage />} />
+      <Route
+        path="/calculators/compound-interest"
+        element={<CompoundInterestPage />}
+      />
       {/* Romanian twins — the page reads its language from the /ro prefix. */}
       <Route path="/ro/learn" element={<LearnIndex />} />
       <Route path="/ro/learn/:slug" element={<PublicLesson />} />
       <Route path="/ro/guides" element={<GuidesIndex />} />
       <Route path="/ro/guides/:slug" element={<ArticlePage />} />
+      <Route
+        path="/ro/calculators/compound-interest"
+        element={<CompoundInterestPage />}
+      />
       <Route
         path="/privacy-policy"
         element={

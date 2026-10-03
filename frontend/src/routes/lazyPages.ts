@@ -22,6 +22,9 @@ export const AuthorPage = React.lazy(
 export const EditorialStandardsPage = React.lazy(
   () => import("components/editorial/EditorialStandardsPage")
 );
+export const CompoundInterestPage = React.lazy(
+  () => import("components/calculators/CompoundInterestPage")
+);
 export const CoursePage = React.lazy(
   () => import("components/courses/CoursePage")
 );

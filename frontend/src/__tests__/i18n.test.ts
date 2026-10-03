@@ -25,11 +25,13 @@ const getAllLocaleKeys = (locale: "en" | "ro") => {
   const shared = loadJson(`locales/${locale}/shared.json`);
   const courses = loadJson(`locales/${locale}/courses.json`);
   const editorial = loadJson(`locales/${locale}/editorial.json`);
+  const calculators = loadJson(`locales/${locale}/calculators.json`);
   const merged = {
     ...common,
     shared,
     courses,
     editorial,
+    calculators,
   };
   return new Set(flattenKeys(merged));
 };

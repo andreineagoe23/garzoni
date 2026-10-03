@@ -434,6 +434,15 @@ def sitemap_xml(request):
         if url[0] not in static_locs
     ]
 
+    # Public calculators exist in every language (static copy, no translation gate).
+    calculator_urls = _versions(
+        "/calculators/compound-interest",
+        [DEFAULT_LANGUAGE, *TRANSLATED_LANGUAGES],
+        "0.8",
+        "monthly",
+        None,
+    )
+
     # Lessons carry no timestamp of their own — the honest "last modified" is the
     # newest section edit (matches the lesson detail API's updated_at).
     lesson_urls = [
@@ -459,7 +468,9 @@ def sitemap_xml(request):
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
         'xmlns:xhtml="http://www.w3.org/1999/xhtml">'
     )
-    for loc, priority, changefreq, lastmod in static_urls + index_urls + lesson_urls + article_urls:
+    for loc, priority, changefreq, lastmod in (
+        static_urls + index_urls + calculator_urls + lesson_urls + article_urls
+    ):
         parts.append("<url>")
         parts.append(f"<loc>{loc}</loc>")
         if lastmod:

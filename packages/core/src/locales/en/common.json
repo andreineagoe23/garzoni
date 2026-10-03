@@ -540,7 +540,8 @@
       "putIn": "You put in",
       "growth": "Growth",
       "chartLabel": "Growth chart: {{total}} in total, {{contributions}} of it from your deposits.",
-      "disclaimer": "Illustrative only. Returns aren't guaranteed and this isn't financial advice."
+      "disclaimer": "Illustrative only. Returns aren't guaranteed and this isn't financial advice.",
+      "fullCalculator": "Open the full calculator →"
     },
     "pricing": {
       "title": "Free to start. <accent>Upgrade if you want more.</accent>",

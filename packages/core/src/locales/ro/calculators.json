@@ -1,0 +1,63 @@
+{
+  "breadcrumbs": {
+    "home": "Acasă",
+    "calculators": "Calculatoare"
+  },
+  "compound": {
+    "seoTitle": "Calculator dobândă compusă — cât cresc economiile lunare | Garzoni",
+    "seoDescription": "Calculator gratuit de dobândă compusă: vezi la cât ajung o sumă inițială și economiile lunare la orice dobândă și cât din total este dobândă. Fără cont.",
+    "title": "Calculator de dobândă compusă",
+    "intro": "Introdu suma pe care o ai acum, cât poți pune deoparte în fiecare lună și o dobândă anuală. Vei vedea la cât poate crește și cât din total sunt bani pe care nu i-ai depus tu.",
+    "inputs": {
+      "start": "Suma inițială (lei)",
+      "monthly": "Depunere lunară (lei)",
+      "rate": "Dobândă (% pe an)",
+      "rateHelp": "Folosește dobânda unui depozit sau a unui cont de economii, ori un randament prudent pe termen lung pentru investiții.",
+      "years": "Ani"
+    },
+    "results": {
+      "heading": "După {{years}} ani",
+      "balance": "Sold final",
+      "contributed": "Ai depus",
+      "interest": "Dobândă câștigată",
+      "share": "{{percent}}% din soldul final este dobândă."
+    },
+    "invalid": "Introdu sume de cel puțin 0, o dobândă între 0 și 30% și între 1 și 60 de ani.",
+    "how": {
+      "heading": "Cum funcționează dobânda compusă",
+      "p1": "Dobânda simplă se calculează doar la banii depuși de tine. Dobânda compusă se calculează și la dobânda deja câștigată, așa că în fiecare an suma care produce dobândă e puțin mai mare decât în anul anterior.",
+      "p2": "Calculatorul capitalizează lunar: în fiecare lună se adaugă la sold o douăsprezecime din dobânda anuală, apoi intră depunerea ta. Multe conturi de economii și platforme de investiții funcționează așa, deși unele depozite plătesc dobânda doar la scadență.",
+      "formula": "Cu o dobândă lunară r (dobânda anuală ÷ 12) și n luni, o sumă inițială P ajunge la P × (1 + r)ⁿ, iar o depunere lunară m ajunge la m × ((1 + r)ⁿ − 1) ÷ r."
+    },
+    "example": {
+      "heading": "Un exemplu",
+      "body": "500 de lei pe lună timp de 20 de ani înseamnă 120.000 de lei depuși. La 7% pe an, cu capitalizare lunară, suma ajunge la aproximativ 260.000 de lei, deci mai mult de jumătate din total este dobândă. La 3% ajunge la aproximativ 164.000 de lei. Timpul și dobânda contează mai mult decât mărimea fiecărei depuneri."
+    },
+    "caveats": {
+      "heading": "Ce nu include calculatorul",
+      "body": "Dobânzile se schimbă, iar investițiile pot scădea la fel de bine cum pot crește, așa că tratează rezultatul ca pe o ilustrare, nu ca pe o prognoză. Calculatorul nu include impozitul pe dobânzi sau pe câștiguri, care reduce suma finală, și nici inflația, care reduce ce poți cumpăra cu ea."
+    },
+    "learn": {
+      "heading": "Învață ideea din spatele calculului",
+      "compound": "Cum funcționează dobânda compusă — lecție gratuită",
+      "related": "Cât să economisești — lecție gratuită"
+    },
+    "cta": {
+      "heading": "Transformă-l într-un obicei",
+      "body": "Garzoni te învață să economisești și să investești în lecții de cinci minute, cu o serie zilnică care te ține motivat. Poți începe gratuit.",
+      "button": "Începe gratuit",
+      "appStore": "Descarcă din App Store",
+      "googlePlay": "Descarcă din Google Play"
+    },
+    "faq": {
+      "q1": "Ce este dobânda compusă?",
+      "a1": "Dobânda calculată atât la banii depuși, cât și la dobânda deja câștigată. Pe perioade lungi, face ca economiile să crească mai repede decât depunerile singure.",
+      "q2": "Cât de des se capitalizează dobânda?",
+      "a2": "Depinde de produs. Calculatorul capitalizează lunar, ca multe conturi de economii și investiții. La capitalizare anuală, rezultatul e puțin mai mic pentru aceeași dobândă.",
+      "q3": "Este rezultatul garantat?",
+      "a3": "Nu. Dobânzile se schimbă, iar investițiile își pot pierde din valoare. Folosește rezultatul ca să compari scenarii, nu ca pe o promisiune. Garzoni este educație financiară, nu consultanță."
+    },
+    "disclaimer": "Doar în scop educativ, nu este consultanță financiară.",
+    "faqHeading": "Întrebări frecvente"
+  }
+}

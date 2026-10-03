@@ -1,0 +1,63 @@
+{
+  "breadcrumbs": {
+    "home": "Home",
+    "calculators": "Calculators"
+  },
+  "compound": {
+    "seoTitle": "Compound Interest Calculator (UK) — Monthly Savings Growth | Garzoni",
+    "seoDescription": "Free compound interest calculator: see what a starting sum plus monthly saving grows to at any interest rate, and how much of it is interest. No signup.",
+    "title": "Compound interest calculator",
+    "intro": "Put in what you have now, what you can add each month and a yearly interest rate. You'll see what it could grow to, and how much of that is money you never paid in.",
+    "inputs": {
+      "start": "Starting amount (£)",
+      "monthly": "Monthly deposit (£)",
+      "rate": "Interest rate (% a year)",
+      "rateHelp": "Use the AER on a savings account, or a cautious long-term return for investments.",
+      "years": "Years"
+    },
+    "results": {
+      "heading": "After {{years}} years",
+      "balance": "Final balance",
+      "contributed": "You paid in",
+      "interest": "Interest earned",
+      "share": "{{percent}}% of the final balance is interest."
+    },
+    "invalid": "Enter amounts of 0 or more, a rate between 0 and 30%, and 1 to 60 years.",
+    "how": {
+      "heading": "How compound interest works",
+      "p1": "Simple interest is paid only on the money you put in. Compound interest is also paid on the interest you've already earned, so each year the pot that earns interest is a little bigger than the year before.",
+      "p2": "This calculator compounds monthly: each month, a twelfth of the yearly rate is added to the balance, then your deposit goes in. That's close to how most UK savings accounts and investment platforms work, though some pay interest only once a year.",
+      "formula": "With a monthly rate r (yearly rate ÷ 12) and n months, a starting sum P grows to P × (1 + r)ⁿ, and a monthly deposit m grows to m × ((1 + r)ⁿ − 1) ÷ r."
+    },
+    "example": {
+      "heading": "An example",
+      "body": "£150 a month for 20 years is £36,000 paid in. At 7% a year, compounded monthly, it grows to about £78,000, so more than half the final pot is interest. At 3% it reaches about £49,000. Time and rate matter more than the size of each deposit."
+    },
+    "caveats": {
+      "heading": "What the calculator leaves out",
+      "body": "Rates change, and investment returns go down as well as up, so treat the result as an illustration, not a forecast. It ignores tax: interest above your Personal Savings Allowance is taxable unless it sits in an ISA. It also ignores inflation, which shrinks what the final sum will buy."
+    },
+    "learn": {
+      "heading": "Learn the idea behind it",
+      "compound": "How compound interest works — free lesson",
+      "related": "APR vs AER: how interest is quoted — free lesson"
+    },
+    "cta": {
+      "heading": "Make it a habit",
+      "body": "Garzoni teaches saving and investing in five-minute lessons, with a streak to keep you going. Free to start.",
+      "button": "Start learning free",
+      "appStore": "Get it on the App Store",
+      "googlePlay": "Get it on Google Play"
+    },
+    "faq": {
+      "q1": "What is compound interest?",
+      "a1": "Interest paid on both the money you put in and the interest it has already earned. Over long periods it makes savings grow faster than the deposits alone.",
+      "q2": "How often is interest compounded?",
+      "a2": "It depends on the account. This calculator compounds monthly, which is common for UK savings accounts and investments. Yearly compounding gives a slightly lower result at the same rate.",
+      "q3": "Is the result guaranteed?",
+      "a3": "No. Savings rates change and investments can fall in value. Use the result to compare scenarios, not as a promise. Garzoni is education, not financial advice."
+    },
+    "disclaimer": "For education only, not financial advice.",
+    "faqHeading": "Common questions"
+  }
+}

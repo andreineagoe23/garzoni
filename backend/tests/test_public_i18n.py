@@ -305,3 +305,17 @@ class SitemapHreflangTests(TestCase):
         locs = [chunk.split("</loc>")[0] for chunk in xml.split("<loc>")[1:]]
 
         self.assertEqual(len(locs), len(set(locs)))
+
+    def test_calculator_is_listed_in_both_languages_with_hreflang(self):
+        _, blocks = self._url_blocks()
+
+        for loc in (
+            f"{SITE}/calculators/compound-interest",
+            f"{SITE}/ro/calculators/compound-interest",
+        ):
+            self.assertIn(
+                f'hreflang="ro" href="{SITE}/ro/calculators/compound-interest"', blocks[loc]
+            )
+            self.assertIn(
+                f'hreflang="x-default" href="{SITE}/calculators/compound-interest"', blocks[loc]
+            )

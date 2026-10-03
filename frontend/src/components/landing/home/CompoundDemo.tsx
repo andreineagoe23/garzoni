@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { GlassCard } from "components/ui";
 import {
   CHART_HEIGHT,
@@ -12,7 +13,7 @@ import { money, percent } from "./format";
 const LATE_START_YEARS = 5;
 
 export default function CompoundDemo() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [monthly, setMonthly] = useState(150);
   const [years, setYears] = useState(20);
   const [rate, setRate] = useState(7);
@@ -165,6 +166,12 @@ export default function CompoundDemo() {
                 <span className="gzh-demo__note">
                   {t("welcome.demo.disclaimer")}
                 </span>
+                <Link
+                  to={`${i18n.language?.startsWith("ro") ? "/ro" : ""}/calculators/compound-interest`}
+                  className="gzh-demo__note underline"
+                >
+                  {t("welcome.demo.fullCalculator")}
+                </Link>
               </div>
             </div>
           </GlassCard>

@@ -1,4 +1,4 @@
-import { compoundChart, futureValue } from "./compound";
+import { balanceWithStart, compoundChart, futureValue } from "./compound";
 
 describe("futureValue", () => {
   it("is plain saving at a 0% return", () => {
@@ -8,6 +8,17 @@ describe("futureValue", () => {
   it("compounds monthly at the annual rate", () => {
     // £150 a month for 20 years at 7%: the figure the landing page opens on.
     expect(Math.round(futureValue(150, 20, 7))).toBe(78139);
+  });
+});
+
+describe("balanceWithStart", () => {
+  it("adds the compounded lump sum to the deposits", () => {
+    // £1,000 at 5% compounded monthly for 10 years is £1,647.01.
+    expect(balanceWithStart(1000, 0, 10, 5)).toBeCloseTo(1647.01, 2);
+    expect(balanceWithStart(1000, 150, 20, 7)).toBeCloseTo(
+      1000 * Math.pow(1 + 0.07 / 12, 240) + futureValue(150, 20, 7),
+      6
+    );
   });
 });
 
