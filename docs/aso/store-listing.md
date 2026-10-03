@@ -30,13 +30,18 @@ Single source of truth for store text from 2026-09-27. Supersedes `docs/prod/aso
 | Field | Value | Limit |
 |---|---|---|
 | Title | `Garzoni: Learn Money & Finance` | 30/30 |
-| Subtitle | `Budget, Invest & Build Wealth` | 29/30 |
-| Keywords | `personal,financial,literacy,budgeting,investing,savings,stocks,crypto,debt,credit,beginner,pension` | 98/100 bytes |
+| Subtitle | `Investing & Budgeting Lessons` | 29/30 |
+| Keywords | `personal,financial,literacy,course,quiz,beginner,stocks,crypto,saving,credit,debt,pension,isa` | 93/100 bytes |
 | Promo text | Five minutes a day, 150+ bite-sized lessons and an AI money tutor. Build a budget, start investing and keep your streak alive with smarter reminders. | 149/170 |
 
 Keywords never repeat title/subtitle words (Apple indexes those already). Changed 2026-09-27:
 added `personal` (for "personal finance"), `budgeting`, `investing`; dropped `course`, `etf`,
 `tax`, `education`, `isa`.
+Changed 2026-10-02 (`docs/audit/growth-audit-2026-10.md` S2): head terms like "budgeting" and
+"personal finance" are owned by apps with 26k–79k ratings, and every rank we hold is an education
+long-tail ("finance learning" #25, "money lessons" #51). `budgeting`/`investing` moved into the
+subtitle next to `Lessons` (indexes "budgeting lessons", "learn investing"); `course`, `quiz`, `isa`
+back in keywords.
 
 Description (3672/4000):
 
@@ -70,7 +75,7 @@ REAL TOOLS, NOT JUST THEORY
 • Portfolio Analyzer: see how your investments really perform
 • Market Explorer: understand stocks, funds and crypto at a glance
 • Statement Import: upload a bank statement and see where the month went
-• Receipt Scan (Pro): photograph a receipt and let Garzoni categorise it
+• Receipt Scan (Pro): upload a photo of a receipt and let Garzoni categorise it
 
 THE CLIMB: YOUR PERSONAL FINANCE JOURNEY
 Answer a few quick questions and get a learning path built around your goals: saving your first £1,000, understanding investing, buying a home or getting out of debt. Every step unlocks the next, so you always know what to learn today.
@@ -197,7 +202,7 @@ REAL TOOLS, NOT JUST THEORY
 • Portfolio Analyzer: see how your investments really perform
 • Market Explorer: understand stocks, funds and crypto at a glance
 • Statement Import: upload a bank statement and see where the month went
-• Receipt Scan (Pro): photograph a receipt and let Garzoni categorise it
+• Receipt Scan (Pro): upload a photo of a receipt and let Garzoni categorise it
 
 THE CLIMB: YOUR PERSONAL FINANCE JOURNEY
 Answer a few quick questions and get a learning path built around your goals: saving your first £1,000, understanding investing, buying a home or getting out of debt. Every step unlocks the next, so you always know what to learn today.
