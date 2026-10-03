@@ -774,12 +774,6 @@ async function main() {
 
   saveSnapshotCache(nextCache);
 
-  // Every route the content API says exists. The edge middleware 404s crawler
-  // hits on /learn, /guides and /authors slugs missing from this list (dead slugs
-  // used to get a 200 "index, follow" shell). Listing known routes rather than
-  // written files means a page that failed to render this build degrades to the
-  // shell, as before, instead of 404ing a real lesson.
-  writeFileSync(join(OUT, "manifest.json"), JSON.stringify(routes), "utf-8");
   const written = routes.filter((route) =>
     existsSync(join(OUT, `${route === "/" ? "/index" : route}.html`))
   );

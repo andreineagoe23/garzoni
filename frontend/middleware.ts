@@ -9,17 +9,6 @@ const AI_BOT_RE =
 const SKIP_RE =
   /\.(js|css|png|jpg|jpeg|svg|ico|woff2?|webp|gif|json|xml|txt)$/i;
 
-// Content sections whose every real URL is prerendered. Anything else under them
-// is a dead slug and must 404 for crawlers instead of a 200 "index, follow" shell.
-const CONTENT_PREFIX_RE =
-  /^\/(?:ro\/)?(?:learn|guides)\/[^/]+$|^\/authors\/[^/]+$/;
-
-const NOT_FOUND_HTML =
-  '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
-  '<meta name="robots" content="noindex"><title>Page not found — Garzoni</title>' +
-  '</head><body><h1>Page not found</h1><p><a href="https://www.garzoni.app/learn">' +
-  "Browse all lessons</a></p></body></html>";
-
 const APP_STORE_ID = "6761790801";
 const PLAY_PACKAGE = "app.garzoni.mobile";
 
@@ -42,19 +31,7 @@ function storeRedirect(ua: string, campaign: string): Response {
   return Response.redirect("https://www.garzoni.app/", 302);
 }
 
-// Every public route that exists, written by the prerender. Absent on preview
-// builds (prerender is skipped there), in which case nothing is 404'd.
-let prerenderedRoutes: Promise<Set<string> | null> | undefined;
-
-function loadPrerenderedRoutes(origin: string): Promise<Set<string> | null> {
-  prerenderedRoutes ??= fetch(new URL("/__prerendered/manifest.json", origin))
-    .then((res) => (res.ok ? res.json() : null))
-    .then((routes) => (Array.isArray(routes) ? new Set<string>(routes) : null))
-    .catch(() => null);
-  return prerenderedRoutes;
-}
-
-export default async function middleware(request: Request) {
+export default function middleware(request: Request) {
   const url = new URL(request.url);
   const ua = request.headers.get("user-agent") || "";
 
@@ -67,24 +44,13 @@ export default async function middleware(request: Request) {
 
   if (!AI_BOT_RE.test(ua)) return next();
 
-  if (CONTENT_PREFIX_RE.test(url.pathname)) {
-    const routes = await loadPrerenderedRoutes(url.origin);
-    if (routes && !routes.has(url.pathname)) {
-      return new Response(NOT_FOUND_HTML, {
-        status: 404,
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-          "x-robots-tag": "noindex",
-        },
-      });
-    }
-  }
-
   const prerenderedPath =
     url.pathname === "/"
       ? "/__prerendered/index.html"
       : `/__prerendered${url.pathname}.html`;
 
+  // A slug with no snapshot (dead or never published) is turned into a real 404
+  // by the /__prerendered rewrite in vercel.json, not served the 200 SPA shell.
   return rewrite(new URL(prerenderedPath, request.url));
 }
 
