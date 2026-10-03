@@ -31,11 +31,7 @@
       "destination": "https://garzoni-production.up.railway.app/sitemap.xml"
     },
     {
-      "source": "/__prerendered/(learn|guides|authors|ro/learn|ro/guides)/([^/]+)",
-      "destination": "/__prerendered/__not_found__"
-    },
-    {
-      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|sitemap\\.xml$).*)",
+      "source": "/((?!api(?:/|$)|\\.well-known(?:/|$)|sitemap\\.xml$|__prerendered/(?:ro/)?(?:learn|guides)/|__prerendered/authors/).*)",
       "destination": "/index.html"
     }
   ],

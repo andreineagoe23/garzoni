@@ -49,8 +49,9 @@ export default function middleware(request: Request) {
       ? "/__prerendered/index.html"
       : `/__prerendered${url.pathname}.html`;
 
-  // A slug with no snapshot (dead or never published) is turned into a real 404
-  // by the /__prerendered rewrite in vercel.json, not served the 200 SPA shell.
+  // A /learn, /guides or /authors slug with no snapshot (dead or never published)
+  // gets a real 404 (public/404.html): vercel.json's SPA catch-all skips those
+  // /__prerendered paths, so a missing file isn't turned into a 200 shell.
   return rewrite(new URL(prerenderedPath, request.url));
 }
 
