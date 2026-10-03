@@ -434,6 +434,17 @@ def sitemap_xml(request):
         if url[0] not in static_locs
     ]
 
+    # The landing page: "/" is English, "/ro" its Romanian twin (no trailing slash,
+    # so it can't go through _versions, which would build "/ro/").
+    home_links = [
+        ("en", f"{site_url}/"),
+        ("ro", f"{site_url}/ro"),
+        ("x-default", f"{site_url}/"),
+    ]
+    alternates[f"{site_url}/"] = home_links
+    alternates[f"{site_url}/ro"] = home_links
+    home_urls = [(f"{site_url}/ro", "1.0", "daily", None)]
+
     # Public calculators exist in every language (static copy, no translation gate).
     calculator_urls = _versions(
         "/calculators/compound-interest",
@@ -469,7 +480,7 @@ def sitemap_xml(request):
         'xmlns:xhtml="http://www.w3.org/1999/xhtml">'
     )
     for loc, priority, changefreq, lastmod in (
-        static_urls + index_urls + calculator_urls + lesson_urls + article_urls
+        static_urls + home_urls + index_urls + calculator_urls + lesson_urls + article_urls
     ):
         parts.append("<url>")
         parts.append(f"<loc>{loc}</loc>")

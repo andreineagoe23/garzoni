@@ -12,6 +12,7 @@ import ResetPassword from "components/auth/ResetPassword";
 import SubscriptionPlans from "components/billing/SubscriptionPlansPage";
 import {
   Welcome,
+  RomanianWelcome,
   CoursePage,
   CourseFlowPage,
   Dashboard,
@@ -62,6 +63,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />
+      <Route path="/ro" element={<RomanianWelcome />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/learn" element={<LearnIndex />} />
       <Route path="/learn/:slug" element={<PublicLesson />} />

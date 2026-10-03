@@ -319,3 +319,11 @@ class SitemapHreflangTests(TestCase):
             self.assertIn(
                 f'hreflang="x-default" href="{SITE}/calculators/compound-interest"', blocks[loc]
             )
+
+    def test_home_and_ro_home_are_an_hreflang_pair(self):
+        _, blocks = self._url_blocks()
+
+        for loc in (f"{SITE}/", f"{SITE}/ro"):
+            self.assertIn(f'hreflang="en" href="{SITE}/"', blocks[loc])
+            self.assertIn(f'hreflang="ro" href="{SITE}/ro"', blocks[loc])
+            self.assertIn(f'hreflang="x-default" href="{SITE}/"', blocks[loc])

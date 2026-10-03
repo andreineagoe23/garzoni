@@ -17,8 +17,17 @@ const DOWNLOAD_ID = "download";
 /** Clears the sticky header when scrolling to the download band. */
 const HEADER_OFFSET = 80;
 
-function Welcome() {
-  const { t } = useTranslation();
+const SITE_URL = "https://www.garzoni.app";
+
+/**
+ * The landing page. `/` is English; `/ro` renders the same page through a
+ * Romanian i18n instance (see RomanianWelcome) so each URL has one language,
+ * which is what the hreflang pair below promises.
+ */
+function Welcome({ lang = "en" }: { lang?: "en" | "ro" }) {
+  // On /ro this is the Romanian clone; on / it's the visitor's own UI language.
+  const { t, i18n } = useTranslation();
+  const canonical = lang === "ro" ? `${SITE_URL}/ro` : `${SITE_URL}/`;
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -51,9 +60,19 @@ function Welcome() {
   return (
     <>
       <Helmet>
+        <html lang={i18n.language} />
         <title>{t("welcome.seo.title")}</title>
         <meta name="description" content={t("welcome.seo.description")} />
-        <link rel="canonical" href="https://www.garzoni.app/" />
+        <meta property="og:title" content={t("welcome.seo.title")} />
+        <meta
+          property="og:description"
+          content={t("welcome.seo.description")}
+        />
+        <meta property="og:url" content={canonical} />
+        <link rel="canonical" href={canonical} />
+        <link rel="alternate" hrefLang="en" href={`${SITE_URL}/`} />
+        <link rel="alternate" hrefLang="ro" href={`${SITE_URL}/ro`} />
+        <link rel="alternate" hrefLang="x-default" href={`${SITE_URL}/`} />
       </Helmet>
 
       <div className="gzh" data-theme="dark">
