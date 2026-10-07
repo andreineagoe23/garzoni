@@ -28,6 +28,24 @@ logger = logging.getLogger(__name__)
 
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
+# Public guides (Article) are read by Romanians searching in Romanian, so they ask for
+# idiomatic copy rather than the word-for-word rendering a literal pass produces.
+ARTICLE_INSTRUCTION = (
+    "Translate the following part of a public personal-finance guide from English to natural, "
+    "idiomatic Romanian, written the way a Romanian finance writer would phrase it, not a "
+    "literal word-for-word rendering. Address the reader informally (tu). Keep app and brand "
+    "names exactly as written and untranslated (Garzoni, Duolingo, Zogo, Fingo, Money Masters, "
+    "Seed, App Store, Google Play, and any other product name). Keep every number, percentage, "
+    "date and currency amount exactly as written, including £, $ and € amounts and their "
+    "digit grouping. Return ONLY the translated text, nothing else."
+)
+ARTICLE_HTML_INSTRUCTION = (
+    " The text is HTML. Keep every tag, attribute and the document structure exactly as they "
+    "are, in the same order: translate only the human-readable text between tags. Never "
+    "change, translate or drop an href, src, URL, slug, class or id. Do not wrap the result "
+    "in a code block."
+)
+
 
 def _match_final_period(translated: str, source: str) -> str:
     """A lone full stop on one option gives the answer away; end options as the English does."""
@@ -226,6 +244,14 @@ class OpenAITranslator(TranslationProvider):
                 "Translate the following explanation to Romanian in a friendly, conversational tone. "
                 "Keep financial terms accurate. Return ONLY the translated text, nothing else."
             )
+        elif field.startswith("article_"):
+            instruction = ARTICLE_INSTRUCTION
+            if field == "article_content":
+                instruction += ARTICLE_HTML_INSTRUCTION
+            elif field == "article_meta_description":
+                instruction += " Keep it under 160 characters."
+            elif field == "article_title":
+                instruction += " Keep it short; it is the page heading and the search result title."
         elif "title" in field:
             instruction = (
                 "Translate the following title to Romanian. "
