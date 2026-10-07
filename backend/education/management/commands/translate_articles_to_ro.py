@@ -26,7 +26,7 @@ import json
 import logging
 import re
 from collections import Counter
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -72,6 +72,27 @@ BLOCK_TAGS = {
 TAG_RE = re.compile(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*?(/?)>")
 HREF_RE = re.compile(r"""\b(?:href|src)\s*=\s*["']([^"']*)["']""", re.IGNORECASE)
 MONEY_RE = re.compile(r"[£$€]\s?\d[\d,.]*")
+MONEY_TOKEN_RE = re.compile(r"\{\{M(\d+)\}\}")
+
+
+def mask_money(text: str) -> Tuple[str, List[str]]:
+    """Swap every amount for a {{Mn}} placeholder so the model can't reformat it (it
+    rewrites £1,200 as 1.200 £ in Romanian otherwise); unmask_money puts them back."""
+    amounts: List[str] = []
+
+    def _token(match: re.Match) -> str:
+        amounts.append(match.group(0))
+        return f"{{{{M{len(amounts) - 1}}}}}"
+
+    return MONEY_RE.sub(_token, text), amounts
+
+
+def unmask_money(text: str, amounts: List[str]) -> Optional[str]:
+    """Restore the amounts, or None when a placeholder went missing or was duplicated."""
+    found = [int(n) for n in MONEY_TOKEN_RE.findall(text)]
+    if sorted(found) != list(range(len(amounts))):
+        return None
+    return MONEY_TOKEN_RE.sub(lambda m: amounts[int(m.group(1))], text)
 
 
 class ArticleTranslationFailed(Exception):
@@ -293,13 +314,18 @@ class Command(BaseCommand):
         text = (text or "").strip()
         if not text:
             return ""
+        masked, amounts = mask_money(text)
         try:
-            result = self.translator.translate_text(text, context)
+            result = self.translator.translate_text(masked, context)
         except OpenAIPaymentRequiredError:
             raise
         except Exception as exc:
             raise ArticleTranslationFailed(f"{context.get('field')}: {exc}") from exc
-        result = _strip_code_fence(result or "")
+        result = unmask_money(_strip_code_fence(result or ""), amounts)
+        if result is None:
+            raise ArticleTranslationFailed(
+                f"{context.get('field')}: an amount placeholder was lost"
+            )
         if not result or _looks_untranslated(text, result):
             raise ArticleTranslationFailed(f"{context.get('field')} came back untranslated")
         problem = self._money_mismatch(text, result)

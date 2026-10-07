@@ -37,7 +37,8 @@ ARTICLE_INSTRUCTION = (
     "names exactly as written and untranslated (Garzoni, Duolingo, Zogo, Fingo, Money Masters, "
     "Seed, App Store, Google Play, and any other product name). Keep every number, percentage, "
     "date and currency amount exactly as written, including £, $ and € amounts and their "
-    "digit grouping. Return ONLY the translated text, nothing else."
+    "digit grouping. Placeholders like {{M0}} stand for amounts: copy each one through "
+    "unchanged, exactly once. Return ONLY the translated text, nothing else."
 )
 ARTICLE_HTML_INSTRUCTION = (
     " The text is HTML. Keep every tag, attribute and the document structure exactly as they "

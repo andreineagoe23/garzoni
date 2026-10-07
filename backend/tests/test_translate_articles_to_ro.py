@@ -208,6 +208,24 @@ class TranslateArticlesCommandTests(TestCase):
             run("--slugs", "how-to-start-budgeting", translator=translator)
         self.assertFalse(ArticleTranslation.objects.exists())
 
+    def test_amounts_are_masked_from_the_model_and_restored_exactly(self):
+        translator = FakeTranslator()
+        run("--slugs", "how-to-start-budgeting", translator=translator)
+
+        self.assertFalse(any("£" in text for text, _ in translator.calls))
+        row = ArticleTranslation.objects.get(article=self.budgeting, language="ro")
+        self.assertIn("£4.99", row.content)
+        self.assertNotIn("{{M", row.content)
+
+    def test_lost_amount_placeholder_writes_nothing(self):
+        class DropsPlaceholders(FakeTranslator):
+            def translate_text(self, text, context=None):
+                return re.sub(r"\{\{M\d+\}\}", "", super().translate_text(text, context))
+
+        with self.assertRaisesMessage(CommandError, "1 guide(s) not translated"):
+            run("--slugs", "how-to-start-budgeting", translator=DropsPlaceholders())
+        self.assertFalse(ArticleTranslation.objects.exists())
+
     def test_long_content_is_chunked_on_block_boundaries(self):
         paragraphs = [f"<p>Paragraph {i} {'word ' * 60}</p>" for i in range(30)]
         content = "\n".join(paragraphs)
