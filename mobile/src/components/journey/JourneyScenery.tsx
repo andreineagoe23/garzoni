@@ -7,9 +7,17 @@ import { cloudinaryImageUrl, type MascotType } from "@garzoni/core";
  * Assets hosted on Cloudinary under garzoni/journey/<slug>.
  */
 
+/**
+ * Resolved on read, not at import: the sprite tables below are module-level, and the
+ * Cloudinary cloud name is configured later by initHttpClientMobile (a root-layout effect).
+ * Built eagerly, every URI was "" in production bundles, which don't expose
+ * EXPO_PUBLIC_* to the env fallback, so the map rendered with no scenery.
+ */
 function cdn(slug: string): { uri: string } {
   return {
-    uri: cloudinaryImageUrl(`garzoni/journey/${slug}`, "f_auto,q_auto"),
+    get uri() {
+      return cloudinaryImageUrl(`garzoni/journey/${slug}`, "f_auto,q_auto");
+    },
   };
 }
 
