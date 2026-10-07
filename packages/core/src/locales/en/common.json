@@ -378,6 +378,7 @@
       "globeHint": "Move your cursor · click to pulse",
       "startWeb": "Start free in your browser",
       "orGetApp": "Or get the app on your phone",
+      "qrAlt": "QR code: scan with your phone camera to get the Garzoni app",
       "topics": {
         "budgeting": "Budgeting",
         "saving": "Saving",
