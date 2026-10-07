@@ -41,6 +41,9 @@ TRANSLATED_LANGUAGES = [lang for lang in SUPPORTED_LANGUAGES if lang != DEFAULT_
 # Romanian translation). The real prose lives in the sections, so a public page
 # should render no intro rather than publish "Content to be added." to Google.
 _PLACEHOLDER_INTROS = {"", "content to be added", "conținut de adăugat"}
+# The same idea in SQL, for the English side of the "is it translated" check: an empty
+# paragraph or the seed text is no body, so a translation needs none either.
+_NO_ENGLISH_BODY_RE = r"^\s*(<p>)?\s*(content to be added\.?)?\s*(</p>)?\s*$"
 
 
 def _public_intro(html: str | None) -> str:
@@ -70,7 +73,7 @@ def _lesson_translated(lang: str) -> Exists:
     return Exists(
         LessonTranslation.objects.filter(lesson=OuterRef("pk"), language=lang)
         .exclude(title="")
-        .filter(Q(lesson__detailed_content="") | ~Q(detailed_content=""))
+        .filter(Q(lesson__detailed_content__iregex=_NO_ENGLISH_BODY_RE) | ~Q(detailed_content=""))
         .filter(~Exists(untranslated_section))
     )
 

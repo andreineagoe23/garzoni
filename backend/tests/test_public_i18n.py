@@ -123,6 +123,20 @@ class PublicLessonLanguageTests(TestCase):
         self.assertEqual(ro["detailed_content"], "")
         self.assertEqual(ro["sections"][0]["text_content"], "Secțiune în română")
 
+    def test_empty_english_body_needs_no_romanian_body(self):
+        # Later courses store an empty paragraph, not "", as the English intro.
+        Lesson.objects.filter(pk=self.translated.pk).update(detailed_content="<p></p>")
+        LessonTranslation.objects.filter(lesson=self.translated, language="ro").update(
+            detailed_content=""
+        )
+        cache.clear()
+
+        en = self.client.get("/api/public/lessons/emergency-funds/").json()
+        ro = self.client.get("/api/public/lessons/emergency-funds/", {"lang": "ro"})
+
+        self.assertEqual(en["available_languages"], ["en", "ro"])
+        self.assertEqual(ro.status_code, 200)
+
     def test_ro_detail_404s_without_a_translation(self):
         res = self.client.get("/api/public/lessons/credit-scores/", {"lang": "ro"})
 
