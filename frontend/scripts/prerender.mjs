@@ -735,18 +735,26 @@ async function main() {
   let skipped = 0;
   await mapPool(toRender, CONCURRENCY, async (route) => {
     try {
-      let html = await renderRoute(browser, route);
-      // A not-found render for a route we know exists (its slug came from the
-      // published list/API) is a transient API hiccup mid-build. Retry a couple
-      // of times before giving up so a blip never costs us the page.
-      let attempt = 0;
-      while (isErrorSnapshot(html) && attempt < 2) {
-        attempt++;
-        console.error(
-          `  ↻ ${route}: error state, retry ${attempt}/2 after backoff…`
-        );
-        await new Promise((r) => setTimeout(r, 2500 * attempt));
-        html = await renderRoute(browser, route);
+      // A not-found render or a navigation timeout for a route we know exists is
+      // a transient API hiccup mid-build — typically Railway rolling the backend
+      // over while this build runs, which 502s for ~15s per request. Retry with
+      // backoff before giving up so a blip never costs us the page (it cost
+      // /learn and /guides their snapshots on 2026-10-03).
+      let html;
+      for (let attempt = 0; ; attempt++) {
+        try {
+          html = await renderRoute(browser, route);
+          if (!isErrorSnapshot(html) || attempt === 2) break;
+          console.error(
+            `  ↻ ${route}: error state, retry ${attempt + 1}/2 after backoff…`
+          );
+        } catch (err) {
+          if (attempt === 2) throw err;
+          console.error(
+            `  ↻ ${route}: ${err.message}, retry ${attempt + 1}/2 after backoff…`
+          );
+        }
+        await new Promise((r) => setTimeout(r, 5000 * (attempt + 1)));
       }
       if (isErrorSnapshot(html)) {
         // Still bad — don't overwrite a previously-good snapshot with an error
