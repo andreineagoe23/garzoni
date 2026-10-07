@@ -45,6 +45,7 @@ import {
   AuthorPage,
   EditorialStandardsPage,
   CompoundInterestPage,
+  NotFoundPage,
 } from "routes/lazyPages";
 
 /** Keeps the query — referral links are /welcome?ref=CODE. */
@@ -225,6 +226,7 @@ const AppRoutes = () => {
         path="/feedback"
         element={protectedWithBoundary(<FeedbackHubPage />)}
       />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

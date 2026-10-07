@@ -894,6 +894,13 @@
     "seoTitle": "Lecții gratuite de finanțe personale — Garzoni",
     "seoDescription": "Lecții gratuite de finanțe de la Garzoni: bugetare, economisire, investiții, scor de credit, gestionarea datoriilor și taxe. Lecții de zece minute care fac banii simpli."
   },
+  "notFoundPage": {
+    "seoTitle": "Pagina nu a fost găsită — Garzoni",
+    "title": "Pagina nu a fost găsită",
+    "body": "Această pagină nu există sau a fost mutată.",
+    "home": "Mergi la pagina principală",
+    "lessons": "Vezi lecțiile gratuite"
+  },
   "publicLanguage": {
     "switchToRo": "Citește în română",
     "switchToEn": "Read in English"

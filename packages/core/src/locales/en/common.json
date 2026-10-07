@@ -894,6 +894,13 @@
     "seoTitle": "Free Personal Finance Lessons — Garzoni",
     "seoDescription": "Browse Garzoni's free finance lessons: budgeting, saving, investing, credit scores, debt management, and taxes. Ten-minute lessons that make money simple."
   },
+  "notFoundPage": {
+    "seoTitle": "Page not found — Garzoni",
+    "title": "Page not found",
+    "body": "This page doesn’t exist or has moved.",
+    "home": "Go to the homepage",
+    "lessons": "Browse free lessons"
+  },
   "publicLanguage": {
     "switchToRo": "Citește în română",
     "switchToEn": "Read in English"

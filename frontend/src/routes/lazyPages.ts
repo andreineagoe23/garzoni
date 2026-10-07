@@ -10,6 +10,9 @@ export const PublicLesson = React.lazy(
 export const LearnIndex = React.lazy(
   () => import("components/learn/LearnIndex")
 );
+export const NotFoundPage = React.lazy(
+  () => import("components/common/NotFoundPage")
+);
 export const AboutPage = React.lazy(
   () => import("components/landing/AboutPage")
 );
