@@ -10,7 +10,10 @@ have. Fill the `[brackets]` yourself; don't send a line you wouldn't say out lou
 
 Create in App Store Connect → your app → In-App Events. Events show in search results and on the
 product page, so they're free visibility. They need a deep link into the app (or open the app's
-home) and a 1920×1080 card image plus a 3:4 (1080×1440) image.
+home), an event card image (16:9, 1920×1080) and an event details image (9:16, 1080×1920).
+Apple asks for no text or logos in either — the App Store overlays the name, badge and
+description itself. Both are text-free, so one set serves en-GB and ro:
+`node store-assets/render.mjs` → `store-assets/out/in-app-event/{card,details}.png`.
 
 | Field | Limit | en-GB | ro |
 |---|---|---|---|

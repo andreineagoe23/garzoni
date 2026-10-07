@@ -5,7 +5,8 @@
 //   node store-assets/render.mjs --lang ro       # one language
 //   node store-assets/render.mjs --only slot2    # one slot (feature graphic still renders)
 //
-// Output: store-assets/out/<lang>/{ios,play}/slotN.png and out/<lang>/feature-graphic.png.
+// Output: store-assets/out/<lang>/{ios,play}/slotN.png, out/<lang>/feature-graphic.png and
+// out/in-app-event/{card,details}.png.
 // No npm dependencies: it drives an installed Google Chrome (or CHROME_PATH), falling back
 // to `npx -y playwright@latest screenshot` when no Chrome is found. PNGs are rewritten as
 // 24-bit RGB because Play rejects screenshots and feature graphics with an alpha channel.
@@ -27,6 +28,8 @@ const SIZES = {
   play: { w: 1080, h: 1920 }, // Play phone, 9:16 (long side must be <= 2x short side)
 };
 const FEATURE = { w: 1024, h: 500 };
+// App Store In-App Event media. Text-free, so one set serves every language.
+const EVENT = { card: { w: 1920, h: 1080 }, details: { w: 1080, h: 1920 } };
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -242,6 +245,13 @@ for (const lang of langs) {
       const url = buildPage("template.html", data, `${lang}-${slot.id}-${size}`);
       jobs.push(() => screenshot(url, dims, join(OUT, lang, size, `${slot.id}.png`)));
     }
+  }
+}
+
+if (!only) {
+  for (const [layout, dims] of Object.entries(EVENT)) {
+    const url = buildPage("in-app-event.html", { layout }, `in-app-event-${layout}`);
+    jobs.push(() => screenshot(url, dims, join(OUT, "in-app-event", `${layout}.png`)));
   }
 }
 
