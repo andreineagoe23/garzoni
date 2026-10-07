@@ -11,6 +11,7 @@ const SKIP_RE =
 
 const APP_STORE_ID = "6761790801";
 const PLAY_PACKAGE = "app.garzoni.mobile";
+const APPLE_PROVIDER_TOKEN = "128738216";
 
 /** `/get` — one link for QR codes, bios and emails: the right store per device. */
 function storeRedirect(ua: string, campaign: string): Response {
@@ -22,9 +23,8 @@ function storeRedirect(ua: string, campaign: string): Response {
     );
   }
   if (/iphone|ipad|ipod|macintosh/i.test(ua)) {
-    const pt = process.env.VITE_APPLE_PROVIDER_TOKEN;
     return Response.redirect(
-      `https://apps.apple.com/gb/app/garzoni-personal-finance/id${APP_STORE_ID}?ct=web_${campaign}&mt=8${pt ? `&pt=${pt}` : ""}`,
+      `https://apps.apple.com/gb/app/garzoni-personal-finance/id${APP_STORE_ID}?pt=${APPLE_PROVIDER_TOKEN}&ct=web_${campaign}&mt=8`,
       302
     );
   }

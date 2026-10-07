@@ -5,11 +5,15 @@
  */
 const APP_STORE_ID = "6761790801";
 const PLAY_PACKAGE = "app.garzoni.mobile";
-const APPLE_PROVIDER_TOKEN = import.meta.env.VITE_APPLE_PROVIDER_TOKEN || "";
+/** App Store Connect provider id. Public — every campaign link carries it. */
+const APPLE_PROVIDER_TOKEN = "128738216";
 
 export function appStoreUrl(placement: string): string {
-  const params = new URLSearchParams({ ct: `web_${placement}`, mt: "8" });
-  if (APPLE_PROVIDER_TOKEN) params.set("pt", APPLE_PROVIDER_TOKEN);
+  const params = new URLSearchParams({
+    pt: APPLE_PROVIDER_TOKEN,
+    ct: `web_${placement}`,
+    mt: "8",
+  });
   return `https://apps.apple.com/gb/app/garzoni-personal-finance/id${APP_STORE_ID}?${params}`;
 }
 
