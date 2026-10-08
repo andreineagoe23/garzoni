@@ -23,6 +23,14 @@ export function localizedPath(path: string, lang: PublicLang): string {
 }
 
 /**
+ * The page's 1200×630 share card, drawn at build time by scripts/og-card.mjs
+ * (shareCardUrl there must produce the same URL). Takes the localized path.
+ */
+export function shareImageUrl(path: string): string {
+  return `${SITE_URL}/og${path}.jpg`;
+}
+
+/**
  * hreflang set for a page that exists in both languages; undefined otherwise, so a
  * page never advertises a version that would 404.
  */
@@ -55,6 +63,8 @@ export function usePublicLocale() {
     to: (path: string) => localizedPath(path, lang),
     /** Absolute canonical URL for this language. */
     url: (path: string) => `${SITE_URL}${localizedPath(path, lang)}`,
+    /** This language's share card for a page, e.g. ".../og/ro/learn/x.jpg". */
+    shareImage: (path: string) => shareImageUrl(localizedPath(path, lang)),
     dateLocale: lang === "ro" ? "ro-RO" : "en-GB",
   };
 }

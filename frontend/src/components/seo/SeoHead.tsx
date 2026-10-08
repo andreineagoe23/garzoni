@@ -42,6 +42,8 @@ type Props = {
   description: string;
   canonical: string;
   image?: string;
+  /** Describes `image` for screen readers in link previews. */
+  imageAlt?: string;
   locale?: "en" | "ro";
   alternates?: Array<{ hrefLang: string; href: string }>;
   course?: CourseSchema;
@@ -56,9 +58,12 @@ type Props = {
   jsonLd?: Array<Record<string, unknown>>;
 };
 
-const DEFAULT_IMAGE = "https://www.garzoni.app/og-image.jpg";
 const SITE_NAME = "Garzoni";
 const SITE_URL = "https://www.garzoni.app";
+const DEFAULT_IMAGE = `${SITE_URL}/og-image.jpg`;
+// The default image and the per-page share cards (/og/…) are all 1200×630.
+const isSiteCard = (src: string) =>
+  src === DEFAULT_IMAGE || src.startsWith(`${SITE_URL}/og/`);
 // @id of the Organization node defined in the index.html entity graph. Detail
 // pages reference it instead of re-declaring a partial Organization, so the
 // whole site resolves to a single publisher entity.
@@ -77,6 +82,7 @@ export default function SeoHead({
   description,
   canonical,
   image,
+  imageAlt,
   locale = "en",
   alternates,
   course,
@@ -209,6 +215,13 @@ export default function SeoHead({
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonical} />
       <meta property="og:image" content={ogImage} />
+      {isSiteCard(ogImage) ? (
+        <meta property="og:image:width" content="1200" />
+      ) : null}
+      {isSiteCard(ogImage) ? (
+        <meta property="og:image:height" content="630" />
+      ) : null}
+      {imageAlt ? <meta property="og:image:alt" content={imageAlt} /> : null}
       <meta
         property="og:locale"
         content={locale === "ro" ? "ro_RO" : "en_GB"}
@@ -218,6 +231,7 @@ export default function SeoHead({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+      {imageAlt ? <meta name="twitter:image:alt" content={imageAlt} /> : null}
 
       {alternates?.map((a) => (
         <link

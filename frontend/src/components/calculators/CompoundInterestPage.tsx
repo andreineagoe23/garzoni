@@ -52,7 +52,7 @@ function Section({
 const linkClass = "text-brand-primary hover:underline";
 
 export default function CompoundInterestPage() {
-  const { lang, t, to, url } = usePublicLocale();
+  const { lang, t, to, url, shareImage } = usePublicLocale();
   const navigate = useNavigate();
   const setup = LOCALE_SETUP[lang];
   const [values, setValues] = useState<Record<Field, string>>({
@@ -117,6 +117,8 @@ export default function CompoundInterestPage() {
         title={t("calculators.compound.seoTitle")}
         description={t("calculators.compound.seoDescription")}
         canonical={canonical}
+        image={shareImage(PATH)}
+        imageAlt={`${t("shareImage.kicker.calculator")}: ${t("calculators.compound.title")}`}
         locale={lang}
         alternates={[
           { hrefLang: "en", href: `${SITE_URL}${PATH}` },

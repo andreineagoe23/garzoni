@@ -214,7 +214,7 @@ type RelatedLesson = {
 
 export default function PublicLesson() {
   const { slug } = useParams<{ slug: string }>();
-  const { lang, t, to, url: absUrl } = usePublicLocale();
+  const { lang, t, to, url: absUrl, shareImage } = usePublicLocale();
   const [data, setData] = useState<PublicLessonResponse | null>(null);
   const [related, setRelated] = useState<RelatedLesson[]>([]);
   const [error, setError] = useState<string>("");
@@ -330,7 +330,12 @@ export default function PublicLesson() {
         canonical={canonical}
         locale={lang}
         alternates={hreflangAlternates(path, data.available_languages)}
-        image={data.image_url || undefined}
+        image={data.image_url || shareImage(path)}
+        imageAlt={
+          data.image_url
+            ? undefined
+            : `${t("shareImage.kicker.lesson")}: ${data.title}`
+        }
         course={{
           name: data.title,
           description,
