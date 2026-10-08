@@ -204,3 +204,13 @@ export const Images = {
     return cloudinaryImageUrl("garzoni/mobile-3", "f_auto,q_auto,w_600");
   },
 } as const;
+
+/**
+ * Lesson HTML stores uploads as root-relative `/media/...`, which only resolves on the
+ * Django host. Point them at it, or the web app (another origin) shows a broken image.
+ */
+export function absolutizeMediaUrls(html: string): string {
+  if (!html) return "";
+  const base = getMediaBaseUrl();
+  return html.replace(/\b(src|href)="\/media\//g, `$1="${base}/media/`);
+}

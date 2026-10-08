@@ -34,7 +34,6 @@ import {
 } from "services/userService";
 import { attachToken } from "services/httpClient";
 import { recordFunnelEvent } from "services/analyticsService";
-import { getBackendUrl } from "services/backendUrl";
 import MultipleChoiceExercise from "components/exercises/MultipleChoiceExercise";
 import DragAndDropExercise from "components/exercises/DragAndDropExercise";
 import BudgetAllocationExercise from "components/exercises/BudgetAllocationExercise";
@@ -62,6 +61,7 @@ import {
   buildSkillPracticeHref,
   getToolPracticeCtaForSkill,
   isAxiosError,
+  absolutizeMediaUrls,
 } from "@garzoni/core";
 
 type CourseFlowSection = {
@@ -172,17 +172,6 @@ function HeartIcon({ filled }: { filled: boolean }) {
         d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1 4.22 2.44C11.09 5 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
       />
     </svg>
-  );
-}
-
-function fixImagePaths(content: string) {
-  if (!content) return "";
-  const mediaUrl = `${getBackendUrl()}/media/`;
-  return content.replace(
-    /src="\/media\/([^"]+)"/g,
-    (_: string, filename: string) => {
-      return `src="${mediaUrl}${filename}"`;
-    }
   );
 }
 
@@ -342,7 +331,7 @@ function CourseFlowPage() {
       ...section,
       lessonId,
       text_content: section.text_content
-        ? fixImagePaths(section.text_content)
+        ? absolutizeMediaUrls(section.text_content)
         : "",
       video_url: section.video_url || "",
       exercise_data: section.exercise_data || {},
@@ -435,7 +424,7 @@ function CourseFlowPage() {
 
       if (!sections.length) {
         // Fallback: treat a lesson without sections as one flow item.
-        const detailed = fixImagePaths(lesson.detailed_content || "");
+        const detailed = absolutizeMediaUrls(lesson.detailed_content || "");
         items.push({
           key: `lesson-${lesson.id}`,
           kind: lesson.exercise_type ? "lesson-exercise" : "lesson-text",

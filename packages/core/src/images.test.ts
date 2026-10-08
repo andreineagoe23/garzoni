@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   Images,
+  absolutizeMediaUrls,
   authLogoBlackRectangularUrl,
   authLogoRectangleNoBgUrl,
   authLogoWhiteBgUrl,
@@ -112,5 +113,19 @@ describe("authLogoWhiteBgUrl", () => {
     configureCloudinaryCloudName("");
     const u = authLogoWhiteBgUrl();
     expect(u).toMatch(/\/media\/logo\/garzoni-logo-white-bg\.png$/);
+  });
+});
+
+describe("absolutizeMediaUrls", () => {
+  it("points root-relative uploads at the media host and leaves the rest", () => {
+    const out = absolutizeMediaUrls(
+      '<img src="/media/uploads/a.jpg"><a href="/media/b.pdf">b</a><img src="https://x.test/c.png"><a href="/learn">l</a>',
+    );
+    expect(out).toMatch(/<img src="https?:\/\/[^"]+\/media\/uploads\/a\.jpg">/);
+    expect(out).not.toContain('src="/media/');
+    expect(out).not.toContain('href="/media/');
+    expect(out).not.toContain("/api/media/");
+    expect(out).toContain('src="https://x.test/c.png"');
+    expect(out).toContain('href="/learn"');
   });
 });

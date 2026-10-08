@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
+import { absolutizeMediaUrls } from "@garzoni/core";
 import apiClient from "services/httpClient";
 import { recordFunnelEvent } from "services/analyticsService";
 import { appStoreUrl, playStoreUrl } from "utils/storeLinks";
@@ -268,14 +269,16 @@ export default function PublicLesson() {
   }, [data, lang]);
 
   const sanitizedLessonHtml = useMemo(
-    () => DOMPurify.sanitize(data?.detailed_content || ""),
+    () => DOMPurify.sanitize(absolutizeMediaUrls(data?.detailed_content || "")),
     [data?.detailed_content]
   );
   const sanitizedSections = useMemo(
     () =>
       (data?.sections ?? []).map((section) => ({
         ...section,
-        sanitizedText: DOMPurify.sanitize(section.text_content || ""),
+        sanitizedText: DOMPurify.sanitize(
+          absolutizeMediaUrls(section.text_content || "")
+        ),
       })),
     [data?.sections]
   );

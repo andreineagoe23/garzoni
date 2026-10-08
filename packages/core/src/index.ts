@@ -111,6 +111,7 @@ export {
 
 export {
   Images,
+  absolutizeMediaUrls,
   authLogoBlackRectangularUrl,
   authLogoRectangleNoBgUrl,
   authLogoWhiteBgUrl,
