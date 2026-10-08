@@ -252,6 +252,15 @@ export {
   resolveCurrency,
 } from "./utils/currency";
 export type { FormatCurrencyOptions } from "./utils/currency";
+export {
+  MAX_GOAL_MONTHS,
+  adjustBudget,
+  monthlyForGoal,
+  monthsToGoal,
+  savingsBalance,
+  splitBudget,
+} from "./utils/calculators";
+export type { BudgetSplit } from "./utils/calculators";
 export { invalidateOnlineDependentQueries } from "./lib/onlineSyncInvalidate";
 
 export { buildStandaloneExerciseViewModel } from "./utils/standaloneExerciseViewModel";
