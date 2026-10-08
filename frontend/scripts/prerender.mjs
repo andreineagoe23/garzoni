@@ -49,7 +49,7 @@ const CACHE_MANIFEST = join(CACHE_DIR, "manifest.json");
  * Bump when this script changes what goes into a snapshot without the bundle
  * changing, so snapshots cached the old way are re-rendered.
  */
-const SNAPSHOT_FORMAT = "2";
+const SNAPSHOT_FORMAT = "3";
 
 const sha1 = (value) =>
   createHash("sha1").update(String(value)).digest("hex").slice(0, 16);
@@ -459,12 +459,29 @@ async function prepareSnapshot(page, keepScripts, uiLang) {
   );
 }
 
-/** UI language (navbar, footer, chrome) a route's snapshot is rendered in. */
-const uiLanguageFor = () => "en";
+/**
+ * UI language (navbar, footer, chrome) a route's snapshot is rendered in: the
+ * /ro pages get Romanian chrome around their Romanian content, so the visitors
+ * they are for get the snapshot rather than one the shell hides as stale.
+ */
+const uiLanguageFor = (route) =>
+  route === "/ro" || route.startsWith("/ro/") ? "ro" : "en";
 
-async function renderRoute(browser, route, keepScripts) {
+/**
+ * One browser context per UI language. Pages in a context share localStorage,
+ * where the app persists its language, so mixing languages in one context would
+ * let a render pick up another page's language.
+ */
+async function createLanguageContexts(browser) {
+  return {
+    en: await browser.createBrowserContext(),
+    ro: await browser.createBrowserContext(),
+  };
+}
+
+async function renderRoute(contexts, route, keepScripts) {
   const uiLang = uiLanguageFor(route);
-  const page = await browser.newPage();
+  const page = await contexts[uiLang].newPage();
   // Pin the UI language: the app's i18n reads this key before
   // navigator.language, so the build machine's locale never leaks in.
   await page.evaluateOnNewDocument((lang) => {
@@ -797,6 +814,7 @@ async function main() {
 
   let skipped = 0;
   const keepScripts = shellScriptSrcs();
+  const contexts = await createLanguageContexts(browser);
   await mapPool(toRender, CONCURRENCY, async (route) => {
     try {
       // A not-found render or a navigation timeout for a route we know exists is
@@ -807,7 +825,7 @@ async function main() {
       let html;
       for (let attempt = 0; ; attempt++) {
         try {
-          html = await renderRoute(browser, route, keepScripts);
+          html = await renderRoute(contexts, route, keepScripts);
           if (!isErrorSnapshot(html) || attempt === 2) break;
           console.error(
             `  ↻ ${route}: error state, retry ${attempt + 1}/2 after backoff…`
