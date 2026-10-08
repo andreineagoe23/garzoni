@@ -1,107 +1,33 @@
 # Garzoni: Gamified Financial Learning Platform
 
-Garzoni delivers interactive personal finance education with gamified progression and an AI-powered finance tutor. Users complete learning paths, earn badges, compete on leaderboards, and explore finance tools across budgeting, investing, and trading — on web and mobile.
+Garzoni teaches personal finance in short, gamified lessons — budgeting, saving, investing, credit,
+debt and taxes — with a daily streak, missions and leagues, an AI tutor that knows each learner's
+progress, and practical money tools. It is built for young adults, UK first, with a full Romanian
+version. It runs on iOS, Android and the web ([www.garzoni.app](https://www.garzoni.app)), on one
+Django API.
 
-## What you can do in the app
+**Plans:** Starter (free) · Plus £6.99/month or £59.99/year · Pro £7.99/month or £69.99/year, with a
+7-day trial on yearly plans. Subscriptions run through RevenueCat on every platform.
 
-### Account and settings
+## Product documentation
 
-- **Register and log in** (email/password, Google OAuth, Sign in with Apple on iOS), reset password, and sign out.
-- **Profile**: View username, avatar, points, streak, earned coins, activity calendar, goals (daily/weekly), badges, recent activity, and entitlement usage. Update avatar and jump to Personalized Path or Subscriptions.
-- **Settings**: Update profile (name, username, email), preferences (email reminders, lesson sounds, animations), change password, manage privacy links (cookie policy, privacy policy, financial disclaimer), and delete account.
-- **Billing**: Manage subscription (Starter / Plus / Pro), 7-day trial on yearly plans, view trial end, and access payment history. Subscriptions run through RevenueCat on every platform (Web Billing via Stripe on web, App Store / Play IAP on mobile), so an entitlement purchased on one platform is active on the others. Per-plan pricing lives in the RevenueCat dashboard and the backend `/api/plans/` response.
+What Garzoni does today, module by module — what it is, how it works, which plan and platform, where
+it lives in the code, and what is unfinished — is in **[`docs/product/`](docs/product/README.md)**:
 
-### Learning
+| Module                                                 |                                                                            |
+| ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| [Overview](docs/product/README.md)                     | What Garzoni is, who it's for, plans, numbers, cross-cutting gaps          |
+| [Learning](docs/product/learning.md)                   | Paths, courses, lessons, quizzes, exercises, review, Personalized Path     |
+| [AI features](docs/product/ai.md)                      | Tutor, explanations, coach brief, voice, receipt scan, lesson search       |
+| [Engagement](docs/product/engagement.md)               | XP, streaks, missions, leagues, friends, duels, badges, rewards, referrals |
+| [Tools](docs/product/tools.md)                         | In-app money tools and the public calculators                              |
+| [Plans and billing](docs/product/plans-and-billing.md) | Plans, prices, entitlements, purchasing per platform                       |
+| [Notifications](docs/product/notifications.md)         | Push, email and in-app messaging                                           |
+| [Website](docs/product/website.md)                     | Public site, SEO and AI-search infrastructure, attribution                 |
+| [Accounts and support](docs/product/accounts.md)       | Sign-up, onboarding, settings, support, admin                              |
+| [Platform](docs/product/platform.md)                   | Architecture, hosting, deploys, translations, content operations           |
 
-- **Dashboard (All Topics)**: Browse learning paths and topics, see daily goal and status (courses completed, progress, reviews due, missions). Get a primary CTA (e.g. continue lesson, do reviews, start mission). View weak skills and onboarding questionnaire reminder. Mobile shows a daily AI **Smart Resume** nudge with the single most valuable thing to do next.
-- **Personalized Path 2.0**: A living, AI-ranked plan based on your onboarding, mastery scores, and recent activity. Re-evaluated daily (with hash-based short-circuit to avoid wasted LLM calls). Plus/Pro users see per-course AI reasoning and a **Weekly Coach Brief** — a written 3-paragraph note covering what they accomplished, what to focus on, and a micro-goal for the week.
-- **Courses and lessons**: Open a path (e.g. Basic Finance, Forex, Crypto, Real Estate, Budgeting), view courses and lessons, and start a lesson flow. Complete lessons with video/content and in-lesson sections.
-- **Quizzes**: Take end-of-course quizzes (e.g. `/quiz/:courseId`) to reinforce learning.
-- **Lesson flow**: Follow the full lesson experience (content, sections, next/back) and return to dashboard or course.
-
-### Exercises and review
-
-- **Exercises**: From the Exercises page, filter by type (Multiple Choice, Numeric, Drag and Drop, Budget Allocation, Fill in Table, Scenario Simulation) and category. Do standalone exercises, earn XP, and see skill feedback.
-- **Inline AI explanations**: When you get an exercise wrong, Garzoni explains _why_ using the Socratic method and offers a similar follow-up practice question — no leaving the lesson. Free users get 3 explanations/day; Plus/Pro: unlimited.
-- **Review queue**: See due reviews and "next up" by skill; start a review session to strengthen retention.
-
-### AI tutor
-
-- **Chat tutor**: A persistent, context-aware assistant available across web and mobile. Conversations are stored server-side so history persists across sessions and devices. The tutor uses **OpenAI function-calling tools** to look up your real progress, weak skills, financial profile, and the lesson library — answers reference your actual data, not guesses.
-- **Tiered models**: `gpt-4o-mini` for Free/Plus; `gpt-4o` for Pro.
-- **Daily quotas**: Free 5 prompts/day, Plus 50/day, Pro 200/day.
-- **Voice tutor (Pro, mobile)**: Hold to record → Whisper transcription → GPT answer → spoken reply via OpenAI TTS.
-- **Receipt / statement scan (Pro, mobile)**: Photograph a receipt → GPT-4o vision returns category breakdown, an insight, an actionable tip, and a recommended Garzoni lesson matched via semantic search.
-- **AI push nudges**: Personalised daily pushes generated from your streak, weakest skill, and plan tier (delivered via Customer.io).
-- **RAG over curriculum**: All lesson and course content is embedded with `text-embedding-3-small`; the tutor uses semantic search to recommend the most relevant lesson when you ask about a topic.
-
-### Missions and streak
-
-- **Daily missions**: See up to 4 daily missions (e.g. complete 1 lesson, save £10 today, read finance fact). Track progress, complete missions for XP, and swap one mission per day if needed.
-- **Weekly missions**: See up to 4 weekly missions (e.g. pathfinder, save £100 this week, finance fact fanatic). Complete for larger XP rewards.
-- **Streak**: Track streak days and total XP today; use streak freeze/boost items from the rewards shop when available.
-
-### Tools
-
-- **Portfolio Analyzer**: Analyze portfolio allocation and returns; link to investing lessons; export (when entitled).
-- **Goals Reality Check**: Check savings goals against reality; link to saving lessons.
-- **Economic Calendar**: View macro events and dates; link to macro topics.
-- **Economic Map** (Plus/Pro): Explore global economic data.
-- **News & Market Context** (Plus/Pro): Get news and market context.
-- **Market Explorer** (Plus/Pro): Explore stocks, ETFs, crypto, indices.
-- **Next Steps Engine**: Get 1–3 recommended next steps based on recent activity and level.
-
-### Engagement and rewards
-
-- **Leaderboards**: Compete on leaderboards and see rankings.
-- **Rewards**: View coin balance; spend coins in the **shop** (e.g. streak freeze, streak boost); **donate** a portion of coins to causes. Some actions (e.g. downloads) may require Plus/Pro.
-- **Badges**: Earn badges for achievements; view earned and locked badges on Profile.
-
-### Support and feedback
-
-- **Support (FAQ + contact)**: Search FAQ by category, expand answers, vote helpful/not helpful, and send a message via the contact form (topic: billing, technical, account, content, feedback, other).
-- **Feedback**: From Support, open the Feedback page to report bugs or send feedback (type: bug, suggestion, other; optional "where"). Submissions are for logged-in users only.
-
-### Legal and info
-
-- **Subscriptions**: View plans (Starter, Plus, Pro), features, and pricing; start trial or subscribe.
-- **Legal pages**: Privacy policy, cookie policy, terms of service, financial disclaimer (and no-financial-advice section). Cookie/consent rules are in [docs/prod/cookie-consent-legal.md](docs/prod/cookie-consent-legal.md).
-- **Welcome / About**: Landing and product info; footer links to dashboard, exercises, missions, tools, leaderboards, rewards, support, subscriptions.
-
-### Elsewhere
-
-- **Onboarding questionnaire**: Complete the short questionnaire for personalized recommendations and rewards (XP/coins). Answers feed the AI personalized-path generator and tutor context.
-- **Payment success / upgrade**: Dedicated pages after checkout or when payment is required for a feature.
-
-(Admin-only: **Pricing dashboard** for conversion analytics when admin mode is enabled.)
-
-## Premium value matrix
-
-| Capability                                        | Free (Starter) | Plus £6.99/mo | Pro £7.99/mo                |
-| ------------------------------------------------- | -------------- | ------------- | --------------------------- |
-| Tutor chat (server-persisted history)             | 5/day          | 50/day        | 200/day                     |
-| Inline "explain wrong answer" + practice question | 3/day          | unlimited     | unlimited                   |
-| Personalized Path 2.0 + daily re-plan             | —              | ✔             | ✔                           |
-| Weekly AI Coach Brief                             | —              | ✔             | ✔                           |
-| Voice tutor (mobile)                              | —              | —             | ✔                           |
-| Receipt / statement scan (mobile)                 | —              | —             | ✔                           |
-| AI push nudges                                    | basic streak   | personalised  | personalised + market-aware |
-| Tutor model                                       | gpt-4o-mini    | gpt-4o-mini   | **gpt-4o**                  |
-
-> **What's actually shipped vs. flagged off vs. stubbed** — the premium matrix above describes the
-> designed product. For the verified per-feature state on each platform (including the features that
-> are built but currently unreachable or disabled by default), see
-> [.claude/context/feature-status.md](.claude/context/feature-status.md).
-
-## Features (summary)
-
-- Personalized learning paths (Basic Finance, Forex, Crypto, Real Estate, Budgeting).
-- Gamification: badges, streaks, leaderboards, rewards (coins, shop, donations).
-- AI tutor with **function-calling tools**, persistent memory, RAG over curriculum, voice (mobile), receipt vision (mobile).
-- Finance tools: portfolio analyzer, reality check, economic calendar, economic map, news/market context, market explorer, next steps (some tools Plus/Pro).
-- Exercises: multiple choice, numeric, drag-and-drop, budget allocation, fill-in table, scenario simulation; review queue with inline AI explanations on wrong answers .
-- Missions: 4 daily + 4 weekly (randomized from pool per day/week), swap, completion XP.
-- Support hub: FAQ + contact form; feedback page for bugs and suggestions.
+Developer guides, runbooks and audits are indexed in [`docs/README.md`](docs/README.md).
 
 ## Tech Stack
 
