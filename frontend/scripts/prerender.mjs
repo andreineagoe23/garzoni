@@ -492,21 +492,14 @@ async function prepareSnapshot(page, keepScripts, uiLang) {
 const uiLanguageFor = (route) =>
   route === "/ro" || route.startsWith("/ro/") ? "ro" : "en";
 
-/**
- * One browser context per UI language. Pages in a context share localStorage,
- * where the app persists its language, so mixing languages in one context would
- * let a render pick up another page's language.
- */
-async function createLanguageContexts(browser) {
-  return {
-    en: await browser.createBrowserContext(),
-    ro: await browser.createBrowserContext(),
-  };
-}
-
-async function renderRoute(contexts, route, keepScripts) {
+async function renderRoute(browser, route, keepScripts) {
   const uiLang = uiLanguageFor(route);
-  const page = await contexts[uiLang].newPage();
+  // Pages share one context (and its localStorage, where the app keeps its
+  // language), so main() renders the English and Romanian routes in separate
+  // passes. A context per language crashed @sparticuz/chromium on Vercel: it
+  // runs Chrome single-process, and the 2026-10-08 deploy lost most snapshots
+  // to "Connection closed".
+  const page = await browser.newPage();
   // Pin the UI language: the app's i18n reads this key before
   // navigator.language, so the build machine's locale never leaks in.
   await page.evaluateOnNewDocument((lang) => {
@@ -977,8 +970,26 @@ async function main() {
 
   let skipped = 0;
   const keepScripts = shellScriptSrcs();
-  const contexts = await createLanguageContexts(browser);
-  await mapPool(toRender, CONCURRENCY, async (route) => {
+
+  // If Chrome dies mid-build, relaunch it once for everyone waiting on it.
+  let relaunching = null;
+  const ensureBrowser = async () => {
+    if (browser.connected) return;
+    relaunching ??= (async () => {
+      console.error("  ↻ headless Chrome disconnected — relaunching");
+      try {
+        await browser.close();
+      } catch {
+        // Already gone.
+      }
+      browser = await launchBrowser();
+    })().finally(() => {
+      relaunching = null;
+    });
+    await relaunching;
+  };
+
+  const renderOne = async (route) => {
     try {
       // A not-found render or a navigation timeout for a route we know exists is
       // a transient API hiccup mid-build — typically Railway rolling the backend
@@ -989,7 +1000,8 @@ async function main() {
       let card;
       for (let attempt = 0; ; attempt++) {
         try {
-          ({ html, card } = await renderRoute(contexts, route, keepScripts));
+          await ensureBrowser();
+          ({ html, card } = await renderRoute(browser, route, keepScripts));
           if (!isErrorSnapshot(html) || attempt === 2) break;
           console.error(
             `  ↻ ${route}: error state, retry ${attempt + 1}/2 after backoff…`
@@ -1021,7 +1033,14 @@ async function main() {
     } catch (err) {
       console.error(`  ✗ ${route}: ${err.message}`);
     }
-  });
+  };
+  for (const lang of ["en", "ro"]) {
+    await mapPool(
+      toRender.filter((route) => uiLanguageFor(route) === lang),
+      CONCURRENCY,
+      renderOne
+    );
+  }
   if (skipped > 0) {
     console.log(
       `\n⚠ Skipped ${skipped} route(s) that rendered an error state.`
@@ -1034,6 +1053,22 @@ async function main() {
     existsSync(join(OUT, `${route === "/" ? "/index" : route}.html`))
   );
 
+  // Every route we meant to render must have a snapshot. A missing one is a 404
+  // to crawlers (vercel.json), so shipping the build would de-index those pages
+  // — the 2026-10-08 deploy did exactly that after Chrome crashed. Fail instead;
+  // Vercel keeps the previous production deploy.
+  const missing = routes.filter((route) => !written.includes(route));
+  if (missing.length > 0) {
+    console.error(
+      `\n✗ ${missing.length} route(s) have no snapshot: ${missing.slice(0, 20).join(", ")}${missing.length > 20 ? ", …" : ""}`
+    );
+    if (isVercelProduction) {
+      await browser.close().catch(() => {});
+      server.close();
+      process.exit(1);
+    }
+  }
+
   if (isVercelProduction) {
     await pingIndexNow(
       written.filter(
@@ -1045,6 +1080,7 @@ async function main() {
   }
 
   try {
+    await ensureBrowser();
     await writeShareCards(browser, cards);
   } catch (err) {
     // Never fatal: the snapshots still carry valid tags (see writeShareCards).
@@ -1061,7 +1097,7 @@ async function main() {
   }
 
   console.log(
-    `\n✅ Prerendered ${routes.length} pages to dist/__prerendered/\n`
+    `\n✅ Prerendered ${written.length}/${routes.length} pages to dist/__prerendered/\n`
   );
 }
 
