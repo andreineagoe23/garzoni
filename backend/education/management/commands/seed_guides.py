@@ -20,6 +20,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from education.models import Article, Lesson
+from education.services.public_lessons import public_lessons
 
 AUTHOR = "Garzoni Team"
 
@@ -515,7 +516,7 @@ class Command(BaseCommand):
 
                 # Attach related lessons that exist and are public.
                 if not dry_run and related_slugs:
-                    lessons = Lesson.objects.filter(slug__in=related_slugs, is_public=True)
+                    lessons = public_lessons(Lesson.objects.filter(slug__in=related_slugs))
                     obj.related_lessons.set(lessons)
 
                 self.stdout.write(f"  [{action}] {spec['category']}: {spec['slug']}")

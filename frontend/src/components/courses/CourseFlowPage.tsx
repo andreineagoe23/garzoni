@@ -61,6 +61,7 @@ import LessonAIHelpModal, {
 import {
   buildSkillPracticeHref,
   getToolPracticeCtaForSkill,
+  isAxiosError,
 } from "@garzoni/core";
 
 type CourseFlowSection = {
@@ -1610,12 +1611,31 @@ function CourseFlowPage() {
   }
 
   if (error) {
+    // A paid path answers 403 + required_plan (e.g. a free signup arriving from a public lesson).
+    const upgradeRequired =
+      isAxiosError(error) && error.response?.status === 403;
+    const requiredPlan = isAxiosError(error)
+      ? error.response?.data?.required_plan
+      : null;
     return (
       <div className="min-h-screen bg-surface-page px-6 py-16">
         <div className="mx-auto w-full max-w-3xl">
           <div className="rounded-2xl border border-[color:var(--color-state-error)]/40 bg-[color:var(--color-state-error)]/10 px-5 py-6 text-sm text-[color:var(--color-state-error)] shadow-inner shadow-[color:var(--color-state-error)]/10">
-            {error?.message || t("courses.flow.loadError")}
+            {upgradeRequired
+              ? t("courses.coursePage.upgradeToAccess", {
+                  plan: requiredPlan === "pro" ? "Pro" : "Plus",
+                })
+              : error?.message || t("courses.flow.loadError")}
           </div>
+          {upgradeRequired && (
+            <button
+              type="button"
+              className="app-cta-btn mt-6 !w-auto px-4 py-2 !h-auto text-xs"
+              onClick={() => navigate("/subscriptions")}
+            >
+              {t("shared.upgrade")}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => navigate("/all-topics")}

@@ -45,6 +45,8 @@ import {
   AuthorPage,
   EditorialStandardsPage,
   CompoundInterestPage,
+  SavingsGoalPage,
+  BudgetRulePage,
   NotFoundPage,
 } from "routes/lazyPages";
 
@@ -76,6 +78,8 @@ const AppRoutes = () => {
         path="/calculators/compound-interest"
         element={<CompoundInterestPage />}
       />
+      <Route path="/calculators/savings-goal" element={<SavingsGoalPage />} />
+      <Route path="/calculators/50-30-20-budget" element={<BudgetRulePage />} />
       {/* Romanian twins — the page reads its language from the /ro prefix. */}
       <Route path="/ro/learn" element={<LearnIndex />} />
       <Route path="/ro/learn/:slug" element={<PublicLesson />} />
@@ -84,6 +88,14 @@ const AppRoutes = () => {
       <Route
         path="/ro/calculators/compound-interest"
         element={<CompoundInterestPage />}
+      />
+      <Route
+        path="/ro/calculators/savings-goal"
+        element={<SavingsGoalPage />}
+      />
+      <Route
+        path="/ro/calculators/50-30-20-budget"
+        element={<BudgetRulePage />}
       />
       <Route
         path="/privacy-policy"

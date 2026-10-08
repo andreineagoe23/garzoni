@@ -5,7 +5,7 @@ import { getApiErrorFallbackMessage } from "../messages/apiErrorFallback";
 
 declare module "axios" {
   interface AxiosRequestConfig {
-    /** When true, 401/403 do not trigger onAuthFailure or global error toast (e.g. for login/register/refresh). */
+    /** When true, a 401 does not trigger onAuthFailure, and no global error toast is shown (e.g. for login/register/refresh). */
     skipAuthRedirect?: boolean;
     /** When true, failed responses do not call onError (e.g. best-effort funnel ingest). */
     skipGlobalErrorToast?: boolean;
@@ -16,7 +16,7 @@ declare module "axios" {
 export const HTTP_CLIENT_SESSION_EXPIRED_REASON = "session-expired";
 
 export type HttpClientCallbacks = {
-  /** Called when a 401/403 is received and the request did not set skipAuthRedirect. Host should navigate to login, clear local session, etc. */
+  /** Called when a 401 is received and the request did not set skipAuthRedirect. Host should navigate to login, clear local session, etc. */
   onAuthFailure: () => void;
   /** Called for failed API responses when skipGlobalErrorToast / skipAuthRedirect do not apply. */
   onError: (
@@ -82,10 +82,20 @@ apiClient.interceptors.request.use((config) => {
 
 let didTriggerAuthRedirect = false;
 
-const isAuthError = (error: { response?: { status?: number } }) => {
-  const status = error.response?.status;
-  return status === 401 || status === 403;
-};
+/**
+ * Only 401 means the session is gone: the API authenticates with JWT alone, so a missing or
+ * expired token is always 401. A 403 is a logged-in user without access (e.g. an upgrade-required
+ * learning path) — logging them out turned a new free signup into "session expired".
+ */
+const isAuthError = (error: { response?: { status?: number } }) =>
+  error.response?.status === 401;
+
+/** Upgrade-required 403s carry `required_plan`; the screen shows its own upgrade prompt. */
+const isUpgradeRequired = (error: {
+  response?: { status?: number; data?: { required_plan?: unknown } };
+}) =>
+  error.response?.status === 403 &&
+  Boolean(error.response?.data?.required_plan);
 
 /** Aborted / superseded requests (debounced search, React Query cancellation) — do not toast. */
 function shouldSilenceGlobalToast(error: unknown): boolean {
@@ -119,7 +129,11 @@ apiClient.interceptors.response.use(
       }
       return Promise.reject(error);
     }
-    if (!skipGlobalErrorToast && !shouldSilenceGlobalToast(error)) {
+    if (
+      !skipGlobalErrorToast &&
+      !shouldSilenceGlobalToast(error) &&
+      !isUpgradeRequired(error)
+    ) {
       const message =
         error.response?.data?.detail ||
         error.response?.data?.error ||

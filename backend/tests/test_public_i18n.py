@@ -320,19 +320,19 @@ class SitemapHreflangTests(TestCase):
 
         self.assertEqual(len(locs), len(set(locs)))
 
-    def test_calculator_is_listed_in_both_languages_with_hreflang(self):
+    def test_calculators_are_listed_in_both_languages_with_hreflang(self):
         _, blocks = self._url_blocks()
 
-        for loc in (
-            f"{SITE}/calculators/compound-interest",
-            f"{SITE}/ro/calculators/compound-interest",
+        for path in (
+            "/calculators/compound-interest",
+            "/calculators/savings-goal",
+            "/calculators/50-30-20-budget",
         ):
-            self.assertIn(
-                f'hreflang="ro" href="{SITE}/ro/calculators/compound-interest"', blocks[loc]
-            )
-            self.assertIn(
-                f'hreflang="x-default" href="{SITE}/calculators/compound-interest"', blocks[loc]
-            )
+            for loc in (f"{SITE}{path}", f"{SITE}/ro{path}"):
+                self.assertIn(loc, blocks, f"{loc} missing from the sitemap")
+                self.assertIn(f'hreflang="en" href="{SITE}{path}"', blocks[loc])
+                self.assertIn(f'hreflang="ro" href="{SITE}/ro{path}"', blocks[loc])
+                self.assertIn(f'hreflang="x-default" href="{SITE}{path}"', blocks[loc])
 
     def test_home_and_ro_home_are_an_hreflang_pair(self):
         _, blocks = self._url_blocks()

@@ -38,6 +38,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from education.models import Article, Lesson
+from education.services.public_lessons import public_lessons
 
 # TODO(phase-4 E1): swap to a real named + credentialed author once provided.
 AUTHOR = "Garzoni Team"
@@ -881,7 +882,7 @@ class Command(BaseCommand):
                     action = "create"
 
                 if not dry_run and related_slugs:
-                    lessons = Lesson.objects.filter(slug__in=related_slugs, is_public=True)
+                    lessons = public_lessons(Lesson.objects.filter(slug__in=related_slugs))
                     obj.related_lessons.set(lessons)
 
                 self.stdout.write(f"  [{action}] {spec['category']}: {spec['slug']}")

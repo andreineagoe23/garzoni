@@ -1,13 +1,20 @@
-import React, { useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { formatCurrency } from "@garzoni/core";
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import SeoHead from "components/seo/SeoHead";
 import Breadcrumbs from "components/common/Breadcrumbs";
 import PageContainer from "components/common/PageContainer";
-import { GlassButton, GlassCard, TextInput } from "components/ui";
+import { GlassCard, TextInput } from "components/ui";
 import { SITE_URL, usePublicLocale } from "components/seo/publicLocale";
 import { balanceWithStart } from "components/landing/home/compound";
-import { appStoreUrl, playStoreUrl } from "utils/storeLinks";
+import {
+  CalculatorCta,
+  RelatedCalculators,
+  Section,
+  calculatorAlternates,
+  linkClass,
+  moneyFormatter,
+  useCalculatorUsed,
+} from "./CalculatorParts";
 
 /**
  * Public compound interest calculator at /calculators/compound-interest and its
@@ -16,17 +23,12 @@ import { appStoreUrl, playStoreUrl } from "utils/storeLinks";
  */
 const PATH = "/calculators/compound-interest";
 
-// Romanian readers save in lei; the English page is UK-first.
 const LOCALE_SETUP = {
   en: {
-    currency: "GBP",
-    numberLocale: "en-GB",
     defaults: { start: "1000", monthly: "150", rate: "5", years: "20" },
     relatedLesson: "how-interest-works-apr-vs-aer",
   },
   ro: {
-    currency: "RON",
-    numberLocale: "ro-RO",
     defaults: { start: "5000", monthly: "500", rate: "5", years: "20" },
     relatedLesson: "how-much-to-save",
   },
@@ -34,31 +36,13 @@ const LOCALE_SETUP = {
 
 type Field = "start" | "monthly" | "rate" | "years";
 
-function Section({
-  heading,
-  children,
-}: {
-  heading: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-3 leading-relaxed text-content-primary">
-      <h2 className="text-xl font-semibold">{heading}</h2>
-      {children}
-    </section>
-  );
-}
-
-const linkClass = "text-brand-primary hover:underline";
-
 export default function CompoundInterestPage() {
   const { lang, t, to, url, shareImage } = usePublicLocale();
-  const navigate = useNavigate();
   const setup = LOCALE_SETUP[lang];
   const [values, setValues] = useState<Record<Field, string>>({
     ...setup.defaults,
   });
-  const trackedRef = useRef(false);
+  const markUsed = useCalculatorUsed("compound_interest", lang);
 
   const result = useMemo(() => {
     const start = Number(values.start);
@@ -89,21 +73,10 @@ export default function CompoundInterestPage() {
 
   const update = (field: Field) => (value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
-    if (!trackedRef.current && typeof window.gtag === "function") {
-      trackedRef.current = true;
-      window.gtag("event", "calculator_used", {
-        calculator: "compound_interest",
-        lang,
-      });
-    }
+    markUsed();
   };
 
-  const money = (amount: number) =>
-    formatCurrency(amount, {
-      currency: setup.currency,
-      locale: setup.numberLocale,
-      maximumFractionDigits: 0,
-    });
+  const money = moneyFormatter(lang);
 
   const canonical = url(PATH);
   const faqItems = [1, 2, 3].map((n) => ({
@@ -120,11 +93,7 @@ export default function CompoundInterestPage() {
         image={shareImage(PATH)}
         imageAlt={`${t("shareImage.kicker.calculator")}: ${t("calculators.compound.title")}`}
         locale={lang}
-        alternates={[
-          { hrefLang: "en", href: `${SITE_URL}${PATH}` },
-          { hrefLang: "ro", href: `${SITE_URL}/ro${PATH}` },
-          { hrefLang: "x-default", href: `${SITE_URL}${PATH}` },
-        ]}
+        alternates={calculatorAlternates(PATH)}
         breadcrumbs={[
           {
             name: t("calculators.breadcrumbs.home"),
@@ -285,6 +254,8 @@ export default function CompoundInterestPage() {
         </ul>
       </Section>
 
+      <RelatedCalculators current="compound" />
+
       <Section heading={t("calculators.compound.faqHeading")}>
         {faqItems.map((item) => (
           <div key={item.question} className="flex flex-col gap-1">
@@ -294,37 +265,14 @@ export default function CompoundInterestPage() {
         ))}
       </Section>
 
-      <GlassCard padding="lg">
-        <div className="flex flex-col items-start gap-3">
-          <h2 className="text-xl font-semibold text-content-primary">
-            {t("calculators.compound.cta.heading")}
-          </h2>
-          <p className="text-content-primary">
-            {t("calculators.compound.cta.body")}
-          </p>
-          <GlassButton variant="active" onClick={() => navigate("/register")}>
-            {t("calculators.compound.cta.button")}
-          </GlassButton>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <a
-              href={appStoreUrl("calculator_compound")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={linkClass}
-            >
-              {t("calculators.compound.cta.appStore")}
-            </a>
-            <a
-              href={playStoreUrl("calculator_compound")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={linkClass}
-            >
-              {t("calculators.compound.cta.googlePlay")}
-            </a>
-          </div>
-        </div>
-      </GlassCard>
+      <CalculatorCta
+        heading={t("calculators.compound.cta.heading")}
+        body={t("calculators.compound.cta.body")}
+        button={t("calculators.compound.cta.button")}
+        appStore={t("calculators.compound.cta.appStore")}
+        googlePlay={t("calculators.compound.cta.googlePlay")}
+        placement="calculator_compound"
+      />
     </PageContainer>
   );
 }
