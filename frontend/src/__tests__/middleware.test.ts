@@ -50,6 +50,14 @@ describe("middleware snapshot routing", () => {
       "/ro/calculators/compound-interest",
       "/__prerendered/ro/calculators/compound-interest.html",
     ],
+    [
+      "/calculators/savings-goal",
+      "/__prerendered/calculators/savings-goal.html",
+    ],
+    [
+      "/ro/calculators/50-30-20-budget",
+      "/__prerendered/ro/calculators/50-30-20-budget.html",
+    ],
     ["/privacy-policy", "/__prerendered/privacy-policy.html"],
     ["/cookie-policy", "/__prerendered/cookie-policy.html"],
     ["/terms-of-service", "/__prerendered/terms-of-service.html"],
