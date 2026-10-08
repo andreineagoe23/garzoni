@@ -62,7 +62,13 @@ const AppShell = ({
         .trim()}
     >
       {hasNavbar && (
-        <Suspense fallback={<div className="p-4">{fallbackNavbar}</div>}>
+        <Suspense
+          fallback={
+            <div className="p-4" data-app-fallback="">
+              {fallbackNavbar}
+            </div>
+          }
+        >
           <Navbar />
         </Suspense>
       )}
@@ -73,7 +79,10 @@ const AppShell = ({
         >
           <Suspense
             fallback={
-              <div className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]">
+              <div
+                className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--muted-text,#6b7280)]"
+                data-app-fallback=""
+              >
                 {fallbackPage}
               </div>
             }
@@ -94,6 +103,7 @@ const AppShell = ({
               <div
                 className="min-h-[560px] sm:min-h-[360px] lg:min-h-[320px]"
                 aria-hidden="true"
+                data-app-fallback=""
               />
             }
           >

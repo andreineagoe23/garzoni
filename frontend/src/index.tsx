@@ -13,6 +13,7 @@ import { initStartup } from "bootstrap/startup";
 import { initHttpClientWeb } from "bootstrap/httpClientWeb";
 import { initCustomerIoWeb } from "hooks/useCio";
 import { captureFirstTouch } from "utils/firstTouch";
+import { handOffPrerenderedSnapshot } from "bootstrap/prerenderHandoff";
 
 captureFirstTouch();
 initStartup();
@@ -24,6 +25,7 @@ if (!rootElement) {
   throw new Error("Root element #root was not found.");
 }
 
+handOffPrerenderedSnapshot(rootElement);
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
