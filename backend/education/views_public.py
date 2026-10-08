@@ -137,7 +137,9 @@ def _section_payload(section: LessonSection, lang: str = DEFAULT_LANGUAGE) -> di
 def public_lesson_detail(request, slug: str):
     lang = _public_language(request)
     lessons = _with_languages(
-        Lesson.objects.select_related("course", "course__path").prefetch_related("sections"),
+        Lesson.objects.select_related("course", "course__path").prefetch_related(
+            Prefetch("sections", queryset=LessonSection.objects.filter(is_published=True))
+        ),
         _lesson_translated,
     )
     if lang != DEFAULT_LANGUAGE:

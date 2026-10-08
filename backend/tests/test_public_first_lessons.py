@@ -109,6 +109,19 @@ class FirstLessonIsPublicTests(TestCase):
 
         self.assertEqual(slugs, ["remortgaging"])
 
+    def test_unpublished_sections_are_not_served(self):
+        LessonSection.objects.create(
+            lesson=self.first,
+            order=2,
+            title="Draft",
+            text_content="<p>secret</p>",
+            is_published=False,
+        )
+
+        body = self.client.get("/api/public/lessons/mortgage-basics/").json()
+
+        self.assertEqual([s["title"] for s in body["sections"]], ["Intro"])
+
     def test_guide_links_first_lessons_but_not_private_ones(self):
         article = Article.objects.create(
             title="Mortgages", slug="mortgages", content="<p>x</p>", is_published=True
