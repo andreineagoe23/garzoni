@@ -31,6 +31,12 @@ export const EditorialStandardsPage = React.lazy(
 export const CompoundInterestPage = React.lazy(
   () => import("components/calculators/CompoundInterestPage")
 );
+export const SavingsGoalPage = React.lazy(
+  () => import("components/calculators/SavingsGoalPage")
+);
+export const BudgetRulePage = React.lazy(
+  () => import("components/calculators/BudgetRulePage")
+);
 export const CoursePage = React.lazy(
   () => import("components/courses/CoursePage")
 );
