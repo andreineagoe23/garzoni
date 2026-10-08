@@ -9,6 +9,7 @@ import {
 } from "@garzoni/core";
 import apiClient from "services/httpClient";
 import SeoHead from "components/seo/SeoHead";
+import { shareImageUrl } from "components/seo/publicLocale";
 import Breadcrumbs from "components/common/Breadcrumbs";
 import PageContainer from "components/common/PageContainer";
 import { GlassCard } from "components/ui";
@@ -135,7 +136,8 @@ export default function AuthorPage() {
         title={t("editorial.author.seoTitle")}
         description={t("editorial.author.seoDescription")}
         canonical={FOUNDER_AUTHOR.url}
-        image={FOUNDER_AUTHOR.image || undefined}
+        image={shareImageUrl(FOUNDER_AUTHOR.path)}
+        imageAlt={`${t("shareImage.kicker.author")}: ${FOUNDER_AUTHOR.name}`}
         breadcrumbs={[
           {
             name: t("editorial.breadcrumbs.home"),

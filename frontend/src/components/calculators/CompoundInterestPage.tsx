@@ -37,7 +37,7 @@ const LOCALE_SETUP = {
 type Field = "start" | "monthly" | "rate" | "years";
 
 export default function CompoundInterestPage() {
-  const { lang, t, to, url } = usePublicLocale();
+  const { lang, t, to, url, shareImage } = usePublicLocale();
   const setup = LOCALE_SETUP[lang];
   const [values, setValues] = useState<Record<Field, string>>({
     ...setup.defaults,
@@ -90,6 +90,8 @@ export default function CompoundInterestPage() {
         title={t("calculators.compound.seoTitle")}
         description={t("calculators.compound.seoDescription")}
         canonical={canonical}
+        image={shareImage(PATH)}
+        imageAlt={`${t("shareImage.kicker.calculator")}: ${t("calculators.compound.title")}`}
         locale={lang}
         alternates={calculatorAlternates(PATH)}
         breadcrumbs={[

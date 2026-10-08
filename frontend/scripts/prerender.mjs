@@ -1,11 +1,32 @@
-import { readFileSync, mkdirSync, writeFileSync, existsSync, rmSync } from "fs";
+import {
+  readFileSync,
+  readdirSync,
+  mkdirSync,
+  writeFileSync,
+  existsSync,
+  rmSync,
+  copyFileSync,
+} from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
 import { createHash } from "crypto";
+import {
+  applyShareImage,
+  buildCardTemplate,
+  createCardRenderer,
+  loadKickers,
+  shareCardAlt,
+  shareCardFile,
+  shareCardKind,
+  shareCardLang,
+  shareCardUrl,
+  uncoveredChars,
+} from "./og-card.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DIST = join(__dirname, "..", "dist");
+// PRERENDER_DIST: prerender a build made with `vite build --outDir <dir>`.
+const DIST = process.env.PRERENDER_DIST || join(__dirname, "..", "dist");
 const OUT = join(DIST, "__prerendered");
 const PORT = 4173;
 
@@ -462,7 +483,18 @@ async function renderRoute(browser, route) {
     // Small settle for any remaining hydration.
     await new Promise((r) => setTimeout(r, 500));
     await dedupeHead(page);
-    return await page.content();
+    // What the share-card step needs: where the page pointed og:image, and the
+    // headline to draw on the card.
+    const card = await page.evaluate(() => ({
+      image:
+        document.head
+          .querySelector('meta[property="og:image"]')
+          ?.getAttribute("content") || "",
+      title: (document.querySelector("h1")?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim(),
+    }));
+    return { html: await page.content(), card };
   } finally {
     await page.close();
   }
@@ -611,6 +643,125 @@ async function writeLlmsFull(lessonSlugs, articleSlugs) {
   );
 }
 
+/**
+ * Share cards: dist/og/<route>.jpg for every lesson, guide, calculator and author
+ * snapshot whose page pointed og:image at its card (og-card.mjs).
+ *
+ * Cards are cached by content — template version + kicker + title — not by the
+ * bundle, so a code push that re-renders every snapshot still reuses every card
+ * whose headline did not change.
+ */
+const OG_CACHE = join(CACHE_DIR, "og");
+
+async function writeShareCards(browser, cards) {
+  const routes = [...cards]
+    .filter(
+      ([route, card]) =>
+        shareCardKind(route) && card?.image === shareCardUrl(route)
+    )
+    .map(([route]) => route);
+  if (routes.length === 0) return;
+
+  const started = Date.now();
+  // route → alt text once its card is in dist/og; absent → site-wide image.
+  const written = new Map();
+  let reused = 0;
+  try {
+    const template = buildCardTemplate();
+    const kickers = loadKickers();
+    const used = new Set();
+    const pending = [];
+
+    for (const route of routes) {
+      const { title } = cards.get(route);
+      const lang = shareCardLang(route);
+      const kicker = kickers[lang][shareCardKind(route)];
+      const missing = [
+        ...uncoveredChars(title, template.titleRanges),
+        ...uncoveredChars(kicker, template.kickerRanges),
+      ];
+      if (!title || missing.length > 0) {
+        console.error(
+          `  ⚠ ${route}: no share card (${title ? `cannot draw "${missing.join("")}"` : "no <h1>"})`
+        );
+        continue;
+      }
+      const spec = { kicker, title, lang };
+      const key = `${sha1(template.version + JSON.stringify(spec))}.jpg`;
+      used.add(key);
+      const job = {
+        route,
+        spec,
+        cached: join(OG_CACHE, key),
+        out: join(DIST, shareCardFile(route)),
+        alt: shareCardAlt(kicker, title),
+      };
+      if (existsSync(job.cached)) {
+        mkdirSync(dirname(job.out), { recursive: true });
+        copyFileSync(job.cached, job.out);
+        written.set(route, job.alt);
+        reused++;
+      } else {
+        pending.push(job);
+      }
+    }
+
+    if (pending.length > 0) {
+      mkdirSync(OG_CACHE, { recursive: true });
+      const renderers = await Promise.all(
+        Array.from({ length: Math.min(CONCURRENCY, pending.length) }, () =>
+          createCardRenderer(browser, template)
+        )
+      );
+      await Promise.all(
+        renderers.map(async (renderer) => {
+          for (;;) {
+            const job = pending.shift();
+            if (!job) break;
+            try {
+              const jpeg = await renderer.render(job.spec);
+              mkdirSync(dirname(job.out), { recursive: true });
+              writeFileSync(job.out, jpeg);
+              writeFileSync(job.cached, jpeg);
+              written.set(job.route, job.alt);
+            } catch (err) {
+              console.error(`  ⚠ ${job.route}: no share card (${err.message})`);
+            }
+          }
+          await renderer.close();
+        })
+      );
+    }
+
+    // Drop cards no page uses any more so the cache doesn't grow forever.
+    if (existsSync(OG_CACHE)) {
+      for (const file of readdirSync(OG_CACHE, { withFileTypes: true })) {
+        if (file.isFile() && !used.has(file.name)) {
+          rmSync(join(OG_CACHE, file.name), { force: true });
+        }
+      }
+    }
+  } finally {
+    // Runs even if the step blew up half way, so no snapshot is left pointing
+    // at a card that was never written.
+    for (const route of routes) {
+      const file = join(OUT, `${route}.html`);
+      if (!existsSync(file)) continue;
+      const html = readFileSync(file, "utf-8");
+      writeFileSync(
+        file,
+        applyShareImage(html, route, written.get(route) ?? null),
+        "utf-8"
+      );
+    }
+    console.log(
+      `  ✓ share cards: ${written.size}/${routes.length} ` +
+        `(${reused} reused from cache) → dist/og/ in ` +
+        `${((Date.now() - started) / 1000).toFixed(1)}s`
+    );
+  }
+}
+
 async function main() {
   // Prerendered HTML is only ever served by the Vercel edge middleware on the
   // production deployment (bots → dist/__prerendered). Generating it on local,
@@ -719,16 +870,24 @@ async function main() {
   for (const route of routes) {
     const fingerprint = fingerprints.get(route);
     const entry = fingerprint ? cache.routes[route] : undefined;
-    if (entry && entry.fp === fingerprint && existsSync(cacheFile(route))) {
+    if (
+      entry &&
+      entry.fp === fingerprint &&
+      "card" in entry &&
+      existsSync(cacheFile(route))
+    ) {
       cached.push(route);
     } else {
       toRender.push(route);
     }
   }
 
+  // route → { image, title } for every snapshot written this build.
+  const cards = new Map();
   for (const route of cached) {
     saveHtml(route, readFileSync(cacheFile(route), "utf-8"));
     nextCache.routes[route] = cache.routes[route];
+    cards.set(route, cache.routes[route].card);
   }
 
   console.log(
@@ -745,9 +904,10 @@ async function main() {
       // backoff before giving up so a blip never costs us the page (it cost
       // /learn and /guides their snapshots on 2026-10-03).
       let html;
+      let card;
       for (let attempt = 0; ; attempt++) {
         try {
-          html = await renderRoute(browser, route);
+          ({ html, card } = await renderRoute(browser, route));
           if (!isErrorSnapshot(html) || attempt === 2) break;
           console.error(
             `  ↻ ${route}: error state, retry ${attempt + 1}/2 after backoff…`
@@ -770,10 +930,11 @@ async function main() {
         return;
       }
       saveHtml(route, html);
+      cards.set(route, card);
       const fingerprint = fingerprints.get(route);
       if (fingerprint) {
         writeCacheFile(route, html);
-        nextCache.routes[route] = { fp: fingerprint };
+        nextCache.routes[route] = { fp: fingerprint, card };
       }
     } catch (err) {
       console.error(`  ✗ ${route}: ${err.message}`);
@@ -799,6 +960,13 @@ async function main() {
           previousFingerprints[route] !== fingerprints.get(route)
       )
     );
+  }
+
+  try {
+    await writeShareCards(browser, cards);
+  } catch (err) {
+    // Never fatal: the snapshots still carry valid tags (see writeShareCards).
+    console.error("  ⚠ share cards failed:", err.message);
   }
 
   await browser.close();

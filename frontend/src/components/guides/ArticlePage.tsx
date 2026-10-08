@@ -41,7 +41,7 @@ type ArticleResponse = {
 
 export default function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
-  const { lang, t, to, url } = usePublicLocale();
+  const { lang, t, to, url, shareImage } = usePublicLocale();
   const [data, setData] = useState<ArticleResponse | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -117,7 +117,12 @@ export default function ArticlePage() {
         canonical={canonical}
         locale={lang}
         alternates={hreflangAlternates(path, data.available_languages)}
-        image={data.image_url || undefined}
+        image={data.image_url || shareImage(path)}
+        imageAlt={
+          data.image_url
+            ? undefined
+            : `${t("shareImage.kicker.guide")}: ${data.title}`
+        }
         article={{
           headline: data.title,
           datePublished,

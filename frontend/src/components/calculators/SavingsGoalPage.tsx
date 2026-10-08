@@ -46,7 +46,7 @@ type Outcome =
     };
 
 export default function SavingsGoalPage() {
-  const { lang, t, to, url } = usePublicLocale();
+  const { lang, t, to, url, shareImage } = usePublicLocale();
   const [mode, setMode] = useState<Mode>("monthly");
   const [values, setValues] = useState<Record<Field, string>>({
     ...DEFAULTS[lang],
@@ -130,6 +130,8 @@ export default function SavingsGoalPage() {
         title={t("calculators.savingsGoal.seoTitle")}
         description={t("calculators.savingsGoal.seoDescription")}
         canonical={canonical}
+        image={shareImage(PATH)}
+        imageAlt={`${t("shareImage.kicker.calculator")}: ${t("calculators.savingsGoal.title")}`}
         locale={lang}
         alternates={calculatorAlternates(PATH)}
         breadcrumbs={[
