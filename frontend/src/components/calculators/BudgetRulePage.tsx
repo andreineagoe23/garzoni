@@ -38,7 +38,7 @@ const PARTS = [
 ] as const;
 
 export default function BudgetRulePage() {
-  const { lang, t, to, url } = usePublicLocale();
+  const { lang, t, to, url, shareImage } = usePublicLocale();
   const [values, setValues] = useState<Record<Field, string>>({
     ...DEFAULTS[lang],
   });
@@ -91,6 +91,8 @@ export default function BudgetRulePage() {
         title={t("calculators.budget.seoTitle")}
         description={t("calculators.budget.seoDescription")}
         canonical={canonical}
+        image={shareImage(PATH)}
+        imageAlt={`${t("shareImage.kicker.calculator")}: ${t("calculators.budget.title")}`}
         locale={lang}
         alternates={calculatorAlternates(PATH)}
         breadcrumbs={[
