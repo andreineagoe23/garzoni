@@ -17,10 +17,58 @@ const MAX_WAIT_MS = 8000;
 const HIDDEN_ROOT_STYLE =
   "position:absolute;top:0;left:0;width:100%;visibility:hidden;pointer-events:none";
 
+/** Same keys as the prerender's dedupeHead, plus hreflang alternates. */
+function headKey(el: Element): string | null {
+  const tag = el.tagName.toLowerCase();
+  if (tag === "title") return "title";
+  if (tag === "meta") {
+    const name = el.getAttribute("name") || el.getAttribute("property");
+    return name ? `meta:${name.toLowerCase()}` : null;
+  }
+  if (tag === "link") {
+    const rel = el.getAttribute("rel");
+    if (rel === "canonical") return "canonical";
+    if (rel === "alternate" && el.hasAttribute("hreflang")) {
+      return `alternate:${el.getAttribute("hreflang")}`;
+    }
+  }
+  return null;
+}
+
+/**
+ * The snapshot's <title>, canonical and meta tags are plain elements React does
+ * not own, so the app's own copies land next to them — and the browser keeps
+ * showing the first <title> even after client-side navigation. Drop each
+ * snapshot tag as soon as the app writes its replacement.
+ */
+function retireSnapshotHeadTags(): void {
+  const stale = new Map<string, Element[]>();
+  for (const el of Array.from(document.head.children)) {
+    const key = headKey(el);
+    if (key) stale.set(key, [...(stale.get(key) ?? []), el]);
+  }
+  if (stale.size === 0) return;
+
+  const observer = new MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of Array.from(record.addedNodes)) {
+        const key = node instanceof Element ? headKey(node) : null;
+        const old = key ? stale.get(key) : undefined;
+        if (!key || !old) continue;
+        old.forEach((el) => el.remove());
+        stale.delete(key);
+      }
+    }
+    if (stale.size === 0) observer.disconnect();
+  });
+  observer.observe(document.head, { childList: true });
+}
+
 export function handOffPrerenderedSnapshot(root: HTMLElement): void {
   const html = document.documentElement;
   if (!html.hasAttribute("data-prerendered")) return;
   html.removeAttribute("data-prerendered");
+  retireSnapshotHeadTags();
 
   if (html.getAttribute("data-snapshot") === "stale" || !root.hasChildNodes()) {
     root.replaceChildren();

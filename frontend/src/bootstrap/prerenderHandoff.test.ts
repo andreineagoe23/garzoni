@@ -90,6 +90,28 @@ describe("handOffPrerenderedSnapshot", () => {
     expect(root.getAttribute("style")).toBeNull();
   });
 
+  it("drops each snapshot head tag once the app writes its own", async () => {
+    document.head.innerHTML =
+      '<meta name="viewport" content="width=device-width">' +
+      "<title>Budgeting — Garzoni</title>" +
+      '<link rel="canonical" href="https://www.garzoni.app/learn">';
+    html.setAttribute("data-prerendered", "en");
+    handOffPrerenderedSnapshot(mountRoot("<h1>Budgeting</h1>"));
+
+    const title = document.createElement("title");
+    title.textContent = "Budgeting — Garzoni";
+    document.head.append(title);
+    await flush();
+
+    expect(document.head.querySelectorAll("title")).toHaveLength(1);
+    expect(document.head.querySelector("title")).toBe(title);
+    expect(
+      document.head.querySelectorAll('link[rel="canonical"]')
+    ).toHaveLength(1);
+    expect(document.head.querySelector('meta[name="viewport"]')).not.toBeNull();
+    document.head.innerHTML = "";
+  });
+
   it("drops a snapshot the shell marked stale", () => {
     html.setAttribute("data-prerendered", "en");
     html.setAttribute("data-snapshot", "stale");
