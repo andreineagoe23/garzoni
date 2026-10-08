@@ -45,6 +45,12 @@ const CACHE_DIR = join(
 );
 const CACHE_MANIFEST = join(CACHE_DIR, "manifest.json");
 
+/**
+ * Bump when this script changes what goes into a snapshot without the bundle
+ * changing, so snapshots cached the old way are re-rendered.
+ */
+const SNAPSHOT_FORMAT = "2";
+
 const sha1 = (value) =>
   createHash("sha1").update(String(value)).digest("hex").slice(0, 16);
 
@@ -260,7 +266,9 @@ function writeCacheFile(routePath, html) {
  */
 function shellHash() {
   try {
-    return sha1(readFileSync(join(DIST, "index.html"), "utf-8"));
+    return sha1(
+      SNAPSHOT_FORMAT + readFileSync(join(DIST, "index.html"), "utf-8")
+    );
   } catch {
     return "no-shell";
   }
@@ -410,8 +418,62 @@ async function dedupeHead(page) {
   });
 }
 
-async function renderRoute(browser, route) {
+/** `src` of every <script> the built shell ships — the app's own entry chunk. */
+function shellScriptSrcs() {
+  const html = readFileSync(join(DIST, "index.html"), "utf-8");
+  return [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((m) => m[1]);
+}
+
+/**
+ * Make the snapshot safe to hand to a visitor, not only a crawler.
+ *
+ * - Scripts the app injected at runtime (Customer.io track.js, reCAPTCHA) are
+ *   dropped. Served back, they would load ahead of the app, whose loaders then
+ *   find the tag and skip their own setup (Customer.io's account is set in its
+ *   tag's onload). Only the shell's entry script stays.
+ * - Iframes outside the app root go for the same reason.
+ * - `[data-prerender-omit]` (the cookie banner) is per-visitor state: someone
+ *   who already answered would see it until the app takes over.
+ * - `data-prerendered` records the UI language the page was rendered in, so the
+ *   shell can hide a snapshot whose chrome is in the visitor's other language.
+ */
+async function prepareSnapshot(page, keepScripts, uiLang) {
+  await page.evaluate(
+    (keep, lang) => {
+      for (const el of Array.from(document.querySelectorAll("script[src]"))) {
+        if (!keep.includes(el.getAttribute("src"))) el.remove();
+      }
+      const root = document.getElementById("root");
+      for (const el of Array.from(document.querySelectorAll("iframe"))) {
+        if (!root || !root.contains(el)) el.remove();
+      }
+      for (const el of Array.from(
+        document.querySelectorAll("[data-prerender-omit]")
+      )) {
+        el.remove();
+      }
+      document.documentElement.setAttribute("data-prerendered", lang);
+    },
+    keepScripts,
+    uiLang
+  );
+}
+
+/** UI language (navbar, footer, chrome) a route's snapshot is rendered in. */
+const uiLanguageFor = () => "en";
+
+async function renderRoute(browser, route, keepScripts) {
+  const uiLang = uiLanguageFor(route);
   const page = await browser.newPage();
+  // Pin the UI language: the app's i18n reads this key before
+  // navigator.language, so the build machine's locale never leaks in.
+  await page.evaluateOnNewDocument((lang) => {
+    try {
+      window.localStorage.setItem("garzoni:lang", lang);
+    } catch {
+      // No storage — navigator.language decides.
+    }
+  }, uiLang);
   await page.setRequestInterception(true);
   page.on("request", async (req) => {
     try {
@@ -458,6 +520,7 @@ async function renderRoute(browser, route) {
     // Small settle for any remaining hydration.
     await new Promise((r) => setTimeout(r, 500));
     await dedupeHead(page);
+    await prepareSnapshot(page, keepScripts, uiLang);
     return await page.content();
   } finally {
     await page.close();
@@ -733,6 +796,7 @@ async function main() {
   );
 
   let skipped = 0;
+  const keepScripts = shellScriptSrcs();
   await mapPool(toRender, CONCURRENCY, async (route) => {
     try {
       // A not-found render or a navigation timeout for a route we know exists is
@@ -743,7 +807,7 @@ async function main() {
       let html;
       for (let attempt = 0; ; attempt++) {
         try {
-          html = await renderRoute(browser, route);
+          html = await renderRoute(browser, route, keepScripts);
           if (!isErrorSnapshot(html) || attempt === 2) break;
           console.error(
             `  ↻ ${route}: error state, retry ${attempt + 1}/2 after backoff…`
