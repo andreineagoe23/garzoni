@@ -28,6 +28,7 @@ from django.db import transaction
 from django.utils.html import strip_tags
 
 from education.models import Lesson
+from education.services.public_lessons import public_lessons
 
 MAX_LEN = 155
 
@@ -89,14 +90,14 @@ class Command(BaseCommand):
         parser.add_argument(
             "--all",
             action="store_true",
-            help="Process all lessons, not only is_public=True.",
+            help="Process all lessons, not only public ones.",
         )
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
         qs = Lesson.objects.prefetch_related("sections")
         if not options["all"]:
-            qs = qs.filter(is_public=True)
+            qs = public_lessons(qs)
 
         updated = 0
         skipped_no_content = 0

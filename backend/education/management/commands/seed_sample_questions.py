@@ -27,7 +27,8 @@ import json
 
 from django.core.management.base import BaseCommand, CommandError
 
-from education.models import Lesson, validate_sample_question
+from education.models import validate_sample_question
+from education.services.public_lessons import public_lessons
 
 
 class Command(BaseCommand):
@@ -98,7 +99,7 @@ class Command(BaseCommand):
     def _resolve_lesson(key):
         """Resolve a mapping key (numeric id or slug) to a public Lesson."""
         key = str(key).strip()
-        qs = Lesson.objects.filter(is_public=True)
+        qs = public_lessons()
         if key.isdigit():
             return qs.filter(pk=int(key)).first()
         return qs.filter(slug=key).first()
