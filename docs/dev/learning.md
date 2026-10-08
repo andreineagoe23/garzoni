@@ -31,7 +31,7 @@ database (read-only queries, docker stack up), not production. See [Content in n
 | Weekly Coach Brief                             | ✅ on the Personalized Path page     | ✅ same                                                    | Plus/Pro                                                    | Shipped. Cached for 24 h, so in practice it is daily                           |
 | AI help on repeated wrong answers              | ✅                                   | ✅                                                         | Explain: Starter 3/day, Plus/Pro unlimited                  | Shipped. See [ai.md](ai.md)                                                    |
 | Romanian content                               | ✅                                   | ✅                                                         | Everyone                                                    | Lessons fully translated. Quizzes not translated. Practice exercises 86 of 178 |
-| Public lessons (`/learn`)                      | ✅ web only                          | ❌ (mobile has a separate hard-coded `demo-lesson`)        | No account needed                                           | Shipped. See [website.md](website.md)                                          |
+| Public lessons (`/learn`)                      | ✅ web only                          | ❌ (mobile has a separate hard-coded `demo-lesson`)        | No account needed                                           | Shipped. See [website.md](../seo/website.md)                                   |
 
 ## How it works (user's view)
 
@@ -270,7 +270,7 @@ This is a ranked list of up to 10 courses with a reason for each.
 | Standalone practice and review | everything (not plan-gated)                     | everything                                                   | everything                   |
 
 **Daily learning limit: there isn't one in the code.** `docs/prod/subscription-matrix.md` and
-`docs/product/README.md` both say Starter has "3 core learning activities a day". No such feature
+`docs/README.md` both say Starter has "3 core learning activities a day". No such feature
 exists in `authentication/entitlements.py`, and no `daily_limits` or `feature.limit.daily` key
 appears anywhere in the backend or the apps. On Starter, what actually limits learning is the
 locked paths and the hearts. The only "3 a day" rule in learning is the AI explain quota. (The
@@ -318,7 +318,7 @@ lesson (lowest id) of an active course that has text content. The second rule is
 each request, which is why every local lesson still has `is_public = false`. The pages are
 prerendered for search engines and are web-only. On mobile, the closest equivalent is
 `demo-lesson`, a hard-coded 50/30/20 sample for people who are not signed in. Full details are in
-[website.md](website.md).
+[website.md](../seo/website.md).
 
 ## Under the hood
 
@@ -428,7 +428,7 @@ layout). `heartsPracticeStatus.ts` is **duplicated** in `frontend/src/components
    a Simple Budget", "Income Tax & Tax-Free Allowances" and others) render as an empty box on web.
    The learner can only skip them. Mobile renders them (`NumericInput`).
 2. **"3 core learning activities a day" for Starter is not built.** It appears in
-   `docs/prod/subscription-matrix.md` and `docs/product/README.md`, but no code enforces or even
+   `docs/prod/subscription-matrix.md` and `docs/README.md`, but no code enforces or even
    defines it.
 3. **The hint quota is not enforced, and the hint "cost" is not charged.** Starter's "2 hints a
    day" is never counted on the server (`check_and_consume_entitlement` is never called for

@@ -25,14 +25,14 @@ _Last reviewed: 2026-10-08._
 | Support page and contact form                                     | ✅  | ✅     |                                                     |
 | Feedback hub                                                      | ✅  | ✅     |                                                     |
 | Shake to send feedback                                            | —   | ✅     |                                                     |
-| Referral link                                                     | ✅  | ✅     | `/?ref=CODE`; see [Engagement](engagement.md)       |
+| Referral link                                                     | ✅  | ✅     | `/?ref=CODE`; see [Engagement](../ux/engagement.md) |
 
 ## How it works
 
 **Signing up.** A visitor registers from the website or the app. On the web, a sign-up that started
 on a public lesson carries `?next=` so the user lands back in that course after onboarding. The
 first-touch campaign data (where they came from) is saved with the account; see
-[Website](website.md#analytics-and-attribution).
+[Website](../seo/website.md#analytics-and-attribution).
 
 **Onboarding.** New users answer a questionnaire about their goals, confidence and topics of
 interest. The answers produce a plan summary ("plan ready") and feed the Personalized Path described
@@ -41,7 +41,7 @@ in [Learning](learning.md). Users can finish later; the dashboard reminds them.
 **Profile and settings.** The profile shows XP, streak, coins, badges, goals and recent activity.
 Settings cover personal details, email reminder preferences, lesson sounds and animations, password
 change, links to the legal pages, and account deletion. Billing is managed from the subscriptions
-page; see [Plans and billing](plans-and-billing.md).
+page; see [Plans and billing](../prod/plans-and-billing.md).
 
 **Language.** The UI is fully available in English and Romanian. The choice is stored on the device
 and sent to the API, which returns translated content where it exists and English otherwise.

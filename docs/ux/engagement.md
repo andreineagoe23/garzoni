@@ -55,7 +55,7 @@ below 750 XP, Intermediate from 750, Advanced from 2,500, then a new "Advanced I
 the streak. Missing a whole day ends it. "Day" means the learner's own calendar day, using the
 timezone their phone reports. On mobile, a phone notification is scheduled for 8pm local time on
 each of the next 7 days, and is re-armed whenever the app opens (see
-[notifications.md](notifications.md)). At 3, 7, 14 and 30 days the learner gets bonus XP and coins.
+[notifications.md](../notifications/overview.md)). At 3, 7, 14 and 30 days the learner gets bonus XP and coins.
 
 **Streak freeze.** A freeze is meant to cover a missed day. On mobile, if the streak drops from more
 than 3 to 0, the home screen offers a "Use Streak Freeze" sheet. If the learner has no freeze, it
@@ -254,7 +254,7 @@ production values of those were not checked.
 | Client API                        | `packages/core/src/services/userService.ts`, `socialService.ts`                                                                                                                    |
 
 **Scheduled jobs** (static list in `backend/settings/celery.py:36-165`; production uses the database
-scheduler, see [notifications.md](notifications.md#scheduled-jobs)):
+scheduler, see [notifications.md](../notifications/overview.md#scheduled-jobs)):
 
 | Job                                              | When (server time, Europe/London)                                                                        |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
@@ -278,7 +278,7 @@ scheduler, see [notifications.md](notifications.md#scheduled-jobs)):
 
 Gamification sends three events to Customer.io (`lesson_completed`, `streak_milestone`,
 `league_week_closed`), only when both `CIO_JOURNEY_EVENTS_ENABLED` and `CIO_TRACK_ENABLED` are on.
-See [notifications.md](notifications.md).
+See [notifications.md](../notifications/overview.md).
 
 ## Known gaps and flags
 

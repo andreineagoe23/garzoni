@@ -12,20 +12,20 @@ Django API.
 ## Product documentation
 
 What Garzoni does today, module by module — what it is, how it works, which plan and platform, where
-it lives in the code, and what is unfinished — is in **[`docs/product/`](docs/product/README.md)**:
+it lives in the code, and what is unfinished — is in **[`docs/`](docs/README.md)**:
 
-| Module                                                 |                                                                            |
-| ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| [Overview](docs/product/README.md)                     | What Garzoni is, who it's for, plans, numbers, cross-cutting gaps          |
-| [Learning](docs/product/learning.md)                   | Paths, courses, lessons, quizzes, exercises, review, Personalized Path     |
-| [AI features](docs/product/ai.md)                      | Tutor, explanations, coach brief, voice, receipt scan, lesson search       |
-| [Engagement](docs/product/engagement.md)               | XP, streaks, missions, leagues, friends, duels, badges, rewards, referrals |
-| [Tools](docs/product/tools.md)                         | In-app money tools and the public calculators                              |
-| [Plans and billing](docs/product/plans-and-billing.md) | Plans, prices, entitlements, purchasing per platform                       |
-| [Notifications](docs/product/notifications.md)         | Push, email and in-app messaging                                           |
-| [Website](docs/product/website.md)                     | Public site, SEO and AI-search infrastructure, attribution                 |
-| [Accounts and support](docs/product/accounts.md)       | Sign-up, onboarding, settings, support, admin                              |
-| [Platform](docs/product/platform.md)                   | Architecture, hosting, deploys, translations, content operations           |
+| Module                                              |                                                                            |
+| --------------------------------------------------- | -------------------------------------------------------------------------- |
+| [Overview](docs/README.md)                          | What Garzoni is, who it's for, plans, numbers, cross-cutting gaps          |
+| [Learning](docs/dev/learning.md)                    | Paths, courses, lessons, quizzes, exercises, review, Personalized Path     |
+| [AI features](docs/dev/ai.md)                       | Tutor, explanations, coach brief, voice, receipt scan, lesson search       |
+| [Engagement](docs/ux/engagement.md)                 | XP, streaks, missions, leagues, friends, duels, badges, rewards, referrals |
+| [Tools](docs/dev/tools.md)                          | In-app money tools and the public calculators                              |
+| [Plans and billing](docs/prod/plans-and-billing.md) | Plans, prices, entitlements, purchasing per platform                       |
+| [Notifications](docs/notifications/overview.md)     | Push, email and in-app messaging                                           |
+| [Website](docs/seo/website.md)                      | Public site, SEO and AI-search infrastructure, attribution                 |
+| [Accounts and support](docs/dev/accounts.md)        | Sign-up, onboarding, settings, support, admin                              |
+| [Platform](docs/dev/architecture.md)                | Architecture, hosting, deploys, translations, content operations           |
 
 Developer guides, runbooks and audits are indexed in [`docs/README.md`](docs/README.md).
 

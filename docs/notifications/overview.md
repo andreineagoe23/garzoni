@@ -8,7 +8,7 @@
 > **Customer.io journeys** started by events the backend sends. The code switches for those events
 > (`CIO_TRACK_ENABLED`, `CIO_JOURNEY_EVENTS_ENABLED`) are **off by default**, and production turns them
 > on through Railway variables. The web app sends no push. AI push nudges have been switched off
-> since 2026-05-30 (see [ai.md](ai.md#ai-push-nudges-switched-off)).
+> since 2026-05-30 (see [ai.md](../dev/ai.md#ai-push-nudges-switched-off)).
 
 _Last reviewed: 2026-10-08, against `master` at `d431e781`. Production flag values and Customer.io
 automation states are taken from `.claude/context/feature-status.md` and were not re-checked._
@@ -46,7 +46,7 @@ Times are server time (Europe/London) unless noted.
 | Portfolio move                  | Expo push (`portfolio-update`)                                                               | 17:00 daily (`finance/tasks.py:65-160`)                                                               | Paper-trade users with a push token whose top holding moved 2% or more                  | Master push switch                                                                                                                 |
 | Personal CFO weekly report      | Customer.io event `personal_cfo_weekly_report` only (`budgeting/tasks.py:169-222`)           | Monday 09:00                                                                                          | Plus/Pro users with any budgeting data                                                  | `CIO_TRACK_ENABLED`. **No email is sent by the backend**; it reaches users only if a Customer.io automation listens for this event |
 | League result                   | Event `league_week_closed`                                                                   | Sunday 23:55, after the week closes                                                                   | Every settled league member                                                             | `CIO_JOURNEY_EVENTS_ENABLED`. The Customer.io automation (20) is an empty shell                                                    |
-| AI nudge                        | —                                                                                            | —                                                                                                     | —                                                                                       | **Off.** See [ai.md](ai.md#ai-push-nudges-switched-off)                                                                            |
+| AI nudge                        | —                                                                                            | —                                                                                                     | —                                                                                       | **Off.** See [ai.md](../dev/ai.md#ai-push-nudges-switched-off)                                                                     |
 
 ### From things the user does
 
