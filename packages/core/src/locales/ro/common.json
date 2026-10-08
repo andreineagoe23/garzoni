@@ -906,6 +906,14 @@
     "switchToRo": "Citește în română",
     "switchToEn": "Read in English"
   },
+  "shareImage": {
+    "kicker": {
+      "lesson": "Lecție gratuită",
+      "guide": "Ghid",
+      "calculator": "Calculator gratuit",
+      "author": "Autor"
+    }
+  },
   "publicLesson": {
     "loading": "Se încarcă…",
     "notFoundSeoTitle": "Lecție negăsită — Garzoni",
