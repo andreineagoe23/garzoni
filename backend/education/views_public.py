@@ -32,6 +32,7 @@ from .models import (
     LessonTranslation,
     PathTranslation,
 )
+from .services.public_lessons import public_lessons
 from .utils import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
 
 TRANSLATED_LANGUAGES = [lang for lang in SUPPORTED_LANGUAGES if lang != DEFAULT_LANGUAGE]
@@ -146,7 +147,7 @@ def public_lesson_detail(request, slug: str):
             _lang_prefetch("course__translations", CourseTranslation, lang),
         )
     try:
-        lesson = lessons.get(slug=slug, is_public=True)
+        lesson = public_lessons(lessons).get(slug=slug)
     except Lesson.DoesNotExist:
         raise Http404("Lesson not found")
 
@@ -210,15 +211,15 @@ def public_lesson_detail(request, slug: str):
 def public_lesson_list(request):
     """List all publicly-indexable lessons, grouped for the /learn catalog.
 
-    Only returns lessons explicitly flagged is_public=True — identical security
-    boundary to public_lesson_detail. Never exposes private or auth-gated content.
+    Same boundary as public_lesson_detail (services.public_lessons): flagged lessons
+    plus the first lesson of each course. Never exposes private or auth-gated content.
     """
     lang = _public_language(request)
     lessons = _only_in(
         _with_languages(
-            Lesson.objects.select_related("course", "course__path")
-            .filter(is_public=True)
-            .order_by("course__order", "id"),
+            public_lessons(Lesson.objects.select_related("course", "course__path")).order_by(
+                "course__order", "id"
+            ),
             _lesson_translated,
         ),
         lang,
@@ -325,7 +326,7 @@ def public_article_detail(request, slug: str):
 
     image_url = canonical_file_field_url(article.image) or ""
     trans = _translation(article, lang)
-    related_lessons = article.related_lessons.filter(is_public=True)
+    related_lessons = public_lessons(article.related_lessons.all())
     if lang != DEFAULT_LANGUAGE:
         # Link only lessons that exist at /<lang>/learn/<slug>, under their own titles.
         related_lessons = _only_in(
@@ -399,7 +400,7 @@ def sitemap_xml(request):
     # Translated versions live under /<lang>/. Each language version of a page gets
     # its own <url>, and every version lists all of them (plus x-default = English)
     # as xhtml:link alternates — Google wants the hreflang set on both sides.
-    lessons = Lesson.objects.filter(is_public=True)
+    lessons = public_lessons()
     articles = Article.objects.filter(is_published=True)
     translated_lessons = {
         lang: set(lessons.filter(_lesson_translated(lang)).values_list("slug", flat=True))

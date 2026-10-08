@@ -692,7 +692,7 @@ async function main() {
 
   // Empty slug lists on a production build mean the API was unreachable or
   // returned nothing — shipping only the ~10 static snapshots would leave the
-  // entire content moat (43 lessons + 13 guides) 404ing to bots. Fail loudly.
+  // entire content moat (every public lesson and guide) 404ing to bots. Fail loudly.
   if (
     isVercelProduction &&
     (lessonSlugs.length === 0 || articleSlugs.length === 0)

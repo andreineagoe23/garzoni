@@ -33,6 +33,7 @@ from education.models import (
     Article,
     ArticleTranslation,
 )
+from education.services.public_lessons import public_lessons
 
 
 class PrettyJSONWidget(AdminTextareaWidget):
@@ -215,6 +216,7 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
         "title",
         "course",
         "is_public",
+        "on_public_site",
         "section_count",
         "published_section_count",
         "last_updated",
@@ -274,6 +276,11 @@ class LessonAdmin(EducationAuditMixin, admin.ModelAdmin):
     def make_private(self, request, queryset):
         updated = queryset.update(is_public=False)
         self.message_user(request, f"{updated} lesson(s) marked private.")
+
+    @admin.display(boolean=True, description="On /learn")
+    def on_public_site(self, obj):
+        # The first lesson of every active course is public even when unflagged.
+        return public_lessons(Lesson.objects.filter(pk=obj.pk)).exists()
 
     def section_count(self, obj):
         """Return the count of sections in a lesson."""
