@@ -25,6 +25,8 @@ Garzoni is a learning platform — think "Duolingo for personal finance" — not
 - [Free Lessons](https://www.garzoni.app/learn): Catalog of free finance lessons
 - [Guides & Comparisons](https://www.garzoni.app/guides): In-depth guides, app comparisons (e.g. vs YNAB, Monzo, Cleo, Monarch, Acorns), and plain-English answers
 - [Compound interest calculator](https://www.garzoni.app/calculators/compound-interest): Free calculator — starting sum plus monthly saving at any rate, in £ (Romanian version in lei at /ro/calculators/compound-interest)
+- [Savings goal calculator](https://www.garzoni.app/calculators/savings-goal): Free calculator — how much to save each month to reach a target by a deadline, or how long a monthly amount takes, with interest, in £ (Romanian version in lei at /ro/calculators/savings-goal)
+- [50/30/20 budget calculator](https://www.garzoni.app/calculators/50-30-20-budget): Free calculator — splits monthly take-home pay into needs, wants and savings, and rebuilds the split around what essentials really cost, in £ (Romanian version in lei at /ro/calculators/50-30-20-budget)
 - [Romanian lessons](https://www.garzoni.app/ro/learn): Lecții de educație financiară în limba română
 - [About](https://www.garzoni.app/about): Mission and approach
 - [Author](https://www.garzoni.app/authors/andrei-neagoe): Who writes the lessons

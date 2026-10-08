@@ -37,6 +37,13 @@ from .utils import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES
 
 TRANSLATED_LANGUAGES = [lang for lang in SUPPORTED_LANGUAGES if lang != DEFAULT_LANGUAGE]
 
+# The web app's public calculator routes (frontend AppRoutes + prerender STATIC_ROUTES).
+PUBLIC_CALCULATOR_PATHS = (
+    "/calculators/compound-interest",
+    "/calculators/savings-goal",
+    "/calculators/50-30-20-budget",
+)
+
 
 # Seed text left in Lesson.detailed_content by add_missing_courses (and its literal
 # Romanian translation). The real prose lives in the sections, so a public page
@@ -452,13 +459,13 @@ def sitemap_xml(request):
     home_urls = [(f"{site_url}/ro", "1.0", "daily", None)]
 
     # Public calculators exist in every language (static copy, no translation gate).
-    calculator_urls = _versions(
-        "/calculators/compound-interest",
-        [DEFAULT_LANGUAGE, *TRANSLATED_LANGUAGES],
-        "0.8",
-        "monthly",
-        None,
-    )
+    calculator_urls = [
+        url
+        for path in PUBLIC_CALCULATOR_PATHS
+        for url in _versions(
+            path, [DEFAULT_LANGUAGE, *TRANSLATED_LANGUAGES], "0.8", "monthly", None
+        )
+    ]
 
     # Lessons carry no timestamp of their own — the honest "last modified" is the
     # newest section edit (matches the lesson detail API's updated_at).

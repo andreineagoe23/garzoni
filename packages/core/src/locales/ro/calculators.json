@@ -59,5 +59,173 @@
     },
     "disclaimer": "Doar în scop educativ, nu este consultanță financiară.",
     "faqHeading": "Întrebări frecvente"
+  },
+  "related": {
+    "heading": "Alte calculatoare gratuite",
+    "compound": {
+      "name": "Calculator de dobândă compusă",
+      "description": "la cât cresc o sumă inițială și economiile lunare"
+    },
+    "savingsGoal": {
+      "name": "Calculator pentru obiective de economisire",
+      "description": "cât să pui deoparte lunar sau în cât timp ajungi la sumă"
+    },
+    "budget": {
+      "name": "Calculator de buget 50/30/20",
+      "description": "cum îți împarți venitul net între nevoi, dorințe și economii"
+    }
+  },
+  "savingsGoal": {
+    "seoTitle": "Calculator economii — cât să pui deoparte lunar pentru un obiectiv | Garzoni",
+    "seoDescription": "Calculator gratuit de economii: află cât trebuie să pui deoparte lunar ca să strângi o sumă până la o anumită dată sau în cât timp ajungi la ea. Cu dobândă, fără cont.",
+    "title": "Calculator pentru obiective de economisire",
+    "intro": "Stabilește o țintă — un fond de urgență, avansul pentru o locuință, o vacanță — și adaugă ce ai strâns deja. Vezi cât trebuie să pui deoparte în fiecare lună ca să ajungi acolo la timp sau în cât timp ajungi cu suma pe care o economisești acum.",
+    "mode": {
+      "label": "Ce vrei să afli?",
+      "monthly": "Cât să economisesc lunar",
+      "time": "În cât timp strâng suma"
+    },
+    "inputs": {
+      "goal": "Suma țintă (lei)",
+      "start": "Ai strâns deja (lei)",
+      "months": "În câte luni vrei s-o strângi",
+      "monthly": "Economisești lunar (lei)",
+      "rate": "Dobândă (% pe an)",
+      "rateHelp": "Dobânda contului de economii sau a depozitului. Pune 0 dacă banii stau în contul curent."
+    },
+    "results": {
+      "monthlyHeading": "Ca să strângi {{goal}} în {{duration}}",
+      "monthly": "Pune deoparte lunar",
+      "timeHeading": "Cu {{monthly}} pe lună",
+      "time": "Strângi {{goal}} în",
+      "contributed": "Depui",
+      "interest": "Dobândă câștigată",
+      "barStart": "Strâns deja",
+      "barDeposits": "Depuneri lunare",
+      "barInterest": "Dobândă",
+      "reached": "Ai strâns deja suma pentru acest obiectiv. E momentul să-ți alegi următorul.",
+      "unreachable": "În ritmul ăsta nu strângi suma nici în 100 de ani. Adaugă o sumă lunară sau verifică dobânda."
+    },
+    "duration": {
+      "years_one": "{{n}} an",
+      "years_few": "{{n}} ani",
+      "years_other": "{{n}} de ani",
+      "months_one": "{{n}} lună",
+      "months_few": "{{n}} luni",
+      "months_other": "{{n}} de luni",
+      "both": "{{years}} și {{months}}"
+    },
+    "invalid": "Introdu o sumă țintă mai mare de 0, sume de cel puțin 0, o dobândă între 0 și 30% și între 1 și 600 de luni.",
+    "how": {
+      "heading": "Cum face calculul",
+      "p1": "Pornește de la ce ai strâns deja și adaugă suma lunară la sfârșitul fiecărei luni. Dobânda se adaugă lunar, câte o douăsprezecime din dobânda anuală, la tot ce ai economisit până atunci — inclusiv la dobânda deja câștigată.",
+      "p2": "Pentru suma lunară, calculează la cât vor crește economiile de acum până la termen, apoi depunerea care acoperă diferența, rotunjită în sus la leu. Pentru durată, avansează lună cu lună până când soldul ajunge la țintă."
+    },
+    "example": {
+      "heading": "Un exemplu",
+      "body": "Să zicem că vrei un fond de urgență de 30.000 de lei în trei ani, pornind de la zero. Fără dobândă ar însemna aproximativ 833 de lei pe lună. Într-un cont de economii cu 5% pe an îți ajung aproximativ 774 de lei pe lună, pentru că dobânda acoperă restul. Dacă vrei suma în doi ani, ai nevoie de aproximativ 1.191 de lei pe lună."
+    },
+    "tips": {
+      "heading": "Cum să te ții de plan",
+      "body": "Programează un transfer automat în ziua de salariu, ca banii să ajungă la economii înainte să apuci să-i cheltui. Ține-i într-un cont separat, ideal unul cu dobândă, și verifică planul din câteva în câteva luni. Dacă ți se schimbă venitul sau dobânda, refă calculul și ajustează suma lunară, nu renunța la obiectiv."
+    },
+    "caveats": {
+      "heading": "Ce nu include calculatorul",
+      "body": "Dobânzile se schimbă, așa că tratează rezultatul ca pe un plan, nu ca pe o garanție. Calculatorul nu include impozitul pe dobânzi, care reduce puțin câștigul, și nici inflația — dacă ținta este un preț care crește, cum ar fi avansul pentru o locuință, țintește puțin mai sus."
+    },
+    "learn": {
+      "heading": "Învață ideea din spatele calculului",
+      "goals": "Obiective pe termen scurt și pe termen lung — lecție gratuită",
+      "emergency": "Unde să ții fondul de urgență — lecție gratuită"
+    },
+    "cta": {
+      "heading": "Transformă planul într-un obicei",
+      "body": "Garzoni te învață să economisești, să-ți faci bugetul și să investești în lecții de cinci minute, cu o serie zilnică care te ține pe drumul cel bun. Poți începe gratuit.",
+      "button": "Începe gratuit",
+      "appStore": "Descarcă din App Store",
+      "googlePlay": "Descarcă din Google Play"
+    },
+    "faq": {
+      "q1": "Cât ar trebui să economisesc lunar?",
+      "a1": "Pornește de la obiectiv: împarte ce mai ai de strâns la numărul de luni rămase, iar dobânda o să reducă puțin suma. Dacă rezultatul nu încape în buget, dă-ți mai mult timp în loc să sari peste luni — o sumă mai mică pe care o poți susține e mai bună decât una mare la care renunți.",
+      "q2": "Cât de mare ar trebui să fie fondul de urgență?",
+      "a2": "O regulă des folosită: între trei și șase luni de cheltuieli esențiale — chirie sau rată, întreținere, mâncare și transport. Începe cu o lună ca prim obiectiv și construiește de acolo.",
+      "q3": "Unde să țin banii pentru un obiectiv?",
+      "a3": "Pentru obiective de câțiva ani, un cont de economii sau un depozit la termen păstrează banii în siguranță și aduce dobândă. Titlurile de stat, precum Tezaur sau Fidelis, sunt o altă variantă. Investițiile se potrivesc obiectivelor la cinci ani sau mai mult, pentru că prețurile pot scădea pe termen scurt.",
+      "q4": "Calculatorul include dobânda?",
+      "a4": "Da. Dobânda se adaugă lunar, la nivelul introdus de tine. Pune 0 ca să vezi calculul fără dobândă."
+    },
+    "disclaimer": "Doar în scop educativ, nu este consultanță financiară.",
+    "faqHeading": "Întrebări frecvente"
+  },
+  "budget": {
+    "seoTitle": "Calculator buget 50/30/20 — cum îți împarți salariul net | Garzoni",
+    "seoDescription": "Calculator gratuit pentru regula 50/30/20: împarte salariul net în nevoi, dorințe și economii și vezi cum se schimbă planul când chiria și facturile costă mai mult. Fără cont.",
+    "title": "Calculator de buget 50/30/20",
+    "intro": "Introdu venitul net, adică suma care îți intră lunar în cont. Regula 50/30/20 o împarte în nevoi, dorințe și economii — iar dacă cheltuielile esențiale trec deja de jumătate, vezi de unde trebuie să vină diferența.",
+    "inputs": {
+      "income": "Venit net lunar (lei)",
+      "incomeHelp": "Salariul după impozit și contribuțiile la pensie și sănătate (CAS, CASS).",
+      "essentials": "Cât te costă acum cheltuielile esențiale (lei, opțional)",
+      "essentialsHelp": "Chirie sau rată, întreținere și utilități, mâncare, transport și ratele minime la credite. Lasă gol ca să vezi doar împărțirea standard."
+    },
+    "results": {
+      "heading": "Împărțirea 50/30/20",
+      "needs": "Nevoi (50%)",
+      "wants": "Dorințe (30%)",
+      "savings": "Economii (20%)",
+      "needsHint": "Chirie, utilități, mâncare, transport, rate minime",
+      "wantsHint": "Ieșiri în oraș, abonamente, hobby-uri, vacanțe",
+      "savingsHint": "Fond de urgență, obiective, rambursări în plus, investiții",
+      "adjustedHeading": "Planul după cheltuielile tale reale",
+      "essentialsShare": "Cheltuielile esențiale îți iau {{percent}}% din venit.",
+      "under": "E sub jumătate: dacă păstrezi dorințele la {{wants}}, poți economisi {{savings}} pe lună.",
+      "overWants": "E mai mult de jumătate, așa că dorințele scad la {{wants}} pe lună, ca să poți economisi în continuare {{savings}}.",
+      "overSavings": "După cheltuielile esențiale îți rămân {{savings}} pe lună, așa că nu mai e loc de dorințe, iar economiile scad sub 20%. Începe cu cea mai mare cheltuială fixă.",
+      "noRoom": "Cheltuielile esențiale îți iau tot venitul și nu rămâne nimic pentru dorințe sau economii. Începe cu cea mai mare cheltuială fixă."
+    },
+    "labels": {
+      "needs": "Nevoi",
+      "wants": "Dorințe",
+      "savings": "Economii"
+    },
+    "invalid": "Introdu un venit net mai mare de 0 și cheltuieli esențiale de cel puțin 0.",
+    "how": {
+      "heading": "Cum funcționează regula 50/30/20",
+      "p1": "Regula a fost popularizată de Elizabeth Warren și Amelia Warren Tyagi în cartea lor din 2005, All Your Worth. Împarte venitul net în trei: jumătate pentru ce trebuie să plătești, 30% pentru ce alegi să cheltui și 20% pentru viitorul tău.",
+      "p2": "Nevoile sunt costurile pe care nu le poți ocoli ușor: chiria sau rata, întreținerea și utilitățile, cumpărăturile de mâncare, drumul la muncă, asigurările și ratele minime. Dorințele îți fac viața mai plăcută, dar ai putea trăi și fără ele: mâncarea comandată, abonamentele de streaming, hainele noi, vacanțele. La economii intră fondul de urgență, obiectivele, investițiile și plata mai rapidă a datoriilor."
+    },
+    "example": {
+      "heading": "Un exemplu",
+      "body": "La un venit net de 5.000 de lei pe lună, regula îți dă 2.500 de lei pentru nevoi, 1.500 pentru dorințe și 1.000 pentru economii. Dacă chiria și facturile te costă deja 3.000 de lei și vrei să păstrezi cei 1.000 de lei pentru economii, îți rămân 1.000 pentru dorințe — strângi cureaua la dorințe, nu la viitorul tău."
+    },
+    "caveats": {
+      "heading": "Când împărțirea nu se potrivește",
+      "body": "În orașele mari, chiria singură poate lua mai mult de jumătate din salariu, mai ales la început de carieră. Nu înseamnă că bugetul a eșuat — tratează 50/30/20 ca pe un punct de plecare. O împărțire 60/20/20 sau 70/20/10 e tot un plan, atâta timp cât pui ceva deoparte în fiecare lună și știi unde se duce restul."
+    },
+    "learn": {
+      "heading": "Învață ideea din spatele calculului",
+      "guide": "Cum să începi să-ți faci bugetul — ghid gratuit",
+      "expenses": "Cheltuieli fixe și variabile — lecție gratuită"
+    },
+    "cta": {
+      "heading": "Ține-te de plan",
+      "body": "Garzoni te învață să-ți faci bugetul și să economisești în lecții de cinci minute, cu o serie zilnică care te ajută să nu renunți. Poți începe gratuit.",
+      "button": "Începe gratuit",
+      "appStore": "Descarcă din App Store",
+      "googlePlay": "Descarcă din Google Play"
+    },
+    "faq": {
+      "q1": "Ce este regula 50/30/20?",
+      "a1": "Un mod simplu de a-ți împărți venitul net: 50% pentru nevoi, 30% pentru dorințe și 20% pentru economii și plata mai rapidă a datoriilor. Îți dă un buget fără să urmărești fiecare categorie de cheltuieli.",
+      "q2": "Se calculează din salariul brut sau din cel net?",
+      "a2": "Din cel net — suma care îți intră efectiv în cont, după impozit și contribuții. Contribuția la Pilonul II de pensii se reține deja din salariul brut, așa că cei 20% sunt economii în plus.",
+      "q3": "Ce fac dacă nevoile trec de 50%?",
+      "a3": "Se întâmplă des, mai ales când stai cu chirie. Continuă să pui ceva deoparte, chiar dacă e sub 20%, și lasă dorințele să acopere cea mai mare parte din diferență. Apoi uită-te la cele mai mari cheltuieli fixe — chiria, utilitățile, abonamentul de telefon și asigurările — pentru că o singură schimbare acolo îți eliberează bani în fiecare lună.",
+      "q4": "Ratele la credite intră la nevoi sau la economii?",
+      "a4": "Rata minimă intră la nevoi, pentru că trebuie plătită. Tot ce plătești peste minim, de exemplu rambursările anticipate, contează ca economie, pentru că îți îmbunătățește situația financiară la fel ca banii puși deoparte."
+    },
+    "disclaimer": "Doar în scop educativ, nu este consultanță financiară.",
+    "faqHeading": "Întrebări frecvente"
   }
 }

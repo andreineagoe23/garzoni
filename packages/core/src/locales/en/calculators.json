@@ -59,5 +59,173 @@
     },
     "disclaimer": "For education only, not financial advice.",
     "faqHeading": "Common questions"
+  },
+  "related": {
+    "heading": "More free calculators",
+    "compound": {
+      "name": "Compound interest calculator",
+      "description": "what a starting sum and monthly saving grow to"
+    },
+    "savingsGoal": {
+      "name": "Savings goal calculator",
+      "description": "how much to save each month, or how long it takes"
+    },
+    "budget": {
+      "name": "50/30/20 budget calculator",
+      "description": "split your take-home pay into needs, wants and savings"
+    }
+  },
+  "savingsGoal": {
+    "seoTitle": "Savings Goal Calculator (UK) — How Much to Save Each Month | Garzoni",
+    "seoDescription": "Free savings goal calculator: see how much to save each month to hit your target by a deadline, or how long your monthly saving will take. With interest. No signup.",
+    "title": "Savings goal calculator",
+    "intro": "Set a target — an emergency fund, a house deposit, a trip — and add what you've already saved. See how much to put away each month to get there on time, or how long your current monthly amount will take.",
+    "mode": {
+      "label": "What do you want to work out?",
+      "monthly": "How much to save a month",
+      "time": "How long it will take"
+    },
+    "inputs": {
+      "goal": "Savings goal (£)",
+      "start": "Already saved (£)",
+      "months": "Months to reach it",
+      "monthly": "Monthly saving (£)",
+      "rate": "Interest rate (% a year)",
+      "rateHelp": "The AER on your savings account. Use 0 if the money stays in a current account."
+    },
+    "results": {
+      "monthlyHeading": "To reach {{goal}} in {{duration}}",
+      "monthly": "Save each month",
+      "timeHeading": "Saving {{monthly}} a month",
+      "time": "You'll reach {{goal}} in",
+      "contributed": "You pay in",
+      "interest": "Interest earned",
+      "barStart": "Already saved",
+      "barDeposits": "Monthly saving",
+      "barInterest": "Interest",
+      "reached": "You've already saved enough for this goal. Time to pick the next one.",
+      "unreachable": "At this rate you won't reach it within 100 years. Add a monthly amount or check the rate."
+    },
+    "duration": {
+      "years_one": "{{n}} year",
+      "years_few": "{{n}} years",
+      "years_other": "{{n}} years",
+      "months_one": "{{n}} month",
+      "months_few": "{{n}} months",
+      "months_other": "{{n}} months",
+      "both": "{{years}} and {{months}}"
+    },
+    "invalid": "Enter a goal above 0, amounts of 0 or more, a rate between 0 and 30%, and 1 to 600 months.",
+    "how": {
+      "heading": "How the calculator works",
+      "p1": "It starts from what you've already saved and adds your monthly amount at the end of each month. Interest is added monthly at a twelfth of the yearly rate, on everything saved so far — including interest you've already earned.",
+      "p2": "To find the monthly amount, it works out what your current savings will grow to by the deadline, then the deposit that covers the rest, rounded up to the nearest pound. To find the time, it steps forward month by month until the balance reaches the goal."
+    },
+    "example": {
+      "heading": "An example",
+      "body": "Say you want a £6,000 emergency fund in two years, starting from nothing. Without interest that's £250 a month. In an easy-access account paying 4%, about £241 a month gets you there, because interest covers the rest. Give yourself three years and it drops to about £157."
+    },
+    "tips": {
+      "heading": "Making the goal stick",
+      "body": "Set up a standing order for payday, so the saving happens before you can spend it. Keep the money in a separate account, ideally one that pays interest, and check in every few months. If your pay or the rate changes, rerun the numbers and adjust the amount rather than giving up on the goal."
+    },
+    "caveats": {
+      "heading": "What the calculator leaves out",
+      "body": "Savings rates change, so treat the result as a plan, not a promise. It ignores tax: interest above your Personal Savings Allowance is taxable unless the money sits in an ISA. It also ignores inflation — if your goal is a price that will rise, like a house deposit, aim a little higher."
+    },
+    "learn": {
+      "heading": "Learn the idea behind it",
+      "goals": "Short-term vs long-term goals — free lesson",
+      "emergency": "Where to keep your emergency fund — free lesson"
+    },
+    "cta": {
+      "heading": "Turn the plan into a habit",
+      "body": "Garzoni teaches saving, budgeting and investing in five-minute lessons, with a daily streak to keep you on track. Free to start.",
+      "button": "Start learning free",
+      "appStore": "Get it on the App Store",
+      "googlePlay": "Get it on Google Play"
+    },
+    "faq": {
+      "q1": "How much should I save each month?",
+      "a1": "Work back from the goal: divide what's left by the months you have, then let interest trim it a little. If the answer doesn't fit your budget, give yourself more time rather than skipping months — a smaller amount you keep up beats a bigger one you abandon.",
+      "q2": "How big should an emergency fund be?",
+      "a2": "A common rule of thumb is three to six months of essential costs: rent, bills, food and travel. Start with one month as a first goal, then build from there.",
+      "q3": "Where should I keep money I'm saving for a goal?",
+      "a3": "For goals a few years away, an easy-access savings account or a cash ISA keeps the money safe and earning interest. Investing suits goals five or more years away, because prices can fall in the short term.",
+      "q4": "Does the calculator include interest?",
+      "a4": "Yes. Interest is added monthly at the rate you enter. Set the rate to 0 to see the figure without it."
+    },
+    "disclaimer": "For education only, not financial advice.",
+    "faqHeading": "Common questions"
+  },
+  "budget": {
+    "seoTitle": "50/30/20 Budget Calculator (UK) — Split Your Take-Home Pay | Garzoni",
+    "seoDescription": "Free 50/30/20 budget calculator: split your monthly take-home pay into needs, wants and savings, and see how the plan changes when rent and bills cost more. No signup.",
+    "title": "50/30/20 budget calculator",
+    "intro": "Enter what lands in your account each month after tax. The 50/30/20 rule splits it into needs, wants and savings — and if your essentials already cost more than half, you'll see where the difference has to come from.",
+    "inputs": {
+      "income": "Monthly take-home pay (£)",
+      "incomeHelp": "Your pay after tax, National Insurance and pension contributions.",
+      "essentials": "What your essentials cost now (£, optional)",
+      "essentialsHelp": "Rent or mortgage, bills, food, travel to work and minimum debt repayments. Leave blank to see the plain split."
+    },
+    "results": {
+      "heading": "The 50/30/20 split",
+      "needs": "Needs (50%)",
+      "wants": "Wants (30%)",
+      "savings": "Savings (20%)",
+      "needsHint": "Rent, bills, food, transport, minimum repayments",
+      "wantsHint": "Eating out, subscriptions, hobbies, holidays",
+      "savingsHint": "Emergency fund, goals, extra debt payments, investing",
+      "adjustedHeading": "Built around your real essentials",
+      "essentialsShare": "Your essentials take {{percent}}% of your pay.",
+      "under": "That's under half: keep wants at {{wants}} and you can save {{savings}} a month.",
+      "overWants": "That's more than half, so wants shrink to {{wants}} a month to keep saving {{savings}}.",
+      "overSavings": "After essentials there's {{savings}} a month left, so there's no room for wants and saving drops below 20%. Start with your biggest fixed cost.",
+      "noRoom": "Essentials take all of your pay, leaving nothing for wants or savings. Start with your biggest fixed cost."
+    },
+    "labels": {
+      "needs": "Needs",
+      "wants": "Wants",
+      "savings": "Savings"
+    },
+    "invalid": "Enter take-home pay above 0, and essentials of 0 or more.",
+    "how": {
+      "heading": "How the 50/30/20 rule works",
+      "p1": "The rule was popularised by Elizabeth Warren and Amelia Warren Tyagi in their 2005 book All Your Worth. It splits take-home pay three ways: half for the things you must pay, 30% for the things you choose, and 20% for your future.",
+      "p2": "Needs are costs you can't easily skip: rent or mortgage, council tax, energy, food shopping, getting to work, insurance and minimum debt payments. Wants make life nicer but could go: takeaways, streaming, new clothes, holidays. Savings covers your emergency fund, goals, investing and paying off debt faster."
+    },
+    "example": {
+      "heading": "An example",
+      "body": "On £2,200 a month take-home, the rule gives £1,100 for needs, £660 for wants and £440 for savings. If rent and bills already cost £1,300, keeping £440 for savings leaves £460 for wants — so the squeeze falls on wants, not on your future."
+    },
+    "caveats": {
+      "heading": "When the split doesn't fit",
+      "body": "In much of the UK, rent alone can take more than half of take-home pay, especially in London. That doesn't mean budgeting has failed — treat 50/30/20 as a starting point. A 60/20/20 or 70/20/10 split is still a plan, as long as something goes to savings every month and you know where the rest goes."
+    },
+    "learn": {
+      "heading": "Learn the idea behind it",
+      "guide": "How to start budgeting — free guide",
+      "expenses": "Fixed vs variable expenses — free lesson"
+    },
+    "cta": {
+      "heading": "Stick to the plan",
+      "body": "Garzoni teaches budgeting and saving in five-minute lessons, with a daily streak that keeps the habit going. Free to start.",
+      "button": "Start learning free",
+      "appStore": "Get it on the App Store",
+      "googlePlay": "Get it on Google Play"
+    },
+    "faq": {
+      "q1": "What is the 50/30/20 rule?",
+      "a1": "A simple way to split take-home pay: 50% on needs, 30% on wants and 20% on savings and extra debt payments. It gives you a budget without tracking every category.",
+      "q2": "Is 50/30/20 based on gross or net pay?",
+      "a2": "Net — what actually arrives in your account after tax, National Insurance and pension contributions. If a workplace pension comes out of your pay, that's already saving, so the 20% is on top.",
+      "q3": "What if my needs are more than 50%?",
+      "a3": "It's common, especially when renting. Keep saving something, even if it's less than 20%, and let wants absorb most of the gap. Then look at the biggest fixed costs — rent, energy, phone and insurance — since one change there frees up money every month.",
+      "q4": "Do debt repayments count as needs or savings?",
+      "a4": "Minimum payments are needs: you have to make them. Anything above the minimum counts as savings, because it improves your finances just like putting money aside."
+    },
+    "disclaimer": "For education only, not financial advice.",
+    "faqHeading": "Common questions"
   }
 }
