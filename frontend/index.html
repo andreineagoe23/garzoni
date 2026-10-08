@@ -76,6 +76,43 @@
     </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Before first paint: apply the visitor's theme (mirrors ThemeContext), and
+         hide a prerendered snapshot whose UI language isn't the visitor's (mirrors
+         i18n.ts) so it never flips language when the app takes over. -->
+    <style>
+      html[data-snapshot="stale"] #root {
+        visibility: hidden;
+      }
+    </style>
+    <script>
+      (function () {
+        var html = document.documentElement;
+        function read(key) {
+          try {
+            return window.localStorage.getItem(key);
+          } catch (e) {
+            return null;
+          }
+        }
+        var theme = read("garzoni:theme");
+        var mq = window.matchMedia
+          ? window.matchMedia("(prefers-color-scheme: dark)")
+          : null;
+        var dark = theme ? theme === "dark" : mq ? mq.matches : true;
+        if (dark) html.setAttribute("data-theme", "dark");
+        else html.removeAttribute("data-theme");
+
+        var rendered = html.getAttribute("data-prerendered");
+        if (!rendered) return;
+        var lang =
+          read("garzoni:lang") ||
+          (navigator.languages && navigator.languages[0]) ||
+          navigator.language ||
+          "en";
+        lang = /^ro/i.test(lang) ? "ro" : "en";
+        if (lang !== rendered) html.setAttribute("data-snapshot", "stale");
+      })();
+    </script>
     <!-- No hardcoded canonical: react-helmet-async sets a per-route canonical.
          A static homepage canonical here would (if the prerender dedupe ever
          missed it) collapse every lesson/guide onto the homepage URL. A wrong

@@ -110,6 +110,7 @@ export default function CookieConsentBanner() {
       className="fixed bottom-0 left-0 right-0 z-[9998] border-t border-[color:var(--color-border-default)] bg-[color:var(--color-surface-card)]/95 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:p-4 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]"
       role="region"
       aria-label={t("cookieConsent.bannerAria")}
+      data-prerender-omit=""
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
         <p className="min-w-0 flex-1 text-sm leading-snug text-content-primary">

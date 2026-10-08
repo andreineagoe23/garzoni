@@ -70,6 +70,10 @@ const AppContent = () => {
     const prevPathname = prevPathnameRef.current;
     prevPathnameRef.current = pathname;
 
+    // A fresh page load is already where the browser put it — at the top, or
+    // where a visitor scrolled a prerendered snapshot before the app took over.
+    if (prevPathname === null) return;
+
     const isDashboardTab = (path: string) =>
       path === "/all-topics" || path === "/personalized-path";
 
