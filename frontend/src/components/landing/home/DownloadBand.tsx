@@ -1,9 +1,11 @@
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { detectMobileOs } from "utils/storeLinks";
 import StoreBadges from "./StoreBadges";
 
 export default function DownloadBand({ id }: { id: string }) {
   const { t } = useTranslation();
+  const onPhone = detectMobileOs() !== null;
 
   return (
     <section id={id} className="gzh-download">
@@ -21,6 +23,18 @@ export default function DownloadBand({ id }: { id: string }) {
         <span className="gzh-download__note">
           {t("welcome.download.disclaimer")}
         </span>
+        {/* Desktop only: scan to get the app. The white square baked into the SVG
+            keeps it scannable in dark mode. */}
+        {!onPhone && (
+          <img
+            src="/qr-get-app.svg"
+            alt={t("welcome.hero.qrAlt")}
+            width={96}
+            height={96}
+            className="rounded-card"
+            loading="lazy"
+          />
+        )}
       </div>
     </section>
   );

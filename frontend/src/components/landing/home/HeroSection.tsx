@@ -40,18 +40,7 @@ export default function HeroSection() {
               <span className="text-sm text-content-muted">
                 {t("welcome.hero.orGetApp")}
               </span>
-              <div className="flex items-center gap-4">
-                <StoreBadges placement="hero" />
-                {/* White square baked into the SVG keeps it scannable in dark mode. */}
-                <img
-                  src="/qr-get-app.svg"
-                  alt={t("welcome.hero.qrAlt")}
-                  width={88}
-                  height={88}
-                  className="rounded-card"
-                  loading="lazy"
-                />
-              </div>
+              <StoreBadges placement="hero" />
             </div>
           )}
           <HeroStats />
