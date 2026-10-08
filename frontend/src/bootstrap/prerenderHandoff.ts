@@ -59,3 +59,19 @@ export function handOffPrerenderedSnapshot(root: HTMLElement): void {
   });
   timer = window.setTimeout(reveal, MAX_WAIT_MS);
 }
+
+/**
+ * public/404.html sends a visitor back with `?_spa=1` when their lesson or guide
+ * has no snapshot yet (see middleware.ts). Drop the flag before the router and
+ * analytics read the URL.
+ */
+export function dropSpaFallbackParam(): void {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("_spa")) return;
+  url.searchParams.delete("_spa");
+  window.history.replaceState(
+    window.history.state,
+    "",
+    `${url.pathname}${url.search}${url.hash}`
+  );
+}

@@ -1,6 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handOffPrerenderedSnapshot } from "./prerenderHandoff";
+import {
+  dropSpaFallbackParam,
+  handOffPrerenderedSnapshot,
+} from "./prerenderHandoff";
+
+describe("dropSpaFallbackParam", () => {
+  it("removes only the fallback flag", () => {
+    window.history.replaceState(null, "", "/learn/new?utm_source=x&_spa=1#top");
+    dropSpaFallbackParam();
+    const { pathname, search, hash } = window.location;
+    expect(`${pathname}${search}${hash}`).toBe("/learn/new?utm_source=x#top");
+  });
+});
 
 const html = document.documentElement;
 

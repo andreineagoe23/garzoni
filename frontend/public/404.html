@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <title>Page not found — Garzoni</title>
+    <script>
+      // Visitors get lessons and guides as prerendered snapshots. One published
+      // after this deploy has none yet, so come back flagged for the app, which
+      // renders it (or its own not-found page). Crawlers keep this 404: the
+      // middleware ignores the flag for them.
+      (function () {
+        var l = window.location;
+        if (!/^\/(?:(?:ro\/)?(?:learn|guides)|authors)\//.test(l.pathname)) {
+          return;
+        }
+        if (/[?&]_spa=1(?:&|$)/.test(l.search)) return;
+        l.replace(
+          l.pathname + (l.search ? l.search + "&" : "?") + "_spa=1" + l.hash
+        );
+      })();
+    </script>
   </head>
   <body>
     <h1>Page not found</h1>

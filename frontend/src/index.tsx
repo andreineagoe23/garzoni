@@ -13,8 +13,12 @@ import { initStartup } from "bootstrap/startup";
 import { initHttpClientWeb } from "bootstrap/httpClientWeb";
 import { initCustomerIoWeb } from "hooks/useCio";
 import { captureFirstTouch } from "utils/firstTouch";
-import { handOffPrerenderedSnapshot } from "bootstrap/prerenderHandoff";
+import {
+  dropSpaFallbackParam,
+  handOffPrerenderedSnapshot,
+} from "bootstrap/prerenderHandoff";
 
+dropSpaFallbackParam();
 captureFirstTouch();
 initStartup();
 initHttpClientWeb();
