@@ -472,6 +472,11 @@ OPENAI_DAILY_TOKEN_BUDGET_PREMIUM = int(os.getenv("OPENAI_DAILY_TOKEN_BUDGET_PRE
 OPENAI_CACHE_TTL_SECONDS = int(os.getenv("OPENAI_CACHE_TTL_SECONDS", "0"))
 OPENAI_IDEMPOTENCY_TTL_SECONDS = int(os.getenv("OPENAI_IDEMPOTENCY_TTL_SECONDS", "120"))
 
+# Curriculum retrieval: true = ContentChunk hybrid search (pgvector + full-text, RRF);
+# false = legacy per-lesson embeddings with Python cosine. Backfill chunks before turning on:
+# python manage.py index_content_chunks, then compare with python manage.py eval_retrieval.
+RAG_HYBRID_ENABLED = env_bool("RAG_HYBRID_ENABLED", False)
+
 # OpenAI payload validation / abuse prevention
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 # CONTENT_TRANSLATION_MODEL is defined once, below with the other translation

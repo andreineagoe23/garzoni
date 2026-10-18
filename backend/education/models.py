@@ -1,7 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django_ckeditor_5.fields import CKEditor5Field
+from pgvector.django import HnswIndex, VectorField
 from django.utils import timezone
 from datetime import timedelta
 
@@ -939,6 +942,49 @@ class ContentEmbedding(models.Model):
 
     def __str__(self):
         return f"{self.content_type}:{self.content_id} — {self.title[:60]}"
+
+
+class ContentChunk(models.Model):
+    """
+    Searchable slice of a lesson in one language, for hybrid retrieval
+    (pgvector cosine + Postgres full-text, fused with RRF in services/retrieval.py).
+
+    A lesson's chunks for a language are rebuilt together; content_hash is shared by all of
+    them and skips re-embedding when nothing changed.
+    """
+
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="chunks")
+    section = models.ForeignKey(
+        LessonSection, on_delete=models.CASCADE, null=True, blank=True, related_name="chunks"
+    )
+    language = models.CharField(max_length=10)
+    chunk_index = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=200, help_text="Lesson title in this language")
+    heading = models.CharField(max_length=600, help_text="Path › Course › Lesson › Section")
+    text = models.TextField()
+    content_hash = models.CharField(max_length=64)
+    embedding = VectorField(dimensions=1536, null=True, blank=True)
+    embedding_model = models.CharField(max_length=64, blank=True, default="")
+    search_vector = SearchVectorField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "education_content_chunk"
+        ordering = ["lesson_id", "language", "chunk_index"]
+        indexes = [
+            models.Index(fields=["lesson", "language"]),
+            GinIndex(fields=["search_vector"], name="content_chunk_fts"),
+            HnswIndex(
+                name="content_chunk_embedding_hnsw",
+                fields=["embedding"],
+                m=16,
+                ef_construction=64,
+                opclasses=["vector_cosine_ops"],
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.language}:{self.lesson_id}#{self.chunk_index} — {self.heading[:60]}"
 
 
 class ExerciseTranslation(models.Model):

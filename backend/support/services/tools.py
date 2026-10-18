@@ -323,12 +323,13 @@ def _generate_practice_question(skill: str, difficulty: int) -> Dict:
 
 
 def _lookup_lesson(query: str, top_k: int = 3) -> Dict:
-    """Semantic search via RAG (WS2). Falls back to title keyword match if embeddings not ready."""
+    """Semantic search via RAG (WS2). Falls back to title keyword match when RAG finds nothing."""
     try:
         from education.services.retrieval import search as rag_search
 
         results = rag_search(query, top_k=top_k)
-        return {"results": results}
+        if results:
+            return {"results": results}
     except ImportError:
         pass
     except Exception as exc:

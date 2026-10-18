@@ -531,3 +531,13 @@ def backfill_embeddings_async(batch_size: int = 50) -> dict:
     from education.services.retrieval import backfill_all
 
     return backfill_all(batch_size=batch_size)
+
+
+@shared_task(bind=True, max_retries=2, default_retry_delay=30)
+def index_lesson_chunks_async(self, lesson_id: int) -> str:
+    try:
+        from education.services.retrieval import index_lesson_chunks
+
+        return index_lesson_chunks(lesson_id)
+    except Exception as exc:
+        raise self.retry(exc=exc)

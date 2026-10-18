@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,52 @@ def enqueue_course_embedding(sender, instance, **kwargs):
         _safe_delay(embed_course_async, instance.pk)
     except Exception:
         logger.debug("embed_course_async not available yet")
+
+
+# ---------------------------------------------------------------------------
+# Hybrid retrieval chunks — rebuilt per lesson when its content changes
+# ---------------------------------------------------------------------------
+
+# Content pipelines save a lesson's sections one by one; the countdown lets them land first so
+# the later tasks find an unchanged content hash and skip the embedding call.
+_CHUNK_REINDEX_DELAY_SECONDS = 30
+
+
+def _enqueue_chunk_reindex(lesson_id) -> None:
+    if not lesson_id or not getattr(settings, "RAG_HYBRID_ENABLED", False):
+        return
+    try:
+        from education.tasks import index_lesson_chunks_async
+
+        index_lesson_chunks_async.apply_async(
+            args=[lesson_id], countdown=_CHUNK_REINDEX_DELAY_SECONDS
+        )
+    except Exception:
+        logger.warning("Failed to queue chunk reindex for lesson %s", lesson_id, exc_info=True)
+
+
+@receiver(post_save, sender="education.Lesson")
+@receiver(post_delete, sender="education.Lesson")
+def reindex_chunks_for_lesson(sender, instance, **kwargs):
+    _enqueue_chunk_reindex(instance.pk)
+
+
+@receiver(post_save, sender="education.LessonSection")
+@receiver(post_delete, sender="education.LessonSection")
+def reindex_chunks_for_section(sender, instance, **kwargs):
+    _enqueue_chunk_reindex(instance.lesson_id)
+
+
+@receiver(post_save, sender="education.LessonTranslation")
+def reindex_chunks_for_lesson_translation(sender, instance, **kwargs):
+    if instance.language == "en":
+        _enqueue_chunk_reindex(instance.lesson_id)
+
+
+@receiver(post_save, sender="education.LessonSectionTranslation")
+def reindex_chunks_for_section_translation(sender, instance, **kwargs):
+    if instance.language == "en":
+        _enqueue_chunk_reindex(getattr(instance.section, "lesson_id", None))
 
 
 # ---------------------------------------------------------------------------

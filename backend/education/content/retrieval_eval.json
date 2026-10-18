@@ -1,0 +1,391 @@
+{
+  "description": "Golden set for curriculum retrieval. Each query lists the lesson slugs that count as a correct hit. Natural-language queries are paraphrased on purpose so they do not repeat lesson titles; the en-keyword set is short topical queries like the ones the tutor's lookup_lesson tool sends. Run with: python manage.py eval_retrieval",
+  "queries": [
+    {
+      "language": "en",
+      "query": "how do I stop paying overdraft charges",
+      "expected": [
+        "fees-overdrafts-how-to-avoid-them"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "difference between APR and AER",
+      "expected": [
+        "how-interest-works-apr-vs-aer"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "is splitting a purchase into 3 payments with Klarna a bad idea",
+      "expected": [
+        "buy-now-pay-later-the-hidden-costs"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "how many months of expenses should I keep for emergencies",
+      "expected": [
+        "how-much-to-save",
+        "why-you-need-an-emergency-fund"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "where should I park my rainy day money",
+      "expected": [
+        "where-to-keep-your-emergency-fund"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "my pay changes every month, how do I budget",
+      "expected": [
+        "budgeting-with-irregular-income"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "what are all the deductions taken out of my paycheck",
+      "expected": [
+        "how-to-read-your-payslip",
+        "national-insurance-other-deductions"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "how much can I earn before I start paying income tax",
+      "expected": [
+        "income-tax-tax-free-allowances"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "someone called pretending to be my bank and asked for a code",
+      "expected": [
+        "how-money-scams-actually-work"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "how do I keep my bitcoin safe from hackers",
+      "expected": [
+        "securing-your-crypto-assets"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "how big should each trade be and when to use a stop loss",
+      "expected": [
+        "managing-leverage-and-position-size"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "reading candlestick charts",
+      "expected": [
+        "how-to-read-price-charts",
+        "technical-analysis-basics",
+        "technical-analysis-basics-2"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "earning interest on my interest over many years",
+      "expected": [
+        "how-compound-interest-works"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "fixed rate or variable rate home loan",
+      "expected": [
+        "mortgage-basics",
+        "types-of-mortgages"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "buying a run-down house to renovate and sell",
+      "expected": [
+        "the-fix-and-flip-strategy"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "is a student loan good or bad debt",
+      "expected": [
+        "good-debt-vs-bad-debt"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "can I get my money back for a broken product after a month",
+      "expected": [
+        "your-consumer-rights-refunds-warranties"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "do I need to insure my belongings when I rent a flat",
+      "expected": [
+        "home-renters-contents-insurance"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "I feel anxious every time I open my banking app",
+      "expected": [
+        "managing-financial-stress-effectively"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "what is DeFi",
+      "expected": [
+        "introduction-to-defi",
+        "understanding-decentralized-finance-defi"
+      ]
+    },
+    {
+      "language": "en",
+      "query": "telling apart things I need from things I just want",
+      "expected": [
+        "distinguishing-needs-from-wants"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cum evit comisioanele la descoperitul de cont",
+      "expected": [
+        "fees-overdrafts-how-to-avoid-them"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "ce înseamnă DAE la un credit",
+      "expected": [
+        "how-interest-works-apr-vs-aer"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "plata în rate fără dobândă la cumpărături online, care sunt capcanele",
+      "expected": [
+        "buy-now-pay-later-the-hidden-costs"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "câți bani ar trebui să am puși deoparte pentru urgențe",
+      "expected": [
+        "how-much-to-save",
+        "why-you-need-an-emergency-fund"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "unde îmi țin banii pentru situații neprevăzute",
+      "expected": [
+        "where-to-keep-your-emergency-fund"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "sunt freelancer cu venit variabil, cum îmi fac bugetul",
+      "expected": [
+        "budgeting-with-irregular-income"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cum citesc fluturașul de salariu",
+      "expected": [
+        "how-to-read-your-payslip"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "de ce am nevoie de o asigurare",
+      "expected": [
+        "what-insurance-is-and-why-it-matters"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "asigurare de viață și asigurare de sănătate",
+      "expected": [
+        "health-life-insurance-explained"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "asigurare auto și asigurare de călătorie",
+      "expected": [
+        "car-travel-insurance-essentials"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cum funcționează țepele și fraudele financiare",
+      "expected": [
+        "how-money-scams-actually-work"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cum cumpăr criptomonede",
+      "expected": [
+        "how-to-buy-cryptocurrency"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "ce este piața valutară forex",
+      "expected": [
+        "what-is-the-forex-market"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cât câștig dacă dau un apartament în chirie",
+      "expected": [
+        "calculating-rental-income",
+        "maximizing-rental-returns"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "credit ipotecar pentru prima locuință",
+      "expected": [
+        "mortgage-basics"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cont curent sau cont de economii",
+      "expected": [
+        "current-vs-savings-accounts"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "ce este un buget personal",
+      "expected": [
+        "what-is-a-budget"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "obiective financiare pe termen scurt și pe termen lung",
+      "expected": [
+        "short-term-vs-long-term-goals"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "dobânda la dobândă explicată simplu",
+      "expected": [
+        "how-compound-interest-works"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "ce face de fapt o bancă cu banii mei",
+      "expected": [
+        "what-a-bank-actually-does"
+      ]
+    },
+    {
+      "language": "ro",
+      "query": "cheltuieli fixe și cheltuieli variabile",
+      "expected": [
+        "fixed-vs-variable-expenses"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "APR vs AER",
+      "expected": [
+        "how-interest-works-apr-vs-aer"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "BNPL",
+      "expected": [
+        "buy-now-pay-later-the-hidden-costs"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "DeFi",
+      "expected": [
+        "introduction-to-defi",
+        "understanding-decentralized-finance-defi"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "National Insurance",
+      "expected": [
+        "national-insurance-other-deductions"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "fix and flip",
+      "expected": [
+        "the-fix-and-flip-strategy"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "emergency fund",
+      "expected": [
+        "why-you-need-an-emergency-fund",
+        "how-much-to-save",
+        "where-to-keep-your-emergency-fund",
+        "when-and-how-to-use-it"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "compound interest",
+      "expected": [
+        "how-compound-interest-works"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "stop loss position sizing",
+      "expected": [
+        "managing-leverage-and-position-size"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "contents insurance for renters",
+      "expected": [
+        "home-renters-contents-insurance"
+      ]
+    },
+    {
+      "language": "en",
+      "set": "en-keyword",
+      "query": "overdraft fees",
+      "expected": [
+        "fees-overdrafts-how-to-avoid-them"
+      ]
+    }
+  ]
+}
