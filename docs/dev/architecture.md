@@ -48,7 +48,7 @@ flowchart LR
 | Animation      | Framer Motion, Three.js (landing globe), Lottie, Canvas Confetti                                                            |
 | Rich text      | CKEditor 5 (lessons), react-native-render-html (mobile)                                                                     |
 | i18n           | i18next (EN + RO); locale source-of-truth in `packages/core/src/locales/`                                                   |
-| Backend        | Django 5.2 LTS, DRF 3.17, Celery 5.4, Redis 5, PostgreSQL 17, pgvector (pinned, not yet adopted)                            |
+| Backend        | Django 5.2 LTS, DRF 3.17, Celery 5.4, Redis 5, PostgreSQL 17, pgvector                            |
 | AI             | OpenAI Python SDK (gpt-4o-mini, gpt-4o, text-embedding-3-small, whisper-1, tts-1, gpt-4o vision)                            |
 | Auth           | JWT (simplejwt), Google OAuth (web + mobile), Sign in with Apple (mobile), reCAPTCHA Enterprise on sensitive endpoints      |
 | Payments       | Stripe (web), RevenueCat → Apple/Google IAP (mobile)                                                                        |
@@ -81,7 +81,7 @@ garzoni/
   packages/tokens/src/  # Spacing/radius/type scale (the only strict-mode package)
   backend/
     authentication/  # User, UserProfile, JWT, Apple/Google OAuth, entitlements, hearts, friends, RevenueCat
-    education/       # Paths, courses, lessons, exercises, Mastery + SRS, translations, ContentEmbedding (RAG)
+    education/       # Paths, courses, lessons, exercises, Mastery + SRS, translations, ContentChunk + ContentEmbedding (RAG)
     gamification/    # XP, missions, badges, streaks, duels, wagers, leagues
     finance/         # Stripe billing, portfolio, paper trading, FunnelEvent, market-data proxies
     budgeting/       # Personal CFO: statement import, categorization, envelopes, open-banking abstraction
@@ -114,7 +114,7 @@ flowchart TD
   TOOLS -->|get_financial_profile| DB
   TOOLS -->|recommend_next_lesson| DB
   TOOLS -->|generate_practice_question| OAI2[OpenAI]
-  TOOLS -->|lookup_lesson| RAG[pgvector cosine sim]
+  TOOLS -->|lookup_lesson| RAG[hybrid: pgvector + full-text, RRF]
   RAG -->|results| OAI
   OAI -->|final answer| API
   API -->|persist| MEM
@@ -126,8 +126,12 @@ flowchart TD
 - **Persistent memory**: `support.Conversation` + `support.Message` (one conversation per user × source); rolling summary above 3k tokens.
 - **Quotas**: per-plan daily cap (5 / 50 / 200) + per-user daily token budget (Redis).
 - **Model tiering**: `gpt-4o-mini` for Free/Plus, `gpt-4o` for Pro.
-- **RAG**: lesson + course content embedded with `text-embedding-3-small`, stored in `education.ContentEmbedding` (**JSONField + Python cosine loop** — `pgvector==0.5.0` is
-  pinned but no `VectorField` exists anywhere; the migration was never done).
+- **RAG**: lessons are split into `education.ContentChunk` rows (title/description chunk, then one per text
+  section, ~1800 chars max), embedded with `text-embedding-3-small` into a pgvector column (HNSW, cosine).
+  A query runs a vector search and an AND-only English full-text search and fuses them per lesson with
+  Reciprocal Rank Fusion (`education/services/retrieval.py`). Behind `RAG_HYBRID_ENABLED`; the legacy
+  per-lesson `ContentEmbedding` JSON pipeline is the fallback. Measure changes with
+  `python manage.py eval_retrieval` (golden set in `education/content/retrieval_eval.json`).
 
 ## Reading order for new contributors
 
