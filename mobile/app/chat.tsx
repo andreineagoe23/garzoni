@@ -17,18 +17,10 @@ import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  MARKET_QUOTE_CURRENCY,
-  cryptoDisplayName,
-  fetchCryptoQuote,
   fetchEntitlements,
-  fetchForexQuote,
-  fetchStockQuote,
-  formatCurrency,
   isAxiosError,
-  normalizeCurrencyCode,
   queryKeys,
   requestAiTutorPayload,
-  resolveCryptoId,
   staleTimes,
 } from "@garzoni/core";
 import type { AiTutorLink, Entitlements } from "@garzoni/core";
@@ -51,47 +43,12 @@ type Msg = {
 
 type HistoryMsg = { role: "user" | "assistant"; content: string };
 
-const FOREX_PAIR_RE = /(\b[a-zA-Z]{3})\b\s*(\/|to|and)\s*(\b[a-zA-Z]{3})\b/i;
-const FOREX_RE =
-  /what(?:'|')?s the exchange rate (?:from|of|between) ([a-zA-Z]{3}) (?:to|and) ([a-zA-Z]{3})(\?)?|forex (?:between|for) ([a-zA-Z]{3}) (?:and|to) ([a-zA-Z]{3})/i;
-const CRYPTO_RE =
-  /what(?:'|')?s the (?:price|value) of ([a-zA-Z\s]+?)(?:\s+(?:today|now|right now|currently))?(\?)?$|([a-zA-Z\s]+?) (?:price|value)(?:\s+(?:today|now|right now|currently))?(\?)?/i;
-const STOCK_RE =
-  /what(?:'|')?s the (?:stock )?price of ([a-zA-Z]{1,5}) stock(\?)?|([a-zA-Z]{1,5}) stock price/i;
-const TIME_RE =
-  /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:current\s+)?time|what\s+time\s+is\s+it|current\s+time|time\s+now)\b/i;
-const DATE_RE =
-  /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:today'?s?\s+)?date|today'?s?\s+date|what\s+day\s+is\s+(?:it|today))\b/i;
-
 function safeDecodeSearchParam(value: string): string {
   try {
     return decodeURIComponent(value);
   } catch {
     return value;
   }
-}
-
-function fmtNumber(value: number, opts: Intl.NumberFormatOptions): string {
-  try {
-    return new Intl.NumberFormat(undefined, opts).format(value);
-  } catch {
-    return value.toFixed(opts.maximumFractionDigits ?? 2);
-  }
-}
-
-function fmtUsd(value: number, digits = 2): string {
-  return formatCurrency(value, {
-    currency: MARKET_QUOTE_CURRENCY,
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
-
-function formatMarketCap(marketCap: number): string | null {
-  if (!marketCap) return null;
-  if (marketCap >= 1e9) return `${fmtUsd(marketCap / 1e9)}B`;
-  if (marketCap >= 1e6) return `${fmtUsd(marketCap / 1e6)}M`;
-  return fmtUsd(marketCap, 0);
 }
 
 type Styles = ReturnType<typeof makeStyles>;
@@ -310,111 +267,6 @@ export default function ChatScreen() {
     }
   }, []);
 
-  const resolveMarketReply = useCallback(
-    async (text: string): Promise<string | null> => {
-      // Client-side time / date queries
-      if (TIME_RE.test(text)) {
-        const now = new Date();
-        return `It's currently ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} on your device.`;
-      }
-      if (DATE_RE.test(text)) {
-        return `Today is ${new Date().toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
-      }
-
-      const stockMatch = text.match(STOCK_RE);
-      const forexPairMatch = text.match(FOREX_PAIR_RE);
-      const forexMatch = text.match(FOREX_RE);
-      const cryptoMatch = text.match(CRYPTO_RE);
-
-      if (stockMatch) {
-        const symbol = (stockMatch[1] || stockMatch[3]).toUpperCase();
-        const stock = await fetchStockQuote(symbol);
-        if (stock.price > 0) {
-          return t("chatbot.responses.stockPrice", {
-            symbol,
-            price: fmtUsd(stock.price),
-            direction:
-              stock.change >= 0
-                ? t("chatbot.responses.increased")
-                : t("chatbot.responses.decreased"),
-            change: fmtNumber(Math.abs(stock.change), {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-          });
-        }
-        return t("chatbot.responses.stockNotFound", { symbol });
-      }
-
-      if (forexPairMatch || forexMatch) {
-        let from: string;
-        let to: string;
-        if (forexPairMatch) {
-          from = forexPairMatch[1];
-          to = forexPairMatch[3];
-        } else {
-          from = forexMatch![1] || forexMatch![4];
-          to = forexMatch![2] || forexMatch![5];
-        }
-        from = normalizeCurrencyCode(from);
-        to = normalizeCurrencyCode(to);
-        const fx = await fetchForexQuote(from, to);
-        if (fx.rate > 0) {
-          let msg = t("chatbot.responses.forexRate", {
-            from,
-            to,
-            rate: fmtNumber(fx.rate, {
-              minimumFractionDigits: 4,
-              maximumFractionDigits: 4,
-            }),
-          });
-          if (Math.abs(fx.change) > 0.0001) {
-            msg += ` ${t("chatbot.responses.forexChanged", {
-              sign: fx.change >= 0 ? "+" : "",
-              change: fmtNumber(fx.change, {
-                minimumFractionDigits: 4,
-                maximumFractionDigits: 4,
-              }),
-            })}`;
-          }
-          return msg;
-        }
-        return t("chatbot.responses.forexNotFound", { from, to });
-      }
-
-      if (cryptoMatch) {
-        const rawName = (cryptoMatch[1] || cryptoMatch[3] || "").trim();
-        const cryptoId = resolveCryptoId(rawName);
-        if (!cryptoId) return t("chatbot.responses.cryptoUnrecognized");
-        const crypto = await fetchCryptoQuote(cryptoId);
-        const name = cryptoDisplayName(cryptoId);
-        if (crypto.price > 0) {
-          let msg = t("chatbot.responses.cryptoPrice", {
-            name,
-            price: fmtUsd(crypto.price),
-            direction:
-              crypto.change >= 0
-                ? t("chatbot.responses.up")
-                : t("chatbot.responses.down"),
-            change: fmtNumber(Math.abs(crypto.change), {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-          });
-          const cap = formatMarketCap(crypto.marketCap);
-          if (cap) {
-            msg += ` ${t("chatbot.responses.marketCap", { marketCap: cap })}`;
-          }
-          return msg;
-        }
-        return t("chatbot.responses.cryptoNotFound", { name });
-      }
-
-      return null;
-    },
-    [t],
-  );
-
   const sendMessage = useCallback(
     async (rawText: string) => {
       const text = rawText.trim();
@@ -447,16 +299,6 @@ export default function ChatScreen() {
 
       setBusy(true);
       try {
-        const marketReply = await resolveMarketReply(text);
-        if (marketReply) {
-          appendAssistant(marketReply);
-          setHistory([
-            ...nextHistory,
-            { role: "assistant", content: marketReply },
-          ]);
-          return;
-        }
-
         const isPreseed = nextHistory.length === 1 && Boolean(preseededMessage);
         const payload = await requestAiTutorPayload(text, {
           chatHistory: nextHistory.slice(-10),
@@ -527,7 +369,6 @@ export default function ChatScreen() {
       exerciseUserAnswer,
       preseededMessage,
       queryClient,
-      resolveMarketReply,
       t,
     ],
   );

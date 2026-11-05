@@ -128,6 +128,45 @@ TOOL_DEFINITIONS: List[Dict] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_market_data",
+            "description": (
+                "Latest price and recent daily closes for a stock, ETF, index, crypto or "
+                "exchange rate. Use for any question about current or recent prices."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": (
+                            "Yahoo Finance symbol. Examples: AAPL, VOO, ^GSPC (S&P 500), "
+                            "^IXIC (Nasdaq), ^DJI (Dow), ^FTSE (FTSE 100), BTC-USD, ETH-USD, "
+                            "EURUSD=X, GBPUSD=X."
+                        ),
+                    },
+                    "days": {
+                        "type": "integer",
+                        "description": "Trading days of closes to return, 1-20 (default 5).",
+                    },
+                },
+                "required": ["symbol"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_market_news",
+            "description": (
+                "Recent business and market headlines. Use when asked what is happening in "
+                "the markets or why something moved. Each headline has a source and date."
+            ),
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
 ]
 
 
@@ -160,6 +199,12 @@ def dispatch_tool(tool_name: str, arguments: Dict, user: User) -> Dict:
                 arguments.get("query", ""),
                 int(arguments.get("top_k", 3)),
             )
+        if tool_name == "get_market_data":
+            from finance.services.market_history import get_recent_prices
+
+            return get_recent_prices(arguments.get("symbol", ""), int(arguments.get("days", 5)))
+        if tool_name == "get_market_news":
+            return _get_market_news()
         return {"error": f"Unknown tool: {tool_name}"}
     except Exception as exc:
         logger.warning("tool_dispatch_error tool=%s err=%s", tool_name, exc)
@@ -169,6 +214,27 @@ def dispatch_tool(tool_name: str, arguments: Dict, user: User) -> Dict:
 # ---------------------------------------------------------------------------
 # Tool implementations
 # ---------------------------------------------------------------------------
+
+
+def _get_market_news() -> Dict:
+    from django.core.cache import cache
+    from finance.views import NEWS_CACHE_KEY, NEWS_LAST_GOOD_CACHE_KEY
+
+    payload = cache.get(NEWS_CACHE_KEY) or cache.get(NEWS_LAST_GOOD_CACHE_KEY)
+    if not payload:
+        return {"error": "No recent market news is available."}
+    return {
+        "generated_at": payload.get("generated_at"),
+        "headlines": [
+            {
+                "title": item.get("title"),
+                "source": item.get("source"),
+                "published_at": item.get("published_at"),
+                "snippet": (item.get("snippet") or "")[:280],
+            }
+            for item in (payload.get("items") or [])[:8]
+        ],
+    }
 
 
 def _get_user_progress(user: User, course_id: Optional[int] = None) -> Dict:

@@ -49,7 +49,18 @@ def _model_for_user(user) -> str:
     # gpt-4o-mini) bought nothing with no paying users, and the free tier is the
     # experience that has to convert. Entitlements still gate message volume by
     # plan — see check_and_consume_entitlement.
-    return getattr(settings, "OPENAI_MODEL_ASSISTANT", "gpt-4.1-mini")
+    return getattr(settings, "OPENAI_MODEL_TUTOR", "gpt-6.1-terra")
+
+
+def _completion_params(model: str, temperature: float) -> Dict[str, Any]:
+    params: Dict[str, Any] = {
+        "max_completion_tokens": getattr(settings, "OPENAI_MAX_TOKENS", 800),
+        "temperature": temperature,
+    }
+    # OpenAI documents function calling on GPT-6 Chat Completions as limited to no reasoning.
+    if model.startswith("gpt-6"):
+        params["reasoning_effort"] = "none"
+    return params
 
 
 class OpenAIService:
@@ -379,6 +390,9 @@ class OpenAIService:
                 active_tools = TOOL_DEFINITIONS
                 active_dispatcher = dispatch_tool
 
+            now = datetime.datetime.now(datetime.timezone.utc)
+            system_content += f"\n\nCurrent date and time: {now:%A, %d %B %Y, %H:%M} UTC."
+
             # Persist user message
             self._save_message(conversation, "user", prompt)
 
@@ -395,8 +409,7 @@ class OpenAIService:
                     messages=messages,
                     tools=active_tools,
                     tool_choice="auto",
-                    max_tokens=getattr(settings, "OPENAI_MAX_TOKENS", 512),
-                    temperature=float(parameters.get("temperature", 0.5)),
+                    **_completion_params(model, float(parameters.get("temperature", 0.5))),
                 )
                 usage = getattr(resp, "usage", None)
                 if usage:

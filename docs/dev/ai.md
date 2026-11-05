@@ -3,7 +3,7 @@
 > Garzoni uses OpenAI for a chat tutor, explanations when a learner gets a question wrong,
 > personalised learning-path reasons, a weekly coach note, a one-line "do this next" prompt on the
 > mobile home screen, a Personal CFO coach and narrative, statement insights, a voice tutor and a
-> receipt scan. Every plan uses the same chat model (`gpt-4.1-mini` by default). Plans differ only
+> receipt scan. Every plan uses the same chat model (`gpt-6.1-terra` by default). Plans differ only
 > in **how many** AI calls a user gets per day and **which** features are switched on. Voice and
 > receipt scan are Pro-only and exist only in the mobile app. AI push nudges are built but switched
 > off. Lesson search ("RAG") works, but it embeds only titles and short descriptions and does not
@@ -15,7 +15,7 @@ _Last reviewed: 2026-10-08, against `master` at `d431e781`._
 
 | Feature                                          | Web                                        | Mobile                       | Plan                                                                 | Model (default)                                     | Status                                          |
 | ------------------------------------------------ | ------------------------------------------ | ---------------------------- | -------------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
-| Chat tutor, with tools                           | ✅ floating chat widget                    | ✅ full `chat` screen        | All. 5 / 50 / 200 messages a day                                     | `gpt-4.1-mini`                                      | Shipped                                         |
+| Chat tutor, with tools                           | ✅ floating chat widget                    | ✅ full `chat` screen        | All. 5 / 50 / 200 messages a day                                     | `gpt-6.1-terra`                                      | Shipped                                         |
 | Explain a wrong answer, plus a practice question | ✅ lesson flow                             | ✅ lesson flow               | Starter 3 a day; Plus/Pro unlimited                                  | `gpt-4.1-mini`                                      | Shipped                                         |
 | Exercise feedback on submit                      | ✅                                         | ✅                           | All, no quota                                                        | `gpt-4.1-mini`                                      | Shipped                                         |
 | Progressive hint                                 | ✅ (fallback inside AI help)               | ✅ (fallback inside AI help) | All, **no quota**                                                    | `gpt-4.1-mini`                                      | Shipped                                         |
@@ -23,7 +23,7 @@ _Last reviewed: 2026-10-08, against `master` at `d431e781`._
 | Weekly Coach Brief                               | ✅ on the Personalised Path page           | ✅ same page                 | Plus/Pro                                                             | `gpt-4.1-mini`                                      | Shipped                                         |
 | Smart Resume (home-screen one-liner)             | ❌                                         | ✅                           | All, no quota                                                        | `gpt-4.1-nano`                                      | Shipped (mobile only)                           |
 | "What does this mean?" in tools                  | ✅ Goals Reality Check, Portfolio Analyzer | ✅ Portfolio                 | Uses the chat tutor quota                                            | `gpt-4.1-mini`                                      | Shipped                                         |
-| Personal CFO coach (chat)                        | ✅ panel in the CFO dashboard              | ✅ `personal-cfo-coach` tool | Plus/Pro, and uses the chat tutor quota                              | `gpt-4.1-mini`                                      | Shipped                                         |
+| Personal CFO coach (chat)                        | ✅ panel in the CFO dashboard              | ✅ `personal-cfo-coach` tool | Plus/Pro, and uses the chat tutor quota                              | `gpt-6.1-terra`                                      | Shipped                                         |
 | Personal CFO narrative                           | ✅                                         | ✅                           | Plus/Pro (Starter gets a fixed, non-AI text)                         | `gpt-4.1-nano`                                      | Shipped                                         |
 | Statement AI insight (3 bullets)                 | ✅ statement import                        | ✅ statement import          | Shares the "explain" quota: Starter 3 a day                          | `gpt-4.1-nano`                                      | Shipped                                         |
 | Voice tutor                                      | ❌                                         | ✅ via chat header button    | Pro                                                                  | `gpt-4o-mini-transcribe` → `gpt-4.1-mini` → `tts-1` | Shipped (mobile only)                           |
@@ -60,16 +60,18 @@ results back to the model, for up to 4 rounds per message (`_MAX_TOOL_ROUNDS`).
 | `recommend_next_lesson`      | The first unfinished course in `UserProfile.recommended_courses`, or failing that the weakest skill                                                                             |
 | `generate_practice_question` | Nothing from the database. A second model call writes one multiple-choice question as JSON                                                                                      |
 | `lookup_lesson`              | Semantic search over the lesson library (see [Lesson search](#lesson-search-rag)). If that fails, a match on lesson titles                                                      |
+| `get_market_data`            | Latest price and recent daily closes for a stock, ETF, index, crypto or exchange rate, from Yahoo's chart endpoint (`finance/services/market_history.py`), cached 5 minutes |
+| `get_market_news`            | Recent headlines from the cached news feed that `beat` refreshes                                                                                                                |
 
-All six live in `backend/support/services/tools.py`. The CFO coach has a separate set of six
+All eight live in `backend/support/services/tools.py`. The CFO coach has a separate set of six
 tools, described below.
 
 **Shortcuts that skip the model.** If the message is exactly a greeting ("hi", "hello"…), the
 server replies with a fixed English line. Messages containing "reset", "start over", "new chat" and
 similar archive the conversation. Both checks run **after** the daily quota is charged, so a "hi"
-uses one of the day's messages (`support/services/openai.py`, `handle`). Both chat clients also
-answer some stock, forex, crypto and date questions themselves, from market data, without calling
-the AI (`frontend/src/components/widgets/Chatbot.tsx:282-395`, `mobile/app/chat.tsx`).
+uses one of the day's messages (`support/services/openai.py`, `handle`). The web client and mobile 1.2.2+
+send everything else to the model; mobile builds below 1.2.2 still answer some stock, forex, crypto
+and date questions on the device, using regexes that also catch unrelated questions.
 
 **History.** Conversations are saved on the server, one active conversation per user per
 `source` (`chat`, `exercise_hint`, `voice`, `cfo_coach`, …). The web widget reloads the last 50
@@ -284,7 +286,8 @@ var:
 
 | Setting                   | Default                  | Used for                                                                                                                                              |
 | ------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENAI_MODEL_ASSISTANT`  | `gpt-4.1-mini`           | chat tutor, CFO coach, voice answers, explain, feedback, hints, path ranking, coach brief, practice questions, receipt vision, RO content translation |
+| `OPENAI_MODEL_TUTOR`      | `gpt-6.1-terra`          | chat tutor, CFO coach, voice answers |
+| `OPENAI_MODEL_ASSISTANT`  | `gpt-4.1-mini`           | explain, feedback, hints, path ranking, coach brief, practice questions, receipt vision, RO content translation |
 | `OPENAI_MODEL_EXTRACTION` | `gpt-4.1-nano`           | Smart Resume, CFO narrative, statement insight, conversation summaries                                                                                |
 | `OPENAI_MODEL_AUTHORING`  | `gpt-4.1`                | offline content-rewrite management commands only                                                                                                      |
 | `OPENAI_MODEL_TRANSCRIBE` | `gpt-4o-mini-transcribe` | voice transcription                                                                                                                                   |
@@ -383,7 +386,7 @@ its source to `<source>_archived`. `ContentEmbedding` holds the lesson-search ve
 ## Known gaps and flags
 
 - **The README is out of date on models.** It says `gpt-4o-mini` for Free/Plus and `gpt-4o` for
-  Pro, Whisper for voice, and "GPT-4o vision" for scan. The code uses `gpt-4.1-mini` for every
+  Pro, Whisper for voice, and "GPT-4o vision" for scan. The code uses `gpt-6.1-terra` for chat on every
   plan, `gpt-4o-mini-transcribe` for voice and `gpt-4.1-mini` for scan. `docs/dev/environment.md`
   still says the `OPENAI_ALLOWED_MODELS_CSV` default includes `gpt-4o-mini,gpt-4o`. The real
   default is `gpt-4.1-nano, gpt-4.1-mini, gpt-4.1`.

@@ -484,7 +484,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_MAX_PROMPT_CHARS = int(os.getenv("OPENAI_MAX_PROMPT_CHARS", "4000"))
 OPENAI_MAX_MESSAGES = int(os.getenv("OPENAI_MAX_MESSAGES", "30"))
 OPENAI_MAX_MESSAGE_CHARS = int(os.getenv("OPENAI_MAX_MESSAGE_CHARS", "2000"))
-OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "512"))
+OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "800"))
 # ---- Model tiers -----------------------------------------------------------
 # One place to pick a model per job, so a swap is an env change rather than a
 # grep across a dozen call sites.
@@ -500,10 +500,12 @@ OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "512"))
 # ($0.05/$0.40) is the prize when that happens.
 #
 # AUTHORING  — content pipeline; follows long rubrics, worth the token cost.
-# ASSISTANT  — anything a user reads live: tutor, chat, receipt vision, RO translation.
+# ASSISTANT  — live, user-read output other than chat: hints, receipt vision, RO translation.
 # EXTRACTION — mechanical structured output at volume: statement categories, blurbs.
 OPENAI_MODEL_AUTHORING = os.getenv("OPENAI_MODEL_AUTHORING", "gpt-4.1")
 OPENAI_MODEL_ASSISTANT = os.getenv("OPENAI_MODEL_ASSISTANT", "gpt-4.1-mini")
+# TUTOR      — the chat tutor and CFO coach, where answer quality is the product.
+OPENAI_MODEL_TUTOR = os.getenv("OPENAI_MODEL_TUTOR", "gpt-6.1-terra")
 OPENAI_MODEL_EXTRACTION = os.getenv("OPENAI_MODEL_EXTRACTION", "gpt-4.1-nano")
 # Same transcription endpoint and response_format as whisper-1, half the price.
 OPENAI_MODEL_TRANSCRIBE = os.getenv("OPENAI_MODEL_TRANSCRIBE", "gpt-4o-mini-transcribe")

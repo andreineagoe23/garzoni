@@ -7,72 +7,7 @@ import UpsellModal from "components/billing/UpsellModal";
 import { fetchEntitlements } from "services/entitlementsService";
 import apiClient from "services/httpClient";
 import { queryKeys, staleTimes } from "lib/reactQuery";
-import {
-  MARKET_QUOTE_CURRENCY,
-  formatCurrency,
-  formatNumber,
-  getLocale,
-} from "utils/format";
 import { GarzoniIcon } from "components/ui/garzoniIcons";
-
-// ── Regex patterns (shared logic with mobile) ────────────────────────────────
-const FOREX_PAIR_RE = /(\b[a-zA-Z]{3})\b\s*(\/|to|and)\s*(\b[a-zA-Z]{3})\b/i;
-const FOREX_RE =
-  /what(?:'|')?s the exchange rate (?:from|of|between) ([a-zA-Z]{3}) (?:to|and) ([a-zA-Z]{3})(\?)?|forex (?:between|for) ([a-zA-Z]{3}) (?:and|to) ([a-zA-Z]{3})/i;
-const CRYPTO_RE =
-  /what(?:'|')?s the (?:price|value) of ([a-zA-Z\s]+?)(?:\s+(?:today|now|right now|currently))?(\?)?$|([a-zA-Z\s]+?) (?:price|value)(?:\s+(?:today|now|right now|currently))?(\?)?/i;
-const STOCK_RE =
-  /what(?:'|')?s the (?:stock )?price of ([a-zA-Z]{1,5}) stock(\?)?|([a-zA-Z]{1,5}) stock price/i;
-const TIME_RE =
-  /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:current\s+)?time|what\s+time\s+is\s+it|current\s+time|time\s+now)\b/i;
-const DATE_RE =
-  /\b(what(?:'s|'s)?\s+(?:the\s+)?(?:today'?s?\s+)?date|today'?s?\s+date|what\s+day\s+is\s+(?:it|today))\b/i;
-
-const CRYPTO_TYPOS: Record<string, string> = {
-  bircoin: "bitcoin",
-  bitcon: "bitcoin",
-  "bit coin": "bitcoin",
-  bictoin: "bitcoin",
-  etherum: "ethereum",
-  ethreum: "ethereum",
-};
-
-const CRYPTO_MAP: Record<string, string> = {
-  bitcoin: "bitcoin",
-  btc: "bitcoin",
-  ethereum: "ethereum",
-  eth: "ethereum",
-  cardano: "cardano",
-  ada: "cardano",
-  "binance coin": "binancecoin",
-  bnb: "binancecoin",
-  solana: "solana",
-  sol: "solana",
-  ripple: "ripple",
-  xrp: "ripple",
-  dogecoin: "dogecoin",
-  doge: "dogecoin",
-  polkadot: "polkadot",
-  dot: "polkadot",
-  litecoin: "litecoin",
-  ltc: "litecoin",
-  chainlink: "chainlink",
-  link: "chainlink",
-  uniswap: "uniswap",
-  uni: "uniswap",
-  avalanche: "avalanche-2",
-  avax: "avalanche-2",
-  polygon: "matic-network",
-  matic: "matic-network",
-};
-
-function resolveCryptoId(raw: string): string | null {
-  const lower = (CRYPTO_TYPOS[raw] || raw).toLowerCase();
-  for (const [key, value] of Object.entries(CRYPTO_MAP)) {
-    if (lower.includes(key)) return value;
-  }
-  return null;
-}
 
 // ── Bot message "G" avatar ────────────────────────────────────────────────────
 function BotAvatar() {
@@ -86,7 +21,6 @@ function BotAvatar() {
 // ── Main component ────────────────────────────────────────────────────────────
 const Chatbot = () => {
   const { t } = useTranslation();
-  const locale = getLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -194,52 +128,6 @@ const Chatbot = () => {
     }
   }, [isOpen]);
 
-  const fetchForexRate = async (from: string, to: string) => {
-    try {
-      const response = await apiClient.get("/forex-rate/", {
-        params: { from, to },
-      });
-      const { rate = 0, change = 0 } = response.data || {};
-      return { rate, change };
-    } catch {
-      return { rate: 0, change: 0 };
-    }
-  };
-
-  const fetchStockPrice = async (symbol: string) => {
-    try {
-      const response = await apiClient.get("/stock-price/", {
-        params: { symbol },
-      });
-      const {
-        price = 0,
-        change = 0,
-        changePercent = "0.00%",
-      } = response.data || {};
-      return { price, change, changePercent };
-    } catch {
-      return { price: 0, change: 0, changePercent: "0.00%" };
-    }
-  };
-
-  const fetchCryptoPrice = async (cryptoId: string) => {
-    try {
-      const response = await apiClient.get("/crypto-price/", {
-        params: { id: cryptoId },
-      });
-      const { price = 0, change = 0, marketCap = 0 } = response.data || {};
-      let formattedMarketCap = null;
-      if (marketCap >= 1_000_000_000) {
-        formattedMarketCap = `${formatCurrency(marketCap / 1e9, MARKET_QUOTE_CURRENCY, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
-      } else if (marketCap >= 1_000_000) {
-        formattedMarketCap = `${formatCurrency(marketCap / 1e6, MARKET_QUOTE_CURRENCY, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
-      }
-      return { price, change, marketCap: formattedMarketCap };
-    } catch {
-      return { price: 0, change: 0, marketCap: null };
-    }
-  };
-
   const handleMessageSend = async (message = null) => {
     if (!isAuthenticated) {
       setMessages((prev) => [
@@ -271,142 +159,18 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      let botResponse: string;
-      let responseLink = null;
-      let responseLinks = null;
-
-      // ── Client-side time / date ──────────────────────────────────────────
-      if (TIME_RE.test(userMessage)) {
-        const now = new Date();
-        botResponse = `It's currently ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} in your local time.`;
-      } else if (DATE_RE.test(userMessage)) {
-        botResponse = `Today is ${new Date().toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.`;
-      }
-      // ── Stock ─────────────────────────────────────────────────────────────
-      else if (STOCK_RE.test(userMessage)) {
-        const stockMatch = userMessage.match(STOCK_RE)!;
-        const symbol = (stockMatch[1] || stockMatch[3]).toUpperCase();
-        const stockData = await fetchStockPrice(symbol);
-        if (stockData.price > 0) {
-          botResponse = t("chatbot.responses.stockPrice", {
-            symbol,
-            price: formatCurrency(
-              stockData.price,
-              MARKET_QUOTE_CURRENCY,
-              locale,
-              {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }
-            ),
-            direction:
-              stockData.change >= 0
-                ? t("chatbot.responses.increased")
-                : t("chatbot.responses.decreased"),
-            change: formatNumber(Math.abs(stockData.change), locale, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-          });
-        } else {
-          botResponse = t("chatbot.responses.stockNotFound", { symbol });
-        }
-      }
-      // ── Forex ─────────────────────────────────────────────────────────────
-      else if (FOREX_PAIR_RE.test(userMessage) || FOREX_RE.test(userMessage)) {
-        const forexPairMatch = userMessage.match(FOREX_PAIR_RE);
-        const forexMatch = userMessage.match(FOREX_RE);
-        let from = forexPairMatch
-          ? forexPairMatch[1]
-          : forexMatch![1] || forexMatch![4];
-        let to = forexPairMatch
-          ? forexPairMatch[3]
-          : forexMatch![2] || forexMatch![5];
-        from = from.toUpperCase() === "LEI" ? "RON" : from.toUpperCase();
-        to = to.toUpperCase() === "LEI" ? "RON" : to.toUpperCase();
-        const forexData = await fetchForexRate(from, to);
-        if (forexData.rate > 0) {
-          const rateLabel = formatNumber(forexData.rate, locale, {
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4,
-          });
-          botResponse = t("chatbot.responses.forexRate", {
-            from,
-            to,
-            rate: rateLabel,
-          });
-          if (Math.abs(forexData.change) > 0.0001) {
-            botResponse += ` ${t("chatbot.responses.forexChanged", {
-              sign: forexData.change >= 0 ? "+" : "",
-              change: formatNumber(forexData.change, locale, {
-                minimumFractionDigits: 4,
-                maximumFractionDigits: 4,
-              }),
-            })}`;
-          }
-        } else {
-          botResponse = t("chatbot.responses.forexNotFound", { from, to });
-        }
-      }
-      // ── Crypto ────────────────────────────────────────────────────────────
-      else if (CRYPTO_RE.test(userMessage)) {
-        const cryptoMatch = userMessage.match(CRYPTO_RE)!;
-        const rawName = ((cryptoMatch[1] || cryptoMatch[3]) ?? "")
-          .toLowerCase()
-          .trim();
-        const cryptoId = resolveCryptoId(rawName);
-        if (cryptoId) {
-          const cryptoData = await fetchCryptoPrice(cryptoId);
-          const displayName =
-            cryptoId.split("-")[0].charAt(0).toUpperCase() +
-            cryptoId.split("-")[0].slice(1);
-          if (cryptoData.price > 0) {
-            botResponse = t("chatbot.responses.cryptoPrice", {
-              name: displayName,
-              price: formatCurrency(
-                cryptoData.price,
-                MARKET_QUOTE_CURRENCY,
-                locale,
-                {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }
-              ),
-              direction:
-                cryptoData.change >= 0
-                  ? t("chatbot.responses.up")
-                  : t("chatbot.responses.down"),
-              change: formatNumber(Math.abs(cryptoData.change), locale, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }),
-            });
-            if (cryptoData.marketCap) {
-              botResponse += ` ${t("chatbot.responses.marketCap", { marketCap: cryptoData.marketCap })}`;
-            }
-          } else {
-            botResponse = t("chatbot.responses.cryptoNotFound", {
-              name: displayName,
-            });
-          }
-        } else {
-          botResponse = t("chatbot.responses.cryptoUnrecognized");
-        }
-      }
-      // ── AI backend ───────────────────────────────────────────────────────
-      else {
-        const token = getAccessToken();
-        if (!token) throw new Error(t("chatbot.authTokenMissing"));
-        const response = await apiClient.post("/proxy/openai/", {
-          inputs: userMessage,
-          source: "chat",
-          parameters: { temperature: 0.7 },
-        });
-        botResponse = response.data.response;
-        if (response.data.link) responseLink = response.data.link;
-        if (Array.isArray(response.data.links))
-          responseLinks = response.data.links;
-      }
+      const token = getAccessToken();
+      if (!token) throw new Error(t("chatbot.authTokenMissing"));
+      const response = await apiClient.post("/proxy/openai/", {
+        inputs: userMessage,
+        source: "chat",
+        parameters: { temperature: 0.7 },
+      });
+      const botResponse = response.data.response;
+      const responseLink = response.data.link ?? null;
+      const responseLinks = Array.isArray(response.data.links)
+        ? response.data.links
+        : null;
 
       setMessages((prev) => [
         ...prev,

@@ -97,7 +97,7 @@ The next table covers gating that sits outside `PLAN_MATRIX`:
 | Portfolio Analyzer, Market Explorer                          | locked                                                 | ✔                                                            | ✔                            | see `docs/dev/tools.md`                                                       |
 | Weekly CFO report email                                      | —                                                      | ✔                                                            | ✔                            | `budgeting/tasks.py:190`                                                      |
 | OpenAI daily token budget (a hard cap behind every AI quota) | 50k tokens                                             | 500k                                                         | 500k                         | `OPENAI_DAILY_TOKEN_BUDGET_FREE/_PREMIUM`, `support/services/openai.py:76-80` |
-| AI model                                                     | `OPENAI_MODEL_ASSISTANT` (code default `gpt-4.1-mini`) | same                                                         | same                         | `settings.py:501`. No plan picks a different model                            |
+| AI model                                                     | `OPENAI_MODEL_TUTOR` (code default `gpt-6.1-terra`) | same                                                         | same                         | `settings.py:501`. No plan picks a different model                            |
 
 When a server gate refuses, it returns **402** with `reason: "upgrade"` (locked) or
 `reason: "limit"` (quota used up) from `check_and_consume_entitlement` (`entitlements.py:542-591`).
@@ -261,7 +261,7 @@ Mobile has no separate manage screen. Restore and the store link are part of the
      job was deliberately removed.
 9. **Docs disagree with code.**
    - `README.md:89` says Pro gets **gpt-4o** and Starter/Plus get gpt-4o-mini. Code uses one
-     model, `OPENAI_MODEL_ASSISTANT`, for every plan (default `gpt-4.1-mini`).
+     model, `OPENAI_MODEL_TUTOR`, for every plan (default `gpt-6.1-terra`).
    - `docs/prod/subscription-matrix.md` says receipt scan uses "GPT-4o vision". It uses the same
      assistant model.
    - The subscription matrix lists a "Daily learning limit: 3 core actions/day" (`daily_limits`).
