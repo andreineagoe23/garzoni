@@ -17,7 +17,7 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.garzoni.mobile",
-      "buildNumber": "7",
+      "buildNumber": "8",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
@@ -68,7 +68,7 @@
         "backgroundColor": "#0b0f14"
       },
       "package": "app.garzoni.mobile",
-      "versionCode": 21,
+      "versionCode": 22,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
       "googleServicesFile": "./google-services.json",
