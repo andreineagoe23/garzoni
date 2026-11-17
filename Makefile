@@ -9,7 +9,7 @@ prod:
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile celery up -d --build
 
 .PHONY: help up down build logs backend-shell backend-migrate backend-collectstatic backend-superuser \
-	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections load-backup load-mission-pool backfill-mission-completions frontend-install frontend-test frontend-lint frontend-build \
+	backend-test backend-lint backend-flake8 seed-exercises ensure-lesson-sections load-mission-pool backfill-mission-completions frontend-test frontend-lint frontend-build \
 	test-all pre-commit-install pre-commit
 
 help:
@@ -87,19 +87,11 @@ SERVICE ?= backend
 content-pipeline-prod:
 	railway ssh --service $(SERVICE) python manage.py apply_content_pipeline $(ARGS)
 
-# Load canonical backup (500 lesson sections, 263 exercises). Use with dev stack.
-# Run from repo root: make -f Makefile load-backup  (requires: docker compose -f docker-compose.dev.yml up -d)
-load-backup:
-	docker compose -f docker-compose.dev.yml exec backend python manage.py loaddata backups/backup_for_postgres_20260206_203429.json
-
 backend-lint:
 	python -m black --check backend
 
 backend-flake8:
 	python -m flake8 backend
-
-frontend-install:
-	cd frontend && npm ci
 
 frontend-test:
 	pnpm --filter @garzoni/web test

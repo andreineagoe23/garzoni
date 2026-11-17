@@ -32,8 +32,6 @@
     "dev:mobile": "pnpm --filter @garzoni/mobile start",
     "build": "pnpm --filter @garzoni/web build",
     "build:frontend": "pnpm --filter @garzoni/web build",
-    "build:marketing": "cd frontend/next-app && npm run build",
-    "build:all": "pnpm run build:frontend && pnpm run build:marketing",
     "test": "pnpm --filter @garzoni/web test",
     "lint": "pnpm --filter @garzoni/web lint",
     "typecheck:core": "pnpm --filter @garzoni/core typecheck",
@@ -46,9 +44,7 @@
     "qa:backend": "pnpm run lint:backend",
     "qa:mobile": "pnpm run typecheck:mobile && pnpm run lint:mobile && pnpm --filter @garzoni/mobile test && pnpm run test:core",
     "test:core": "pnpm --filter @garzoni/core test",
-    "precommit": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts && pnpm run typecheck && pnpm lint && pnpm run lint:mobile && pnpm --filter @garzoni/web format:check && pnpm --filter @garzoni/web test",
-    "upload:cloudinary": "node scripts/upload-cloudinary-images.js",
-    "upload:cloudinary:dry-run": "node scripts/upload-cloudinary-images.js --dry-run"
+    "precommit": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts && pnpm run typecheck && pnpm lint && pnpm run lint:mobile && pnpm --filter @garzoni/web format:check && pnpm --filter @garzoni/web test"
   },
   "dependencies": {
     "cloudinary": "^2.9.0"
