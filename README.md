@@ -123,7 +123,7 @@ The husky hook also runs Black + flake8 against `backend/` if installed.
 
 ## Deployment Notes
 
-- Docker deployment guide: [docs/prod/deployment-docker.md](docs/prod/deployment-docker.md)
+- Docker deployment guide: [docs/archive/prod/deployment-docker.md](docs/archive/prod/deployment-docker.md) (self-hosting only; archived)
 - Railway production runbook: [docs/prod/railway-production-runbook.md](docs/prod/railway-production-runbook.md) (pre-deploy sync for lessons + exercises; missions: `./backend/scripts/railway_push_missions.sh`).
 - **Mobile (Expo):** For Google OAuth native flows, add your app's authorised redirect URI in Google Cloud (e.g. `com.garzoni.app:/oauth2redirect/google` or the value from `app.json` / `app.config` `scheme`). Keep web callback URLs (`https://www…/api/auth/google/callback`) as well.
 

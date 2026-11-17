@@ -64,7 +64,7 @@ Times are server time (Europe/London) unless noted.
 
 ### Customer.io journeys
 
-According to `.claude/context/feature-status.md` (2026-08-20) and `docs/customer-io-overhaul.md`,
+According to `.claude/context/feature-status.md` (2026-08-20) and `docs/archive/customer-io-overhaul.md`,
 workspace 215084 has 14 running automations: Welcome, Trial Ending, Renewal Upcoming, Subscription
 Cancelled, Payment Failed, Checkout Abandoned, Re-engage 3d / 7d / 14d, Win-back 30d, Coach Nudge,
 Weekly Digest and others. Re-engagement uses saved segments based on inactivity and repeats every

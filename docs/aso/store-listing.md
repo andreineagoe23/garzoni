@@ -1,7 +1,7 @@
 # Store listing copy — canonical (App Store + Google Play)
 
-Single source of truth for store text from 2026-09-27. Supersedes `docs/prod/aso-1.1.5.md`,
-`docs/seo/phase-2-aso-copy.md` and `docs/aso/play-listing-assets-2026-07.md` (copy sections).
+Single source of truth for store text from 2026-09-27. Supersedes `docs/archive/prod/aso-1.1.5.md`,
+`docs/archive/seo/phase-2-aso-copy.md` and `docs/aso/play-listing-assets-2026-07.md` (copy sections).
 
 ## Rules
 

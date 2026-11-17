@@ -67,7 +67,7 @@ link only the App Store. Add Play where the App Store is linked.
 ### 4. ASO — Play listing copy
 
 Paste-ready Play title/short/full description + graphics notes are in
-[phase-2-aso-copy.md](./phase-2-aso-copy.md). Fill the Play Console listing.
+[phase-2-aso-copy.md](phase-2-aso-copy.md). Fill the Play Console listing.
 
 ### 5. Post-launch
 

@@ -89,7 +89,7 @@ return a real 404.
 ## Known gaps
 
 - Several public lessons contain outdated UK figures; see
-  [`docs/content/eeat-drafts-2026-10.md`](../content/eeat-drafts-2026-10.md).
+  [`content-drafts/eeat-drafts-2026-10.md`](../../content-drafts/eeat-drafts-2026-10.md).
 - Most existing lesson sources point to US agencies, not UK or Romanian ones.
 - Only 7 of 20 guides are in Romanian; the competitor comparisons are deliberately English-only.
 - A few public lessons have near-duplicate titles (two "Technical Analysis Basics", two DeFi intros).

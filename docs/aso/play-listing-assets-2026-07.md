@@ -2,7 +2,7 @@
 
 > **SUPERSEDED 2026-09-27** by [`docs/aso/store-listing.md`](store-listing.md) — do not paste copy from here.
 
-> **SUPERSEDED 2026-08-18** by `docs/prod/aso-1.1.5.md`. Kept for the asset specs.
+> **SUPERSEDED 2026-08-18** by `docs/archive/prod/aso-1.1.5.md`. Kept for the asset specs.
 
 Companion to `aso-audit-2026-07-07.md`. Everything below goes into Play Console →
 Grow → Store presence → Main store listing, unless noted. Char counts verified.

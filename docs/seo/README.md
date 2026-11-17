@@ -25,8 +25,8 @@ The entire lesson/guide content moat (56 of 68 sitemap URLs) returns **HTTP 404 
 
 | Phase | File                                                                   | Theme                                                    | Effort |
 | ----- | ---------------------------------------------------------------------- | -------------------------------------------------------- | ------ |
-| 1     | [phase-1-critical-fixes.md](phase-1-critical-fixes.md)                 | Indexation + conversion breakage (do first)              | Hours  |
-| 2     | [phase-2-app-stores-aso.md](phase-2-app-stores-aso.md)                 | Google Play publish + iOS ASO                            | Days   |
+| 1     | [phase-1-critical-fixes.md](../archive/seo/phase-1-critical-fixes.md)  | Indexation + conversion breakage (do first)              | Hours  |
+| 2     | [phase-2-app-stores-aso.md](../archive/seo/phase-2-app-stores-aso.md)  | Google Play publish + iOS ASO                            | Days   |
 | 3     | [phase-3-schema-entities.md](phase-3-schema-entities.md)               | Structured data / entity graph                           | Hours  |
 | 4     | [phase-4-content-eeat.md](phase-4-content-eeat.md)                     | Authorship, sources, dates, expansion                    | Weeks  |
 | 5     | [phase-5-growth-content.md](phase-5-growth-content.md)                 | Roundups, "duolingo for finance", alternatives, outreach | Weeks  |

@@ -10,7 +10,7 @@ This repo’s `docker-compose.yml` is meant to be usable both locally and as a b
 
 - **Set real secrets**:
   - `DJANGO_SECRET_KEY`
-  - Stripe + email + reCAPTCHA env vars (see [docs/environment.md](../dev/environment.md))
+  - Stripe + email + reCAPTCHA env vars (see [docs/environment.md](../../dev/environment.md))
 
 - **Lock down security settings**:
   - `DJANGO_ALLOWED_HOSTS_CSV`
