@@ -45,8 +45,5 @@
     "qa:mobile": "pnpm run typecheck:mobile && pnpm run lint:mobile && pnpm --filter @garzoni/mobile test && pnpm run test:core",
     "test:core": "pnpm --filter @garzoni/core test",
     "precommit": "pnpm install --frozen-lockfile --lockfile-only --ignore-scripts && pnpm run typecheck && pnpm lint && pnpm run lint:mobile && pnpm --filter @garzoni/web format:check && pnpm --filter @garzoni/web test"
-  },
-  "dependencies": {
-    "cloudinary": "^2.9.0"
   }
 }

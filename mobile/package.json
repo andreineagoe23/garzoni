@@ -84,7 +84,6 @@
     "expo-updates": "~29.0.20",
     "expo-video": "~3.0.16",
     "i18next": "^23.16.0",
-    "lottie-react-native": "~7.3.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-i18next": "^14.1.3",
