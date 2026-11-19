@@ -1919,16 +1919,19 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
 
 
 def _complete_course_for_user(user, course: Course):
-    """Mark every published section (and its lessons) of a course complete.
+    """Fill skipped sections in the lessons of a course the learner has started.
 
     Idempotent — already-completed sections are skipped by
-    ``_complete_section_for_user``. Used by the flow's Finish action so reaching
-    the end always lands the learner at 100%, even if earlier steps were skipped
-    before the saved resume index.
+    ``_complete_section_for_user``. Used by the flow's Finish action to close
+    resume gaps. Lessons with no completed section are left alone: a client
+    that reaches "Finish" after one lesson must not complete the whole course.
     """
     progress, _ = UserProgress.objects.get_or_create(user=user, course=course)
+    started_lesson_ids = progress.completed_sections.filter(lesson__course=course).values(
+        "lesson_id"
+    )
     sections = LessonSection.objects.filter(
-        lesson__course=course, is_published=True
+        lesson__course=course, lesson_id__in=started_lesson_ids, is_published=True
     ).select_related("lesson", "lesson__course")
     for section in sections:
         _complete_section_for_user(user, section)

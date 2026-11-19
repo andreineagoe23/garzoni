@@ -152,6 +152,7 @@ class Lesson(models.Model):
         verbose_name = "Lesson"
         verbose_name_plural = "Lessons"
         db_table = "core_lesson"
+        ordering = ["id"]
 
 
 class LessonSection(models.Model):
