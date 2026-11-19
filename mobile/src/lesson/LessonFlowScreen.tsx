@@ -50,6 +50,11 @@ import VideoSection from "../components/lesson/VideoSection";
 import ExerciseSection from "../components/lesson/ExerciseSection";
 import { useLessonFlow, type FlowItem } from "./useLessonFlow";
 import RewardClaimModal from "../components/engagement/RewardClaimModal";
+import PushPromptScreen from "../components/onboarding/PushPromptScreen";
+import {
+  hasAskedForPush,
+  markAskedForPush,
+} from "../bootstrap/pushPromptState";
 import LessonCheckpointModal, {
   type CheckpointQuizRow,
 } from "./LessonCheckpointModal";
@@ -323,6 +328,7 @@ export default function LessonFlowScreen({
     missionCompletedNow,
     firstLessonCelebration,
     setMissionCompletedNow,
+    takeLessonJustCompleted,
     goNext,
     goPrev,
     handleCompleteCurrent,
@@ -591,6 +597,60 @@ export default function LessonFlowScreen({
     };
   }, []);
 
+  // Growth audit 2026-11 §3.2: the push ask used to wait for the next cold
+  // start, which most learners never had, so nobody was asked after 1.2.0.
+  // It now shows here, at the end of the lesson that earned it.
+  const [pushPromptVisible, setPushPromptVisible] = useState(false);
+  const pushPromptResolveRef = useRef<(() => void) | null>(null);
+
+  const maybeShowPushPrompt = useCallback(async (): Promise<boolean> => {
+    try {
+      if (await hasAskedForPush()) return false;
+      const { getPushPermissionStatus } =
+        await import("../bootstrap/pushNotificationsMobile");
+      if ((await getPushPermissionStatus()) !== "undetermined") return false;
+    } catch {
+      return false;
+    }
+    return new Promise<boolean>((resolve) => {
+      pushPromptResolveRef.current = () => resolve(true);
+      setPushPromptVisible(true);
+    });
+  }, []);
+
+  const finishPushPrompt = useCallback(() => {
+    void markAskedForPush();
+    setPushPromptVisible(false);
+    const r = pushPromptResolveRef.current;
+    pushPromptResolveRef.current = null;
+    r?.();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const r = pushPromptResolveRef.current;
+      pushPromptResolveRef.current = null;
+      r?.();
+    };
+  }, []);
+
+  // Runs between a step's completion and advancing. Push priming goes first;
+  // the rating ask only fires on a lesson end that did not spend the push ask,
+  // so the two system sheets never land on the same tap.
+  const runLessonEndGates = useCallback(
+    async (checkpointLessonId: number | null) => {
+      await waitLessonCheckpoint(checkpointLessonId);
+      if (!takeLessonJustCompleted()) return;
+      const asked = await maybeShowPushPrompt();
+      if (!asked) {
+        void import("../bootstrap/reviewPrompt").then(
+          ({ maybeRequestReview }) => maybeRequestReview("lesson_complete"),
+        );
+      }
+    },
+    [maybeShowPushPrompt, takeLessonJustCompleted, waitLessonCheckpoint],
+  );
+
   const clearTransientLessonMascot = useCallback(() => {
     if (transientLessonTimerRef.current) {
       clearTimeout(transientLessonTimerRef.current);
@@ -759,7 +819,7 @@ export default function LessonFlowScreen({
       return;
     }
     const cid = resolveCheckpointLessonId(items, idx, item);
-    await waitLessonCheckpoint(cid);
+    await runLessonEndGates(cid);
     await advanceAfterStep();
   }, [
     advanceAfterStep,
@@ -768,7 +828,7 @@ export default function LessonFlowScreen({
     handleCompleteCurrent,
     resolveCheckpointLessonId,
     t,
-    waitLessonCheckpoint,
+    runLessonEndGates,
   ]);
 
   const stepHeading = useMemo(() => {
@@ -812,7 +872,7 @@ export default function LessonFlowScreen({
           return;
         }
       }
-      await waitLessonCheckpoint(resolveCheckpointLessonId(items, idx, item));
+      await runLessonEndGates(resolveCheckpointLessonId(items, idx, item));
       await advanceAfterStep();
       return;
     }
@@ -826,7 +886,7 @@ export default function LessonFlowScreen({
         return;
       }
     }
-    await waitLessonCheckpoint(resolveCheckpointLessonId(items, idx, item));
+    await runLessonEndGates(resolveCheckpointLessonId(items, idx, item));
     await advanceAfterStep();
   }, [
     advanceAfterStep,
@@ -838,7 +898,7 @@ export default function LessonFlowScreen({
     handleCompleteCurrent,
     resolveCheckpointLessonId,
     t,
-    waitLessonCheckpoint,
+    runLessonEndGates,
   ]);
 
   const themeColors = useThemeColors();
@@ -1427,8 +1487,17 @@ export default function LessonFlowScreen({
         onDismiss={handleAiHelpDismiss}
       />
 
+      <Modal
+        visible={pushPromptVisible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={finishPushPrompt}
+      >
+        <PushPromptScreen source="lesson_flow" onComplete={finishPushPrompt} />
+      </Modal>
+
       <RewardClaimModal
-        visible={missionCompletedNow != null}
+        visible={missionCompletedNow != null && !pushPromptVisible}
         missionName={missionCompletedNow?.name ?? ""}
         xp={missionCompletedNow?.xp ?? 0}
         onDismiss={() => setMissionCompletedNow(null)}
