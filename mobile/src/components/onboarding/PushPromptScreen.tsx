@@ -72,6 +72,8 @@ type Props = {
    * permission flow inside registerForPushAndSubmitToken to settle first).
    */
   onComplete: () => void;
+  /** Where the ask is shown, for the push_prompt_* analytics events. */
+  source?: "onboarding" | "lesson_flow";
 };
 
 /**
@@ -79,7 +81,10 @@ type Props = {
  * user would get (mock iOS-style banner) before the OS prompt fires, so the
  * one-shot system dialog is only spent on primed users.
  */
-export default function PushPromptScreen({ onComplete }: Props) {
+export default function PushPromptScreen({
+  onComplete,
+  source = "onboarding",
+}: Props) {
   const { t } = useTranslation("common");
   const [requesting, setRequesting] = useState(false);
   // The standalone /push-prompt route renders this with no wrapper, so it owns
@@ -88,8 +93,8 @@ export default function PushPromptScreen({ onComplete }: Props) {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    trackEvent("push_prompt_shown", { source: "onboarding" });
-  }, []);
+    trackEvent("push_prompt_shown", { source });
+  }, [source]);
 
   // Gentle float on the mock notification card — draws the eye to the value.
   const floatY = useRef(new Animated.Value(0)).current;
@@ -117,7 +122,7 @@ export default function PushPromptScreen({ onComplete }: Props) {
   const handleAccept = async () => {
     if (requesting) return;
     setRequesting(true);
-    trackEvent("push_prompt_accepted", { source: "onboarding" });
+    trackEvent("push_prompt_accepted", { source });
     try {
       // OS permission prompt fires inside; never block onboarding on failure.
       await registerForPushAndSubmitToken();
@@ -131,7 +136,7 @@ export default function PushPromptScreen({ onComplete }: Props) {
 
   const handleDecline = () => {
     if (requesting) return;
-    trackEvent("push_prompt_declined", { source: "onboarding" });
+    trackEvent("push_prompt_declined", { source });
     onComplete();
   };
 
