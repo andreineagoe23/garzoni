@@ -279,25 +279,32 @@ export function useLessonFlow(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, flowEnabled]);
 
-  const completeSectionMutation = useMutation({
-    mutationFn: completeSection,
-    // The flow UI tracks completion locally via completedIds; remote queries
-    // are only marked stale and refetch in one burst when the flow exits.
-    onSuccess: (_data, sectionId) => {
-      trackEvent("section_completed", {
-        section_id: Number(sectionId),
-        course_id: courseId,
-      });
-      markProgressStale();
-    },
-  });
+  // Set when the last completion finished a lesson; the flow screen reads it
+  // once (takeLessonJustCompleted) to decide whether to run the lesson-end
+  // gates (push priming, review prompt) before advancing.
+  const lessonJustCompletedRef = useRef(false);
+  const takeLessonJustCompleted = useCallback(() => {
+    const v = lessonJustCompletedRef.current;
+    lessonJustCompletedRef.current = false;
+    return v;
+  }, []);
 
-  const completeLessonMutation = useMutation({
-    mutationFn: completeLesson,
-    onSuccess: (data, lessonId) => {
-      // lesson_completed funnel event is emitted server-side in
-      // _complete_lesson_for_user; fire Amplitude + Customer.io client-side only
-      // (recordFunnelEvent here would double-count in the funnel).
+  // Shared by both write paths. The flow finishes most lessons through
+  // complete_section, which reports `lesson_completed` when its section was the
+  // lesson's last; before 2026-11 that path ran none of this.
+  const onLessonCompleted = useCallback(
+    (
+      payload:
+        | {
+            missions?: MissionDelta[];
+            missions_completed_now?: MissionDelta[];
+          }
+        | undefined,
+      lessonId: number | string,
+    ) => {
+      lessonJustCompletedRef.current = true;
+      // lesson_completed funnel event is emitted server-side; fire Amplitude +
+      // Customer.io client-side only (recordFunnelEvent here would double-count).
       trackAnalyticsEvent("lesson_completed", {
         lesson_id: lessonId,
         course_id: courseId,
@@ -306,13 +313,8 @@ export function useLessonFlow(
         ({ trackGarzoniEvent }) =>
           trackGarzoniEvent("lesson_completed", { lesson_id: lessonId }),
       );
-      void import("../bootstrap/reviewPrompt").then(({ maybeRequestReview }) =>
-        maybeRequestReview("lesson_complete"),
-      );
-      // Finishing a lesson is what earns the push permission ask — the router
-      // gate in app/index.tsx stays closed until this is set. Fired on every
-      // completion, not just the first, so someone who signed up on the web and
-      // installed later becomes eligible too.
+      // Keeps the cold-start gate in app/index.tsx as a fallback for anyone who
+      // leaves the flow before the in-flow prompt shows.
       void import("../bootstrap/pushPromptState").then(
         ({ markPushPromptDue }) => markPushPromptDue(),
       );
@@ -320,20 +322,46 @@ export function useLessonFlow(
       // merge into the missions cache so the Missions screen is already fresh,
       // and surface the first mission this lesson finished for a celebration
       // sheet (server-detected transition; can't re-fire on later lessons).
-      const deltas: MissionDelta[] = data?.data?.missions ?? [];
+      const deltas = payload?.missions ?? [];
       if (deltas.length > 0) {
         queryClient.setQueryData<MissionBuckets | undefined>(
           queryKeys.missions(),
           (prev) => mergeMissionDeltas(prev, deltas),
         );
       }
-      const completedNow = data?.data?.missions_completed_now ?? [];
+      const completedNow = payload?.missions_completed_now ?? [];
       if (completedNow.length > 0) {
         setMissionCompletedNow({
           name: completedNow[0].name ?? "",
           xp: completedNow.reduce((sum, m) => sum + (m.points_reward ?? 0), 0),
         });
       }
+    },
+    [courseId, queryClient],
+  );
+
+  const completeSectionMutation = useMutation({
+    mutationFn: completeSection,
+    // The flow UI tracks completion locally via completedIds; remote queries
+    // are only marked stale and refetch in one burst when the flow exits.
+    onSuccess: (data, sectionId) => {
+      trackEvent("section_completed", {
+        section_id: Number(sectionId),
+        course_id: courseId,
+      });
+      // Deliberately not setting firstLessonCelebration here: it arms the
+      // post_first_lesson paywall CTA, which stays dormant for now.
+      if (data?.data?.lesson_completed && data.data.lesson_id != null) {
+        onLessonCompleted(data.data, data.data.lesson_id);
+      }
+      markProgressStale();
+    },
+  });
+
+  const completeLessonMutation = useMutation({
+    mutationFn: completeLesson,
+    onSuccess: (data, lessonId) => {
+      onLessonCompleted(data?.data, lessonId);
       // First-ever lesson (UX Phase 2, plan §2.6): server detects it once and
       // grants the bonus; hold it for the course-complete celebration screen.
       if (data?.data?.is_first_lesson) {
@@ -392,6 +420,7 @@ export function useLessonFlow(
     missionCompletedNow,
     setMissionCompletedNow,
     firstLessonCelebration,
+    takeLessonJustCompleted,
     goNext,
     goPrev,
     handleCompleteCurrent,
