@@ -36,9 +36,8 @@ Set these on the **backend** service (the names below are what Django reads).
 
 1. **Local filesystem (Docker default):** Files must exist under `backend/media/` with the same relative paths the DB expects (e.g. `path_images/basicfinance.png`). The API normalizes bogus legacy `*/backend/media/` prefixes in URLs, but if the DB still points at random upload names (e.g. `ew8l….png`), images 404. Run **`python manage.py fix_local_media_image_paths`** inside the backend container (use `--dry-run` first) to remap Path/Course/Badge/Reward rows to seed filenames that exist on disk.
 2. **Serve from Cloudinary in production:** Set `DJANGO_MEDIA_STORAGE_BACKEND` to your Cloudinary storage backend (see Django `django-cloudinary-storage`), set `CLOUDINARY_URL`, then upload and align DB:
-   - From repo root: `pnpm run upload:cloudinary` (or `node scripts/upload-cloudinary-images.js`) with `CLOUDINARY_URL` or `CLOUDINARY_*` set. Assets land under **`garzoni/…`** only (flat, stable public IDs — not `garzoni/backend/media/…`). Duplicates (same logical file in `frontend/src/assets` and `backend/media`) upload once; **`backend/media` wins** when both exist.
-   - Preview: `pnpm run upload:cloudinary:dry-run`.
-   - Then in `backend/`: `python manage.py migrate_cloudinary_images` (uses `scripts/cloudinary-upload-results.json`; entries include `public_id` for DB rows).
+   - The bulk upload script (`upload:cloudinary`) was removed in the 2026-11 cleanup; every asset it uploaded is already on Cloudinary. Assets live under **`garzoni/…`** only (flat, stable public IDs — not `garzoni/backend/media/…`). Duplicates (same logical file in `frontend/src/assets` and `backend/media`) upload once; **`backend/media` wins** when both exist.
+   - Then in `backend/`: `python manage.py migrate_cloudinary_images` (uses `backend/cloudinary-upload-results.json`; entries include `public_id` for DB rows).
 3. **Marketing-only assets** (login backgrounds, topic fallbacks): configured in `packages/core/src/images.ts` via `VITE_CLOUDINARY_CLOUD_NAME` / `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` and the `garzoni/…` public IDs from the upload script.
 
 **Google (web redirect + ID tokens)**

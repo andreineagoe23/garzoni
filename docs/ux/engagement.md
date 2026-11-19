@@ -6,8 +6,8 @@
 > row with activity, judged on the learner's own timezone. Every day there are 4 daily and 4 weekly
 > **missions**, picked from a pool of 22, with one swap a day. **Leagues** (Bronze → Diamond, weekly
 > cohorts of up to 30) are switched on. Friends, friend leaderboards, streak wagers and referrals work
-> on both platforms. Duels are mobile-only and partly unreachable, the friend activity feed is never
-> shown, and everything behind `GAMIFICATION_RETENTION_V2` (weekly recap, streak-rescue missions) is
+> on both platforms. Duels are mobile-only (detail and challenge screens; the list screen and the friend activity
+> feed were removed in the 2026-11 cleanup), and everything behind `GAMIFICATION_RETENTION_V2` (weekly recap, streak-rescue missions) is
 > switched off. Owning a streak freeze does not reliably save a streak: the midnight reset runs first
 > (see [Known gaps](#known-gaps-and-flags)).
 
@@ -35,8 +35,8 @@ _Last reviewed: 2026-10-08, against `master` at `d431e781`._
 | Leagues                                                | ✅ Leagues tab                      | ✅ Leaderboard tab                                                    | All                                                      | Shipped. `LEAGUES_ENABLED=True` by default                                                    |
 | Friend requests and friends list                       | ✅                                  | ✅                                                                    | All                                                      | Shipped                                                                                       |
 | Friend profile page                                    | ❌                                  | ✅ `friend/[id].tsx`                                                  | All                                                      | Mobile-only                                                                                   |
-| Friend activity feed                                   | ❌                                  | ⚠️ `app/feed.tsx` exists                                              | —                                                        | **Dead.** Nothing navigates to it                                                             |
-| Duels (multi-day XP race)                              | ❌                                  | ⚠️ `duels/[id]`, `duels/new/[id]`; the list screen has no entry point | All                                                      | **Partial, mobile-only, untested**                                                            |
+| Friend activity feed                                   | ❌                                  | ❌ removed 2026-11 (was unreachable)                                  | —                                                        | **Removed.** Backend `friends/activity-feed/` still exists    |
+| Duels (multi-day XP race)                              | ❌                                  | ⚠️ `duels/[id]`, `duels/new/[id]`; list screen removed 2026-11        | All                                                      | **Partial, mobile-only, untested**                                                            |
 | Badges                                                 | ✅                                  | ✅                                                                    | All                                                      | Shipped                                                                                       |
 | Rewards shop and donations                             | ✅ `/rewards`                       | ✅ `rewards.tsx`                                                      | All                                                      | Shipped. Coins are deducted; nothing fulfils the order in code                                |
 | Referrals                                              | ✅                                  | ✅                                                                    | All                                                      | Shipped. The 50% discount reward can only be redeemed through the Django Stripe checkout      |
@@ -309,9 +309,10 @@ See [notifications.md](../notifications/overview.md).
   (`finance/views.py:1940-1948`).
 - **Referral discount is web-checkout only.** The 50% code is applied only in the Django Stripe
   checkout (`finance/views.py:2716`). App-store and RevenueCat purchases cannot use it.
-- **Duels are mobile-only and partly unreachable.** No web route; `mobile/app/duels/index.tsx` has
-  no entry point; `views_duels.py` has no tests. `gamification/` has no app-level test module.
-- **Friend activity feed is dead.** `mobile/app/feed.tsx` is complete but nothing links to it.
+- **Duels are mobile-only.** No web route; the unreachable list screen was removed in the 2026-11
+  cleanup; `views_duels.py` has no tests. `gamification/` has no app-level test module.
+- **Friend activity feed removed.** `mobile/app/feed.tsx` was unreachable and was deleted in the 2026-11
+  cleanup; the backend endpoint remains.
 - **Weekly recap is off twice over.** `GAMIFICATION_RETENTION_V2=False`, and no web or mobile code
   calls `/weekly-recap/`.
 - **Streak milestones and league results are not announced.** The backend events exist, but

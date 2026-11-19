@@ -53,7 +53,7 @@ Yours to switch off; none of it is in git.
 | Remove `.claude/scripts/` history-rewrite leftovers | 4 files |
 | Delete `GROWTH-PHASES.tmp.md` once its open items are in `growth-audit-2026-11.md` | 11.6 KB |
 | Delete merged branches: `feat/cio-retention-loop`, `fix/retention-loop`, `fix/exercise-answer-integrity`, `security-latency-audit-2026-08`, `sprint1-platform-hardening`, `sprint2-money-path` (local + origin) | 6 branches |
-| Drop unused dependencies: backend `groq`; frontend `react-google-recaptcha`, `react-google-recaptcha-v3`, `gh-pages` | touches the lockfile — your OK needed |
+| Drop unused dependencies: backend `groq`; frontend `react-google-recaptcha`, `react-google-recaptcha-v3`, `gh-pages` | **Done 2026-11-19**, plus root `cloudinary` and mobile `lottie-react-native` |
 
 Gate: `pnpm precommit` and `make backend-test` green, then a web build on Vercel.
 
@@ -88,9 +88,9 @@ Archive candidates: `release/1.1.7-runbook`, `promo/60-off-launch-checklist`, `p
 | --- | --- |
 | ~38 management commands never referenced (~7.3K lines): one-off seeders and content rewrites | Search Celery beat rows, `call_command`, shell scripts and runbooks. Keep ops commands (`resync_cio_users`, `reconcile_progress`, `backfill_*`). |
 | 11 images in `frontend/src/assets` (7.7 MB), referenced only by Cloudinary name | Confirm they are not the upload source |
-| `finance.models.Tool`, unused outside migrations | Needs a migration |
+| `finance.models.Tool`, unused outside migrations | **Done 2026-11-19** (`finance/0014_delete_tool`, 0 prod rows) |
 | `notifications/interfaces.py`, `support/views_contact.py` | Name-based check only so far |
-| Branches `staging`, `tests` | Confirm neither is a deploy target |
+| Branches `staging`, `tests` | **Deleted 2026-11-19** (Railway and Vercel deploy only `master`) |
 | Unused `STRIPE_PRICE_*` settings | Re-verify against the web checkout |
 
 ### Phase E — Structural, done only when the file is being touched anyway

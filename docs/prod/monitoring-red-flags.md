@@ -34,7 +34,7 @@ without guessing.
 
 ## Where the numbers come from
 
-- **Frontend**: `getToolAnalytics()` (see `ToolsAnalyticsPanel`) and/or your analytics backend (e.g. funnel events).
+- **Frontend**: `getToolAnalytics()` in `packages/core/src/services/toolsAnalytics.ts` (no UI reads it since the 2026-11 cleanup) and/or your analytics backend (e.g. funnel events).
 - **Backend**: Funnel/tool events ingested via `FunnelEventIngestView` and aggregated for weekly review.
 
 Use the same event names (`tool_open`, `tool_complete`, `tool_return`, `recommendation_click`) so frontend and backend metrics align.

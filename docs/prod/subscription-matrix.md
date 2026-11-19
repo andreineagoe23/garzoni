@@ -36,11 +36,11 @@ Currency: GBP. Channels: RevenueCat everywhere — **Web Billing (Stripe-backed)
 
 | Capability              | Feature key                                                | Backend gate                                               | Frontend gating                                      |
 | ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------- |
-| Daily learning limit    | `daily_limits` (`feature.limit.daily`)                     | `/api/entitlements/consume/`                               | `EntitlementMatrix` + gated calls                    |
-| Hints                   | `hints` (`feature.education.hints`)                        | `/api/entitlements/consume/`                               | `EntitlementMatrix`                                  |
-| Streak repair           | `streak_repair` (`feature.gamification.streak_repair`)     | `/api/entitlements/consume/`                               | `EntitlementMatrix`                                  |
+| Daily learning limit    | `daily_limits` (`feature.limit.daily`)                     | `/api/entitlements/consume/`                               | `consumeEntitlement` (core) + gated calls           |
+| Hints                   | `hints` (`feature.education.hints`)                        | `/api/entitlements/consume/`                               | `consumeEntitlement` / `fetchEntitlements` (core)    |
+| Streak repair           | `streak_repair` (`feature.gamification.streak_repair`)     | `/api/entitlements/consume/`                               | `consumeEntitlement` / `fetchEntitlements` (core)    |
 | Downloads               | `downloads` (`feature.resources.downloads`)                | `/api/entitlements/consume/`                               | Rewards share CTA                                    |
-| Analytics & insights    | `analytics` (`feature.analytics.access`)                   | `/api/entitlements/` response                              | `EntitlementMatrix`                                  |
+| Analytics & insights    | `analytics` (`feature.analytics.access`)                   | `/api/entitlements/` response                              | `consumeEntitlement` / `fetchEntitlements` (core)    |
 | AI tutor chat           | `ai_tutor` (`feature.ai.tutor`)                            | `OpenAIService.handle()` (`check_and_consume_entitlement`) | Chatbot send action + UpsellModal                    |
 | Personalized path       | `personalized_path` (`feature.learning.personalized_path`) | `/api/personalized-path/`                                  | Personalized path CTA                                |
 | AI explain wrong answer | `ai_explain` (`feature.ai.explain`)                        | `/api/exercises/explain/`                                  | `MultipleChoiceExercise` (web + mobile) inline block |

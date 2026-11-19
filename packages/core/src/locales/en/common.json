@@ -2345,15 +2345,6 @@
   },
   "duels": {
     "title": "Duels",
-    "subtitle": "Race a friend for XP.",
-    "tabs": {
-      "active": "Active",
-      "history": "History"
-    },
-    "empty": {
-      "active": "No active duels. Challenge a friend from the leaderboard!",
-      "history": "No past duels yet."
-    },
     "status": {
       "pending": "Pending",
       "active": "Active",
@@ -2383,9 +2374,6 @@
     "card": {
       "incoming": "Challenge from {{username}}",
       "outgoing": "Challenge sent to {{username}}",
-      "vs": "vs {{username}}",
-      "endsIn": "Ends in {{when}}",
-      "ended": "Ended {{when}}",
       "leadingBy": "Leading by {{xp}} XP",
       "behindBy": "Behind by {{xp}} XP",
       "tied": "Tied"
@@ -2398,8 +2386,6 @@
     },
     "detail": {
       "yourScore": "You",
-      "theirScore": "{{username}}",
-      "earnedDuringDuel": "{{xp}} XP earned",
       "countdown": "{{time}} remaining",
       "finishedAt": "Finished {{when}}",
       "winnerYou": "You won!",
@@ -2410,18 +2396,6 @@
       "loadFailed": "Could not load duels.",
       "respondFailed": "Could not respond to challenge.",
       "cancelFailed": "Could not cancel challenge."
-    }
-  },
-  "feed": {
-    "title": "Friend Activity",
-    "empty": "No recent activity from your friends.",
-    "loadFailed": "Could not load activity feed.",
-    "events": {
-      "lessonCompleted": "{{username}} finished a lesson",
-      "missionCompleted": "{{username}} completed a mission",
-      "badgeEarned": "{{username}} earned the {{badge}} badge",
-      "streakMilestone": "{{username}} hit a {{count}}-day streak",
-      "duelWon": "{{username}} won a duel"
     }
   },
   "friendSuggestions": {

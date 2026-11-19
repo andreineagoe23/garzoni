@@ -2345,15 +2345,6 @@
   },
   "duels": {
     "title": "Dueluri",
-    "subtitle": "Concurează cu un prieten pentru XP.",
-    "tabs": {
-      "active": "Active",
-      "history": "Istoric"
-    },
-    "empty": {
-      "active": "Niciun duel activ. Provoacă un prieten din clasament!",
-      "history": "Niciun duel anterior."
-    },
     "status": {
       "pending": "În așteptare",
       "active": "Activ",
@@ -2383,9 +2374,6 @@
     "card": {
       "incoming": "Provocare de la {{username}}",
       "outgoing": "Provocare trimisă lui {{username}}",
-      "vs": "vs {{username}}",
-      "endsIn": "Se termină în {{when}}",
-      "ended": "Terminat {{when}}",
       "leadingBy": "Conduci cu {{xp}} XP",
       "behindBy": "În urmă cu {{xp}} XP",
       "tied": "Egalitate"
@@ -2398,8 +2386,6 @@
     },
     "detail": {
       "yourScore": "Tu",
-      "theirScore": "{{username}}",
-      "earnedDuringDuel": "{{xp}} XP obținut",
       "countdown": "{{time}} rămas",
       "finishedAt": "Terminat {{when}}",
       "winnerYou": "Ai câștigat!",
@@ -2410,18 +2396,6 @@
       "loadFailed": "Nu am putut încărca duelurile.",
       "respondFailed": "Nu am putut răspunde la provocare.",
       "cancelFailed": "Nu am putut anula provocarea."
-    }
-  },
-  "feed": {
-    "title": "Activitatea prietenilor",
-    "empty": "Nicio activitate recentă de la prieteni.",
-    "loadFailed": "Nu am putut încărca activitatea.",
-    "events": {
-      "lessonCompleted": "{{username}} a terminat o lecție",
-      "missionCompleted": "{{username}} a terminat o misiune",
-      "badgeEarned": "{{username}} a obținut insigna {{badge}}",
-      "streakMilestone": "{{username}} a atins o serie de {{count}} zile",
-      "duelWon": "{{username}} a câștigat un duel"
     }
   },
   "friendSuggestions": {
