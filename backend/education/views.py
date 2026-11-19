@@ -359,7 +359,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                 request.user.is_staff or request.user.is_superuser
             ):
                 return Response({"error": "Section not available."}, status=403)
-            _complete_section_for_user(request.user, section)
+            _complete_section_for_user(request.user, section, request=request)
             invalidate_profile_cache(request.user)
             return Response({"message": "Section completed!"})
         except LessonSection.DoesNotExist:
@@ -984,10 +984,29 @@ class UserProgressViewSet(viewsets.ModelViewSet):
             if section.lesson and section.lesson.course and section.lesson.course.path:
                 if not _user_can_access_path(user, section.lesson.course.path):
                     return _path_access_denied_response(section.lesson.course.path)
-            _complete_section_for_user(user, section)
+            open_before = set(
+                current_cycle_completions(user, ["complete_lesson", "complete_path"])
+                .filter(status__in=["not_started", "in_progress"])
+                .values_list("mission_id", flat=True)
+            )
+            _, _, lesson_meta = _complete_section_for_user(user, section, request=request)
             invalidate_profile_cache(user)
             cache.delete(f"progress_summary_{user.id}")
-            return Response({"status": "Section completed"})
+            payload = {"status": "Section completed", "lesson_completed": lesson_meta is not None}
+            if lesson_meta is not None:
+                mission_deltas = current_mission_deltas(user, ["complete_lesson", "complete_path"])
+                payload.update(
+                    lesson_id=section.lesson_id,
+                    streak=user.profile.streak,
+                    missions=mission_deltas,
+                    missions_completed_now=[
+                        d
+                        for d in mission_deltas
+                        if d["status"] == "completed" and d["id"] in open_before
+                    ],
+                    **lesson_meta,
+                )
+            return Response(payload)
         except LessonSection.DoesNotExist:
             return Response({"error": "Invalid section"}, status=400)
 
@@ -1692,10 +1711,17 @@ def _maybe_mark_course_complete(user, user_progress, course) -> bool:
     return True
 
 
-def _complete_section_for_user(user, section: LessonSection):
-    """Shared section completion flow used by both userprogress and lessons endpoints."""
+def _complete_section_for_user(user, section: LessonSection, request=None):
+    """Shared section completion flow used by both userprogress and lessons endpoints.
+
+    Returns ``(progress, was_new_section, lesson_meta)``. ``lesson_meta`` is ``None``
+    unless this section finished its lesson; then it is the same dict
+    ``_complete_lesson_for_user`` returns, because the lesson-completion side effects
+    (lesson reward, missions, first-lesson bookkeeping, funnel event) ran here too.
+    """
     progress, _ = UserProgress.objects.get_or_create(user=user, course=section.lesson.course)
     was_new_section = not progress.completed_sections.filter(pk=section.pk).exists()
+    finished_lesson = None
     if was_new_section:
         progress.completed_sections.add(section)
         _grant_initial_mastery(user, section.lesson.course.title, course=section.lesson.course)
@@ -1729,7 +1755,10 @@ def _complete_section_for_user(user, section: LessonSection):
             completed_in_lesson = progress.completed_sections.filter(
                 id__in=lesson_section_ids
             ).count()
-            if completed_in_lesson >= len(lesson_section_ids):
+            if (
+                completed_in_lesson >= len(lesson_section_ids)
+                and not progress.completed_lessons.filter(pk=lesson.pk).exists()
+            ):
                 progress.completed_lessons.add(lesson)
                 record_activity(
                     user=user,
@@ -1737,20 +1766,70 @@ def _complete_section_for_user(user, section: LessonSection):
                     object_id=lesson.id,
                     course=lesson.course,
                 )
-                try:
-                    from authentication.services.referral_rewards import maybe_earn_referral_reward
-
-                    maybe_earn_referral_reward(user)
-                except Exception:
-                    logger.warning(
-                        "referral earn check failed user_id=%s",
-                        user.id,
-                        exc_info=True,
-                    )
+                _grant_lesson_completion(user, progress, lesson)
+                finished_lesson = lesson
         # Completing the last published section finishes the course — no longer
         # gated on a separate lesson-completion call.
         _maybe_mark_course_complete(user, progress, section.lesson.course)
-    return progress, was_new_section
+    lesson_meta = (
+        _after_lesson_completed(user, finished_lesson, request) if finished_lesson else None
+    )
+    return progress, was_new_section, lesson_meta
+
+
+def _grant_lesson_completion(user, user_progress, lesson: Lesson):
+    """Rewards owed once, when a lesson first lands in ``completed_lessons`` by either path."""
+    grant_reward(
+        user,
+        f"lesson_first_completion:{user.id}:{lesson.id}",
+        points=XP_LESSON_FIRST_COMPLETION,
+        coins=COINS_LESSON_FIRST_COMPLETION,
+        bump_streak="user_progress",
+        user_progress=user_progress,
+    )
+    try:
+        from authentication.services.referral_rewards import maybe_earn_referral_reward
+
+        maybe_earn_referral_reward(user)
+    except Exception:
+        logger.warning("referral earn check failed user_id=%s", user.id, exc_info=True)
+
+    lesson_missions = touch_assigned_completions(user, ["complete_lesson"]).filter(
+        status__in=["not_started", "in_progress"]
+    )
+    for mission_completion in lesson_missions:
+        mission_completion.update_progress()
+
+
+def _after_lesson_completed(user, lesson: Lesson, request=None) -> dict:
+    """First-lesson bookkeeping and the authoritative ``lesson_completed`` funnel event.
+
+    Runs outside the completion transaction. Returns the first-lesson fields for the
+    API response.
+    """
+    is_first_lesson = _handle_first_lesson_completion(user)
+    try:
+        record_funnel_event(
+            "lesson_completed",
+            user=user,
+            platform=(resolve_request_platform(request) if request is not None else "server"),
+            metadata={
+                "lesson_id": lesson.id,
+                "course_id": lesson.course_id,
+                "source": "server",
+            },
+        )
+    except Exception:
+        logger.warning(
+            "funnel lesson_completed emit failed user_id=%s lesson_id=%s",
+            user.id,
+            lesson.id,
+            exc_info=True,
+        )
+    return {
+        "is_first_lesson": is_first_lesson,
+        "first_lesson_bonus_xp": XP_FIRST_LESSON_EVER_BONUS if is_first_lesson else None,
+    }
 
 
 def _handle_first_lesson_completion(user) -> bool:
@@ -1843,24 +1922,7 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
                         course=course,
                     )
 
-            grant_reward(
-                user,
-                f"lesson_first_completion:{user.id}:{lesson.id}",
-                points=XP_LESSON_FIRST_COMPLETION,
-                coins=COINS_LESSON_FIRST_COMPLETION,
-                bump_streak="user_progress",
-                user_progress=user_progress,
-            )
-            try:
-                from authentication.services.referral_rewards import maybe_earn_referral_reward
-
-                maybe_earn_referral_reward(user)
-            except Exception:
-                logger.warning(
-                    "referral earn check failed user_id=%s",
-                    user.id,
-                    exc_info=True,
-                )
+            _grant_lesson_completion(user, user_progress, lesson)
 
             # Per-section economy is normally granted from `complete_section`. When a lesson
             # is completed first (bulk section M2M), those calls never happened — backfill
@@ -1876,12 +1938,6 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
                     evaluate_badges=False,
                 )
 
-            lesson_missions = touch_assigned_completions(user, ["complete_lesson"]).filter(
-                status__in=["not_started", "in_progress"]
-            )
-            for mission_completion in lesson_missions:
-                mission_completion.update_progress()
-
         # Bulk-adding the lesson's sections above may have completed the course;
         # completion is section-based (education.progress), shared with the
         # section and complete-course paths.
@@ -1889,32 +1945,10 @@ def _complete_lesson_for_user(user, lesson: Lesson, request=None):
 
     user_progress.refresh_from_db()
 
-    is_first_lesson = False
     if was_lesson_new:
-        is_first_lesson = _handle_first_lesson_completion(user)
-        try:
-            record_funnel_event(
-                "lesson_completed",
-                user=user,
-                platform=(resolve_request_platform(request) if request is not None else "server"),
-                metadata={
-                    "lesson_id": lesson.id,
-                    "course_id": course.id if course else None,
-                    "source": "server",
-                },
-            )
-        except Exception:
-            logger.warning(
-                "funnel lesson_completed emit failed user_id=%s lesson_id=%s",
-                user.id,
-                lesson.id,
-                exc_info=True,
-            )
-
-    completion_meta = {
-        "is_first_lesson": is_first_lesson,
-        "first_lesson_bonus_xp": XP_FIRST_LESSON_EVER_BONUS if is_first_lesson else None,
-    }
+        completion_meta = _after_lesson_completed(user, lesson, request)
+    else:
+        completion_meta = {"is_first_lesson": False, "first_lesson_bonus_xp": None}
     return user_progress, completion_meta
 
 
