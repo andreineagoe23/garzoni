@@ -70,7 +70,6 @@ sentry-sdk[django]==2.19.0
 cloudinary==1.40.0
 django-cloudinary-storage==0.3.0
 django-anymail[resend]==14.0
-groq==1.1.1
 # Statement import: PDF (Barclays and most UK banks only offer PDF) and
 # spreadsheet exports. pdfplumber pulls in pdfminer.six for text extraction.
 #

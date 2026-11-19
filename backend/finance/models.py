@@ -59,35 +59,6 @@ class SimulatedSavingsAccount(models.Model):
         db_table = "core_simulatedsavingsaccount"
 
 
-class Tool(models.Model):
-    """
-    Represents a financial tool or resource that users can access.
-    Each tool is categorized and includes a name, description, URL, and optional icon.
-    """
-
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    category = models.CharField(
-        max_length=50,
-        choices=[
-            ("basic_finance", "Basic Finance"),
-            ("real_estate", "Real Estate"),
-            ("crypto", "Crypto"),
-            ("forex", "Forex"),
-        ],
-    )
-    url = models.URLField(blank=True, null=True)
-    icon = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        db_table = "core_tool"
-
-    def save(self, *args, **kwargs):
-        self.name = normalize_text_encoding(self.name) or ""
-        self.description = normalize_text_encoding(self.description) or ""
-        super().save(*args, **kwargs)
-
-
 class Reward(models.Model):
     """
     Represents a reward that users can purchase or donate towards.
