@@ -444,9 +444,6 @@ export const postContactForm = (body: {
   message: string;
 }) => apiClient.post<{ message?: string }>("/contact/", body);
 
-export const completeSection = (sectionId: string | number) =>
-  apiClient.post(`/userprogress/complete_section/`, { section_id: sectionId });
-
 export type CompleteLessonResponse = {
   status?: string;
   streak?: number;
@@ -458,6 +455,20 @@ export type CompleteLessonResponse = {
   /** One-time bonus XP granted with the first lesson; null/absent when none. */
   first_lesson_bonus_xp?: number | null;
 };
+
+/**
+ * When the section was its lesson's last, `lesson_completed` is true and the
+ * lesson fields (same as CompleteLessonResponse) are present.
+ */
+export type CompleteSectionResponse = CompleteLessonResponse & {
+  lesson_completed?: boolean;
+  lesson_id?: number;
+};
+
+export const completeSection = (sectionId: string | number) =>
+  apiClient.post<CompleteSectionResponse>(`/userprogress/complete_section/`, {
+    section_id: sectionId,
+  });
 
 export const completeLesson = (lessonId: string | number) =>
   apiClient.post<CompleteLessonResponse>(`/userprogress/complete/`, {
