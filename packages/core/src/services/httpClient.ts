@@ -68,6 +68,16 @@ export function setClientPlatform(platform: string): void {
   clientPlatform = (platform || "").trim().toLowerCase();
 }
 
+// Device IANA zone, sent as X-Garzoni-Timezone so the backend can keep
+// UserProfile.timezone_name (streak day boundary, reminder timing) current
+// without waiting for a push grant. Opt-in per app via setClientTimezone.
+let clientTimezone = "";
+
+/** Declare the device's IANA time zone. Call at app startup; "" disables the header. */
+export function setClientTimezone(timeZone: string): void {
+  clientTimezone = (timeZone || "").trim().slice(0, 64);
+}
+
 // Keep base URL in sync with configureBackendUrl (Expo) and env-driven web defaults.
 apiClient.interceptors.request.use((config) => {
   config.baseURL = getBackendUrl();
@@ -76,6 +86,9 @@ apiClient.interceptors.request.use((config) => {
   config.headers.set("X-App-Language", lang);
   if (clientPlatform) {
     config.headers.set("X-Garzoni-Platform", clientPlatform);
+  }
+  if (clientTimezone) {
+    config.headers.set("X-Garzoni-Timezone", clientTimezone);
   }
   return config;
 });

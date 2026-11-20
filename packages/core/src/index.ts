@@ -13,6 +13,7 @@ import {
 export {
   configureHttpClient,
   setClientPlatform,
+  setClientTimezone,
   attachToken,
   HTTP_CLIENT_SESSION_EXPIRED_REASON,
 } from "./services/httpClient";
