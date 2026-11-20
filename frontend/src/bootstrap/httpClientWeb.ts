@@ -3,6 +3,7 @@ import { reportApiError } from "sentry";
 import {
   configureHttpClient,
   setClientPlatform,
+  setClientTimezone,
   HTTP_CLIENT_SESSION_EXPIRED_REASON,
 } from "services/httpClient";
 
@@ -11,6 +12,11 @@ import {
  */
 export function initHttpClientWeb(): void {
   setClientPlatform("web");
+  try {
+    setClientTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+  } catch {
+    // Older browsers without Intl time zone support: the backend keeps its value.
+  }
   configureHttpClient({
     onAuthFailure: () => {
       if (typeof window === "undefined") return;
