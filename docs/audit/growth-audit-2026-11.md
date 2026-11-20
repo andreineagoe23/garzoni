@@ -231,17 +231,17 @@ Owner: **[C]** Claude, in the repo or via a connected tool · **[A]** Andrei onl
 
 | #   | Action                                                                                                                                                                                                                        | Owner      | Ships as       |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------- |
-| 0.1 | Order lessons in the API and model; guard `complete_course`; regression test                                                                                                                                                  | [C]        | backend deploy |
-| 0.2 | Show the push priming screen in-flow after the first lesson                                                                                                                                                                   | [C]        | OTA to 1.2.0   |
-| 0.3 | Capture timezone at signup from the device, not at push grant                                                                                                                                                                 | [C]        | OTA + backend  |
-| 0.4 | Rebuild CIO segments 15–18 on `last_active_at`; pause campaigns 9–12 until they are right                                                                                                                                     | [A→C]      | Customer.io    |
+| 0.1 | Order lessons in the API and model; guard `complete_course`; regression test                                                                                                                                                  | [C] **done 2026-11-19** (`44fa3bfd`) | backend deploy |
+| 0.2 | Show the push priming screen in-flow after the first lesson                                                                                                                                                                   | [C] **built 2026-11-19**; OTA not published | OTA to 1.2.0   |
+| 0.3 | Capture timezone at signup from the device, not at push grant                                                                                                                                                                 | [C] **backend + web live 2026-11-19**; mobile in OTA | OTA + backend  |
+| 0.4 | Rebuild CIO segments 15–18 on `last_active_at`; pause campaigns 9–12 until they are right                                                                                                                                     | [A→C] **done 2026-11-19**; 9–12 stay stopped | Customer.io    |
 | 0.5 | Release 1.2.2 to production on both stores, with `eas metadata:push` (Romanian iOS listing, subtitle, keywords, screenshot cleanup). **Play: done 2026-11-16 (vc22 on production).** iOS: metadata push + submit still to do. | [A]        | store release  |
 | 0.6 | Open Vercel → Analytics and confirm it is collecting                                                                                                                                                                          | [A] 2 min  | —              |
 | 0.7 | Search Console: resubmit the sitemap, export Pages + Performance                                                                                                                                                              | [A] 10 min | —              |
 | 0.8 | App Store Connect → Analytics → Sources, by territory, last 90 days. This shows whether installs come from search, browse or web, and from which countries. It is the most useful number we do not have.                      | [A] 10 min | —              |
 
 **Sequence agreed 2026-11-16:** cleanup plan (`cleanup-plan-2026-11.md`) → release 1.2.2 as
-built (0.5) → then 0.1–0.4. The two bug fixes are diagnosed but not written. 0.2 will need two
+built (0.5) → then 0.1–0.4. **2026-11-19:** 0.1 live; 0.2 also uncovered that the section path skipped every lesson-completion side effect (0 of 28 lesson finishers had `first_lesson_at`), fixed in `8777efea`; 0.3 live on backend and web; 0.4 done. 0.2 will need two
 OTA updates: one for the 1.2.2 runtime, one from `ota/1.2.0-chat-fix` for anyone still on 1.2.0.
 
 ### Phase 1 — A first session worth coming back to (weeks 1–4)
