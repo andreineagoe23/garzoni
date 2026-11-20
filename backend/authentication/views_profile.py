@@ -14,6 +14,7 @@ from authentication.serializers import (
     FinancialProfileSerializer,
     UserEmailPreferenceSerializer,
 )
+from authentication.services.client_timezone import apply_request_timezone
 from authentication.services.profile import (
     build_activity_heatmap,
     build_profile_payload,
@@ -32,6 +33,7 @@ class UserProfileView(generics.GenericAPIView):
     def get(self, request):
         """Retrieve and return the user's profile data."""
         user_profile = UserProfile.objects.select_related("user").get(user=request.user)
+        apply_request_timezone(request, user_profile)
         payload = build_profile_payload(request.user, user_profile)
         return Response(payload)
 

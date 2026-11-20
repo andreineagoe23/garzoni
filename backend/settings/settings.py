@@ -588,6 +588,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "content-type",
     "x-app-language",
     "x-garzoni-platform",
+    "x-garzoni-timezone",
     "x-csrftoken",
     "x-requested-with",
     "x-refresh-token",

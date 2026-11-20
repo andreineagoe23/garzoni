@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from authentication.throttles import PushTokenRateThrottle
+from authentication.services.client_timezone import normalize_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class ExpoPushTokenView(APIView):
         updated = ["expo_push_token"]
         # Devices report their IANA zone here so evening nudges can be scheduled in
         # the user's own evening rather than the server's.
-        tz = str(request.data.get("timezone") or "").strip()[:64]
+        tz = normalize_timezone(request.data.get("timezone"))
         if tz and tz != profile.timezone_name:
             profile.timezone_name = tz
             updated.append("timezone_name")
