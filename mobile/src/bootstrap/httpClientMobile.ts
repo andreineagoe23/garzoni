@@ -11,6 +11,7 @@ import {
   configureHttpClient,
   refreshAccessToken,
   setClientPlatform,
+  setClientTimezone,
   type InternalAxiosRequestConfig,
 } from "@garzoni/core";
 import { tokenStorage } from "../auth/tokenStorage";
@@ -54,6 +55,11 @@ export function initHttpClientMobile() {
   // Tag funnel events with the native platform so the web analytics dashboard can
   // split web vs ios vs android. Platform.OS is "ios" | "android" here.
   setClientPlatform(Platform.OS);
+  try {
+    setClientTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+  } catch {
+    // Hermes without Intl time zone data: the push-token path still reports it.
+  }
 
   const resolved = resolveBackendUrlFromExpo();
   if (resolved) {
